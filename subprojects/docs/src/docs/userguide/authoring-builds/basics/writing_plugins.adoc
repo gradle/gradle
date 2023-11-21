@@ -40,7 +40,7 @@ abstract class SamplePlugin : Plugin<Project> {
 
 == Script plugin
 
-The simplest plugin is a script plugin coded in the build script.
+Most plugins start as a script plugin coded in the build script.
 
 Let's take a look at an example:
 
@@ -112,7 +112,7 @@ Finally, apply the plugin in the build script.
 apply<MyPlugin>()
 ----
 
-When `MyPlugin` is applied in the build script, it is calling the method `override fun apply() {}` as defined in the custom `MyPlugin` class.
+When `MyPlugin` is applied in the build script, Gradle calls the `fun apply() {}` method defined in the custom `MyPlugin` class.
 
 This makes the plugin available to the application.
 

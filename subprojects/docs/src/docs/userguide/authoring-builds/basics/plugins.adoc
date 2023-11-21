@@ -550,21 +550,7 @@ intellij-plugin = "1.6"
 jetbrains-intellij = { id = "org.jetbrains.intellij", version.ref = "intellij-plugin" }
 ----
 
-The catalog can be referenced in the settings file by creating an alias name:
-
-.buildSrc/settings.gradle.kts
-[source,kotlin]
-----
-dependencyResolutionManagement {
-    versionCatalogs {
-        create("libs") {
-            from(files("../gradle/libs.versions.toml"))
-        }
-    }
-}
-----
-
-Then a plugin can be applied to any build script using the alias created:
+Then a plugin can be applied to any build script using the `alias` method:
 
 .build.gradle.kts
 [source,kotlin]

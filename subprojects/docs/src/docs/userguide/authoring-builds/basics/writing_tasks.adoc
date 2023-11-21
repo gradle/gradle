@@ -63,9 +63,7 @@ abstract class CreateFileTask : DefaultTask() {
     }
 }
 
-tasks.register<CreateFileTask>("createFileTask") {
-
-}
+tasks.register<CreateFileTask>("createFileTask")
 ----
 
 == Task group and description

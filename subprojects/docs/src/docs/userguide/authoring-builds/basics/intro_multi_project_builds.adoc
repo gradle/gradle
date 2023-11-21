@@ -69,11 +69,6 @@ See how to declare <<declaring_dependencies_between_subprojects#declaring_depend
 
 A project path has the following pattern: it starts with an optional colon, which denotes the root project.
 
-[source]
-----
-:
-----
-
 The root project, `:`, is the only project in a path not specified by its name.
 
 The rest of a project path is a colon-separated sequence of project names, where the next project is a subproject of the previous project:
@@ -112,7 +107,7 @@ As an example, let's use a multi-project build with the following structure:
 include::{snippetsPath}/java/multiproject/tests/listProjects.out[]
 ----
 
-From a user's perspective, multi-project builds are collections of tasks you can run.
+Multi-project builds are collections of tasks you can run.
 The difference is that you may want to control _which_ project's tasks get executed.
 
 The following sections will cover your two options for executing tasks in a multi-project build.

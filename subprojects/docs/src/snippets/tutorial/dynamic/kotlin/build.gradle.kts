@@ -1,7 +1,8 @@
 repeat(4) { counter ->
-    tasks.register("task$counter") {
+    val taskName = "task" + counter
+    tasks.register(taskName) {
         doLast {
-            println("I'm task number $counter")
+            println("I'm task number: " + counter)
         }
     }
 }

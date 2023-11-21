@@ -71,7 +71,7 @@ The project root directory contains all source files from your project.
 
 It also contains files and directories Gradle generates, such as `.gradle` and `build`.
 
-While the former are usually checked into source control, the latter are transient files Gradle uses to support features like incremental builds.
+While `.gradle` is usually checked into source control, the `build` directory contains the output of your builds as well as transient files Gradle uses to support features like incremental builds.
 
 The anatomy of a typical project root directory looks as follows:
 

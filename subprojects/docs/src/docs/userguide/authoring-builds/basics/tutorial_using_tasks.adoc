@@ -19,7 +19,7 @@ The work that Gradle can do on a project is defined by one or more _tasks_.
 
 image::author-gradle-5.png[]
 
-A task represents some atomic piece of work that a build performs.
+A task represents some independent unit of work that a build performs.
 This might be compiling some classes, creating a JAR, generating Javadoc, or publishing some archives to a repository.
 
 When a user runs `./gradlew build` in the command line, Gradle will execute the `build` task along with any other tasks it depends on.
@@ -94,9 +94,9 @@ Many of these tasks, such as `assemble`, `build`, and `run`, should be familiar 
 There are two classes of tasks that can be executed:
 
 1. *Actionable tasks* have some action(s) attached to do work in your build: `compileJava`.
-2. *Lifecycle tasks* are workflow tasks with no actions attached: `assemble`, `build`.
+2. *Lifecycle tasks* are tasks with no actions attached: `assemble`, `build`.
 
-Typically, a *lifecycle* tasks depends on many *actionable* tasks.
+Typically, a *lifecycle* tasks depends on many *actionable* tasks, and is used to execute many tasks at once.
 
 [[sec:task_registration]]
 == Task registration and action

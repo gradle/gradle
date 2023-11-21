@@ -15,7 +15,7 @@
 [[dev_introduction]]
 = Getting Started
 
-Build engineers that are ready to start writing their own plugins and configuring custom build logic should start here.
+Build engineers that are ready to configure custom build logic and write their own plugins should start here.
 
 To get started engineering Gradle builds:
 
@@ -23,9 +23,9 @@ To get started engineering Gradle builds:
 2. Follow the <<author_tutorial,tutorial>> for a hands-on approach.
 
 [[gradle_author_intro]]
-== 1. Authoring Gradle Core Concepts
+== 1. Authoring Gradle Builds Core Concepts
 
-The core concepts section goes through the Gradle authoring basics so that you can quickly understand how to create tasks, apply and write plugins, configure builds, and more.
+The core concepts section goes through some Gradle authoring basics so that you can quickly understand how to configure builds, create tasks, and write plugins.
 
 [sidebar]
 _Training level_: **Intermediate** +
@@ -44,12 +44,12 @@ The introduction covers:
 <<writing_plugins.adoc#writing_plugins,Part 9.>> Writing Plugins +
 
 [[author_tutorial]]
-== 2. Authoring Gradle Tutorial
+== 2. Authoring Gradle Builds Tutorial
 
 The tutorial will take you from Gradle initialization all the way through authoring a simple script plugin.
 No previous experience is necessary but a basic knowledge of Java and Kotlin is nice to have.
 
-If you need to install Gradle before the tutorial, you can do so in the <<installation.adoc#installation,installation section>>.
+If you need to install Gradle before the tutorial, you can see how to do so in the <<installation.adoc#installation,installation section>>.
 
 [sidebar]
 _Training level_: **Intermediate** +

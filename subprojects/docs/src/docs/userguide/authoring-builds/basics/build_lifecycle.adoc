@@ -28,14 +28,14 @@ For example, if your project tasks include `assemble`, `build`, `createDocs`, yo
 
 Gradle builds the task graph *before* executing any task.
 
-Within each project, tasks form a http://en.wikipedia.org/wiki/Directed_acyclic_graph[Directed Acyclic Graph] (DAG).
+Across all projects in the build, tasks form a http://en.wikipedia.org/wiki/Directed_acyclic_graph[Directed Acyclic Graph] (DAG).
 
 This diagram shows two example task graphs, one abstract and the other concrete, with dependencies between tasks represented as arrows:
 
 image::task-dag-examples.png[]
 
 [[build_lifecycle_events]]
-Both plugins and build scripts contribute to the task graph via the <<tutorial_using_tasks.adoc#sec:task_dependencies,task dependency mechanism>>.
+Both plugins and build scripts contribute to the task graph via the <<tutorial_using_tasks.adoc#sec:task_dependencies,task dependency mechanism>> and <<incremental_build.adoc#sec:task_inputs_outputs,annotated inputs/outputs>>.
 
 [[sec:build_phases]]
 == Build Phases
@@ -132,7 +132,8 @@ This hierarchy includes inputs, actions, and outputs for all tasks.
 
 === B. Task Execution Graph Assembly
 
-During project evaluation, Gradle assembles the *task execution graph*: a http://en.wikipedia.org/wiki/Directed_acyclic_graph[DAG] representing the dependency relationships between tasks.
+During project evaluation, Gradle assembles the *task execution graph*: a http://en.wikipedia.org/wiki/Directed_acyclic_graph[DAG] representing the dependency relationships between tasks in all projects.
+There can be relationships between tasks in different subprojects which will be reflected in the DAG.
 
 === C. Task Evaluation
 

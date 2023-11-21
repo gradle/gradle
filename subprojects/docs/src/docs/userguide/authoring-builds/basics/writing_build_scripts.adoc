@@ -43,7 +43,7 @@ As the build script executes, it configures `Project`.
 
 The build script is either a `\*.gradle` file in Groovy or a `*.gradle.kts` file in Kotlin.
 
-IMPORTANT: _Build scripts_ define `Project` objects.
+IMPORTANT: _Build scripts_ configure `Project` objects and their children.
 
 == The `Project` object
 
@@ -184,9 +184,9 @@ tasks.named<Test>("test") {                                             // <5>
 }
 ----
 <1> Apply plugins to the build.
-<2> Define dependency location.
+<2> Define the locations where dependencies can be found.
 <3> Add dependencies.
-<4> Use convention properties.
+<4> Set properties.
 <5> Register and configure tasks.
 =====
 
@@ -220,9 +220,9 @@ tasks.named('test') {                                                   // <5>
 }
 ----
 <1> Apply plugins to the build.
-<2> Define dependency location.
+<2> Define the locations where dependencies can be found.
 <3> Add dependencies.
-<4> Use convention properties.
+<4> Set properties.
 <5> Register and configure tasks.
 =====
 ====
@@ -230,7 +230,7 @@ tasks.named('test') {                                                   // <5>
 === 1. Apply plugins to the build
 Plugins are used to extend Gradle. They are also used to modularize and reuse project configurations.
 
-Plugins can be applied using the `PluginAware.apply(java.util.Map)` method or the `PluginDependenciesSpec` plugins script block.
+Plugins can be applied using the `PluginDependenciesSpec` plugins script block.
 
 The plugins block is preferred:
 
@@ -247,17 +247,19 @@ In the example, the `application` plugin, which is included with Gradle, has bee
 The Kotlin gradle plugin, version 1.9.0, has also been applied.
 This plugin is not included with Gradle and, therefore, has to be described using a `plugin id` and a `plugin version` so that Gradle can find and apply it.
 
-=== 2. Define dependency location
+=== 2. Define the locations where dependencies can be found
 
 A project generally has a number of dependencies it needs to do its work.
 Dependencies include plugins, libraries, or components that Gradle must download for the build to succeed.
 
-The build script lets Gradle know where to look for the binaries of the dependencies:
+The build script lets Gradle know where to look for the binaries of the dependencies.
+More than one location can be provided:
 
 [source]
 ----
 repositories {
     mavenCentral()
+    google()
 }
 ----
 
@@ -266,9 +268,9 @@ In the example, the `guava` library and the JetBrains Kotlin plugin (`org.jetbra
 === 3. Add dependencies
 
 A project generally has a number of dependencies it needs to do its work.
-These dependencies are typically imports in the source code.
+These dependencies are often libraries of precompiled classes that are imported in the project's source code.
 
-Dependencies are grouped in configurations and can be retrieved and uploaded from repositories.
+Dependencies are managed via <<dependency_management_terminology.adoc#sub:terminology_configuration,configurations>> and are retrieved from repositories.
 
 Use the `DependencyHandler` returned by `Project.getDependencies()` method to manage the dependencies.
 Use the `RepositoryHandler` returned by `Project.getRepositories()` method to manage the repositories.
@@ -276,9 +278,6 @@ Use the `RepositoryHandler` returned by `Project.getRepositories()` method to ma
 [source]
 ----
 dependencies {
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.3")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("com.google.guava:guava:32.1.1-jre")
 }
 ----
@@ -286,9 +285,11 @@ dependencies {
 In the example, the application code uses Google's `guava` libraries.
 Guava provides utility methods for collections, caching, primitives support, concurrency, common annotations, string processing, I/O, and validations.
 
-=== 4. Use convention properties
+=== 4. Set properties
 
-A plugin can add properties and methods to a project through the project's `Convention` object.
+A plugin can add properties and methods to a project using extensions.
+
+The link:{groovyDslPath}/org.gradle.api.Project.html[`Project`] object has an associated link:{javadocPath}/org/gradle/api/plugins/ExtensionContainer.html[`ExtensionContainer`] object that contains all the settings and properties for the plugins that have been applied to the project.
 
 In the example, the `application` plugin added an `application` property, which is used to detail the main class of our Java application:
 
@@ -481,48 +482,16 @@ link:{groovyDslPath}/org.gradle.api.plugins.ExtraPropertiesExtension.html[ExtraP
 [[sec:configuring_arbitrary_objects]]
 === Configure Arbitrary Objects
 
-The example `configure()` task shows an example of arbitrary object configuration:
+The example `greet()` task shows an example of arbitrary object configuration:
 
 ====
 include::sample[dir="snippets/tutorial/configureObject/kotlin",files="build.gradle.kts[]"]
 include::sample[dir="snippets/tutorial/configureObject/groovy",files="build.gradle[]"]
 
 ----
-$ gradle -q configure
+$ gradle -q greet
 include::{snippetsPath}/tutorial/configureObject/tests/configureObject.out[]
 ----
-====
-
-[[sec:configuring_arbitrary_objects_using_an_external_script]]
-==== Configure Objects in an External Script
-
-You can also configure arbitrary objects using an external script:
-
-[CAUTION]
-.Not supported in Kotlin
-====
-The Kotlin DSL does not support arbitrary object configuration using an external script.
-For more information, see link:https://github.com/gradle/kotlin-dsl/issues/659[gradle/kotlin-dsl#659].
-====
-
-====
-include::sample[dir="snippets/tutorial/configureObjectUsingScript/groovy",files="build.gradle[];other.gradle[]"]
-
-----
-$ gradle -q configure
-include::{snippetsPath}/tutorial/configureObjectUsingScript/tests/configureObjectUsingScript.out[]
-----
-====
-
-[[sec:closures_as_the_last_parameter_in_a_method]]
-=== Last Closure Parameter Syntax
-
-The Gradle DSL uses closures in many places.
-
-When the last parameter of a method is a closure, you can place the closure after the method call:
-
-====
-include::sample[dir="snippets/tutorial/groovy/groovy",files="build.gradle[tags=closureAsLastParam]"]
 ====
 
 [[sec:closure_delegate]]
@@ -552,6 +521,8 @@ include::default-imports.txt[]
 ----
 
 [[sec:build_script_external_dependencies]]
+[[sec:configuring_arbitrary_objects_using_an_external_script]]
+[[sec:closures_as_the_last_parameter_in_a_method]]
 
 [.text-right]
 **Next Step:** <<tutorial_using_tasks.adoc#tutorial_using_tasks,Learn how to use Tasks>> >>
