@@ -25,7 +25,6 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
