@@ -18,8 +18,10 @@ package org.gradle.groovy.scripts.internal;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
@@ -54,6 +56,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collections;
 
 import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic;
 
@@ -67,16 +70,19 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private final GlobalScopedCacheBuilderFactory cacheBuilderFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final CachedClasspathTransformer classpathTransformer;
+    private final FileCollectionFactory fileCollectionFactory;
 
     public FileCacheBackedScriptClassCompiler(
-            GlobalScopedCacheBuilderFactory cacheBuilderFactory, ScriptCompilationHandler scriptCompilationHandler,
-            ProgressLoggerFactory progressLoggerFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-            CachedClasspathTransformer classpathTransformer) {
+        GlobalScopedCacheBuilderFactory cacheBuilderFactory, ScriptCompilationHandler scriptCompilationHandler,
+        ProgressLoggerFactory progressLoggerFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        CachedClasspathTransformer classpathTransformer, FileCollectionFactory fileCollectionFactory
+    ) {
         this.cacheBuilderFactory = cacheBuilderFactory;
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.progressLoggerFactory = progressLoggerFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.classpathTransformer = classpathTransformer;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     @Override
@@ -138,6 +144,12 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private ClassPath remapClasses(File genericClassesDir, RemappingScriptSource source, ScriptHandler scriptHandler) {
         ScriptSource origin = source.getSource();
         String className = origin.getClassName();
+
+        @SuppressWarnings("unused")
+        Configuration configuration = scriptHandler.getConfigurations().detachedConfiguration(
+            scriptHandler.getDependencies().create(fileCollectionFactory.fixed(Collections.singleton(genericClassesDir)))
+        );
+
         return classpathTransformer.transform(DefaultClassPath.of(genericClassesDir), BuildLogic, new ClassTransform() {
             @Override
             public void applyConfigurationTo(Hasher hasher) {

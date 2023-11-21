@@ -464,14 +464,17 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         DefaultScriptCompilationHandler scriptCompilationHandler,
         CachedClasspathTransformer classpathTransformer,
-        ProgressLoggerFactory progressLoggerFactory
+        ProgressLoggerFactory progressLoggerFactory,
+        FileCollectionFactory fileCollectionFactory
     ) {
         return new FileCacheBackedScriptClassCompiler(
             cacheRepository,
             new BuildOperationBackedScriptCompilationHandler(scriptCompilationHandler, buildOperationExecutor),
             progressLoggerFactory,
             classLoaderHierarchyHasher,
-            classpathTransformer);
+            classpathTransformer,
+            fileCollectionFactory
+        );
     }
 
     protected ScriptPluginFactory createScriptPluginFactory(InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext, ListenerManager listenerManager) {
