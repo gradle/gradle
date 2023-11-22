@@ -21,35 +21,39 @@ import org.gradle.api.Incubating;
 import java.util.List;
 
 /**
- * Represents a problem category
+ * A hierarchical representation for a particular problem type.
+ * <p>
+ * A category object follows a pattern similar to URNs, it has a namespace, a main category and a subcategory.
+ * <p>
+ * The namespace contains information about the origin of the problem: whether it comes from the Gradle core runtime, or from a third-party plugin.
+ * For example, {@code deprecation}, or {@code compilation} is a main category.
+ * <p>
+ * Subcategories can be an arbitrary list of strings, that ideally serve as a unique identifier.
+ * To use compilation as an example, {@code [java, unused-variable]} would be a subcategory, that along with the {@code [compilation]} main category, denotes a particular compiler warning.
+ * The exact definition of subcategories depends on the problem's domain.
+ * <p>
  * @since 8.6
  */
 @Incubating
 public interface ProblemCategory {
     /**
-     * TODO document
-     * Namespace
-     * - problems emitted by gradle core: value = "" empty string
-     * - problems emitted by gradle plugins: value = plugin-id // TODO we should do this to some extent
+     * Returns the namespace. Describes the component reporting the problem (Gradle core or plugin ID).
      *
-     * @return the problem namespace
-
+     * @return the problem's namespace.
      */
     String getNamespace();
 
     /**
      * The main problem category.
-     * - example: deprecation
-     * - example: compilation
      *
-     * @return The category string
+     * @return The category string.
      */
     String getCategory();
 
     /**
-     * The subcategories further specifying the problem
-     * TODO ad examples
-     * @return the subcategories
+     * The problem's subcategories.
+     *
+     * @return the subcategories.
      */
     List<String> getSubCategories();
 }

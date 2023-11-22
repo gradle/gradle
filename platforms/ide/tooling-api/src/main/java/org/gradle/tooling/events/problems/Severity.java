@@ -21,15 +21,17 @@ import org.gradle.tooling.events.problems.internal.DefaultSeverity;
 
 /**
  * Represents a problem severity.
+ *
  * @since 8.6
  */
 @Incubating
 public interface Severity {
 
-    // TODO add comment reference to class which this interface should be in sync
+    // Note: the static fields must be in sync with entries from org.gradle.api.problems.Severity.
     Severity ADVICE = new DefaultSeverity(0, true);
     Severity WARNING = new DefaultSeverity(1, true);
     Severity ERROR = new DefaultSeverity(2, true);
+
     /**
      * The severity level represented by a string.
      *
