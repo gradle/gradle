@@ -36,7 +36,7 @@ class AssignmentTrace(
 sealed interface AssignmentTraceElement {
     val lhs: PropertyReferenceResolution
     val rhs: ObjectOrigin
-    
+
     data class RecordedAssignment(
         override val lhs: PropertyReferenceResolution,
         override val rhs: ObjectOrigin

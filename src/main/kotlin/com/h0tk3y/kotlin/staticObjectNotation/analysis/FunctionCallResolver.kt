@@ -24,7 +24,7 @@ class FunctionCallResolverImpl(
     private val expressionResolver: ExpressionResolver,
     private val codeAnalyzer: CodeAnalyzer
 ) : FunctionCallResolver {
-    
+
     override fun doResolveFunctionCall(
         context: AnalysisContext,
         functionCall: FunctionCall
@@ -109,16 +109,16 @@ class FunctionCallResolverImpl(
         val newFunctionCallId = nextInstant()
         val valueBinding = function.binding.toValueBinding(argResolutions)
         val semantics = function.schemaFunction.semantics
-        
+
         checkBuilderSemantics(semantics, receiver, function)
 
         val result: ObjectOrigin.FunctionOrigin = invocationResultObjectOrigin(
             semantics, function, functionCall, valueBinding, newFunctionCallId
         )
-        
+
         doRecordSemanticsSideEffects(semantics, receiver, result, function, argResolutions)
         doAnalyzeConfiguringSemantics(functionCall, semantics, function, result, newFunctionCallId)
-        
+
         return result
     }
 

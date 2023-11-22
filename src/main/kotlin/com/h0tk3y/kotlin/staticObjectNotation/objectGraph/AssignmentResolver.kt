@@ -63,16 +63,16 @@ class AssignmentResolver {
             node -> node
             else -> get(value).also { dsu[node] = it }
         }
-        
+
         fun union(left: ResolutionNode, right: ResolutionNode) {
             dsu[get(left)] = right
         }
-        
+
         assignmentByNode.forEach { (key, value) ->
             union(key, value)
         }
-        
-        return buildMap { 
+
+        return buildMap {
             assignmentByNode.forEach { (lhs, _) ->
                 put(lhs.propertyReferenceResolution, run {
                     when (val result = get(lhs)) {
@@ -164,5 +164,5 @@ class AssignmentResolver {
                 usage.originElement
             )
         }
-    } 
+    }
 }

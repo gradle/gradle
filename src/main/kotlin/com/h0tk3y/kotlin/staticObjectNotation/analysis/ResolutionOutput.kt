@@ -18,7 +18,7 @@ data class AssignmentRecord(
 
 sealed interface ObjectOrigin {
     val originElement: LanguageTreeElement
-    
+
     sealed interface HasReceiver : ObjectOrigin {
         val receiver: ObjectOrigin
     }
@@ -40,19 +40,19 @@ sealed interface ObjectOrigin {
 
         override fun toString(): String = "${literal.value.let { if (it is String) "\"$it\"" else it }}"
     }
-    
+
     data class NullObjectOrigin(override val originElement: Null) : ObjectOrigin
-    
+
     sealed interface FunctionOrigin : ObjectOrigin {
         val function: SchemaFunction
         val invocationId: Long
         val receiver: ObjectOrigin?
     }
-    
+
     sealed interface FunctionInvocationOrigin : FunctionOrigin {
         val parameterBindings: ParameterValueBinding
     }
-    
+
     data class BuilderReturnedReceiver(
         override val function: SchemaFunction,
         override val receiver: ObjectOrigin,
@@ -73,7 +73,7 @@ sealed interface ObjectOrigin {
         override fun toString(): String =
             functionInvocationString(function, receiver, invocationId, parameterBindings)
     }
-    
+
     data class NewObjectFromTopLevelFunction(
         override val function: SchemaFunction,
         override val parameterBindings: ParameterValueBinding,
@@ -94,7 +94,7 @@ sealed interface ObjectOrigin {
     ) : FunctionOrigin {
         override fun toString(): String {
             val accessorString = when (accessor) {
-                is ConfigureAccessor.Property -> accessor.dataProperty.name 
+                is ConfigureAccessor.Property -> accessor.dataProperty.name
             }
             return "$receiver.$accessorString"
         }
@@ -114,7 +114,7 @@ sealed interface ObjectOrigin {
         override val originElement: LanguageTreeElement
     ) : ObjectOrigin {
         override fun toString(): String = "$receiver${'.'}${property.name}_default"
-        
+
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other !is PropertyDefaultValue) return false

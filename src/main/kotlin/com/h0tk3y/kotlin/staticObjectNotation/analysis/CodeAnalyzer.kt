@@ -12,9 +12,9 @@ class CodeAnalyzerImpl(
     // TODO: get rid of this in favor of just expressionResolver?
     private val functionCallResolver: FunctionCallResolver
 ) : CodeAnalyzer {
-    
+
     override fun analyzeCodeInProgramOrder(
-        context: AnalysisContext, 
+        context: AnalysisContext,
         elements: List<LanguageTreeElement>
     ) = with(context) {
         for (element in elements) {
