@@ -42,7 +42,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         }
     }
 
-    // TODO make a variant for Gradle 8.6+ where structural information is exposed
     def "test failure context"() {
         setup:
         buildFile << """
