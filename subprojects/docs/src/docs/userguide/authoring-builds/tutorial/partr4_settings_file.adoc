@@ -22,7 +22,6 @@ Learn the basics of authoring Gradle by developing the Settings File.
 
 - Understand the Settings object
 - Understand the Settings file
-- Run tasks in subprojects
 ****
 
 [[part4_begin]]

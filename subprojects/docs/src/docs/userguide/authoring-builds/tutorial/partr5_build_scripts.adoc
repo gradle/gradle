@@ -22,8 +22,9 @@ Learn the basics of authoring Gradle by developing the Build Script.
 
 - Understand the Project object
 - Update the Build script
-- Update and apply a Plugin
-- Run new Plugin task
+- Update the Plugin
+- Apply the Plugin
+- Run a task from the Plugin
 ****
 
 [[part5_begin]]
@@ -32,7 +33,7 @@ Learn the basics of authoring Gradle by developing the Build Script.
 1. You initialized your Java app in <<partr1_gradle_init.adoc#part1_begin,part 1>>.
 2. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
 3. You added a subproject and a separate Build in <<partr3_multi_project_builds#part3_begin, part3>>.
-4. You authored a Settings file in <<partr4_settings_file.adoc#part4_begin,part 4>>.
+4. You viwed a Settings file in <<partr4_settings_file.adoc#part4_begin,part 4>>.
 
 == Step 1. The `Project` object
 
@@ -105,14 +106,14 @@ tasks.named<Test>("test") {
     useJUnitPlatform()
 }
 ----
-<1>
+<1> FIX ME
 <2> Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins
 <3> Apply the Kotlin JVM plugin to add support for Kotlin
-<4>
+<4> FIX ME
 <5> Use Maven Central for resolving dependencies
-<6>
+<6> FIX ME
 <7> Use the Kotlin JUnit 5 integration
-<8>
+<8> FIX ME
 <9> Define the plugin
 <10> Additional test functionality outside the scope of this tutorial
 

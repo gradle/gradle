@@ -32,24 +32,34 @@ Learn the basics of authoring Gradle tasks by creating a simple one in your Buil
 1. You initialized your Java app in <<partr1_gradle_init.adoc#part1_begin,part 1>>.
 2. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
 3. You added a subproject and a separate Build in <<partr3_multi_project_builds#part3_begin, part3>>.
-4. You authored a Settings file in <<partr4_settings_file.adoc#part4_begin,part 4>>.
+4. You viewed a Settings file in <<partr4_settings_file.adoc#part4_begin,part 4>>.
 5. You authored a Build script in <<partr5_build_scripts.adoc#part5_begin,part 5>>.
 
 == Step 1. Understand Tasks
 A Task is an executable piece of code that contains sequences of actions.
-Actions are added to a Task via the doFirst{} and doLast{} closures.
-A Task can depend on other tasks
+
+Actions are added to a Task via the `doFirst{}` and `doLast{}` closures.
+
+A Task can depend on other tasks.
 
 == Step 2. Register a Task
 
-.Plugin.kts
+Early on in the tutorial we registed and configured `task1` in the `app` build script:
+
+.app/build.gradle.kts
 [source,kotlin]
 ----
-project.tasks.register("license") { task ->
-    task.description = "license"
-    task.group = "from my plugin"
-    task.doLast {
-        println("Hello from plugin 'com.gradle.license'")
+tasks.register("task1"){
+    println("REGISTER TASK1: This is executed during the configuration phase")
+}
+
+tasks.named("task1"){
+    println("NAMED TASK1: This is executed during the configuration phase")
+    doFirst {
+        println("NAMED TASK1 - doFirst: This is executed during the execution phase")
+    }
+    doLast {
+        println("NAMED TASK1 - doLast: This is executed during the execution phase")
     }
 }
 ----
