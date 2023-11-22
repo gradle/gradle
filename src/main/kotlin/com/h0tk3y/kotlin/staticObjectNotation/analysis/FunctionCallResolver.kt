@@ -169,11 +169,15 @@ class FunctionCallResolverImpl(
             require(receiver != null)
             recordAddition(receiver, result)
         }
+        val assignmentMethod = when (semantics) {
+            is FunctionSemantics.Builder -> AssignmentMethod.BuilderFunction(function.schemaFunction as DataBuilderFunction)
+            else -> AssignmentMethod.AsConstructed
+        }
         function.binding.binding.forEach { (param, arg) ->
             val paramSemantics = param.semantics
             if (paramSemantics is ParameterSemantics.StoreValueInProperty) {
                 val property = paramSemantics.dataProperty
-                recordAssignment(PropertyReferenceResolution(result, property), argResolutions.getValue(arg))
+                recordAssignment(PropertyReferenceResolution(result, property), argResolutions.getValue(arg), assignmentMethod)
             }
         }
     }

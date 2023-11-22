@@ -13,8 +13,15 @@ data class PropertyReferenceResolution(
 data class AssignmentRecord(
     val lhs: PropertyReferenceResolution,
     val rhs: ObjectOrigin,
-    val assignmentOrder: Long
+    val assignmentOrder: Long,
+    val assignmentMethod: AssignmentMethod
 )
+
+sealed interface AssignmentMethod {
+    data object Property : AssignmentMethod
+    data object AsConstructed : AssignmentMethod
+    data class BuilderFunction(val function: DataBuilderFunction) : AssignmentMethod
+}
 
 sealed interface ObjectOrigin {
     val originElement: LanguageTreeElement

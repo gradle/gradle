@@ -1,13 +1,13 @@
 package com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm
 
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.AssignmentMethod
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataBuilderFunction
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataProperty
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataType
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataTypeRef
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ExternalObjectProviderKey
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ObjectOrigin
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterValueBinding
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.TypeRefContext
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.ObjectReflection
+import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.PropertyValueReflection
 import com.h0tk3y.kotlin.staticObjectNotation.types.isConfigureLambda
 import kotlin.reflect.KFunction
 import kotlin.reflect.KMutableProperty
@@ -19,27 +19,21 @@ import kotlin.reflect.full.memberProperties
 
 class RestrictedReflectionToObjectConverter(
     private val externalObjectsMap: Map<ExternalObjectProviderKey, Any>,
-    private val typeRefContext: TypeRefContext,
     private val topLevelObject: Any
 ) {
     fun apply(objectReflection: ObjectReflection) {
         if (objectReflection is ObjectReflection.DataObjectReflection) {
-            objectReflection.properties.forEach { (property, value) ->
-                val valueObject = getObjectByResolvedOrigin(value.objectOrigin)
-                if (!property.isReadOnly) {
-                    setPropertyValue(objectReflection.objectOrigin, property, valueObject)
-                }
-
-                if (valueObject != null) {
-                    apply(value)
-                }
+            objectReflection.properties.forEach { (property, assigned) ->
+                applyPropertyValue(objectReflection.objectOrigin, property, assigned)
+                apply(assigned.value)
                 // TODO: record properties assigned in function calls or constructors, so that
                 //       we can check that all properties were assigned
             }
 
-            objectReflection.addedObjects.forEach { objectReflection ->
+            objectReflection.addedObjects.forEach { addedObject ->
                 // We need the side effect of invoking the function producing the object, if it was there
-                getObjectByResolvedOrigin(objectReflection.objectOrigin)
+                getObjectByResolvedOrigin(addedObject.objectOrigin)
+                apply(addedObject)
                 // TODO: maybe add the "containers" to the schema, so that added objects can be better expressed in this interpretation step
             }
         }
@@ -49,6 +43,14 @@ class RestrictedReflectionToObjectConverter(
 
     private fun objectByIdentity(identity: Long, newObjectCreation: () -> Any?): Any? {
         return reflectionIdentityObjects.computeIfAbsent(identity) { newObjectCreation() }
+    }
+
+    private fun applyPropertyValue(receiver: ObjectOrigin, property: DataProperty, assigned: PropertyValueReflection) {
+        when (assigned.assignmentMethod) {
+            is AssignmentMethod.Property -> setPropertyValue(receiver, property, getObjectByResolvedOrigin(assigned.value.objectOrigin))
+            is AssignmentMethod.BuilderFunction -> invokeBuilderFunction(receiver, assigned.assignmentMethod.function, assigned.value.objectOrigin)
+            is AssignmentMethod.AsConstructed -> Unit // the value should have already been passed to the constructor or the factory function
+        }
     }
 
     private fun getObjectByResolvedOrigin(objectOrigin: ObjectOrigin): Any? {
@@ -80,12 +82,11 @@ class RestrictedReflectionToObjectConverter(
         origin: ObjectOrigin.NewObjectFromMemberFunction
     ): Any? {
         val dataFun = origin.function
-        val ownerKClass = (typeRefContext.resolveRef(dataFun.receiver) as? DataType.DataClass<*>)?.kClass
-            ?: error("Member functions on non-class type are not supported")
         val receiver = getObjectByResolvedOrigin(origin.receiver)
-        check(receiver != null) { "member function $dataFun called on a null receiver" }
+            ?: error("Tried to invoke a function $dataFun on a null receiver ${origin.receiver}")
 
-        for (kFun in ownerKClass.memberFunctions) {
+        val receiverKClass = receiver::class
+        for (kFun in receiverKClass.memberFunctions) {
             if (kFun.name == dataFun.simpleName) {
                 val params = bindDataParametersToFunctionParameters(receiver, kFun, origin.parameterBindings)
                 if (params != null) {
@@ -93,7 +94,25 @@ class RestrictedReflectionToObjectConverter(
                 }
             }
         }
-        error("could not resolve a member function $dataFun call in the owner class $ownerKClass")
+        error("could not resolve a member function $dataFun call in the owner class $receiverKClass")
+    }
+
+    private fun invokeBuilderFunction(receiverOrigin: ObjectOrigin, function: DataBuilderFunction, valueOrigin: ObjectOrigin) {
+        val receiver = getObjectByResolvedOrigin(receiverOrigin)
+            ?: error("Tried to invoke a function $function on a null receiver $receiverOrigin")
+        val receiverKClass = receiver::class
+        val parameterBinding = ParameterValueBinding(mapOf(function.dataParameter to valueOrigin))
+
+        for (kFun in receiverKClass.memberFunctions) {
+            if (kFun.name == function.simpleName) {
+                val params = bindDataParametersToFunctionParameters(receiver, kFun, parameterBinding)
+                if (params != null) {
+                    kFun.callBy(params)
+                    return
+                }
+            }
+        }
+        error("could not resolve a member function $function call in the owner class $receiverKClass")
     }
 
     private fun objectFromTopLevelFunction(
@@ -158,14 +177,4 @@ class RestrictedReflectionToObjectConverter(
     }
 
     private val universalConfigureLambda: (Nothing) -> Unit = { }
-
-    private fun DataTypeRef.toKClass() = when (val type = typeRefContext.resolveRef(this)) {
-        DataType.BooleanDataType -> Boolean::class
-        DataType.IntDataType -> Int::class
-        DataType.LongDataType -> Long::class
-        DataType.StringDataType -> String::class
-        is DataType.DataClass<*> -> type.kClass
-        DataType.NullType -> Nothing::class
-        DataType.UnitType -> Unit::class
-    }
 }

@@ -1,5 +1,6 @@
 package com.h0tk3y.kotlin.staticObjectNotation.objectGraph
 
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.AssignmentMethod
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ObjectOrigin
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.PropertyReferenceResolution
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionResult
@@ -12,10 +13,10 @@ class AssignmentTracer(
     fun produceAssignmentTrace(resolutionResult: ResolutionResult): AssignmentTrace {
         val assignmentResolver = assignmentResolverFactory()
         val elementResults = buildList {
-            resolutionResult.assignments.forEach { (lhs, rhs) ->
+            resolutionResult.assignments.forEach { (lhs, rhs, _, method) ->
                 add(
-                    when (val additionResult = assignmentResolver.addAssignment(lhs, rhs)) {
-                        is AssignmentAdded -> AssignmentTraceElement.RecordedAssignment(additionResult.resolvedLhs, rhs)
+                    when (val additionResult = assignmentResolver.addAssignment(lhs, rhs, method)) {
+                        is AssignmentAdded -> AssignmentTraceElement.RecordedAssignment(additionResult.resolvedLhs, rhs, additionResult.assignmentMethod)
                         is UnresolvedValueUsedInLhs -> UnassignedValueUsed(additionResult, lhs, rhs)
                         is UnresolvedValueUsedInRhs -> UnassignedValueUsed(additionResult, lhs, rhs)
                     }
@@ -39,7 +40,8 @@ sealed interface AssignmentTraceElement {
 
     data class RecordedAssignment(
         override val lhs: PropertyReferenceResolution,
-        override val rhs: ObjectOrigin
+        override val rhs: ObjectOrigin,
+        val assignmentMethod: AssignmentMethod
     ) : AssignmentTraceElement
 
     data class UnassignedValueUsed(

@@ -2,6 +2,7 @@ package com.h0tk3y.kotlin.staticObjectNotation
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ConfigureAccessor
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataBuilderFunction
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataConstructorSignature
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataMemberFunction
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataParameter
@@ -13,6 +14,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.ExternalObjectProviderKey
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.FqName
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.FunctionSemantics
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterSemantics
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.SchemaMemberFunction
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.fqName
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ref
 import com.h0tk3y.kotlin.staticObjectNotation.types.isConfigureLambda
@@ -92,7 +94,7 @@ fun createDataType(
     val functions = kClass.memberFunctions
         .filter { it.isIncluded && it.visibility == KVisibility.PUBLIC && !it.isIgnored }
         .map { function ->
-            dataMemberFunction(kClass, function, preIndex)
+            memberFunction(kClass, function, preIndex)
         }
     return DataType.DataClass(kClass, properties, functions, constructors(kClass, preIndex))
 }
@@ -176,11 +178,11 @@ private fun dataTopLevelFunction(
     )
 }
 
-private fun dataMemberFunction(
+private fun memberFunction(
     inType: KClass<*>,
     function: KFunction<*>,
     preIndex: PreIndex
-): DataMemberFunction {
+): SchemaMemberFunction {
     val thisTypeRef = inType.toDataTypeRef()
 
     val returnType = function.returnType
@@ -203,12 +205,20 @@ private fun dataMemberFunction(
         }
         .map { fnParam -> dataParameter(function, fnParam, returnClass, semanticsFromSignature, preIndex) }
 
-    return DataMemberFunction(
-        thisTypeRef,
-        function.name,
-        params,
-        semanticsFromSignature
-    )
+    return if (semanticsFromSignature is FunctionSemantics.Builder) {
+        DataBuilderFunction(
+            thisTypeRef,
+            function.name,
+            params.single()
+        )
+    } else {
+        DataMemberFunction(
+            thisTypeRef,
+            function.name,
+            params,
+            semanticsFromSignature
+        )
+    }
 }
 
 private fun inferFunctionSemanticsFromSignature(

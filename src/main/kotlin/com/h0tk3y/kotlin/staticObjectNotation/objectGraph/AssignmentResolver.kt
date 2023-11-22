@@ -1,5 +1,6 @@
 package com.h0tk3y.kotlin.staticObjectNotation.objectGraph
 
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.AssignmentMethod
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ConfigureAccessor
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ObjectOrigin
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.PropertyReferenceResolution
@@ -8,10 +9,12 @@ import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver.Exp
 
 class AssignmentResolver {
     private val assignmentByNode = mutableMapOf<ResolutionNode.Property, ResolutionNode>()
+    private val assignmentMethodByProperty = mutableMapOf<ResolutionNode.Property, AssignmentMethod>()
 
     sealed interface AssignmentAdditionResult {
         data class AssignmentAdded(
-            val resolvedLhs: PropertyReferenceResolution
+            val resolvedLhs: PropertyReferenceResolution,
+            val assignmentMethod: AssignmentMethod
         ) : AssignmentAdditionResult
 
         data class UnresolvedValueUsedInLhs(
@@ -23,7 +26,7 @@ class AssignmentResolver {
         ) : AssignmentAdditionResult
     }
 
-    fun addAssignment(lhsProperty: PropertyReferenceResolution, rhsOrigin: ObjectOrigin): AssignmentAdditionResult =
+    fun addAssignment(lhsProperty: PropertyReferenceResolution, rhsOrigin: ObjectOrigin, assignmentMethod: AssignmentMethod): AssignmentAdditionResult =
         when (val lhsOwner = resolveToObjectOrPropertyReference(lhsProperty.receiverObject)) {
             is UnresolvedReceiver -> {
                 AssignmentAdditionResult.UnresolvedValueUsedInLhs(lhsOwner.accessOrigin)
@@ -42,7 +45,8 @@ class AssignmentResolver {
                             else -> ResolutionNode.PrimitiveValue(rhs)
                         }
                         assignmentByNode[lhsNode] = rhsNode
-                        AssignmentAdditionResult.AssignmentAdded(lhsNode.propertyReferenceResolution)
+                        assignmentMethodByProperty[lhsNode] = assignmentMethod
+                        AssignmentAdditionResult.AssignmentAdded(lhsNode.propertyReferenceResolution, assignmentMethod)
                     }
 
                     // TODO: lazy semantics for properties
@@ -52,7 +56,7 @@ class AssignmentResolver {
         }
 
     sealed interface AssignmentResolutionResult {
-        data class Assigned(val objectOrigin: ObjectOrigin) : AssignmentResolutionResult
+        data class Assigned(val objectOrigin: ObjectOrigin, val assignmentMethod: AssignmentMethod) : AssignmentResolutionResult
         data class Unassigned(val property: PropertyReferenceResolution) : AssignmentResolutionResult
     }
 
@@ -76,7 +80,10 @@ class AssignmentResolver {
             assignmentByNode.forEach { (lhs, _) ->
                 put(lhs.propertyReferenceResolution, run {
                     when (val result = get(lhs)) {
-                        is ResolutionNode.PrimitiveValue -> AssignmentResolutionResult.Assigned(result.objectOrigin)
+                        is ResolutionNode.PrimitiveValue -> {
+                            val assignmentMethod = assignmentMethodByProperty.getValue(lhs)
+                            AssignmentResolutionResult.Assigned(result.objectOrigin, assignmentMethod)
+                        }
                         is ResolutionNode.Property -> AssignmentResolutionResult.Unassigned(result.propertyReferenceResolution)
                     }
                 })

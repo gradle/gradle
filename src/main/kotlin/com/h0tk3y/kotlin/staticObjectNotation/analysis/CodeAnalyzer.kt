@@ -27,10 +27,7 @@ class CodeAnalyzerImpl(
 
                 is LocalValue -> doAnalyzeLocal(element)
                 is PropertyAccess, is Literal<*>, is Block -> errorCollector(
-                    ResolutionError(
-                        element,
-                        ErrorReason.DanglingPureExpression
-                    )
+                    ResolutionError(element, ErrorReason.DanglingPureExpression)
                 )
 
                 is Expr -> {
@@ -72,7 +69,7 @@ class CodeAnalyzerImpl(
                 }
 
                 if (!hasErrors) {
-                    recordAssignment(lhsResolution, rhsResolution)
+                    recordAssignment(lhsResolution, rhsResolution, AssignmentMethod.Property)
                 }
             }
         }

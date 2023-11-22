@@ -14,7 +14,7 @@ sealed interface ObjectReflection {
         val identity: Long,
         override val type: DataType.DataClass<*>,
         override val objectOrigin: ObjectOrigin,
-        val properties: Map<DataProperty, ObjectReflection>,
+        val properties: Map<DataProperty, PropertyValueReflection>,
         val addedObjects: List<ObjectReflection>
     ) : ObjectReflection
 
@@ -53,6 +53,11 @@ sealed interface ObjectReflection {
         override val type = DataType.UnitType
     }
 }
+
+data class PropertyValueReflection(
+    val value: ObjectReflection,
+    val assignmentMethod: AssignmentMethod
+)
 
 fun reflect(
     objectOrigin: ObjectOrigin,
@@ -135,9 +140,9 @@ fun reflectData(
     val propertiesWithValue = type.properties.mapNotNull {
         val referenceResolution = PropertyReferenceResolution(objectOrigin, it)
         when (val assignment = context.resolveAssignment(referenceResolution)) {
-            is Assigned -> it to reflect(assignment.objectOrigin, context)
+            is Assigned -> it to PropertyValueReflection(reflect(assignment.objectOrigin, context), assignment.assignmentMethod)
             else -> if (it.hasDefaultValue) {
-                it to reflect(ObjectOrigin.PropertyDefaultValue(objectOrigin, it, objectOrigin.originElement), context)
+                it to PropertyValueReflection(reflect(ObjectOrigin.PropertyDefaultValue(objectOrigin, it, objectOrigin.originElement), context), AssignmentMethod.AsConstructed)
             } else null
         }
     }.toMap()

@@ -83,8 +83,8 @@ class AnalysisContext(
         mutableScopes.add(newScope)
     }
 
-    fun recordAssignment(resolvedTarget: PropertyReferenceResolution, resolvedRhs: ObjectOrigin) {
-        mutableAssignments.add(AssignmentRecord(resolvedTarget, resolvedRhs, nextInstant()))
+    fun recordAssignment(resolvedTarget: PropertyReferenceResolution, resolvedRhs: ObjectOrigin, assignmentMethod: AssignmentMethod) {
+        mutableAssignments.add(AssignmentRecord(resolvedTarget, resolvedRhs, nextInstant(), assignmentMethod))
     }
 
     fun recordAddition(container: ObjectOrigin, dataObject: ObjectOrigin) {
