@@ -17,7 +17,6 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.file.RelativePath;
 import org.gradle.api.file.SymbolicLinkDetails;
 
 import java.io.IOException;
@@ -31,7 +30,7 @@ public class DefaultSymbolicLinkDetails implements SymbolicLinkDetails {
     private final Path absoluteTarget;
     private final boolean isRelative;
 
-    public DefaultSymbolicLinkDetails(Path path, RelativePath relativePath) {
+    public DefaultSymbolicLinkDetails(Path path, int relativePathDepth) {
         try {
             target = Files.readSymbolicLink(path);
         } catch (IOException e) {
@@ -46,7 +45,7 @@ public class DefaultSymbolicLinkDetails implements SymbolicLinkDetails {
             Path absoluteTarget;
             try {
                 absoluteTarget = resolvedTarget.toRealPath();
-                isRelative = isRelativeToRoot(path, relativePath, resolvedTarget, absoluteTarget);
+                isRelative = isRelativeToRoot(path, relativePathDepth, resolvedTarget, absoluteTarget);
             } catch (IOException e) {
                 absoluteTarget = resolvedTarget;
                 isRelative = false;
@@ -60,8 +59,8 @@ public class DefaultSymbolicLinkDetails implements SymbolicLinkDetails {
      * Comparing by string to mitigate unicode normalization.
      * Path should begin with the absolute path to the root spec and should not contain parts at the same level or upper at any point.
      **/
-    private boolean isRelativeToRoot(Path path, RelativePath relativePath, Path resolvedTarget, Path absoluteTarget) {
-        int rootAbsoluteLength = path.getNameCount() - relativePath.getSegments().length;
+    private boolean isRelativeToRoot(Path path, int relativePathDepth, Path resolvedTarget, Path absoluteTarget) {
+        int rootAbsoluteLength = path.getNameCount() - relativePathDepth;
         if (absoluteTarget.getNameCount() < rootAbsoluteLength || absoluteTarget.getRoot() != path.getRoot()) {
             return false;
         }

@@ -163,7 +163,7 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
         public SymbolicLinkDetails getSymbolicLinkDetails() {
             Path path = getFile().toPath();
             if (Files.isSymbolicLink(path)) {
-                return new DefaultSymbolicLinkDetails(path, getRelativePath());
+                return new DefaultSymbolicLinkDetails(path, getRelativePath().getSegments().length);
             } else {
                 return null;
             }
@@ -260,7 +260,7 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
         @Override
         public SymbolicLinkDetails getSymbolicLinkDetails() {
             if (Files.isSymbolicLink(path)) {
-                return new DefaultSymbolicLinkDetails(path, getRelativePath());
+                return new DefaultSymbolicLinkDetails(path, getRelativePath().getSegments().length);
             } else {
                 return null;
             }

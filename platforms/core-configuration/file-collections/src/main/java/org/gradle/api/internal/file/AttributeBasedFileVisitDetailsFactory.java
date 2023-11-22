@@ -64,23 +64,18 @@ public class AttributeBasedFileVisitDetailsFactory {
         } else {
             SymbolicLinkDetails linkDetails = null;
             boolean preserveLink = false;
-            if (Files.isSymbolicLink(path)) { //FIXME: optimize
-                linkDetails = new DefaultSymbolicLinkDetails(path, relativePath);
+            if (Files.isSymbolicLink(path)) {
+                linkDetails = new DefaultSymbolicLinkDetails(path, relativePath.getSegments().length);
                 preserveLink = linksStrategy.shouldBePreserved(linkDetails, relativePath.getPathString());
-                if (relativePath.getSegments().length == 0 && (preserveLink || attrs.isRegularFile())) {
+            }
+            if (relativePath.getSegments().length == 0) {
+                if (preserveLink || attrs.isRegularFile()) {
                     relativePath = new RelativePath(true, file.getName());
-                    linkDetails = new DefaultSymbolicLinkDetails(path, relativePath);
                 }
-            } else if (relativePath.getSegments().length == 0 && attrs.isRegularFile()) {
-                relativePath = new RelativePath(true, file.getName());
+            } else if (!relativePath.isFile() && (preserveLink || attrs.isRegularFile())) {
+                relativePath = new RelativePath(true, relativePath.getSegments());
             }
-
-            if (attrs.isDirectory() && OperatingSystem.current() == OperatingSystem.WINDOWS) {
-                // Workaround for https://github.com/gradle/gradle/issues/11577
-                return new DefaultFileVisitDetails(file, relativePath, stopFlag, fileSystem, fileSystem, linkDetails, preserveLink);
-            } else {
-                return new AttributeBasedFileVisitDetails(file, relativePath, stopFlag, fileSystem, fileSystem, attrs, linkDetails, preserveLink);
-            }
+            return createFileVisitDetails(file, relativePath, attrs, stopFlag, fileSystem, linkDetails, preserveLink);
         }
     }
 
@@ -124,16 +119,22 @@ public class AttributeBasedFileVisitDetailsFactory {
         FileSystem fileSystem,
         LinksStrategy linksStrategy
     ) {
-        SymbolicLinkDetails linkDetails = null;
-        boolean preserveLink = false;
-        if (Files.isSymbolicLink(path)) { //TODO: optimize to have only one call to shouldBePreserved/isSymbolicLink
-            RelativePath childPath = parentPath.append(false, path.getFileName().toString()); //FIXME: refactor path hint
-            linkDetails = new DefaultSymbolicLinkDetails(path, childPath);
-            preserveLink = linksStrategy.shouldBePreserved(linkDetails, childPath.getPathString());
+        File file = path.toFile();
+        if (attrs == null) {
+            RelativePath relativePath = parentPath.append(false, file.getName());
+            return new UnauthorizedFileVisitDetails(file, relativePath);
+        } else {
+            SymbolicLinkDetails linkDetails = null;
+            boolean preserveLink = false;
+            if (Files.isSymbolicLink(path)) {
+                int relativePathDepth = parentPath.getSegments().length + 1;
+                linkDetails = new DefaultSymbolicLinkDetails(path, relativePathDepth);
+                String pathHint = relativePathDepth == 1 ? file.getName() : parentPath.getPathString() + '/' + file.getName();
+                preserveLink = linksStrategy.shouldBePreserved(linkDetails, pathHint);
+            }
+            RelativePath relativePath = parentPath.append(attrs.isRegularFile() || preserveLink, file.getName());
+            return createFileVisitDetails(file, relativePath, attrs, stopFlag, fileSystem, linkDetails, preserveLink);
         }
-        boolean isDirectory = attrs != null && attrs.isDirectory() && !preserveLink;
-        RelativePath relativePath = parentPath.append(!isDirectory, path.getFileName().toString());
-        return getRootFileVisitDetails(path, relativePath, attrs, stopFlag, fileSystem, linksStrategy);
     }
 
     /**
@@ -155,6 +156,23 @@ public class AttributeBasedFileVisitDetailsFactory {
     ) {
         BasicFileAttributes attrs = getAttributes(path);
         return getFileVisitDetails(path, parentPath, attrs, stopFlag, fileSystem, linksStrategy);
+    }
+
+    private static FileVisitDetails createFileVisitDetails(
+        File file,
+        RelativePath relativePath,
+        BasicFileAttributes attrs,
+        AtomicBoolean stopFlag,
+        FileSystem fileSystem,
+        @Nullable SymbolicLinkDetails linkDetails,
+        boolean preserveLink
+    ) {
+        if (attrs.isDirectory() && OperatingSystem.current() == OperatingSystem.WINDOWS) {
+            // Workaround for https://github.com/gradle/gradle/issues/11577
+            return new DefaultFileVisitDetails(file, relativePath, stopFlag, fileSystem, fileSystem, linkDetails, preserveLink);
+        } else {
+            return new AttributeBasedFileVisitDetails(file, relativePath, stopFlag, fileSystem, fileSystem, attrs, linkDetails, preserveLink);
+        }
     }
 
     private static @Nullable BasicFileAttributes getAttributes(Path path) {
