@@ -64,49 +64,62 @@ Add the following lines to the bottom of the Build script:
 ----
 println("BUILD SCRIPT: This is executed during the configuration phase")
 
-tasks.register("lifecycle"){
-    println("REGISTER TASK: This is executed during the configuration phase")
+tasks.register("task1"){
+    println("REGISTER TASK1: This is executed during the configuration phase")
 }
 
-tasks.named("lifecycle"){
-    println("NAMED TASK: This is executed during the configuration phase")
+tasks.register("task2"){
+    println("REGISTER TASK2: This is executed during the configuration phase")
+}
+
+tasks.named("task1"){
+    println("NAMED TASK1: This is executed during the configuration phase")
     doFirst {
-        println("NAMED TASK - doFirst: This is executed during the execution phase")
+        println("NAMED TASK1 - doFirst: This is executed during the execution phase")
     }
     doLast {
-        println("NAMED TASK - doLast: This is executed during the execution phase")
+        println("NAMED TASK1 - doLast: This is executed during the execution phase")
+    }
+}
+
+tasks.named("task2"){
+    println("NAMED TASK2: This is executed during the configuration phase")
+    doFirst {
+        println("NAMED TASK2 - doFirst: This is executed during the execution phase")
+    }
+    doLast {
+        println("NAMED TASK2 - doLast: This is executed during the execution phase")
     }
 }
 ----
 
 == Step 4. Run a Gradle Task
 
-Run the `lifecycle` task that you registered and configured in Step 3:
+Run the `task1` task that you registered and configured in Step 3:
 
 [source]
 ----
-$ ./gradlew lifecycle
-----
+$ ./gradlew task1
 
-[source]
-----
-SETTINGS FILE: This is executed during the initialization phase     <1>
+SETTINGS FILE: This is executed during the initialization phase     //<1>
 
 > Configure project :app
-BUILD SCRIPT: This is executed during the configuration phase       <2>
-REGISTER TASK: This is executed during the configuration phase      <2>
-NAMED TASK: This is executed during the configuration phase         <2>
+BUILD SCRIPT: This is executed during the configuration phase       //<2>
+REGISTER TASK1: This is executed during the configuration phase     //<2>
+NAMED TASK1: This is executed during the configuration phase        //<2>
 
-> Task :app:lifecycle
-NAMED TASK - doFirst: This is executed during the execution phase   <3>
-NAMED TASK - doLast: This is executed during the execution phase    <3>
+> Task :app:task1
+NAMED TASK1 - doFirst: This is executed during the execution phase  //<3>
+NAMED TASK1 - doLast: This is executed during the execution phase   //<3>
 
-BUILD SUCCESSFUL in 301ms
-1 actionable task: 1 executed
+BUILD SUCCESSFUL in 25s
+5 actionable tasks: 3 executed, 2 up-to-date
 ----
 <1> *Initialization*: Gradle executes `settings.gradle.kts` to determine the projects to be built and creates a `Project` object for each one.
 <2> *Configuration*: Gradle configures each project by executing the `build.gradle.kts` files. It resolves dependencies and creates a dependency graph of all the available tasks.
 <3> *Execution*: Gradle executes the tasks passed on the command line as well as any dependent tasks.
+
+It is important to note that while `task1` was configured and executed, `task2` was not.
 
 [.text-right]
 **Next Step:** <<partr3_multi_project_builds#partr3_multi_project_builds,Multi-Project Builds>> >>

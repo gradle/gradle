@@ -121,9 +121,9 @@ authoring-tutorial
 <1> Generated folder for wrapper files
 <2> Gradle wrapper start scripts
 <3> Settings file to define build name and subprojects
-<4> Build script of app project
-<5> Default Java source folder
-<6> Default Java test source folder
+<4> Build script for `app` dependencies
+<5> Default Java source folder for `app`
+<6> Default Java test source folder for `app`
 
 The `authoring-tutorial` folder is the *root project directory*.
 Inside the root project directory are one or more subprojects, build scripts, and the Gradle wrapper.
@@ -145,7 +145,7 @@ include("app")
 
 - `rootProject.name` assigns a name to the build, which overrides the default behavior of naming the build after the directory it’s in.
 
-- `include("app")` defines that the build consists of one subproject called `app` that contains the source code and build logic.
+- `include("app")` defines that the build consists of one subproject called `app` that contains its own source code and build logic.
 
 More subprojects can be added by additional `include()` statements.
 
@@ -191,11 +191,11 @@ tasks.named<Test>("test") {
 <6> Define the main class for the application.
 <7> Use JUnit Platform for unit tests.
 
-The build script in the `app` subproject directory includes the dependencies and components the `app` code will need to be assembled, tested, and published.
+The build script in the `app` subproject directory declares the dependencies that the `app` code will need to be assembled, tested, and published.
 
 == Step 4. Review the Code
 
-The file `app/src/main/java/authoring/tutorial/App.java` contains the main class and source code:
+The file `app/src/main/java/authoring/tutorial/App.java` contains the main class of the source code:
 
 .App.java
 [source, java]
@@ -247,7 +247,7 @@ plugins {
 }
 ----
 
-Applying the Application plugin implicitly applies the Java plugin and adds tasks like `assemble`, `build`, or `run` to our project.
+Applying the Application plugin implicitly applies the Java plugin and adds tasks like `assemble`, `build`, and `run` to our project.
 
 Thanks to the `application` plugin, you can run the application directly from the command line.
 The `run` task tells Gradle to execute the `main` method in the class assigned to the `mainClass` property.
@@ -265,7 +265,7 @@ BUILD SUCCESSFUL in 998ms
 
 == Step 6. Bundle the App
 
-The `application` plugin also bundles the application, with all its dependencies, for you.
+The `application` plugin packages the application, with all its dependencies, for you.
 The archive will also contain a script to start the application with a single command.
 
 Run `./gradlew build`:

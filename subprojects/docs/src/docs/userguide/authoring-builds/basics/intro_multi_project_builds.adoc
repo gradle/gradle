@@ -40,6 +40,7 @@ The directory structure should look as follows:
 ├── .gradle
 │   └── ⋮
 ├── gradle
+│   ├── libs.version.toml
 │   └── wrapper
 ├── gradlew
 ├── gradlew.bat

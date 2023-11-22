@@ -33,11 +33,14 @@ Learn the basics of structuring large Gradle projects using subprojects and comp
 2. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
 
 == Step 1. About Multi-Project Builds
-A multi-project build consists of:
+Typically, builds contains multiple projects, such as shared libraries or separate applications that will be deployed in your ecosystem.
+
+In Gradle, a multi-project build consists of:
 
 - `settings.gradle(.kts)` file representing your Gradle build including required subprojects e.g. include("app", "model", "service")
 - `build.gradle(.kts)` and source code for each subproject in corresponding subdirectories
 
+Our build currently consists of a single `app` project with the following structure:
 ----
 .
 ├── app
@@ -61,20 +64,40 @@ cd lib
 
 Create a file called `build.gradle.kts` and add the following lines to it:
 
-.subproject/build.gradle.kts
+.lib/build.gradle.kts
 [source,kotlin]
 ----
-tasks.register("sublifecycle"){
-    println("REGISTER TASK IN SUB: This is executed during the configuration phase")
+plugins {
+    id("java")
 }
 
-tasks.named("sublifecycle"){
-    println("NAMED TASK IN SUB: This is executed during the configuration phase")
+repositories {
+    // Use Maven Central for resolving dependencies.
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    implementation("com.google.guava:guava:32.1.1-jre")
+}
+
+tasks.named<Test>("test") {
+    // Use JUnit Platform for unit tests.
+    useJUnitPlatform()
+}
+
+tasks.register("task3"){
+    println("REGISTER TASK3: This is executed during the configuration phase")
+}
+
+tasks.named("task3"){
+    println("NAMED TASK3: This is executed during the configuration phase")
     doFirst {
-        println("NAMED TASK IN SUB - doFirst: This is executed during the execution phase")
+        println("NAMED TASK3 - doFirst: This is executed during the execution phase")
     }
     doLast {
-        println("NAMED TASK IN SUB - doLast: This is executed during the execution phase")
+        println("NAMED TASK3 - doLast: This is executed during the execution phase")
     }
 }
 ----
@@ -91,7 +114,45 @@ Your project should look like this:
 └── settings.gradle.kts
 ----
 
-The subproject will not belong to the build, and you won't be able to the `sublifecycle` task until it is added to the `settings.gradle.kts` file.
+Let's add code to the `lib` subproject.
+First create a new directory:
+
+[source]
+----
+mkdir -p lib/src/main/java/com/gradle
+----
+
+Create a Java class called `CustomLib` by creating a file called `CustomLib.java` and adding the following source code:
+
+.lib/src/main/java/com/gradle/CustomLib.java
+[source,java]
+----
+package com.gradle;
+
+public class CustomLib {
+    public static String identifier = "I'm a String from a lib.";
+}
+----
+
+The project should now have the following file and directory structure:
+
+----
+.
+├── app
+│   ...
+│   └── build.gradle.kts
+├── lib
+│   ├── build.gradle.kts
+│   └── src
+│       └── main
+│           └── java
+│               └── com
+│                   └── gradle
+│                       └── CustomLib.java
+└── settings.gradle.kts
+----
+
+The `lib` will not belong to the build, and you won't be able to the `task3` until it is added to the `settings.gradle.kts` file.
 
 To add `lib` to the build, update the `settings.gradle.kts` file accordingly:
 
@@ -107,8 +168,63 @@ plugins {
 rootProject.name = "authoring-tutorial"
 
 include("app")
+include("lib") // Add lib to the build
+----
 
-include("lib") // Add new subproject to the root project // FIX ME!!!
+Let's add the `lib` subproject to the `app` by adding it as a dependency in `build.gradle.kts`:
+
+.app/build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    implementation(project(":lib")) // Add lib as an app dependency
+}
+----
+
+Finally, update the `app` source code accordingly:
+
+.app/src/main/java/authoring/tutorial/App.java
+[source,java]
+----
+package authoring.tutorial;
+
+import com.gradle.CustomLib;
+
+public class App {
+    public String getGreeting() {
+        return "CustomLib identifier is: " + CustomLib.identifier;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(new App().getGreeting());
+    }
+}
+----
+
+Let's run the app:
+
+[source]
+----
+$ ./gradlew run
+
+SETTINGS FILE: This is executed during the initialization phase
+
+> Configure project :app
+BUILD SCRIPT: This is executed during the configuration phase
+
+> Task :app:processResources NO-SOURCE
+> Task :lib:compileJava
+> Task :lib:processResources NO-SOURCE
+> Task :lib:classes
+> Task :lib:jar
+> Task :app:compileJava
+> Task :app:classes
+
+> Task :app:run
+CustomLib identifier is: I'm a String from a lib.
+
+BUILD SUCCESSFUL in 11s
+8 actionable tasks: 6 executed, 2 up-to-date
 ----
 
 == Step 3. Understand Composite Builds

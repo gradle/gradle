@@ -139,7 +139,6 @@ pluginManagement {                                          // <1>
         gradlePluginPortal()
         google()
     }
-    includeBuild("../build-logic")
 }
 
 plugins {                                                   // <2>
@@ -152,7 +151,6 @@ dependencyResolutionManagement {                            // <4>
     repositories {
         mavenCentral()
     }
-    includeBuild("../other-project")
 }
 
 include("sub-project-a")                                    // <5>
@@ -176,7 +174,6 @@ pluginManagement {                                          // <1>
         gradlePluginPortal()
         google()
     }
-    includeBuild('../build-logic')
 }
 
 plugins {                                                   // <2>
@@ -189,7 +186,6 @@ dependencyResolutionManagement {                            // <4>
     repositories {
         mavenCentral()
     }
-    includeBuild('../other-project')
 }
 
 include('sub-project-a')                                    // <5>
@@ -215,7 +211,6 @@ pluginManagement {
         gradlePluginPortal()
         google()
     }
-    includeBuild("../my-build-logic")
 }
 ----
 
@@ -257,7 +252,6 @@ dependencyResolutionManagement {
     repositories {
         mavenCentral()
     }
-    includeBuild("../other-project")
 }
 ----
 
