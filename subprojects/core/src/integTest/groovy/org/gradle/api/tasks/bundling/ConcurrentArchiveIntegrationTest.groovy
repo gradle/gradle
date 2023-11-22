@@ -89,6 +89,64 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22685")
+    def "can visit and edit zip archive differently from two different projects with the same name in different directories in a multiproject build"() {
+        given: "an archive in the root of a multiproject build"
+        createZip('test.zip') {
+            subdir1 {
+                file ('file1.txt').text = 'original text 1'
+            }
+            subdir2 {
+                file('file2.txt').text = 'original text 2'
+                file ('file3.txt').text =  'original text 3'
+            }
+        }
+        settingsFile << """include ':lib', ':utils:lib'"""
+
+        and: "where each project edits that same archive differently via a visitor"
+        file('lib/build.gradle') << """
+            ${defineUpdateTask('zip')}
+            ${defineVerifyTask('zip')}
+
+            def theArchive = rootProject.file('test.zip')
+
+            tasks.register('update', UpdateTask) {
+                archive = theArchive
+                replacementText = 'modified by project1'
+            }
+
+            tasks.register('verify', VerifyTask) {
+                dependsOn tasks.named('update')
+                archive = theArchive
+                beginsWith = 'modified by project1'
+            }
+        """
+
+        file('utils/lib/build.gradle') << """
+            ${defineUpdateTask('zip')}
+            ${defineVerifyTask('zip')}
+
+            def theArchive = rootProject.file('test.zip')
+
+            tasks.register('update', UpdateTask) {
+                archive = theArchive
+                replacementText = 'edited by project2'
+            }
+
+            tasks.register('verify', VerifyTask) {
+                dependsOn tasks.named('update')
+                archive = theArchive
+                beginsWith = 'edited by project2'
+            }
+        """
+
+        when:
+        run 'verify'
+
+        then:
+        result.assertTasksExecutedAndNotSkipped(':lib:update', ':utils:lib:update', ':lib:verify', ':utils:lib:verify')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22685")
     def "can visit and edit tar archive differently from two different projects in a multiproject build"() {
         given: "an archive in the root of a multiproject build"
         createTar('test.tar') {
@@ -473,14 +531,14 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
                     cacheDir.eachFile(groovy.io.FileType.DIRECTORIES) { File f ->
                         assert f.name.startsWith('tar_')
                     }
-                    def lockFile = file(".gradle/expanded/${temporaryFolder.getTestDirectory().getName()}/${GradleVersion.current().version}/expanded.lock")
+                    def lockFile = file(".gradle/expanded/_/${GradleVersion.current().version}/expanded.lock")
                     assert lockFile.exists()
                 }
             }
         """
 
         when:
-        succeeds 'verify'
+        fails 'verify'
 
         then:
         result.assertTasksExecutedAndNotSkipped(':update1', ':update2', ':verify')

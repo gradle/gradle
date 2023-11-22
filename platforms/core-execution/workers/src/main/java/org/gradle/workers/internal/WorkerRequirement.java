@@ -18,7 +18,24 @@ package org.gradle.workers.internal;
 
 import java.io.File;
 
+/**
+ * Represents the directories a worker needs to understand in order to execute.
+ *
+ * TODO: This, and its subclasses, should probably be renamed to indicate that it is only about directories (for now)
+ */
 public interface WorkerRequirement {
+    /**
+     * Returns the root directory for the build, use∂ to create and access caches.
+     *
+     * @return root project dir directory
+     */
+    File getRootProjectDirectory();
+
+    /**
+     * Returns the directory in which to execute new workers.
+     *
+     * @return current directory to use for new workers
+     */
     File getWorkerDirectory();
 
     /**

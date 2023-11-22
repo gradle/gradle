@@ -21,8 +21,8 @@ import java.io.File;
 public class FixedClassLoaderWorkerRequirement extends AbstractWorkerRequirement {
     private final ClassLoader contextClassLoader;
 
-    public FixedClassLoaderWorkerRequirement(File workerDirectory, File cacheDirectory, ClassLoader contextClassLoader) {
-        super(workerDirectory, cacheDirectory);
+    public FixedClassLoaderWorkerRequirement(File rootProjectDirectory, File workerDirectory, File cacheDirectory, ClassLoader contextClassLoader) {
+        super(rootProjectDirectory, workerDirectory, cacheDirectory);
         this.contextClassLoader = contextClassLoader;
     }
 

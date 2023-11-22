@@ -21,8 +21,8 @@ import java.io.File;
 public class IsolatedClassLoaderWorkerRequirement extends AbstractWorkerRequirement {
     private final ClassLoaderStructure classLoaderStructure;
 
-    public IsolatedClassLoaderWorkerRequirement(File workerDirectory, File cacheDirectory, ClassLoaderStructure classLoaderStructure) {
-        super(workerDirectory, cacheDirectory);
+    public IsolatedClassLoaderWorkerRequirement(File rootProjectDirectory, File workerDirectory, File cacheDirectory, ClassLoaderStructure classLoaderStructure) {
+        super(rootProjectDirectory, workerDirectory, cacheDirectory);
         this.classLoaderStructure = classLoaderStructure;
     }
 

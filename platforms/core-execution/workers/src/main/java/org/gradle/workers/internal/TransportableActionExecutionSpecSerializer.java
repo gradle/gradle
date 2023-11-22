@@ -32,6 +32,7 @@ public class TransportableActionExecutionSpecSerializer implements Serializer<Tr
     public void write(Encoder encoder, TransportableActionExecutionSpec spec) throws Exception {
         encoder.writeString(spec.getImplementationClassName());
         encoder.writeBoolean(spec.isInternalServicesRequired());
+        encoder.writeString(spec.getRootProjectDir().getAbsolutePath());
         encoder.writeString(spec.getBaseDir().getAbsolutePath());
         encoder.writeString(spec.getProjectCacheDir().getAbsolutePath());
         encoder.writeBinary(spec.getSerializedParameters());
@@ -50,6 +51,7 @@ public class TransportableActionExecutionSpecSerializer implements Serializer<Tr
     public TransportableActionExecutionSpec read(Decoder decoder) throws Exception {
         String implementationClassName = decoder.readString();
         boolean usesInternalServices = decoder.readBoolean();
+        String rootProjectDirPath = decoder.readString();
         String baseDirPath = decoder.readString();
         String projectCacheDir = decoder.readString();
         byte[] serializedParameters = decoder.readBinary();
@@ -65,6 +67,6 @@ public class TransportableActionExecutionSpecSerializer implements Serializer<Tr
             default:
                 throw new IllegalArgumentException("Unexpected payload type.");
         }
-        return new TransportableActionExecutionSpec(implementationClassName, serializedParameters, classLoaderStructure, new File(baseDirPath), new File(projectCacheDir), usesInternalServices);
+        return new TransportableActionExecutionSpec(implementationClassName, serializedParameters, classLoaderStructure, new File(rootProjectDirPath), new File(baseDirPath), new File(projectCacheDir), usesInternalServices);
     }
 }

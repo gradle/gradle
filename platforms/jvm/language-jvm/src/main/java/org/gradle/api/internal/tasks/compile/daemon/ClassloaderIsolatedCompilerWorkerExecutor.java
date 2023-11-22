@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.daemon;
 
+import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.DaemonForkOptions;
@@ -23,12 +24,12 @@ import org.gradle.workers.internal.IsolatedClassLoaderWorkerRequirement;
 import org.gradle.workers.internal.IsolatedClassloaderWorkerFactory;
 
 public class ClassloaderIsolatedCompilerWorkerExecutor extends AbstractIsolatedCompilerWorkerExecutor {
-    public ClassloaderIsolatedCompilerWorkerExecutor(IsolatedClassloaderWorkerFactory delegate, ActionExecutionSpecFactory actionExecutionSpecFactory, ProjectCacheDir projectCacheDir) {
-        super(delegate, actionExecutionSpecFactory, projectCacheDir);
+    public ClassloaderIsolatedCompilerWorkerExecutor(IsolatedClassloaderWorkerFactory delegate, ActionExecutionSpecFactory actionExecutionSpecFactory, BuildLayout buildLayout, ProjectCacheDir projectCacheDir) {
+        super(delegate, actionExecutionSpecFactory, buildLayout, projectCacheDir);
     }
 
     @Override
     public IsolatedClassLoaderWorkerRequirement getIsolatedWorkerRequirement(DaemonForkOptions daemonForkOptions) {
-        return new IsolatedClassLoaderWorkerRequirement(daemonForkOptions.getJavaForkOptions().getWorkingDir(), getProjectCacheDir().getDir(), daemonForkOptions.getClassLoaderStructure());
+        return new IsolatedClassLoaderWorkerRequirement(getBuildLayout().getRootDirectory(), daemonForkOptions.getJavaForkOptions().getWorkingDir(), getProjectCacheDir().getDir(), daemonForkOptions.getClassLoaderStructure());
     }
 }

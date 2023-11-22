@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
 import org.gradle.initialization.ClassLoaderRegistry;
+import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.service.ServiceRegistration;
@@ -46,6 +47,7 @@ public class GroovyServices extends AbstractPluginServiceRegistry {
             ClassPathRegistry classPathRegistry,
             ClassLoaderRegistry classLoaderRegistry,
             ActionExecutionSpecFactory actionExecutionSpecFactory,
+            BuildLayout buildLayout,
             ProjectCacheDir projectCacheDir
         ) {
             return new GroovyCompilerFactory(
@@ -58,6 +60,7 @@ public class GroovyServices extends AbstractPluginServiceRegistry {
                 classPathRegistry,
                 classLoaderRegistry,
                 actionExecutionSpecFactory,
+                buildLayout,
                 projectCacheDir
             );
         }

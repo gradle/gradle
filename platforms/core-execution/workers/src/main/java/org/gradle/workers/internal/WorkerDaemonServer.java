@@ -91,7 +91,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
     @Override
     public DefaultWorkResult run(TransportableActionExecutionSpec spec) {
         try {
-            try (WorkerProjectServices internalServices = new WorkerProjectServices(spec.getBaseDir(), spec.getProjectCacheDir(), this.internalServices)) {
+            try (WorkerProjectServices internalServices = new WorkerProjectServices(spec.getRootProjectDir(), spec.getBaseDir(), spec.getProjectCacheDir(), this.internalServices)) {
                 RequestHandler<TransportableActionExecutionSpec, DefaultWorkResult> worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure(), internalServices);
                 return worker.run(spec);
             }
@@ -161,9 +161,9 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
     }
 
     static class WorkerProjectServices extends DefaultServiceRegistry {
-        public WorkerProjectServices(File baseDir, File projectCacheDir, ServiceRegistry... parents) {
-            super("worker file services for " + baseDir.getAbsolutePath(), parents);
-            addProvider(new WorkerSharedProjectScopeServices(baseDir, projectCacheDir));
+        public WorkerProjectServices(File rootProjectDir, File projectDir, File projectCacheDir, ServiceRegistry... parents) {
+            super("worker file services for " + projectDir.getAbsolutePath(), parents);
+            addProvider(new WorkerSharedProjectScopeServices(rootProjectDir, projectDir, projectCacheDir));
         }
 
         protected Instantiator createInstantiator(InstantiatorFactory instantiatorFactory) {

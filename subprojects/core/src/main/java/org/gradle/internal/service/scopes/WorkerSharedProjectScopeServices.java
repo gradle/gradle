@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.cache.DefaultDecompressionCacheFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -64,15 +65,19 @@ import org.gradle.process.internal.DefaultExecOperations;
 import org.gradle.process.internal.ExecFactory;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * These Project scoped services are shared between the main build process and worker processes.
  */
 public class WorkerSharedProjectScopeServices {
+    private final File rootProjectDir;
     private final File projectDir;
     private final File projectCacheDir;
 
-    public WorkerSharedProjectScopeServices(File projectDir, File projectCacheDir) {
+    public WorkerSharedProjectScopeServices(File rootProjectDir, File projectDir, File projectCacheDir) {
+        this.rootProjectDir = rootProjectDir;
         this.projectDir = projectDir;
         this.projectCacheDir = projectCacheDir;
     }
@@ -161,12 +166,32 @@ public class WorkerSharedProjectScopeServices {
         return new DefaultProjectScopedCacheBuilderFactory(temporaryFileProvider.newTemporaryFile(".cache"), unscopedCacheBuilderFactory);
     }
 
-    protected DecompressionCacheFactory createDecompressionCacheFactory(TemporaryFileProvider temporaryFileProvider, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
-        return new DefaultDecompressionCacheFactory(() -> new DefaultProjectScopedCacheBuilderFactory(temporaryFileProvider.newTemporaryFile(".cache"), unscopedCacheBuilderFactory), buildExpansionCacheDir());
+    protected DecompressionCacheFactory createDecompressionCacheFactory(TemporaryFileProvider temporaryFileProvider, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory, ProjectLayout projectLayout) {
+        return new DefaultDecompressionCacheFactory(() -> new DefaultProjectScopedCacheBuilderFactory(temporaryFileProvider.newTemporaryFile(".cache"), unscopedCacheBuilderFactory), buildExpansionCacheDir(projectLayout));
     }
 
-    private File buildExpansionCacheDir() {
+    private File buildExpansionCacheDir(ProjectLayout projectLayout) {
         File rootExpansionCacheDir = new File(projectCacheDir, DecompressionCache.EXPANSION_CACHE_KEY);
-        return new File(rootExpansionCacheDir, projectDir.getName());
+        String uniqueProjectCacheDir = buildUniqueCacheDirForProject();
+        return new File(rootExpansionCacheDir, uniqueProjectCacheDir);
+    }
+
+    public String buildUniqueCacheDirForProject() {
+        Path pathToRootProject = Paths.get(rootProjectDir.getPath());
+        Path pathToCurrentProject = Paths.get(projectDir.getPath());
+
+        Path relativePath = pathToRootProject.relativize(pathToCurrentProject);
+        return buildConcatenatedPath(relativePath);
+    }
+
+    private String buildConcatenatedPath(Path relativePath) {
+        StringBuilder difference = new StringBuilder("_");
+        relativePath.forEach(element -> {
+            if (difference.length() > 0) {
+                difference.append("_");
+            }
+            difference.append(element.toString());
+        });
+        return difference.toString();
     }
 }
