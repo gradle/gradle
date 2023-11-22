@@ -20,10 +20,9 @@ import org.gradle.api.Incubating;
 
 /**
  * Marker interface for problem location.
- * Allowed extensions:
- * - FileLocation
- * - TaskPathLocation
- * - PluginIdLocation
+ * <p>
+ * Clients can expect the concrete type to implement one of the following sub-interfaces:
+ * {@link FileLocation}, {@link TaskPathLocation}, or {@link PluginIdLocation}.
  *
  * @since 8.6
  */

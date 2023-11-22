@@ -116,7 +116,7 @@ class TestFailureSpecification extends ToolingApiSpecification {
         }
     }
 
-    protected static class  TestFailureEventCollector implements ProgressListener {
+    protected static class TestFailureEventCollector implements ProgressListener {
         public List<TestAssertionFailure> failures = new ArrayList<>()
 
         @Override

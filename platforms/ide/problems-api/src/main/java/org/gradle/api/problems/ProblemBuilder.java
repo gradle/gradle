@@ -57,7 +57,7 @@ public interface ProblemBuilder {
     /**
      * Specifies arbitrary data associated with this problem.
      * <p>
-     * The only supported value type is {@link String}.
+     * The only supported value type is {@link String}. Future Gradle versions may support additional types.
      *
      * @return this
      * @throws RuntimeException for null values and for values with unsupported type.

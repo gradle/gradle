@@ -22,6 +22,7 @@ import javax.annotation.Nullable;
 
 /**
  * Holds an exception for a problem.
+ *
  * @since 8.6
  */
 @Incubating

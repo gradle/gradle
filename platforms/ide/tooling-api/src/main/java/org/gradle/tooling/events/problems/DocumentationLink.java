@@ -22,6 +22,7 @@ import javax.annotation.Nullable;
 
 /**
  * Represents documentation link.
+ *
  * @since 8.6
  */
 @Incubating

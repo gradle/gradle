@@ -17,5 +17,6 @@
 package org.gradle.tooling.internal.protocol.problem;
 
 public interface InternalSolution {
+
     String getSolution();
 }

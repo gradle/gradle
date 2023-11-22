@@ -34,11 +34,12 @@ public interface ProblemDescriptor extends OperationDescriptor {
 
     /**
      * Mock for the problem properties in JSON format.
-     * not functional anymore
+     * <p>
+     * Note: This method is not functional anymore and will not return anything useful.
      *
      * @return the problem properties.
      */
-    String getJson();
+    String getJson(); // TODO https://github.com/gradle/gradle/issues/27125
 
     /**
      * Returns the problem category.
@@ -89,7 +90,8 @@ public interface ProblemDescriptor extends OperationDescriptor {
     DocumentationLink getDocumentationLink();
 
     /**
-     * Returns the list of solutions
+     * Returns the list of solutions.
+     *
      * @return the solutions
      * @since 8.6
      */
@@ -105,8 +107,8 @@ public interface ProblemDescriptor extends OperationDescriptor {
 
     /**
      * Returns the exception associated with this problem.
-     * @return the exception associated with this problem.
      *
+     * @return the exception
      * @since 8.6
      */
     @Incubating

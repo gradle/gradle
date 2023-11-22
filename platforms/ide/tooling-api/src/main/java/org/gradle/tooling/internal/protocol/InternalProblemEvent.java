@@ -29,6 +29,4 @@ import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 public interface InternalProblemEvent extends InternalProgressEvent {
 
     InternalProblemDetails getDetails();
-
-
 }

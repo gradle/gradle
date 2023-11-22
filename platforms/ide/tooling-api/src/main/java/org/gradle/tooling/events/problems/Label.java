@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 
 /**
  * Represents a problem label.
+ *
  * @since 8.6
  */
 @Incubating

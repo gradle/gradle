@@ -22,10 +22,12 @@ import javax.annotation.Nullable;
 
 /**
  * Represents a section in a file.
+ *
  * @since 8.6
  */
 @Incubating
 public interface FileLocation extends Location {
+
     String getPath();
 
     @Nullable
