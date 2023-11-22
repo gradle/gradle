@@ -33,6 +33,7 @@ Learn the basics of structuring large Gradle projects using subprojects and comp
 2. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
 
 == Step 1. About Multi-Project Builds
+
 Typically, builds contains multiple projects, such as shared libraries or separate applications that will be deployed in your ecosystem.
 
 In Gradle, a multi-project build consists of:
@@ -41,6 +42,7 @@ In Gradle, a multi-project build consists of:
 - `build.gradle(.kts)` and source code for each subproject in corresponding subdirectories
 
 Our build currently consists of a single `app` project with the following structure:
+
 ----
 .
 ├── app
@@ -50,8 +52,11 @@ Our build currently consists of a single `app` project with the following struct
 ----
 
 == Step 2. Add a Subproject to the Build
-// FIX me - how do you want to organize a growing / more complex project
-// CHeck the calc old example
+Imagine that our `app` project is growing and the project requires a custom library from another team to function.
+
+Let's create this imaginary `lib`.
+First create a `lib` folder:
+
 [source]
 ----
 mkdir lib
@@ -114,15 +119,15 @@ Your project should look like this:
 └── settings.gradle.kts
 ----
 
-Let's add code to the `lib` subproject.
-First create a new directory:
+Let's add some code to the `lib` subproject.
+Create a new directory:
 
 [source]
 ----
 mkdir -p lib/src/main/java/com/gradle
 ----
 
-Create a Java class called `CustomLib` by creating a file called `CustomLib.java` and adding the following source code:
+Create a Java class called `CustomLib` by in a file called `CustomLib.java` with the following source code:
 
 .lib/src/main/java/com/gradle/CustomLib.java
 [source,java]
@@ -139,8 +144,13 @@ The project should now have the following file and directory structure:
 ----
 .
 ├── app
-│   ...
-│   └── build.gradle.kts
+│   ├── build.gradle.kts
+│   └── src
+│       └── main
+│           └── java
+│               └── authoring
+│                   └── tutorial
+│                       └── App.java
 ├── lib
 │   ├── build.gradle.kts
 │   └── src
@@ -152,9 +162,9 @@ The project should now have the following file and directory structure:
 └── settings.gradle.kts
 ----
 
-The `lib` will not belong to the build, and you won't be able to the `task3` until it is added to the `settings.gradle.kts` file.
+However, the `lib` subproject does not belong to the build, and you won't be able to execute `task3`, until it is added to the `settings.gradle.kts` file.
 
-To add `lib` to the build, update the `settings.gradle.kts` file accordingly:
+To add `lib` to the build, update the `settings.gradle.kts` file in the root accordingly:
 
 .settings.gradle.kts
 [source,kotlin]
@@ -171,7 +181,7 @@ include("app")
 include("lib") // Add lib to the build
 ----
 
-Let's add the `lib` subproject to the `app` by adding it as a dependency in `build.gradle.kts`:
+Let's add the `lib` subproject as an `app` dependency in `app/build.gradle.kts`:
 
 .app/build.gradle.kts
 [source,kotlin]
@@ -181,7 +191,7 @@ dependencies {
 }
 ----
 
-Finally, update the `app` source code accordingly:
+Update the `app` source code so that it imports the `lib`:
 
 .app/src/main/java/authoring/tutorial/App.java
 [source,java]
@@ -201,7 +211,7 @@ public class App {
 }
 ----
 
-Let's run the app:
+Finally, let's run the `app` with the command `./gradlew run`:
 
 [source]
 ----
@@ -227,15 +237,28 @@ BUILD SUCCESSFUL in 11s
 8 actionable tasks: 6 executed, 2 up-to-date
 ----
 
+Our build for the root project `authoring-tutorial` now includes two subprojects, `app` and `lib`.
+`app` depends on `lib`.
+You can build `lib` independent of `app`.
+However, in order to build `app`, Gradle will also build `lib`.
+
 == Step 3. Understand Composite Builds
 A composite build is simply a build that includes other builds.
 
 Composite builds allow you to:
 
-– Combine builds that are usually developed independently (such as a plugin and an application)
-– Decompose a large build into smaller, more isolated chunks
+- Combine builds that are usually developed independently (such as a plugin and an application)
+- Decompose a large build into smaller, more isolated chunks
 
 == Step 4. Add build to the Build
+
+Let's add a plugin to our build.
+First, create a new directory called `license-plugin` in the `gradle` directory:
+
+[source]
+----
+cd gradle
+----
 
 [source]
 ----
@@ -246,6 +269,9 @@ mkdir license-plugin
 ----
 cd license-plugin
 ----
+
+Once in the `gradle/license-plugin` directory, run `gradle init`.
+Make sure that you select the `Gradle plugin` project as well as the other options for the `init` task below:
 
 [source]
 ----
@@ -290,23 +316,37 @@ Your project should look like this:
 ├── app
 │   ...
 │   └── build.gradle.kts
-├── subproject
+├── lib
+│   ...
 │   └── build.gradle.kts
-├── gradle/license-plugin // FIX ME!!!
-│    ├── build.gradle.kts
-│    └── src
-│        ├── main
-│        │   └── kotlin
-│        │       └── com.gradle
-│        │           └── LicensePlugin.kt
-│        └── test
-│            └── kotlin
-│                └── com.gradle
-│                    └── LicencePluginTest.kt
+├── gradle
+│    └── license-plugin
+│        ├── settings.gradle.kts
+│        └── plugin
+│            ├── build.gradle.kts
+│            ├── src
+│            │   ├── main
+│            │   └── kotlin
+│            │       └── com.gradle
+│            │           └── LicensePlugin.kt
+│            └── test
+│                └── kotlin
+│                    └── com.gradle
+│                        └── LicencePluginTest.kt
 └── settings.gradle.kts
 ----
 
-To add our `license-plugin` project to the build, update the `settings.gradle.kts` file accordingly:
+Take the time to look at the `LicensePlugin.kt` code and the `gradle/license-plugin/settings.gradle.kts` file.
+It's important to note that this is an entirely separate build with its own Settings file and Build script:
+
+.gradle/license-plugin/settings.gradle.kts
+[source,kotlin]
+----
+rootProject.name = "license"
+include("plugin")
+----
+
+To add our `license-plugin` build to the root project, update the root `settings.gradle.kts` file accordingly:
 
 .settings.gradle.kts
 [source,kotlin]
@@ -322,8 +362,10 @@ rootProject.name = "authoring-tutorial"
 include("app")
 include("subproject")
 
-includeBuild("license-plugin") // Add the new build
+includeBuild("gradle/license-plugin") // Add the new build
 ----
+
+You can view the structure of the root project by running `./gradlew projects` in the root folder `authoring-tutorial`:
 
 [source]
 ----
@@ -335,7 +377,7 @@ Root project 'authoring-tutorial'
 
 Root project 'authoring-tutorial'
 +--- Project ':app'
-\--- Project ':subproject'
+\--- Project ':lib'
 
 Included builds
 \--- Included build ':license-plugin'
@@ -343,6 +385,15 @@ Included builds
 BUILD SUCCESSFUL in 1s
 1 actionable task: 1 executed
 ----
+
+Our build for the root project `authoring-tutorial` now includes two subprojects, `app` and `lib`, and another build called `license-plugin`.
+
+When in the project root, running:
+
+- `./gradlew build` - Builds `app` and `lib`
+- `./gradlew :app:build` - Builds `app` and `lib`
+- `./gradlew :lib:build` - Builds `lib` only
+- `./gradlew :license-plugin:plugin:build` - Builds `license-plugin` only
 
 [.text-right]
 **Next Step:** <<partr4_settings_file#partr4_settings_file,Settings File>> >>

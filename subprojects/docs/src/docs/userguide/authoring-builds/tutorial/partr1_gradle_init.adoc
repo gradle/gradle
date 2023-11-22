@@ -100,7 +100,7 @@ The *project root directory* contains all source files from your project.
 When you are done with Gradle `init`, the directory should look as follows:
 
 ----
-authoring-tutorial
+.
 ├── gradle                              // <1>
 │   └── wrapper
 ├── gradlew                             // <2>
@@ -144,7 +144,6 @@ include("app")
 ----
 
 - `rootProject.name` assigns a name to the build, which overrides the default behavior of naming the build after the directory it’s in.
-
 - `include("app")` defines that the build consists of one subproject called `app` that contains its own source code and build logic.
 
 More subprojects can be added by additional `include()` statements.

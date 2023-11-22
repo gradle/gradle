@@ -21,7 +21,7 @@ Learn about the Gradle build lifecycle and what each phase represents.
 **In this section you will:**
 
 - Understand the Build Lifecycle
-- Register and configure a simple task
+- Register and configure two tasks
 - Run the task to view the phases in action
 ****
 
@@ -120,6 +120,8 @@ BUILD SUCCESSFUL in 25s
 <3> *Execution*: Gradle executes the tasks passed on the command line as well as any dependent tasks.
 
 It is important to note that while `task1` was configured and executed, `task2` was not.
+This is called _task configuration avoidance_ and prevents unnecessary work.
+Task configuration avoidance is when Gradle avoids configuring `task2` when `task1` was called and `task1` does NOT depend. on `task2`.
 
 [.text-right]
 **Next Step:** <<partr3_multi_project_builds#partr3_multi_project_builds,Multi-Project Builds>> >>

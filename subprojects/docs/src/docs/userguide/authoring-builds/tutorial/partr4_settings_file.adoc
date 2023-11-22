@@ -68,7 +68,7 @@ rootProject.name = "authoring-tutorial"                                     // <
 include("app")                                                              // <3>
 include("subproject")
 
-includeBuild("license-plugin")                                              // <4>
+includeBuild("gradle/license-plugin")                                       // <4>
 ----
 <1> PluginDependenciesSpec
 
