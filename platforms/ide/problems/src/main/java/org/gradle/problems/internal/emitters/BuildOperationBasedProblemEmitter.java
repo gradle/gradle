@@ -46,9 +46,9 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter {
         if (problem instanceof DefaultProblem) {
             DefaultProblem defaultProblem = (DefaultProblem) problem;
 
-            if (defaultProblem.getBuildOperationRef() != null) {
+            if (defaultProblem.getBuildOperationId() != null) {
                 eventEmitter.emitNow(
-                    defaultProblem.getBuildOperationRef(),
+                    defaultProblem.getBuildOperationId(),
                     new DefaultProblemProgressDetails(problem)
                 );
             } else {

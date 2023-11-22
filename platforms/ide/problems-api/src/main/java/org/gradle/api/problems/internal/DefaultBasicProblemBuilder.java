@@ -48,6 +48,7 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
     private RuntimeException exception;
     private final Map<String, String> additionalMetadata;
     private boolean collectLocation = false;
+    @Nullable private OperationIdentifier currentOperationId = null;
 
     public DefaultBasicProblemBuilder(Problem problem) {
         this.label = problem.getLabel();
@@ -60,6 +61,10 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
         this.solutions = new ArrayList<String>(problem.getSolutions());
         this.exception = problem.getException();
         this.additionalMetadata = new HashMap<String, String>(problem.getAdditionalData());
+
+        if (problem instanceof DefaultProblem) {
+            this.currentOperationId = ((DefaultProblem) problem).getBuildOperationId();
+        }
     }
 
     public DefaultBasicProblemBuilder() {
@@ -85,11 +90,17 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
 
     @Nullable
     public OperationIdentifier getCurrentOperationId() {
-        BuildOperationRef buildOperationRef = CurrentBuildOperationRef.instance().get();
-        if (buildOperationRef == null) {
-            return null;
+        if (currentOperationId != null) {
+            // If we have a carried over operation id, use it
+            return currentOperationId;
         } else {
-            return buildOperationRef.getId();
+            // Otherwise, try to get the current operation id
+            BuildOperationRef buildOperationRef = CurrentBuildOperationRef.instance().get();
+            if (buildOperationRef == null) {
+                return null;
+            } else {
+                return buildOperationRef.getId();
+            }
         }
     }
 

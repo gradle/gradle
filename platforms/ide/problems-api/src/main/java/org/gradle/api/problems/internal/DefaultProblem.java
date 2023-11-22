@@ -123,7 +123,7 @@ public class DefaultProblem implements Problem, Serializable {
     }
 
     @Nullable
-    public OperationIdentifier getBuildOperationRef() {
+    public OperationIdentifier getBuildOperationId() {
         return buildOperationId;
     }
 
