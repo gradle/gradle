@@ -24,7 +24,6 @@ internal
 interface RestrictedScriptSchemaBuilder {
     fun getAnalysisSchemaForScript(
         targetInstance: Any,
-        classLoaderScope: ClassLoaderScope,
         scriptContext: RestrictedScriptContext
     ): ScriptSchemaBuildingResult
 }
@@ -40,5 +39,6 @@ sealed interface ScriptSchemaBuildingResult {
 internal
 sealed interface RestrictedScriptContext {
     object SettingsScript : RestrictedScriptContext
+    object PluginsBlock : RestrictedScriptContext
     object UnknownScript : RestrictedScriptContext
 }

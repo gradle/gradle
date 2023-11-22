@@ -20,13 +20,12 @@ import com.h0tk3y.kotlin.staticObjectNotation.Adding
 import com.h0tk3y.kotlin.staticObjectNotation.Builder
 import com.h0tk3y.kotlin.staticObjectNotation.Configuring
 import com.h0tk3y.kotlin.staticObjectNotation.Restricted
-import com.h0tk3y.kotlin.staticObjectNotation.schemaFromTypes
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 
 
 internal
-abstract class TopLevelReceiver {
+abstract class PluginsTopLevelReceiver {
     @Restricted
     abstract val plugins: RestrictedPluginDependenciesSpecScope
 
@@ -40,20 +39,15 @@ abstract class TopLevelReceiver {
 internal
 abstract class RestrictedPluginDependenciesSpecScope : PluginDependenciesSpec {
     @Adding
-    abstract override fun id(id: String): RestrictedPluginDependencySpec
+    abstract override fun id(id: String): PluginDependencySpecWithProperties
 
     @Adding
-    abstract fun kotlin(id: String): KotlinRestrictedPluginDependencySpec
+    abstract fun kotlin(id: String): PluginDependencySpecWithProperties
 }
 
 
-abstract class KotlinRestrictedPluginDependencySpec : RestrictedPluginDependencySpec()
-
-
-abstract class RestrictedPluginDependencySpec : PluginDependencySpec {
-    @Restricted
-    abstract val id: String
-
+internal
+abstract class PluginDependencySpecWithProperties : PluginDependencySpec {
     @Restricted
     abstract val version: String?
 
@@ -61,15 +55,54 @@ abstract class RestrictedPluginDependencySpec : PluginDependencySpec {
     abstract val apply: Boolean
 
     @Builder
-    abstract override fun apply(apply: Boolean): RestrictedPluginDependencySpec
+    abstract override fun version(version: String?): PluginDependencySpecWithProperties
 
     @Builder
-    abstract override fun version(version: String?): RestrictedPluginDependencySpec
+    abstract override fun apply(apply: Boolean): PluginDependencySpecWithProperties
 }
 
 
 internal
-val pluginsBlockAnalysisSchema = schemaFromTypes(
-    TopLevelReceiver::class,
-    listOf(TopLevelReceiver::class, RestrictedPluginDependenciesSpecScope::class, RestrictedPluginDependencySpec::class, KotlinRestrictedPluginDependencySpec::class)
-)
+class RuntimeTopLevelPluginsReceiver {
+    val plugins = PluginsCollectingPluginsBlock()
+}
+
+
+internal
+class PluginsCollectingPluginsBlock() : PluginDependenciesSpec {
+    val specs: List<MutablePluginDependencySpec>
+        get() = _specs
+
+    private val _specs = mutableListOf<MutablePluginDependencySpec>()
+
+    override fun id(id: String): PluginDependencySpec =
+        MutablePluginDependencySpec(id)
+            .also(_specs::add)
+
+    fun kotlin(id: String) =
+        id("org.jetbrains.kotlin.$id")
+}
+
+
+internal
+class MutablePluginDependencySpec(
+    val id: String
+) : PluginDependencySpec {
+    var version: String? = null
+        private set
+    var apply: Boolean = true
+        private set
+
+    override fun version(version: String?): PluginDependencySpec {
+        this.version = version
+        return this
+    }
+
+    override fun apply(apply: Boolean): PluginDependencySpec {
+        this.apply = apply
+        return this
+    }
+
+    fun toRequestSpec(): ResidualProgram.PluginRequestSpec =
+        ResidualProgram.PluginRequestSpec(id, version, apply)
+}
