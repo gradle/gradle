@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r84
+package org.gradle.integtests.tooling.r85
 
 import groovy.json.JsonSlurper
 import org.gradle.api.problems.Severity
@@ -42,7 +42,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         }
     }
 
-    // TODO move this test to a proper package
     // TODO make a variant for Gradle 8.6+ where structural information is exposed
     def "test failure context"() {
         setup:
