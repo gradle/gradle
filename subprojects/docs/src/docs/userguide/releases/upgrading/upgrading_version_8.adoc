@@ -51,6 +51,113 @@ JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[
 ==== Deprecated `ArtifactIdentifier`
 The `ArtifactIdentifier` class has been deprecated for removal in Gradle 9.0.
 
+[[deprecated_archives_configuration]]
+==== Deprecated `archives` configuration
+
+The archives configuration has been deprecated for removal in Gradle 9.0.
+
+All artifacts declared on the archives configuration are automatically built by the `assemble` task.
+
+The following example shows examples of scripts that declare artifacts on the archives configuration.
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("base")
+}
+
+tasks.register("example", Jar::class.java)
+
+// Via ArtifactHandler
+artifacts  {
+    add("archives", tasks.named("example"))
+}
+
+// Explicitly
+configurations.named("archives").configure {
+    outgoing {
+        artifact(taks.named("example"))
+    }
+}
+----
+======
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id("base")
+}
+
+tasks.register("example", Jar)
+
+// Via ArtifactHandler
+artifacts {
+    archives tasks.example
+}
+
+// Explicitly
+configurations.archives {
+    outgoing {
+        artifact(tasks.example)
+    }
+}
+----
+======
+=====
+
+In Gradle 9.0, the `archives` configuration will no longer be available.
+In order to ensure artifacts are built by the `assemble` task, add an explicit task dependency.
+
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("base")
+}
+
+tasks.register("example", Jar::class.java)
+
+tasks.named("assemble").configure {
+    dependsOn(tasks.named("example"))
+}
+----
+======
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id("base")
+}
+
+tasks.register("example", Jar)
+
+tasks.assemble.dependsOn(tasks.example)
+----
+======
+=====
+
+Furthermore, the `isVisible` property of `Configuration` has been deprecated for removal in Gradle 9.0.
+This property configures whether a configuration's artifacts are automatically added to the `archives` configuration.
+When running the `assemble` task, Gradle will now emit a warning whenever a task will be executed due to this automatic task dependency.
+To opt-into future behavior and silence the warning, set the Gradle property:
+
+[source,properties]
+----
+org.gradle.preview.explicit-assemble=true
+----
+
 [[changes_8.5]]
 == Upgrading from 8.4 and earlier
 

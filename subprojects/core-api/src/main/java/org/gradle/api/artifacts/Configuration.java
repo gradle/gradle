@@ -112,11 +112,13 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     }
 
     /**
-     * Returns true if this is a visible configuration. A visible configuration is usable outside the project it belongs
-     * to. The default value is true.
+     * Configures whether this configuration's artifacts should be considered for building by the {@code assemble} task.
      *
      * @return true if this is a visible configuration.
+     *
+     * @deprecated Set the {@code org.gradle.preview.explicit-assemble} property to "true" instead of setting this property to false.
      */
+    @Deprecated
     boolean isVisible();
 
     /**

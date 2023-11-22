@@ -20,15 +20,24 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.PublishArtifactSet;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
+import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.plugins.BuildConfigurationRule;
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.NaggingBasePluginConvention;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.plugins.internal.DefaultBasePluginExtension;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+import org.gradle.internal.Describables;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+
+import java.util.function.Supplier;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which defines a basic project lifecycle and some common convention properties.</p>
@@ -40,6 +49,8 @@ public abstract class BasePlugin implements Plugin<Project> {
     public static final String ASSEMBLE_TASK_NAME = LifecycleBasePlugin.ASSEMBLE_TASK_NAME;
     public static final String BUILD_GROUP = LifecycleBasePlugin.BUILD_GROUP;
 
+    private static final String EXPLICIT_ASSEMBLE_PROPERTY_NAME = "org.gradle.preview.explicit-assemble";
+
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
@@ -50,8 +61,16 @@ public abstract class BasePlugin implements Plugin<Project> {
         configureExtension(project, baseExtension);
         configureBuildConfigurationRule(project);
         configureArchiveDefaults(project, baseExtension);
-        configureConfigurations(project);
-        configureAssemble((ProjectInternal) project);
+
+        // TODO: Why is this here?
+        // This was originally added in 2008 here: https://github.com/gradle/gradle/commit/ca605c56c816a63025bbe62247d112358c17b98c
+        // However, the commit message doesn't explain why it was added.
+        // Project#getStatus claims the default value is `release`.
+        ((ProjectInternal) project).getInternalStatus().convention("integration");
+
+        RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
+        configureDefaultConfiguration(configurations);
+        configureArchivesConfiguration(project, configurations);
     }
 
 
@@ -84,34 +103,98 @@ public abstract class BasePlugin implements Plugin<Project> {
         project.getTasks().addRule(new BuildConfigurationRule(project.getConfigurations(), project.getTasks()));
     }
 
-    private void configureConfigurations(final Project project) {
-        RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
-        ((ProjectInternal) project).getInternalStatus().convention("integration");
-
-        final Configuration archivesConfiguration = configurations.maybeCreateConsumableUnlocked(Dependency.ARCHIVES_CONFIGURATION)
-            .setDescription("Configuration for archive artifacts.");
-
+    private static void configureDefaultConfiguration(RoleBasedConfigurationContainerInternal configurations) {
         configurations.maybeCreateConsumableUnlocked(Dependency.DEFAULT_CONFIGURATION)
             .setDescription("Configuration for default artifacts.");
+    }
 
-        final DefaultArtifactPublicationSet defaultArtifacts = project.getExtensions().create(
-            "defaultArtifacts", DefaultArtifactPublicationSet.class, archivesConfiguration.getArtifacts()
-        );
+    private static void configureArchivesConfiguration(Project project, RoleBasedConfigurationContainerInternal configurations) {
+        @SuppressWarnings("deprecation")
+        final Configuration archivesConfiguration = configurations.maybeCreateMigratingUnlocked(Dependency.ARCHIVES_CONFIGURATION, ConfigurationRolesForMigration.CONSUMABLE_TO_REMOVED)
+            .setDescription("Configuration for archive artifacts.");
+
+        @SuppressWarnings("deprecation")
+        final org.gradle.api.internal.plugins.DefaultArtifactPublicationSet defaultArtifacts =
+            project.getExtensions().create("defaultArtifacts", org.gradle.api.internal.plugins.DefaultArtifactPublicationSet.class, archivesConfiguration.getArtifacts());
 
         configurations.all(configuration -> {
             if (!configuration.equals(archivesConfiguration)) {
                 configuration.getArtifacts().configureEach(artifact -> {
                     if (configuration.isVisible()) {
-                        defaultArtifacts.addCandidate(artifact);
+                        defaultArtifacts.addCandidateInternal(artifact, true);
                     }
                 });
             }
         });
+
+        linkArchiveArtifactsToAssembleTask(project, () -> {
+            String advice = "Set the gradle property '" + EXPLICIT_ASSEMBLE_PROPERTY_NAME  + "=true' to opt into the new behavior and silence this warning. " +
+                "To continue building this artifact when running 'assemble', manually define the task dependency with 'tasks.assemble.dependsOn(Object)'";
+
+            PublishArtifactSet archiveArtifacts = archivesConfiguration.getAllArtifacts();
+            for (PublishArtifact artifact : archiveArtifacts) {
+                if (!defaultArtifacts.shouldWarn(artifact)) {
+                    // Artifacts added by first-party plugins skip this warning.
+                    // In 9.0 they will migrate to assemble.dependsOn()
+                    continue;
+                }
+                boolean found = false;
+                for (Configuration conf : configurations) {
+                    if (conf.equals(archivesConfiguration)) {
+                        continue;
+                    }
+                    if (conf.getArtifacts().contains(artifact)) {
+                        found = true;
+                        String message = String.format(
+                            "%s for configuration '%s' is automatically built by the 'assemble' task. " +
+                                "Building configuration artifacts automatically in this manner",
+                            getArtifactDisplayName(artifact), conf.getName()
+                        );
+                        DeprecationLogger.deprecate(message)
+                            .withAdvice(advice)
+                            .startingWithGradle9("the 'assemble' task will no longer build this artifact automatically")
+                            .withUpgradeGuideSection(8, "deprecated_archives_configuration")
+                            .nagUser();
+                    }
+                }
+
+                if (!found) {
+                    String message = String.format(
+                        "%s is automatically built by the 'assemble' task since it was added to the 'archives' configuration. " +
+                            "Building 'archives' configuration artifacts automatically in this manner",
+                        getArtifactDisplayName(artifact)
+                    );
+                    DeprecationLogger.deprecate(message)
+                        .withAdvice(advice)
+                        .startingWithGradle9("the 'assemble' task will no longer build this artifact automatically")
+                        .withUpgradeGuideSection(8, "deprecated_archives_configuration")
+                        .nagUser();
+                }
+            }
+
+            return archiveArtifacts.getBuildDependencies();
+        });
     }
 
-    private void configureAssemble(final ProjectInternal project) {
+    private static String getArtifactDisplayName(PublishArtifact artifact) {
+        if (artifact instanceof ArchivePublishArtifact) {
+            return ((ArchivePublishArtifact) artifact).getArchiveTask().toString();
+        }
+        return Describables.of("Artifact", artifact.getFile().getName()).toString();
+    }
+
+    private static void linkArchiveArtifactsToAssembleTask(Project project, Supplier<TaskDependency> assembleBuildDependencies) {
+        if ("true".equals(project.findProperty(EXPLICIT_ASSEMBLE_PROPERTY_NAME))) {
+            return;
+        }
+
         project.getTasks().named(ASSEMBLE_TASK_NAME, task -> {
-            task.dependsOn(task.getProject().getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getAllArtifacts().getBuildDependencies());
+            task.dependsOn(new TaskDependencyContainer() {
+                @Override
+                public void visitDependencies(TaskDependencyResolveContext context) {
+                    context.add(assembleBuildDependencies.get());
+                }
+            });
         });
     }
 }

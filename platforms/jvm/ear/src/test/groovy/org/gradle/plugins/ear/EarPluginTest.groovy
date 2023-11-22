@@ -170,6 +170,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         task dependsOn(hasItems(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME))
     }
 
+    @SuppressWarnings("deprecation")
     def "adds ear as publication"() {
         when:
         project.pluginManager.apply(EarPlugin)
@@ -182,6 +183,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         archiveConfiguration.getAllArtifacts().iterator().next().getType() == "ear"
     }
 
+    @SuppressWarnings("deprecation")
     def "replaces war as publication"() {
         when:
         project.pluginManager.apply(EarPlugin)
@@ -195,6 +197,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         archiveConfiguration.getAllArtifacts().iterator().next().getType() == "ear"
     }
 
+    @SuppressWarnings("deprecation")
     def "replaces jar as publication"() {
         when:
         project.pluginManager.apply(EarPlugin)

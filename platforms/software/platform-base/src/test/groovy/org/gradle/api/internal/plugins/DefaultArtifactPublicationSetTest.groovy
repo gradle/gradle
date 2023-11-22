@@ -20,6 +20,7 @@ import spock.lang.Specification
 import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.artifacts.PublishArtifact
 
+@SuppressWarnings("deprecation")
 class DefaultArtifactPublicationSetTest extends Specification {
     final PublishArtifactSet publications = Mock()
     final DefaultArtifactPublicationSet publication = TestUtil.newInstance(DefaultArtifactPublicationSet, publications)

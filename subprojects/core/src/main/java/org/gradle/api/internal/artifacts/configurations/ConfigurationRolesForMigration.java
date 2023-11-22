@@ -65,13 +65,19 @@ public final class ConfigurationRolesForMigration {
     public static final ConfigurationRole CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE = difference(ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE, ConfigurationRoles.CONSUMABLE);
 
     /**
+     * A consumable configuration that will be removed in the next major version.
+     */
+    public static final ConfigurationRole CONSUMABLE_TO_REMOVED = difference(ConfigurationRoles.CONSUMABLE, new DefaultConfigurationRole("Removed", false, false, false, false, false, false));
+
+    /**
      * All known migration roles.
      */
     public static final Set<ConfigurationRole> ALL = ImmutableSet.of(
         LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE,
         LEGACY_TO_CONSUMABLE,
         RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
-        CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE
+        CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE,
+        CONSUMABLE_TO_REMOVED
     );
 
     /**

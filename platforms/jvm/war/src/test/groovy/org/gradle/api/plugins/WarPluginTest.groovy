@@ -126,6 +126,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
         task.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
     }
 
+    @SuppressWarnings("deprecation")
     def "replaces jar as publication"() {
         given:
         project.pluginManager.apply(WarPlugin)

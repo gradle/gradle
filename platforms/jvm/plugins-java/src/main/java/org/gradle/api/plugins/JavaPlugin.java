@@ -22,11 +22,11 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.component.SoftwareComponentContainerInternal;
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JvmConstants;
@@ -266,8 +266,12 @@ public abstract class JavaPlugin implements Plugin<Project> {
         ((SoftwareComponentContainerInternal) project.getComponents()).getMainComponent().convention(javaComponent);
 
         // Build the main jar when running `assemble`.
-        DefaultArtifactPublicationSet publicationSet = project.getExtensions().getByType(DefaultArtifactPublicationSet.class);
-        publicationSet.addCandidate(javaComponent.getMainFeature().getRuntimeElementsConfiguration().getArtifacts().iterator().next());
+        // Replace with tasks.assemble.dependsOn(jar) in Gradle 9.0
+        PublishArtifact mainJarArtifact = javaComponent.getMainFeature().getRuntimeElementsConfiguration().getArtifacts().iterator().next();
+        @SuppressWarnings("deprecation")
+        org.gradle.api.internal.plugins.DefaultArtifactPublicationSet artifactPublicationSet =
+            project.getExtensions().getByType(org.gradle.api.internal.plugins.DefaultArtifactPublicationSet.class);
+        artifactPublicationSet.addCandidateInternal(mainJarArtifact, false);
 
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
         configureSourceSets(buildOutputCleanupRegistry, sourceSets);

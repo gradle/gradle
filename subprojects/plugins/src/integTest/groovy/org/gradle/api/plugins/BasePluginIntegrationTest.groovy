@@ -183,4 +183,33 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(":jar1")
         notExecuted(":jar2")
     }
+
+    // This is very confusing behavior and not necessarily desired.
+    def "builds the first visible configuration that registers a jar artifact"() {
+        buildFile << """
+            plugins {
+                id("base")
+            }
+
+            task jar1(type: Jar) {}
+            task jar2(type: Jar) {}
+
+            configurations {
+                foo {
+                    visible = true
+                    outgoing.artifact(tasks.jar1)
+                }
+                bar {
+                    visible = true
+                    outgoing.artifact(tasks.jar2)
+                }
+            }
+        """
+
+        expect:
+        succeeds("assemble")
+
+        executedAndNotSkipped(":jar1")
+        notExecuted(":jar2")
+    }
 }

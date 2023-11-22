@@ -186,6 +186,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         defaultConfig.extendsFrom == toSet(runtimeElements)
     }
 
+    @SuppressWarnings("deprecation")
     def "adds jar as publication"() {
         given:
         project.pluginManager.apply(JavaPlugin)

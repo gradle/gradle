@@ -20,7 +20,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.Zip
@@ -31,13 +30,14 @@ import static org.hamcrest.CoreMatchers.instanceOf
 
 class BasePluginTest extends AbstractProjectBuilderSpec {
 
+    @SuppressWarnings("deprecation")
     def "adds convention objects"() {
         when:
         project.pluginManager.apply(BasePlugin)
 
         then:
         project.convention.plugins.base instanceof BasePluginConvention
-        project.extensions.findByType(DefaultArtifactPublicationSet) != null
+        project.extensions.findByType(org.gradle.api.internal.plugins.DefaultArtifactPublicationSet) != null
         project.extensions.findByType(BasePluginExtension) != null
     }
 
@@ -171,6 +171,7 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         task.archiveVersion.get() == '1.0'
     }
 
+    @SuppressWarnings("deprecation")
     def "adds configurations to the project"() {
         when:
         project.pluginManager.apply(BasePlugin)
@@ -188,6 +189,7 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         archives.transitive
     }
 
+    @SuppressWarnings("deprecation")
     def "adds every published artifact to the archives configuration"() {
         PublishArtifact artifact = Mock()
 

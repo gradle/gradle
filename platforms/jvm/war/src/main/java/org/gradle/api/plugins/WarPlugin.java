@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCo
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.java.WebApplication;
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
@@ -96,7 +95,13 @@ public abstract class WarPlugin implements Plugin<Project> {
         });
 
         PublishArtifact warArtifact = new LazyPublishArtifact(war, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory());
-        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(warArtifact);
+
+        // Replace with tasks.assemble.dependsOn(war) in Gradle 9.0
+        @SuppressWarnings("deprecation")
+        org.gradle.api.internal.plugins.DefaultArtifactPublicationSet artifactPublicationSet =
+            project.getExtensions().getByType(org.gradle.api.internal.plugins.DefaultArtifactPublicationSet.class);
+        artifactPublicationSet.addCandidateInternal(warArtifact, false);
+
         configureConfigurations(((ProjectInternal) project).getConfigurations(), mainFeature);
         configureComponent(project, warArtifact);
     }

@@ -23,29 +23,62 @@ import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.ChangingValueHandler;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
  * The policy for which artifacts should be published by default when none are explicitly declared.
+ *
+ * @deprecated This class will be removed in Gradle 9.0
  */
+@Deprecated
 public abstract class DefaultArtifactPublicationSet {
     private final PublishArtifactSet artifactContainer;
     private DefaultArtifactProvider defaultArtifactProvider;
+    private final Set<PublishArtifact> internalArtifacts = new HashSet<>();
 
     @Inject
     public DefaultArtifactPublicationSet(PublishArtifactSet artifactContainer) {
         this.artifactContainer = artifactContainer;
     }
 
-    public void addCandidate(PublishArtifact artifact) {
+    /**
+     * Return true if this artifact was added by user code
+     */
+    public boolean shouldWarn(PublishArtifact artifact) {
+        return !internalArtifacts.contains(artifact);
+    }
+
+    public void addCandidateInternal(PublishArtifact artifact, boolean shouldWarn) {
         if (defaultArtifactProvider == null) {
             defaultArtifactProvider = new DefaultArtifactProvider();
             artifactContainer.addAllLater(defaultArtifactProvider);
         }
         defaultArtifactProvider.addArtifact(artifact);
+        if (!shouldWarn) {
+            internalArtifacts.add(artifact);
+        }
+    }
+
+    /**
+     * @deprecated Call {@code tasks.assemble.dependsOn(Object)} instead.
+     */
+    // This is called by KMP:
+    // https://github.com/JetBrains/kotlin/blob/33ab1871c7a4fad466d77f40f59be16759d091a5/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/targets/native/configureBinaryFrameworks.kt#L102C1-L103
+    // https://github.com/JetBrains/kotlin/blob/33ab1871c7a4fad466d77f40f59be16759d091a5/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/artifacts/KotlinNativeKlibArtifact.kt#L68
+    @Deprecated
+    public void addCandidate(PublishArtifact artifact) {
+        DeprecationLogger.deprecate("DefaultArtifactPublicationSet")
+            .withAdvice("Call tasks.assemble.dependsOn(Object) manually to build an artifact when running the 'assemble' task.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_archives_configuration")
+            .nagUser();
+
+        addCandidateInternal(artifact, true);
     }
 
     DefaultArtifactProvider getDefaultArtifactProvider() {

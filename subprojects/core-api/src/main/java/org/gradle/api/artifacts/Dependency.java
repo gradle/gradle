@@ -23,6 +23,13 @@ import javax.annotation.Nullable;
  */
 public interface Dependency {
     String DEFAULT_CONFIGURATION = "default";
+
+    /**
+     * The archives configuration name.
+     *
+     * @deprecated This constant and the archives configuration itself are scheduled for removal in Gradle 9.0
+     */
+    @Deprecated
     String ARCHIVES_CONFIGURATION = "archives";
     String CLASSIFIER = "m:classifier";
 
