@@ -19,7 +19,6 @@ package org.gradle.tooling.events.problems;
 import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationDescriptor;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -63,7 +62,6 @@ public interface ProblemDescriptor extends OperationDescriptor {
      * @return the problem details
      * @since 8.6
      */
-    @Nullable
     Details getDetails();
 
     /**
@@ -88,7 +86,6 @@ public interface ProblemDescriptor extends OperationDescriptor {
      * @return the locations
      * @since 8.6
      */
-    @Nullable
     DocumentationLink getDocumentationLink();
 
     /**
@@ -113,6 +110,5 @@ public interface ProblemDescriptor extends OperationDescriptor {
      * @since 8.6
      */
     @Incubating
-    @Nullable
     ExceptionContainer getException();
 }

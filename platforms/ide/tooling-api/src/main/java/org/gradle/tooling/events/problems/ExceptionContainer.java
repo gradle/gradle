@@ -18,11 +18,15 @@ package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
+
 /**
  * Holds an exception for a problem.
  * @since 8.6
  */
 @Incubating
 public interface ExceptionContainer {
+
+    @Nullable
     RuntimeException getException();
 }

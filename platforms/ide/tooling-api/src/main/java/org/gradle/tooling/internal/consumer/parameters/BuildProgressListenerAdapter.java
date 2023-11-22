@@ -742,7 +742,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private ExceptionContainer toExceptionContainer(RuntimeException exception) {
+    private static ExceptionContainer toExceptionContainer(@Nullable RuntimeException exception) {
         return new DefaultExceptionContainer(exception);
     }
 
@@ -780,7 +780,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private static DocumentationLink toDocumentationLink(@Nullable InternalDocumentationLink link) {
-        return link == null ? null : new DefaultDocumentationLink(link.getUrl());
+        return link == null ? new DefaultDocumentationLink(null) : new DefaultDocumentationLink(link.getUrl());
     }
 
     private static List<Solution> toSolutions(List<InternalSolution> solutions) {
@@ -795,7 +795,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (details != null) {
             return new DefaultDetails(details.getDetails());
         }
-        return null;
+        return new DefaultDetails(null);
     }
 
     private Set<OperationDescriptor> collectDescriptors(Set<? extends InternalOperationDescriptor> dependencies) {

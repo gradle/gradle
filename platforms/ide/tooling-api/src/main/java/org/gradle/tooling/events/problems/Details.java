@@ -18,6 +18,8 @@ package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
+
 /**
  * Represents a problem details.
  *
@@ -31,5 +33,6 @@ public interface Details {
      *
      * @return the problem details
      */
+    @Nullable
     String getDetails();
 }

@@ -19,12 +19,14 @@ package org.gradle.tooling.events.problems.internal;
 import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.problems.Details;
 
+import javax.annotation.Nullable;
+
 @NonNullApi
 public class DefaultDetails implements Details {
 
     private final String label;
 
-    public DefaultDetails(String details) {
+    public DefaultDetails(@Nullable String details) {
         this.label = details;
     }
     @Override

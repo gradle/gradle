@@ -18,10 +18,12 @@ package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.tooling.events.problems.ExceptionContainer;
 
-public class DefaultExceptionContainer implements ExceptionContainer {
-    private RuntimeException exception;
+import javax.annotation.Nullable;
 
-    public DefaultExceptionContainer(RuntimeException exception) {
+public class DefaultExceptionContainer implements ExceptionContainer {
+    private final RuntimeException exception;
+
+    public DefaultExceptionContainer(@Nullable RuntimeException exception) {
         this.exception = exception;
     }
 

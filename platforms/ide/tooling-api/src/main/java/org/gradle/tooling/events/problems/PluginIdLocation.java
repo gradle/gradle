@@ -8,11 +8,11 @@
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
-     * distributed under the License is distributed on an "AS IS" BASIS,
-     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     * See the License for the specific language governing permissions and
-     * limitations under the License.
-     */
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
      package org.gradle.tooling.events.problems;
 
@@ -20,8 +20,7 @@
 
 /**
  * Represents a plugin ID.
- * TODO: Does PluginIdLocation even make sense? We will probably encode this information into the category. Maybe this is something that we can implicitly map on the client side (i.e. generating
- * a PluginId location in the client based on the category).
+ *
  * @since 8.6
  */
 @Incubating

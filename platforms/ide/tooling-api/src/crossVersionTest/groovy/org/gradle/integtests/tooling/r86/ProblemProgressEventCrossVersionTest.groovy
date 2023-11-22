@@ -33,8 +33,37 @@ import org.gradle.tooling.events.problems.TaskPathLocation
 @TargetGradleVersion(">=8.6")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
+    @TargetGradleVersion("=8.3")
+    def "Older Gradle versions do not report problems"() {
+        setup:
+        buildFile << """
+            plugins {
+              id 'java-library'
+            }
+            repositories.jcenter()
+            task bar {}
+            task baz {}
+        """
+
+        when:
+        def listener = new ProblemProgressListener()
+        withConnection { connection ->
+            connection.newBuild()
+                .forTasks(":ba")
+                .addProgressListener(listener)
+                .setStandardError(System.err)
+                .setStandardOutput(System.out)
+                .addArguments("--info")
+                .run()
+        }
+
+        then:
+        thrown(BuildException)
+        listener.problems.size() == 0
+    }
+
     @ToolingApiVersion("=8.5")
-    def "test failure context"() {
+    def "Gradle 8.5 exposes problem events via JSON strings"() {
         setup:
         buildFile << """
             plugins {
@@ -64,7 +93,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         problems.size() == 2
     }
 
-    // TODO add test coverage for events coming from older Gradle versions
     @ToolingApiVersion(">=8.6")
     def "Problems expose details via Tooling API events"() {
         given:
@@ -101,10 +129,10 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 void run() {
                     problems.create {
                         it.label("shortProblemMessage")
-                        .documentedAt(new TestDocLink("https://docs.example.org"))
+                        $documentationConfig
                         .fileLocation("/tmp/foo", 1, 2, 3)
                         .category("main", "sub", "id")
-                        .details("long message")
+                        $detailsConfig
                         .additionalData("aKey", "aValue")
                         .severity(Severity.WARNING)
                         .solution("try this instead")
@@ -126,14 +154,14 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         problems.size() == 1
-        problems[0].category.namespace == 'main' // TODO this is a bug; namespace should be a string representing Gradle core
+        problems[0].category.namespace == 'main' // TODO this is a bug; see https://github.com/gradle/gradle/issues/27123
         problems[0].category.category == 'main'
         problems[0].category.subCategories == ['sub','id']
         problems[0].additionalData.asMap == ['aKey' : 'aValue']
         problems[0].label.label == 'shortProblemMessage'
-        problems[0].details.details == 'long message' // TODO test coverage for null value
+        problems[0].details.details == expectedDetails
         problems[0].severity == Severity.WARNING
-        problems[0].locations.size() == 2 // TODO test coverage for null values
+        problems[0].locations.size() == 2
         problems[0].locations[0] instanceof FileLocation
         (problems[0].locations[0] as FileLocation).path == '/tmp/foo'
         (problems[0].locations[0] as FileLocation).line == 1
@@ -141,9 +169,15 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         (problems[0].locations[0] as FileLocation).length == 3
         problems[0].locations[1] instanceof TaskPathLocation
         (problems[0].locations[1] as TaskPathLocation).identityPath == ':reportProblem'
-        problems[0].documentationLink.url == 'https://docs.example.org' // TODO it's really hard to define doc urls from the plugin authors perspective. We should have a generic documentedAt(URL) method on the problem builder
+        problems[0].documentationLink.url == expecteDocumentation // TODO https://github.com/gradle/gradle/issues/27124
         problems[0].solutions.size() == 1
         problems[0].solutions[0].solution == 'try this instead'
+        problems[0].exception.exception == null
+
+        where:
+        detailsConfig              | expectedDetails | documentationConfig                                          | expecteDocumentation
+        '.details("long message")' | "long message"  | '.documentedAt(new TestDocLink("https://docs.example.org"))' | 'https://docs.example.org'
+        ''                         | null            | '.undocumented()'                                            | null
     }
 
     class ProblemProgressListener implements ProgressListener {
