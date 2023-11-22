@@ -19,18 +19,21 @@ package org.gradle.kotlin.dsl.provider
 import com.h0tk3y.kotlin.staticObjectNotation.schemaFromTypes
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.kotlin.dsl.execution.PluginDependencySpecWithProperties
+import org.gradle.kotlin.dsl.execution.PluginsTopLevelReceiver
+import org.gradle.kotlin.dsl.execution.RestrictedPluginDependenciesSpecScope
 import org.gradle.kotlin.dsl.provider.ScriptSchemaBuildingResult.SchemaAvailable
+import org.gradle.plugin.use.PluginDependencySpec
 
 internal
 class DefaultRestrictedScriptSchemaBuilder : RestrictedScriptSchemaBuilder {
     override fun getAnalysisSchemaForScript(
         targetInstance: Any,
-        classLoaderScope: ClassLoaderScope,
         scriptContext: RestrictedScriptContext
     ): ScriptSchemaBuildingResult =
         when (scriptContext) {
             is RestrictedScriptContext.SettingsScript -> SchemaAvailable(schemaForSettingsScript)
+            RestrictedScriptContext.PluginsBlock -> SchemaAvailable(schemaForPluginsBlock)
             is RestrictedScriptContext.UnknownScript -> ScriptSchemaBuildingResult.SchemaNotBuilt
         }
 
@@ -38,6 +41,13 @@ class DefaultRestrictedScriptSchemaBuilder : RestrictedScriptSchemaBuilder {
         schemaFromTypes(
             Settings::class,
             listOf(Settings::class, ProjectDescriptor::class)
+        )
+    }
+
+    private val schemaForPluginsBlock by lazy {
+        schemaFromTypes(
+            PluginsTopLevelReceiver::class,
+            listOf(PluginsTopLevelReceiver::class, RestrictedPluginDependenciesSpecScope::class, PluginDependencySpecWithProperties::class)
         )
     }
 }

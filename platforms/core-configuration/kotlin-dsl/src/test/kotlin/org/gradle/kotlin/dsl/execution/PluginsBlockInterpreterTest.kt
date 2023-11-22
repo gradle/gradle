@@ -23,7 +23,7 @@ import org.hamcrest.Matchers.equalTo
 import org.junit.Test
 
 
-class PluginsBlockInterpreterTest {
+open class PluginsBlockInterpreterTest {
 
     @Test
     fun `empty plugins block`() {
@@ -104,17 +104,17 @@ class PluginsBlockInterpreterTest {
 
 
     @Test
-    fun `single plugin - id() mixed version apply`() {
+    open fun `single plugin - id() mixed version apply`() {
         assertStaticInterpretationOf(
             """
                 id("plugin-id").version("1.0").apply(true)
                 id("plugin-id").version("2.0") apply true
-                id("plugin-id") version "3.0".apply(true)
+                id("plugin-id") version "3.0".apply(true) // BUG!
                 id("plugin-id") version "4.0" apply true
 
                 id("plugin-id").apply(false).version("1.0")
                 id("plugin-id").apply(false) version "2.0"
-                id("plugin-id") apply false.version("3.0")
+                id("plugin-id") apply false.version("3.0") // BUG!
                 id("plugin-id") apply false version "4.0"
             """,
             PluginRequestSpec("plugin-id", version = "1.0", apply = true),
@@ -156,7 +156,7 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `single plugin - kotlin-dsl`() {
+    open fun `single plugin - kotlin-dsl`() {
         assertStaticInterpretationOf(
             """`kotlin-dsl`""",
             PluginRequestSpec("org.gradle.kotlin.kotlin-dsl", version = expectedKotlinDslPluginsVersion, apply = true)
@@ -164,7 +164,7 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `single plugin - kotlin-dsl apply`() {
+    open fun `single plugin - kotlin-dsl apply`() {
         assertStaticInterpretationOf(
             """`kotlin-dsl` apply false""",
             PluginRequestSpec("org.gradle.kotlin.kotlin-dsl", version = expectedKotlinDslPluginsVersion, apply = false)
@@ -712,8 +712,8 @@ class PluginsBlockInterpreterTest {
         )
     }
 
-    private
-    fun assertStaticInterpretationOf(pluginsBlock: String, vararg specs: PluginRequestSpec) {
+    internal
+    open fun assertStaticInterpretationOf(pluginsBlock: String, vararg specs: PluginRequestSpec) {
         assertThat(
             interpret(Program.Plugins(fragment("plugins", pluginsBlock))),
             equalTo(
