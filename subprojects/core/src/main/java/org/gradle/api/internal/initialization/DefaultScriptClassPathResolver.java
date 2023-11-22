@@ -19,21 +19,29 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.ArtifactView;
+import org.gradle.api.artifacts.ComponentMetadataContext;
+import org.gradle.api.artifacts.ComponentMetadataRule;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.AttributeDisambiguationRule;
+import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.LibraryElements;
+import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
+import org.gradle.api.internal.initialization.transform.BuildScriptInstrumentingArtifactTransform;
 import org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform;
 import org.gradle.api.internal.initialization.transform.InstrumentingArtifactTransform;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -63,8 +71,9 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY
     ));
 
-    private static final Attribute<Boolean> HIERARCHY_COLLECTED_ATTRIBUTE = Attribute.of("org.gradle.internal.hierarchy-collected", Boolean.class);
-    private static final Attribute<Boolean> INSTRUMENTED_ATTRIBUTE = Attribute.of("org.gradle.internal.instrumented", Boolean.class);
+    public static final Attribute<Boolean> HIERARCHY_COLLECTED_ATTRIBUTE = Attribute.of("org.gradle.internal.hierarchy-collected", Boolean.class);
+    public static final Attribute<Boolean> INSTRUMENTED_ATTRIBUTE = Attribute.of("org.gradle.internal.instrumented", Boolean.class);
+    public static final Attribute<Boolean> BUILD_SCRIPT_INSTRUMENTED_ATTRIBUTE = Attribute.of("org.gradle.internal.buildscript.instrumented", Boolean.class);
     private final NamedObjectInstantiator instantiator;
     private final CachedClasspathTransformer classpathTransformer;
     private final List<GlobalCache> globalCaches;
@@ -102,9 +111,33 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             version.reject(Log4jBannedVersion.LOG4J2_CORE_VULNERABLE_VERSION_RANGE);
         })));
 
+        // Register instrumentation transform for build scripts
+        dependencyHandler.registerTransform(
+            BuildScriptInstrumentingArtifactTransform.class,
+            spec -> {
+                spec.getFrom().attribute(BUILD_SCRIPT_INSTRUMENTED_ATTRIBUTE, false);
+                spec.getTo().attribute(BUILD_SCRIPT_INSTRUMENTED_ATTRIBUTE, true);
+                spec.parameters(parameters -> parameters.getMaxSupportedJavaVersion().set(AsmConstants.MAX_SUPPORTED_JAVA_VERSION));
+            }
+        );
+
+//        dependencyHandler.attributesSchema(attributesSchema -> {
+//            AttributeMatchingStrategy<Boolean> attribute = attributesSchema.attribute(BUILD_SCRIPT_INSTRUMENTED_ATTRIBUTE);
+//            attribute.getDisambiguationRules()
+//                .add(BuildScriptInstrumentationDisambiguationRule.class);
+//            attribute.getCompatibilityRules()
+//                .add(BuildScriptInstrumentationCompatibilityRule.class);
+//            }
+//        );
+
+//        dependencyHandler.components(componentMetadataHandler -> componentMetadataHandler.all(BuildScriptVariantDerivationRule.class));
         dependencyHandler.getArtifactTypes().getByName("jar").getAttributes()
             .attribute(INSTRUMENTED_ATTRIBUTE, false)
-            .attribute(HIERARCHY_COLLECTED_ATTRIBUTE, false);
+            .attribute(HIERARCHY_COLLECTED_ATTRIBUTE, false)
+            .attribute(BUILD_SCRIPT_INSTRUMENTED_ATTRIBUTE, false);
+
+        dependencyHandler.getArtifactTypes().getByName("directory").getAttributes()
+            .attribute(BUILD_SCRIPT_INSTRUMENTED_ATTRIBUTE, false);
     }
 
     @Override
@@ -179,6 +212,35 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         @Override
         public List<File> getGlobalCacheRoots() {
             return cacheRoots;
+        }
+    }
+
+    public static class BuildScriptInstrumentationDisambiguationRule implements AttributeDisambiguationRule<Boolean> {
+        @Override
+        public void execute(MultipleCandidatesDetails<Boolean> details) {
+            if (details.getConsumerValue() == null) {
+                details.closestMatch(false);
+            }
+        }
+    }
+
+    public static class BuildScriptInstrumentationCompatibilityRule implements AttributeCompatibilityRule<Boolean> {
+        @Override
+        public void execute(CompatibilityCheckDetails<Boolean> details) {
+            Boolean consumer = details.getConsumerValue();
+            Boolean producer = details.getProducerValue();
+            if (consumer == null && producer == null || consumer == false && producer == false) {
+                details.compatible();
+            } else {
+                details.incompatible();
+            }
+        }
+    }
+
+    public static class BuildScriptVariantDerivationRule implements ComponentMetadataRule {
+        @Override
+        public void execute(ComponentMetadataContext context) {
+            context.getDetails().addVariant("default", variant -> variant.attributes(attributes -> attributes.attribute(BUILD_SCRIPT_INSTRUMENTED_ATTRIBUTE, false)));
         }
     }
 }

@@ -171,6 +171,12 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         if (classPath.isEmpty()) {
             return classPath;
         }
+        if (transform == StandardTransform.None) {
+            return transformFiles(
+                classPath,
+                instrumentingClasspathFileTransformerFor(classpathElementTransformFactoryForLegacy, additional)
+            );
+        }
         return transformFiles(
             classPath,
             instrumentingClasspathFileTransformerFor(

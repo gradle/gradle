@@ -164,6 +164,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         // TODO: JavaEcosystemSupport.configureSchema is called in the constructor, should we move it here?
         DependencyHandler dependencyHandler = dependencyResolutionServices.getDependencyHandler();
         dependencyHandler.getArtifactTypes().create(ArtifactTypeDefinition.JAR_TYPE);
+        dependencyHandler.getArtifactTypes().create(ArtifactTypeDefinition.DIRECTORY_TYPE);
         return dependencyHandler;
     }
 

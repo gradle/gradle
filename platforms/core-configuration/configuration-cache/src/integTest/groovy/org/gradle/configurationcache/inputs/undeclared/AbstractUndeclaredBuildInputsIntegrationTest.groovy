@@ -84,11 +84,12 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
     }
 
     def "reports undeclared system property read using when iterating over system properties"() {
+        executer.withOwnUserHomeServices()
         buildLogicApplication(propertyRead)
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        configurationCacheRun("thing", "-DCI=$value")
+        configurationCacheRun("thing", "--info", "-DCI=$value")
 
         then:
         configurationCache.assertStateStored()
