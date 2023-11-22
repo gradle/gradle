@@ -48,101 +48,169 @@ You can use any of the methods and properties on the link:{javadocPath}org/gradl
 
 For example:
 
-[source]
+[source,kotlin]
 ----
- defaultTasks('some-task')      // Delegates to Project.defaultTasks()
- reportsDir = file('reports')   // Delegates to Project.file() and the Java Plugin
+ defaultTasks("some-task")      // Delegates to Project.defaultTasks()
+ reportsDir = file("reports")   // Delegates to Project.file() and the Java Plugin
 ----
 
-== Step 2. Update the Build scripts
+== Step 2. The Build script
 
-.license-plugin/build.gradle.kts
-[source]
+Let's breakdown the build script for the plugin:
+
+.gradle/license-plugin/plugin/build.gradle.kts
+[source,kotlin]
+----
+plugins {                                                                                           // <1>
+    `java-gradle-plugin`                                                                            // <2>
+    id("org.jetbrains.kotlin.jvm") version "1.9.0"                                                  // <3>
+}
+
+repositories {                                                                                      // <4>
+    mavenCentral()                                                                                  // <5>
+}
+
+dependencies {                                                                                      // <6>
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")                                   // <7>
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+gradlePlugin {                                                                                      // <8>
+    val greeting by plugins.creating {                                                              // <9>
+        id = "com.gradle.greeting"
+        implementationClass = "com.gradle.LicensePlugin"
+    }
+}
+
+val functionalTestSourceSet = sourceSets.create("functionalTest") {                                 // <10>
+}
+
+configurations["functionalTestImplementation"].extendsFrom(configurations["testImplementation"])
+configurations["functionalTestRuntimeOnly"].extendsFrom(configurations["testRuntimeOnly"])
+
+// Add a task to run the functional tests
+val functionalTest by tasks.registering(Test::class) {
+    testClassesDirs = functionalTestSourceSet.output.classesDirs
+    classpath = functionalTestSourceSet.runtimeClasspath
+    useJUnitPlatform()
+}
+
+gradlePlugin.testSourceSets.add(functionalTestSourceSet)
+
+tasks.named<Task>("check") {
+    dependsOn(functionalTest)
+}
+
+tasks.named<Test>("test") {
+    useJUnitPlatform()
+}
+----
+<1>
+<2> Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins
+<3> Apply the Kotlin JVM plugin to add support for Kotlin
+<4>
+<5> Use Maven Central for resolving dependencies
+<6>
+<7> Use the Kotlin JUnit 5 integration
+<8>
+<9> Define the plugin
+<10> Additional test functionality outside the scope of this tutorial
+
+== Step 3. Update the Build scripts
+
+Build init creates a "hello world" plugin when creating a Gradle plugin project:
+
+.gradle/license-plugin/plugin/build.gradle.kts
+[source,kotlin]
 ----
 gradlePlugin {
-    // Define the plugin
-    val license by plugins.creating {
-        id = "com.gradle.license"
+    val greeting by plugins.creating {
+        id = "com.gradle.greeting"
+        implementationClass = "com.gradle.LicensePlugin"
+    }
+}
+
+----
+
+Over the next sections, we will be writing a plugin that automatically generates license headers for source code files.
+Let's update the build script with the proper name for our new `license` plugin:
+
+.gradle/license-plugin/plugin/build.gradle.kts
+[source,kotlin]
+----
+gradlePlugin {
+    val license by plugins.creating {   // Update name to license
+        id = "com.gradle.license"       // Update id to com.gradle.license
         implementationClass = "com.gradle.LicensePlugin"
     }
 }
 ----
 
 == Step 3. Apply the Plugin
+
+Let's apply our `license` plugin to the `app` subproject:
+
 .app/build.gradle.kts
-[source]
+[source,kotlin]
 ----
 plugins {
     application
-    id("org.gradle.license")
+    id("com.gradle.license")    // Apply the license plugin
 }
 ----
 
-== Step 4. Update the Plugin
+== Step 4. View Plugin Task
 
-When you ran `gradle init` and added the `license-plugin` build to the project, Gradle added a "hello-world" example:
+The source code for the `license` plugin is also the "hello world" sample created by Gradle init:
 
-.license-plugin/plugin/src/main/kotlin/com/gradle/LicensePlugin.kt
+.gradle/license-plugin/plugin/src/main/kotlin/com/gradle/LicensePlugin.kt
 [source,kotlin]
 ----
-class OtherPluginPlugin: Plugin<Project> {
-    override fun apply(project: Project) {
-        // Register a task
-        project.tasks.register("greeting") { task ->
-            task.description = "greeting" // Add description
-            task.group = "from my plugin" // Add group
+class LicensePlugin: Plugin<Project> {
+    override fun apply(project: Project) {                          // Apply plugin
+        project.tasks.register("greeting") { task ->                // Register a task
             task.doLast {
-                println("Hello from plugin 'com.gradle.greeting'")
+                println("Hello from plugin 'com.gradle.greeting'")  // Hello world printout
             }
         }
     }
 }
 ----
 
-== Step 4. View Plugin Tasks
+As we can see the `license` plugin, when applied, contains a `greeting` task with a simple print statement.
 
-When the license-plugin is applied to the `app` project, its tasks become available:
+== Step 5. View Plugin Tasks
 
-In the root, run:
+When the `license` plugin is applied to the `app` project, the `greeting` task become available:
+
+To view the task, in the root directory, run:
 
 [source]
 ----
-$ ./gradlew tasks
+$ ./gradlew tasks --all
 
 ------------------------------------------------------------
 Tasks runnable from root project 'authoring-tutorial'
 ------------------------------------------------------------
 
-From my plugin tasks
---------------------
-greeting - greeting
+...
 
-BUILD SUCCESSFUL in 12s
-5 actionable tasks: 3 executed, 2 up-to-date
+Other tasks
+-----------
+app:greeting
+app:task1
+app:task2
+lib:task3
 ----
 
-And you can run them:
+And you can run the `greeting` task using `./gradlew greeting` or:
 
 [source]
 ----
-$ ./gradlew greeting
-
-SETTINGS FILE: This is executed during the initialization phase
-> Task :license-plugin:plugin:compileKotlin UP-TO-DATE
-> Task :license-plugin:plugin:compileJava NO-SOURCE
-> Task :license-plugin:plugin:pluginDescriptors UP-TO-DATE
-> Task :license-plugin:plugin:processResources UP-TO-DATE
-> Task :license-plugin:plugin:classes UP-TO-DATE
-> Task :license-plugin:plugin:jar UP-TO-DATE
-
-> Configure project :app
-BUILD SCRIPT: This is executed during the configuration phase
+$ ./gradlew :app:greeting
 
 > Task :app:greeting
 Hello from plugin 'com.gradle.greeting'
-
-BUILD SUCCESSFUL in 1s
-5 actionable tasks: 1 executed, 4 up-to-date
 ----
 
 [.text-right]

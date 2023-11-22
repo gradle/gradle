@@ -56,6 +56,29 @@ project.tasks.register("license") { task ->
 
 == Step 3. Create a Task
 
+
+== Step 4. Update the Plugin
+
+When you ran `gradle init` and added the `license-plugin` build to the project, Gradle added a "hello-world" example:
+
+.license-plugin/plugin/src/main/kotlin/com/gradle/LicensePlugin.kt
+[source,kotlin]
+----
+class OtherPluginPlugin: Plugin<Project> {
+    override fun apply(project: Project) {
+        // Register a task
+        project.tasks.register("greeting") { task ->
+            task.description = "greeting" // Add description
+            task.group = "from my plugin" // Add group
+            task.doLast {
+                println("Hello from plugin 'com.gradle.greeting'")
+            }
+        }
+    }
+}
+----
+
+
 .build.gradle.kts
 [source,kotlin]
 ----
