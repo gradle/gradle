@@ -35,8 +35,8 @@ import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.reflect
 import kotlinx.ast.common.ast.Ast
 import org.antlr.v4.kotlinruntime.misc.ParseCancellationException
 import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.kotlin.dsl.execution.RuntimeTopLevelPluginsReceiver
 import org.gradle.kotlin.dsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated
 import org.gradle.kotlin.dsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.FailuresInLanguageTree
 import org.gradle.kotlin.dsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.FailuresInResolution
@@ -50,7 +50,6 @@ interface RestrictedKotlinScriptEvaluator {
     fun evaluate(
         target: Any,
         scriptSource: ScriptSource,
-        targetScope: ClassLoaderScope,
     ): EvaluationResult
 
     sealed interface EvaluationResult {
@@ -74,7 +73,6 @@ class NoopRestrictedKotlinScriptEvaluator : RestrictedKotlinScriptEvaluator {
     override fun evaluate(
         target: Any,
         scriptSource: ScriptSource,
-        targetScope: ClassLoaderScope
     ): RestrictedKotlinScriptEvaluator.EvaluationResult {
         return NotEvaluated(NotEvaluated.NotEvaluatedReason.EvaluationNotSupported)
     }
@@ -84,12 +82,8 @@ internal
 class DefaultRestrictedKotlinScriptEvaluator(
     private val schemaBuilder: RestrictedScriptSchemaBuilder
 ) : RestrictedKotlinScriptEvaluator {
-    override fun evaluate(target: Any, scriptSource: ScriptSource, targetScope: ClassLoaderScope): RestrictedKotlinScriptEvaluator.EvaluationResult {
-        // We need to lock the scope here: we don't really need it now, but downstream scopes will rely on us locking it
-        // TODO: when the scope is used, this call should be removed
-        targetScope.lock()
-
-        return when (val schema = schemaBuilder.getAnalysisSchemaForScript(target, targetScope, scriptContextFor(target))) {
+    override fun evaluate(target: Any, scriptSource: ScriptSource): RestrictedKotlinScriptEvaluator.EvaluationResult {
+        return when (val schema = schemaBuilder.getAnalysisSchemaForScript(target, scriptContextFor(target))) {
             ScriptSchemaBuildingResult.SchemaNotBuilt -> NotEvaluated(NoSchemaAvailable)
 
             is ScriptSchemaBuildingResult.SchemaAvailable -> {
@@ -121,7 +115,7 @@ class DefaultRestrictedKotlinScriptEvaluator(
         val context = ReflectionContext(SchemaTypeRefContext(schema), resolution, trace)
         val topLevel = reflect(resolution.topLevelReceiver, context)
 
-        RestrictedReflectionToObjectConverter(emptyMap(), SchemaTypeRefContext(schema), target).apply(topLevel)
+        RestrictedReflectionToObjectConverter(emptyMap(), target).apply(topLevel)
         return RestrictedKotlinScriptEvaluator.EvaluationResult.Evaluated
     }
 
@@ -136,13 +130,15 @@ class DefaultRestrictedKotlinScriptEvaluator(
         }
 
     private fun languageModelFromAst(ast: Ast): LanguageTreeResult? {
-        return languageTreeBuilder.build(ast)
+        val result = languageTreeBuilder.build(ast)
+        return if (result.results.any { it is FailingResult }) null else result
     }
 
     private val languageTreeBuilder = LanguageTreeBuilderWithTopLevelBlock(DefaultLanguageTreeBuilder())
 
     private fun scriptContextFor(target: Any) = when (target) {
         is Settings -> RestrictedScriptContext.SettingsScript
+        is RuntimeTopLevelPluginsReceiver -> RestrictedScriptContext.PluginsBlock
         else -> RestrictedScriptContext.UnknownScript
     }
 }
