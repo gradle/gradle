@@ -78,6 +78,50 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         outputContains("Could not resolve project :.")
     }
 
+    def "can lazily define and request capability"() {
+        buildFile << """
+
+            def value = "org:initial:1.0"
+
+            configurations {
+                consumable("conf") {
+                    outgoing {
+                        capability(project.provider(() -> value))
+                    }
+                    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, "foo"))
+                }
+                dependencyScope("deps")
+                resolvable("res") {
+                    extendsFrom(deps)
+                    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, "foo"))
+                }
+            }
+
+            dependencies {
+                deps(project) {
+                    capabilities {
+                        requireCapability(project.provider(() -> value))
+                    }
+                }
+            }
+
+            value = "com:final:1.0"
+
+            task resolve {
+                def result = configurations.res.incoming.resolutionResult.rootComponent
+                doLast {
+                    def capabilities = result.get().dependencies.first().resolvedVariant.capabilities
+                    assert capabilities.size() == 1
+                    assert capabilities.first().group == "com"
+                    assert capabilities.first().name == "final"
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/26377")
     def "ResolvedVariantResults reported by ResolutionResult and ArtifactCollection have same capabilities when they are added to configuration in hierarchy"() {
         settingsFile << "include 'producer'"
