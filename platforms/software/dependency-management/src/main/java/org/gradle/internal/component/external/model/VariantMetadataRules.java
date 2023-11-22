@@ -30,7 +30,6 @@ import org.gradle.api.capabilities.MutableCapabilitiesMetadata;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.internal.component.model.CapabilitiesRules;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.VariantAttributesRules;
@@ -40,6 +39,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -51,7 +51,7 @@ public class VariantMetadataRules {
 
     private DependencyMetadataRules dependencyMetadataRules;
     private VariantAttributesRules variantAttributesRules;
-    private CapabilitiesRules capabilitiesRules;
+    private List<VariantMetadataRules.VariantAction<? super MutableCapabilitiesMetadata>> capabilitiesRules;
     private VariantFilesRules variantFilesRules;
 
     private final AttributeContainerInternal baseAttributes;
@@ -92,20 +92,26 @@ public class VariantMetadataRules {
     }
 
     public ImmutableCapabilities applyCapabilitiesRules(VariantResolveMetadata variant, ImmutableCapabilities capabilities) {
-        if (capabilitiesRules != null) {
-            DefaultMutableCapabilitiesMetadata mutableCapabilities;
-            if (capabilities.asSet().isEmpty()) {
-                // we must add the implicit capability here because it is assumed that if there's a rule
-                // "addCapability" would effectively _add_ a capability, so the implicit one must not be forgotten
-                mutableCapabilities = new DefaultMutableCapabilitiesMetadata(ImmutableCapabilities.of(
-                    new DefaultImmutableCapability(moduleVersionId.getGroup(), moduleVersionId.getName(), moduleVersionId.getVersion()))
-                );
-            } else {
-                mutableCapabilities = new DefaultMutableCapabilitiesMetadata(capabilities);
-            }
-            return capabilitiesRules.execute(variant, mutableCapabilities);
+        if (capabilitiesRules == null) {
+            return capabilities;
         }
-        return capabilities;
+
+        DefaultMutableCapabilitiesMetadata mutableCapabilities;
+        if (capabilities.asSet().isEmpty()) {
+            // we must add the implicit capability here because it is assumed that if there's a rule
+            // "addCapability" would effectively _add_ a capability, so the implicit one must not be forgotten
+            mutableCapabilities = new DefaultMutableCapabilitiesMetadata(ImmutableCapabilities.of(
+                new DefaultImmutableCapability(moduleVersionId.getGroup(), moduleVersionId.getName(), moduleVersionId.getVersion()))
+            );
+        } else {
+            mutableCapabilities = new DefaultMutableCapabilitiesMetadata(capabilities);
+        }
+
+        for (VariantMetadataRules.VariantAction<? super MutableCapabilitiesMetadata> action : capabilitiesRules) {
+            action.maybeExecute(variant, mutableCapabilities);
+        }
+
+        return mutableCapabilities.asImmutableCapabilities();
     }
 
     public <T extends ModuleDependencyMetadata> List<? extends ModuleDependencyMetadata> applyDependencyMetadataRules(VariantResolveMetadata variant, List<T> configDependencies) {
@@ -152,9 +158,9 @@ public class VariantMetadataRules {
 
     public void addCapabilitiesAction(VariantAction<? super MutableCapabilitiesMetadata> action) {
         if (capabilitiesRules == null) {
-            capabilitiesRules = new CapabilitiesRules();
+            capabilitiesRules = new ArrayList<>(1);
         }
-        capabilitiesRules.addCapabilitiesAction(action);
+        capabilitiesRules.add(action);
     }
 
     public void addVariantFilesAction(VariantAction<? super MutableVariantFilesMetadata> action) {

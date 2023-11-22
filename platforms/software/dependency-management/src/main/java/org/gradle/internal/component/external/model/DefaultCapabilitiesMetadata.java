@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.external.model;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
 
@@ -24,17 +23,20 @@ import java.util.List;
 
 /**
  * An immutable implementation of {@link CapabilitiesMetadata}.
+ *
+ * <p>If possible, use {@link ImmutableCapabilities} instead of this type. This type
+ * should only be used when interfacing with the public API.</p>
  */
 public class DefaultCapabilitiesMetadata implements CapabilitiesMetadata {
 
-    private final ImmutableList<? extends Capability> capabilities;
+    private final ImmutableCapabilities capabilities;
 
-    public DefaultCapabilitiesMetadata(ImmutableList<? extends Capability> capabilities) {
+    public DefaultCapabilitiesMetadata(ImmutableCapabilities capabilities) {
         this.capabilities = capabilities;
     }
 
     @Override
     public List<? extends Capability> getCapabilities() {
-        return capabilities;
+        return capabilities.asSet().asList();
     }
 }

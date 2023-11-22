@@ -16,6 +16,7 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
@@ -25,6 +26,11 @@ import org.gradle.api.internal.capabilities.ImmutableCapability;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+/**
+ * Default implementation of {@link MutableCapabilitiesMetadata}.
+ *
+ * <p>If possible, try to avoid using this type unless interfacing with the public API.</p>
+ */
 public class DefaultMutableCapabilitiesMetadata implements MutableCapabilitiesMetadata {
     private final Set<ImmutableCapability> descriptors;
 
@@ -49,11 +55,15 @@ public class DefaultMutableCapabilitiesMetadata implements MutableCapabilitiesMe
 
     @Override
     public CapabilitiesMetadata asImmutable() {
-        return new DefaultCapabilitiesMetadata(getCapabilities());
+        return new DefaultCapabilitiesMetadata(asImmutableCapabilities());
     }
 
     @Override
     public ImmutableList<? extends Capability> getCapabilities() {
         return ImmutableList.copyOf(descriptors);
+    }
+
+    public ImmutableCapabilities asImmutableCapabilities() {
+        return new ImmutableCapabilities(ImmutableSet.copyOf(descriptors));
     }
 }
