@@ -24,13 +24,13 @@ import java.util.Set;
  *
  * Implemented as a enum, so it's easier to generate bytecode.
  */
-public enum BytecodeInterceptorRequest {
+public enum BytecodeInterceptorFilter {
     INSTRUMENTATION_ONLY(EnumSet.of(BytecodeInterceptorType.INSTRUMENTATION)),
     ALL(EnumSet.of(BytecodeInterceptorType.INSTRUMENTATION, BytecodeInterceptorType.BYTECODE_UPGRADE));
 
     private final Set<BytecodeInterceptorType> instrumentationTypes;
 
-    BytecodeInterceptorRequest(Set<BytecodeInterceptorType> instrumentationTypes) {
+    BytecodeInterceptorFilter(Set<BytecodeInterceptorType> instrumentationTypes) {
         this.instrumentationTypes = instrumentationTypes;
     }
 

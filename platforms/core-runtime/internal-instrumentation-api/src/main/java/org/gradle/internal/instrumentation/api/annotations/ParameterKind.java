@@ -16,7 +16,7 @@
 
 package org.gradle.internal.instrumentation.api.annotations;
 
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorRequest;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -47,7 +47,7 @@ public class ParameterKind {
     /**
      * Injects some context from visitor. Not supported for Groovy at the moment.
      *
-     * Currently it's only supported to inject {@link BytecodeInterceptorRequest}.
+     * Currently, it's only supported to inject {@link BytecodeInterceptorFilter}.
      */
     @Retention(RetentionPolicy.CLASS)
     @Target(ElementType.PARAMETER)

@@ -20,13 +20,13 @@ import org.gradle.internal.classpath.intercept.GroovyInterceptorsSubstitution
 import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorFactoryProvider
 import org.gradle.internal.classpath.intercept.JvmInterceptorsSubstitution
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorRequest
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter
 import spock.lang.Specification
 
 import java.util.function.Predicate
 
 abstract class AbstractCallInterceptionTest extends Specification {
-    protected BytecodeInterceptorRequest bytecodeInterceptorRequest = BytecodeInterceptorRequest.ALL
+    protected BytecodeInterceptorFilter bytecodeInterceptorFilter = BytecodeInterceptorFilter.ALL
 
     protected abstract Predicate<String> shouldInstrumentAndReloadClassByName()
 
@@ -52,7 +52,7 @@ abstract class AbstractCallInterceptionTest extends Specification {
         instrumentedClasses = new InstrumentedClasses(
             getClass().classLoader,
             shouldInstrumentAndReloadClassByName(),
-            bytecodeInterceptorRequest,
+            bytecodeInterceptorFilter,
             typeRegistry()
         )
     }

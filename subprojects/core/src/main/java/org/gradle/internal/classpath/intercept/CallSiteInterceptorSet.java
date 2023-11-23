@@ -16,10 +16,10 @@
 
 package org.gradle.internal.classpath.intercept;
 
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorRequest;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 
 import java.util.List;
 
 public interface CallSiteInterceptorSet {
-    List<CallInterceptor> getCallInterceptors(BytecodeInterceptorRequest interceptorRequest);
+    List<CallInterceptor> getCallInterceptors(BytecodeInterceptorFilter filter);
 }

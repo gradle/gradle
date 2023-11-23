@@ -16,7 +16,7 @@
 
 package org.gradle.internal.classpath.intercept
 
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorRequest
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter
 
 class JvmInterceptorsSubstitution extends TestInterceptorsSubstitution<JvmBytecodeInterceptorFactorySet> {
 
@@ -46,8 +46,8 @@ class JvmInterceptorsSubstitution extends TestInterceptorsSubstitution<JvmByteco
         }
 
         @Override
-        JvmBytecodeInterceptorSet getJvmBytecodeInterceptorSet(BytecodeInterceptorRequest request) {
-            return threadLocalDecorators.get().getJvmBytecodeInterceptorSet(request)
+        JvmBytecodeInterceptorSet getJvmBytecodeInterceptorSet(BytecodeInterceptorFilter filter) {
+            return threadLocalDecorators.get().getJvmBytecodeInterceptorSet(filter)
         }
     }
 }

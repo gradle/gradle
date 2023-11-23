@@ -19,7 +19,7 @@ package org.gradle.internal.classpath
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorFactoryProvider
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorRequest
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter
 
 import java.util.function.Predicate
 
@@ -75,7 +75,7 @@ class CallInterceptionFilteringTest extends AbstractCallInterceptionTest {
 
     def 'intercepts a basic instance call with #method from #caller with `instrumentation only` filter'() {
         given:
-        bytecodeInterceptorRequest = BytecodeInterceptorRequest.INSTRUMENTATION_ONLY
+        bytecodeInterceptorFilter = BytecodeInterceptorFilter.INSTRUMENTATION_ONLY
         resetInterceptors()
 
         when:
@@ -98,7 +98,7 @@ class CallInterceptionFilteringTest extends AbstractCallInterceptionTest {
 
     def 'intercepts a basic instance call with #method from #caller with `all` filter'() {
         given:
-        bytecodeInterceptorRequest = BytecodeInterceptorRequest.ALL
+        bytecodeInterceptorFilter = BytecodeInterceptorFilter.ALL
         resetInterceptors()
 
         when:

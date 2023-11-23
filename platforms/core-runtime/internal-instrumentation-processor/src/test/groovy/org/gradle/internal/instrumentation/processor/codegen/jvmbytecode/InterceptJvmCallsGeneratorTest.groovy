@@ -220,7 +220,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
             public class FileInterceptorsDeclaration2 {
                 @InterceptCalls
                 @InstanceMethod
-                public static boolean intercept_exists(@Receiver File thisFile, @InjectVisitorContext BytecodeInterceptorRequest request) {
+                public static boolean intercept_exists(@Receiver File thisFile, @InjectVisitorContext BytecodeInterceptorFilter filter) {
                     return false;
                 }
             }
@@ -239,7 +239,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
                     if (owner.equals("java/io/File")) {
                         if (name.equals("exists") && descriptor.equals("()Z") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
                             _GETSTATIC(INTERCEPTORS_REQUEST_TYPE, context.name(), INTERCEPTORS_REQUEST_TYPE.getDescriptor());
-                            _INVOKESTATIC(FILE_INTERCEPTORS_DECLARATION2_TYPE, "intercept_exists", "(Ljava/io/File;Lorg/gradle/internal/instrumentation/api/types/BytecodeInterceptorRequest;)Z");
+                            _INVOKESTATIC(FILE_INTERCEPTORS_DECLARATION2_TYPE, "intercept_exists", "(Ljava/io/File;Lorg/gradle/internal/instrumentation/api/types/BytecodeInterceptorFilter;)Z");
                             return true;
                         }
                     }
