@@ -47,7 +47,7 @@ import javax.annotation.Nullable;
  * @since 4.3
  */
 @SupportsKotlinAssignmentOverloading
-public interface Property<T> extends Provider<T>, HasConfigurableValue {
+public interface Property<T> extends Provider<T>, HasConfigurableValue, SupportsConvention {
     /**
      * Sets the value of the property to the given value, replacing whatever value the property already had.
      *

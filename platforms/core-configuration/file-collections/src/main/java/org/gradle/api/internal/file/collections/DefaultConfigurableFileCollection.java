@@ -64,7 +64,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     private final TaskDependencyFactory dependencyFactory;
     private final PropertyHost host;
     private final DefaultTaskDependency buildDependency;
-    private ValueCollector value = EMPTY_COLLECTOR;
+    private ValueCollector value;
     private ValueState<ValueCollector> valueState;
 
     public DefaultConfigurableFileCollection(@Nullable String displayName, PathToFileResolver fileResolver, TaskDependencyFactory dependencyFactory, Factory<PatternSet> patternSetFactory, PropertyHost host) {
@@ -74,8 +74,14 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         this.dependencyFactory = dependencyFactory;
         this.host = host;
         this.valueState = ValueState.newState(host);
+        init(EMPTY_COLLECTOR, EMPTY_COLLECTOR);
         filesWrapper = new PathSet();
         buildDependency = dependencyFactory.configurableDependency();
+    }
+
+    private void init(ValueCollector initialValue, ValueCollector convention) {
+        this.value = initialValue;
+        this.valueState.setConvention(convention);
     }
 
     @Override
@@ -210,22 +216,61 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     @Override
     public void setFrom(Iterable<?> path) {
         assertMutable();
-        value = value.setFrom(this, resolver, patternSetFactory, dependencyFactory, host, path);
+        setExplicitValue(newValue(value, path));
+    }
+
+
+    @Override
+    public ConfigurableFileCollection convention(Iterable<?> paths) {
+        assertMutable();
+        if (value == EMPTY_COLLECTOR) {
+            valueState.implicitValue();
+        }
+        value = valueState.applyConvention(value, newValue(EMPTY_COLLECTOR, paths));
+        return this;
+    }
+
+    @Override
+    public ConfigurableFileCollection convention(Object... paths) {
+        assertMutable();
+        if (value == EMPTY_COLLECTOR) {
+            valueState.implicitValue();
+        }
+        value = valueState.applyConvention(value, newValue(EMPTY_COLLECTOR, paths));
+        return this;
+    }
+
+    @Override
+    public void unset() {
+        assertMutable();
+        value = valueState.implicitValue();
+    }
+
+    private void setExplicitValue(ValueCollector valueCollector) {
+        value = valueState.explicitValue(valueCollector);
     }
 
     @Override
     public void setFrom(Object... paths) {
         assertMutable();
-        value = paths.length > 0
-            ? value.setFrom(this, resolver, patternSetFactory, dependencyFactory, host, paths)
-            : EMPTY_COLLECTOR;
+        setExplicitValue(paths.length > 0
+            ? newValue(value, paths)
+            : EMPTY_COLLECTOR);
+    }
+
+    private ValueCollector newValue(ValueCollector baseValue, Object[] paths) {
+        return baseValue.setFrom(this, resolver, patternSetFactory, dependencyFactory, host, paths);
+    }
+
+    private ValueCollector newValue(ValueCollector baseValue, Iterable<?> paths) {
+        return baseValue.setFrom(this, resolver, patternSetFactory, dependencyFactory, host, paths);
     }
 
     @Override
     public ConfigurableFileCollection from(Object... paths) {
         assertMutable();
         if (paths.length > 0) {
-            value = value.plus(this, resolver, patternSetFactory, dependencyFactory, host, paths);
+            setExplicitValue(value.plus(this, resolver, patternSetFactory, dependencyFactory, host, paths));
         }
         return this;
     }
@@ -290,7 +335,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
                 builder.add(fileTree);
             }
         }));
-        value = new ResolvedItemsCollector(builder.build());
+        setExplicitValue(new ResolvedItemsCollector(builder.build()));
     }
 
     @Override
@@ -550,7 +595,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         public boolean add(Object o) {
             assertMutable();
             if (!delegate().contains(o)) {
-                value = value.plus(DefaultConfigurableFileCollection.this, resolver, patternSetFactory, dependencyFactory, host, o);
+                setExplicitValue(value.plus(DefaultConfigurableFileCollection.this, resolver, patternSetFactory, dependencyFactory, host, o));
                 return true;
             } else {
                 return false;
@@ -566,7 +611,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         @Override
         public void clear() {
             assertMutable();
-            value = EMPTY_COLLECTOR;
+            setExplicitValue(EMPTY_COLLECTOR);
         }
     }
 }
