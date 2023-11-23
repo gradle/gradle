@@ -37,6 +37,7 @@ public abstract class CopyableFileTreeElement extends AbstractFileTreeElement {
         validateTimeStamps();
         try {
             if (isSymbolicLink()) {
+                GFileUtils.mkdirs(target.getParentFile());
                 copySymlinkTo(target);
             } else if (isDirectory()) {
                 GFileUtils.mkdirs(target);
