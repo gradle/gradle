@@ -110,28 +110,32 @@ public class EclipseDependenciesCreator {
         }
 
         @Override
-        @SuppressWarnings("deprecation")
         public void visitProjectDependency(ResolvedArtifactResult artifact, boolean testDependency, boolean asJavaModule) {
             ProjectComponentIdentifier componentIdentifier = (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
             if (componentIdentifier.equals(currentProjectId)) {
                 return;
             }
-            LibraryElements libraryElements = artifact.getVariant().getAttributes().getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
-            if (libraryElements == null || !libraryElements.getName().equals(LibraryElements.JAR)) {
-                return;
-            }
-            ComponentArtifactIdentifier artifactId = artifact.getId();
-            TaskDependency buildDependencies = null;
-            if (artifactId instanceof ComponentArtifactMetadata) {
-                buildDependencies = ((ComponentArtifactMetadata) artifactId).getBuildDependencies();
-            }
-            if (!asJavaModule) {
-                Project artifactProject = project.findProject(componentIdentifier.getProjectPath());
-                if (artifactProject != null) {
-                    asJavaModule = EclipseClassPathUtil.isInferModulePath(artifactProject);
+            if (artifactIsJarVariant(artifact)) {
+                ComponentArtifactIdentifier artifactId = artifact.getId();
+                TaskDependency buildDependencies = null;
+                if (artifactId instanceof ComponentArtifactMetadata) {
+                    buildDependencies = ((ComponentArtifactMetadata) artifactId).getBuildDependencies();
                 }
+                if (!asJavaModule) {
+                    Project artifactProject = project.findProject(componentIdentifier.getProjectPath());
+                    if (artifactProject != null) {
+                        asJavaModule = EclipseClassPathUtil.isInferModulePath(artifactProject);
+                    }
+                }
+                projects.add(projectDependencyBuilder.build(componentIdentifier, classpath.getFileReferenceFactory().fromFile(artifact.getFile()), buildDependencies, testDependency, asJavaModule));
             }
-            projects.add(projectDependencyBuilder.build(componentIdentifier, classpath.getFileReferenceFactory().fromFile(artifact.getFile()), buildDependencies, testDependency, asJavaModule));
+        }
+
+        private boolean artifactIsJarVariant(ResolvedArtifactResult artifact) {
+            return artifact.getVariants().stream().anyMatch(variant -> {
+                LibraryElements libraryElements = variant.getAttributes().getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
+                return libraryElements != null && libraryElements.getName().equals(LibraryElements.JAR);
+            });
         }
 
         @Override
