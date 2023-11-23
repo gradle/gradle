@@ -110,6 +110,7 @@ public class EclipseDependenciesCreator {
         }
 
         @Override
+        @SuppressWarnings("deprecation")
         public void visitProjectDependency(ResolvedArtifactResult artifact, boolean testDependency, boolean asJavaModule) {
             ProjectComponentIdentifier componentIdentifier = (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
             if (componentIdentifier.equals(currentProjectId)) {

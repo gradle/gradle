@@ -15,8 +15,6 @@
  */
 package org.gradle.api.artifacts.result;
 
-import org.apache.groovy.lang.annotation.Incubating;
-
 import java.io.File;
 import java.util.Set;
 
@@ -37,7 +35,10 @@ public interface ResolvedArtifactResult extends ArtifactResult {
      * See {@link #getVariants()} for a complete view.
      *
      * @return the variant that included this artifact
+     *
+     * @deprecated Use {@link #getVariants()} instead.
      */
+    @Deprecated
     ResolvedVariantResult getVariant();
 
     /**
@@ -47,6 +48,5 @@ public interface ResolvedArtifactResult extends ArtifactResult {
      *
      * @since 8.6
      */
-    @Incubating
     Set<ResolvedVariantResult> getVariants();
 }

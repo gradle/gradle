@@ -81,6 +81,7 @@ public class DefaultResolvedArtifactResult implements ResolvedArtifactResult {
     }
 
     @Override
+    @Deprecated
     public ResolvedVariantResult getVariant() {
         return variant;
     }

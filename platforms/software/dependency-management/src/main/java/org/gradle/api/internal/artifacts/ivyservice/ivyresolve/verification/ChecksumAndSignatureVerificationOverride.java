@@ -203,12 +203,14 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     public ResolvedArtifactResult verifiedArtifact(ResolvedArtifactResult artifact) {
         return new ResolvedArtifactResult() {
             @Override
+            @SuppressWarnings("deprecation")
             public File getFile() {
                 artifactsAccessed(artifact.getVariant().getDisplayName());
                 return artifact.getFile();
             }
 
             @Override
+            @Deprecated
             public ResolvedVariantResult getVariant() {
                 return artifact.getVariant();
             }

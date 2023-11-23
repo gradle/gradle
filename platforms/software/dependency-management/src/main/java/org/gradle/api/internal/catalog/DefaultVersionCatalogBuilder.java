@@ -230,6 +230,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         return DefaultCatalogProblemBuilder.getProblemInVersionCatalog(name) + ", ";
     }
 
+    @SuppressWarnings("deprecation")
     private void maybeImportCatalogs() {
         if (importedCatalog == null) {
             return;

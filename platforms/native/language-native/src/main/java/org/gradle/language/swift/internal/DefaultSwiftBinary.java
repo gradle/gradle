@@ -233,6 +233,7 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
         }
 
         @Override
+        @SuppressWarnings("deprecation")
         public Set<File> getFiles() {
             if (result == null) {
                 result = Sets.newLinkedHashSet();
