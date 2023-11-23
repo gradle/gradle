@@ -30,6 +30,7 @@ import org.gradle.plugins.ide.internal.configurer.DefaultUniqueProjectNameProvid
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
+import org.gradle.tooling.provider.model.internal.DefaultIntermediateToolingModelProvider;
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
 
 public class ToolingModelServices extends AbstractPluginServiceRegistry {
