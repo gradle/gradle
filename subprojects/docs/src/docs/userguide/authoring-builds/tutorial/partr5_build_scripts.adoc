@@ -18,7 +18,7 @@
 Learn the basics of authoring Gradle by developing the Build Script.
 
 ****
-**In this section you will:**
+**In this section, you will:**
 
 - Understand the Project object
 - Update the Build script
@@ -41,11 +41,11 @@ Build scripts invoke Gradle APIs to configure the build.
 
 During the configuration phase, Gradle finds the build script(s) in the root and subproject directories.
 
-When a build script, `build.gradle(.kts)`, is found, Gradle configures a link:{javadocPath}org/gradle/api/Project.html[Project] object.
+When a build script, `build.gradle(.kts)`, is found, Gradle configures a link:{javadocPath}/org/gradle/api/Project.html[Project] object.
 
-The purpose of the link:{javadocPath}org/gradle/api/Project.html[Project] object is to create a collection of link:{javadocPath}/org/gradle/api/Task.html[Task] objects, apply plugins, and retrieve dependencies.
+The purpose of the link:{javadocPath}/org/gradle/api/Project.html[Project] object is to create a collection of link:{javadocPath}/org/gradle/api/Task.html[Task] objects, apply plugins, and retrieve dependencies.
 
-You can use any of the methods and properties on the link:{javadocPath}org/gradle/api/Project.html[Project] interface directly in your script.
+You can use any of the methods and properties on the link:{javadocPath}/org/gradle/api/Project.html[Project] interface directly in your script.
 
 For example:
 
@@ -57,7 +57,7 @@ For example:
 
 == Step 2. The Build script
 
-Lets breakdown the build script for the plugin:
+Let's break down the build script for the plugin:
 
 .gradle/license-plugin/plugin/build.gradle.kts
 [source,kotlin]
@@ -135,9 +135,12 @@ dependencies {
 ----
 
 In this example, `implementation()` means that the `commons-lang3` library must be added to the Java classpath.
-FIX ME
 
-Configuration blocks are typically further configuration required by an applied plugin:
+Every dependency declared for a Gradle project must apply to a scope.
+That is, the dependency is either needed at compile time, runtime, or both.
+This is called a configuration and the `implementation` configuration is used when the dependency is only needed in the runtime classpath.
+
+Configuration blocks (not to be confused with dependency configurations above) are typically further configuration required by an applied plugin:
 
 [source,kotlin]
 ----
@@ -184,7 +187,7 @@ gradlePlugin {
 
 ----
 
-Over the next sections, we will be writing a plugin that automatically generates license headers for source code files.
+Over the following sections, we will write a plugin that automatically generates license headers for source code files.
 Let's update the build script with the proper name for our new `license` plugin:
 
 .gradle/license-plugin/plugin/build.gradle.kts
@@ -229,13 +232,13 @@ class LicensePlugin: Plugin<Project> {
 }
 ----
 
-As we can see the `license` plugin, when applied, contains a `greeting` task with a simple print statement.
+As we can see, the `license` plugin, when applied, contains a `greeting` task with a simple print statement.
 
 == Step 5. View Plugin Tasks
 
-When the `license` plugin is applied to the `app` project, the `greeting` task become available:
+When the `license` plugin is applied to the `app` project, the `greeting` task becomes available:
 
-To view the task, in the root directory, run:
+To view the task in the root directory, run:
 
 [source]
 ----

@@ -18,7 +18,7 @@
 Learn the basics of authoring Gradle tasks by creating a simple one in your Build script.
 
 ****
-**In this section you will:**
+**In this section, you will:**
 
 - Understand Tasks
 - Create a custom Task for the Plugin
@@ -42,7 +42,7 @@ A Task can depend on other tasks.
 
 == Step 2. Register and Configure Tasks
 
-Early on in the tutorial we registered and configured `task1` in the `app` build script:
+Early on in the tutorial, we registered and configured `task1` in the `app` build script:
 
 .app/build.gradle.kts
 [source,kotlin]
@@ -64,7 +64,7 @@ tasks.named("task1"){
 
 You can use the link:{kotlinDslPath}/gradle/org.gradle.api.tasks/-task-container/index.html[register()] method to create new tasks.
 
-You can use the link:{kotlinDslPath}/https://docs.gradle.org/current/kotlin-dsl/gradle/org.gradle.api.tasks/-task-collection/index.html[named()] method to configure existing tasks.
+You can use the link:{kotlinDslPath}/gradle/org.gradle.api.tasks/-task-collection/index.html[named()] method to configure existing tasks.
 
 == Step 3. Create a custom Task
 
@@ -108,7 +108,7 @@ abstract class LicenseTask : DefaultTask() {
 }
 ----
 
-The `LicenseTask` class encapsulates the task action logic and also declares any inputs and outputs the task expects.
+The `LicenseTask` class encapsulates the task action logic and declares any inputs and outputs the task expects.
 
 The task action is annotated with `@TaskAction`.
 Inside, the logic first finds a file called "license.txt".
@@ -120,15 +120,15 @@ This file contains text for an Apache license:
 */
 ----
 
-It then looks for files with the extension `.java` and `.kts` and adds a license header to it.
+The task then looks for files with the extension `.java` and `.kts` and adds a license header.
 
-The task has a single input, the license file name, which is annotated with `@Input`.
+The task has a single input, the license file name, annotated with `@Input`.
 
-The `@Input` annotation is used by Gradle to determine if the tasks needs to run.
-If the tasks has not run before or if the input value has changed since the previous execution, then Gradle will execute the task if requested.
+Gradle uses the `@Input` annotation to determine if the task needs to run.
+If the task has not run before or if the input value has changed since the previous execution, then Gradle will execute the task.
 
 While a custom class has been created, it is not yet added to the `LicensePlugin`.
-It is not currently possible to run the `LicenseTask` class as a task.
+Running `LicenseTask` is not currently possible.
 
 [.text-right]
 **Next Step:** <<partr7_writing_plugins#partr7_writing_plugins,Writing Plugins>> >>

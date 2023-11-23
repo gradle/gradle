@@ -18,7 +18,7 @@
 Learn the basics of authoring Gradle by developing the Settings File.
 
 ****
-**In this section you will:**
+**In this section, you will:**
 
 - Understand the Settings object
 - Understand the Settings file
@@ -37,7 +37,7 @@ Learn the basics of authoring Gradle by developing the Settings File.
 Build scripts and setting files are code.
 They are written in Kotlin or Groovy.
 
-You use the link:{kotlinDslPath}/index.html[Kotlin DSL], link:{groovyDslPath}/index.html[Groovy DSL] and link:{groovyDslPath}/index.html[Gradle APIs] to write the scripts.
+You use the link:{kotlinDslPath}[Kotlin DSL], link:{groovyDslPath}[Groovy DSL] and link:{javadocPath}[Gradle APIs] to write the scripts.
 
 The methods that can be used within a Gradle script primarily include:
 
@@ -67,7 +67,7 @@ For example:
 
 == Step 3. The Settings file
 
-Lets breakdown the settings file in our project root directory:
+Let's break down the settings file in our project root directory:
 
 .settings.gradle.kts
 [source,kotlin]

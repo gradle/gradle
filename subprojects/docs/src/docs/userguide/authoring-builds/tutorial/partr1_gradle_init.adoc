@@ -18,7 +18,7 @@
 Learn the basics of authoring Gradle by first creating a Java app using Gradle init.
 
 ****
-**In this section you will:**
+**In this section, you will:**
 
 - Initialize a Java project
 - Review the directory layout
@@ -143,12 +143,12 @@ rootProject.name = "authoring-tutorial"
 include("app")
 ----
 
-- `rootProject.name` assigns a name to the build, which overrides the default behavior of naming the build after the directory it’s in.
+- `rootProject.name` assigns a name to the build, overriding the default behavior of naming the build after its directory name.
 - `include("app")` defines that the build consists of one subproject called `app` that contains its own source code and build logic.
 
 More subprojects can be added by additional `include()` statements.
 
-Our build contains one subproject called `app` that represents the Java application we are building.
+Our build contains one subproject called `app` representing the Java application we are building.
 It is configured in the `app/build.gradle(.kts)` file:
 
 .build.gradle.kts
@@ -190,7 +190,7 @@ tasks.named<Test>("test") {
 <6> Define the main class for the application.
 <7> Use JUnit Platform for unit tests.
 
-The build script in the `app` subproject directory declares the dependencies that the `app` code will need to be assembled and tested.
+The build script in the `app` subproject directory declares the dependencies the `app` code will need to be assembled and tested.
 
 == Step 4. Review the Code
 
@@ -291,11 +291,11 @@ $ ./gradlew build
 BUILD SUCCESSFUL in 5s
 ----
 
-If you run a full build as shown above, Gradle will have produced the archive in two formats for you: `app/build/distributions/app.tar` and `app/build/distributions/app.zip`.
+If you run a full build as shown above, Gradle will have produced the archive in two formats: `app/build/distributions/app.tar` and `app/build/distributions/app.zip`.
 
 == Step 6. Publish a Build Scan
 
-The best way to learn more about what your build is doing behind the scenes, is to publish a link:https://scans.gradle.com[Build Scan].
+The best way to learn more about what your build is doing behind the scenes is to publish a link:https://scans.gradle.com[Build Scan].
 To do so, run the `build` task again with the `--scan` flag.
 
 [source]
@@ -328,7 +328,7 @@ Publishing build scan...
 https://gradle.com/s/7ee5saas3seo2
 ----
 
-Click the link and explore which tasks where executed, which dependencies where downloaded, and many more details:
+Click the link and explore which tasks were executed, which dependencies were downloaded, and many more details:
 
 image::build-scan-3.png[]
 

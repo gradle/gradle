@@ -18,9 +18,9 @@
 Learn the basics of writing and applying Gradle plugins.
 
 ****
-**In this section you will:**
+**In this section, you will:**
 
-- Add custom task to Plugin
+- Add a custom task to the Plugin
 - Apply the Plugin to a subproject
 - Use the Plugin
 ****
@@ -56,9 +56,9 @@ class LicensePlugin: Plugin<Project> {
 
 == Step 2. Add a license.txt file
 
-Add a file called `license.txt` to the root directory of the project:
+Add a file called `license.txt` to the root directory of the project and add the following text to it:
 
-.
+.license.txt
 [source,text]
 ----
 /*
@@ -85,7 +85,7 @@ Apply the plugin to the `app` subproject:
 ----
 plugins {
     application
-    id("com.gradle.license")
+    id("com.gradle.license") // Apply custom plugin
 }
 ----
 
@@ -130,7 +130,7 @@ public class App {
 }
 ----
 
-Next let's run the task with `./gradlew :app:license`:
+Next, let's run the task with `./gradlew :app:license`:
 
 [source]
 ----
@@ -151,7 +151,7 @@ BUILD SUCCESSFUL in 410ms
 5 actionable tasks: 1 executed, 4 up-to-date
 ----
 
-Now inspect the source code which has a new license header:
+Now inspect the same source code, which should include a license header:
 
 .app/src/main/java/authoring/tutorial/App.java
 [source,java]

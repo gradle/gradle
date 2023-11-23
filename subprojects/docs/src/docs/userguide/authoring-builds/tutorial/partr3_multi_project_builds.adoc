@@ -18,7 +18,7 @@
 Learn the basics of structuring Gradle projects using subprojects and composite builds.
 
 ****
-**In this section you will:**
+**In this section, you will:**
 
 - Understand Multi-Project builds
 - Understand Composite Builds
@@ -34,33 +34,34 @@ Learn the basics of structuring Gradle projects using subprojects and composite 
 
 == Step 1. About Multi-Project Builds
 
-Typically, builds contains multiple projects, such as shared libraries or separate applications that will be deployed in your ecosystem.
+Typically, builds contain multiple projects, such as shared libraries or separate applications that will be deployed in your ecosystem.
 
 In Gradle, a multi-project build consists of:
 
 - `settings.gradle(.kts)` file representing your Gradle build including required subprojects e.g. include("app", "model", "service")
 - `build.gradle(.kts)` and source code for each subproject in corresponding subdirectories
 
-Our build currently consists of a root project called `authoring-tutorial` which has a single `app` subproject:
+Our build currently consists of a root project called `authoring-tutorial`, which has a single `app` subproject:
 
+[source]
 ----
 .                           // <1>
-├── app                     // <2>
+├── app                         // <2>
 │   ...                     // <3>
-│   └── build.gradle.kts    // <4>
+│   └── build.gradle.kts        // <4>
 └── settings.gradle.kts     // <5>
 ----
-<1> `authoring-tutorial` root project
-<2> `app` subproject
-<3> `app` source code
-<4> `app` build script
-<5> optional settings file
+<1> The `authoring-tutorial` root project
+<2> The `app` subproject
+<3> The `app` source code
+<4> The `app` build script
+<5> The optional settings file
 
 == Step 2. Add another Subproject to the Build
 Imagine that our project is growing and requires a custom library to function.
 
 Let's create this imaginary `lib`.
-First create a `lib` folder:
+First, create a `lib` folder:
 
 [source]
 ----
@@ -132,7 +133,7 @@ Create a new directory:
 mkdir -p lib/src/main/java/com/gradle
 ----
 
-Create a Java class called `CustomLib` by in a file called `CustomLib.java` with the following source code:
+Create a Java class called `CustomLib` in a file called `CustomLib.java` with the following source code:
 
 .lib/src/main/java/com/gradle/CustomLib.java
 [source,java]
@@ -240,7 +241,7 @@ BUILD SUCCESSFUL in 11s
 Our build for the root project `authoring-tutorial` now includes two subprojects, `app` and `lib`.
 `app` depends on `lib`.
 You can build `lib` independent of `app`.
-However, in order to build `app`, Gradle will also build `lib`.
+However, to build `app`, Gradle will also build `lib`.
 
 == Step 3. Understand Composite Builds
 A composite build is simply a build that includes other builds.
@@ -373,7 +374,7 @@ Included builds
 \--- Included build ':license-plugin'
 ----
 
-Our build for the root project `authoring-tutorial` now includes two subprojects, `app` and `lib`, and another build called `license-plugin`.
+Our build for the root project `authoring-tutorial` now includes two subprojects, `app` and `lib`, and another build, `license-plugin`.
 
 When in the project root, running:
 
@@ -386,7 +387,7 @@ There are many ways to design a project's architecture with Gradle.
 
 Multi-project builds are great for organizing projects with many modules such as `mobile-app`, `web-app`, `api`, `lib`, and `documentation` that have dependencies between them.
 
-Composite (include) builds are great for separating build logic (i.e. convention plugins) or testing systems (i.e. patching a library)
+Composite (include) builds are great for separating build logic (i.e., convention plugins) or testing systems (i.e., patching a library)
 
 [.text-right]
 **Next Step:** <<partr4_settings_file#partr4_settings_file,Settings File>> >>
