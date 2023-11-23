@@ -33,7 +33,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
@@ -104,13 +103,13 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     }
 
     @Override
-    public void setScheduledNodes(Collection<? extends Node> nodes) {
+    public void setScheduledWork(ScheduledWork work) {
         if (scheduledNodes != null) {
             throw new IllegalStateException("This execution plan already has nodes scheduled.");
         }
-        entryNodes.addAll(nodes);
-        scheduledNodes = ImmutableList.copyOf(nodes);
-        nodeMapping.addAll(nodes);
+        scheduledNodes = work.getScheduledNodes();
+        entryNodes.addAll(work.getEntryNodes());
+        nodeMapping.addAll(scheduledNodes);
     }
 
     @Override
@@ -135,7 +134,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         addEntryNodes(nodes, order++);
     }
 
-    public void addEntryNodes(Collection<? extends Node> nodes, int ordinal) {
+    private void addEntryNodes(Collection<? extends Node> nodes, int ordinal) {
         SortedSet<Node> sorted = new TreeSet<>(NodeComparator.INSTANCE);
         sorted.addAll(nodes);
         doAddEntryNodes(sorted, ordinal);
@@ -300,15 +299,9 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
                 ((TaskNode) node).getTask();
             }
         }
-        return new ScheduledNodes() {
-            // Hold a reference to the plan, as the field is discarded when the plan completes
-            final ImmutableList<Node> plan = scheduledNodes;
-
-            @Override
-            public void visitNodes(Consumer<List<Node>> visitor) {
-                visitor.accept(plan);
-            }
-        };
+        // We're not filtering entryNodes to only contain scheduled nodes here to avoid performance penalty for clients that
+        // don't care about the entry nodes at all.
+        return new ScheduledWork(scheduledNodes, entryNodes);
     }
 
     @Override

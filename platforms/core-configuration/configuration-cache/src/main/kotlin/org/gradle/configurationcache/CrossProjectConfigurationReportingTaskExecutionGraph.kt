@@ -33,7 +33,7 @@ import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.util.Path
 import java.util.Objects
-import java.util.function.Consumer
+import java.util.function.BiConsumer
 
 
 internal
@@ -202,7 +202,7 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
     override fun execute(plan: FinalizedExecutionPlan?): ExecutionResult<Void>? =
         delegate.execute(plan)
 
-    override fun visitScheduledNodes(visitor: Consumer<MutableList<Node>>?) =
+    override fun visitScheduledNodes(visitor: BiConsumer<List<Node>, Set<Node>>) =
         delegate.visitScheduledNodes(visitor)
 
     override fun size(): Int = delegate.size()

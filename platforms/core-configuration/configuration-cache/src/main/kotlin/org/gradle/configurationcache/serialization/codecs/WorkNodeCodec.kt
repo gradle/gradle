@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver
 import org.gradle.api.internal.tasks.NodeExecutionContext
@@ -25,6 +26,7 @@ import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.decodePreservingIdentity
 import org.gradle.configurationcache.serialization.encodePreservingIdentityOf
 import org.gradle.configurationcache.serialization.ownerService
+import org.gradle.configurationcache.serialization.readCollection
 import org.gradle.configurationcache.serialization.readCollectionInto
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.withGradleIsolate
@@ -37,6 +39,7 @@ import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.NodeGroup
 import org.gradle.execution.plan.OrdinalGroup
 import org.gradle.execution.plan.OrdinalGroupFactory
+import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.plan.TaskNode
 
 
@@ -47,29 +50,44 @@ class WorkNodeCodec(
     private val ordinalGroups: OrdinalGroupFactory
 ) {
 
-    suspend fun WriteContext.writeWork(nodes: List<Node>) {
+    suspend fun WriteContext.writeWork(work: ScheduledWork) {
         // Share bean instances across all nodes (except tasks, which have their own isolate)
         withGradleIsolate(owner, internalTypesCodec) {
-            writeNodes(nodes)
+            doWrite(work)
         }
     }
 
-    suspend fun ReadContext.readWork(): List<Node> =
+    suspend fun ReadContext.readWork(): ScheduledWork =
         withGradleIsolate(owner, internalTypesCodec) {
-            readNodes()
+            doRead()
         }
 
     private
-    suspend fun WriteContext.writeNodes(nodes: List<Node>) {
+    suspend fun WriteContext.doWrite(work: ScheduledWork) {
+        val nodes = work.scheduledNodes
         val nodeCount = nodes.size
         writeSmallInt(nodeCount)
         val scheduledNodeIds = HashMap<Node, Int>(nodeCount)
+        // Not all entry nodes are always scheduled.
+        // In particular, it happens when the entry node is a task of the included plugin build that runs as part of building the plugin.
+        // Such tasks do not rerun when configuration cache is re-used, even if specified on the command line.
+        // Not restoring them as entry points doesn't affect the resulting execution plan.
+        val scheduledEntryNodeIds = mutableListOf<Int>()
         nodes.forEach { node ->
             write(node)
-            scheduledNodeIds[node] = scheduledNodeIds.size
+            val nodeId = scheduledNodeIds.size
+            scheduledNodeIds[node] = nodeId
+            if (node in work.entryNodes) {
+                scheduledEntryNodeIds.add(nodeId)
+            }
             if (node is LocalTaskNode) {
                 scheduledNodeIds[node.prepareNode] = scheduledNodeIds.size
             }
+        }
+        // A large build may have many nodes but not so many entry nodes.
+        // To save some disk space, we're only saving entry node ids rather than writing "entry/non-entry" boolean for every node.
+        writeCollection(scheduledEntryNodeIds) {
+            writeSmallInt(it)
         }
         nodes.forEach { node ->
             writeSuccessorReferencesOf(node, scheduledNodeIds)
@@ -78,7 +96,7 @@ class WorkNodeCodec(
     }
 
     private
-    suspend fun ReadContext.readNodes(): List<Node> {
+    suspend fun ReadContext.doRead(): ScheduledWork {
         val nodeCount = readSmallInt()
         val nodes = ArrayList<Node>(nodeCount)
         val nodesById = HashMap<Int, Node>(nodeCount)
@@ -91,11 +109,16 @@ class WorkNodeCodec(
             }
             nodes.add(node)
         }
+        // Note that using the ImmutableSet retains the original ordering of entry nodes.
+        val entryNodes = ImmutableSet.builder<Node>()
+        readCollection {
+            entryNodes.add(nodesById.getValue(readSmallInt()))
+        }
         nodes.forEach { node ->
             readSuccessorReferencesOf(node, nodesById)
             node.group = readNodeGroup(nodesById)
         }
-        return nodes
+        return ScheduledWork(nodes, entryNodes.build())
     }
 
     private

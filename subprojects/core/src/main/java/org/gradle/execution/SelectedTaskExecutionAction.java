@@ -37,7 +37,7 @@ public class SelectedTaskExecutionAction implements BuildWorkExecutor {
 
     private void bindAllReferencesOfProject(FinalizedExecutionPlan plan) {
         Set<Project> seen = Sets.newHashSet();
-        plan.getContents().getScheduledNodes().visitNodes(nodes -> {
+        plan.getContents().getScheduledNodes().visitNodes((nodes, entryNodes) -> {
             for (Node node : nodes) {
                 if (node instanceof LocalTaskNode) {
                     ProjectInternal taskProject = node.getOwningProject();
