@@ -34,11 +34,11 @@ Learn about the Gradle build lifecycle and what each phase represents.
 
 A Gradle build has three distinct phases:
 
-Phase 1 - Initialization  :: During the initialization phase, Gradle determines which projects are going to take part in the build, and creates a `Project` instance for each of these projects.
+Phase 1 - Initialization  :: During the initialization phase, Gradle determines which projects will take part in the build, and creates a `Project` instance for each project.
 
-Phase 2 - Configuration  :: During this phase, the `Project` objects are configured using the build scripts of all projects which are part of the build are executed.
+Phase 2 - Configuration  :: During the configuration phase, the `Project` objects are configured using the build scripts of all projects in the build and Gradle determines the set of tasks to be executed.
 
-Phase 3 - Execution  :: Gradle determines the set of tasks, created and configured during the configuration phase, to be executed. Gradle then executes each of the selected tasks.
+Phase 3 - Execution  :: During the execution phase, Gradle executes each of the selected tasks.
 
 When Gradle is invoked to execute a task, the lifecycle begins.
 Let's see it in action.
@@ -117,7 +117,7 @@ BUILD SUCCESSFUL in 25s
 ----
 <1> *Initialization*: Gradle executes `settings.gradle.kts` to determine the projects to be built and creates a `Project` object for each one.
 <2> *Configuration*: Gradle configures each project by executing the `build.gradle.kts` files. It resolves dependencies and creates a dependency graph of all the available tasks.
-<3> *Execution*: Gradle executes the tasks passed on the command line as well as any dependent tasks.
+<3> *Execution*: Gradle executes the tasks passed on the command line as well as any prerequisite tasks.
 
 It is important to note that while `task1` was configured and executed, `task2` was not.
 This is called _task configuration avoidance_ and prevents unnecessary work.

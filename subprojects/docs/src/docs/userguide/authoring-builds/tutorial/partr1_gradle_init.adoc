@@ -110,20 +110,20 @@ When you are done with Gradle `init`, the directory should look as follows:
     ├── build.gradle.kts                // <4>
     └── src
         ├── main
-        │   └── java
+        │   └── java                    // <5>
         │       └── demo
-        │           └── App.java        // <5>
+        │           └── App.java
         └── test
-            └── java
+            └── java                    // <6>
                 └── demo
-                    └── AppTest.java    // <6>
+                    └── AppTest.java
 ----
 <1> Generated folder for wrapper files
 <2> Gradle wrapper start scripts
 <3> Settings file to define build name and subprojects
-<4> Build script for `app` dependencies
-<5> Default Java source folder for `app`
-<6> Default Java test source folder for `app`
+<4> Build script for `app` subproject
+<5> Default Java source folder for `app` subproject
+<6> Default Java test source folder for `app` subproject
 
 The `authoring-tutorial` folder is the *root project directory*.
 Inside the root project directory are one or more subprojects, build scripts, and the Gradle wrapper.
@@ -168,9 +168,9 @@ dependencies {
     implementation("com.google.guava:guava:32.1.1-jre")             // <4>
 }
 
-java {                                                              // <5>
+java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(19))
+        languageVersion.set(JavaLanguageVersion.of(19))             // <5>
     }
 }
 
@@ -190,11 +190,11 @@ tasks.named<Test>("test") {
 <6> Define the main class for the application.
 <7> Use JUnit Platform for unit tests.
 
-The build script in the `app` subproject directory declares the dependencies that the `app` code will need to be assembled, tested, and published.
+The build script in the `app` subproject directory declares the dependencies that the `app` code will need to be assembled and tested.
 
 == Step 4. Review the Code
 
-The file `app/src/main/java/authoring/tutorial/App.java` contains the main class of the source code:
+The file `app/src/main/java/authoring/tutorial/App.java` contains the main class of the project:
 
 .App.java
 [source, java]
@@ -214,7 +214,7 @@ public class App {
 
 The code prints out a simple "Hello World" greeting to the screen.
 
-The generated test is available at `app/src/test/java/authoring/tutorial/AppTest.java`:
+A test class is available at `app/src/test/java/authoring/tutorial/AppTest.java`:
 
 .AppTest.java
 [source, java]

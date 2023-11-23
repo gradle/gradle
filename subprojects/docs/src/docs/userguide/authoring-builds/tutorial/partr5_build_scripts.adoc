@@ -57,7 +57,7 @@ For example:
 
 == Step 2. The Build script
 
-Let's breakdown the build script for the plugin:
+Lets breakdown the build script for the plugin:
 
 .gradle/license-plugin/plugin/build.gradle.kts
 [source,kotlin]
@@ -83,30 +83,9 @@ gradlePlugin {                                                                  
     }
 }
 
-val functionalTestSourceSet = sourceSets.create("functionalTest") {                                 // <10>
-}
-
-configurations["functionalTestImplementation"].extendsFrom(configurations["testImplementation"])
-configurations["functionalTestRuntimeOnly"].extendsFrom(configurations["testRuntimeOnly"])
-
-// Add a task to run the functional tests
-val functionalTest by tasks.registering(Test::class) {
-    testClassesDirs = functionalTestSourceSet.output.classesDirs
-    classpath = functionalTestSourceSet.runtimeClasspath
-    useJUnitPlatform()
-}
-
-gradlePlugin.testSourceSets.add(functionalTestSourceSet)
-
-tasks.named<Task>("check") {
-    dependsOn(functionalTest)
-}
-
-tasks.named<Test>("test") {
-    useJUnitPlatform()
-}
+val functionalTestSourceSet = sourceSets.create("functionalTest") {}                                // <10>
 ----
-<1> FIX ME
+<1> FIX ME`plugins({})` method from link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/index.html[KotlinSettingsScript]
 <2> Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins
 <3> Apply the Kotlin JVM plugin to add support for Kotlin
 <4> FIX ME
@@ -116,6 +95,56 @@ tasks.named<Test>("test") {
 <8> FIX ME
 <9> Define the plugin
 <10> Additional test functionality outside the scope of this tutorial
+
+Plugins, which enhance your build capabilities, are included like this:
+
+[source,kotlin]
+----
+plugins {
+    id("java")                          // core plugin, no version required
+    id("org.some.plugin") version "2.8" // community plugin, version required
+}
+----
+
+The repositories section lets Gradle know where to pull dependencies from:
+
+[source,kotlin]
+----
+repositories {
+    mavenCentral()  // get dependencies from the Maven central repository
+}
+----
+
+Dependencies are requirements for building your application or library:
+
+[source,kotlin]
+----
+dependencies {
+    implementation("org.apache.commons:commons-lang3:3.13.0")   // group: 'org.apache.commons', name: 'commons-lang3', version: '3.13.0'
+}
+----
+
+In this example, `implementation()` means that the `commons-lang3` library must be added to the Java classpath.
+This is called a configuration. FIX ME
+
+Configuration blocks are typically further configuration required by an applied plugin:
+
+[source,kotlin]
+----
+gradlePlugin {                                                                                      // <8>
+    val greeting by plugins.creating {                                                              // <9>
+        id = "com.gradle.greeting"
+        implementationClass = "com.gradle.LicensePlugin"
+    }
+}
+----
+
+In the `authoring-tutorial` project, the `java-gradle-plugin` is applied and users must configure the plugin they are developing using the `gradlePlugin{}` configuration block.
+
+Tasks are units of work executed during your build.
+They can be defined by plugins or inline:
+
+
 
 == Step 3. Update the Build scripts
 

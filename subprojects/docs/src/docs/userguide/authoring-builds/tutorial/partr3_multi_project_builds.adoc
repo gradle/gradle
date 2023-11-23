@@ -41,18 +41,23 @@ In Gradle, a multi-project build consists of:
 - `settings.gradle(.kts)` file representing your Gradle build including required subprojects e.g. include("app", "model", "service")
 - `build.gradle(.kts)` and source code for each subproject in corresponding subdirectories
 
-Our build currently consists of a single `app` project with the following structure:
+Our build currently consists of a root project called `authoring-tutorial` which has a single `app` subproject:
 
 ----
-.
-├── app
-│   ...
-│   └── build.gradle.kts
-└── settings.gradle.kts
+.                           // <1>
+├── app                     // <2>
+│   ...                     // <3>
+│   └── build.gradle.kts    // <4>
+└── settings.gradle.kts     // <5>
 ----
+<1> `authoring-tutorial` root project
+<2> `app` subproject
+<3> `app` source code
+<4> `app` build script
+<5> optional settings file
 
-== Step 2. Add a Subproject to the Build
-Imagine that our `app` project is growing and the project requires a custom library from another team to function.
+== Step 2. Add another Subproject to the Build
+Imagine that our project is growing and requires a custom library to function.
 
 Let's create this imaginary `lib`.
 First create a `lib` folder:
@@ -169,8 +174,6 @@ To add `lib` to the build, update the `settings.gradle.kts` file in the root acc
 .settings.gradle.kts
 [source,kotlin]
 ----
-println("SETTINGS FILE: This is executed during the initialization phase")
-
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.4.0"
 }
@@ -217,10 +220,7 @@ Finally, let's run the `app` with the command `./gradlew run`:
 ----
 $ ./gradlew run
 
-SETTINGS FILE: This is executed during the initialization phase
-
 > Configure project :app
-BUILD SCRIPT: This is executed during the configuration phase
 
 > Task :app:processResources NO-SOURCE
 > Task :lib:compileJava
@@ -247,6 +247,7 @@ A composite build is simply a build that includes other builds.
 
 Composite builds allow you to:
 
+- Extract your build logic from your project build (and re-use it among subprojects)
 - Combine builds that are usually developed independently (such as a plugin and an application)
 - Decompose a large build into smaller, more isolated chunks
 
@@ -277,9 +278,6 @@ Make sure that you select the `Gradle plugin` project as well as the other optio
 ----
 $ gradle init
 
-SETTINGS FILE: This is executed during the initialization phase
-> Task :wrapper
-
 Select type of project to generate:
   1: basic
   2: application
@@ -301,12 +299,6 @@ Enter selection (default: Kotlin) [1..2] 1
 Project name (default: license-plugin): license
 Source package (default: license): com.gradle
 Generate build using new APIs and behavior (some features may change in the next minor release)? (default: no) [yes, no]
-
-> Task :init
-For more information, please refer to https://docs.gradle.org/8.3/userguide/custom_plugins.html in the Gradle documentation.
-
-BUILD SUCCESSFUL in 20s
-2 actionable tasks: 2 executed
 ----
 
 Your project should look like this:
@@ -351,8 +343,6 @@ To add our `license-plugin` build to the root project, update the root `settings
 .settings.gradle.kts
 [source,kotlin]
 ----
-println("SETTINGS FILE: This is executed during the initialization phase")
-
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.4.0"
 }
@@ -381,9 +371,6 @@ Root project 'authoring-tutorial'
 
 Included builds
 \--- Included build ':license-plugin'
-
-BUILD SUCCESSFUL in 1s
-1 actionable task: 1 executed
 ----
 
 Our build for the root project `authoring-tutorial` now includes two subprojects, `app` and `lib`, and another build called `license-plugin`.
@@ -394,6 +381,12 @@ When in the project root, running:
 - `./gradlew :app:build` - Builds `app` and `lib`
 - `./gradlew :lib:build` - Builds `lib` only
 - `./gradlew :license-plugin:plugin:build` - Builds `license-plugin` only
+
+There are many ways to design a project's architecture with Gradle.
+
+Multi-project builds are great for organizing projects with many modules such as `mobile-app`, `web-app`, `api`, `lib`, and `documentation` that have dependencies between them.
+
+Composite (include) builds are great for separating build logic (i.e. convention plugins) or testing systems (i.e. patching a library)
 
 [.text-right]
 **Next Step:** <<partr4_settings_file#partr4_settings_file,Settings File>> >>

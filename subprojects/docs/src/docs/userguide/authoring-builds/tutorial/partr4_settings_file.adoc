@@ -53,7 +53,7 @@ For example:
 
 == Step 2. The Settings file
 
-Let's breakdown the settings file in our root directory:
+Lets breakdown the settings file in our root directory:
 
 .settings.gradle.kts
 [source,kotlin]
