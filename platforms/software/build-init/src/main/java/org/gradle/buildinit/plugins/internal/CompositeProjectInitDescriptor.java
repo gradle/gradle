@@ -100,23 +100,29 @@ public class CompositeProjectInitDescriptor implements BuildInitializer {
 
     @Override
     public void generate(InitSettings settings) {
+        BuildContentGenerationContext buildContentGenerationContext = new BuildContentGenerationContext(new VersionCatalogDependencyRegistry(false));
         for (BuildContentGenerator generator : generators) {
-            generator.generate(settings);
+            generator.generate(settings, buildContentGenerationContext);
         }
-        descriptor.generate(settings);
+        descriptor.generate(settings, buildContentGenerationContext);
+        VersionCatalogGenerator.create(settings.getTarget()).generate(buildContentGenerationContext);
     }
 
+    // This is used by our build-logic to generate samples, see `SamplesGenerator`
     public Map<String, List<String>> generateWithExternalComments(InitSettings settings) {
+        BuildContentGenerationContext buildContentGenerationContext = new BuildContentGenerationContext(new VersionCatalogDependencyRegistry(false));
         if (!(descriptor instanceof LanguageSpecificAdaptor)) {
             throw new UnsupportedOperationException();
         }
         for (BuildContentGenerator generator : generators) {
             if (generator instanceof SimpleGlobalFilesBuildSettingsDescriptor) {
-                ((SimpleGlobalFilesBuildSettingsDescriptor) generator).generateWithoutComments(settings);
+                ((SimpleGlobalFilesBuildSettingsDescriptor) generator).generateWithoutComments(settings, buildContentGenerationContext);
             } else {
-                generator.generate(settings);
+                generator.generate(settings, buildContentGenerationContext);
             }
         }
-        return ((LanguageSpecificAdaptor) descriptor).generateWithExternalComments(settings);
+        Map<String, List<String>> comments = ((LanguageSpecificAdaptor) descriptor).generateWithExternalComments(settings, buildContentGenerationContext);
+        VersionCatalogGenerator.create(settings.getTarget()).generate(buildContentGenerationContext);
+        return comments;
     }
 }

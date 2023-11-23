@@ -53,7 +53,7 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
         return new ProblemRecordingTypeValidationContext(type, pluginId) {
             @Override
             protected void recordProblem(ReportableProblem problem) {
-                if (onlyAffectsCacheableWork(problem.getProblemType()) && !cacheable) {
+                if (onlyAffectsCacheableWork(problem.getProblemCategory()) && !cacheable) {
                     return;
                 }
                 problems.add(problem);

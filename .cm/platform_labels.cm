@@ -79,6 +79,8 @@ build_logic_files:
   - 'settings.gradle'
 
 # Perhaps a task could generate this list from the CODEOWNERS, or both this and CODEOWNERS could be generated from different single source of truth?
+# Keys like `- build_infrastructure:` do not mean anything, they just need to be unique
+# The `name:` field specifies the platform label, e.g. `name: build_infrastructure` => `platform:build_infrastructure` label
 platforms:
   - bt_ge_build_cache:
     name: 'bt_ge_build_cache'
@@ -87,7 +89,7 @@ platforms:
       - 'platforms/core-execution/build-cache-base/'
       - 'platforms/core-execution/build-cache-http/'
       - 'platforms/core-execution/build-cache-packaging/'
-      - 'subprojects/build-operations/'
+      - 'platforms/core-runtime/build-operations/'
       - 'platforms/core-runtime/files/'
       - 'platforms/core-execution/hashing/'
       - 'platforms/core-execution/snapshots/'
@@ -107,23 +109,15 @@ platforms:
       - 'subprojects/internal-integ-testing/'
       - 'subprojects/internal-performance-testing/'
       - 'subprojects/internal-testing/'
-  - cc:
-    name: 'configuration_cache'
+  - core_configuration:
+    name: 'core_configuration'
     subprojects:
-      - 'subprojects/api-metadata/'
-      - 'subprojects/base-services-groovy/'
-      - 'subprojects/configuration-cache/'
-      - 'subprojects/file-collections/'
-      - 'subprojects/instrumentation-agent'
-      - 'subprojects/internal-instrumentation-api/'
-      - 'subprojects/internal-instrumentation-processor/'
-      - 'subprojects/model-core/'
-      - 'subprojects/model-groovy/'
+      - 'platforms/core-configuration/'
   - core_execution:
     name: 'core_execution'
     subprojects:
       - 'platforms/core-execution/'
-      - 'subprojects/build-operations/'
+      - 'platforms/core-runtime/build-operations/'
       - 'subprojects/build-profile/'
   - core_runtime:
     name: 'core_runtime'
@@ -151,20 +145,10 @@ platforms:
     name: 'ide'
     subprojects:
       - 'platforms/ide/'
-      - 'subprojects/ide/'
-      - 'subprojects/tooling-api/'
-      - 'subprojects/tooling-api-builders/'
   - jvm:
     name: 'jvm'
     subprojects:
       - 'platforms/jvm/'
-      - 'subprojects/distributions-publishing/'
-      - 'subprojects/jvm-services/'
-      - 'subprojects/language-groovy/'
-      - 'subprojects/language-java/'
-      - 'subprojects/language-jvm/'
-      - 'subprojects/normalization-java/'
-      - 'subprojects/platform-jvm/'
       - 'subprojects/plugins/'
   - kotlin_dsl:
     name: 'kotlin_dsl'
@@ -190,20 +174,6 @@ platforms:
     name: 'software'
     subprojects:
       - 'platforms/software/'
-      - 'subprojects/dependency-management/'
-      - 'subprojects/ivy/'
-      - 'subprojects/maven/'
-      - 'subprojects/platform-base/'
-      - 'subprojects/publish/'
-      - 'subprojects/reporting/'
-      - 'subprojects/resources/'
-      - 'subprojects/resources-gcs/'
-      - 'subprojects/resources-http/'
-      - 'subprojects/resources-s3/'
-      - 'subprojects/resources-sftp/'
-      - 'subprojects/security/'
-      - 'subprojects/signing/'
-      - 'subprojects/version-control/'
 
 author:
   using_gitstream: {{ (pr.author | match(list=teams.build_scan.members) | some) or (pr.author | match(list=teams.configuration.members) | some) or (pr.author | match(list=teams.dev_prod.members) | some) or (pr.author | match(list=teams.execution.members) | some) or (pr.author | match(list=teams.ide.members) | some) or (pr.author | match(list=teams.jvm.members) | some) }}
@@ -222,7 +192,6 @@ teams:
     members:
       - 'asodja-DISABLED'
       - 'lptr-DISABLED'
-      - 'FrauBoes-DISABLED'
   ide:
     members:
       - 'hegyibalint'

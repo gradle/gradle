@@ -1,4 +1,4 @@
 Could not determine the dependencies of task ':compileJava'.
 > Failed to calculate the value of task ':compileJava' property 'javaCompiler'.
-   > No matching toolchains found for requested specification: {languageVersion=11, vendor=matching('customString'), implementation=vendor-specific} for %OS% on %ARCH%.
+   > Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=11, vendor=matching('customString'), implementation=vendor-specific} for %OS% on %ARCH%.
       > No locally installed toolchains match and toolchain auto-provisioning is not enabled.

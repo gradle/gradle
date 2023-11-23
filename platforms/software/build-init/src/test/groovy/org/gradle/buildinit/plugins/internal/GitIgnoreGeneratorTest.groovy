@@ -45,7 +45,7 @@ class GitIgnoreGeneratorTest extends Specification {
         def generator = new GitIgnoreGenerator()
 
         when:
-        generator.generate(settings)
+        generator.generate(settings, null)
 
         then:
         gitignoreFile.file
@@ -58,7 +58,7 @@ class GitIgnoreGeneratorTest extends Specification {
         gitignoreFile << 'ignoredFolder/'
 
         when:
-        generator.generate(settings)
+        generator.generate(settings, null)
 
         then:
         gitignoreFile.file
@@ -72,7 +72,7 @@ ${getGeneratedGitignoreContent()}""")
         gitignoreFile << entry
 
         when:
-        generator.generate(settings)
+        generator.generate(settings, null)
 
         then:
         gitignoreFile.file

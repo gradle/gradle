@@ -90,6 +90,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     @Test
     @ToBeFixedForConfigurationCache
     void worksWithASubProjectThatDoesNotHaveTheIdeaPluginApplied() {
+        createDirs("a", "b")
         executer.withTasks('idea').run()
 
         assertHasExpectedContents('root.ipr')
@@ -98,6 +99,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     @Test
     @ToBeFixedForConfigurationCache
     void worksWithNonStandardLayout() {
+        createDirs("a child project")
         executer.inDirectory(testDirectory.file('root')).withTasks('idea').run()
 
         assertHasExpectedContents('root/root.ipr')

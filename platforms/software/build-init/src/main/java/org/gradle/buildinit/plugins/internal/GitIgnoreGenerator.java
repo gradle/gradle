@@ -36,7 +36,7 @@ import java.util.stream.StreamSupport;
 public class GitIgnoreGenerator implements BuildContentGenerator {
 
     @Override
-    public void generate(InitSettings settings) {
+    public void generate(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
         File file = settings.getTarget().file(".gitignore").getAsFile();
         Set<String> gitignoresToAppend = getGitignoresToAppend(file);
         if (!gitignoresToAppend.isEmpty()) {

@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.LightThought
 import org.gradle.kotlin.dsl.fixtures.ZeroThought
@@ -31,6 +32,9 @@ import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
@@ -40,7 +44,7 @@ import org.junit.Test
 import spock.lang.Issue
 
 
-class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
+class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `given a buildscript block, it will be used to compute the runtime classpath`() {
@@ -202,9 +206,11 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @Requires(
+        IntegTestPreconditions.NotEmbeddedExecutor::class,
+        reason = "Class path isolation, tested here, is not correct in embedded mode"
+    )
     fun `can compile against a different (but compatible) version of the Kotlin compiler`() {
-
-        assumeNonEmbeddedGradleExecuter() // Class path isolation, tested here, is not correct in embedded mode
 
         val differentKotlinVersion = "1.6.0"
         val expectedKotlinCompilerVersionString = "1.6.0"
@@ -495,9 +501,8 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @Requires(UnitTestPreconditions.Jdk8OrEarlier::class)
     fun `build script can use jdk8 extensions`() {
-
-        assumeJavaLessThan9()
 
         withBuildScript(
             """

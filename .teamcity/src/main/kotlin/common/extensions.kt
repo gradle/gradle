@@ -18,6 +18,7 @@ package common
 
 import common.KillProcessMode.KILL_ALL_GRADLE_PROCESSES
 import configurations.CompileAll
+import configurations.FunctionalTest
 import configurations.branchesFilterExcluding
 import configurations.buildScanCustomValue
 import configurations.buildScanTag
@@ -159,7 +160,7 @@ fun BuildType.paramsForBuildToolBuild(buildJvm: Jvm = BuildToolBuildJvm, os: Os,
         param("env.GRADLE_CACHE_REMOTE_USERNAME", "%gradle.cache.remote.username%")
 
         param("env.JAVA_HOME", javaHome(buildJvm, os, arch))
-        param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
+        param("env.GRADLE_OPTS", "-Xmx1536m")
         param("env.ANDROID_HOME", os.androidHome)
         param("env.ANDROID_SDK_ROOT", os.androidHome)
         param("env.GRADLE_INTERNAL_REPO_URL", "%gradle.internal.repository.url%")
@@ -279,18 +280,22 @@ enum class KillProcessMode {
     KILL_ALL_GRADLE_PROCESSES
 }
 
-fun BuildType.killProcessStep(mode: KillProcessMode, os: Os, arch: Arch = Arch.AMD64, executionMode: BuildStep.ExecutionMode = BuildStep.ExecutionMode.ALWAYS) {
-    steps {
-        script {
-            name = mode.toString()
-            this.executionMode = executionMode
-            scriptContent = "\"${javaHome(BuildToolBuildJvm, os, arch)}/bin/java\" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java $mode" +
-                if (os == Os.WINDOWS) "\nwmic Path win32_process Where \"name='java.exe'\"" else ""
-            skipConditionally(this@killProcessStep)
-            if (mode == KILL_ALL_GRADLE_PROCESSES) {
-                onlyRunOnPreTestedCommitBuildBranch()
-            }
+fun BuildSteps.killProcessStep(buildType: BuildType?, mode: KillProcessMode, os: Os, arch: Arch = Arch.AMD64, executionMode: BuildStep.ExecutionMode = BuildStep.ExecutionMode.DEFAULT) {
+    script {
+        name = mode.toString()
+        this.executionMode = executionMode
+        scriptContent = "\"${javaHome(BuildToolBuildJvm, os, arch)}/bin/java\" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java $mode" +
+            if (os == Os.WINDOWS) "\nwmic Path win32_process Where \"name='java.exe'\"" else ""
+        skipConditionally(buildType)
+        if (mode == KILL_ALL_GRADLE_PROCESSES && buildType is FunctionalTest) {
+            onlyRunOnPreTestedCommitBuildBranch()
         }
+    }
+}
+
+fun BuildType.killProcessStep(mode: KillProcessMode, os: Os, arch: Arch = Arch.AMD64, executionMode: BuildStep.ExecutionMode = BuildStep.ExecutionMode.DEFAULT) {
+    steps {
+        killProcessStep(this@killProcessStep, mode, os, arch, executionMode)
     }
 }
 

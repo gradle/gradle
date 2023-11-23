@@ -15,7 +15,7 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":cli"))
     implementation(project(":build-option"))
-    implementation(project(":problems"))
+    implementation(project(":problems-api"))
 
     implementation(project(":native"))
     implementation(libs.julToSlf4j)

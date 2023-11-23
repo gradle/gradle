@@ -27,8 +27,4 @@ dependencies {
     implementation(project(":base-services"))
 
     implementation(libs.inject)
-
-    testImplementation(testFixtures(project(":core-api")))
-
-    testFixturesImplementation(libs.jetbrainsAnnotations)
 }

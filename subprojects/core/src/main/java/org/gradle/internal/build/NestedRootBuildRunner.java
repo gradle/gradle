@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.buildtree.NestedBuildTree;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nullable;
@@ -38,12 +39,13 @@ public class NestedRootBuildRunner {
     }
 
     public static NestedBuildTree createNestedBuildTree(@Nullable String buildName, StartParameterInternal startParameter, ServiceRegistry services) {
+        BuildInvocationScopeId buildInvocationScopeId = services.get(BuildInvocationScopeId.class);
         PublicBuildPath fromBuild = services.get(PublicBuildPath.class);
         BuildDefinition buildDefinition = BuildDefinition.fromStartParameter(startParameter, fromBuild);
 
         BuildState currentBuild = services.get(BuildState.class);
 
         BuildStateRegistry buildStateRegistry = services.get(BuildStateRegistry.class);
-        return buildStateRegistry.addNestedBuildTree(buildDefinition, currentBuild, buildName);
+        return buildStateRegistry.addNestedBuildTree(buildInvocationScopeId, buildDefinition, currentBuild, buildName);
     }
 }

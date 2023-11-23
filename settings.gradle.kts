@@ -24,7 +24,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.15") // Sync with `build-logic/build-platform/build.gradle.kts`
+    id("com.gradle.enterprise").version("3.15.1") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
     id("org.gradle.toolchains.foojay-resolver-convention") version("0.7.0")
 }
@@ -47,58 +47,19 @@ unassigned {
 unassigned {
     subproject("distributions-core")
     subproject("distributions-basics")
-    subproject("distributions-publishing")
-    subproject("distributions-native")
     subproject("distributions-full")
 }
 
 // Gradle implementation projects
 unassigned {
-    subproject("configuration-cache")
-    subproject("api-metadata")
-    subproject("base-services-groovy")
-    subproject("jvm-services")
     subproject("core")
-    subproject("dependency-management")
-    subproject("resources")
-    subproject("resources-http")
-    subproject("resources-gcs")
-    subproject("resources-s3")
-    subproject("resources-sftp")
     subproject("plugins")
-    subproject("ide")
-    subproject("ide-native")
-    subproject("maven")
-    subproject("tooling-api")
     subproject("build-events")
-    subproject("tooling-api-builders")
-    subproject("signing")
-    subproject("reporting")
     subproject("diagnostics")
-    subproject("publish")
-    subproject("ivy")
-    subproject("platform-base")
-    subproject("platform-native")
-    subproject("platform-jvm")
-    subproject("language-native")
-    subproject("tooling-native")
-    subproject("plugin-use")
-    subproject("plugin-development")
-    subproject("model-core")
-    subproject("model-groovy")
-    subproject("testing-native")
-    subproject("test-kit")
     subproject("installation-beacon")
     subproject("composite-builds")
     subproject("core-api")
-    subproject("version-control")
-    subproject("file-collections")
     subproject("build-profile")
-    subproject("security")
-    subproject("normalization-java")
-    subproject("build-operations")
-    subproject("problems")
-    subproject("instrumentation-agent")
     subproject("instrumentation-declarations")
 }
 
@@ -107,11 +68,15 @@ platform("core-runtime") {
     subproject("base-annotations")
     subproject("base-services")
     subproject("bootstrap")
+    subproject("build-operations")
     subproject("build-option")
     subproject("cli")
     subproject("file-temp")
     subproject("files")
     subproject("functional")
+    subproject("instrumentation-agent")
+    subproject("internal-instrumentation-api")
+    subproject("internal-instrumentation-processor")
     subproject("launcher")
     subproject("logging")
     subproject("logging-api")
@@ -125,12 +90,19 @@ platform("core-runtime") {
 
 // Core Configuration Platform
 platform("core-configuration") {
+    subproject("api-metadata")
+    subproject("base-services-groovy")
+    subproject("configuration-cache")
+    subproject("file-collections")
+    subproject("input-tracking")
     subproject("kotlin-dsl")
     subproject("kotlin-dsl-provider-plugins")
     subproject("kotlin-dsl-tooling-builders")
     subproject("kotlin-dsl-tooling-models")
     subproject("kotlin-dsl-plugins")
     subproject("kotlin-dsl-integ-tests")
+    subproject("model-core")
+    subproject("model-groovy")
 }
 
 // Core Execution Platform
@@ -148,17 +120,57 @@ platform("core-execution") {
     subproject("workers")
 }
 
+// Extensibility Platform
+platform("extensibility") {
+    subproject("plugin-use")
+    subproject("plugin-development")
+    subproject("test-kit")
+}
+
 // IDE Platform
 platform("ide") {
     subproject("base-ide-plugins")
+    subproject("ide")
+    subproject("ide-native")
     subproject("ide-plugins")
+    subproject("problems")
+    subproject("problems-api")
+    subproject("tooling-api")
+    subproject("tooling-api-builders")
+}
+
+// Native Platform
+platform("native") {
+    subproject("distributions-native")
+    subproject("platform-native")
+    subproject("language-native")
+    subproject("tooling-native")
+    subproject("testing-native")
 }
 
 // Software Platform
 platform("software") {
     subproject("antlr")
     subproject("build-init")
+    subproject("dependency-management")
+    subproject("plugins-distribution")
+    subproject("distributions-publishing")
+    subproject("ivy")
+    subproject("maven")
+    subproject("platform-base")
+    subproject("plugins-version-catalog")
+    subproject("publish")
+    subproject("resources")
+    subproject("resources-http")
+    subproject("resources-gcs")
+    subproject("resources-s3")
+    subproject("resources-sftp")
+    subproject("reporting")
+    subproject("security")
+    subproject("signing")
     subproject("testing-base")
+    subproject("test-suites-base")
+    subproject("version-control")
 }
 
 // JVM Platform
@@ -167,16 +179,21 @@ platform("jvm") {
     subproject("distributions-jvm")
     subproject("ear")
     subproject("jacoco")
+    subproject("jvm-services")
     subproject("language-groovy")
     subproject("language-java")
     subproject("language-jvm")
     subproject("toolchains-jvm")
     subproject("java-compiler-plugin")
     subproject("java-platform")
+    subproject("normalization-java")
+    subproject("platform-jvm")
     subproject("plugins-groovy")
     subproject("plugins-java")
+    subproject("plugins-java-base")
+    subproject("plugins-jvm-test-fixtures")
     subproject("plugins-jvm-test-suite")
-    subproject("plugins-jvm-test-suite-base")
+    subproject("plugins-test-report-aggregation")
     subproject("scala")
     subproject("testing-jvm")
     subproject("testing-jvm-infrastructure")
@@ -184,7 +201,7 @@ platform("jvm") {
     subproject("war")
 }
 
-// Gradle Enterprise Platform
+// Develocity Platform
 platform("enterprise") {
     subproject("enterprise")
     subproject("enterprise-logging")
@@ -195,8 +212,6 @@ platform("enterprise") {
 
 // Internal utility and verification projects
 unassigned {
-    subproject("internal-instrumentation-api")
-    subproject("internal-instrumentation-processor")
     subproject("docs")
     subproject("docs-asciidoctor-extensions-base")
     subproject("docs-asciidoctor-extensions")

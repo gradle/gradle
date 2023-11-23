@@ -18,3 +18,21 @@ plugins {
     id("org.gradle.kotlin-dsl.ktlint-convention")
 }
 
+tasks {
+    runKtlintCheckOverKotlinScripts {
+        // Only check the build files, not all *.kts files in the project
+        includes += listOf("*.gradle.kts")
+    }
+
+    withType<Test>().configureEach {
+        shouldRunAfter(ktlintCheck)
+    }
+}
+
+pluginManager.withPlugin("gradlebuild.code-quality") {
+    tasks {
+        named("codeQuality") {
+            dependsOn(ktlintCheck)
+        }
+    }
+}

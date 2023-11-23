@@ -92,6 +92,7 @@ class JavaPlatformEcosystemIntegrationTest extends AbstractHttpDependencyResolut
 
             configurations.custom.copy()
         """
+        createDirs("lib")
         settingsFile << "include 'lib'"
 
         expect:
@@ -121,6 +122,7 @@ class JavaPlatformEcosystemIntegrationTest extends AbstractHttpDependencyResolut
 
             configurations.api.copy()
         """
+        createDirs("lib")
         settingsFile << "include 'lib'"
 
         expect:

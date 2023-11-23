@@ -17,7 +17,7 @@
 package org.gradle.architecture.library.freeze;
 
 import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.library.freeze.GradleViolationStoreFactory;
+import com.tngtech.archunit.library.freeze.TextFileBasedViolationStore;
 import com.tngtech.archunit.library.freeze.ViolationStore;
 
 import java.util.List;
@@ -34,9 +34,7 @@ public class LineNumberIgnoringViolationStore implements ViolationStore {
     private final ViolationStore delegate;
 
     public LineNumberIgnoringViolationStore() {
-        // We can instantiate TextFileBasedViolationStore directly once ArchUnit 1.0.2 is released,
-        // since TextFileBasedViolationStore became public type in https://github.com/TNG/ArchUnit/pull/1046.
-        delegate = GradleViolationStoreFactory.create();
+        delegate = new TextFileBasedViolationStore();
     }
 
     @Override

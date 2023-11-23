@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.internal.kotlin")
+    id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
 }
 
 description = "Kotlin DSL Integration Tests"
@@ -13,14 +14,13 @@ dependencies {
     integTestImplementation(project(":model-core"))
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(project(":logging"))
+    integTestImplementation(project(":language-jvm"))
+    integTestImplementation(project(":platform-jvm"))
     integTestImplementation("com.squareup.okhttp3:mockwebserver:3.9.1")
-
-    integTestRuntimeOnly(project(":kotlin-dsl-plugins")) {
-        because("Tests require 'future-plugin-versions.properties' on the test classpath")
-    }
+    integTestImplementation(libs.futureKotlin("compiler-embeddable"))
+    integTestImplementation(libs.mockitoKotlin)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
-    integTestLocalRepository(project(":kotlin-dsl-plugins"))
 
     crossVersionTestImplementation(project(":core-api"))
     crossVersionTestImplementation(project(":logging"))

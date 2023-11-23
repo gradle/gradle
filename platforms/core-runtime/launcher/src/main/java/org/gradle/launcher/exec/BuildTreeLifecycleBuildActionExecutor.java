@@ -23,7 +23,9 @@ import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.RunTasksRequirements;
+import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.session.BuildSessionActionExecutor;
 import org.gradle.internal.session.BuildSessionContext;
 import org.gradle.tooling.internal.provider.action.BuildModelAction;
@@ -37,7 +39,10 @@ public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionAction
     private final BuildTreeModelControllerServices buildTreeModelControllerServices;
     private final BuildLayoutValidator buildLayoutValidator;
 
-    public BuildTreeLifecycleBuildActionExecutor(BuildTreeModelControllerServices buildTreeModelControllerServices, BuildLayoutValidator buildLayoutValidator) {
+    public BuildTreeLifecycleBuildActionExecutor(
+        BuildTreeModelControllerServices buildTreeModelControllerServices,
+        BuildLayoutValidator buildLayoutValidator
+    ) {
         this.buildTreeModelControllerServices = buildTreeModelControllerServices;
         this.buildLayoutValidator = buildLayoutValidator;
     }
@@ -48,19 +53,10 @@ public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionAction
         try {
             buildLayoutValidator.validate(action.getStartParameter());
 
-            BuildActionModelRequirements actionRequirements;
-            if (action instanceof BuildModelAction && action.isCreateModel()) {
-                BuildModelAction buildModelAction = (BuildModelAction) action;
-                actionRequirements = new QueryModelRequirements(action.getStartParameter(), action.isRunTasks(), buildModelAction.getModelName());
-            } else if (action instanceof ClientProvidedBuildAction) {
-                actionRequirements = new RunActionRequirements(action.getStartParameter(), action.isRunTasks());
-            } else if (action instanceof ClientProvidedPhasedAction) {
-                actionRequirements = new RunPhasedActionRequirements(action.getStartParameter(), action.isRunTasks());
-            } else {
-                actionRequirements = new RunTasksRequirements(action.getStartParameter());
-            }
+            BuildActionModelRequirements actionRequirements = buildActionModelRequirementsFor(action);
             BuildTreeModelControllerServices.Supplier modelServices = buildTreeModelControllerServices.servicesForBuildTree(actionRequirements);
-            BuildTreeState buildTree = new BuildTreeState(buildSession.getServices(), modelServices);
+            BuildInvocationScopeId buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate());
+            BuildTreeState buildTree = new BuildTreeState(buildInvocationScopeId, buildSession.getServices(), modelServices);
             try {
                 result = buildTree.run(context -> context.execute(action));
             } finally {
@@ -80,5 +76,18 @@ public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionAction
             }
         }
         return result;
+    }
+
+    private static BuildActionModelRequirements buildActionModelRequirementsFor(BuildAction action) {
+        if (action instanceof BuildModelAction && action.isCreateModel()) {
+            BuildModelAction buildModelAction = (BuildModelAction) action;
+            return new QueryModelRequirements(action.getStartParameter(), action.isRunTasks(), buildModelAction.getModelName());
+        } else if (action instanceof ClientProvidedBuildAction) {
+            return new RunActionRequirements(action.getStartParameter(), action.isRunTasks());
+        } else if (action instanceof ClientProvidedPhasedAction) {
+            return new RunPhasedActionRequirements(action.getStartParameter(), action.isRunTasks());
+        } else {
+            return new RunTasksRequirements(action.getStartParameter());
+        }
     }
 }

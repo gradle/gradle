@@ -16,9 +16,8 @@
 
 package org.gradle.test.precondition
 
-
-import spock.lang.Specification
 import org.junit.jupiter.api.Assumptions
+import spock.lang.Specification
 
 /**
  * This class executes a special test suite, checking all the allowed precondition combinations.
@@ -32,7 +31,7 @@ import org.junit.jupiter.api.Assumptions
  *         This is normal, and simply signifies that the precondition is not satisfied on the current system
  *     </li>
  *     <li>
- *         <b>Failed:</b> there was an error meanwhile checking the combination.
+ *         <b>Failed:</b> there was an error while checking the combination.
  *         This shouldn't be normal, and needs fixing.
  *     </li>
  * </ul>
@@ -44,7 +43,7 @@ abstract class PreconditionProbingTest extends Specification {
             return Class.forName(className) as Class<? extends TestPrecondition>
         } catch (ClassNotFoundException ex) {
             final String message = String.format(
-                "Class '%s' cannot be found. You might have a missing the dependency in 'subprojects/predicate-tester/builds.gradle.kts'?",
+                "Class '%s' cannot be found. You might be missing a dependency in 'subprojects/predicate-tester/builds.gradle.kts'?",
                 className
             )
             throw new RuntimeException(message, ex)

@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.util.AttributeTestUtil
+import org.gradle.util.TestUtil
 import org.gradle.util.internal.WrapUtil
 import spock.lang.Specification
 
@@ -40,6 +41,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         def dependency = createDependency(group, name, version, null)
         if (dependency instanceof AbstractModuleDependency) {
             dependency.attributesFactory = AttributeTestUtil.attributesFactory()
+            dependency.objectFactory = TestUtil.objectFactory()
             dependency.capabilityNotationParser = new CapabilityNotationParserFactory(true).create()
         }
         dependency

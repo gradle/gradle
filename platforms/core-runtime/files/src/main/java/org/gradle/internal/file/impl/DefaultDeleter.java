@@ -20,6 +20,7 @@ import org.gradle.internal.file.Deleter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -27,7 +28,9 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.LongSupplier;
 import java.util.function.Predicate;
 
@@ -88,9 +91,7 @@ public class DefaultDeleter implements Deleter {
                     ? Handling.KEEP_AND_FOLLOW_SYMLINKED_DIRECTORIES
                     : Handling.KEEP_AND_DO_NOT_FOLLOW_CHILD_SYMLINKS);
             }
-            if (!tryHardToDelete(root)) {
-                throw new IOException("Couldn't delete " + root);
-            }
+            tryHardToDeleteOrThrow(root);
         }
         if (!root.mkdirs()) {
             throw new IOException("Couldn't create directory: " + root);
@@ -103,16 +104,14 @@ public class DefaultDeleter implements Deleter {
         if (!target.exists()) {
             return false;
         }
-        if (!tryHardToDelete(target)) {
-            throw new IOException("Couldn't delete " + target);
-        }
+        tryHardToDeleteOrThrow(target);
         return true;
     }
 
     private boolean deleteRecursively(File root, Handling handling) throws IOException {
         LOGGER.debug("Deleting {}", root);
         long startTime = timeProvider.getAsLong();
-        Collection<String> failedPaths = new ArrayList<String>();
+        Map<String, FileDeletionResult> failedPaths = new LinkedHashMap<String, FileDeletionResult>();
         boolean attemptedToRemoveAnything = deleteRecursively(startTime, root, root, handling, failedPaths);
         if (!failedPaths.isEmpty()) {
             throwWithHelpMessage(startTime, root, handling, failedPaths, false);
@@ -120,7 +119,7 @@ public class DefaultDeleter implements Deleter {
         return attemptedToRemoveAnything;
     }
 
-    private boolean deleteRecursively(long startTime, File baseDir, File file, Handling handling, Collection<String> failedPaths) throws IOException {
+    private boolean deleteRecursively(long startTime, File baseDir, File file, Handling handling, Map<String, FileDeletionResult> failedPaths) throws IOException {
 
         if (shouldRemoveContentsOf(file, handling)) {
             File[] contents = file.listFiles();
@@ -141,8 +140,9 @@ public class DefaultDeleter implements Deleter {
             }
         }
 
-        if (!tryHardToDelete(file)) {
-            failedPaths.add(file.getAbsolutePath());
+        FileDeletionResult result = tryHardToDelete(file);
+        if (!result.isSuccessful) {
+            failedPaths.put(file.getAbsolutePath(), result);
 
             // Fail fast
             if (failedPaths.size() == MAX_REPORTED_PATHS) {
@@ -156,17 +156,17 @@ public class DefaultDeleter implements Deleter {
         return file.isDirectory() && (handling.shouldFollowLinkedDirectory() || !isSymlink.test(file));
     }
 
-    protected boolean deleteFile(File file) {
-        try {
-            return Files.deleteIfExists(file.toPath()) && !file.exists();
-        } catch (IOException e) {
-            return false;
+    private void tryHardToDeleteOrThrow(File file) throws IOException {
+        FileDeletionResult result = tryHardToDelete(file);
+        if (!result.isSuccessful) {
+            throw new IOException("Couldn't delete " + file, result.exception);
         }
     }
 
-    private boolean tryHardToDelete(File file) {
-        if (deleteFile(file)) {
-            return true;
+    private FileDeletionResult tryHardToDelete(File file) {
+        FileDeletionResult lastResult = deleteFile(file);
+        if (lastResult.isSuccessful) {
+            return lastResult;
         }
 
         // This is copied from Ant (see org.apache.tools.ant.util.FileUtils.tryHardToDelete).
@@ -183,17 +183,52 @@ public class DefaultDeleter implements Deleter {
             } catch (InterruptedException ex) {
                 Thread.currentThread().interrupt();
             }
-            if (deleteFile(file)) {
-                return true;
+            lastResult = deleteFile(file);
+            if (lastResult.isSuccessful) {
+                return lastResult;
             } else {
                 failedAttempts++;
             }
         }
-        return false;
+        return lastResult;
     }
 
-    private void throwWithHelpMessage(long startTime, File file, Handling handling, Collection<String> failedPaths, boolean more) throws IOException {
-        throw new IOException(buildHelpMessageForFailedDelete(startTime, file, handling, failedPaths, more));
+    protected FileDeletionResult deleteFile(final File file) {
+        try {
+            return FileDeletionResult.withoutException(Files.deleteIfExists(file.toPath()) && !file.exists());
+        } catch (IOException e) {
+            return FileDeletionResult.withException(e);
+        }
+    }
+
+    protected static final class FileDeletionResult {
+
+        static FileDeletionResult withoutException(boolean isSuccessful) {
+            return new FileDeletionResult(isSuccessful, null);
+        }
+
+        static FileDeletionResult withException(Exception exception) {
+            return new FileDeletionResult(false, exception);
+        }
+
+        private final boolean isSuccessful;
+        @Nullable
+        private final Exception exception;
+
+        private FileDeletionResult(boolean isSuccessful, @Nullable Exception exception) {
+            this.isSuccessful = isSuccessful;
+            this.exception = exception;
+        }
+    }
+
+    private void throwWithHelpMessage(long startTime, File file, Handling handling, Map<String, FileDeletionResult> failedPaths, boolean more) throws IOException {
+        IOException ex = new IOException(buildHelpMessageForFailedDelete(startTime, file, handling, failedPaths.keySet(), more));
+        for (FileDeletionResult result : failedPaths.values()) {
+            if (result.exception != null) {
+                ex.addSuppressed(result.exception);
+            }
+        }
+        throw ex;
     }
 
     private String buildHelpMessageForFailedDelete(long startTime, File file, Handling handling, Collection<String> failedPaths, boolean more) {

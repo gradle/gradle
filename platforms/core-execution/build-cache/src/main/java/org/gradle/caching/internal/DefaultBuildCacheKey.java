@@ -31,6 +31,10 @@ public class DefaultBuildCacheKey implements BuildCacheKey {
         return hashCode.toString();
     }
 
+    public HashCode getHashCodeInternal() {
+        return hashCode;
+    }
+
     @Override
     public byte[] toByteArray() {
         return hashCode.toByteArray();

@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":model-core"))
     implementation(project(":platform-jvm"))
     implementation(project(":plugins-java"))
+    implementation(project(":plugins-java-base"))
     implementation(project(":reporting"))
     implementation(project(":toolchains-jvm"))
 
@@ -27,6 +28,8 @@ dependencies {
     testImplementation(testFixtures(project(":language-groovy")))
 
     testRuntimeOnly(project(":distributions-jvm"))
+
+    integTestImplementation(testFixtures(project(":plugins-java-base")))
 
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }

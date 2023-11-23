@@ -180,7 +180,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * <p>Note that this directory is managed by Gradle, and it assumes full ownership of its contents.
      * Plugins and build logic should not store or modify any files or directories within this cache directory.
-     * 
+     *
      * @return project's cache dir, or null if the default location is to be used.
      */
     @Nullable
@@ -898,7 +898,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *     <li><i>off</i>, this mode disables all verifications</li>
      * </ul>
      *
-     * @param verificationMode if true, enables lenient dependency verification
+     * @param verificationMode the verification mode to use
      * @since 6.2
      */
     public void setDependencyVerificationMode(DependencyVerificationMode verificationMode) {
@@ -990,9 +990,12 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * it may be disabled due to the presence of configuration cache problems. It is also currently not used during an IDE import/sync.
      *
      * @since 7.6
+     * @deprecated Use {@link org.gradle.api.configuration.BuildFeatures#getConfigurationCache() Configuration Cache build feature} instead.
      */
     @Incubating
+    @Deprecated
     public boolean isConfigurationCacheRequested() {
+        // TODO:configuration-cache add nagging in 8.6 (https://github.com/gradle/gradle/issues/26720)
         return false;
     }
 }

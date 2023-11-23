@@ -68,15 +68,6 @@ subprojects/*/build/tmp/**/profile.log => failure-logs
 subprojects/*/build/tmp/**/daemon-*.out.log => failure-logs
 """
 
-fun BuildSteps.killGradleProcessesStep(os: Os) {
-    script {
-        name = "KILL_GRADLE_PROCESSES"
-        executionMode = BuildStep.ExecutionMode.ALWAYS
-        scriptContent = os.killAllGradleProcesses
-        skipConditionally()
-    }
-}
-
 // to avoid pathname too long error
 fun BuildSteps.substDirOnWindows(os: Os) {
     if (os == Os.WINDOWS) {
@@ -97,22 +88,25 @@ fun BuildType.cleanUpGitUntrackedFilesAndDirectories() {
         script {
             name = "CLEAN_UP_GIT_UNTRACKED_FILES_AND_DIRECTORIES"
             executionMode = BuildStep.ExecutionMode.RUN_ONLY_ON_FAILURE
-            scriptContent = "git clean -fdx -e \"test-splits/\""
+            scriptContent = "git clean -fdx -e test-splits/ -e .gradle/workspace-id.txt -e \"*.psoutput\""
             skipConditionally()
             onlyRunOnPreTestedCommitBuildBranch()
         }
     }
 }
 
-fun BuildType.cleanUpPerformanceBuildDir(os: Os) {
+// TODO: Remove this after https://github.com/gradle/gradle/issues/26539 is resolved
+fun BuildSteps.cleanUpReadOnlyDir(os: Os) {
     if (os == Os.WINDOWS) {
-        steps {
-            script {
-                name = "CLEAN_UP_PERFORMANCE_BUILD_DIR"
-                executionMode = BuildStep.ExecutionMode.ALWAYS
-                scriptContent = """rmdir /s /q %teamcity.build.checkoutDir%\subprojects\performance\build && (echo Directory removed) || (echo Directory not found) """
-                skipConditionally()
-            }
+        script {
+            name = "CLEAN_UP_READ_ONLY_DIR"
+            executionMode = BuildStep.ExecutionMode.ALWAYS
+            scriptContent = """
+                rmdir /s /q %teamcity.build.checkoutDir%\subprojects\performance\build && (echo performance-build-dir removed) || (echo performance-build-dir not found)
+                rmdir /s /q %teamcity.build.checkoutDir%\platforms\software\version-control\build && (echo version-control-build-dir removed) || (echo version-control-build-dir not found)
+                rmdir /s /q %teamcity.build.checkoutDir%\platforms\jvm\code-quality\build && (echo code-quality-build-dir removed) || (echo code-quality-build-dir not found)
+                """
+            skipConditionally()
         }
     }
 }

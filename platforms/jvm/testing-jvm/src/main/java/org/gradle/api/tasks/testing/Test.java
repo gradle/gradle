@@ -1278,6 +1278,35 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         return javaLauncher;
     }
 
+    @Override
+    boolean testsAreNotFiltered() {
+        return super.testsAreNotFiltered()
+            && noCategoryOrTagOrGroupSpecified();
+    }
+
+    private boolean noCategoryOrTagOrGroupSpecified() {
+        TestFrameworkOptions frameworkOptions = getTestFramework().getOptions();
+        if (frameworkOptions == null) {
+            return true;
+        }
+
+        if (JUnitOptions.class.isAssignableFrom(frameworkOptions.getClass())) {
+            JUnitOptions junitOptions = (JUnitOptions) frameworkOptions;
+            return junitOptions.getIncludeCategories().isEmpty()
+                && junitOptions.getExcludeCategories().isEmpty();
+        } else if (JUnitPlatformOptions.class.isAssignableFrom(frameworkOptions.getClass())) {
+            JUnitPlatformOptions junitPlatformOptions = (JUnitPlatformOptions) frameworkOptions;
+            return junitPlatformOptions.getIncludeTags().isEmpty()
+                && junitPlatformOptions.getExcludeTags().isEmpty();
+        } else if (TestNGOptions.class.isAssignableFrom(frameworkOptions.getClass())) {
+            TestNGOptions testNGOptions = (TestNGOptions) frameworkOptions;
+            return testNGOptions.getIncludeGroups().isEmpty()
+                && testNGOptions.getExcludeGroups().isEmpty();
+        } else {
+            throw new IllegalArgumentException("Unknown test framework: " + frameworkOptions.getClass().getName());
+        }
+    }
+
     @Inject
     protected ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();

@@ -516,7 +516,10 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         run 'clean', 'build'
 
         then:
-        dsl.getBuildFile().text.contains("compileOnly 'junit:junit:4.13.1'") || dsl.getBuildFile().text.contains('compileOnly("junit:junit:4.13.1")')
+        dsl.getBuildFile().text.contains("compileOnly libs.junit.junit") || dsl.getBuildFile().text.contains('compileOnly(libs.junit.junit)')
+        dsl.getVersionCatalogFile().text.contains('junit-junit = "4.13.1"')
+        dsl.getVersionCatalogFile().text.contains('junit-junit = { module = "junit:junit", version.ref = "junit-junit" }')
+
         targetDir.file("build/libs/myThing-0.0.1-SNAPSHOT.jar").exists()
     }
 

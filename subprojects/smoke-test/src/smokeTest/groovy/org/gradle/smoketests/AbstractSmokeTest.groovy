@@ -105,7 +105,7 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.gretty
         static gretty = [
-            [version: "3.1.1", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8],
+            [version: "3.1.1", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8, javaMaxVersion: JavaVersion.VERSION_20],
             [version: "4.1.0", servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
         ]
 
@@ -249,7 +249,7 @@ abstract class AbstractSmokeTest extends Specification {
             .withProjectDir(testProjectDir)
             .forwardOutput()
             .withArguments(
-                tasks.toList() + outputParameters() + repoMirrorParameters() + configurationCacheParameters() + toolchainParameters()
+                tasks.toList() + outputParameters() + repoMirrorParameters() + configurationCacheParameters() + toolchainParameters() + kotlinDslParameters()
             ) as DefaultGradleRunner
         gradleRunner.withJvmArguments(["-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError"])
         return new SmokeTestGradleRunner(gradleRunner)
@@ -292,6 +292,14 @@ abstract class AbstractSmokeTest extends Specification {
             "-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}" as String,
             '-Porg.gradle.java.installations.auto-detect=false',
             '-Porg.gradle.java.installations.auto-download=false',
+        ]
+    }
+
+    private static List<String> kotlinDslParameters() {
+        return [
+            // Having this unset is now deprecated, will default to `false` in Gradle 9.0
+            // TODO remove - see https://github.com/gradle/gradle/issues/26810
+            '-Dorg.gradle.kotlin.dsl.skipMetadataVersionCheck=false',
         ]
     }
 

@@ -43,8 +43,6 @@ import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -66,8 +64,6 @@ import static org.junit.platform.engine.TestExecutionResult.Status.FAILED;
  */
 @NonNullApi
 public class JUnitPlatformTestExecutionListener implements TestExecutionListener {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JUnitPlatformTestExecutionListener.class);
 
     private final static List<TestFailureMapper> MAPPERS = Arrays.asList(
         new OpenTestAssertionFailedMapper(),

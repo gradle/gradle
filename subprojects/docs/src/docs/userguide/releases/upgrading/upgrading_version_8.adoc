@@ -35,6 +35,95 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.6]]
+== Upgrading from 8.5 and earlier
+
+=== Potential breaking changes
+
+==== Upgrade to JaCoCo 0.8.11
+
+JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.11].
+
+
+=== Deprecations
+
+[[deprecated_artifact_identifier]]
+==== Deprecated `ArtifactIdentifier`
+The `ArtifactIdentifier` class has been deprecated for removal in Gradle 9.0.
+
+[[changes_8.5]]
+== Upgrading from 8.4 and earlier
+
+=== Potential breaking changes
+
+==== Upgrade to Kotlin 1.9.20
+
+The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.20[Kotlin 1.9.20].
+
+==== Changes to Groovy task conventions
+
+The `groovy-base` plugin is now responsible for configuring source and target compatibility version conventions on all `GroovyCompile` tasks.
+
+If you are using this task *without applying `grooy-base`*, you will have to manually set compatibility versions on these tasks.
+In general, the `groovy-base` plugin should be applied whenever working with Groovy language tasks.
+
+==== Provider.filter
+
+The type of the argument passed to `Provider.filter` is changed from `Predicate` to `Spec` for a more consistent API.
+This change should not affect anyone using `Provider.filter` with a lambda expression.
+However, this might affect plugin authors if they don't use SAM conversions to create a lambda.
+
+=== Deprecations
+
+[[org_gradle_util_reports_deprecations]]
+==== Deprecated members of the `org.gradle.util` package now report their deprecation
+
+These members will be removed in Gradle 9.0:
+
+* `VersionNumber.parse(String)`
+* `VersionNumber.compareTo(VersionNumber)`
+
+[[depending_on_root_configuration]]
+==== Deprecated depending on resolved configuration
+
+When resolving a `Configuration`, it is sometimes possible to select that same configuration as a variant.
+Configurations should be used for one purpose (resolution, consumption or dependency declarations), so this can only occur when a configuration is marked as both consumable and resolvable.
+
+This can lead to confusing circular dependency graphs, as the configuration being resolved is used for two different purposes.
+
+To avoid this problem, plugins should mark all resolvable configurations as `canBeConsumed=false` or use the `resolvable(String)` configuration factory method when creating configurations meant for resolution.
+
+In Gradle 9.0, consuming configurations in this manner will no longer be allowed and will result in an error.
+
+[[deprecated_missing_project_directory]]
+==== Including projects without an existing directory
+
+Gradle will warn if a project is added to the build where the associated `projectDir` does not exist or is not writable.
+Starting with version 9.0, Gradle will not run builds if a project directory is missing or read-only.
+If you intend to dynamically synthesize projects make sure to create directories for them as well:
+
+=====
+[.multi-language-sample]
+======
+.settings.gradle.kts
+[source,kotlin]
+----
+include("project-without-directory")
+project(":project-without-directory").projectDir.mkdirs()
+----
+======
+[.multi-language-sample]
+======
+.settings.gradle
+[source,groovy]
+----
+include 'project-without-directory'
+project(":project-without-directory").projectDir.mkdirs()
+----
+======
+=====
+
+
 [[changes_8.4]]
 == Upgrading from 8.3 and earlier
 
@@ -43,6 +132,21 @@ The previous step will help you identify potential problems by issuing deprecati
 ==== Upgrade to Kotlin 1.9.10
 
 The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.10[Kotlin 1.9.10].
+
+==== XML parsing now requires recent parsers
+
+Gradle 8.4 now configures XML parsers with security features enabled.
+If your build logic has dependencies on old XML parsers that don't support secure parsing, your build may now fail.
+If you encounter a failure, check and update or remove any dependency on legacy XML parsers.
+
+If you are unable to upgrade XML parsers coming from your build logic dependencies, you can force the use of the XML parsers built into the JVM.
+For example, in OpenJDK this can be done by adding the following to `gradle.properties`:
+```
+systemProp.javax.xml.parsers.SAXParserFactory=com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl
+systemProp.javax.xml.transform.TransformerFactory=com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl
+systemProp.javax.xml.parsers.DocumentBuilderFactory=com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl
+```
+See the link:https://github.com/gradle/gradle/security/advisories/GHSA-mrff-q8qj-xvg8[CVE-2023-42445] advisory for more details and ways to enable secure XML processing on previous Gradle versions.
 
 ==== EAR plugin with customized JEE 1.3 descriptor
 
@@ -257,7 +361,7 @@ It uses eager APIs and has ordering issues if the value is read in build logic a
 It could result in outputs ending up in different locations.
 
 It is replaced by a `link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty]` found at `Project.layout.buildDirectory`.
-See the `link:{dslPath}/org.gradle.api.file.ProjectLayout.html[ProjectLayout]` interface for details.
+See the `link:{groovyDslPath}/org.gradle.api.file.ProjectLayout.html[ProjectLayout]` interface for details.
 
 Note that, at this stage, Gradle will not print deprecation warnings if you still use `Project.buildDir`.
 We know this is a big change and want to give time for authors of major plugins to move away from its usage first.
@@ -519,12 +623,12 @@ dependencies {
 =====
 
 [[unsupported_ge_plugin_3.13]]
-==== Earliest supported Gradle Enterprise plugin version is 3.13.1
+==== Earliest supported Develocity plugin version is 3.13.1
 
-Starting in Gradle 9.0, the earliest supported Gradle Enterprise plugin version is 3.13.1.
+Starting in Gradle 9.0, the earliest supported Develocity plugin version is 3.13.1.
 The plugin versions from 3.0 up to 3.13 will be ignored when applied.
 
-Upgrade to version 3.13.1 or later of the Gradle Enterprise plugin.
+Upgrade to version 3.13.1 or later of the Develocity plugin.
 You can find the link:https://plugins.gradle.org/plugin/com.gradle.enterprise[latest available version on the Gradle Plugin Portal].
 More information on the compatibility can be found link:https://docs.gradle.com/enterprise/compatibility/#build_scans[here].
 
@@ -1154,20 +1258,20 @@ dependencies {
 ----
 dependencies {
     // If using JUnit Jupiter
-    testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // If using JUnit Vintage
-    testCompileOnly("junit:junit:4.13.2")
-    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.9.2")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testCompileOnly 'junit:junit:4.13.2'
+    testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.9.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // If using JUnit 4
-    testImplementation("junit:junit:4.13.2")
+    testImplementation 'junit:junit:4.13.2'
 
     // If using JUnit 3
-    testCompileOnly("junit:junit:3.8.2")
-    testRuntimeOnly("junit:junit:4.13.2")
+    testCompileOnly 'junit:junit:3.8.2'
+    testRuntimeOnly 'junit:junit:4.13.2'
 }
 ----
 ======

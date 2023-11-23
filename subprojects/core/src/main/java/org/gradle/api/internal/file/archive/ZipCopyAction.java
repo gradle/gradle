@@ -20,7 +20,6 @@ import org.apache.commons.compress.archivers.zip.Zip64RequiredException;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
@@ -83,12 +82,14 @@ public class ZipCopyAction implements CopyAction {
             IoActions.withResource(zipOutStr, outputStream -> {
                 stream.process(new StreamAction(outputStream, encoding));
             });
-        } catch (UncheckedIOException e) {
+        } catch (Exception e) {
             if (e.getCause() instanceof Zip64RequiredException) {
                 throw new org.gradle.api.tasks.bundling.internal.Zip64RequiredException(
-                        String.format("%s\n\nTo build this archive, please enable the zip64 extension.\nSee: %s", e.getCause().getMessage(), documentationRegistry.getDslRefForProperty(Zip.class, "zip64"))
+                    String.format("%s\n\nTo build this archive, please enable the zip64 extension.\nSee: %s", e.getCause().getMessage(), documentationRegistry.getDslRefForProperty(Zip.class, "zip64"))
                 );
             }
+            zipFile.delete();
+            throw e;
         }
 
         return WorkResults.didWork(true);

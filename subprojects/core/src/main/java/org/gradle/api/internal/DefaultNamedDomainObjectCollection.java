@@ -103,8 +103,18 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     // should be protected, but use of the class generator forces it to be public
-    public DefaultNamedDomainObjectCollection(DefaultNamedDomainObjectCollection<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer) {
-        this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter), collection.filteredIndex(filter), instantiator, namer);
+    public DefaultNamedDomainObjectCollection(DefaultNamedDomainObjectCollection<? super T> collection, CollectionFilter<T> elementFilter, Instantiator instantiator, Namer<? super T> namer) {
+        this(collection, Specs.satisfyAll(), elementFilter, instantiator, namer);
+    }
+
+    protected DefaultNamedDomainObjectCollection(
+        DefaultNamedDomainObjectCollection<? super T> collection,
+        Spec<String> nameFilter,
+        CollectionFilter<T> elementFilter,
+        Instantiator instantiator,
+        Namer<? super T> namer
+    ) {
+        this(elementFilter.getType(), collection.filteredStore(elementFilter), collection.filteredEvents(elementFilter), collection.filteredIndex(nameFilter, elementFilter), instantiator, namer);
     }
 
     @Override
@@ -231,8 +241,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return instantiator;
     }
 
-    protected <S extends T> Index<S> filteredIndex(CollectionFilter<S> filter) {
-        return index.filter(filter);
+    private <S extends T> Index<S> filteredIndex(Spec<String> nameFilter, CollectionFilter<S> elementFilter) {
+        return index.filter(nameFilter, elementFilter);
     }
 
     /**
@@ -241,6 +251,13 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     @Override
     protected <S extends T> DefaultNamedDomainObjectCollection<S> filtered(CollectionFilter<S> filter) {
         return Cast.uncheckedNonnullCast(instantiator.newInstance(DefaultNamedDomainObjectCollection.class, this, filter, instantiator, namer));
+    }
+
+    /**
+     * Creates a filtered version of this collection.
+     */
+    protected <S extends T> DefaultNamedDomainObjectCollection<S> filtered(Spec<String> nameFilter, CollectionFilter<S> elementFilter) {
+        return Cast.uncheckedNonnullCast(instantiator.newInstance(DefaultNamedDomainObjectCollection.class, this, nameFilter, elementFilter, instantiator, namer));
     }
 
     public String getDisplayName() {
@@ -272,6 +289,12 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     @Override
     public <S extends T> NamedDomainObjectCollection<S> withType(Class<S> type) {
         return filtered(createFilter(type));
+    }
+
+    @Override
+    public NamedDomainObjectCollection<T> named(Spec<String> nameFilter) {
+        Spec<T> spec = convertNameToElementFilter(nameFilter);
+        return filtered(nameFilter, createFilter(spec));
     }
 
     @Override
@@ -510,6 +533,10 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return getType().getSimpleName();
     }
 
+    protected Spec<T> convertNameToElementFilter(Spec<String> nameFilter) {
+        return (T t) -> nameFilter.isSatisfiedBy(namer.determineName(t));
+    }
+
     private class ContainerElementsDynamicObject extends AbstractDynamicObject {
         @Override
         public String getDisplayName() {
@@ -533,20 +560,20 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public boolean hasMethod(String name, Object... arguments) {
+        public boolean hasMethod(String name, @Nullable Object... arguments) {
             return isConfigureMethod(name, arguments);
         }
 
         @Override
-        public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
+        public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... arguments) {
             if (isConfigureMethod(name, arguments)) {
                 return DynamicInvokeResult.found(ConfigureUtil.configure((Closure) arguments[0], getByName(name)));
             }
             return DynamicInvokeResult.notFound();
         }
 
-        private boolean isConfigureMethod(String name, Object... arguments) {
-            return (arguments.length == 1 && arguments[0] instanceof Closure) && hasProperty(name);
+        private boolean isConfigureMethod(String name, @Nullable Object... arguments) {
+            return arguments.length == 1 && arguments[0] instanceof Closure && hasProperty(name);
         }
     }
 
@@ -562,7 +589,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         NavigableMap<String, T> asMap();
 
-        <S extends T> Index<S> filter(CollectionFilter<S> filter);
+        <S extends T> Index<S> filter(Spec<String> nameFilter, CollectionFilter<S> elementFilter);
 
         @Nullable
         ProviderInternal<? extends T> getPending(String name);
@@ -607,8 +634,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public <S extends T> Index<S> filter(CollectionFilter<S> filter) {
-            return new FilteredIndex<S>(this, filter);
+        public <S extends T> Index<S> filter(Spec<String> nameFilter, CollectionFilter<S> elementFilter) {
+            return new FilteredIndex<>(this, nameFilter, elementFilter);
         }
 
         @Nullable
@@ -641,11 +668,15 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     private static class FilteredIndex<T> implements Index<T> {
 
         private final Index<? super T> delegate;
-        private final CollectionFilter<T> filter;
 
-        FilteredIndex(Index<? super T> delegate, CollectionFilter<T> filter) {
+        private final Spec<String> nameFilter;
+
+        private final CollectionFilter<T> elementFilter;
+
+        FilteredIndex(Index<? super T> delegate, Spec<String> nameFilter, CollectionFilter<T> elementFilter) {
             this.delegate = delegate;
-            this.filter = filter;
+            this.nameFilter = nameFilter;
+            this.elementFilter = elementFilter;
         }
 
         @Override
@@ -655,7 +686,11 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public T get(String name) {
-            return filter.filter(delegate.get(name));
+            if (!nameFilter.isSatisfiedBy(name)) {
+                return null;
+            }
+            Object value = delegate.get(name);
+            return elementFilter.filter(value);
         }
 
         @Override
@@ -672,11 +707,16 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         public NavigableMap<String, T> asMap() {
             NavigableMap<String, ? super T> delegateMap = delegate.asMap();
 
-            NavigableMap<String, T> filtered = new TreeMap<String, T>();
+            NavigableMap<String, T> filtered = new TreeMap<>();
             for (Map.Entry<String, ? super T> entry : delegateMap.entrySet()) {
-                T obj = filter.filter(entry.getValue());
+                String name = entry.getKey();
+                if (!nameFilter.isSatisfiedBy(name)) {
+                    continue;
+                }
+                Object value = entry.getValue();
+                T obj = elementFilter.filter(value);
                 if (obj != null) {
-                    filtered.put(entry.getKey(), obj);
+                    filtered.put(name, obj);
                 }
             }
 
@@ -684,19 +724,22 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public <S extends T> Index<S> filter(CollectionFilter<S> filter) {
-            return new FilteredIndex<S>(delegate, this.filter.and(filter));
+        public <S extends T> Index<S> filter(Spec<String> nameFilter, CollectionFilter<S> collectionFilter) {
+            return new FilteredIndex<>(
+                delegate,
+                Specs.intersect(this.nameFilter, nameFilter),
+                this.elementFilter.and(collectionFilter)
+            );
         }
 
         @Nullable
         @Override
         public ProviderInternal<? extends T> getPending(String name) {
             ProviderInternal<?> provider = delegate.getPending(name);
-            if (provider != null && provider.getType() != null && filter.getType().isAssignableFrom(provider.getType())) {
-                return Cast.uncheckedNonnullCast(provider);
-            } else {
-                return null;
+            if (isPendingSatisfyingFilters(name, provider)) {
+                return Cast.uncheckedCast(provider);
             }
+            return null;
         }
 
         @Override
@@ -720,13 +763,25 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             Map<String, ProviderInternal<?>> delegateMap = Cast.uncheckedCast(delegate.getPendingAsMap());
             Map<String, ProviderInternal<? extends T>> filteredMap = Maps.newLinkedHashMap();
             for (Map.Entry<String, ProviderInternal<?>> entry : delegateMap.entrySet()) {
-                if (entry.getValue().getType() != null && filter.getType().isAssignableFrom(entry.getValue().getType())) {
-                    ProviderInternal<? extends T> typedValue = Cast.uncheckedCast(entry.getValue());
-                    filteredMap.put(entry.getKey(), typedValue);
+                String name = entry.getKey();
+                ProviderInternal<?> provider = entry.getValue();
+                if (isPendingSatisfyingFilters(name, provider)) {
+                    filteredMap.put(entry.getKey(), Cast.uncheckedCast(provider));
                 }
             }
             return filteredMap;
         }
+
+        private boolean isPendingSatisfyingFilters(String name, @Nullable ProviderInternal<?> provider) {
+            if (!nameFilter.isSatisfiedBy(name)) {
+                return false;
+            }
+            if (provider != null) {
+                return provider.getType() != null && elementFilter.getType().isAssignableFrom(provider.getType());
+            }
+            return false;
+        }
+
     }
 
     public interface ElementInfo<T> {

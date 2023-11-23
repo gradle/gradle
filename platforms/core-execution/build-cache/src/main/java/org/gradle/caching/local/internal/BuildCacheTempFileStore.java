@@ -16,10 +16,10 @@
 
 package org.gradle.caching.local.internal;
 
-import org.gradle.api.Action;
-import org.gradle.caching.BuildCacheKey;
+import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
+import java.util.function.Consumer;
 
 public interface BuildCacheTempFileStore {
 
@@ -29,6 +29,6 @@ public interface BuildCacheTempFileStore {
      * Run the given action with a temp file allocated based on the given cache key.
      * The temp file will be deleted once the action is completed.
      */
-    void withTempFile(BuildCacheKey key, Action<? super File> action);
+    void withTempFile(HashCode key, Consumer<? super File> action);
 
 }

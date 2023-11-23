@@ -77,6 +77,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
     def "does not automatically apply plugin to subprojects"() {
         when:
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
             assert pluginManager.hasPlugin('$fixture.id')
@@ -119,7 +120,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         if (!GradleContextualExecuter.configCache && VersionNumber.parse(version) < PLUGIN_MINIMUM_NON_DEPRECATED_VERSION) {
-            executer.expectDocumentedDeprecationWarning("Gradle Enterprise plugin $version has been deprecated. Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
+            executer.expectDocumentedDeprecationWarning("Develocity plugin $version has been deprecated. Starting with Gradle 9.0, only Develocity plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
         }
 
         and:
@@ -153,7 +154,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         if (!GradleContextualExecuter.configCache && VersionNumber.parse(version) < PLUGIN_MINIMUM_NON_DEPRECATED_VERSION) {
-            executer.expectDocumentedDeprecationWarning("Gradle Enterprise plugin $version has been deprecated. Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
+            executer.expectDocumentedDeprecationWarning("Develocity plugin $version has been deprecated. Starting with Gradle 9.0, only Develocity plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
         }
 
         and:
@@ -191,7 +192,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         if (!GradleContextualExecuter.configCache && VersionNumber.parse(version) < PLUGIN_MINIMUM_NON_DEPRECATED_VERSION) {
-            executer.expectDocumentedDeprecationWarning("Gradle Enterprise plugin $version has been deprecated. Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
+            executer.expectDocumentedDeprecationWarning("Develocity plugin $version has been deprecated. Starting with Gradle 9.0, only Develocity plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
         }
 
         and:

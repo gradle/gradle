@@ -24,11 +24,14 @@ import com.tngtech.archunit.lang.ArchRule;
 import groovy.lang.Closure;
 import groovy.util.Node;
 import groovy.xml.MarkupBuilder;
+import kotlin.Pair;
 import kotlin.jvm.functions.Function1;
 import kotlin.reflect.KClass;
 import kotlin.reflect.KProperty;
+import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
+import org.gradle.api.specs.Spec;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
@@ -36,8 +39,10 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
+import java.util.function.BiFunction;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.implement;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
@@ -51,6 +56,7 @@ import static org.gradle.architecture.test.ArchUnitFixture.gradlePublicApi;
 import static org.gradle.architecture.test.ArchUnitFixture.haveDirectSuperclassOrInterfaceThatAre;
 import static org.gradle.architecture.test.ArchUnitFixture.haveOnlyArgumentsOrReturnTypesThatAre;
 import static org.gradle.architecture.test.ArchUnitFixture.not_written_in_kotlin;
+import static org.gradle.architecture.test.ArchUnitFixture.overrideMethod;
 import static org.gradle.architecture.test.ArchUnitFixture.primitive;
 import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
 import static org.gradle.architecture.test.ArchUnitFixture.useJavaxAnnotationNullable;
@@ -61,7 +67,9 @@ public class PublicApiCorrectnessTest {
     private static final DescribedPredicate<JavaClass> allowed_types_for_public_api =
         gradlePublicApi()
             .or(primitive)
-            .or(resideInAnyPackage("java.lang", "java.util", "java.util.concurrent", "java.util.regex", "java.util.function", "java.lang.reflect", "java.io")
+            // NOTE: we don't want to include java.util.function here because Gradle public API uses custom types like org.gradle.api.Action and org.gradle.api.Spec
+            // Mixing these custom types with java.util.function types would make the public API harder to use, especially for plugin authors.
+            .or(resideInAnyPackage("java.lang", "java.util", "java.util.concurrent", "java.util.regex", "java.lang.reflect", "java.io")
                 .or(type(byte[].class))
                 .or(type(URI.class))
                 .or(type(URL.class))
@@ -69,6 +77,7 @@ public class PublicApiCorrectnessTest {
                 .or(type(BigDecimal.class))
                 .or(type(Element.class))
                 .or(type(QName.class))
+                .or(type(BiFunction.class))
                 .as("built-in JDK classes"))
             .or(type(Node.class)
                 .or(type(MarkupBuilder.class))
@@ -77,7 +86,9 @@ public class PublicApiCorrectnessTest {
             )
             .or(type(Function1.class)
                 .or(type(KClass.class))
+                .or(type(KClass[].class))
                 .or(type(KProperty.class))
+                .or(type(Pair[].class))
                 .as("Kotlin classes")
             );
     private static final DescribedPredicate<JavaClass> public_api_tasks_or_plugins =
@@ -94,6 +105,7 @@ public class PublicApiCorrectnessTest {
             .that(are(public_api_tasks_or_plugins))
             .should(beAbstract());
 
+
     @ArchTest
     public static final ArchRule public_api_classes_do_not_extend_internal_types = freeze(classes()
         .that(are(gradlePublicApi()))
@@ -109,4 +121,9 @@ public class PublicApiCorrectnessTest {
             .that(are(not_written_in_kotlin))
             .should(useJavaxAnnotationNullable()
     );
+
+    @ArchTest
+    public static final ArchRule named_domain_object_collection_implementations_override_named_method = classes()
+        .that(implement(NamedDomainObjectCollection.class))
+        .should(overrideMethod("named", new Class<?>[] {Spec.class}, NamedDomainObjectCollection.class));
 }

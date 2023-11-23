@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -33,6 +34,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
     def 'kotlin jvm (kotlin=#version, workers=#parallelTasksInProject)'() {
         given:
+        KotlinGradlePluginVersions.assumeCurrentJavaVersionIsSupportedBy(version)
         useSample("kotlin-example")
         replaceVariablesInBuildFile(kotlinVersion: version)
         def versionNumber = VersionNumber.parse(version)
@@ -49,6 +51,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 expectJavaPluginConventionDeprecation(versionNumber)
                 if (GradleContextualExecuter.isConfigCache()) {
                     expectBasePluginConventionDeprecation(versionNumber)
+                    expectKotlinBasePluginExtensionArchivesBaseNameDeprecation(versionNumber)
                     expectForUseAtConfigurationTimeDeprecation(versionNumber)
                 }
             }.build()
@@ -81,6 +84,8 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
     def 'kotlin javascript (kotlin=#version, workers=#parallelTasksInProject)'() {
 
+        KotlinGradlePluginVersions.assumeCurrentJavaVersionIsSupportedBy(version)
+
         // kotlinjs has been removed in Kotlin 1.7 in favor of kotlin-mpp
         assumeTrue(VersionNumber.parse(version).baseVersion < VersionNumber.version(1, 7))
 
@@ -102,6 +107,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 expectConventionTypeDeprecation(versionNumber)
                 expectJavaPluginConventionDeprecation(versionNumber)
                 expectBasePluginConventionDeprecation(versionNumber)
+                expectKotlinBasePluginExtensionArchivesBaseNameDeprecation(versionNumber)
                 if (GradleContextualExecuter.isConfigCache()) {
                     expectForUseAtConfigurationTimeDeprecation(versionNumber)
                 }
@@ -118,6 +124,8 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
     }
 
     def 'kotlin jvm and groovy plugins combined (kotlin=#kotlinVersion)'() {
+
+        KotlinGradlePluginVersions.assumeCurrentJavaVersionIsSupportedBy(kotlinVersion)
 
         def versionNumber = VersionNumber.parse(kotlinVersion)
         def kotlinCompileClasspathPropertyName = versionNumber >= VersionNumber.parse("1.7.0") ? 'libraries' : 'classpath'
@@ -162,6 +170,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 expectJavaPluginConventionDeprecation(versionNumber)
                 if (GradleContextualExecuter.isConfigCache()) {
                     expectBasePluginConventionDeprecation(versionNumber)
+                    expectKotlinBasePluginExtensionArchivesBaseNameDeprecation(versionNumber)
                     expectForUseAtConfigurationTimeDeprecation(versionNumber)
                 }
             }.build()
@@ -179,6 +188,8 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
     }
 
     def 'kotlin jvm and java-gradle-plugin plugins combined (kotlin=#kotlinVersion)'() {
+
+        KotlinGradlePluginVersions.assumeCurrentJavaVersionIsSupportedBy(kotlinVersion)
 
         assumeFalse(kotlinVersion.startsWith("1.6."))
         assumeFalse(kotlinVersion.startsWith("1.7."))

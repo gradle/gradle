@@ -44,6 +44,7 @@ class ScalaPluginIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/6558")
     def "can build in parallel with lazy tasks"() {
+        createDirs("a", "b", "c", "d")
         settingsFile << """
             include 'a', 'b', 'c', 'd'
         """
@@ -87,6 +88,7 @@ class ScalaPluginIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/6735")
     def "can depend on the source set of another Java project"() {
+        createDirs("java", "scala")
         settingsFile << """
             include 'java', 'scala'
         """
@@ -119,6 +121,7 @@ class ScalaPluginIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/6750")
     def "can depend on Scala project from other project"() {
+        createDirs("other", "scala")
         settingsFile << """
             include 'other', 'scala'
         """
@@ -159,6 +162,7 @@ class ScalaPluginIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/7014")
     def "can use Scala with war and ear plugins"() {
+        createDirs("war", "ear")
         settingsFile << """
             include 'war', 'ear'
         """

@@ -20,10 +20,8 @@ import org.apache.commons.io.IOUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.precondition.PreconditionVerifier
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.GUtil
-import org.junit.Rule
 import spock.lang.Shared
 
 import java.nio.charset.StandardCharsets
@@ -36,9 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
-    protected static final THIRD_PARTY_LIB_COUNT = 149
-
-    @Rule public final PreconditionVerifier preconditionVerifier = new PreconditionVerifier()
+    protected static final THIRD_PARTY_LIB_COUNT = 148
 
     @Shared String baseVersion = GradleVersion.current().baseVersion.version
 
@@ -50,14 +46,14 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution core modules (lib/).
      */
     int getCoreLibJarsCount() {
-        44
+        46
     }
 
     /**
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        55
+        62
     }
 
     /**
@@ -179,6 +175,14 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${baseVersion}.jar")
         toolingApiJar.assertIsFile()
         assert toolingApiJar.length() < 500 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
+
+        // Kotlin DSL
+        assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-${baseVersion}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-extensions-${baseVersion}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-shared-runtime-${baseVersion}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-tooling-models-${baseVersion}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-kotlin-dsl-provider-plugins-${baseVersion}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-kotlin-dsl-tooling-builders-${baseVersion}.jar"))
 
         // Plugins
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-dependency-management-${baseVersion}.jar"))

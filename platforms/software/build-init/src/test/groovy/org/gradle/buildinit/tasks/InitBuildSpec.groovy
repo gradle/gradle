@@ -246,6 +246,21 @@ class InitBuildSpec extends Specification {
         Language.SWIFT  | empty()                        | false
     }
 
+    def "gets java-version from property"() {
+        given:
+        def inputHandler = Mock(UserInputHandler)
+        def buildInitializer = Mock(BuildInitializer)
+        buildInitializer.supportsJavaTargets() >> true
+        init.javaVersion = "11"
+
+        when:
+        def version = init.getJavaLanguageVersion(inputHandler, buildInitializer)
+
+        then:
+        version.isPresent()
+        version.get().asInt() == 11
+    }
+
     def "gets useful error when requesting invalid Java target"() {
         given:
         def inputHandler = Mock(UserInputHandler)

@@ -48,6 +48,7 @@ class BuildSrcIdentityIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "includes build identifier in dependency report with #display"() {
+        createDirs("buildSrc", "buildSrc/b1", "buildSrc/b2")
         file("buildSrc/settings.gradle") << """
             $settings
             include 'b1', 'b2'
@@ -152,6 +153,7 @@ Required by:
 
     def "includes build identifier in dependency resolution results with #display"() {
         given:
+        createDirs("buildSrc", "buildSrc/a")
         file("buildSrc/settings.gradle") << """
             ${settings}
             include 'a'

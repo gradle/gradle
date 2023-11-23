@@ -24,10 +24,34 @@ import java.lang.reflect.Type;
  * A read-only supplier of services.
  */
 public interface ServiceLookup {
+
+    /**
+     * Locates the service of the given type, returning null if no such service.
+     *
+     * @param serviceType The service type.
+     * @return The service instance. Returns {@code null} if no such service exists.
+     * @throws ServiceLookupException On failure to lookup the specified service.
+     */
     @Nullable
     Object find(Type serviceType) throws ServiceLookupException;
 
+    /**
+     * Locates the service of the given type, throwing an exception if no such service is located.
+     *
+     * @param serviceType The service type.
+     * @return The service instance. Never returns null.
+     * @throws UnknownServiceException When there is no service of the given type available.
+     * @throws ServiceLookupException On failure to lookup the specified service.
+     */
     Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException;
 
+    /**
+     * Locates the service of the given type annotated with a given annotation, throwing an exception if no such service is located.
+     *
+     * @param serviceType The service type.
+     * @return The service instance. Never returns null.
+     * @throws UnknownServiceException When there is no service of the given type available.
+     * @throws ServiceLookupException On failure to lookup the specified service.
+     */
     Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException;
 }
