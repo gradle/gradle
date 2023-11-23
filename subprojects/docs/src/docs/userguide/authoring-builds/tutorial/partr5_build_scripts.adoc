@@ -33,7 +33,7 @@ Learn the basics of authoring Gradle by developing the Build Script.
 1. You initialized your Java app in <<partr1_gradle_init.adoc#part1_begin,part 1>>.
 2. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
 3. You added a subproject and a separate Build in <<partr3_multi_project_builds#part3_begin, part3>>.
-4. You viwed a Settings file in <<partr4_settings_file.adoc#part4_begin,part 4>>.
+4. You viewed a Settings file in <<partr4_settings_file.adoc#part4_begin,part 4>>.
 
 == Step 1. The `Project` object
 
@@ -84,17 +84,27 @@ gradlePlugin {                                                                  
 }
 
 val functionalTestSourceSet = sourceSets.create("functionalTest") {}                                // <10>
+
+// Additional lines //
+
+val functionalTest by tasks.registering(Test::class) {
+    testClassesDirs = functionalTestSourceSet.output.classesDirs
+    classpath = functionalTestSourceSet.runtimeClasspath
+    useJUnitPlatform()
+}
+
+// Additional lines //
 ----
-<1> FIX ME`plugins({})` method from link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/index.html[KotlinSettingsScript]
+<1> Use the `plugins{}` block from link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/index.html[KotlinSettingsScript] in the Kotlin DSL
 <2> Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins
 <3> Apply the Kotlin JVM plugin to add support for Kotlin
-<4> FIX ME
-<5> Use Maven Central for resolving dependencies
-<6> FIX ME
+<4> Use link:{kotlinDslPath}/gradle/org.gradle.api/-project/repositories.html[`Project.repositories()`] to configure the repositories for this project
+<5> Use link:https://repo.maven.apache.org/maven2/[Maven Central] for resolving dependencies
+<6> Use link:{kotlinDslPath}/gradle/org.gradle.api/-project/dependencies.html[`Project.dependencies()`] to configure the dependencies for this project
 <7> Use the Kotlin JUnit 5 integration
-<8> FIX ME
-<9> Define the plugin
-<10> Additional test functionality outside the scope of this tutorial
+<8> Use the `gradlePlugin{}` block from link:{kotlinDslPath}/gradle/org.gradle.plugin.devel/-gradle-plugin-development-extension/index.html[GradlePluginDevelopmentExtension] in the Kotlin DSL
+<9> Define the plugin `id` and `implementationClass`
+<10> Additional test configuration including tasks
 
 Plugins, which enhance your build capabilities, are included like this:
 
@@ -125,7 +135,7 @@ dependencies {
 ----
 
 In this example, `implementation()` means that the `commons-lang3` library must be added to the Java classpath.
-This is called a configuration. FIX ME
+FIX ME
 
 Configuration blocks are typically further configuration required by an applied plugin:
 
@@ -139,12 +149,24 @@ gradlePlugin {                                                                  
 }
 ----
 
-In the `authoring-tutorial` project, the `java-gradle-plugin` is applied and users must configure the plugin they are developing using the `gradlePlugin{}` configuration block.
+When the `java-gradle-plugin` is applied, users must configure the plugin they are developing using the `gradlePlugin{}` configuration block.
 
 Tasks are units of work executed during your build.
 They can be defined by plugins or inline:
 
+[source,kotlin]
+----
+val functionalTest by tasks.registering(Test::class) {
+    testClassesDirs = functionalTestSourceSet.output.classesDirs
+    classpath = functionalTestSourceSet.runtimeClasspath
+    useJUnitPlatform()
+}
 
+tasks.named<Test>("test") {
+    // Use JUnit Jupiter for unit tests.
+    useJUnitPlatform()
+}
+----
 
 == Step 3. Update the Build scripts
 
@@ -233,7 +255,7 @@ app:task2
 lib:task3
 ----
 
-And you can run the `greeting` task using `./gradlew greeting` or:
+Finally, run the `greeting` task using `./gradlew greeting` or:
 
 [source]
 ----

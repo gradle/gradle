@@ -22,6 +22,7 @@ Learn the basics of authoring Gradle by developing the Settings File.
 
 - Understand the Settings object
 - Understand the Settings file
+- Understand Gradle scripting
 ****
 
 [[part4_begin]]
@@ -31,7 +32,20 @@ Learn the basics of authoring Gradle by developing the Settings File.
 2. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
 3. You added a subproject and a separate Build in <<partr3_multi_project_builds#part3_begin, part3>>.
 
-== Step 1. The `Settings` object
+== Step 1. Gradle scripts
+
+Build scripts and setting files are code.
+They are written in Kotlin or Groovy.
+
+You use the link:{kotlinDslPath}/index.html[Kotlin DSL], link:{groovyDslPath}/index.html[Groovy DSL] and link:{groovyDslPath}/index.html[Gradle APIs] to write the scripts.
+
+The methods that can be used within a Gradle script primarily include:
+
+- Gradle APIs - such as `getRootProject()` from the link:{javadocPath}/org/gradle/api/initialization/Settings.html[Settings API]
+- Blocks defined in the DSL - such as the `plugins{}` block from link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/index.html[KotlinSettingsScript]
+- Extensions defined by Plugins - such as `implementation()` and `api()` provided by the `java` plugin when applied
+
+== Step 2. The `Settings` object
 
 The settings file is the entry point of every Gradle build.
 
@@ -51,15 +65,13 @@ For example:
  reportsDir = findProject("/myInternalProject")     // Delegates to Settings.findProject()
 ----
 
-== Step 2. The Settings file
+== Step 3. The Settings file
 
-Lets breakdown the settings file in our root directory:
+Lets breakdown the settings file in our project root directory:
 
 .settings.gradle.kts
 [source,kotlin]
 ----
-println("SETTINGS FILE: This is executed during the initialization phase")
-
 plugins {                                                                   // <1>
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.4.0"  // <2>
 }
@@ -71,7 +83,7 @@ include("lib")
 
 includeBuild("gradle/license-plugin")                                       // <5>
 ----
-<1> `plugins({})` method from link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/index.html[KotlinSettingsScript]
+<1> `plugins({})` method from link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/index.html[KotlinSettingsScript] in the Kotlin DSL
 <2> `id()` method from the link:{kotlinDslPath}/gradle/org.gradle.plugin.use/-plugin-dependencies-spec/index.html[PluginDependenciesSpec API]
 <3> `getRootProject()` method from the link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/index.html[Settings API]
 <4> `include()` method from the link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/index.html[Settings API]

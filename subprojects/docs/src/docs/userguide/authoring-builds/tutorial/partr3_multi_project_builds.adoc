@@ -15,7 +15,7 @@
 [[partr3_multi_project_builds]]
 = Part 3: Multi-Project Builds
 
-Learn the basics of structuring large Gradle projects using subprojects and composite builds.
+Learn the basics of structuring Gradle projects using subprojects and composite builds.
 
 ****
 **In this section you will:**

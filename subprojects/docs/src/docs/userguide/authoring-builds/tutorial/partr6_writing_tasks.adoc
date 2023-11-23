@@ -40,7 +40,7 @@ Actions are added to a Task via the `doFirst{}` and `doLast{}` closures.
 
 A Task can depend on other tasks.
 
-== Step 2. Register and Configure Task
+== Step 2. Register and Configure Tasks
 
 Early on in the tutorial we registered and configured `task1` in the `app` build script:
 
@@ -62,9 +62,15 @@ tasks.named("task1"){
 }
 ----
 
-== Step 3. Create a Task
+You can use the link:{kotlinDslPath}/gradle/org.gradle.api.tasks/-task-container/index.html[register()] method to create new tasks.
 
-To create a task, you must subclass `DefaultTask`:
+You can use the link:{kotlinDslPath}/https://docs.gradle.org/current/kotlin-dsl/gradle/org.gradle.api.tasks/-task-collection/index.html[named()] method to configure existing tasks.
+
+== Step 3. Create a custom Task
+
+To create a custom task, you must subclass link:{kotlinDslPath}/gradle/org.gradle.api/-default-task/index.html[`DefaultTask`].
+
+Create a custom class called `LicenseTask` in `gradle/license-plugin/plugin/src/main/kotlin/com/gradle/LicensePlugin.kt` with the code below:
 
 .gradle/license-plugin/plugin/src/main/kotlin/com/gradle/LicensePlugin.kt
 [source,kotlin]
@@ -100,18 +106,29 @@ abstract class LicenseTask : DefaultTask() {
         }
     }
 }
-
-
-class LicensePlugin: Plugin<Project> {
-    override fun apply(project: Project) {
-        project.tasks.register("greeting") { task ->
-            task.doLast {
-                println("Hello from plugin 'com.gradle.greeting'")
-            }
-        }
-    }
-}
 ----
+
+The `LicenseTask` class encapsulates the task action logic and also declares any inputs and outputs the task expects.
+
+The task action is annotated with `@TaskAction`.
+Inside, the logic first finds a file called "license.txt".
+This file contains text for an Apache license:
+
+----
+/*
+* Licensed under the Apache License
+*/
+----
+
+It then looks for files with the extension `.java` and `.kts` and adds a license header to it.
+
+The task has a single input, the license file name, which is annotated with `@Input`.
+
+The `@Input` annotation is used by Gradle to determine if the tasks needs to run.
+If the tasks has not run before or if the input value has changed since the previous execution, then Gradle will execute the task if requested.
+
+While a custom class has been created, it is not yet added to the `LicensePlugin`.
+It is not currently possible to run the `LicenseTask` class as a task.
 
 [.text-right]
 **Next Step:** <<partr7_writing_plugins#partr7_writing_plugins,Writing Plugins>> >>
