@@ -26,7 +26,9 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.MutableVersionConstraint;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -230,7 +232,6 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         return DefaultCatalogProblemBuilder.getProblemInVersionCatalog(name) + ", ";
     }
 
-    @SuppressWarnings("deprecation")
     private void maybeImportCatalogs() {
         if (importedCatalog == null) {
             return;
@@ -252,7 +253,10 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         if (maybeResolvedArtifactResult.isPresent()) {
             ResolvedArtifactResult resolvedArtifactResult = maybeResolvedArtifactResult.get();
             File file = resolvedArtifactResult.getFile();
-            withContext("catalog " + resolvedArtifactResult.getVariant().getOwner(), () -> importCatalogFromFile(file));
+            ComponentIdentifier componentIdentifier = resolvedArtifactResult.getVariants().stream()
+                .map(ResolvedVariantResult::getOwner).findFirst() // There will always be at least one variant
+                .orElseThrow(() -> new IllegalStateException("Artifact selected without variant: " + resolvedArtifactResult.getId()));
+            withContext("catalog " + componentIdentifier, () -> importCatalogFromFile(file));
         } else {
             throw throwVersionCatalogProblemException(getProblemService().create(builder ->
                 configureVersionCatalogError(builder, getProblemInVersionCatalog() + "no files are resolved to be imported.", NO_IMPORT_FILES)

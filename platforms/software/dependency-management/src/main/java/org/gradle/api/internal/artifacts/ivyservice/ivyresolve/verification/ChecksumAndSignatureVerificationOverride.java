@@ -203,9 +203,11 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     public ResolvedArtifactResult verifiedArtifact(ResolvedArtifactResult artifact) {
         return new ResolvedArtifactResult() {
             @Override
-            @SuppressWarnings("deprecation")
             public File getFile() {
-                artifactsAccessed(artifact.getVariant().getDisplayName());
+                String displayName = artifact.getVariants().stream()
+                    .map(ResolvedVariantResult::getDisplayName).findFirst() // There will always be at least one variant
+                    .orElseThrow(() -> new IllegalStateException("No variant found for artifact " + artifact.getId()));
+                artifactsAccessed(displayName);
                 return artifact.getFile();
             }
 
