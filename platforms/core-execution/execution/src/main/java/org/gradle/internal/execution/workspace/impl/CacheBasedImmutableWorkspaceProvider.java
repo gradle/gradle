@@ -80,6 +80,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             // We don't need to lock the cache for immutable workspaces
             // as we are using unique temporary workspaces to run work in
             // and move them atomically into the cache
+            // TODO Should use a read-write lock on the cache's base directory for cleanup, though
             .withLockOptions(mode(FileLockManager.LockMode.None))
             .open();
         this.cache = cache;
