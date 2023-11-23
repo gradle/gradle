@@ -75,7 +75,7 @@ public abstract class ExtractGradleApiInfoTask extends DefaultTask {
     private void extractUpgradedProperties(FileCollection from, RegularFileProperty to) {
         String gradleApiInfoJarPrefix = getGradleApiInfoJarPrefix().get();
         File gradleRuntimeApiInfoJar = from.filter(file -> file.getName().startsWith(gradleApiInfoJarPrefix)).getSingleFile();
-        URI uri = URI.create("jar:file:" + gradleRuntimeApiInfoJar.getAbsolutePath());
+        URI uri = URI.create("jar:" + gradleRuntimeApiInfoJar.getAbsoluteFile().toURI());
         try (FileSystem fs = FileSystems.newFileSystem(uri, Collections.emptyMap())) {
             Path upgradedPropertiesJson = fs.getPath(UPGRADED_PROPERTIES_FILE);
             if (Files.exists(upgradedPropertiesJson)) {
