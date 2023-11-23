@@ -214,6 +214,11 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
             }
 
             @Override
+            public Set<ResolvedVariantResult> getVariants() {
+                return artifact.getVariants();
+            }
+
+            @Override
             public ComponentArtifactIdentifier getId() {
                 return artifact.getId();
             }

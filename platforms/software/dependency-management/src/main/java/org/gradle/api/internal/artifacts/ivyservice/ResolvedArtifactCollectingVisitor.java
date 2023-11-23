@@ -28,14 +28,15 @@ import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.internal.DisplayName;
 
 import java.io.File;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
-    private final Set<ResolvedArtifactResult> artifacts = Sets.newLinkedHashSet();
+    private final Map<ArtifactIdentifier, DefaultResolvedArtifactResult> artifacts = new LinkedHashMap<>();
     private final Set<Throwable> failures = Sets.newLinkedHashSet();
-    private final Set<ComponentArtifactIdentifier> seenArtifacts = new HashSet<>();
 
     @Override
     public void visitFailure(Throwable failure) {
@@ -45,10 +46,13 @@ public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
     @Override
     public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, List<? extends Capability> capabilities, ResolvableArtifact artifact) {
         try {
-            if (seenArtifacts.add(artifact.getId())) {
-                File file = artifact.getFile();
-                this.artifacts.add(new DefaultResolvedArtifactResult(artifact.getId(), variantAttributes, capabilities, variantName, Artifact.class, file));
-            }
+            artifacts.compute(new ArtifactIdentifier(artifact.getId(), artifact.getFile()), (key, value) -> {
+                if (value == null) {
+                    return new DefaultResolvedArtifactResult(artifact.getId(), variantAttributes, capabilities, variantName, Artifact.class, artifact.getFile());
+                } else {
+                    return value.withAddedVariant(variantAttributes, capabilities, variantName);
+                }
+            });
         } catch (Exception t) {
             failures.add(t);
         }
@@ -60,10 +64,37 @@ public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     public Set<ResolvedArtifactResult> getArtifacts() {
-        return artifacts;
+        return Sets.newLinkedHashSet(artifacts.values());
     }
 
     public Set<Throwable> getFailures() {
         return failures;
+    }
+
+    private static class ArtifactIdentifier {
+        final ComponentArtifactIdentifier artifactIdentifier;
+        final File artifactFile;
+
+        public ArtifactIdentifier(ComponentArtifactIdentifier artifactIdentifier, File artifactFile) {
+            this.artifactIdentifier = artifactIdentifier;
+            this.artifactFile = artifactFile;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            ArtifactIdentifier that = (ArtifactIdentifier) o;
+            return Objects.equals(artifactIdentifier, that.artifactIdentifier) && Objects.equals(artifactFile, that.artifactFile);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(artifactIdentifier, artifactFile);
+        }
     }
 }
