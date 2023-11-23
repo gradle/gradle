@@ -51,7 +51,7 @@ public abstract class Documentation implements DocLink {
         return String.format(RECOMMENDATION, "information", getUrl());
     }
 
-    private static abstract class SerializerableDocumentation extends Documentation {
+    private static abstract class SerializableDocumentation extends Documentation {
         abstract Map<String, String> getProperties();
     }
 
@@ -95,7 +95,7 @@ public abstract class Documentation implements DocLink {
         }
     }
 
-    private static class NullDocumentation extends SerializerableDocumentation {
+    private static class NullDocumentation extends SerializableDocumentation {
 
         private NullDocumentation() {
         }
@@ -116,7 +116,7 @@ public abstract class Documentation implements DocLink {
         }
     }
 
-    private static class UserGuide extends SerializerableDocumentation {
+    private static class UserGuide extends SerializableDocumentation {
         private final String page;
         private final String section;
 
@@ -169,7 +169,7 @@ public abstract class Documentation implements DocLink {
         }
     }
 
-    private static class DslReference extends SerializerableDocumentation {
+    private static class DslReference extends SerializableDocumentation {
         private final Class<?> targetClass;
         private final String property;
 
