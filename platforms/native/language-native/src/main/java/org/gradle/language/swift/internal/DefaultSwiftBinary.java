@@ -53,6 +53,7 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Map;
@@ -233,14 +234,13 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
         }
 
         @Override
-        @SuppressWarnings("deprecation")
         public Set<File> getFiles() {
             if (result == null) {
                 result = Sets.newLinkedHashSet();
                 Map<ComponentIdentifier, ModuleMap> moduleMaps = Maps.newLinkedHashMap();
                 for (ResolvedArtifactResult artifact : importPathConfig.getIncoming().getArtifacts()) {
-                    Usage usage = artifact.getVariant().getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE);
-                    if (usage != null && Usage.C_PLUS_PLUS_API.equals(usage.getName())) {
+                    Usage cppApiUsage = getCppApiUsageFromSelectingVariant(artifact);
+                    if (cppApiUsage != null) {
                         String moduleName;
 
                         ComponentIdentifier id = artifact.getId().getComponentIdentifier();
@@ -273,6 +273,15 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
                 }
             }
             return result;
+        }
+
+        @Nullable
+        private Usage getCppApiUsageFromSelectingVariant(ResolvedArtifactResult artifact) {
+            // The first filter makes sure none of the potential NPEs that follow are impossible
+            return artifact.getVariants().stream().filter(variant -> variant.getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE) != null)
+                .filter(variant -> variant.getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE).getName().equals(Usage.C_PLUS_PLUS_API))
+                .map(variant -> variant.getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE))
+                .findFirst().orElse(null);
         }
 
         @Override
