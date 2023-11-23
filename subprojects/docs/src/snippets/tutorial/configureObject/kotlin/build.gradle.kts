@@ -1,9 +1,9 @@
 class UserInfo(
-    var name: String? = null,
+    var name: String? = null, 
     var email: String? = null
 )
 
-tasks.register("greet") {
+tasks.register("configure") {
     val user = UserInfo().apply {
         name = "Isaac Newton"
         email = "isaac@newton.me"

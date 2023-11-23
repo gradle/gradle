@@ -7,8 +7,6 @@ buildscript {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5'
     }
 }
-// end::buildscript_block[]
 
-plugins {
-    id 'com.jfrog.bintray'
-}
+apply plugin: 'com.jfrog.bintray'
+// end::buildscript_block[]

@@ -1,8 +1,7 @@
 4.times { counter ->
-    String taskName = "task" + counter
-    tasks.register(taskName) {
+    tasks.register("task$counter") {
         doLast {
-            println "I'm task number" + counter
+            println "I'm task number $counter"
         }
     }
 }

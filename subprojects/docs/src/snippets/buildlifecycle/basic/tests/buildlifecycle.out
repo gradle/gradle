@@ -1,15 +1,15 @@
-Executed during the 1. INITIALIZATION PHASE.
+This is executed during the initialization phase.
 
 > Configure project :
-Executed during the 2. CONFIGURATION PHASE.
-testBoth: Executed during the 2. CONFIGURATION PHASE.
+This is executed during the configuration phase.
+This is executed during the configuration phase as well, because :testBoth is used in the build.
 
 > Task :test
-test - doLast: Executed during the 3. EXECUTION PHASE.
+This is executed during the execution phase.
 
 > Task :testBoth
-testBoth - doFirst: Executed during the 3. EXECUTION PHASE.
-testBoth - doLast: Executed during the 3. EXECUTION PHASE.
+This is executed first during the execution phase.
+This is executed last during the execution phase.
 
 BUILD SUCCESSFUL in 0s
 2 actionable tasks: 2 executed
