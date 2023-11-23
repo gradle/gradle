@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.protocol.problem;
 
 public interface InternalDocumentationLink {
+
     String getUrl();
-
-
 }

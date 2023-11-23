@@ -24,13 +24,14 @@ import javax.annotation.Nullable;
 @NonNullApi
 public class DefaultDetails implements Details {
 
-    private final String label;
+    private final String details;
 
     public DefaultDetails(@Nullable String details) {
-        this.label = details;
+        this.details = details;
     }
+
     @Override
     public String getDetails() {
-        return label;
+        return details;
     }
 }

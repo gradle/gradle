@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-     package org.gradle.tooling.events.problems;
+package org.gradle.tooling.events.problems;
 
-     import org.gradle.api.Incubating;
+import org.gradle.api.Incubating;
 
 /**
  * Represents a plugin ID.
@@ -25,5 +25,6 @@
  */
 @Incubating
 public interface PluginIdLocation extends Location {
+
     String getPluginId();
 }

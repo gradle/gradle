@@ -119,7 +119,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
             case ADVICE: return ADVICE;
             case WARNING: return WARNING;
             case ERROR: return ERROR;
-            default: return new DefaultSeverity(3); // should not happen
+            default: throw new RuntimeException("No mapping defined for severity level " + severity);
         }
     }
 
@@ -155,7 +155,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
     }
 
     private static boolean isSupportedType(Object type) {
-        return type instanceof String || type instanceof Integer;
+        return type instanceof String;
     }
 
     @Override
