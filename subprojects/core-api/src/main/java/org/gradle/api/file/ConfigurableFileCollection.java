@@ -15,6 +15,7 @@
  */
 package org.gradle.api.file;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.HasConfigurableValue;
@@ -50,6 +51,44 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      * @param paths The paths.
      */
     void setFrom(Object... paths);
+
+    /**
+     * Specifies the value to use as the convention (default value) to be used when resolving this file collection,
+     * if no source paths are explicitly defined.
+     *
+     * If, at the time this method is invoked, the set of source paths for this collection is empty, the convention will be used
+     * to resolve this file collection.
+     *
+     * @param paths The paths.
+     * @since 8.6
+     */
+    @Incubating
+    void setConvention(Iterable<?> paths);
+
+    /**
+     * Specifies the value to use as the convention (default value) to be used when resolving this file collection,
+     * if no source paths are explicitly defined.
+     *
+     * If, at the time this method is invoked, the set of source paths for this collection is empty, the convention will be used
+     * to resolve this file collection.
+     *
+     * @param paths The paths.
+     *
+     * @since 8.6
+     */
+    @Incubating
+    void setConvention(Object... paths);
+
+
+    /**
+     * Unsets this file collection so it has no source paths assigned.
+     *
+     * If a convention has been set, the convention will be used when resolving this collection.
+     *
+     * @since 8.6
+     */
+    @Incubating
+    void unset();
 
     /**
      * Adds a set of source paths to this collection. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
