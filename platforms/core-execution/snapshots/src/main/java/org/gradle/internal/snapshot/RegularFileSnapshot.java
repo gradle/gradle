@@ -39,8 +39,8 @@ public class RegularFileSnapshot extends AbstractFileSystemLocationSnapshot impl
     }
 
     @Override
-    protected RegularFileSnapshot doRelocate(String targetPath, String name, Interner<String> interner) {
-        return new RegularFileSnapshot(targetPath, name, contentHash, metadata);
+    protected Optional<RegularFileSnapshot> relocateDirectAccess(String targetPath, String name, Interner<String> interner) {
+        return Optional.of(new RegularFileSnapshot(targetPath, name, contentHash, metadata));
     }
 
     @Override

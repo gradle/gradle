@@ -48,16 +48,19 @@ public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLo
     }
 
     @Override
-    public FileSystemLocationSnapshot relocate(String targetPath, Interner<String> interner) {
+    public Optional<? extends FileSystemLocationSnapshot> relocate(String targetPath, Interner<String> interner) {
+        if (accessType == AccessType.VIA_SYMLINK) {
+            return Optional.empty();
+        }
         String internedTargetPath = interner.intern(targetPath);
         String targetName = PathUtil.getFileName(internedTargetPath);
         String internedTargetName = targetName.equals(name)
             ? name
             : interner.intern(targetName);
-        return doRelocate(internedTargetPath, internedTargetName, interner);
+        return relocateDirectAccess(internedTargetPath, internedTargetName, interner);
     }
 
-    protected abstract FileSystemLocationSnapshot doRelocate(String targetPath, String internedTargetName, Interner<String> interner);
+    protected abstract Optional<? extends FileSystemLocationSnapshot> relocateDirectAccess(String targetPath, String internedTargetName, Interner<String> interner);
 
     @Override
     public AccessType getAccessType() {

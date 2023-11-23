@@ -16,13 +16,16 @@
 
 package org.gradle.internal.snapshot
 
+import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.FileType
 
+import static org.gradle.internal.file.FileMetadata.AccessType.DIRECT
+import static org.gradle.internal.file.FileMetadata.AccessType.VIA_SYMLINK
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
 abstract class AbstractFileSystemLeafSnapshotTest<T extends FileSystemLeafSnapshot> extends AbstractFileSystemLocationSnapshotTest {
 
-    abstract protected T createInitialRootNode(String absolutePath);
+    abstract protected T createInitialRootNode(String absolutePath, FileMetadata.AccessType accessType = DIRECT);
 
     T initialRoot = createInitialRootNode("/some/absolute/path")
 
@@ -82,18 +85,31 @@ abstract class AbstractFileSystemLeafSnapshotTest<T extends FileSystemLeafSnapsh
         childSnapshot.absolutePath == childAbsolutePath.absolutePath
     }
 
-    def "can be relocated"() {
+    def "snapshot accessed directly is relocated"() {
         def sourceFile = temporaryFolder.file("source.txt")
         def targetFile = temporaryFolder.file("target.txt")
-        def sourceSnapshot = createInitialRootNode(sourceFile.absolutePath)
+        def sourceSnapshot = createInitialRootNode(sourceFile.absolutePath, DIRECT)
 
         when:
         def targetSnapshot = sourceSnapshot.relocate(targetFile.absolutePath, stringInterner)
 
         then:
-        targetSnapshot.absolutePath == targetFile.absolutePath
-        targetSnapshot.name == targetFile.name
-        assertInterned(targetSnapshot)
+        targetSnapshot.present
+        targetSnapshot.get().absolutePath == targetFile.absolutePath
+        targetSnapshot.get().name == targetFile.name
+        assertInterned(targetSnapshot.get())
+    }
+
+    def "snapshot accessed via symlink is not relocated"() {
+        def sourceFile = temporaryFolder.file("source.txt")
+        def targetFile = temporaryFolder.file("target.txt")
+        def sourceSnapshot = createInitialRootNode(sourceFile.absolutePath, VIA_SYMLINK)
+
+        when:
+        def targetSnapshot = sourceSnapshot.relocate(targetFile.absolutePath, stringInterner)
+
+        then:
+        !targetSnapshot.present
     }
 
     private VfsRelativePath childAbsolutePath(String relativePath) {

@@ -222,7 +222,8 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
         FileSystemLocationSnapshot sourceSnapshot = read(sourceLocation);
         write(ImmutableList.of(sourceLocation, targetLocation), () -> {
             Files.move(Paths.get(sourceLocation), Paths.get(targetLocation), ATOMIC_MOVE);
-            record(sourceSnapshot.relocate(targetLocation, stringInterner));
+            sourceSnapshot.relocate(targetLocation, stringInterner)
+                .ifPresent(this::record);
         });
     }
 

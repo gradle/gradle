@@ -21,7 +21,7 @@ import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.TestHashCodes
 
 class DirectorySnapshotTest extends AbstractFileSystemLocationSnapshotTest {
-    def "can be relocated"() {
+    def "snapshot hierarchy accessed directly is relocated"() {
         def testDirectory = temporaryFolder.createDir("test")
         def sourceDir = testDirectory.createDir("source-directory")
         def childDir = sourceDir.createDir("child")
@@ -37,8 +37,9 @@ class DirectorySnapshotTest extends AbstractFileSystemLocationSnapshotTest {
         ])
 
         when:
-        def relocated = directorySnapshot.relocate(targetDir.absolutePath, stringInterner)
+        def relocated = directorySnapshot.relocate(targetDir.absolutePath, stringInterner).get()
         def index = SnapshotUtil.indexByAbsolutePath(relocated)
+
         then:
         index.keySet() == [
             targetDir.absolutePath,
@@ -55,5 +56,41 @@ class DirectorySnapshotTest extends AbstractFileSystemLocationSnapshotTest {
         ] as Set
 
         index.values().forEach(this::assertInterned)
+    }
+
+    def "snapshot accessed via symlink is not relocated"() {
+        def testDirectory = temporaryFolder.createDir("test")
+        def sourceDir = testDirectory.createDir("source-directory")
+        def targetDir = testDirectory.file("target-directory")
+
+        def directorySnapshot = new DirectorySnapshot(sourceDir.absolutePath, sourceDir.name, FileMetadata.AccessType.VIA_SYMLINK, TestHashCodes.hashCodeFrom(1234), [])
+
+        when:
+        def relocated = directorySnapshot.relocate(targetDir.absolutePath, stringInterner)
+
+        then:
+        !relocated.present
+    }
+
+    def "any child snapshot accessed via symlink means hierarchy is not relocated"() {
+        def testDirectory = temporaryFolder.createDir("test")
+        def sourceDir = testDirectory.createDir("source-directory")
+        def childDir = sourceDir.createDir("child")
+        def childFile = childDir.createFile("child.txt")
+        def parentLinkFile = sourceDir.createFile("parent-link.txt")
+        def targetDir = testDirectory.file("target-directory")
+
+        def directorySnapshot = new DirectorySnapshot(sourceDir.absolutePath, sourceDir.name, FileMetadata.AccessType.DIRECT, TestHashCodes.hashCodeFrom(1234), [
+            new DirectorySnapshot(childDir.absolutePath, childDir.name, FileMetadata.AccessType.DIRECT, TestHashCodes.hashCodeFrom(2345), [
+                new RegularFileSnapshot(childFile.absolutePath, childFile.name, TestHashCodes.hashCodeFrom(9876), DefaultFileMetadata.file(123, 456, FileMetadata.AccessType.DIRECT))
+            ]),
+            new RegularFileSnapshot(parentLinkFile.absolutePath, parentLinkFile.name, TestHashCodes.hashCodeFrom(8765), DefaultFileMetadata.file(123, 456, FileMetadata.AccessType.VIA_SYMLINK))
+        ])
+
+        when:
+        def relocated = directorySnapshot.relocate(targetDir.absolutePath, stringInterner)
+
+        then:
+        !relocated.present
     }
 }

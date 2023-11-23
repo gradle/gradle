@@ -39,8 +39,8 @@ public class MissingFileSnapshot extends AbstractFileSystemLocationSnapshot impl
     }
 
     @Override
-    protected MissingFileSnapshot doRelocate(String targetPath, String name, Interner<String> interner) {
-        return new MissingFileSnapshot(targetPath, name, getAccessType());
+    protected Optional<MissingFileSnapshot> relocateDirectAccess(String targetPath, String name, Interner<String> interner) {
+        return Optional.of(new MissingFileSnapshot(targetPath, name, getAccessType()));
     }
 
     @Override
