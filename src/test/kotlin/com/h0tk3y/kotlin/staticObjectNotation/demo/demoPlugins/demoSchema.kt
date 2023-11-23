@@ -11,19 +11,19 @@ fun demoSchema(): AnalysisSchema {
     val topLevelScopeRef = typeRef<TopLevelScope>()
     val pluginsBlockRef = typeRef<PluginsBlock>()
     val pluginDefinitionRef = typeRef<PluginDefinition>()
-    
+
     val topLevelScopePlugins = DataProperty("plugins", pluginsBlockRef, isReadOnly = true, false)
     val pluginDefinitionId = DataProperty("id", string, isReadOnly = true, false)
     val pluginDefinitionVersion = DataProperty("version", string, isReadOnly = true, false)
     val pluginDefinitionApply = DataProperty("apply", boolean, isReadOnly = true, false)
-    
+
     val topLevelScope = DataType.DataClass(
         TopLevelScope::class,
         properties = listOf(topLevelScopePlugins),
         memberFunctions = listOf(
             DataMemberFunction(
-                topLevelScopeRef, "plugins", 
-                parameters = emptyList(), 
+                topLevelScopeRef, "plugins",
+                parameters = emptyList(),
                 semantics = FunctionSemantics.AccessAndConfigure(
                     ConfigureAccessor.Property(topLevelScopeRef, topLevelScopePlugins), UNIT
                 )
@@ -31,7 +31,7 @@ fun demoSchema(): AnalysisSchema {
         ),
         constructorSignatures = emptyList()
     )
-    
+
     val pluginsBlock = DataType.DataClass(
         PluginsBlock::class,
         properties = emptyList(),
@@ -41,12 +41,12 @@ fun demoSchema(): AnalysisSchema {
                 parameters = listOf(
                     DataParameter("identifier", string, isDefault = false, semantics = StoreValueInProperty(pluginDefinitionId))
                 ),
-                semantics = FunctionSemantics.AddAndConfigure(pluginDefinitionRef)
+                semantics = FunctionSemantics.AddAndConfigure(pluginDefinitionRef, acceptsConfigureBlock = false)
             )
         ),
         constructorSignatures = emptyList()
     )
-    
+
     val pluginDefinition = DataType.DataClass(
         PluginDefinition::class,
         properties = listOf(
@@ -64,9 +64,9 @@ fun demoSchema(): AnalysisSchema {
         ),
         constructorSignatures = emptyList()
     )
-    
+
     return AnalysisSchema(
-        topLevelScope, 
+        topLevelScope,
         listOf(topLevelScope, pluginsBlock, pluginDefinition).associateBy { FqName.parse(it.kClass.java.name) },
         emptyMap(),
         emptyMap(),

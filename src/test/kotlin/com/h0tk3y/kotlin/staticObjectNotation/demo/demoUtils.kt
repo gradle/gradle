@@ -34,7 +34,7 @@ fun AnalysisSchema.resolve(
         }
         failures.forEach { printFailures(it) }
     }
-    
+
     return resolver.resolve(this, languageElements)
 }
 
@@ -47,7 +47,7 @@ fun printResolutionResults(
     println("Additions:\n" + result.additions.joinToString("\n") { (container, obj) -> "$container += $obj" })
 }
 
-fun assignmentTrace(result: ResolutionResult) = 
+fun assignmentTrace(result: ResolutionResult) =
     AssignmentTracer { AssignmentResolver() }.produceAssignmentTrace(result)
 
 fun printAssignmentTrace(trace: AssignmentTrace) {
@@ -66,7 +66,7 @@ fun printAssignmentTrace(trace: AssignmentTrace) {
                 println("${element.lhs} := ${element.rhs} => ${assigned.objectOrigin}")
             }
         }
-    }    
+    }
 }
 
 fun printResolvedAssignments(result: ResolutionResult) {
@@ -81,14 +81,14 @@ inline fun <reified T> typeRef(): DataTypeRef.Name {
 
 fun prettyStringFromReflection(objectReflection: ObjectReflection): String {
     val visitedIdentity = mutableSetOf<Long>()
-    
+
     fun StringBuilder.recurse(current: ObjectReflection, depth: Int) {
         fun indent() = "    ".repeat(depth)
         fun nextIndent() = "    ".repeat(depth + 1)
         when (current) {
             is ObjectReflection.ConstantValue -> append(
-                if (current.type == DataType.StringDataType) 
-                    "\"${current.value}\"" 
+                if (current.type == DataType.StringDataType)
+                    "\"${current.value}\""
                 else current.value.toString()
             )
             is ObjectReflection.DataObjectReflection -> {
@@ -97,7 +97,7 @@ fun prettyStringFromReflection(objectReflection: ObjectReflection): String {
                     append("{\n")
                     current.properties.forEach {
                         append(nextIndent() + it.key.name + " = ")
-                        recurse(it.value, depth + 1)
+                        recurse(it.value.value, depth + 1)
                         append("\n")
                     }
                     current.addedObjects.forEach {
@@ -111,8 +111,7 @@ fun prettyStringFromReflection(objectReflection: ObjectReflection): String {
                 }
             }
 
-            is ObjectReflection.External -> append("(external ${current.externalObjectProviderKey.type}})")
-            ObjectReflection.Null -> append("null")
+            is ObjectReflection.External -> append("(external ${current.key.type}})")
             is ObjectReflection.PureFunctionInvocation -> {
                 append(current.objectOrigin.function.simpleName)
                 append("#" + current.objectOrigin.invocationId)
@@ -135,6 +134,8 @@ fun prettyStringFromReflection(objectReflection: ObjectReflection): String {
             }
 
             is ObjectReflection.DefaultValue -> append("(default value)")
+            is ObjectReflection.AddedByUnitInvocation -> append("invoked: ${objectReflection.objectOrigin}")
+            is ObjectReflection.Null -> append("null")
         }
     }
 

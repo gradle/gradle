@@ -16,11 +16,11 @@ object ReflectionDemo {
         val code = """
             plugins {
                 val kotlinVersion = "1.9.20"
-                
+
                 id("org.jetbrains.kotlin.jvm") version kotlinVersion
                 id("org.jetbrains.kotlin.kapt") version kotlinVersion apply false
                 id("java") apply false
-                
+
                 val app = id("application")
                 app.apply(false)
             }
@@ -35,12 +35,14 @@ object ReflectionDemo {
 
         val kotlinKaptPlugin = plugins.addedObjects
             .find {
-                val id = it.properties[idProp]
-                id is ConstantValue && id.value == "org.jetbrains.kotlin.kapt"
+                val properties = (it as? DataObjectReflection)?.properties ?: error("unexpected object")
+                val id = properties[idProp] ?: error("no id proprety found")
+                val idPropertyValue = id.value
+                idPropertyValue is ConstantValue && idPropertyValue.value == "org.jetbrains.kotlin.kapt"
             } as DataObjectReflection
 
         val version = kotlinKaptPlugin.properties[versionProp] as ConstantValue
-        
+
         val ast = version.objectOrigin.originElement.originAst
         val versionRange = ast.rangeOrNull
 
@@ -56,7 +58,7 @@ object ReflectionDemo {
     }
 }
 
-private val Ast.rangeOrNull: IntRange? 
+private val Ast.rangeOrNull: IntRange?
     get() = astInfoOrNull?.let { it.start.index..it.stop.index }
 
 private fun String.replaceRange(range: IntRange, replacement: String): String {

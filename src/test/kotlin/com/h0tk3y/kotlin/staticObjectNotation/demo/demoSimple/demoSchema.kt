@@ -48,7 +48,7 @@ internal fun demoSchema(): AnalysisSchema {
             DataMemberFunction(
                 abcRef, "c",
                 listOf(DataParameter("x", int, false, StoreValueInProperty(cX))),
-                semantics = AddAndConfigure(cRef)
+                semantics = AddAndConfigure(cRef, acceptsConfigureBlock = true)
             )
         ),
         constructorSignatures = emptyList()

@@ -4,7 +4,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
 import com.h0tk3y.kotlin.staticObjectNotation.demo.printResolutionResults
 import com.h0tk3y.kotlin.staticObjectNotation.demo.printResolvedAssignments
 import com.h0tk3y.kotlin.staticObjectNotation.demo.resolve
-import com.h0tk3y.kotlin.staticObjectNotation.schemaFromTypes
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.schemaFromTypes
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -21,7 +21,7 @@ fun main() {
         """
         plugins {
             val kotlinVersion = "1.9.20"
-            
+
             id("org.jetbrains.kotlin.jvm") version kotlinVersion
             id("org.jetbrains.kotlin.kapt") version kotlinVersion apply false
             val java = id("java")

@@ -4,7 +4,7 @@ import com.example.com.h0tk3y.kotlin.staticObjectNotation.analysis.MyClass
 import com.example.com.h0tk3y.kotlin.staticObjectNotation.analysis.TopLevel
 import com.h0tk3y.kotlin.staticObjectNotation.demo.resolve
 import com.h0tk3y.kotlin.staticObjectNotation.language.PropertyAccess
-import com.h0tk3y.kotlin.staticObjectNotation.schemaFromTypes
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.schemaFromTypes
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -19,13 +19,13 @@ object LocalValueTest {
         val resolution = schema.resolve(
             """
             val m = my1()
-            
+
             my {
                 my = m
             }
-            
+
             my {
-                val m = my2()        
+                val m = my2()
                 my = m
             }
             """.trimIndent()
@@ -44,7 +44,7 @@ object LocalValueTest {
             assertEquals("my2", function.simpleName)
         }
     }
-    
+
     @Test
     fun `a local value cannot be used until assigned at top level`() {
         val resolution = schema.resolve(
@@ -52,15 +52,15 @@ object LocalValueTest {
             my {
                 my = m
             }
-                
+
             val m = my1()
-            
+
             my {
                 my = m
             }
             """.trimIndent()
         )
-        
+
         val errorReasons = resolution.errors.map { it.errorReason }
         assertEquals(2, errorReasons.size)
         assertTrue { ErrorReason.UnresolvedAssignmentRhs in errorReasons }
