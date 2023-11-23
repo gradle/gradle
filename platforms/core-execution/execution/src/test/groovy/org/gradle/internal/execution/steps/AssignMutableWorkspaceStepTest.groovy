@@ -53,7 +53,7 @@ class AssignMutableWorkspaceStepTest extends StepSpec<IdentityContext> {
         0 * _
 
         when:
-        def output = result.resolveOutputFromWorkspaceAs(Object)
+        def output = result.getOutputAs(Object)
 
         then:
         output.get() == delegateOutput

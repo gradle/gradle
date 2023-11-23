@@ -188,7 +188,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
     private void executeWork(UnitOfWork work) {
         ExecutionEngine.Result result = engine.createRequest(work).execute();
-        GeneratedAccessors accessors = result.resolveOutputFromWorkspaceAs(GeneratedAccessors.class).get();
+        GeneratedAccessors accessors = result.getOutputAs(GeneratedAccessors.class).get();
         ClassPath generatedClasses = DefaultClassPath.of(accessors.classesDir);
         sources = sources.plus(DefaultClassPath.of(accessors.sourcesDir));
         classes = classes.plus(generatedClasses);

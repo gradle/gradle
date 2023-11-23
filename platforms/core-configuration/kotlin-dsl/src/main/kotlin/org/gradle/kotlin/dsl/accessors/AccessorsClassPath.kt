@@ -93,7 +93,7 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
             )
             executionEngine.createRequest(work)
                 .execute()
-                .resolveOutputFromWorkspaceAs(AccessorsClassPath::class.java)
+                .getOutputAs(AccessorsClassPath::class.java)
                 .get()
         }
     }

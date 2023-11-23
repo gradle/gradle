@@ -31,7 +31,7 @@ public class WorkspaceResult extends CachingResult implements ExecutionEngine.Re
     }
 
     @Override
-    public <T> Try<T> resolveOutputFromWorkspaceAs(Class<T> type) {
+    public <T> Try<T> getOutputAs(Class<T> type) {
         return getExecution()
             .map(execution -> execution.getOutput(workspace))
             .map(type::cast);

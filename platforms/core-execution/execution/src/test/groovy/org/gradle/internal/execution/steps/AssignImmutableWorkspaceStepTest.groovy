@@ -154,7 +154,7 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
         0 * _
 
         when:
-        def resolvedResult = result.resolveOutputFromWorkspaceAs(Object)
+        def resolvedResult = result.getOutputAs(Object)
 
         then:
         resolvedResult.get() == resolvedDelegateResult
@@ -196,7 +196,7 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
         0 * _
 
         when:
-        def resolvedResult = result.resolveOutputFromWorkspaceAs(Object)
+        def resolvedResult = result.getOutputAs(Object)
 
         then:
         resolvedResult.failure.get() == delegateFailure

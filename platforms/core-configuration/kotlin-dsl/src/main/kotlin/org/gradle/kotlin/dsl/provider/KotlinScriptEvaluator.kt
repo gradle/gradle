@@ -272,7 +272,7 @@ class StandardKotlinScriptEvaluator(
                     )
                 )
                 .execute()
-                .resolveOutputFromWorkspaceAs(File::class.java)
+                .getOutputAs(File::class.java)
                 .get()
         } catch (e: CacheOpenException) {
             throw e.cause as? ScriptCompilationException ?: e

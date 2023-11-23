@@ -66,8 +66,11 @@ public interface ExecutionEngine {
 
         CachingState getCachingState();
 
+        /**
+         * Get the output of the work. For immutable work this is resolved from the immutable workspace.
+         */
         // TODO Parametrize UnitOfWork with this type
-        <T> Try<T> resolveOutputFromWorkspaceAs(Class<T> type);
+        <T> Try<T> getOutputAs(Class<T> type);
 
         /**
          * A list of messages describing the first few reasons encountered that caused the work to be executed.
