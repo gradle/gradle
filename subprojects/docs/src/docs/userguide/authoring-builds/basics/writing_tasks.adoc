@@ -1,0 +1,190 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[writing_tasks]]
+= Writing Tasks
+
+Gradle tasks are created by extending link:{javadocPath}/org/gradle/api/DefaultTask.html[`DefaultTask`].
+
+However, the generic `DefaultTask` provides no action for Gradle.
+If users want to extend the capabilities of Gradle and their build script, they must either use a *built-in task* or create a *custom task*:
+
+1. *Built-in task* - Gradle provides built-in utility tasks such as `Copy`, `Jar`, `Zip`, `Delete`, etc...
+2. *Custom task* - Gradle allows users to subclass `DefaultTask` to create their own task types.
+
+[[sec:sample_task]]
+== Create a task
+
+The simplest and quickest way to create a *custom* task is in a build script:
+
+To create a task, inherit from the `DefaultTask` class and implement a link:{javadocPath}/org/gradle/api/tasks/TaskAction.html[`@TaskAction`] handler:
+
+.build.gradle.kts
+[source,kotlin]
+----
+abstract class CreateFileTask : DefaultTask() {
+    @TaskAction
+    fun action() {
+        val file = File("myfile.txt")
+        file.createNewFile()
+        file.writeText("HELLO FROM MY TASK")
+    }
+}
+----
+
+The `CreateFileTask` implements a simple set of *actions*.
+First, a file called "myfile.txt" is created in the main project.
+Then, some text is written to the file.
+
+== Register a task
+
+A task is *registered* in the build script using the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[`TaskContainer.register()`] method, which allows it to be then used in the build logic.
+
+.build.gradle.kts
+[source,kotlin]
+----
+abstract class CreateFileTask : DefaultTask() {
+    @TaskAction
+    fun action() {
+        val file = File("myfile.txt")
+        file.createNewFile()
+        file.writeText("HELLO FROM MY TASK")
+    }
+}
+
+tasks.register<CreateFileTask>("createFileTask")
+----
+
+== Task group and description
+
+Setting the *group* and *description* properties on your tasks can help users understand how to use your task:
+
+.build.gradle.kts
+[source,kotlin]
+----
+abstract class CreateFileTask : DefaultTask() {
+    @TaskAction
+    fun action() {
+        val file = File("myfile.txt")
+        file.createNewFile()
+        file.writeText("HELLO FROM MY TASK")
+    }
+}
+
+tasks.register<CreateFileTask>("createFileTask", ) {
+    group = "custom"
+    description = "Create myfile.txt in the current directory"
+}
+----
+
+Once a task is added to a group, it is visible when listing tasks.
+
+== Task input and outputs
+
+For the task to do useful work, it typically needs some *inputs*.
+A task typically produces *outputs*.
+
+.build.gradle.kts
+[source,kotlin]
+----
+abstract class CreateFileTask : DefaultTask() {
+    @Input
+    val fileText = "HELLO FROM MY TASK"
+
+    @Input
+    val fileName = "myfile.txt"
+
+    @OutputFile
+    val myFile: File = File(fileName)
+
+    @TaskAction
+    fun action() {
+        myFile.createNewFile()
+        myFile.writeText(fileText)
+    }
+}
+
+tasks.register<CreateFileTask>("createFileTask") {
+    group = "custom"
+    description = "Create myfile.txt in the current directory"
+}
+----
+
+== Configure a task
+
+A task is optionally *configured* in a build script using the link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html[`TaskCollection.named()`] method.
+
+The `CreateFileTask` class is updated so that the text in the file is configurable:
+
+.build.gradle.kts
+[source,kotlin]
+----
+abstract class CreateFileTask : DefaultTask() {
+    @get:Input
+    abstract val fileText: Property<String>
+
+    @Input
+    val fileName = "myfile.txt"
+
+    @OutputFile
+    val myFile: File = File(fileName)
+
+    @TaskAction
+    fun action() {
+        myFile.createNewFile()
+        myFile.writeText(fileText.get())
+    }
+}
+
+tasks.register<CreateFileTask>("createFileTask") {
+    group = "custom"
+    description = "Create myfile.txt in the current directory"
+    fileText.convention("HELLO FROM THE CREATE FILE TASK METHOD") // Set convention
+}
+
+tasks.named<CreateFileTask>("createFileTask") {
+    fileText.set("HELLO FROM THE NAMED METHOD") // Override with custom message
+}
+----
+
+// Add a small excerpt about properties
+
+In the `named()` method, we find the `createFileTask` task and set the text that will be written to the file.
+
+When the task is executed:
+
+[source]
+----
+$ ./gradlew createFileTask
+
+> Configure project :app
+
+> Task :app:createFileTask
+
+BUILD SUCCESSFUL in 5s
+2 actionable tasks: 1 executed, 1 up-to-date
+----
+
+A text file called `myfile.txt` is created in the project root folder:
+
+.myfile.txt
+[source,txt]
+----
+HELLO FROM THE NAMED METHOD
+----
+
+Consult the <<more_about_tasks.adoc#more_about_tasks,Developing Gradle Tasks chapter>> to learn more.
+
+[.text-right]
+**Next Step:** <<plugins.adoc#plugins,Learn how to use Plugins>> >>
