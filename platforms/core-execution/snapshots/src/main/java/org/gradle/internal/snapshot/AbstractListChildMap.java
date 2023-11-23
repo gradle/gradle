@@ -38,11 +38,6 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public <RESULT> RESULT withNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, NodeHandler<T, RESULT> handler) {
-        return null;
-    }
-
-    @Override
     public Stream<Entry<T>> stream() {
         return entries.stream();
     }
