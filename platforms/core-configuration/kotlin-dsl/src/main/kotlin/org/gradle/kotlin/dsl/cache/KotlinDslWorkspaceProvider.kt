@@ -49,9 +49,6 @@ class KotlinDslWorkspaceProvider(
         kotlinDslWorkspace.close()
 
     private
-    fun subWorkspace(prefix: String): ImmutableWorkspaceProvider = object :
-        ImmutableWorkspaceProvider {
-        override fun getWorkspace(path: String) =
-            kotlinDslWorkspace.getWorkspace("$prefix/$path")
-    }
+    fun subWorkspace(prefix: String): ImmutableWorkspaceProvider =
+        ImmutableWorkspaceProvider { path -> kotlinDslWorkspace.getWorkspace("$prefix/$path") }
 }
