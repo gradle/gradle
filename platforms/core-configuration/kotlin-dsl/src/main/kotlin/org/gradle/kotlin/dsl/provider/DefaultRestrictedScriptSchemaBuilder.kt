@@ -16,14 +16,13 @@
 
 package org.gradle.kotlin.dsl.provider
 
-import com.h0tk3y.kotlin.staticObjectNotation.schemaFromTypes
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.schemaFromTypes
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.Settings
 import org.gradle.kotlin.dsl.execution.PluginDependencySpecWithProperties
 import org.gradle.kotlin.dsl.execution.PluginsTopLevelReceiver
 import org.gradle.kotlin.dsl.execution.RestrictedPluginDependenciesSpecScope
 import org.gradle.kotlin.dsl.provider.ScriptSchemaBuildingResult.SchemaAvailable
-import org.gradle.plugin.use.PluginDependencySpec
 
 internal
 class DefaultRestrictedScriptSchemaBuilder : RestrictedScriptSchemaBuilder {
