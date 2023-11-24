@@ -16,7 +16,6 @@
 
 package org.gradle.caching.local.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.cache.PersistentCache;
 import org.gradle.caching.BuildCacheEntryReader;
@@ -48,8 +47,8 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
     }
 
     @Override
-    public void loadLocally(BuildCacheKey key, Action<? super File> reader) {
-        cache.loadLocally(((BuildCacheKeyInternal) key).getHashCodeInternal(), reader::execute);
+    public void loadLocally(BuildCacheKey key, Consumer<? super File> reader) {
+        cache.loadLocally(((BuildCacheKeyInternal) key).getHashCodeInternal(), reader);
     }
 
     @Override

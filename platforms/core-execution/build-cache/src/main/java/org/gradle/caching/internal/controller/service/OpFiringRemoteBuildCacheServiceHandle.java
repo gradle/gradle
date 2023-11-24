@@ -25,25 +25,25 @@ import org.gradle.caching.internal.controller.operations.LoadOperationMissResult
 import org.gradle.caching.internal.controller.operations.StoreOperationDetails;
 import org.gradle.caching.internal.controller.operations.StoreOperationResult;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheServiceHandle {
 
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
 
-    public OpFiringRemoteBuildCacheServiceHandle(BuildCacheService service, boolean push, BuildCacheServiceRole role, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces, boolean disableOnError) {
+    public OpFiringRemoteBuildCacheServiceHandle(BuildCacheService service, boolean push, BuildCacheServiceRole role, BuildOperationRunner buildOperationRunner, boolean logStackTraces, boolean disableOnError) {
         super(service, push, role, logStackTraces, disableOnError);
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Override
     protected void loadInner(final String description, final BuildCacheKey key, final LoadTarget loadTarget) {
-        buildOperationExecutor.run(new RunnableBuildOperation() {
+        buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
                 loadInner(key, new OpFiringEntryReader(loadTarget));
@@ -65,7 +65,7 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
 
     @Override
     protected void storeInner(final String description, final BuildCacheKey key, final StoreTarget storeTarget) {
-        buildOperationExecutor.run(new RunnableBuildOperation() {
+        buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
                 OpFiringRemoteBuildCacheServiceHandle.super.storeInner(description, key, storeTarget);
@@ -92,7 +92,7 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
         @Override
         public void readFrom(final InputStream input) throws IOException {
             try {
-                buildOperationExecutor.run(new RunnableBuildOperation() {
+                buildOperationRunner.run(new RunnableBuildOperation() {
                     @Override
                     public void run(BuildOperationContext context) {
                         try {

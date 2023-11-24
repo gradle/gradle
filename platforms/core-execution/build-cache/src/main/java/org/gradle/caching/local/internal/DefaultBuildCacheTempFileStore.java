@@ -16,9 +16,9 @@
 
 package org.gradle.caching.local.internal;
 
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
 import java.util.function.Consumer;
@@ -39,7 +39,7 @@ public class DefaultBuildCacheTempFileStore implements BuildCacheTempFileStore {
             tempFile = temporaryFileProvider.createTemporaryFile(hashCode + "-", PARTIAL_FILE_SUFFIX);
             action.accept(tempFile);
         } finally {
-            GFileUtils.deleteQuietly(tempFile);
+            FileUtils.deleteQuietly(tempFile);
         }
     }
 }

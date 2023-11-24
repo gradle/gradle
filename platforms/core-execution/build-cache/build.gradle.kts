@@ -9,8 +9,8 @@ dependencies {
     api(project(":build-cache-base"))
     api(project(":snapshots"))
 
+    implementation(project(":base-annotations"))
     implementation(project(":build-cache-packaging"))
-    implementation(project(":base-services"))
     implementation(project(":enterprise-operations"))
     implementation(project(":files"))
     implementation(project(":file-temp"))
@@ -28,8 +28,6 @@ dependencies {
     jmhImplementation(libs.jtar)
     jmhImplementation(libs.commonsIo)
 
-    testImplementation(project(":model-core"))
-    testImplementation(project(":file-collections"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":snapshots")))

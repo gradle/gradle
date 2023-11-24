@@ -53,6 +53,8 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
     void register(String className, String loadBody, String storeBody, boolean isLocal = false) {
         settingsFile << """
+            import java.util.function.Consumer
+
             class ${className} extends AbstractBuildCache {}
             class ${className}ServiceFactory implements BuildCacheServiceFactory<${className}> {
                 ${className}Service createBuildCacheService(${className} configuration, Describer describer) {
@@ -74,7 +76,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 // @Override
-                void loadLocally(BuildCacheKey key, Action<? super File> reader) {
+                void loadLocally(BuildCacheKey key, Consumer<? super File> reader) {
                     ${isLocal ? loadBody ?: "" : ""}
                 }
 
@@ -83,7 +85,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
                     ${isLocal ? storeBody ?: "" : ""}
                 }
 
-                void withTempFile(BuildCacheKey key, Action<? super File> action) {
+                void withTempFile(BuildCacheKey key, Consumer<? super File> action) {
                     new $DefaultBuildCacheTempFileStore.name(new File("${TextUtil.normaliseFileSeparators(file("tmp").absolutePath)}")).withTempFile(key, action)
                 }
 

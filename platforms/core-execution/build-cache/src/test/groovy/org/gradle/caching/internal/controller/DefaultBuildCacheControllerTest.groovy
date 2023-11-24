@@ -16,7 +16,6 @@
 
 package org.gradle.caching.internal.controller
 
-import org.gradle.api.Action
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.caching.BuildCacheEntryReader
@@ -30,7 +29,6 @@ import org.gradle.caching.internal.origin.OriginMetadataFactory
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.vfs.FileSystemAccess
@@ -139,10 +137,10 @@ class DefaultBuildCacheControllerTest extends Specification {
 
     def "local load does not stores to local"() {
         given:
-        1 * local.loadLocally(key, _) >> { BuildCacheKey key, Action<File> action ->
+        1 * local.loadLocally(key, _) >> { BuildCacheKey key, Consumer<File> action ->
             def file = tmpDir.file("file")
             file.text = "alma"
-            action.execute(file)
+            action.accept(file)
         }
 
         when:
