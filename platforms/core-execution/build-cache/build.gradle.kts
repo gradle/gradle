@@ -12,7 +12,6 @@ dependencies {
     api(project(":build-operations"))
     api(project(":enterprise-operations"))
     api(project(":files"))
-    api(project(":file-temp"))
     api(project(":hashing"))
     api(project(":snapshots"))
 
