@@ -77,6 +77,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "build-cache-local",
+    "path": "platforms/core-execution/build-cache-local",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-cache-packaging",
     "path": "platforms/core-execution/build-cache-packaging",
     "unitTests": true,

@@ -46,7 +46,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution core modules (lib/).
      */
     int getCoreLibJarsCount() {
-        46
+        48
     }
 
     /**
@@ -58,7 +58,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     /**
      * Change this whenever you add or remove subprojects for distribution java agents (lib/agents).
-     * @return
      */
     int getAgentJarsCount() {
         1

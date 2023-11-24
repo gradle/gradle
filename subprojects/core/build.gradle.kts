@@ -82,6 +82,7 @@ dependencies {
     api(project(":base-services-groovy"))
     api(project(":build-cache"))
     api(project(":build-cache-base"))
+    api(project(":build-cache-local"))
     api(project(":build-cache-packaging"))
     api(project(":build-operations"))
     api(project(":build-option"))
