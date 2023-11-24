@@ -56,7 +56,8 @@ The following types/formats are supported:
     @Requires(UnitTestPreconditions.Symlinks)
     void reportsSymLinkWhichPointsToNothing() {
         TestFile link = testFile('src/file')
-        link.createLink(testFile('missing'))
+        TestFile target = testFile('missing')
+        link.createLink(target)
 
         Assert.assertFalse(link.isDirectory())
         Assert.assertFalse(link.isFile())
@@ -71,7 +72,7 @@ The following types/formats are supported:
 
         ExecutionFailure failure = inTestDirectory().withTasks('copy').runWithFailure()
         failure.assertHasDescription("Execution failed for task ':copy'.")
-        failure.assertHasCause("Couldn't follow symbolic link '${link}'.")
+        failure.assertHasCause("Couldn't follow symbolic link '${link.name}' pointing to '${target}'.")
     }
 
     @Test

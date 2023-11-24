@@ -18,14 +18,14 @@ package org.gradle.api.tasks
 
 import org.gradle.test.fixtures.file.TestFile
 
-class TarUnpackingSymlinksIntegrationSpec extends AbstractCopySymlinksIntegrationSpec {
+class TarUnpackingSymlinksIntegrationSpec extends AbstractArchiveCopySymlinksIntegrationSpec {
 
     private TestFile outputDir;
 
     @Override
-    String constructBuildScript(String inputConfig) {
+    String constructBuildScript(String inputConfig, String mainPath = "") {
         def target = createDir("temp-dir").file("/test.tar")
-        inputDirectory.usingNativeTools().tarTo(target)
+        inputDirectory.file(mainPath).usingNativeTools().tarContentsTo(target)
 
         outputDir = createDir("output")
 

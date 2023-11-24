@@ -796,12 +796,22 @@ public class TestFile extends File {
         return this;
     }
 
+    public TestFile zipContentsTo(TestFile zipFile) {
+        new TestFileHelper(this).zipContentsTo(zipFile, useNativeTools);
+        return this;
+    }
+
     public TestFile tarTo(TestFile tarFile) {
         return tarTo(tarFile, false);
     }
 
     public TestFile tarTo(TestFile tarFile, boolean readOnly) {
         new TestFileHelper(this).tarTo(tarFile, useNativeTools, readOnly);
+        return this;
+    }
+
+    public TestFile tarContentsTo(TestFile tarFile) {
+        new TestFileHelper(this).tarContentsTo(tarFile, useNativeTools);
         return this;
     }
 

@@ -38,6 +38,11 @@ public interface LinksStrategy extends Serializable {
      **/
     LinksStrategy FOLLOW = new LinksStrategy() {
         @Override
+        public boolean shouldBePreserved(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
+            return false;
+        }
+
+        @Override
         public String toString() {
             return "FOLLOW";
         }
@@ -49,14 +54,10 @@ public interface LinksStrategy extends Serializable {
      **/
     LinksStrategy PRESERVE_RELATIVE = new LinksStrategy() {
         @Override
-        public boolean shouldBePreserved(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
-            if (linkDetails == null) {
-                return false;
-            }
-            if (!linkDetails.isRelative()) {
+        public void maybeThrowOnBrokenLink(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
+            if (linkDetails != null && !linkDetails.isRelative()) {
                 throw new GradleException(String.format("Links strategy is set to %s, but a symlink pointing outside was visited: %s pointing to %s.", this, pathHint(originalPath), linkDetails.getTarget()));
             }
-            return true;
         }
 
         @Override
@@ -69,11 +70,6 @@ public interface LinksStrategy extends Serializable {
      * @since 8.6
      **/
     LinksStrategy PRESERVE_ALL = new LinksStrategy() {
-        @Override
-        public boolean shouldBePreserved(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
-            return linkDetails != null;
-        }
-
         @Override
         public void maybeThrowOnBrokenLink(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
             // do nothing
@@ -90,11 +86,10 @@ public interface LinksStrategy extends Serializable {
      **/
     LinksStrategy ERROR = new LinksStrategy() {
         @Override
-        public boolean shouldBePreserved(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
+        public void maybeThrowOnBrokenLink(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
             if (linkDetails != null) {
-                throw new GradleException(String.format("Links strategy is set to %s, but a symlink was visited: %s pointing to %s.", this, pathHint(originalPath), linkDetails.getTarget()));
+                throw new GradleException(String.format("Links strategy is set to %s, but a symlink was visited: '%s' pointing to '%s'.", this, pathHint(originalPath), linkDetails.getTarget()));
             }
-            return false;
         }
 
         @Override
@@ -108,7 +103,7 @@ public interface LinksStrategy extends Serializable {
     }
 
     default boolean shouldBePreserved(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
-        return false;
+        return linkDetails != null;
     }
 
     default void maybeThrowOnBrokenLink(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {

@@ -18,16 +18,17 @@ package org.gradle.api.tasks
 
 import org.gradle.test.fixtures.file.TestFile
 
-class ReproducibleZipPackingSymlinksIntegrationSpec extends AbstractCopySymlinksIntegrationSpec {
+class ReproducibleZipPackingSymlinksIntegrationSpec extends AbstractFileSystemCopySymlinksIntegrationSpec {
 
     @Override
-    String constructBuildScript(String inputConfig) {
+    String constructBuildScript(String inputConfig, String mainPath = "") {
         """
         tasks.register<Zip>("$mainTask") {
             archiveFileName.set("test.zip")
             destinationDirectory.set(file("temp-dir"))
             setReproducibleFileOrder(true)
 
+            from("${inputDirectory.name}/$mainPath")
             $inputConfig
         }
         """

@@ -134,7 +134,7 @@ class DirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectoryWalker> {
 
         then:
         def e = thrown Exception
-        e.message.contains("Couldn't follow symbolic link '${link.absolutePath}'.")
+        e.message.contains("Couldn't follow symbolic link '${link.relativePathFromBase}' pointing to '${dir}'.")
 
         cleanup:
         link.delete()

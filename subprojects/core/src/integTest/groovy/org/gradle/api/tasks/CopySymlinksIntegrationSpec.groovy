@@ -16,21 +16,23 @@
 
 package org.gradle.api.tasks
 
+
 import org.gradle.test.fixtures.file.TestFile
 
-class CopySymlinksIntegrationSpec extends AbstractCopySymlinksIntegrationSpec {
+class CopySymlinksIntegrationSpec extends AbstractFileSystemCopySymlinksIntegrationSpec {
 
     private TestFile outputDir;
 
     @Override
-    String constructBuildScript(String inputConfig) {
+    String constructBuildScript(String inputConfig, String mainPath = "") {
         outputDir = file("output")
 
         """
         tasks.register<Copy>("$mainTask") {
-            $inputConfig
-
+            from("${inputDirectory.name}/$mainPath")
             into("${outputDir.name}")
+
+            $inputConfig
         }
         """
     }

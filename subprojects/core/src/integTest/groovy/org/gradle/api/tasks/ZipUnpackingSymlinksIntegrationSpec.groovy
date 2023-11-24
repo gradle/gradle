@@ -18,14 +18,14 @@ package org.gradle.api.tasks
 
 import org.gradle.test.fixtures.file.TestFile
 
-class ZipUnpackingSymlinksIntegrationSpec extends AbstractCopySymlinksIntegrationSpec {
+class ZipUnpackingSymlinksIntegrationSpec extends AbstractArchiveCopySymlinksIntegrationSpec {
 
     private TestFile outputDir;
 
     @Override
-    String constructBuildScript(String inputConfig) {
+    String constructBuildScript(String inputConfig, String mainPath = "") {
         def target = createDir("temp-dir").file("/test.zip")
-        inputDirectory.usingNativeTools().zipTo(target)
+        inputDirectory.file(mainPath).usingNativeTools().zipContentsTo(target)
 
         outputDir = createDir("output")
 

@@ -121,7 +121,7 @@ class TestFileHelper {
             throw new RuntimeException("Could not list permissions for '$file': $error")
         }
         def perms = result.split()[0]
-        assert perms.matches("[d\\-][rwx\\-]{9}[@\\.\\+]?")
+        assert perms.matches("[ld\\-][rwx\\-]{9}[@\\.\\+]?")
         return perms.substring(1, 10)
     }
 
@@ -224,6 +224,17 @@ class TestFileHelper {
         }
     }
 
+    void zipContentsTo(TestFile zipFile, boolean nativeTools) {
+        assert file.isDirectory()
+        assert nativeTools && isUnix(): "not implemented for non-native tools"
+        if (nativeTools && isUnix()) {
+            def args = ['zip', zipFile.absolutePath, "-r", "-y", "-q"] + file.listFiles().collect { it.name }
+            def process = args.execute(null, file)
+            process.consumeProcessOutput(System.out, System.err)
+            assertThat(process.waitFor(), equalTo(0))
+        }
+    }
+
     private void setSourceDirectory(archiveTask, boolean readOnly) {
         if (readOnly) {
             ArchiveFileSet archiveFileSet = archiveTask instanceof Zip ? new ZipFileSet() : archiveTask.createTarFileSet()
@@ -249,6 +260,17 @@ class TestFileHelper {
             setSourceDirectory(tar, readOnly)
             tar.setDestFile(tarFile)
             tar.execute()
+        }
+    }
+
+    void tarContentsTo(TestFile tarFile, boolean nativeTools) {
+        assert file.isDirectory()
+        assert nativeTools && isUnix(): "not implemented for non-native tools"
+        if (nativeTools && isUnix()) {
+            def args = ['tar', "-cf", tarFile.absolutePath] + file.listFiles().collect { it.name }
+            def process = args.execute(null, file)
+            process.consumeProcessOutput(System.out, System.err)
+            assertThat(process.waitFor(), equalTo(0))
         }
     }
 

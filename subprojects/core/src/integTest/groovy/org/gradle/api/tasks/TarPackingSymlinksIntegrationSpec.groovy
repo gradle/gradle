@@ -18,15 +18,16 @@ package org.gradle.api.tasks
 
 import org.gradle.test.fixtures.file.TestFile
 
-class TarPackingSymlinksIntegrationSpec extends AbstractCopySymlinksIntegrationSpec {
+class TarPackingSymlinksIntegrationSpec extends AbstractFileSystemCopySymlinksIntegrationSpec {
 
     @Override
-    String constructBuildScript(String inputConfig) {
+    String constructBuildScript(String inputConfig, String mainPath = "") {
         """
         tasks.register<Tar>("$mainTask") {
             archiveFileName.set("test.tar")
             destinationDirectory.set(file("temp-dir"))
 
+            from("${inputDirectory.name}/$mainPath")
             $inputConfig
         }
         """

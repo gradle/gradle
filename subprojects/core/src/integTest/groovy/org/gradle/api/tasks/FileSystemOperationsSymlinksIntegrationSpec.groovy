@@ -18,12 +18,12 @@ package org.gradle.api.tasks
 
 import org.gradle.test.fixtures.file.TestFile
 
-class FileSystemOperationsSymlinksIntegrationSpec extends AbstractCopySymlinksIntegrationSpec {
+class FileSystemOperationsSymlinksIntegrationSpec extends AbstractFileSystemCopySymlinksIntegrationSpec {
 
     private TestFile outputDir;
 
     @Override
-    String constructBuildScript(String inputConfig) {
+    String constructBuildScript(String inputConfig, String mainPath = "") {
         outputDir = file("output")
 
         """
@@ -37,9 +37,10 @@ class FileSystemOperationsSymlinksIntegrationSpec extends AbstractCopySymlinksIn
             val fs = project.objects.newInstance<Injected>().operations
             doLast {
                 fs.copy {
-                    $inputConfig
-
+                    from("${inputDirectory.name}/$mainPath")
                     into("${outputDir.name}")
+
+                    $inputConfig
                 }
             }
         }
