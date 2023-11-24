@@ -25,8 +25,8 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.internal.BuildCacheKeyInternal;
 import org.gradle.caching.internal.CacheableEntity;
-import org.gradle.caching.internal.DefaultBuildCacheKey;
 import org.gradle.caching.internal.controller.operations.PackOperationDetails;
 import org.gradle.caching.internal.controller.operations.PackOperationResult;
 import org.gradle.caching.internal.controller.operations.UnpackOperationDetails;
@@ -141,7 +141,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
             return Optional.empty();
         }
         AtomicReference<Optional<BuildCacheLoadResult>> result = new AtomicReference<>(Optional.empty());
-        tmp.withTempFile(((DefaultBuildCacheKey) key).getHashCodeInternal(), file -> {
+        tmp.withTempFile(((BuildCacheKeyInternal) key).getHashCodeInternal(), file -> {
             Optional<BuildCacheLoadResult> remoteResult;
             try {
                 remoteResult = remote.maybeLoad(key, file, f -> packExecutor.unpack(key, entity, f));
@@ -161,7 +161,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         if (!local.canStore() && !remote.canStore()) {
             return;
         }
-        tmp.withTempFile(((DefaultBuildCacheKey) key).getHashCodeInternal(), file -> {
+        tmp.withTempFile(((BuildCacheKeyInternal) key).getHashCodeInternal(), file -> {
             packExecutor.pack(file, key, entity, snapshots, executionTime);
             remote.maybeStore(key, file);
             local.maybeStore(key, file);
