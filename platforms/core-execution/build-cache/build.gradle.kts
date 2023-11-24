@@ -29,6 +29,7 @@ dependencies {
     api(libs.inject)
     implementation(libs.slf4jApi)
 
+    jmhImplementation(project(":base-services"))
     jmhImplementation(project(":native"))
     jmhImplementation(platform(project(":distributions-dependencies")))
     jmhImplementation(libs.aircompressor)
