@@ -44,9 +44,14 @@ public abstract class AbstractResolveCachingStateStep<C extends ValidationFinish
     private static final CachingState VALIDATION_FAILED_STATE = CachingState.disabledWithoutInputs(VALIDATION_FAILED_REASON);
 
     private final BuildCacheController buildCache;
+    private final boolean emitDebugLogging;
 
-    public AbstractResolveCachingStateStep(BuildCacheController buildCache) {
+    public AbstractResolveCachingStateStep(
+        BuildCacheController buildCache,
+        boolean emitDebugLogging
+    ) {
         this.buildCache = buildCache;
+        this.emitDebugLogging = emitDebugLogging;
     }
 
     @Override
@@ -70,7 +75,7 @@ public abstract class AbstractResolveCachingStateStep<C extends ValidationFinish
     }
 
     private CachingState calculateCachingState(UnitOfWork work, C context, BeforeExecutionState beforeExecutionState) {
-        Logger logger = buildCache.isEmitDebugLogging()
+        Logger logger = emitDebugLogging
             ? LOGGER
             : NOPLogger.NOP_LOGGER;
         CachingStateFactory cachingStateFactory = new DefaultCachingStateFactory(logger);
@@ -102,7 +107,7 @@ public abstract class AbstractResolveCachingStateStep<C extends ValidationFinish
     }
 
     private void logCacheKey(BuildCacheKey cacheKey, UnitOfWork work) {
-        if (buildCache.isEmitDebugLogging()) {
+        if (emitDebugLogging) {
             LOGGER.warn("Build cache key for {} is {}", work.getDisplayName(), cacheKey.getHashCode());
         } else {
             LOGGER.info("Build cache key for {} is {}", work.getDisplayName(), cacheKey.getHashCode());

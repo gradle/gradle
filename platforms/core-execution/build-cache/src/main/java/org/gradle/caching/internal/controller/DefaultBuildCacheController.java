@@ -78,7 +78,6 @@ public class DefaultBuildCacheController implements BuildCacheController {
     final LocalBuildCacheServiceHandle local;
 
     private final BuildCacheTempFileStore tmp;
-    private final boolean emitDebugLogging;
     private final PackOperationExecutor packExecutor;
 
     private boolean closed;
@@ -89,13 +88,11 @@ public class DefaultBuildCacheController implements BuildCacheController {
         BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
         TemporaryFileFactory temporaryFileFactory,
         boolean logStackTraces,
-        boolean emitDebugLogging,
         boolean disableRemoteOnError,
         BuildCacheEntryPacker packer,
         OriginMetadataFactory originMetadataFactory,
         Interner<String> stringInterner
     ) {
-        this.emitDebugLogging = emitDebugLogging;
         this.local = toLocalHandle(config.getLocal(), config.isLocalPush(), buildOperationRunner);
         this.remote = toRemoteHandle(config.getBuildPath(), config.getRemote(), config.isRemotePush(), buildOperationRunner, buildOperationProgressEventEmitter, logStackTraces, disableRemoteOnError);
         this.tmp = toTempFileStore(config.getLocal(), temporaryFileFactory);
@@ -110,11 +107,6 @@ public class DefaultBuildCacheController implements BuildCacheController {
     @Override
     public boolean isEnabled() {
         return true;
-    }
-
-    @Override
-    public boolean isEmitDebugLogging() {
-        return emitDebugLogging;
     }
 
     @Override

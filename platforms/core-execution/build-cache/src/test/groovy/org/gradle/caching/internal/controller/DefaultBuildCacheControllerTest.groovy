@@ -85,7 +85,6 @@ class DefaultBuildCacheControllerTest extends Specification {
             buildOperationProgressEmitter,
             { prefix, suffix -> Files.createTempFile(tmpDir.testDirectory.toPath(), prefix, suffix).toFile() } as TemporaryFileFactory,
             false,
-            false,
             disableRemoteOnError,
             packer,
             originMetadataFactory,

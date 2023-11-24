@@ -19,6 +19,6 @@ package org.gradle.internal.execution.steps
 class ResolveNonIncrementalCachingStateStepTest extends AbstractResolveCachingStateStepTest<ValidationFinishedContext, ResolveNonIncrementalCachingStateStep<ValidationFinishedContext>> {
     @Override
     ResolveNonIncrementalCachingStateStep<ValidationFinishedContext> createStep() {
-        return new ResolveNonIncrementalCachingStateStep<>(buildCache, delegate)
+        return new ResolveNonIncrementalCachingStateStep<>(buildCache, false, delegate)
     }
 }

@@ -70,8 +70,8 @@ public class TestExecutionEngineFactory {
             new LoadPreviousExecutionStateStep<>(
             new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningReporter,
-            new ResolveNonIncrementalCachingStateStep<>(buildCacheController,
-            new ResolveChangesStep<>(changeDetector, buildCacheController::isEmitDebugLogging,
+            new ResolveNonIncrementalCachingStateStep<>(buildCacheController, false,
+            new ResolveChangesStep<>(changeDetector, false,
             new SkipUpToDateStep<>(
             new StoreExecutionStateStep<>(
             new ResolveInputChangesStep<>(

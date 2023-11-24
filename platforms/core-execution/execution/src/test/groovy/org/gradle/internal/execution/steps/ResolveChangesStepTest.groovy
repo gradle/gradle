@@ -28,7 +28,7 @@ import org.gradle.internal.hash.TestHashCodes
 
 class ResolveChangesStepTest extends StepSpec<ValidationFinishedContext> {
     def changeDetector = Mock(ExecutionStateChangeDetector)
-    def step = new ResolveChangesStep<>(changeDetector, { true }, delegate)
+    def step = new ResolveChangesStep<>(changeDetector, true, delegate)
     def beforeExecutionState = Stub(BeforeExecutionState) {
         inputFileProperties >> ImmutableSortedMap.of()
         inputProperties >> ImmutableSortedMap.of()

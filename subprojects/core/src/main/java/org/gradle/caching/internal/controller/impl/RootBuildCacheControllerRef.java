@@ -62,11 +62,6 @@ public class RootBuildCacheControllerRef {
         }
 
         @Override
-        public boolean isEmitDebugLogging() {
-            return delegate.isEmitDebugLogging();
-        }
-
-        @Override
         public Optional<BuildCacheLoadResult> load(BuildCacheKey cacheKey, CacheableEntity cacheableEntity) {
             return delegate.load(cacheKey, cacheableEntity);
         }

@@ -36,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.NOPLogger;
 
 import javax.annotation.Nonnull;
-import java.util.function.BooleanSupplier;
 
 import static org.gradle.internal.execution.history.changes.ExecutionStateChanges.nonIncremental;
 
@@ -47,13 +46,13 @@ public class ResolveChangesStep<C extends ValidationFinishedContext, R extends R
     private static final ImmutableList<String> VALIDATION_FAILED = ImmutableList.of("Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.");
 
     private final ExecutionStateChangeDetector changeDetector;
-    private final BooleanSupplier emitBuildCacheDebugLogging;
+    private final boolean emitBuildCacheDebugLogging;
 
     private final Step<? super IncrementalChangesContext, R> delegate;
 
     public ResolveChangesStep(
         ExecutionStateChangeDetector changeDetector,
-        BooleanSupplier emitBuildCacheDebugLogging,
+        boolean emitBuildCacheDebugLogging,
         Step<? super IncrementalChangesContext, R> delegate
     ) {
         this.changeDetector = changeDetector;
@@ -83,7 +82,7 @@ public class ResolveChangesStep<C extends ValidationFinishedContext, R extends R
     }
 
     private HashCode calculateCacheKey(BeforeExecutionState beforeExecutionState) {
-        Logger logger = emitBuildCacheDebugLogging.getAsBoolean()
+        Logger logger = emitBuildCacheDebugLogging
             ? LOGGER
             : NOPLogger.NOP_LOGGER;
         return new DefaultCachingStateFactory(logger).calculateCacheKey(beforeExecutionState);

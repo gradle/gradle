@@ -28,9 +28,10 @@ public class ResolveIncrementalCachingStateStep<C extends IncrementalChangesCont
 
     public ResolveIncrementalCachingStateStep(
         BuildCacheController buildCache,
+        boolean emitDebugLogging,
         Step<? super IncrementalCachingContext, ? extends UpToDateResult> delegate
     ) {
-        super(buildCache);
+        super(buildCache, emitDebugLogging);
         this.delegate = delegate;
     }
 
