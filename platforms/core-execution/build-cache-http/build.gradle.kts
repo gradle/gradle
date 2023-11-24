@@ -6,7 +6,7 @@ description = "Implementation for interacting with HTTP build caches"
 
 dependencies {
     implementation(project(":base-services"))
-    implementation(project(":build-cache"))
+    implementation(project(":build-cache-spi"))
     implementation(project(":core-api"))
     implementation(project(":core"))
     implementation(project(":logging"))

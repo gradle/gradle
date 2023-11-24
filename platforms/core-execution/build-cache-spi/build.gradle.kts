@@ -3,12 +3,12 @@ plugins {
     id("gradlebuild.publish-public-libraries")
 }
 
-description = "Common shared build cache classes"
+description = "Public API for extending the build cache"
 
 dependencies {
-    api(project(":build-cache-spi"))
-
     implementation(project(":base-annotations"))
-    implementation(project(":files"))
     implementation(libs.slf4jApi)
+
+    integTestImplementation(project(":logging"))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }

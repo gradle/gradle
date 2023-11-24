@@ -57,6 +57,7 @@ platforms/core-execution/build-cache/                       @gradle/bt-execution
 platforms/core-execution/build-cache-base/                  @gradle/bt-execution @gradle/bt-ge-build-cache
 platforms/core-execution/build-cache-http/                  @gradle/bt-execution @gradle/bt-ge-build-cache
 platforms/core-execution/build-cache-packaging/             @gradle/bt-execution @gradle/bt-ge-build-cache
+platforms/core-execution/build-cache-spi/                   @gradle/bt-execution @gradle/bt-ge-build-cache
 platforms/core-execution/hashing/                           @gradle/bt-execution @gradle/bt-ge-build-cache
 platforms/core-execution/snapshots/                         @gradle/bt-execution @gradle/bt-ge-build-cache
 

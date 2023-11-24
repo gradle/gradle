@@ -111,6 +111,7 @@ platform("core-execution") {
     subproject("build-cache-base")
     subproject("build-cache-http")
     subproject("build-cache-packaging")
+    subproject("build-cache-spi")
     subproject("file-watching")
     subproject("execution")
     subproject("hashing")

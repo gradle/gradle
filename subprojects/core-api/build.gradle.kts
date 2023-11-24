@@ -6,6 +6,7 @@ description = "Public and internal 'core' Gradle APIs that are required by other
 
 dependencies {
     api(project(":process-services"))
+    api(project(":build-cache-spi"))
 
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))

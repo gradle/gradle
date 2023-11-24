@@ -1,3 +1,20 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.caching.BuildCacheException",
+            "member": "Superclass [removed]",
+            "acceptation": "Build cache SPI externalized",
+            "changes": [
+                "Superclass has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.caching.BuildCacheKey",
+            "member": "Method org.gradle.caching.BuildCacheKey.getDisplayName()",
+            "acceptation": "Build cache SPI externalized",
+            "changes": [
+                "Deprecated annotation was added"
+            ]
+        }
+    ]
 }
