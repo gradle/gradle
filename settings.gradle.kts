@@ -109,6 +109,7 @@ platform("core-configuration") {
 platform("core-execution") {
     subproject("build-cache")
     subproject("build-cache-base")
+    subproject("build-cache-local")
     subproject("build-cache-http")
     subproject("build-cache-packaging")
     subproject("build-cache-spi")

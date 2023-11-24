@@ -88,6 +88,7 @@ platforms:
       - 'platforms/core-execution/build-cache/'
       - 'platforms/core-execution/build-cache-base/'
       - 'platforms/core-execution/build-cache-http/'
+      - 'platforms/core-execution/build-cache-local/'
       - 'platforms/core-execution/build-cache-packaging/'
       - 'platforms/core-execution/build-cache-spi/'
       - 'platforms/core-runtime/build-operations/'

@@ -74,6 +74,7 @@ dependencies {
     }
 
     testImplementation(project(":build-cache-http"))
+    testImplementation(project(":build-cache-local"))
     testImplementation(project(":build-init"))
     testImplementation(project(":jacoco"))
     testImplementation(project(":platform-native")) {

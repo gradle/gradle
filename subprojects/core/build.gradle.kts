@@ -48,6 +48,7 @@ dependencies {
     implementation(project(":model-core"))
     implementation(project(":persistent-cache"))
     implementation(project(":build-cache"))
+    implementation(project(":build-cache-local"))
     implementation(project(":build-cache-packaging"))
     implementation(project(":core-api"))
     implementation(project(":files"))
