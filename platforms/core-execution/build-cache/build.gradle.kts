@@ -21,6 +21,8 @@ dependencies {
     implementation(libs.commonsIo)
 
     jmhImplementation(platform(project(":distributions-dependencies")))
+    jmhImplementation(project(":base-services"))
+    jmhImplementation(project(":native"))
     jmhImplementation(libs.ant)
     jmhImplementation(libs.commonsCompress)
     jmhImplementation(libs.aircompressor)
