@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.processor.codegen;
+package org.gradle.internal.classpath;
 
-import org.gradle.internal.instrumentation.model.CallableInfo;
-import org.gradle.internal.instrumentation.model.ParameterKindInfo;
+public class JavaCallerForCallInterceptionFilteringTest {
 
-public class SignatureUtils {
-    public static boolean hasCallerClassName(CallableInfo callableInfo) {
-        return callableInfo.getParameters().stream().anyMatch(it -> it.getKind() == ParameterKindInfo.CALLER_CLASS_NAME);
+    public static void doTestInstrumentation(CallInterceptionFilteringTestReceiver receiver) {
+        receiver.testInstrumentation();
     }
 
-    public static boolean hasInjectVisitorContext(CallableInfo callableInfo) {
-        return callableInfo.getParameters().stream().anyMatch(it -> it.getKind() == ParameterKindInfo.INJECT_VISITOR_CONTEXT);
+    public static void doTestBytecodeUpgrade(CallInterceptionFilteringTestReceiver receiver) {
+        receiver.testBytecodeUpgrade();
     }
 }

@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.api.annotations;
+package org.gradle.internal.classpath;
 
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
+public class CallInterceptionFilteringTestReceiver {
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+    public String intercepted = null;
 
-@Retention(RetentionPolicy.CLASS)
-@Target(ElementType.TYPE)
-public @interface SpecificJvmCallInterceptors {
-    String generatedClassName();
-    BytecodeInterceptorType type() default BytecodeInterceptorType.INSTRUMENTATION;
+    public void testInstrumentation() {}
+
+    public void testBytecodeUpgrade() {}
 }
-
-

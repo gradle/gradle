@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
+package org.gradle.internal.classpath.intercept;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.lazy.Lazy;
-import org.objectweb.asm.MethodVisitor;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -35,27 +34,27 @@ import java.util.stream.Stream;
  * The referenced classes should implement {@link org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor}.
  */
 @NonNullApi
-public interface JvmBytecodeInterceptorSet {
+public interface JvmBytecodeInterceptorFactoryProvider {
 
-    JvmBytecodeInterceptorSet DEFAULT = new ClassLoaderSourceJvmBytecodeInterceptorSet(JvmBytecodeInterceptorSet.class.getClassLoader());
+    JvmBytecodeInterceptorFactoryProvider DEFAULT = new ClassLoaderSourceJvmBytecodeInterceptorFactoryProvider(JvmBytecodeInterceptorFactoryProvider.class.getClassLoader());
 
-    Collection<JvmBytecodeCallInterceptor> getInterceptors(MethodVisitor methodVisitor, ClassData classData);
+    List<JvmBytecodeCallInterceptor.Factory> getInterceptorFactories();
 
-    default JvmBytecodeInterceptorSet plus(JvmBytecodeInterceptorSet other) {
-        return new CompositeJvmBytecodeInterceptorSet(this, other);
+    default JvmBytecodeInterceptorFactoryProvider plus(JvmBytecodeInterceptorFactoryProvider other) {
+        return new CompositeJvmBytecodeInterceptorFactoryProvider(this, other);
     }
 
     @NonNullApi
-    class ClassLoaderSourceJvmBytecodeInterceptorSet implements JvmBytecodeInterceptorSet {
+    class ClassLoaderSourceJvmBytecodeInterceptorFactoryProvider implements JvmBytecodeInterceptorFactoryProvider {
 
         private final Lazy<List<JvmBytecodeCallInterceptor.Factory>> factories;
 
-        public ClassLoaderSourceJvmBytecodeInterceptorSet(ClassLoader classLoader) {
-            this(classLoader, "org.gradle");
+        public ClassLoaderSourceJvmBytecodeInterceptorFactoryProvider(ClassLoader classLoader) {
+            this(classLoader, "");
         }
 
         @VisibleForTesting
-        public ClassLoaderSourceJvmBytecodeInterceptorSet(ClassLoader classLoader, String forPackage) {
+        public ClassLoaderSourceJvmBytecodeInterceptorFactoryProvider(ClassLoader classLoader, String forPackage) {
             this.factories = Lazy.locking().of(() -> loadFactories(classLoader, forPackage));
         }
 
@@ -70,31 +69,27 @@ public interface JvmBytecodeInterceptorSet {
         }
 
         @Override
-        public Collection<JvmBytecodeCallInterceptor> getInterceptors(MethodVisitor methodVisitor, ClassData classData) {
-            ImmutableList.Builder<JvmBytecodeCallInterceptor> interceptors = ImmutableList.builder();
-            for (JvmBytecodeCallInterceptor.Factory factory : factories.get()) {
-                interceptors.add(factory.create(methodVisitor, classData));
-            }
-            return interceptors.build();
+        public List<JvmBytecodeCallInterceptor.Factory> getInterceptorFactories() {
+            return factories.get();
         }
     }
 
     @NonNullApi
-    class CompositeJvmBytecodeInterceptorSet implements JvmBytecodeInterceptorSet {
-        private final JvmBytecodeInterceptorSet first;
-        private final JvmBytecodeInterceptorSet second;
+    class CompositeJvmBytecodeInterceptorFactoryProvider implements JvmBytecodeInterceptorFactoryProvider {
+        private final JvmBytecodeInterceptorFactoryProvider first;
+        private final JvmBytecodeInterceptorFactoryProvider second;
 
-        public CompositeJvmBytecodeInterceptorSet(JvmBytecodeInterceptorSet first, JvmBytecodeInterceptorSet second) {
+        public CompositeJvmBytecodeInterceptorFactoryProvider(JvmBytecodeInterceptorFactoryProvider first, JvmBytecodeInterceptorFactoryProvider second) {
             this.first = first;
             this.second = second;
         }
 
         @Override
-        public Collection<JvmBytecodeCallInterceptor> getInterceptors(MethodVisitor methodVisitor, ClassData classData) {
-            return Stream.of(first.getInterceptors(methodVisitor, classData), second.getInterceptors(methodVisitor, classData))
+        public List<JvmBytecodeCallInterceptor.Factory> getInterceptorFactories() {
+            return ImmutableList.copyOf(Stream.of(first.getInterceptorFactories(), second.getInterceptorFactories())
                 .flatMap(Collection::stream)
                 .collect(Collectors.toMap(interceptor -> interceptor.getClass().getName(), p -> p, (p, q) -> p, LinkedHashMap::new))
-                .values();
+                .values());
         }
     }
 }
