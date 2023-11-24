@@ -27,6 +27,7 @@ dependencies {
     testImplementation(libs.servletApi)
 
     integTestImplementation(project(":enterprise-operations"))
+    integTestImplementation(testFixtures(project(":build-cache")))
     integTestImplementation(libs.jetty)
 
     integTestDistributionRuntimeOnly(project(":distributions-basics"))

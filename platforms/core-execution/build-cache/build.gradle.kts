@@ -11,14 +11,10 @@ dependencies {
     api(project(":build-cache-base"))
     api(project(":build-cache-packaging"))
     api(project(":build-operations"))
-    api(project(":core-api"))
     api(project(":enterprise-operations"))
     api(project(":files"))
     api(project(":file-temp"))
-    api(project(":functional"))
     api(project(":hashing"))
-    api(project(":persistent-cache"))
-    api(project(":resources"))
     api(project(":snapshots"))
 
     api(libs.jsr305)
@@ -47,6 +43,8 @@ dependencies {
     testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":snapshots")))
+
+    testFixturesImplementation(testFixtures(project(":hashing")))
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 }

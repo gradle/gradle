@@ -24,13 +24,12 @@ import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.BuildCacheService
 import org.gradle.caching.internal.CacheableEntity
-import org.gradle.caching.internal.DefaultBuildCacheKey
+import org.gradle.caching.internal.TestBuildCacheKey
 import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration
 import org.gradle.caching.internal.origin.OriginMetadataFactory
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.snapshot.FileSystemSnapshot
@@ -44,7 +43,7 @@ import java.util.function.Consumer
 
 class DefaultBuildCacheControllerTest extends Specification {
 
-    def key = new DefaultBuildCacheKey(TestHashCodes.hashCodeFrom(12345678))
+    def key = new TestBuildCacheKey(0x12345678)
 
     CacheableEntity cacheableEntity = Stub(CacheableEntity) {
         identity >> ":test"
