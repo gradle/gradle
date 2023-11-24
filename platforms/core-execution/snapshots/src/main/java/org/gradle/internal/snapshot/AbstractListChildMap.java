@@ -33,6 +33,11 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
     }
 
     @Override
+    public int size() {
+        return entries.size();
+    }
+
+    @Override
     public Stream<Entry<T>> stream() {
         return entries.stream();
     }

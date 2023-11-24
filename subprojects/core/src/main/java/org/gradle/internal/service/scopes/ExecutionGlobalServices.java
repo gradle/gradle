@@ -68,6 +68,8 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.DefaultWorkExecutionTracker;
 import org.gradle.internal.execution.WorkExecutionTracker;
 import org.gradle.internal.execution.WorkInputListeners;
+import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore;
+import org.gradle.internal.execution.history.impl.DefaultImmutableWorkspaceMetadataStore;
 import org.gradle.internal.execution.model.annotations.DisableCachingByDefaultTypeAnnotationHandler;
 import org.gradle.internal.execution.model.annotations.InputDirectoryPropertyAnnotationHandler;
 import org.gradle.internal.execution.model.annotations.InputFilePropertyAnnotationHandler;
@@ -313,5 +315,9 @@ public class ExecutionGlobalServices {
 
     interface AnnotationHandlerRegistar {
         void registerPropertyTypeAnnotations(ImmutableSet.Builder<Class<? extends Annotation>> builder);
+    }
+
+    ImmutableWorkspaceMetadataStore createImmutableWorkspaceMetadataStore() {
+        return new DefaultImmutableWorkspaceMetadataStore();
     }
 }

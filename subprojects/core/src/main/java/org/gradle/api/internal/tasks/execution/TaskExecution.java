@@ -49,15 +49,15 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.OutputSnapshotter;
-import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
-import org.gradle.internal.execution.workspace.WorkspaceProvider;
+import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -92,7 +92,7 @@ import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.REL
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS;
 
 @SuppressWarnings("deprecation")
-public class TaskExecution implements UnitOfWork {
+public class TaskExecution implements MutableUnitOfWork {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskExecution.class);
     private static final SnapshotTaskInputsBuildOperationType.Details SNAPSHOT_TASK_INPUTS_DETAILS = new SnapshotTaskInputsBuildOperationType.Details() {
     };
@@ -172,8 +172,8 @@ public class TaskExecution implements UnitOfWork {
                 }
 
                 @Override
-                public Object getOutput() {
-                    return null;
+                public Object getOutput(File workspace) {
+                    throw new UnsupportedOperationException("Tasks have no work output");
                 }
 
                 @Override
@@ -286,8 +286,8 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
-    public WorkspaceProvider getWorkspaceProvider() {
-        return new WorkspaceProvider() {
+    public MutableWorkspaceProvider getWorkspaceProvider() {
+        return new MutableWorkspaceProvider() {
             @Override
             public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
                 return action.executeInWorkspace(null, context.getTaskExecutionMode().isTaskHistoryMaintained()

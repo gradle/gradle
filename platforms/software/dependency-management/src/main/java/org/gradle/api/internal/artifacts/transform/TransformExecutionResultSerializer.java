@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.RelativePath;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,14 +32,7 @@ public class TransformExecutionResultSerializer {
     private static final String INPUT_FILE_PATH_PREFIX = "i/";
     private static final String OUTPUT_FILE_PATH_PREFIX = "o/";
 
-    private final File outputDir;
-
-    public TransformExecutionResultSerializer(File outputDir) {
-        this.outputDir = outputDir;
-    }
-
     public void writeToFile(File target, TransformExecutionResult result) {
-        String outputDirPrefix = outputDir.getPath() + File.separator;
         List<String> resultFileContents = new ArrayList<>(result.size());
 
         result.visitOutputs(new TransformExecutionResult.OutputVisitor() {
@@ -55,14 +47,8 @@ public class TransformExecutionResultSerializer {
             }
 
             @Override
-            public void visitProducedOutput(File outputLocation) {
-                if (outputLocation.equals(outputDir)) {
-                    resultFileContents.add(OUTPUT_FILE_PATH_PREFIX);
-                } else {
-                    resultFileContents.add(OUTPUT_FILE_PATH_PREFIX + RelativePath.parse(true,
-                        outputLocation.getAbsolutePath().substring(outputDirPrefix.length())
-                    ).getPathString());
-                }
+            public void visitProducedOutput(String relativePath) {
+                resultFileContents.add(OUTPUT_FILE_PATH_PREFIX + relativePath);
             }
         });
         unchecked(() -> Files.write(target.toPath(), resultFileContents));
@@ -75,7 +61,7 @@ public class TransformExecutionResultSerializer {
             List<String> paths = Files.readAllLines(transformerResultsPath, StandardCharsets.UTF_8);
             for (String path : paths) {
                 if (path.startsWith(OUTPUT_FILE_PATH_PREFIX)) {
-                    builder.addProducedOutput(new File(outputDir, path.substring(2)));
+                    builder.addProducedOutput(path.substring(2));
                 } else if (path.startsWith(INPUT_FILE_PATH_PREFIX)) {
                     String relativePathString = path.substring(2);
                     if (relativePathString.isEmpty()) {

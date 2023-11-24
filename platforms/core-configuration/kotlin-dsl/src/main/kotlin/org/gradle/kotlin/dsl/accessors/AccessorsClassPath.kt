@@ -24,6 +24,7 @@ import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.ImmutableUnitOfWork
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier
@@ -90,8 +91,10 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
                 inputFingerprinter,
                 workspaceProvider
             )
-            val result = executionEngine.createRequest(work).execute()
-            result.execution.get().output as AccessorsClassPath
+            executionEngine.createRequest(work)
+                .execute()
+                .getOutputAs(AccessorsClassPath::class.java)
+                .get()
         }
     }
 
@@ -114,7 +117,7 @@ class GenerateProjectAccessors(
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider
-) : UnitOfWork {
+) : ImmutableUnitOfWork {
 
     companion object {
         const val PROJECT_SCHEMA_INPUT_PROPERTY = "projectSchema"
@@ -136,7 +139,7 @@ class GenerateProjectAccessors(
         return object : UnitOfWork.WorkOutput {
             override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
 
-            override fun getOutput() = loadAlreadyProducedOutput(workspace)
+            override fun getOutput(workspace: File) = loadAlreadyProducedOutput(workspace)
         }
     }
 
