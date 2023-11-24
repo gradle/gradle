@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.service.scopes;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
@@ -130,6 +131,7 @@ public class ExecutionGradleServices {
         WorkInputListeners workInputListeners, OutputFilesRepository outputFilesRepository,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
+        StartParameter startParameter,
         TimeoutHandler timeoutHandler,
         ValidateStep.ValidationWarningRecorder validationWarningRecorder,
         VirtualFileSystem virtualFileSystem,
@@ -150,7 +152,7 @@ public class ExecutionGradleServices {
             new SkipEmptyWorkStep(outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder, problems,
-            new ResolveCachingStateStep<>(buildCacheController, gradleEnterprisePluginManager.isPresent(),
+            new ResolveCachingStateStep<>(buildCacheController, gradleEnterprisePluginManager.isPresent(), startParameter.isBuildCacheDebugLogging(),
             new MarkSnapshottingInputsFinishedStep<>(
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(

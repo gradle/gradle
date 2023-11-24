@@ -177,7 +177,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new SkipEmptyWorkStep(outputChangeListener, inputListeners, outputsCleanerFactory,
         new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
         new ValidateStep<>(virtualFileSystem, validationWarningReporter, new DefaultProblems(Mock(BuildOperationProgressEventEmitter)),
-        new ResolveCachingStateStep<>(buildCacheController, false,
+        new ResolveCachingStateStep<>(buildCacheController, false, false,
         new ResolveChangesStep<>(changeDetector,
         new SkipUpToDateStep<>(
         new ResolveInputChangesStep<>(

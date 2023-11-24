@@ -43,15 +43,18 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
 
     private final BuildCacheController buildCache;
     private final boolean buildScansEnabled;
+    private final boolean emitDebugLogging;
     private final Step<? super CachingContext, ? extends UpToDateResult> delegate;
 
     public ResolveCachingStateStep(
         BuildCacheController buildCache,
         boolean buildScansEnabled,
+        boolean emitDebugLogging,
         Step<? super CachingContext, ? extends UpToDateResult> delegate
     ) {
         this.buildCache = buildCache;
         this.buildScansEnabled = buildScansEnabled;
+        this.emitDebugLogging = emitDebugLogging;
         this.delegate = delegate;
     }
 
@@ -78,7 +81,7 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
     }
 
     private CachingState calculateCachingState(UnitOfWork work, BeforeExecutionState beforeExecutionState) {
-        Logger logger = buildCache.isEmitDebugLogging()
+        Logger logger = emitDebugLogging
             ? LOGGER
             : NOPLogger.NOP_LOGGER;
         CachingStateFactory cachingStateFactory = new DefaultCachingStateFactory(logger);
@@ -105,7 +108,7 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
     }
 
     private void logCacheKey(BuildCacheKey cacheKey, UnitOfWork work) {
-        if (buildCache.isEmitDebugLogging()) {
+        if (emitDebugLogging) {
             LOGGER.warn("Build cache key for {} is {}", work.getDisplayName(), cacheKey.getHashCode());
         } else {
             LOGGER.info("Build cache key for {} is {}", work.getDisplayName(), cacheKey.getHashCode());

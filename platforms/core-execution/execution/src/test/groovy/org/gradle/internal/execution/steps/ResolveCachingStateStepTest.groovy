@@ -27,7 +27,7 @@ import java.time.Duration
 class ResolveCachingStateStepTest extends StepSpec<ValidationFinishedContext> {
 
     def buildCache = Mock(BuildCacheController)
-    def step = new ResolveCachingStateStep(buildCache, true, delegate)
+    def step = new ResolveCachingStateStep(buildCache, true, false, delegate)
     def delegateResult = Stub(UpToDateResult)
 
     def setup() {

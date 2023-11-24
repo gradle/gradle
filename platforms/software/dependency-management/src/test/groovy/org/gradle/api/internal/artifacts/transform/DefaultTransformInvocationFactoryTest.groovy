@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
+import org.gradle.StartParameter
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.transform.TransformAction
@@ -136,6 +137,8 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
     def outputSnapshotter = new DefaultOutputSnapshotter(fileCollectionSnapshotter)
     def deleter = TestFiles.deleter()
     def validationWarningRecorder = Mock(ValidateStep.ValidationWarningRecorder)
+    def startParameter = Stub(StartParameter)
+
     def executionEngine = new ExecutionGradleServices().createExecutionEngine(
         buildCacheController,
         cancellationToken,
@@ -152,6 +155,7 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
         outputFilesRepository,
         outputSnapshotter,
         new DefaultOverlappingOutputDetector(),
+        startParameter,
         Mock(TimeoutHandler),
         validationWarningRecorder,
         virtualFileSystem,

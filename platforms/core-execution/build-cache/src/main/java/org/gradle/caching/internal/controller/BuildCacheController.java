@@ -33,8 +33,6 @@ public interface BuildCacheController extends Closeable {
 
     boolean isEnabled();
 
-    boolean isEmitDebugLogging();
-
     Optional<BuildCacheLoadResult> load(BuildCacheKey cacheKey, CacheableEntity cacheableEntity);
 
     void store(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime);

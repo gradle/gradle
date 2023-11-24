@@ -79,7 +79,6 @@ class DefaultBuildCacheControllerTest extends Specification {
             operations,
             { prefix, suffix -> Files.createTempFile(tmpDir.testDirectory.toPath(), prefix, suffix).toFile() } as TemporaryFileFactory,
             false,
-            false,
             disableRemoteOnError,
             fileSystemAccess,
             packer,
