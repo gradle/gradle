@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.execution.plan.Node
+import org.gradle.execution.plan.ScheduledWork
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal
 import org.gradle.util.Path
 import java.io.File
@@ -91,7 +91,7 @@ class BuildWithWork(
     val build: ConfigurationCacheBuild,
     rootProjectName: String,
     projects: List<CachedProjectState>,
-    val workGraph: List<Node>
+    val workGraph: ScheduledWork
 ) : BuildWithProjects(identityPath, rootProjectName, projects)
 
 

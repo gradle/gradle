@@ -1,0 +1,528 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[writing_build_scripts]]
+= Writing Build Scripts
+
+The initialization phase in the Gradle Build lifecycle finds the root project and subprojects included in your <<directory_layout#dir:project_root,project root directory>> using the settings file.
+
+image::author-gradle-6.png[]
+
+Then, for each project included in the settings file, Gradle creates a link:{javadocPath}org/gradle/api/Project.html[`Project`] instance.
+
+Gradle then looks for a corresponding build script file, which is used in the configuration phase.
+
+[[tutorial_using_tasks]]
+== Build Scripts
+
+Every Gradle build comprises one or more *projects*; a _root_ project and _subprojects_.
+
+A project typically corresponds to a software component that needs to be built, like a library or an application.
+It might represent a library JAR, a web application, or a distribution ZIP assembled from the JARs produced by other projects.
+
+On the other hand, it might represent a thing to be done, such as deploying your application to staging or production environments.
+
+Gradle scripts are written in either Groovy DSL or Kotlin DSL (domain-specific language).
+
+A *build script* configures a *project* and is associated with an object of type link:{javadocPath}org/gradle/api/Project.html[`Project`].
+
+image::author-gradle-4.png[Build,500,63,align="left"]
+
+As the build script executes, it configures `Project`.
+
+The build script is either a `\*.gradle` file in Groovy or a `*.gradle.kts` file in Kotlin.
+
+IMPORTANT: _Build scripts_ configure `Project` objects and their children.
+
+== The `Project` object
+
+The `Project` object is part of the link:{javadocPath}org/gradle/api/Project.html[Gradle API].
+
+- In the Groovy DSL, the `Project` object documentation is found link:{groovyDslPath}/org.gradle.api.Project.html[here].
+- In the Kotlin DSL, the `Project` object documentation is found link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/index.html[here].
+
+Many top-level properties and blocks in a build script are part of the Project API.
+
+For example, the following build script uses the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:name[Project.name] property to print the name of the project:
+
+====
+include::sample[dir="snippets/tutorial/projectApi/kotlin",files="build.gradle.kts[tags=project-name]"]
+include::sample[dir="snippets/tutorial/projectApi/groovy",files="build.gradle[tags=project-name]"]
+----
+$ gradle -q check
+include::{snippetsPath}/tutorial/projectApi/tests/projectApi.out[]
+----
+====
+
+Both `println` statements print out the same property.
+
+The first uses the top-level reference to the `name` property of the `Project` object.
+The second statement uses the `project` property available to any build script, which returns the associated `Project` object.
+
+[[sec:standard_project_properties]]
+=== Standard project properties
+
+The `Project` object exposes a standard set of properties in your build script.
+
+The following table lists a few commonly used properties:
+
+[%header%autowidth,compact]
+|===
+| Name | Type | Description
+
+| `name`
+| `String`
+| The name of the project directory.
+
+| `path`
+| `String`
+| The fully qualified name of the project.
+
+| `description`
+| `String`
+| A description for the project.
+
+| `dependencies`
+| `DependencyHandler`
+| Returns the dependency handler of the project.
+
+| `repositories`
+| `RepositoryHandler`
+| Returns the repository handler of the project.
+
+| `layout`
+| `ProjectLayout`
+| Provides access to several important locations for a project.
+
+| `group`
+| `Object`
+| The group of this project.
+
+| `version`
+| `Object`
+| The version of this project.
+|===
+
+The following table lists a few commonly used methods:
+
+[%autowidth.stretch]
+|===
+| Name | Description
+
+| `uri()`
+| Resolves a file path to a URI, relative to the project directory of this project.
+
+| `task()`
+| Creates a Task with the given name and adds it to this project.
+|===
+
+== Build Script structure
+
+The Build script is composed of `{ ... }`, a special object in both Groovy and Kotlin.
+This object is called a _lambda_ in Kotlin or a _closure_ in Groovy.
+
+Simply put, the `plugins{ }` block is a method invocation in which a Kotlin _lambda_ object or Groovy _closure_ object is passed as the argument.
+It is the short form for:
+
+[source]
+----
+plugins(function() {
+    id("plugin")
+})
+----
+
+Blocks are mapped to Gradle API methods.
+
+The code inside the function is executed against a `this` object called a _receiver_ in Kotlin lambda and a _delegate_ in Groovy closure.
+Gradle determines the correct `this` object and invokes the correct corresponding method.
+The `this` of the method invocation `id("plugin")` object is of type link:{javadocPath}/org/gradle/plugin/use/PluginDependenciesSpec.html[`PluginDependenciesSpec`].
+
+The build script is essentially composed of Gradle API calls built on top of the DSLs.
+Gradle executes the script line by line, top to bottom.
+
+Let's take a look at an example and break it down:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {                                                               // <1>
+    id("org.jetbrains.kotlin.jvm") version "1.9.0"
+    id("application")
+}
+
+repositories {                                                          // <2>
+    mavenCentral()
+}
+
+dependencies {                                                          // <3>
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    implementation("com.google.guava:guava:32.1.1-jre")
+}
+
+application {                                                           // <4>
+    mainClass = "com.example.Main"
+}
+
+tasks.named<Test>("test") {                                             // <5>
+    useJUnitPlatform()
+}
+----
+<1> Apply plugins to the build.
+<2> Define the locations where dependencies can be found.
+<3> Add dependencies.
+<4> Set properties.
+<5> Register and configure tasks.
+=====
+
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {                                                               // <1>
+    id 'org.jetbrains.kotlin.jvm' version '1.9.0'
+    id 'application'
+}
+
+repositories {                                                          // <2>
+    mavenCentral()
+}
+
+dependencies {                                                          // <3>
+    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'com.google.guava:guava:32.1.1-jre'
+}
+
+application {                                                           // <4>
+    mainClass = 'com.example.Main'
+}
+
+tasks.named('test') {                                                   // <5>
+    useJUnitPlatform()
+}
+----
+<1> Apply plugins to the build.
+<2> Define the locations where dependencies can be found.
+<3> Add dependencies.
+<4> Set properties.
+<5> Register and configure tasks.
+=====
+====
+
+=== 1. Apply plugins to the build
+Plugins are used to extend Gradle. They are also used to modularize and reuse project configurations.
+
+Plugins can be applied using the `PluginDependenciesSpec` plugins script block.
+
+The plugins block is preferred:
+
+[source]
+----
+plugins {
+    id("org.jetbrains.kotlin.jvm") version "1.9.0"
+    id("application")
+}
+----
+
+In the example, the `application` plugin, which is included with Gradle, has been applied, describing our project as a Java application.
+
+The Kotlin gradle plugin, version 1.9.0, has also been applied.
+This plugin is not included with Gradle and, therefore, has to be described using a `plugin id` and a `plugin version` so that Gradle can find and apply it.
+
+=== 2. Define the locations where dependencies can be found
+
+A project generally has a number of dependencies it needs to do its work.
+Dependencies include plugins, libraries, or components that Gradle must download for the build to succeed.
+
+The build script lets Gradle know where to look for the binaries of the dependencies.
+More than one location can be provided:
+
+[source]
+----
+repositories {
+    mavenCentral()
+    google()
+}
+----
+
+In the example, the `guava` library and the JetBrains Kotlin plugin (`org.jetbrains.kotlin.jvm`) will be downloaded from the link:https://repo.maven.apache.org/maven2/[Maven Central Repository].
+
+=== 3. Add dependencies
+
+A project generally has a number of dependencies it needs to do its work.
+These dependencies are often libraries of precompiled classes that are imported in the project's source code.
+
+Dependencies are managed via <<dependency_management_terminology.adoc#sub:terminology_configuration,configurations>> and are retrieved from repositories.
+
+Use the `DependencyHandler` returned by `Project.getDependencies()` method to manage the dependencies.
+Use the `RepositoryHandler` returned by `Project.getRepositories()` method to manage the repositories.
+
+[source]
+----
+dependencies {
+    implementation("com.google.guava:guava:32.1.1-jre")
+}
+----
+
+In the example, the application code uses Google's `guava` libraries.
+Guava provides utility methods for collections, caching, primitives support, concurrency, common annotations, string processing, I/O, and validations.
+
+=== 4. Set properties
+
+A plugin can add properties and methods to a project using extensions.
+
+The link:{groovyDslPath}/org.gradle.api.Project.html[`Project`] object has an associated link:{javadocPath}/org/gradle/api/plugins/ExtensionContainer.html[`ExtensionContainer`] object that contains all the settings and properties for the plugins that have been applied to the project.
+
+In the example, the `application` plugin added an `application` property, which is used to detail the main class of our Java application:
+
+[source]
+----
+application {
+    mainClass = "com.example.Main"
+}
+----
+
+=== 5. Register and configure tasks
+
+Tasks perform some basic piece of work, such as compiling classes, or running unit tests, or zipping up a WAR file.
+
+While tasks are typically defined in plugins, you may need to register or configure tasks in build scripts.
+
+*Registering* a task adds the task to your project.
+
+You can register tasks in a project using the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[`TaskContainer.register(java.lang.String)`] method:
+
+[source]
+----
+tasks.register<Zip>("zip-reports") {
+    from 'Reports/'
+    include '*'
+    archiveName 'Reports.zip'
+    destinationDir(file('/dir'))
+}
+----
+
+You may have seen usage of the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[`TaskContainer.create(java.lang.String)`] method *which should be avoided*:
+
+[source]
+----
+tasks.create<Zip>("zip-reports") {
+    from 'Reports/'
+    include '*'
+    archiveName 'Reports.zip'
+    destinationDir(file('/dir'))
+}
+----
+
+TIP: `register()`, which enables <<task_configuration_avoidance.adoc#task_configuration_avoidance,task configuration avoidance>>, is preferred over `create()`.
+
+You can locate a task to configure it using the `TaskCollection.named(java.lang.String)` method:
+
+[source]
+----
+tasks.named<Test>("test") {
+    useJUnitPlatform()
+}
+----
+
+The example below configures the link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[`Javadoc`] task to automatically generate HTML documentation from Java code:
+
+[source]
+----
+tasks.named("javadoc").configure {
+    exclude 'app/Internal*.java'
+    exclude 'app/internal/*'
+    exclude 'app/internal/*'
+}
+----
+
+== Build Scripting
+
+A build script is made up of zero or more statements and script blocks:
+
+[source]
+----
+println(project.layout.projectDirectory);
+----
+
+Statements can include method calls, property assignments, and local variable definitions:
+
+[source]
+----
+version = '1.0.0.GA'
+----
+
+A script block is a method call which takes a closure/lambda as a parameter:
+
+[source]
+----
+configurations {
+}
+----
+
+The closure/lambda configures some delegate object as it executes:
+
+[source]
+----
+repositories {
+    google()
+}
+----
+
+A build script is also a Groovy or a Kotlin script:
+
+====
+include::sample[dir="snippets/tutorial/upper/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/upper/groovy", files="build.gradle[]"]
+----
+$ gradle -q upper
+include::{snippetsPath}/tutorial/upper/tests/upper.out[]
+----
+====
+
+It can contain elements allowed in a Groovy or Kotlin script, such as method definitions and class definitions:
+
+====
+include::sample[dir="snippets/tutorial/count/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/count/groovy", files="build.gradle[]"]
+
+----
+$ gradle -q count
+include::{snippetsPath}/tutorial/count/tests/count.out[]
+----
+====
+
+[[sec:dynamic_tasks]]
+=== Flexible task registration
+
+Using the capabilities of the Groovy or Kotlin language, you can register multiple tasks in a loop:
+
+====
+include::sample[dir="snippets/tutorial/dynamic/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/dynamic/groovy", files="build.gradle[]"]
+
+----
+$ gradle -q task1
+include::{snippetsPath}/tutorial/dynamic/tests/dynamic.out[]
+----
+====
+
+[[sec:declaring_variables]]
+=== Declare Variables
+
+Build scripts can declare two variables: *local variables* and *extra properties*.
+
+[[sec:local_variables]]
+==== Local Variables
+
+[.multi-language-text.lang-kotlin]
+Declare local variables with the `val` keyword. Local variables are only visible in the scope where they have been declared. They are a feature of the underlying Kotlin language.
+
+[.multi-language-text.lang-groovy]
+Declare local variables with the `def` keyword. Local variables are only visible in the scope where they have been declared. They are a feature of the underlying Groovy language.
+
+====
+include::sample[dir="snippets/tutorial/localVariables/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/localVariables/groovy",files="build.gradle[]"]
+====
+
+[[sec:extra_properties]]
+==== Extra Properties
+
+Gradle's enhanced objects, including projects, tasks, and source sets, can hold user-defined properties.
+
+[.multi-language-text.lang-kotlin]
+Add, read, and set extra properties via the owning object's `extra` property. Alternatively, you can access extra properties via Kotlin delegated properties using `by extra`.
+
+[.multi-language-text.lang-groovy]
+Add, read, and set extra properties via the owning object's `ext` property. Alternatively, you can use an `ext` block to add multiple properties simultaneously.
+
+====
+include::sample[dir="snippets/tutorial/extraProperties/kotlin",files="build.gradle.kts[tags=extraProperties]"]
+include::sample[dir="snippets/tutorial/extraProperties/groovy",files="build.gradle[tags=extraProperties]"]
+
+----
+$ gradle -q printProperties
+include::{snippetsPath}/tutorial/extraProperties/tests/extraProperties.out[]
+----
+====
+
+[.multi-language-text.lang-kotlin]
+This example adds two extra properties to the `project` object via `by extra`. Additionally, this example adds a property named `purpose` to each source set by setting `extra["purpose"]` to `null`. Once added, you can read and set these properties via `extra`.
+
+[.multi-language-text.lang-groovy]
+This example adds two extra properties to the `project` object via an `ext` block. Additionally, this example adds a property named `purpose` to each source set by setting `ext.purpose` to `null`. Once added, you can read and set all these properties just like predefined ones.
+
+Gradle requires special syntax for adding a property so that it can fail fast. For example, this allows Gradle to recognize
+when a script attempts to set a property that does not exist. You can access extra properties anywhere where you can
+access their owning object. This gives extra properties a wider scope than local variables.
+Subprojects can access extra properties on their parent projects.
+
+For more information about extra properties, see
+link:{groovyDslPath}/org.gradle.api.plugins.ExtraPropertiesExtension.html[ExtraPropertiesExtension] in the API documentation.
+
+[[sec:configuring_arbitrary_objects]]
+=== Configure Arbitrary Objects
+
+The example `greet()` task shows an example of arbitrary object configuration:
+
+====
+include::sample[dir="snippets/tutorial/configureObject/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/configureObject/groovy",files="build.gradle[]"]
+
+----
+$ gradle -q greet
+include::{snippetsPath}/tutorial/configureObject/tests/configureObject.out[]
+----
+====
+
+[[sec:closure_delegate]]
+==== Closure Delegates
+
+Each closure has a `delegate` object. Groovy uses this delegate to look up variable and method references to nonlocal variables and closure parameters.
+Gradle uses this for _configuration closures_,
+where the `delegate` object refers to the object being configured.
+
+====
+include::sample[dir="snippets/tutorial/groovy/groovy",files="build.gradle[tags=closureDelegates]"]
+====
+
+[[script-default-imports]]
+== Default imports
+
+To make build scripts more concise, Gradle automatically adds a set of import statements to scripts.
+
+As a result, instead of writing `throw new org.gradle.api.tasks.StopExecutionException()`, you can write `throw new StopExecutionException()` instead.
+
+Gradle implicitly adds the following imports to each script:
+
+.Gradle default imports
+[source,groovy]
+----
+include::default-imports.txt[]
+----
+
+[[sec:build_script_external_dependencies]]
+[[sec:configuring_arbitrary_objects_using_an_external_script]]
+[[sec:closures_as_the_last_parameter_in_a_method]]
+
+[.text-right]
+**Next Step:** <<tutorial_using_tasks.adoc#tutorial_using_tasks,Learn how to use Tasks>> >>

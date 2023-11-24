@@ -2413,7 +2413,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
     List<Node> getScheduledNodes() {
         def result = []
-        executionPlan.scheduledNodes.visitNodes(nodes -> result.addAll(nodes))
+        executionPlan.scheduledNodes.visitNodes { nodes, entryNodes -> result.addAll(nodes) }
         return result
     }
 
