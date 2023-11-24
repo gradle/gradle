@@ -16,8 +16,7 @@
 
 package org.gradle.caching.internal.controller
 
-import org.gradle.api.Action
-import org.gradle.api.internal.cache.StringInterner
+import com.google.common.collect.Interner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheEntryWriter
@@ -62,7 +61,7 @@ class DefaultBuildCacheControllerTest extends Specification {
     def remotePush = true
     BuildCacheEntryPacker packer = Stub(BuildCacheEntryPacker)
     OriginMetadataFactory originMetadataFactory = Stub(OriginMetadataFactory)
-    StringInterner stringInterner = Stub(StringInterner)
+    Interner<String> stringInterner = Stub(Interner)
 
     def operations = new TestBuildOperationExecutor()
     def buildOperationProgressEmitter = new NoOpBuildOperationProgressEventEmitter()
@@ -143,10 +142,10 @@ class DefaultBuildCacheControllerTest extends Specification {
 
     def "local load does not stores to local"() {
         given:
-        1 * local.loadLocally(key, _) >> { BuildCacheKey key, Action<File> action ->
+        1 * local.loadLocally(key, _) >> { BuildCacheKey key, Consumer<File> action ->
             def file = tmpDir.file("file")
             file.text = "alma"
-            action.execute(file)
+            action.accept(file)
         }
 
         when:

@@ -7,7 +7,6 @@ description = "Implementation of build cache controller and factories"
 
 dependencies {
     api(project(":base-annotations"))
-    api(project(":base-services"))
     api(project(":build-cache-base"))
     api(project(":build-cache-packaging"))
     api(project(":build-operations"))
@@ -38,8 +37,6 @@ dependencies {
     jmhImplementation(libs.jtar)
     jmhImplementation(libs.snappy)
 
-    testImplementation(project(":file-collections"))
-    testImplementation(project(":model-core"))
     testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":snapshots")))

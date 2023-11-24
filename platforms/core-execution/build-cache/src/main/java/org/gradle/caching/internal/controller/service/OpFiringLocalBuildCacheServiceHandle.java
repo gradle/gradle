@@ -22,7 +22,7 @@ import org.gradle.caching.internal.operations.BuildCacheLocalStoreBuildOperation
 import org.gradle.caching.local.internal.LocalBuildCacheService;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -39,16 +39,16 @@ public class OpFiringLocalBuildCacheServiceHandle extends BaseLocalBuildCacheSer
         }
     };
 
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
 
-    public OpFiringLocalBuildCacheServiceHandle(LocalBuildCacheService service, boolean pushEnabled, BuildOperationExecutor buildOperationExecutor) {
+    public OpFiringLocalBuildCacheServiceHandle(LocalBuildCacheService service, boolean pushEnabled, BuildOperationRunner buildOperationRunner) {
         super(service, pushEnabled);
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Override
     public Optional<BuildCacheLoadResult> maybeLoad(BuildCacheKey key, Function<File, BuildCacheLoadResult> unpackFunction) {
-        return buildOperationExecutor.call(new CallableBuildOperation<Optional<BuildCacheLoadResult>>() {
+        return buildOperationRunner.call(new CallableBuildOperation<Optional<BuildCacheLoadResult>>() {
             @Override
             public Optional<BuildCacheLoadResult> call(BuildOperationContext context) {
                 AtomicReference<Long> archiveSize = new AtomicReference<>();
@@ -70,7 +70,7 @@ public class OpFiringLocalBuildCacheServiceHandle extends BaseLocalBuildCacheSer
 
     @Override
     protected void storeInner(BuildCacheKey key, File file) {
-        buildOperationExecutor.run(new RunnableBuildOperation() {
+        buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) throws Exception {
                 OpFiringLocalBuildCacheServiceHandle.super.storeInner(key, file);

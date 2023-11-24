@@ -16,7 +16,6 @@
 
 package org.gradle.caching.internal.controller
 
-import org.gradle.api.Action
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
@@ -237,8 +236,7 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
         }
 
         @Override
-        void loadLocally(BuildCacheKey key, Action<? super File> reader) {
-
+        void loadLocally(BuildCacheKey key, Consumer<? super File> reader) {
         }
 
         @Override
@@ -248,7 +246,6 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
 
         @Override
         void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-
         }
 
         @Override
@@ -258,7 +255,6 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
 
         @Override
         void withTempFile(HashCode key, Consumer<? super File> action) {
-
         }
     }
 }
