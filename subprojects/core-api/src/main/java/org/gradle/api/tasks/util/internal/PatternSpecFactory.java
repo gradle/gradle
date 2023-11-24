@@ -48,12 +48,12 @@ import java.util.Set;
 @ServiceScope(Scope.Global.class)
 public class PatternSpecFactory implements FileSystemDefaultExcludesListener {
     public static final PatternSpecFactory INSTANCE = new PatternSpecFactory();
-    private Set<String> previousDefaultExcludes;
+    private Set<String> previousDefaultExcludes = new HashSet<String>();
     private final Map<CaseSensitivity, Spec<FileTreeElement>> defaultExcludeSpecCache = new EnumMap<>(CaseSensitivity.class);
 
     @Override
     public void onDefaultExcludesChanged(List<String> excludes) {
-        setDefaultExcludesFromSettings(new HashSet<String>(excludes));
+        setDefaultExcludesFromSettings(excludes.toArray(new String[0]));
     }
 
     public Spec<FileTreeElement> createSpec(PatternSet patternSet) {
@@ -89,6 +89,7 @@ public class PatternSpecFactory implements FileSystemDefaultExcludesListener {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private synchronized Spec<FileTreeElement> getDefaultExcludeSpec(CaseSensitivity caseSensitivity) {
         Set<String> defaultExcludes = new HashSet(Arrays.asList(DirectoryScanner.getDefaultExcludes()));
         if (defaultExcludeSpecCache.isEmpty()) {
@@ -112,9 +113,11 @@ public class PatternSpecFactory implements FileSystemDefaultExcludesListener {
         throw new InvalidUserCodeException(String.format("Cannot change default excludes during the build. They were changed from %s to %s. Configure default excludes in the settings script instead.",  sortedExcludesFromSettings, sortedNewExcludes));
     }
 
-    public synchronized void setDefaultExcludesFromSettings(Set<String> excludesFromSettings) {
-        if (!previousDefaultExcludes.equals(excludesFromSettings)) {
-            updateDefaultExcludeSpecCache(excludesFromSettings);
+    @SuppressWarnings("unchecked")
+    public synchronized void setDefaultExcludesFromSettings(String[] excludesFromSettings) {
+        Set<String> excludesFromSettingsSet = new HashSet(Arrays.asList(excludesFromSettings));
+        if (!previousDefaultExcludes.equals(excludesFromSettingsSet)) {
+            updateDefaultExcludeSpecCache(excludesFromSettingsSet);
         }
     }
 
