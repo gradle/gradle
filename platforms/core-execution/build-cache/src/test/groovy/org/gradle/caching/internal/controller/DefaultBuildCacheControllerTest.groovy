@@ -17,7 +17,6 @@
 package org.gradle.caching.internal.controller
 
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheKey
@@ -28,6 +27,7 @@ import org.gradle.caching.internal.controller.service.BuildCacheServicesConfigur
 import org.gradle.caching.internal.origin.OriginMetadataFactory
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker
 import org.gradle.caching.local.internal.LocalBuildCacheService
+import org.gradle.caching.local.internal.TemporaryFileFactory
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.snapshot.FileSystemSnapshot
@@ -36,6 +36,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.nio.file.Files
 import java.time.Duration
 import java.util.function.Consumer
 
@@ -76,7 +77,7 @@ class DefaultBuildCacheControllerTest extends Specification {
                 remotePush
             ),
             operations,
-            TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory),
+            { prefix, suffix -> Files.createTempFile(tmpDir.testDirectory.toPath(), prefix, suffix).toFile() } as TemporaryFileFactory,
             false,
             false,
             disableRemoteOnError,

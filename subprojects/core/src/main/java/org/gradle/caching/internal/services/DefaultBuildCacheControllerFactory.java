@@ -75,7 +75,7 @@ public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheContro
         return new DefaultBuildCacheController(
             config,
             buildOperationExecutor,
-            temporaryFileProvider,
+            temporaryFileProvider::createTemporaryFile,
             logStackTraces,
             emitDebugLogging,
             !Boolean.getBoolean(REMOTE_CONTINUE_ON_ERROR_PROPERTY),

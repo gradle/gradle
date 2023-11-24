@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Interner;
 import com.google.common.io.Closer;
-import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.internal.BuildCacheKeyInternal;
@@ -45,6 +44,7 @@ import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.caching.local.internal.BuildCacheTempFileStore;
 import org.gradle.caching.local.internal.DefaultBuildCacheTempFileStore;
 import org.gradle.caching.local.internal.LocalBuildCacheService;
+import org.gradle.caching.local.internal.TemporaryFileFactory;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
@@ -86,7 +86,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
     public DefaultBuildCacheController(
         BuildCacheServicesConfiguration config,
         BuildOperationRunner buildOperationRunner,
-        TemporaryFileProvider temporaryFileProvider,
+        TemporaryFileFactory temporaryFileFactory,
         boolean logStackTraces,
         boolean emitDebugLogging,
         boolean disableRemoteOnError,
@@ -98,7 +98,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         this.emitDebugLogging = emitDebugLogging;
         this.local = toLocalHandle(config.getLocal(), config.isLocalPush());
         this.remote = toRemoteHandle(config.getRemote(), config.isRemotePush(), buildOperationRunner, logStackTraces, disableRemoteOnError);
-        this.tmp = toTempFileStore(config.getLocal(), temporaryFileProvider);
+        this.tmp = toTempFileStore(config.getLocal(), temporaryFileFactory);
         this.packExecutor = new PackOperationExecutor(
             buildOperationRunner,
             fileSystemAccess,
@@ -294,9 +294,9 @@ public class DefaultBuildCacheController implements BuildCacheController {
             : new DefaultLocalBuildCacheServiceHandle(local, localPush);
     }
 
-    private static BuildCacheTempFileStore toTempFileStore(@Nullable LocalBuildCacheService local, TemporaryFileProvider temporaryFileProvider) {
+    private static BuildCacheTempFileStore toTempFileStore(@Nullable LocalBuildCacheService local, TemporaryFileFactory temporaryFileFactory) {
         return local != null
             ? local
-            : new DefaultBuildCacheTempFileStore(temporaryFileProvider);
+            : new DefaultBuildCacheTempFileStore(temporaryFileFactory);
     }
 }

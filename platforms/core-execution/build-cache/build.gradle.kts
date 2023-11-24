@@ -13,7 +13,6 @@ dependencies {
     implementation(project(":build-cache-packaging"))
     implementation(project(":enterprise-operations"))
     implementation(project(":files"))
-    implementation(project(":file-temp"))
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)

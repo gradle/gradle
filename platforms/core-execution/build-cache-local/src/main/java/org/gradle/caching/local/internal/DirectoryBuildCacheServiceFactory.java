@@ -98,7 +98,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
             .withLockOptions(mode(OnDemand))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .open();
-        BuildCacheTempFileStore tempFileStore = new DefaultBuildCacheTempFileStore(temporaryFileProvider);
+        BuildCacheTempFileStore tempFileStore = new DefaultBuildCacheTempFileStore(temporaryFileProvider::createTemporaryFile);
         FileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, target, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
 
         return new DirectoryBuildCacheService(fileStore, persistentCache, tempFileStore, fileAccessTracker, FAILED_READ_SUFFIX);
