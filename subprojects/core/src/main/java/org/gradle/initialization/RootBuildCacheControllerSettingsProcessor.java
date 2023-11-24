@@ -20,7 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.caching.internal.controller.BuildCacheController;
-import org.gradle.caching.internal.controller.RootBuildCacheControllerRef;
+import org.gradle.caching.internal.controller.impl.RootBuildCacheControllerRef;
 
 public class RootBuildCacheControllerSettingsProcessor implements SettingsProcessor {
 
