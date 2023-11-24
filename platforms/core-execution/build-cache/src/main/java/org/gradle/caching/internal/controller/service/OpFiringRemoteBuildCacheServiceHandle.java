@@ -179,7 +179,7 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
 
         @Override
         public String getCacheKey() {
-            return key.getDisplayName();
+            return key.getHashCode();
         }
 
         @Override

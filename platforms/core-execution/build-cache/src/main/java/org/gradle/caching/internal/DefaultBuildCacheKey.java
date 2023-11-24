@@ -17,6 +17,7 @@
 package org.gradle.caching.internal;
 
 import org.gradle.caching.BuildCacheKey;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.hash.HashCode;
 
 public class DefaultBuildCacheKey implements BuildCacheKey {
@@ -40,8 +41,14 @@ public class DefaultBuildCacheKey implements BuildCacheKey {
         return hashCode.toByteArray();
     }
 
+    @Deprecated
     @Override
     public String getDisplayName() {
+        DeprecationLogger.deprecateMethod(BuildCacheKey.class, "getDisplayName()")
+            .replaceWith("getHashCode()")
+            .willBeRemovedInGradle9()
+            .undocumented()
+            .nagUser();
         return getHashCode();
     }
 

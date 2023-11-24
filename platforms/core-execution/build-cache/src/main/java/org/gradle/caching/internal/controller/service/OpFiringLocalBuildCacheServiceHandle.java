@@ -62,7 +62,7 @@ public class OpFiringLocalBuildCacheServiceHandle extends BaseLocalBuildCacheSer
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Load entry " + key.getDisplayName() + " from local build cache")
+                return BuildOperationDescriptor.displayName("Load entry " + key.getHashCode() + " from local build cache")
                     .details(new LocalLoadDetails(key));
             }
         });
@@ -79,7 +79,7 @@ public class OpFiringLocalBuildCacheServiceHandle extends BaseLocalBuildCacheSer
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Store entry " + key.getDisplayName() + " in local build cache")
+                return BuildOperationDescriptor.displayName("Store entry " + key.getHashCode() + " in local build cache")
                     .details(new LocalStoreDetails(key, file));
             }
         });
@@ -95,7 +95,7 @@ public class OpFiringLocalBuildCacheServiceHandle extends BaseLocalBuildCacheSer
 
         @Override
         public String getCacheKey() {
-            return key.getDisplayName();
+            return key.getHashCode();
         }
     }
 
@@ -130,7 +130,7 @@ public class OpFiringLocalBuildCacheServiceHandle extends BaseLocalBuildCacheSer
 
         @Override
         public String getCacheKey() {
-            return key.getDisplayName();
+            return key.getHashCode();
         }
 
         @Override
