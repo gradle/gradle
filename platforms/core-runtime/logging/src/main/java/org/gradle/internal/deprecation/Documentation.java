@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.DocLink;
 
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import java.util.Map;
 
@@ -62,6 +63,7 @@ public abstract class Documentation implements DocLink {
          * Allows proceeding without including any documentation reference.
          * Consider using one of the documentation providing methods instead.
          */
+        @CheckReturnValue
         public T undocumented() {
             return withDocumentation(Documentation.NO_DOCUMENTATION);
         }
@@ -69,6 +71,7 @@ public abstract class Documentation implements DocLink {
         /**
          * Output: See USER_MANUAL_URL for more details.
          */
+        @CheckReturnValue
         public T withUserManual(String documentationId) {
             return withDocumentation(Documentation.userManual(documentationId));
         }
@@ -76,6 +79,7 @@ public abstract class Documentation implements DocLink {
         /**
          * Output: See USER_MANUAL_URL for more details.
          */
+        @CheckReturnValue
         public T withUserManual(String documentationId, String section) {
             return withDocumentation(Documentation.userManual(documentationId, section));
         }
@@ -83,6 +87,7 @@ public abstract class Documentation implements DocLink {
         /**
          * Output: See DSL_REFERENCE_URL for more details.
          */
+        @CheckReturnValue
         public T withDslReference(Class<?> targetClass, String property) {
             return withDocumentation(Documentation.dslReference(targetClass, property));
         }
@@ -90,6 +95,7 @@ public abstract class Documentation implements DocLink {
         /**
          * Output: Consult the upgrading guide for further information: UPGRADE_GUIDE_URL
          */
+        @CheckReturnValue
         public T withUpgradeGuideSection(int majorVersion, String upgradeGuideSection) {
             return withDocumentation(Documentation.upgradeGuide(majorVersion, upgradeGuideSection));
         }

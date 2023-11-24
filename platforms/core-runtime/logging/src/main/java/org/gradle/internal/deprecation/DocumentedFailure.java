@@ -21,6 +21,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.problems.DocLink;
 import org.gradle.internal.exceptions.Contextual;
 
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 
 public class DocumentedFailure {
@@ -36,31 +37,37 @@ public class DocumentedFailure {
 
         private Builder() {}
 
+        @CheckReturnValue
         public Builder withSummary(String summary) {
             this.summary = summary;
             return this;
         }
 
+        @CheckReturnValue
         public Builder withContext(String contextualAdvice) {
             this.contextualAdvice = contextualAdvice;
             return this;
         }
 
+        @CheckReturnValue
         public Builder withAdvice(String advice) {
             this.advice = advice;
             return this;
         }
 
         @Override
+        @CheckReturnValue
         public Builder withDocumentation(DocLink documentation) {
             this.documentation = documentation;
             return this;
         }
 
+        @CheckReturnValue
         public GradleException build() {
             return build(null);
         }
 
+        @CheckReturnValue
         public GradleException build(@Nullable Throwable cause) {
             StringBuilder outputBuilder = new StringBuilder(summary);
             append(outputBuilder, contextualAdvice);
