@@ -17,13 +17,12 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.internal.Cast;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.ModelObject;
 
 import javax.annotation.Nullable;
-import java.util.function.Supplier;
 
 /**
  * Manages values that are finalizable and support conventions.
@@ -37,7 +36,7 @@ public abstract class ValueState<S> {
         return new ValueState.NonFinalizedValue<>(host);
     }
 
-    public abstract boolean shouldFinalize(Supplier<DisplayName> displayName, @Nullable ModelObject producer);
+    public abstract boolean shouldFinalize(Describable displayName, @Nullable ModelObject producer);
 
     public abstract ValueState<S> finalState();
 
@@ -60,9 +59,9 @@ public abstract class ValueState<S> {
      */
     public abstract S implicitValue();
 
-    public abstract boolean maybeFinalizeOnRead(Supplier<DisplayName> displayName, @Nullable ModelObject producer, ValueSupplier.ValueConsumer consumer);
+    public abstract boolean maybeFinalizeOnRead(Describable displayName, @Nullable ModelObject producer, ValueSupplier.ValueConsumer consumer);
 
-    public abstract void beforeMutate(Supplier<DisplayName> displayName);
+    public abstract void beforeMutate(Describable displayName);
 
     public abstract ValueSupplier.ValueConsumer forUpstream(ValueSupplier.ValueConsumer consumer);
 
@@ -75,8 +74,8 @@ public abstract class ValueState<S> {
      */
     public abstract boolean isFinalizing();
 
-    public void finalizeOnReadIfNeeded(Supplier<DisplayName> getDisplayName, ModelObject effectiveProducer, ValueSupplier.ValueConsumer consumer, Action<ValueSupplier.ValueConsumer> finalizeNow) {
-        if (maybeFinalizeOnRead(getDisplayName, effectiveProducer, consumer)) {
+    public void finalizeOnReadIfNeeded(Describable displayName, @Nullable ModelObject effectiveProducer, ValueSupplier.ValueConsumer consumer, Action<ValueSupplier.ValueConsumer> finalizeNow) {
+        if (maybeFinalizeOnRead(displayName, effectiveProducer, consumer)) {
             finalizeNow.execute(forUpstream(consumer));
         }
     }
@@ -99,11 +98,11 @@ public abstract class ValueState<S> {
         }
 
         @Override
-        public boolean shouldFinalize(Supplier<DisplayName> displayName, @Nullable ModelObject producer) {
+        public boolean shouldFinalize(Describable displayName, @Nullable ModelObject producer) {
             if (disallowUnsafeRead) {
                 String reason = host.beforeRead(producer);
                 if (reason != null) {
-                    throw new IllegalStateException(cannotFinalizeValueOf(displayName.get(), reason));
+                    throw new IllegalStateException(cannotFinalizeValueOf(displayName, reason));
                 }
             }
             return true;
@@ -115,11 +114,11 @@ public abstract class ValueState<S> {
         }
 
         @Override
-        public boolean maybeFinalizeOnRead(Supplier<DisplayName> displayName, @Nullable ModelObject producer, ValueSupplier.ValueConsumer consumer) {
+        public boolean maybeFinalizeOnRead(Describable displayName, @Nullable ModelObject producer, ValueSupplier.ValueConsumer consumer) {
             if (disallowUnsafeRead || consumer == ValueSupplier.ValueConsumer.DisallowUnsafeRead) {
                 String reason = host.beforeRead(producer);
                 if (reason != null) {
-                    throw new IllegalStateException(cannotQueryValueOf(displayName.get(), reason));
+                    throw new IllegalStateException(cannotQueryValueOf(displayName, reason));
                 }
             }
             return finalizeOnNextGet || consumer == ValueSupplier.ValueConsumer.DisallowUnsafeRead;
@@ -135,9 +134,9 @@ public abstract class ValueState<S> {
         }
 
         @Override
-        public void beforeMutate(Supplier<DisplayName> displayName) {
+        public void beforeMutate(Describable displayName) {
             if (disallowChanges) {
-                throw new IllegalStateException(String.format("The value for %s cannot be changed any further.", displayName.get().getDisplayName()));
+                throw new IllegalStateException(String.format("The value for %s cannot be changed any further.", displayName.getDisplayName()));
             }
         }
 
@@ -197,15 +196,15 @@ public abstract class ValueState<S> {
             this.convention = convention;
         }
 
-        private String cannotFinalizeValueOf(DisplayName displayName, String reason) {
+        private String cannotFinalizeValueOf(Describable displayName, String reason) {
             return cannot("finalize", displayName, reason);
         }
 
-        private String cannotQueryValueOf(DisplayName displayName, String reason) {
+        private String cannotQueryValueOf(Describable displayName, String reason) {
             return cannot("query", displayName, reason);
         }
 
-        private String cannot(String what, DisplayName displayName, String reason) {
+        private String cannot(String what, Describable displayName, String reason) {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node("Cannot " + what + " the value of ");
             formatter.append(displayName.getDisplayName());
@@ -218,7 +217,7 @@ public abstract class ValueState<S> {
 
     private static class FinalizedValue<S> extends ValueState<S> {
         @Override
-        public boolean shouldFinalize(Supplier<DisplayName> displayName, @Nullable ModelObject producer) {
+        public boolean shouldFinalize(Describable displayName, @Nullable ModelObject producer) {
             return false;
         }
 
@@ -238,14 +237,14 @@ public abstract class ValueState<S> {
         }
 
         @Override
-        public boolean maybeFinalizeOnRead(Supplier<DisplayName> displayName, @Nullable ModelObject producer, ValueSupplier.ValueConsumer consumer) {
+        public boolean maybeFinalizeOnRead(Describable displayName, @Nullable ModelObject producer, ValueSupplier.ValueConsumer consumer) {
             // Already finalized
             return false;
         }
 
         @Override
-        public void beforeMutate(Supplier<DisplayName> displayName) {
-            throw new IllegalStateException(String.format("The value for %s is final and cannot be changed any further.", displayName.get().getDisplayName()));
+        public void beforeMutate(Describable displayName) {
+            throw new IllegalStateException(String.format("The value for %s is final and cannot be changed any further.", displayName.getDisplayName()));
         }
 
         @Override

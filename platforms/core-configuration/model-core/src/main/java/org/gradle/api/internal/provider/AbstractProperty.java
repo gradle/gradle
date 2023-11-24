@@ -188,7 +188,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     public void finalizeValue() {
-        if (state.shouldFinalize(this::getDisplayName, producer)) {
+        if (state.shouldFinalize(this.getDisplayName(), producer)) {
             finalizeNow(ValueConsumer.IgnoreUnsafeRead);
         }
     }
@@ -236,7 +236,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     }
 
     private void beforeRead(@Nullable ModelObject effectiveProducer, ValueConsumer consumer) {
-        state.finalizeOnReadIfNeeded(this::getDisplayName, effectiveProducer, consumer, this::finalizeNow);
+        state.finalizeOnReadIfNeeded(this.getDisplayName(), effectiveProducer, consumer, this::finalizeNow);
     }
 
     private void finalizeNow(ValueConsumer consumer) {
@@ -268,7 +268,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     }
 
     protected void assertCanMutate() {
-        state.beforeMutate(this::getDisplayName);
+        state.beforeMutate(this.getDisplayName());
     }
 
     @Nullable
