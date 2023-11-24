@@ -288,12 +288,22 @@ With Basic Authentication, the user credentials are sent in clear text.
 
 System properties can be specified in the `.gradle/gradle.properties` file in the user's home directory or by other <<build_environment.adoc#sec:gradle_configuration_properties,means>>.
 
-To specify the HTTP Basic Authentication credentials, add the following lines to the system properties file:
+To specify default HTTP Basic Authentication credentials, add the following lines to the system properties file:
 
 [source,properties]
 ----
 systemProp.gradle.wrapperUser=username
 systemProp.gradle.wrapperPassword=password
+----
+
+Note! These credentials will be sent to any distribution server not explicitly specified. It is recommended to not use these properties!
+
+To ensure that HTTP Basic Authentication credentials are sent only to a specific distribution server (preferred, from 8.5):
+
+[source,properties]
+----
+systemProp.gradle.wrapperUser.somehost.domain.name=username-only-sent-to-somehost.domain.name
+systemProp.gradle.wrapperPassword.somehost.domain.name=password-only-sent-to-somehost.domain.name
 ----
 
 Embedding credentials in the `distributionUrl` in the `gradle/wrapper/gradle-wrapper.properties` file also works.

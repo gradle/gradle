@@ -249,6 +249,29 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         outputContains('hello')
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/26143")
+    def "downloads wrapper from basic authenticated server using overridden credentials from gradle.properties"() {
+        given:
+        file("gradle.properties") << '''
+            systemProp.gradle.wrapperUser=jdoe
+            systemProp.gradle.wrapperPassword=changeit
+            systemProp.gradle.wrapperUser.localhost=jdoe2
+            systemProp.gradle.wrapperPassword.localhost=changeit2
+        '''.stripIndent()
+
+        and:
+        server.withBasicAuthentication("jdoe2", "changeit2")
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        prepareWrapper(getDefaultBaseUrl())
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+
+        when:
+        result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        outputContains('hello')
+    }
+
     def "warns about using basic authentication over insecure connection"() {
         given:
         server.withBasicAuthentication("jdoe", "changeit")
