@@ -70,7 +70,7 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
         if (!canLoad()) {
             return Optional.empty();
         }
-        String description = "Load entry " + key.getDisplayName() + " from " + role.getDisplayName() + " build cache";
+        String description = "Load entry " + key.getHashCode() + " from " + role.getDisplayName() + " build cache";
         LOGGER.debug(description);
         LoadTarget loadTarget = new LoadTarget(loadTargetFile);
         try {
@@ -106,7 +106,7 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
         if (!canStore()) {
             return false;
         }
-        String description = "Store entry " + key.getDisplayName() + " in " + role.getDisplayName() + " build cache";
+        String description = "Store entry " + key.getHashCode() + " in " + role.getDisplayName() + " build cache";
         LOGGER.debug(description);
         try {
             storeInner(description, key, new StoreTarget(file));
@@ -126,7 +126,7 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
             disabled = true;
         }
 
-        String description = "Could not " + verb + " entry " + key.getDisplayName() + " " + preposition + " " + role.getDisplayName() + " build cache";
+        String description = "Could not " + verb + " entry " + key.getHashCode() + " " + preposition + " " + role.getDisplayName() + " build cache";
         if (LOGGER.isWarnEnabled()) {
             if (logStackTraces) {
                 LOGGER.warn(description, e);

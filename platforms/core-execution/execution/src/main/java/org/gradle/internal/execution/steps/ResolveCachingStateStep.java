@@ -106,9 +106,9 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
 
     private void logCacheKey(BuildCacheKey cacheKey, UnitOfWork work) {
         if (buildCache.isEmitDebugLogging()) {
-            LOGGER.warn("Build cache key for {} is {}", work.getDisplayName(), cacheKey.getDisplayName());
+            LOGGER.warn("Build cache key for {} is {}", work.getDisplayName(), cacheKey.getHashCode());
         } else {
-            LOGGER.info("Build cache key for {} is {}", work.getDisplayName(), cacheKey.getDisplayName());
+            LOGGER.info("Build cache key for {} is {}", work.getDisplayName(), cacheKey.getHashCode());
         }
     }
 
