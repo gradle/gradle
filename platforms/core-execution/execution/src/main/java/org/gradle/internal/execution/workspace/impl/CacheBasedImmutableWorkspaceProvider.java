@@ -118,7 +118,6 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
                 // TODO Use Files.createTemporaryDirectory() instead
                 String temporaryLocation = path + "-" + UUID.randomUUID();
                 File temporaryWorkspace = new File(baseDirectory, temporaryLocation);
-                // TODO Do we need to track the temporary workspace in the access tracker?
                 return action.executeInTemporaryWorkspace(temporaryWorkspace);
             }
         };
