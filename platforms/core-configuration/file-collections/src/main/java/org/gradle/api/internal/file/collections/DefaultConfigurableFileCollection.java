@@ -27,6 +27,8 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.provider.PropertyHost;
+import org.gradle.api.internal.provider.ValueState;
+import org.gradle.api.internal.provider.ValueSupplier;
 import org.gradle.api.internal.provider.support.LazyGroovySupport;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -55,22 +57,15 @@ import java.util.function.Supplier;
  * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link org.gradle.api.internal.file.FileResolver}.
  */
 public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed, HasConfigurableValueInternal, LazyGroovySupport {
-    public static final EmptyCollector EMPTY_COLLECTOR = new EmptyCollector();
-
-    private enum State {
-        Mutable, ImplicitFinalizeNextQuery, FinalizeNextQuery, Final
-    }
-
+    private static final EmptyCollector EMPTY_COLLECTOR = new EmptyCollector();
     private final PathSet filesWrapper;
     private final String displayName;
     private final PathToFileResolver resolver;
     private final TaskDependencyFactory dependencyFactory;
     private final PropertyHost host;
     private final DefaultTaskDependency buildDependency;
-    private State state = State.Mutable;
-    private boolean disallowChanges;
-    private boolean disallowUnsafeRead;
     private ValueCollector value = EMPTY_COLLECTOR;
+    private ValueState<ValueCollector> valueState;
 
     public DefaultConfigurableFileCollection(@Nullable String displayName, PathToFileResolver fileResolver, TaskDependencyFactory dependencyFactory, Factory<PatternSet> patternSetFactory, PropertyHost host) {
         super(dependencyFactory, patternSetFactory);
@@ -78,6 +73,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         this.resolver = fileResolver;
         this.dependencyFactory = dependencyFactory;
         this.host = host;
+        this.valueState = ValueState.newState(host);
         filesWrapper = new PathSet();
         buildDependency = dependencyFactory.configurableDependency();
     }
@@ -99,46 +95,40 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public void finalizeValue() {
-        if (state == State.Final) {
-            return;
+        if (valueState.shouldFinalize(this::displayNameForThisCollection, null)) {
+            finalizeNow();
         }
-        if (disallowUnsafeRead) {
-            String reason = host.beforeRead(null);
-            if (reason != null) {
-                throw new IllegalStateException("Cannot finalize the value for " + displayNameForThisCollection() + " because " + reason + ".");
-            }
-        }
+    }
+
+    private void finalizeNow() {
         calculateFinalizedValue();
-        state = State.Final;
-        disallowChanges = true;
+        valueState = valueState.finalState();
     }
 
     public boolean isFinalizing() {
-        return state != State.Mutable;
+        return valueState.isFinalizing();
     }
 
     @Override
     public void disallowChanges() {
-        disallowChanges = true;
+        valueState.disallowChanges();
     }
 
     @Override
     public void finalizeValueOnRead() {
-        if (state == State.Mutable || state == State.ImplicitFinalizeNextQuery) {
-            state = State.FinalizeNextQuery;
-        }
+        valueState.finalizeOnNextGet();
     }
 
     @Override
     public void implicitFinalizeValue() {
-        if (state == State.Mutable) {
-            state = State.ImplicitFinalizeNextQuery;
-        }
+        // Property prevents reads *and* mutations,
+        // however CFCs only want automatic finalization on query,
+        // so we do not #disallowChanges().
+        valueState.finalizeOnNextGet();
     }
 
     public void disallowUnsafeRead() {
-        disallowUnsafeRead = true;
-        finalizeValueOnRead();
+        valueState.disallowUnsafeRead();
     }
 
     public int getFactoryId() {
@@ -255,13 +245,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     private void assertMutable() {
-        if (state == State.Final && disallowChanges) {
-            throw new IllegalStateException("The value for " + displayNameForThisCollection() + " is final and cannot be changed.");
-        } else if (disallowChanges) {
-            throw new IllegalStateException("The value for " + displayNameForThisCollection() + " cannot be changed.");
-        } else if (state == State.Final) {
-            throw new IllegalStateException("The value for " + displayNameForThisCollection() + " is final and cannot be changed.");
-        }
+        valueState.beforeMutate(this::displayNameForThisCollection);
     }
 
     private String displayNameForThisCollection() {
@@ -311,20 +295,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-        if (disallowUnsafeRead && state != State.Final) {
-            String reason = host.beforeRead(null);
-            if (reason != null) {
-                throw new IllegalStateException("Cannot query the value for " + displayNameForThisCollection() + " because " + reason + ".");
-            }
-        }
-        if (state == State.ImplicitFinalizeNextQuery) {
-            calculateFinalizedValue();
-            state = State.Final;
-        } else if (state == State.FinalizeNextQuery) {
-            calculateFinalizedValue();
-            state = State.Final;
-            disallowChanges = true;
-        }
+        valueState.finalizeOnReadIfNeeded(this::displayNameForThisCollection, null, ValueSupplier.ValueConsumer.IgnoreUnsafeRead, unused -> finalizeNow());
         value.visitContents(visitor);
     }
 

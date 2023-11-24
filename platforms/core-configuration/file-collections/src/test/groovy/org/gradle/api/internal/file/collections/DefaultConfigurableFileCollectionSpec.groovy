@@ -598,21 +598,21 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'The value for <display> is final and cannot be changed.'
+        e.message == 'The value for <display> is final and cannot be changed any further.'
 
         when:
         collection.setFrom()
 
         then:
         def e2 = thrown(IllegalStateException)
-        e2.message == 'The value for <display> is final and cannot be changed.'
+        e2.message == 'The value for <display> is final and cannot be changed any further.'
 
         when:
         collection.setFrom(['some', 'more'])
 
         then:
         def e3 = thrown(IllegalStateException)
-        e3.message == 'The value for <display> is final and cannot be changed.'
+        e3.message == 'The value for <display> is final and cannot be changed any further.'
     }
 
     def "cannot mutate from set when finalized"() {
@@ -627,28 +627,28 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'The value for <display> is final and cannot be changed.'
+        e.message == 'The value for <display> is final and cannot be changed any further.'
 
         when:
         collection.from.add('b')
 
         then:
         def e2 = thrown(IllegalStateException)
-        e2.message == 'The value for <display> is final and cannot be changed.'
+        e2.message == 'The value for <display> is final and cannot be changed any further.'
 
         when:
         collection.from.remove('a')
 
         then:
         def e3 = thrown(IllegalStateException)
-        e3.message == 'The value for <display> is final and cannot be changed.'
+        e3.message == 'The value for <display> is final and cannot be changed any further.'
 
         when:
         collection.from.iterator().remove()
 
         then:
         def e4 = thrown(IllegalStateException)
-        e4.message == 'The value for <display> is final and cannot be changed.'
+        e4.message == 'The value for <display> is final and cannot be changed any further.'
     }
 
     def "cannot add paths when finalized"() {
@@ -663,7 +663,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'The value for <display> is final and cannot be changed.'
+        e.message == 'The value for <display> is final and cannot be changed any further.'
     }
 
     def "resolves path to file when queried after implicitly finalized"() {
@@ -1112,14 +1112,14 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'The value for <display> is final and cannot be changed.'
+        e.message == 'The value for <display> is final and cannot be changed any further.'
 
         when:
         collection.setFrom(['some', 'more'])
 
         then:
         def e2 = thrown(IllegalStateException)
-        e2.message == 'The value for <display> is final and cannot be changed.'
+        e2.message == 'The value for <display> is final and cannot be changed any further.'
     }
 
     def "cannot add paths when queried after finalize on read"() {
@@ -1135,14 +1135,14 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'The value for <display> is final and cannot be changed.'
+        e.message == 'The value for <display> is final and cannot be changed any further.'
 
         when:
         collection.from()
 
         then:
         def e2 = thrown(IllegalStateException)
-        e2.message == 'The value for <display> is final and cannot be changed.'
+        e2.message == 'The value for <display> is final and cannot be changed any further.'
     }
 
     def "cannot mutate from set when queried after finalize on read"() {
@@ -1158,28 +1158,28 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'The value for <display> is final and cannot be changed.'
+        e.message == 'The value for <display> is final and cannot be changed any further.'
 
         when:
         collection.from.add('b')
 
         then:
         def e2 = thrown(IllegalStateException)
-        e2.message == 'The value for <display> is final and cannot be changed.'
+        e2.message == 'The value for <display> is final and cannot be changed any further.'
 
         when:
         collection.from.remove('a')
 
         then:
         def e3 = thrown(IllegalStateException)
-        e3.message == 'The value for <display> is final and cannot be changed.'
+        e3.message == 'The value for <display> is final and cannot be changed any further.'
 
         when:
         collection.from.iterator().remove()
 
         then:
         def e4 = thrown(IllegalStateException)
-        e4.message == 'The value for <display> is final and cannot be changed.'
+        e4.message == 'The value for <display> is final and cannot be changed any further.'
     }
 
     def "cannot specify paths when changes disallowed"() {
@@ -1193,14 +1193,14 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'The value for <display> cannot be changed.'
+        e.message == 'The value for <display> cannot be changed any further.'
 
         when:
         collection.setFrom(['some', 'more'])
 
         then:
         def e2 = thrown(IllegalStateException)
-        e2.message == 'The value for <display> cannot be changed.'
+        e2.message == 'The value for <display> cannot be changed any further.'
     }
 
     def "cannot mutate from set when changes disallowed"() {
@@ -1214,28 +1214,28 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'The value for <display> cannot be changed.'
+        e.message == 'The value for <display> cannot be changed any further.'
 
         when:
         collection.from.add('b')
 
         then:
         def e2 = thrown(IllegalStateException)
-        e2.message == 'The value for <display> cannot be changed.'
+        e2.message == 'The value for <display> cannot be changed any further.'
 
         when:
         collection.from.remove('a')
 
         then:
         def e3 = thrown(IllegalStateException)
-        e3.message == 'The value for <display> cannot be changed.'
+        e3.message == 'The value for <display> cannot be changed any further.'
 
         when:
         collection.from.iterator().remove()
 
         then:
         def e4 = thrown(IllegalStateException)
-        e4.message == 'The value for <display> cannot be changed.'
+        e4.message == 'The value for <display> cannot be changed any further.'
     }
 
     def "cannot add paths when changes disallowed"() {
@@ -1249,7 +1249,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'The value for <display> cannot be changed.'
+        e.message == 'The value for <display> cannot be changed any further.'
     }
 
     def "cannot specify paths when changes disallowed and implicitly finalized"() {
@@ -1264,14 +1264,14 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'The value for <display> cannot be changed.'
+        e.message == 'The value for <display> cannot be changed any further.'
 
         when:
         collection.setFrom(['some', 'more'])
 
         then:
         def e2 = thrown(IllegalStateException)
-        e2.message == 'The value for <display> cannot be changed.'
+        e2.message == 'The value for <display> cannot be changed any further.'
     }
 
     def "resolves closure to files when changes disallowed"() {
@@ -1395,7 +1395,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Cannot query the value for <display> because <reason>."
+        e.message == "Cannot query the value of <display> because <reason>."
 
         and:
         1 * host.beforeRead(null) >> "<reason>"
@@ -1430,7 +1430,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Cannot query the value for <display> because <reason>."
+        e.message == "Cannot query the value of <display> because <reason>."
 
         and:
         1 * host.beforeRead(null) >> "<reason>"
@@ -1459,7 +1459,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Cannot finalize the value for <display> because <reason>."
+        e.message == "Cannot finalize the value of <display> because <reason>."
 
         and:
         1 * host.beforeRead(null) >> "<reason>"
