@@ -27,8 +27,10 @@ import java.nio.file.attribute.BasicFileAttributes;
 
 public class DefaultSymbolicLinkDetails implements SymbolicLinkDetails {
     private final Path target;
-    private final Path absoluteTarget;
-    private final boolean isRelative;
+    private Path absoluteTarget = null;
+    private Boolean isRelative;
+    private final int relativePathDepth;
+    private final Path path;
 
     public DefaultSymbolicLinkDetails(Path path, int relativePathDepth) {
         try {
@@ -36,57 +38,51 @@ public class DefaultSymbolicLinkDetails implements SymbolicLinkDetails {
         } catch (IOException e) {
             throw new GradleException(String.format("Couldn't read symbolic link '%s'.", path), e);
         }
+        this.relativePathDepth = relativePathDepth;
+        this.path = path;
+    }
+
+    private void determineTarget() {
+        if (absoluteTarget != null) {
+            return;
+        }
         if (target.isAbsolute()) {
             absoluteTarget = target;
             isRelative = false;
+        } else if (relativePathDepth == 0) {
+            try {
+                absoluteTarget = path.resolveSibling(target).toRealPath();
+            } catch (IOException e) {
+                absoluteTarget = path.resolveSibling(target);
+            }
+            this.isRelative = false;
         } else {
             Path resolvedTarget = path.resolveSibling(target);
-            boolean isRelative;
-            Path absoluteTarget;
             try {
                 absoluteTarget = resolvedTarget.toRealPath();
-                isRelative = isRelativeToRoot(path, relativePathDepth, resolvedTarget, absoluteTarget);
             } catch (IOException e) {
                 absoluteTarget = resolvedTarget;
                 isRelative = false;
             }
-            this.absoluteTarget = absoluteTarget;
-            this.isRelative = isRelative;
         }
     }
 
     /**
      * Comparing by string to mitigate unicode normalization.
-     * Path should begin with the absolute path to the root spec and should not contain parts at the same level or upper at any point.
+     * Path should not contain parts at the same level or upper at any point.
      **/
-    private boolean isRelativeToRoot(Path path, int relativePathDepth, Path resolvedTarget, Path absoluteTarget) {
-        int rootAbsoluteLength = path.getNameCount() - relativePathDepth;
-        if (absoluteTarget.getNameCount() < rootAbsoluteLength || absoluteTarget.getRoot() != path.getRoot()) {
-            return false;
-        }
-        int current = 0;
-        for (; current < rootAbsoluteLength; current++) {
-            String absolutePart = absoluteTarget.getName(current).toString();
-            if (!path.getName(current).toString().equals(absolutePart)) {
-                return false;
-            }
-            if (!resolvedTarget.getName(current).toString().equals(absolutePart)) {
-                return false;
-            }
-        }
-
-        int absolutePathIndex = current;
-        int rootIndex = current;
+    private static boolean isRelativeToRoot(Path linkPath, int rootPrefixLength, int relativePathDepth, Path absoluteTarget, Path relativeTarget) {
         int absoluteLength = absoluteTarget.getNameCount();
-        for (; current < resolvedTarget.getNameCount(); current++) {
-            String part = resolvedTarget.getName(current).toString();
+        int absolutePathIndex = rootPrefixLength + relativePathDepth - 1;
+        for (int current = 0; current < relativeTarget.getNameCount(); current++) {
+            String part = relativeTarget.getName(current).toString();
             if (part.equals("..")) { // consistent with UnixPath and normalize
                 absolutePathIndex--;
             } else if (part.equals(".")) {
                 continue;
             } else {
                 if (absolutePathIndex >= absoluteLength || !absoluteTarget.getName(absolutePathIndex).toString().equals(part)) {
-                    Path currentPath = resolvedTarget.getRoot().resolve(resolvedTarget.subpath(0, current + 1));
+                    Path currentPath = linkPath.resolveSibling(relativeTarget.subpath(0, current + 1));
                     try {
                         BasicFileAttributes attrs = Files.readAttributes(currentPath, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
                         if (attrs.isSymbolicLink()) {
@@ -98,15 +94,32 @@ public class DefaultSymbolicLinkDetails implements SymbolicLinkDetails {
                 }
                 absolutePathIndex++;
             }
-            if (absolutePathIndex < rootIndex) {
+            if (absolutePathIndex < rootPrefixLength) {
                 return false;
             }
         }
         return true;
     }
 
+    private static Path realPathToRoot(Path path, int rootAbsoluteLength) {
+        try {
+            return path.getRoot().resolve(path.subpath(0, path.getNameCount() - rootAbsoluteLength)).toRealPath();
+        } catch (IOException e) {
+            return path;
+        }
+    }
+
     @Override
     public boolean isRelative() {
+        determineTarget();
+        if (isRelative == null) {
+            Path absolutePathToRoot = realPathToRoot(path, relativePathDepth);
+            if (!absoluteTarget.startsWith(absolutePathToRoot)) {
+                isRelative = false;
+            } else {
+                isRelative = isRelativeToRoot(path, absolutePathToRoot.getNameCount(), relativePathDepth, absoluteTarget, target);
+            }
+        }
         return isRelative;
     }
 
@@ -117,6 +130,7 @@ public class DefaultSymbolicLinkDetails implements SymbolicLinkDetails {
 
     @Override
     public boolean targetExists() {
+        determineTarget();
         return Files.exists(absoluteTarget);
     }
 }
