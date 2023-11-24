@@ -52,7 +52,7 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 ### Public API improvements
 
-### Enhanced name-based filtering on NamedDomainObject containers
+#### Enhanced name-based filtering on NamedDomainObject containers
 
 A new [`named(Spec<String>)` method](javadoc/org/gradle/api/NamedDomainObjectCollection.html#named-org.gradle.api.specs.Spec-) has been added to all NamedDomainObject containers, which simplifies name-based filtering and eliminates the need to touch any of the values, may they be realized or unrealized.
 
@@ -62,6 +62,32 @@ A new [`named(Spec<String>)` method](javadoc/org/gradle/api/NamedDomainObjectCol
 [`ConfigurationPublications#capability(Object)`](javadoc/org/gradle/api/artifacts/ConfigurationPublications.html#capability-java.lang.Object-),
 [`ModuleDependencyCapabilitiesHandler#requireCapability(Object)`](javadoc/org/gradle/api/artifacts/ModuleDependencyCapabilitiesHandler.html#requireCapability-java.lang.Object-),
 and [`CapabilitiesResolution#withCapability(Object, Action)`](javadoc/org/gradle/api/artifacts/CapabilitiesResolution.html#withCapability-java.lang.Object-org.gradle.api.Action-).
+
+### Error and warning reporting improvements
+
+Gradle provides a rich set of error and warning messages to help you understand and resolve problems in your build.
+
+#### Dependency locking now separates the error from the possible action to try
+
+[Dependency locking](userguide/dependency_locking.html) is a mechanism for ensuring reproducible builds when using dynamic dependency versions.
+
+This release improves error messages by separating the error from the possible action to fix the issue in the console output.
+Errors from invalid [lock file format](userguide/dependency_locking.html#lock_state_location_and_format) or [missing lock state when strict mode is enabled](userguide/dependency_locking.html#fine_tuning_dependency_locking_behaviour_with_lock_mode) are now displayed as illustrated below:
+
+```
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':dependencies'.
+> Could not resolve all dependencies for configuration ':lockedConf'.
+   > Invalid lock state for lock file specified in '<project>/lock.file'. Line: '<<<<<<< HEAD'
+
+* Try:
+> Verify the lockfile content. For more information on lock file format, please refer to https://docs.gradle.org/@version@/userguide/dependency_locking.html#lock_state_location_and_format in the Gradle documentation.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+```
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
