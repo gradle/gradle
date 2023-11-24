@@ -16,23 +16,21 @@
 
 package org.gradle.caching;
 
-import org.gradle.api.Describable;
-
 /**
- * Cache key identifying an entry in the build cache.
+ * <p><code>BuildCacheException</code> is the base class of all exceptions thrown by a {@link BuildCacheService}.</p>
  *
  * @since 3.3
  */
-public interface BuildCacheKey extends Describable {
-    /**
-     * Returns the string representation of the cache key.
-     */
-    String getHashCode();
+public class BuildCacheException extends RuntimeException {
+    public BuildCacheException() {
+        super();
+    }
 
-    /**
-     * Returns the byte array representation of the cache key.
-     *
-     * @since 5.4
-     */
-    byte[] toByteArray();
+    public BuildCacheException(String message) {
+        super(message);
+    }
+
+    public BuildCacheException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

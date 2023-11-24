@@ -84,6 +84,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "build-cache-spi",
+    "path": "platforms/core-execution/build-cache-spi",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-events",
     "path": "subprojects/build-events",
     "unitTests": true,
