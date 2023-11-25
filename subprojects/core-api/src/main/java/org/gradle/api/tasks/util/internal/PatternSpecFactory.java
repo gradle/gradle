@@ -89,9 +89,8 @@ public class PatternSpecFactory implements FileSystemDefaultExcludesListener {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private synchronized Spec<FileTreeElement> getDefaultExcludeSpec(CaseSensitivity caseSensitivity) {
-        Set<String> defaultExcludes = new HashSet(Arrays.asList(DirectoryScanner.getDefaultExcludes()));
+        Set<String> defaultExcludes = new HashSet<String>(Arrays.asList(DirectoryScanner.getDefaultExcludes()));
         if (defaultExcludeSpecCache.isEmpty()) {
             updateDefaultExcludeSpecCache(defaultExcludes);
         } else if (invalidChangeOfExcludes(defaultExcludes)) {
@@ -113,9 +112,8 @@ public class PatternSpecFactory implements FileSystemDefaultExcludesListener {
         throw new InvalidUserCodeException(String.format("Cannot change default excludes during the build. They were changed from %s to %s. Configure default excludes in the settings script instead.",  sortedExcludesFromSettings, sortedNewExcludes));
     }
 
-    @SuppressWarnings("unchecked")
     public synchronized void setDefaultExcludesFromSettings(String[] excludesFromSettings) {
-        Set<String> excludesFromSettingsSet = new HashSet(Arrays.asList(excludesFromSettings));
+        Set<String> excludesFromSettingsSet = new HashSet<String>(Arrays.asList(excludesFromSettings));
         if (!previousDefaultExcludes.equals(excludesFromSettingsSet)) {
             updateDefaultExcludeSpecCache(excludesFromSettingsSet);
         }
@@ -123,9 +121,8 @@ public class PatternSpecFactory implements FileSystemDefaultExcludesListener {
 
     private void updateDefaultExcludeSpecCache(Set<String> defaultExcludes) {
         previousDefaultExcludes = defaultExcludes;
-        List<String> patterns = new ArrayList<String>(defaultExcludes);
         for (CaseSensitivity caseSensitivity : CaseSensitivity.values()) {
-            defaultExcludeSpecCache.put(caseSensitivity, createSpec(patterns, false, caseSensitivity.isCaseSensitive()));
+            defaultExcludeSpecCache.put(caseSensitivity, createSpec(defaultExcludes, false, caseSensitivity.isCaseSensitive()));
         }
     }
 
