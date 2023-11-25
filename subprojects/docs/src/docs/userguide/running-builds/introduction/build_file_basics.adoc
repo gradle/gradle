@@ -42,11 +42,11 @@ Let's take a look at an example and break it down:
 [source,kotlin]
 ----
 plugins {
-    id("application")    // <1>
+    id("application")               // <1>
 }
 
 application {
-    mainClass = "main"  // <2>
+    mainClass = "com.example.Main"  // <2>
 }
 ----
 <1> Add plugins.
@@ -59,11 +59,11 @@ application {
 [source,groovy]
 ----
 plugins {
-    id 'application'     // <1>
+    id 'application'                // <1>
 }
 
 application {
-    mainClass = 'main'  // <2>
+    mainClass = 'com.example.Main'  // <2>
 }
 ----
 <1> Add plugins.
@@ -105,7 +105,7 @@ application {
 
 In this example, the main class (i.e., the point where the program's execution begins) is `com.example.Main`.
 
-//Consult the writing_build_scripts.adoc#writing_build_scripts,Writing Settings File page to learn more.
+Consult the <<writing_build_scripts.adoc#writing_build_scripts,Writing Settings File>> page to learn more.
 
 [.text-right]
 **Next Step:** <<dependency_management_basics.adoc#dependency_management_basics,Learn about Dependency Management>> >>

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.watch.registry.impl
 
+
 import net.rubygrapefruit.platform.file.FileWatcher
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
@@ -54,10 +55,10 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
 
     def watcher = Mock(FileWatcher)
     def ignoredForWatching = [] as Set<String>
-    Predicate<String> watchFilter = { path -> !ignoredForWatching.contains(path) }
+    Predicate<String> immutableLocationsFilter = ignoredForWatching::contains
     def probeLocationResolver = { hierarchy -> new File(hierarchy, ".gradle/file-watching.probe") } as Function<File, File>
     def probeRegistry = Stub(FileWatcherProbeRegistry)
-    def watchableHierarchies = new WatchableHierarchies(probeRegistry, watchFilter)
+    def watchableHierarchies = new WatchableHierarchies(probeRegistry, immutableLocationsFilter)
     def directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [], Stub(DirectorySnapshotterStatistics.Collector))
     FileWatcherUpdater updater
     def virtualFileSystem = new TestVirtualFileSystem(DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)) {
@@ -445,7 +446,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     DirectorySnapshot snapshotDirectory(File directory) {
-        directorySnapshotter.snapshot(directory.absolutePath, null) {} as DirectorySnapshot
+        directorySnapshotter.snapshot(directory.absolutePath, null, [:]) {} as DirectorySnapshot
     }
 
     void addSnapshot(FileSystemLocationSnapshot snapshot) {

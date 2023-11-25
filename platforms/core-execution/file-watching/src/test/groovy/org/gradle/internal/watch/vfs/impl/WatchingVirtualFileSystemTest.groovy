@@ -39,7 +39,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         empty() >> emptySnapshotHierarchy
     }
     def daemonDocumentationIndex = Mock(DaemonDocumentationIndex)
-    def locationsUpdatedByCurrentBuild = Mock(LocationsWrittenByCurrentBuild)
+    def locationsUpdatedByCurrentBuild = Mock(FileWatchingFilter)
     def buildOperationRunner = new TestBuildOperationExecutor()
     def watchableFileSystemDetector = Mock(WatchableFileSystemDetector)
     def fileChangeListeners = Mock(FileChangeListeners)

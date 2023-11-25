@@ -34,8 +34,8 @@ import java.util.stream.Collectors;
 
 public class LinuxFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<LinuxFileEventFunctions, LinuxFileWatcher> {
 
-    public LinuxFileWatcherRegistryFactory(Predicate<String> watchFilter) throws NativeIntegrationUnavailableException {
-        super(FileEvents.get(LinuxFileEventFunctions.class), watchFilter);
+    public LinuxFileWatcherRegistryFactory(Predicate<String> immutableLocationsFilter) throws NativeIntegrationUnavailableException {
+        super(FileEvents.get(LinuxFileEventFunctions.class), immutableLocationsFilter);
     }
 
     @Override

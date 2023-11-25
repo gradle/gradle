@@ -63,7 +63,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
         }
 
         when:
-        directorySnapshotter().snapshot(rootDir.absolutePath, directoryWalkerPredicate(patternSet), completeSnapshotConsumer)
+        directorySnapshotter().snapshot(rootDir.absolutePath, directoryWalkerPredicate(patternSet), [:], completeSnapshotConsumer)
         then:
         1 * patternSet.getAsSpec() >> assertingSpec
 
@@ -92,7 +92,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
 
     @Override
     protected List<String> walkDirForPaths(DirectorySnapshotter walker, File rootDir, PatternSet patternSet) {
-        def snapshot = walker.snapshot(rootDir.absolutePath, directoryWalkerPredicate(patternSet), completeSnapshotConsumer)
+        def snapshot = walker.snapshot(rootDir.absolutePath, directoryWalkerPredicate(patternSet), [:], completeSnapshotConsumer)
         return SnapshotVisitorUtil.getAbsolutePaths(snapshot)
     }
 

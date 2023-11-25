@@ -501,7 +501,7 @@ table.tableblock #preamble > .sectionbody > .paragraph:first-of-type p { font-si
 .admonitionblock td.content {
     word-wrap: anywhere;
     background: var(--admonition-background);
-    padding: 1rem 1rem 0rem;
+    padding: 1rem 1rem 1rem;
     width: 100%;
     border-radius: 4px;
 }
