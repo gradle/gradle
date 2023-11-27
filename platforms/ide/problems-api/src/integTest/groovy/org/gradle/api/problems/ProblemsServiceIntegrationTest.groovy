@@ -435,6 +435,39 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         ]
     }
 
+    def "cannot emit a problem with invalid additional data"() {
+        given:
+        disableProblemsApiCheck()
+
+        buildFile """
+            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.Severity
+            import org.gradle.internal.deprecation.Documentation
+
+            abstract class ProblemReportingTask extends DefaultTask {
+                @Inject
+                protected abstract Problems getProblems();
+
+                @TaskAction
+                void run() {
+                    problems.create {
+                        it.label("label")
+                        .undocumented()
+                        .noLocation()
+                        .category("type")
+                        .additionalData("key", ["collections", "are", "not", "supported", "yet"])
+                    }.report()
+                }
+            }
+            """
+
+        when:
+        def failure = fails("reportProblem")
+
+        then:
+        failure.assertHasCause('ProblemBuilder.additionalData() supports values of type String, but java.util.ArrayList as given.')
+    }
+
     def "can throw a problem with a wrapper exception"() {
         given:
         buildFile """
@@ -444,20 +477,20 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    RuntimeException exception = new RuntimeException("test")
                     problems.throwing {
                         spec -> spec
                             .label("label")
                             .undocumented()
                             .noLocation()
                             .category("type")
-                            .withException(exception)
+                            .withException(new RuntimeException("test"))
                     }
                 }
             }
             """
 
         when:
+
         fails("reportProblem")
 
         then:

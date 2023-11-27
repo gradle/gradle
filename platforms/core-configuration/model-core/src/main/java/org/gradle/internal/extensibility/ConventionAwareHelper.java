@@ -28,6 +28,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -39,7 +40,7 @@ import java.util.concurrent.Callable;
 
 import static org.gradle.util.internal.GUtil.uncheckedCall;
 
-@SuppressWarnings("deprecation")
+@SuppressWarnings({"deprecation", "FieldNamingConvention"})
 public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.internal.HasConvention {
     //prefix internal fields with _ so that they don't get into the way of propertyMissing()
     private final org.gradle.api.plugins.Convention _convention;
@@ -166,6 +167,7 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
         private boolean cache;
         private Object cachedValue;
 
+        @Nullable
         public Object getValue(org.gradle.api.plugins.Convention convention, IConventionAware conventionAwareObject) {
             if (!cache) {
                 return doGetValue(convention, conventionAwareObject);
@@ -183,6 +185,7 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
             cachedValue = null;
         }
 
+        @Nullable
         abstract Object doGetValue(org.gradle.api.plugins.Convention convention, IConventionAware conventionAwareObject);
     }
 }

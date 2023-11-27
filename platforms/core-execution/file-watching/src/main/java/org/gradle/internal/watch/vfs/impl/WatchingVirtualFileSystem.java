@@ -64,7 +64,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
 
     private final FileWatcherRegistryFactory watcherRegistryFactory;
     private final DaemonDocumentationIndex daemonDocumentationIndex;
-    private final LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild;
+    private final FileWatchingFilter locationsWrittenByCurrentBuild;
     private final WatchableFileSystemDetector watchableFileSystemDetector;
     private final FileChangeListeners fileChangeListeners;
     private final List<File> unsupportedFileSystems = new ArrayList<>();
@@ -83,7 +83,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         FileWatcherRegistryFactory watcherRegistryFactory,
         SnapshotHierarchy root,
         DaemonDocumentationIndex daemonDocumentationIndex,
-        LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild,
+        FileWatchingFilter locationsWrittenByCurrentBuild,
         WatchableFileSystemDetector watchableFileSystemDetector,
         FileChangeListeners fileChangeListeners
     ) {
@@ -334,17 +334,17 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     }
 
     private static class FilterChangesToOutputsChangesHandler implements FileWatcherRegistry.ChangeHandler {
-        private final LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild;
+        private final FileWatchingFilter locationsWrittenByCurrentBuild;
         private final FileWatcherRegistry.ChangeHandler delegate;
 
-        public FilterChangesToOutputsChangesHandler(LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild, FileWatcherRegistry.ChangeHandler delegate) {
+        public FilterChangesToOutputsChangesHandler(FileWatchingFilter locationsWrittenByCurrentBuild, FileWatcherRegistry.ChangeHandler delegate) {
             this.locationsWrittenByCurrentBuild = locationsWrittenByCurrentBuild;
             this.delegate = delegate;
         }
 
         @Override
         public void handleChange(FileWatcherRegistry.Type type, Path path) {
-            if (!locationsWrittenByCurrentBuild.wasLocationWritten(path.toString())) {
+            if (locationsWrittenByCurrentBuild.shouldWatchLocation(path.toString())) {
                 delegate.handleChange(type, path);
             }
         }

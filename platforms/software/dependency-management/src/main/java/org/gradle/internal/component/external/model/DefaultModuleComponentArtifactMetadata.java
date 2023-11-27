@@ -16,10 +16,8 @@
 
 package org.gradle.internal.component.external.model;
 
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -62,11 +60,6 @@ public class DefaultModuleComponentArtifactMetadata implements ModuleComponentAr
     @Override
     public ComponentIdentifier getComponentId() {
         return id.getComponentIdentifier();
-    }
-
-    @Override
-    public ArtifactIdentifier toArtifactIdentifier() {
-        return new DefaultArtifactIdentifier(id);
     }
 
     @Override

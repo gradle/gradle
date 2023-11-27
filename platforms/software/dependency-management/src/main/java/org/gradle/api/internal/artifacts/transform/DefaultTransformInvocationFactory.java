@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.cache.Cache;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine;
@@ -39,7 +40,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     private final ExecutionEngine executionEngine;
     private final FileSystemAccess fileSystemAccess;
     private final TransformExecutionListener transformExecutionListener;
-    private final TransformWorkspaceServices immutableWorkspaceProvider;
+    private final ImmutableTransformWorkspaceServices immutableWorkspaceServices;
     private final FileCollectionFactory fileCollectionFactory;
     private final ProjectStateRegistry projectStateRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -49,7 +50,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         ExecutionEngine executionEngine,
         FileSystemAccess fileSystemAccess,
         TransformExecutionListener transformExecutionListener,
-        TransformWorkspaceServices immutableWorkspaceProvider,
+        ImmutableTransformWorkspaceServices immutableWorkspaceServices,
         FileCollectionFactory fileCollectionFactory,
         ProjectStateRegistry projectStateRegistry,
         BuildOperationExecutor buildOperationExecutor,
@@ -58,7 +59,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         this.executionEngine = executionEngine;
         this.fileSystemAccess = fileSystemAccess;
         this.transformExecutionListener = transformExecutionListener;
-        this.immutableWorkspaceProvider = immutableWorkspaceProvider;
+        this.immutableWorkspaceServices = immutableWorkspaceServices;
         this.fileCollectionFactory = fileCollectionFactory;
         this.projectStateRegistry = projectStateRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -74,11 +75,15 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         InputFingerprinter inputFingerprinter
     ) {
         ProjectInternal producerProject = determineProducerProject(subject);
-        TransformWorkspaceServices workspaceServices = determineWorkspaceServices(producerProject);
 
+        Cache<UnitOfWork.Identity, Try<TransformExecutionResult.TransformWorkspaceResult>> identityCache;
         UnitOfWork execution;
         if (producerProject == null) {
-            execution = new ImmutableTransformExecution(
+            // Non-project-bound transforms run in a global immutable workspace,
+            // and are identified by a non-normalized identity
+            // See comments on NonNormalizedIdentityImmutableTransformExecution
+            identityCache = immutableWorkspaceServices.getIdentityCache();
+            execution = new NonNormalizedIdentityImmutableTransformExecution(
                 transform,
                 inputArtifact,
                 dependencies,
@@ -90,9 +95,28 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 fileCollectionFactory,
                 inputFingerprinter,
                 fileSystemAccess,
-                workspaceServices
+                immutableWorkspaceServices.getWorkspaceProvider()
+            );
+        } else if (!transform.requiresInputChanges()) {
+            // Non-incremental project artifact transforms also run in an immutable workspace
+            identityCache = immutableWorkspaceServices.getIdentityCache();
+            execution = new NormalizedIdentityImmutableTransformExecution(
+                transform,
+                inputArtifact,
+                dependencies,
+                subject,
+
+                transformExecutionListener,
+                buildOperationExecutor,
+                progressEventEmitter,
+                fileCollectionFactory,
+                inputFingerprinter,
+                immutableWorkspaceServices.getWorkspaceProvider()
             );
         } else {
+            // Incremental project artifact transforms run in project-bound mutable workspace
+            MutableTransformWorkspaceServices workspaceServices = producerProject.getServices().get(MutableTransformWorkspaceServices.class);
+            identityCache = workspaceServices.getIdentityCache();
             execution = new MutableTransformExecution(
                 transform,
                 inputArtifact,
@@ -105,22 +129,15 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 progressEventEmitter,
                 fileCollectionFactory,
                 inputFingerprinter,
-                workspaceServices
+                workspaceServices.getWorkspaceProvider()
             );
         }
 
         return executionEngine.createRequest(execution)
-            .executeDeferred(workspaceServices.getIdentityCache())
+            .executeDeferred(identityCache)
             .map(result -> result
-                .map(successfulResult -> successfulResult.resolveOutputsForInputArtifact(inputArtifact))
+                .map(successfulResult -> successfulResult.resolveForInputArtifact(inputArtifact))
                 .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure)));
-    }
-
-    private TransformWorkspaceServices determineWorkspaceServices(@Nullable ProjectInternal producerProject) {
-        if (producerProject == null) {
-            return immutableWorkspaceProvider;
-        }
-        return producerProject.getServices().get(TransformWorkspaceServices.class);
     }
 
     @Nullable

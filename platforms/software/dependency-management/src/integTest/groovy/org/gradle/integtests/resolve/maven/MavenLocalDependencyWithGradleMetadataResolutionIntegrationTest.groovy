@@ -282,9 +282,9 @@ dependencies {
             root(":", ":test:") {
                 module("test:a:1.2") {
                     configuration("lot-o-files")
-                    artifact(fileName: 'a_main.jar', artifactName: 'a_main.jar', version: '')
+                    artifact(fileName: 'a_main.jar', version: '')
                     // Version is extracted from the file name byt classifier is extracted from the URL. This is checking current behaviour not necessarily desired behaviour
-                    artifact(fileName: 'a_extra.jar', artifactName: 'a_extra.jar', version: '', classifier: 'extra')
+                    artifact(fileName: 'a_extra.jar', version: '', classifier: 'extra')
                     artifact(type: 'zip', version: '')
                 }
             }

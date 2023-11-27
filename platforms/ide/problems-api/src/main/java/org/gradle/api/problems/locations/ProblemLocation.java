@@ -18,13 +18,15 @@ package org.gradle.api.problems.locations;
 
 import org.gradle.api.Incubating;
 
+import java.io.Serializable;
+
 /**
  * Represents a location information of a problem.
  *
  * @since 8.5
  */
 @Incubating
-public interface ProblemLocation {
+public interface ProblemLocation extends Serializable {
 
     /**
      * Returns an identifier of the location type.

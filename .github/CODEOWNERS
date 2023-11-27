@@ -13,62 +13,6 @@
 # mixed across several groups.
 * @gradle/bt-unassigned-maintainers
 
-# Core automation platform (core/execution)
-subprojects/build-profile/                  @gradle/bt-execution
-
-# Core automation platform (core/configuration)
-platforms/core-configuration/                   @gradle/bt-configuration
-
-# Core automation platform (Kotlin DSL)
-build-logic/kotlin-dsl/                                     @gradle/bt-kotlin-dsl-maintainers
-build-logic/kotlin-dsl-shared-runtime/                      @gradle/bt-kotlin-dsl-maintainers
-platforms/core-configuration/kotlin-dsl/                    @gradle/bt-kotlin-dsl-maintainers
-platforms/core-configuration/kotlin-dsl-integ-tests/        @gradle/bt-kotlin-dsl-maintainers
-platforms/core-configuration/kotlin-dsl-plugins/            @gradle/bt-kotlin-dsl-maintainers
-platforms/core-configuration/kotlin-dsl-provider-plugins/   @gradle/bt-kotlin-dsl-maintainers
-platforms/core-configuration/kotlin-dsl-tooling-builders/   @gradle/bt-kotlin-dsl-maintainers
-platforms/core-configuration/kotlin-dsl-tooling-models/     @gradle/bt-kotlin-dsl-maintainers
-
-# Core automation platform (core/runtime)
-subprojects/installation-beacon             @gradle/bt-core-runtime-maintainers
-
-# Gradle Enterprise integration
-platforms/enterprise                                    @gradle/bt-build-scan @gradle/ge-build-insights
-platforms/enterprise/enterprise/                        @gradle/bt-build-scan @gradle/ge-testing @gradle/ge-build-insights @ldaley
-platforms/enterprise/enterprise-logging/                @gradle/bt-build-scan @gradle/ge-build-insights @gradle/ge-testing
-platforms/enterprise/enterprise-operations/             @gradle/bt-build-scan
-platforms/enterprise/enterprise-plugin-performance/     @gradle/bt-build-scan
-
-# JVM platform
-platforms/jvm/                              @gradle/bt-jvm
-subprojects/distributions-publishing/       @gradle/bt-jvm
-subprojects/jvm-services/                   @gradle/bt-jvm
-subprojects/normalization-java/             @gradle/bt-jvm
-subprojects/platform-jvm/                   @gradle/bt-jvm
-subprojects/plugins/                        @gradle/bt-jvm
-
-# These are located under platforms/jvm/, but we also want to inform the GE testing team of changes, so we need to list them explicitly to match multiple owners
-platforms/jvm/testing-junit-platform/       @gradle/bt-jvm @gradle/ge-testing
-platforms/jvm/testing-jvm/                  @gradle/bt-jvm @gradle/ge-testing
-platforms/jvm/testing-jvm-infrastructure/   @gradle/bt-jvm @gradle/ge-testing
-
-# Software platform
-platforms/software/                         @gradle/bt-jvm
-subprojects/dependency-management/          @gradle/bt-jvm
-subprojects/ivy/                            @gradle/bt-jvm
-subprojects/maven/                          @gradle/bt-jvm
-subprojects/platform-base/                  @gradle/bt-jvm
-subprojects/publish/                        @gradle/bt-jvm
-subprojects/reporting/                      @gradle/bt-jvm
-subprojects/resources/                      @gradle/bt-jvm
-subprojects/resources-gcs/                  @gradle/bt-jvm
-subprojects/resources-http/                 @gradle/bt-jvm
-subprojects/resources-s3/                   @gradle/bt-jvm
-subprojects/resources-sftp/                 @gradle/bt-jvm
-subprojects/security/                       @gradle/bt-jvm
-subprojects/signing/                        @gradle/bt-jvm
-subprojects/version-control/                @gradle/bt-jvm
-
 # Build infrastructure
 .teamcity/                                  @gradle/bt-developer-productivity
 .github/                                    @gradle/bt-developer-productivity
@@ -83,19 +27,77 @@ subprojects/internal-build-reports/         @gradle/bt-developer-productivity
 subprojects/internal-integ-testing/         @gradle/bt-developer-productivity
 subprojects/internal-performance-testing/   @gradle/bt-developer-productivity
 subprojects/internal-testing/               @gradle/bt-developer-productivity
+subprojects/precondition-tester/            @gradle/bt-developer-productivity
+
+# Core automation platform (core/configuration)
+platforms/core-configuration/               @gradle/bt-configuration
+
+# Core automation platform (Kotlin DSL)
+build-logic/kotlin-dsl/                                     @gradle/bt-kotlin-dsl-maintainers
+build-logic/kotlin-dsl-shared-runtime/                      @gradle/bt-kotlin-dsl-maintainers
+platforms/core-configuration/kotlin-dsl/                    @gradle/bt-kotlin-dsl-maintainers
+platforms/core-configuration/kotlin-dsl-integ-tests/        @gradle/bt-kotlin-dsl-maintainers
+platforms/core-configuration/kotlin-dsl-plugins/            @gradle/bt-kotlin-dsl-maintainers
+platforms/core-configuration/kotlin-dsl-provider-plugins/   @gradle/bt-kotlin-dsl-maintainers
+platforms/core-configuration/kotlin-dsl-tooling-builders/   @gradle/bt-kotlin-dsl-maintainers
+platforms/core-configuration/kotlin-dsl-tooling-models/     @gradle/bt-kotlin-dsl-maintainers
+
+# Core automation platform (core/runtime)
+platforms/core-runtime/                                     @gradle/bt-core-runtime-maintainers
+platforms/core-runtime/build-operations/                    @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-ge-build-cache
+platforms/core-runtime/functional/                          @gradle/bt-core-runtime-maintainers @gradle/bt-execution @bamboo
+platforms/core-runtime/files/                               @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-ge-build-cache
+subprojects/build-profile/                                  @gradle/bt-core-runtime-maintainers
+subprojects/installation-beacon/                            @gradle/bt-core-runtime-maintainers
+subprojects/instrumentation-declarations/                   @gradle/bt-core-runtime-maintainers
+
+# Core automation platform (core/execution)
+platforms/core-execution/                                   @gradle/bt-execution
+platforms/core-execution/build-cache/                       @gradle/bt-execution @gradle/bt-ge-build-cache
+platforms/core-execution/build-cache-base/                  @gradle/bt-execution @gradle/bt-ge-build-cache
+platforms/core-execution/build-cache-http/                  @gradle/bt-execution @gradle/bt-ge-build-cache
+platforms/core-execution/build-cache-packaging/             @gradle/bt-execution @gradle/bt-ge-build-cache
+platforms/core-execution/hashing/                           @gradle/bt-execution @gradle/bt-ge-build-cache
+platforms/core-execution/snapshots/                         @gradle/bt-execution @gradle/bt-ge-build-cache
+
+# Develocity integration
+platforms/enterprise/                                   @gradle/bt-build-scan @gradle/ge-build-insights
+platforms/enterprise/enterprise/                        @gradle/bt-build-scan @gradle/ge-testing @gradle/ge-build-insights @ldaley
+platforms/enterprise/enterprise-logging/                @gradle/bt-build-scan @gradle/ge-build-insights @gradle/ge-testing
+platforms/enterprise/enterprise-operations/             @gradle/bt-build-scan
+platforms/enterprise/enterprise-plugin-performance/     @gradle/bt-build-scan
+
+# JVM platform
+platforms/jvm/                              @gradle/bt-jvm
+subprojects/plugins/                        @gradle/bt-jvm
+
+# JVM testing services also shared by GE testing plugins
+platforms/jvm/testing-junit-platform/       @gradle/bt-jvm @gradle/ge-testing
+platforms/jvm/testing-jvm/                  @gradle/bt-jvm @gradle/ge-testing
+platforms/jvm/testing-jvm-infrastructure/   @gradle/bt-jvm @gradle/ge-testing
+
+# Software platform
+platforms/software/                         @gradle/bt-jvm
+
+# Extensibility
+platforms/extensibility/        @gradle/bt-extensibility-maintainers
+
+# Native
+platforms/native/                   @gradle/bt-native-maintainers
 
 # gitStream files
 .cm/                                @tresat
 .github/workflows/gitstream.yml     @tresat
 
 # Architecture council
-.github/CODEOWNERS @gradle/bt-architecture-council @tresat
+.github/CODEOWNERS @gradle/bt-architecture-council
 
 # IDE Experience team
 platforms/ide/                    @gradle/bt-ide-experience
 # Eventually be moved to the core platform.
 # Currently heavily developed by the bt-ide-experience team.
-platforms/ide/problems            @gradle/bt-ide-experience
+platforms/ide/problems/           @gradle/bt-ide-experience
+platforms/ide/ide-native/         @gradle/bt-ide-experience @gradle/bt-native-maintainers
 
 # Release coordination
 subprojects/core-platform/              @gradle/bt-support
@@ -110,6 +112,7 @@ platforms/documentation/docs/src/docs/                                          
 platforms/documentation/docs/src/samples/                                                     @gradle/bt-devrel-education
 platforms/documentation/docs/src/docs-asciidoctor-extensions-base/                            @gradle/bt-devrel-education
 platforms/documentation/docs/src/docs-asciidoctor-extensions/                                 @gradle/bt-devrel-education
+platforms/documentation/samples/                                                       	      @gradle/bt-devrel-education
 
 platforms/documentation/docs/src/snippets/kotlinDsl/                                                @gradle/bt-devrel-education @gradle/bt-kotlin-dsl-maintainers
 platforms/documentation/docs/src/docs/userguide/api/kotlin_dsl.adoc                                 @gradle/bt-devrel-education @gradle/bt-kotlin-dsl-maintainers
@@ -130,18 +133,3 @@ platforms/documentation/docs/src/docs/userguide/dep-man/                        
 platforms/documentation/docs/src/docs/userguide/jvm/                                          @gradle/bt-devrel-education @gradle/bt-jvm
 platforms/documentation/docs/src/docs/userguide/reference/directory_layout.adoc               @gradle/bt-devrel-education @gradle/bt-jvm
 platforms/documentation/docs/src/docs/userguide/troubleshooting/version_catalog_problems.adoc @gradle/bt-devrel-education @gradle/bt-jvm
-
-# Core Runtime
-platforms/core-runtime/                                     @gradle/bt-core-runtime-maintainers
-platforms/core-runtime/build-operations/                    @gradle/bt-execution @gradle/bt-ge-build-cache
-platforms/core-runtime/functional/                          @gradle/bt-core-runtime-maintainers @gradle/bt-execution @bamboo
-platforms/core-runtime/files/                               @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-ge-build-cache
-
-# Core Execution
-platforms/core-execution/                                   @gradle/bt-execution
-platforms/core-execution/build-cache/                       @gradle/bt-execution @gradle/bt-ge-build-cache
-platforms/core-execution/build-cache-base/                  @gradle/bt-execution @gradle/bt-ge-build-cache
-platforms/core-execution/build-cache-http/                  @gradle/bt-execution @gradle/bt-ge-build-cache
-platforms/core-execution/build-cache-packaging/             @gradle/bt-execution @gradle/bt-ge-build-cache
-platforms/core-execution/hashing/                           @gradle/bt-execution @gradle/bt-ge-build-cache
-platforms/core-execution/snapshots/                         @gradle/bt-execution @gradle/bt-ge-build-cache

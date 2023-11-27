@@ -19,6 +19,8 @@ import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.junit.Test;
 
+import javax.annotation.Nonnull;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertFalse;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -27,6 +29,7 @@ import static org.junit.Assert.fail;
 
 public class AbstractDynamicObjectTest {
     private final AbstractDynamicObject object = new AbstractDynamicObject() {
+        @Nonnull
         public String getDisplayName() {
             return "<display-name>";
         }

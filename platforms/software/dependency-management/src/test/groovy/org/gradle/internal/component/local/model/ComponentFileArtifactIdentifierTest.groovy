@@ -27,10 +27,6 @@ class ComponentFileArtifactIdentifierTest extends Specification {
         String getDisplayName() {
             return "example"
         }
-
-        String toString() {
-            return getDisplayName()
-        }
     }
 
     def "has useful string representation"() {

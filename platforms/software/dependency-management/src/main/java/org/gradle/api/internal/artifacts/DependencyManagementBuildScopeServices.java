@@ -111,26 +111,21 @@ import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.history.OverlappingOutputDetector;
-import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
+import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore;
 import org.gradle.internal.execution.impl.DefaultExecutionEngine;
-import org.gradle.internal.execution.steps.AssignWorkspaceStep;
+import org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep;
+import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CachingContext;
 import org.gradle.internal.execution.steps.CachingResult;
-import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep;
-import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
-import org.gradle.internal.execution.steps.CreateOutputsStep;
+import org.gradle.internal.execution.steps.CaptureNonIncrementalStateBeforeExecutionStep;
+import org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
-import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
-import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
-import org.gradle.internal.execution.steps.RemoveUntrackedExecutionStateStep;
-import org.gradle.internal.execution.steps.ResolveChangesStep;
-import org.gradle.internal.execution.steps.ResolveInputChangesStep;
-import org.gradle.internal.execution.steps.SkipUpToDateStep;
+import org.gradle.internal.execution.steps.NeverUpToDateStep;
+import org.gradle.internal.execution.steps.NoInputChangesStep;
+import org.gradle.internal.execution.steps.PreCreateOutputParentsStep;
 import org.gradle.internal.execution.steps.Step;
-import org.gradle.internal.execution.steps.StoreExecutionStateStep;
 import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.steps.UpToDateResult;
 import org.gradle.internal.execution.steps.ValidateStep;
@@ -141,7 +136,6 @@ import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
-import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.management.DefaultDependencyResolutionManagement;
@@ -162,9 +156,11 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.internal.resource.transfer.CachingTextUriResourceLoader;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshotter;
+import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.gradle.util.internal.SimpleMapInterner;
@@ -174,6 +170,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+
+import static org.gradle.internal.execution.steps.AfterExecutionOutputFilter.NO_FILTER;
 
 /**
  * The set of dependency management services that are created per build in the tree.
@@ -230,9 +228,10 @@ class DependencyManagementBuildScopeServices {
         StartParameter startParameter,
         ImmutableAttributesFactory attributesFactory,
         TaskDependencyFactory taskDependencyFactory,
-        CapabilityNotationParser capabilityNotationParser
+        CapabilityNotationParser capabilityNotationParser,
+        ObjectFactory objectFactory
     ) {
-        return new DefaultProjectDependencyFactory(instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory, taskDependencyFactory);
+        return new DefaultProjectDependencyFactory(instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, objectFactory, attributesFactory, taskDependencyFactory);
     }
 
     DependencyFactoryInternal createDependencyFactory(
@@ -244,7 +243,8 @@ class DependencyManagementBuildScopeServices {
         RuntimeShadedJarFactory runtimeShadedJarFactory,
         ImmutableAttributesFactory attributesFactory,
         SimpleMapInterner stringInterner,
-        CapabilityNotationParser capabilityNotationParser
+        CapabilityNotationParser capabilityNotationParser,
+        ObjectFactory objectFactory
     ) {
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
@@ -253,7 +253,7 @@ class DependencyManagementBuildScopeServices {
             DependencyNotationParser.create(instantiator, factory, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation, stringInterner),
             DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner, attributesFactory),
             new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
-            capabilityNotationParser, projectDependencyFactory,
+            capabilityNotationParser, objectFactory, projectDependencyFactory,
             attributesFactory);
     }
 
@@ -377,8 +377,8 @@ class DependencyManagementBuildScopeServices {
         };
     }
 
-    ResolutionFailureHandler createVariantSelectionFailureProcessor(Problems problems) {
-        return new ResolutionFailureHandler(problems);
+    ResolutionFailureHandler createResolutionFailureProcessor(Problems problems, DocumentationRegistry documentationRegistry) {
+        return new ResolutionFailureHandler(problems, documentationRegistry);
     }
 
     GraphVariantSelector createGraphVariantSelector(ResolutionFailureHandler resolutionFailureHandler) {
@@ -472,46 +472,42 @@ class DependencyManagementBuildScopeServices {
     /**
      * Execution engine for usage above Gradle scope
      *
-     * Currently used for running artifact transforms in buildscript blocks.
+     * Currently used for running artifact transforms in buildscript blocks, compiling Kotlin scripts etc.
      */
     ExecutionEngine createExecutionEngine(
+        BuildInvocationScopeId buildInvocationScopeId,
         BuildOperationExecutor buildOperationExecutor,
-        CurrentBuildOperationRef currentBuildOperationRef,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        CurrentBuildOperationRef currentBuildOperationRef,
         Deleter deleter,
-        ExecutionStateChangeDetector changeDetector,
+        FileSystemAccess fileSystemAccess,
         ListenerManager listenerManager,
+        ImmutableWorkspaceMetadataStore immutableWorkspaceMetadataStore,
         OutputSnapshotter outputSnapshotter,
-        OverlappingOutputDetector overlappingOutputDetector,
+        Problems problems,
         TimeoutHandler timeoutHandler,
         ValidateStep.ValidationWarningRecorder validationWarningRecorder,
-        VirtualFileSystem virtualFileSystem,
-        DocumentationRegistry documentationRegistry,
-        Problems problems
+        VirtualFileSystem virtualFileSystem
     ) {
         OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
-        // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
-        UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
+
         // @formatter:off
-        return new DefaultExecutionEngine(
-            problems, new IdentifyStep<>(buildOperationExecutor,
+        return new DefaultExecutionEngine(problems,
+            new IdentifyStep<>(buildOperationExecutor,
             new IdentityCacheStep<>(
-            new AssignWorkspaceStep<>(
-            new LoadPreviousExecutionStateStep<>(
-            new RemoveUntrackedExecutionStateStep<>(
-            new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
-            new ValidateStep<>(virtualFileSystem, validationWarningRecorder, problems,
+            new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
+            new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher,
+            new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
             new NoOpCachingStateStep<>(
-            new ResolveChangesStep<>(changeDetector,
-            new SkipUpToDateStep<>(
-            new StoreExecutionStateStep<>(
-            new ResolveInputChangesStep<>(
-            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, fixedUniqueId, outputSnapshotter, outputChangeListener,
-            new CreateOutputsStep<>(
+            new NeverUpToDateStep<>(
+            new NoInputChangesStep<>(
+            new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter, NO_FILTER,
+            // TODO Use a shared execution pipeline
+            new BroadcastChangingOutputsStep<>(outputChangeListener,
+            new PreCreateOutputParentsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
-            new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
-        ))))))))))))))))));
+        ))))))))))))));
         // @formatter:on
     }
 

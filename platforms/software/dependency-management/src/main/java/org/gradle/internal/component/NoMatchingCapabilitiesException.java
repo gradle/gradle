@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.component;
 
-public class NoMatchingCapabilitiesException extends RuntimeException {
+public class NoMatchingCapabilitiesException extends AbstractGraphVariantSelectionException {
     public NoMatchingCapabilitiesException(String message) {
         super(message);
     }

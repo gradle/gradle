@@ -227,7 +227,7 @@ class DefaultClasspathFingerprinterTest extends Specification {
     }
 
     def fingerprint(TestFile... classpath) {
-        fileSystemAccess.write(classpath.collect { it.absolutePath }, {})
+        fileSystemAccess.invalidate(classpath.collect { it.absolutePath })
         def fileCollectionFingerprint = fingerprinter.fingerprint(files(classpath))
         return fileCollectionFingerprint.fingerprints.collect { String path, FileSystemLocationFingerprint fingerprint ->
             [new File(path).getName(), fingerprint.normalizedPath, fingerprint.normalizedContentHash.toString()]

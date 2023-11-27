@@ -18,13 +18,13 @@ package org.gradle.internal.component.model
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Lists
-import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.capabilities.Capability
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
@@ -463,7 +463,7 @@ All of them match the consumer attributes:
     }
 
     private void performSelection() {
-        GraphVariantSelector variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(createTestProblems()))
+        GraphVariantSelector variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(createTestProblems(), new DocumentationRegistry()))
         selected = variantSelector.selectVariants(
             consumerAttributes,
             requestedCapabilities,
@@ -480,7 +480,7 @@ All of them match the consumer attributes:
     private ModuleComponentArtifactMetadata artifact(String name, String classifier) {
         Stub(ModuleComponentArtifactMetadata) {
             getId() >> Stub(ModuleComponentArtifactIdentifier)
-            toArtifactIdentifier() >> Stub(ArtifactIdentifier) {
+            getName() >> Stub(IvyArtifactName) {
                 getName() >> name
                 getType() >> "jar"
                 getExtension() >> "jar"

@@ -60,6 +60,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -217,6 +218,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         }
     }
 
+    @Nullable
     private static String getNativeDirOverride() {
         return System.getProperty(NATIVE_DIR_OVERRIDE, System.getenv(NATIVE_DIR_OVERRIDE));
     }
@@ -310,7 +312,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return notAvailable(WindowsRegistry.class);
     }
 
-    protected SystemInfo createSystemInfo() {
+    public SystemInfo createSystemInfo() {
         if (useNativeIntegrations) {
             try {
                 return net.rubygrapefruit.platform.Native.get(SystemInfo.class);

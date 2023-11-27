@@ -74,6 +74,11 @@ public class DefaultRealizableTaskCollection<T extends Task> extends DelegatingN
     }
 
     @Override
+    public TaskCollection<T> named(Spec<String> nameFilter) {
+        return realizable(type, getDelegate().named(nameFilter));
+    }
+
+    @Override
     public TaskCollection<T> matching(Spec<? super T> spec) {
         return realizable(type, getDelegate().matching(spec));
     }

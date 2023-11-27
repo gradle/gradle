@@ -116,7 +116,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         outputContains("variants: [{artifactType=size, org.gradle.status=release}, {artifactType=size, org.gradle.status=release}]")
         outputContains("capabilities: [[capability group='test', name='test', version='1.3'], [capability group='test', name='test2', version='2.3']]")
         // transformed outputs should belong to same component as original
-        outputContains("ids: [test-1.3.jar.txt (test:test:1.3), test2-2.3.jar.txt (test:test2:2.3)]")
+        outputContains("artifacts: [test-1.3.jar.txt (test:test:1.3), test2-2.3.jar.txt (test:test2:2.3)]")
         outputContains("components: [test:test:1.3, test:test2:2.3]")
         file("build/libs").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
         file("build/libs/test-1.3.jar.txt").text == "4"
@@ -200,7 +200,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         outputContains("variants: [{artifactType=size}, {artifactType=size}]")
         outputContains("capabilities: [[], []]")
         // transformed outputs should belong to same component as original
-        outputContains("ids: [a.jar.txt (a.jar), b.jar.txt (b.jar)]")
+        outputContains("artifacts: [a.jar.txt (a.jar), b.jar.txt (b.jar)]")
         outputContains("components: [a.jar, b.jar]")
         file("build/libs").assertHasDescendants("a.jar.txt", "b.jar.txt")
         file("build/libs/a.jar.txt").text == "4"
@@ -259,7 +259,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}]")
         outputContains("capabilities: [[capability group='root', name='lib', version='unspecified'], [capability group='root', name='lib', version='unspecified']]")
         // transformed outputs should belong to same component as original
-        outputContains("ids: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib)]")
+        outputContains("artifacts: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib)]")
         outputContains("components: [project :lib, project :lib]")
         file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib2.jar.txt")
         file("app/build/libs/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
@@ -452,7 +452,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}, {artifactType=size}, {artifactType=size, org.gradle.status=release}, {artifactType=size, usage=api}, {artifactType=size, usage=api}, {artifactType=size, org.gradle.status=release}]")
         outputContains("capabilities: [[capability group='root', name='lib', version='unspecified'], [capability group='root', name='lib', version='unspecified'], [], [capability group='test', name='test', version='1.3'], [capability group='root', name='common', version='unspecified'], [capability group='root', name='common', version='unspecified'], [capability group='test', name='test-dependency', version='1.3']]")
         // transformed outputs should belong to same component as original
-        outputContains("ids: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib), file1.jar.txt (file1.jar), test-1.3.jar.txt (test:test:1.3), common.jar.txt (project :common), common-file.jar.txt (project :common), test-dependency-1.3.jar.txt (test:test-dependency:1.3)]")
+        outputContains("artifacts: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib), file1.jar.txt (file1.jar), test-1.3.jar.txt (test:test:1.3), common.jar.txt (project :common), common-file.jar.txt (project :common), test-dependency-1.3.jar.txt (test:test-dependency:1.3)]")
         outputContains("components: [project :lib, project :lib, file1.jar, test:test:1.3, project :common, project :common, test:test-dependency:1.3]")
         file("app/build/libs").assertHasDescendants("common.jar.txt", "common-file.jar.txt", "file1.jar.txt", "lib1.jar.txt", "lib2.jar.txt", "test-1.3.jar.txt", "test-dependency-1.3.jar.txt")
         file("app/build/libs/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
@@ -551,7 +551,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
         then:
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size}, {artifactType=size}]")
-        outputContains("ids: [lib2.size (project :lib), lib1.size, lib1.jar.txt (lib1.jar)]")
+        outputContains("artifacts: [lib2.size (project :lib), lib1.size (lib1.size), lib1.jar.txt (lib1.jar)]")
         outputContains("components: [project :lib, lib1.size, lib1.jar]")
         file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib1.size", "lib2.size")
         file("app/build/libs/lib1.jar.txt").text == "9"
@@ -609,7 +609,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
         and:
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}]")
-        outputContains("ids: [lib1.jar (project :lib), lib2.zip.jar (project :lib)]")
+        outputContains("artifacts: [lib1.jar (project :lib), lib2.zip (project :lib)]")
         outputContains("components: [project :lib, project :lib]")
         file("app/build/libs").assertHasDescendants("lib1.jar", "lib2.zip")
 
@@ -785,9 +785,10 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                     from artifacts.artifactFiles
                     into "\${buildDir}/libs"
                     doLast {
+                         println "ids: " + artifacts.collect { it.id.displayName }
                         println "files: " + artifacts.collect { it.file.name }
                         println "variants: " + artifacts.collect { it.variant.attributes }
-                        println "ids: " + artifacts.collect { it.id }
+                        println "artifacts: " + artifacts.collect { it.file.name + " (" + it.id.componentIdentifier + ")" }
                         println "components: " + artifacts.collect { it.id.componentIdentifier }
                     }
                 }
@@ -829,9 +830,11 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         executed(":lib:jar1", ":app:resolve")
 
         and:
+        // The identifier's original filename should reference the filename from the source variant, not simply the prior transformed variant in the chain
+        outputContains("ids: [lib1.jar -> lib1.jar.blue.red (project :lib)]")
         outputContains("variants: [{artifactType=jar, color=red, javaVersion=7, usage=api}]")
         // Should belong to same component as the originals
-        outputContains("ids: [lib1.jar.blue.red (project :lib)]")
+        outputContains("artifacts: [lib1.jar.blue.red (project :lib)]")
         outputContains("components: [project :lib]")
         file("app/build/libs").assertHasDescendants("lib1.jar.blue.red")
 
@@ -881,7 +884,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 inputs.files artifacts.artifactFiles
                 doLast {
                     println "files: " + artifacts.collect { it.file.name }
-                    println "ids: " + artifacts.collect { it.id }
+                    println "artifacts: " + artifacts.collect { it.file.name + " (" + it.id.componentIdentifier + ")" }
                     println "components: " + artifacts.collect { it.id.componentIdentifier }
                     println "variants: " + artifacts.collect { it.variant.attributes }
                     println "content: " + artifacts.collect { it.file.text }
@@ -895,7 +898,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         then:
         outputContains("variants: [{artifactType=size}, {artifactType=size, usage=api}]")
         // transformed outputs should belong to same component as original
-        outputContains("ids: [lib.jar.txt (lib.jar), lib.jar.txt (project :lib)]")
+        outputContains("artifacts: [lib.jar.txt (lib.jar), lib.jar.txt (project :lib)]")
         outputContains("components: [lib.jar, project :lib]")
         outputContains("files: [lib.jar.txt, lib.jar.txt]")
         outputContains("content: [4, 3]")
@@ -1005,7 +1008,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                     into "\${buildDir}/libs1"
                     doLast {
                         println "files: " + artifacts.collect { it.file.name }
-                        println "ids: " + artifacts.collect { it.id }
+                        println "artifacts: " + artifacts.collect { it.file.name + " (" + it.id.componentIdentifier + ")" }
                         println "components: " + artifacts.collect { it.id.componentIdentifier }
                         println "variants: " + artifacts.collect { it.variant.attributes }
                     }
@@ -1022,8 +1025,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         run "resolveapi1", "resolveapi2"
         then:
         executedAndNotSkipped(":resolveapi1", ":resolveapi2")
-        outputContains("ids: [producer1.jar (producer1.jar)]")
-        outputContains("ids: [producer2.jar (producer2.jar)]")
+        outputContains("artifacts: [producer1.jar (producer1.jar)]")
+        outputContains("artifacts: [producer2.jar (producer2.jar)]")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22735")
@@ -1178,7 +1181,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
         then:
         outputContains("variants: [{artifactType=size, org.gradle.status=release}, {artifactType=size, org.gradle.status=release}, {artifactType=size, org.gradle.status=release}, {artifactType=size, org.gradle.status=release}]")
-        outputContains("ids: [test-1.3.jar.A.txt (test:test:1.3), test-1.3.jar.B.txt (test:test:1.3), test2-2.3.jar.A.txt (test:test2:2.3), test2-2.3.jar.B.txt (test:test2:2.3)]")
+        outputContains("artifacts: [test-1.3.jar.A.txt (test:test:1.3), test-1.3.jar.B.txt (test:test:1.3), test2-2.3.jar.A.txt (test:test2:2.3), test2-2.3.jar.B.txt (test:test2:2.3)]")
         outputContains("components: [test:test:1.3, test:test:1.3, test:test2:2.3, test:test2:2.3]")
         file("build/libs").assertHasDescendants("test-1.3.jar.A.txt", "test-1.3.jar.B.txt", "test2-2.3.jar.A.txt", "test2-2.3.jar.B.txt")
         file("build/libs").eachFile {
@@ -2322,7 +2325,7 @@ Found the following transforms:
         outputContains("files: [a-1.0.jar.txt.txt.txt]")
     }
 
-    def "artifacts with same component id and extension, but different classifier remain distinguishable after transformation"() {
+    def "artifacts with same component id and extension, but different classifier are uniquely identifiable after transformation"() {
         def module = mavenRepo.module("test", "test", "1.3").publish()
         module.getArtifactFile(classifier: "foo").text = "1234"
         module.getArtifactFile(classifier: "bar").text = "5678"
@@ -2356,14 +2359,20 @@ Found the following transforms:
                 }
             }
 
-            ${configurationAndTransform('NameManglingTransform')}
+            ${declareTransform('NameManglingTransform')}
+
+            task hasUniqueArtifactIds {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+                doLast {
+                    assert (artifacts.collect { it.id } as Set).size() == 2
+                }
+            }
         """
 
-        when:
-        run "resolve"
-
-        then:
-        outputContains("ids: [out-foo.txt (test:test:1.3), out-bar.txt (test:test:1.3)]")
+        expect:
+        succeeds "hasUniqueArtifactIds"
     }
 
     def "artifact excludes applied to external dependency on different graphs are honored"() {
@@ -2480,13 +2489,13 @@ Found the following transforms:
         def task1 = result.groupedOutput.task(":a:resolve")
         task1.assertOutputContains("variants: [{artifactType=size, org.gradle.status=release}]")
         task1.assertOutputContains("components: [test:test:1.3]")
-        task1.assertOutputContains("ids: [test-1.3.jar.txt (test:test:1.3)]")
+        task1.assertOutputContains("artifacts: [test-1.3.jar.txt (test:test:1.3)]")
         task1.assertOutputContains("files: [test-1.3.jar.txt]")
 
         def task2 = result.groupedOutput.task(":b:resolve")
         task2.assertOutputContains("variants: [{artifactType=size, org.gradle.status=release}]")
         task2.assertOutputContains("components: [test:test:1.3]")
-        task2.assertOutputContains("ids: [test-1.3.jar.txt (test:test:1.3)]")
+        task2.assertOutputContains("artifacts: [test-1.3.jar.txt (test:test:1.3)]")
         task2.assertOutputContains("files: [test-1.3.jar.txt]")
 
         file("a/build/libs/test-1.3.jar.txt").text == "4"
@@ -2820,7 +2829,7 @@ Found the following transforms:
                 into "\${buildDir}/libs"
                 doLast {
                     println "files: " + artifacts.collect { it.file.name }
-                    println "ids: " + artifacts.collect { it.id }
+                    println "artifacts: " + artifacts.collect { it.file.name + " (" + it.id.componentIdentifier + ")" }
                     println "components: " + artifacts.collect { it.id.componentIdentifier }
                     println "variants: " + artifacts.collect { it.variant.attributes }
                     println "capabilities: " + artifacts.collect { it.variant.capabilities }

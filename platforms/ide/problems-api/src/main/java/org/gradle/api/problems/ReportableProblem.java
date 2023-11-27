@@ -30,4 +30,12 @@ public interface ReportableProblem extends Problem {
      * Report this problem.
      */
     void report();
+
+    /**
+     * Creates a problem builder with values initialized from this instance.
+     *
+     * @return a builder
+     * @since 8.6
+     */
+    UnboundReportableProblemBuilder toBuilder();
 }

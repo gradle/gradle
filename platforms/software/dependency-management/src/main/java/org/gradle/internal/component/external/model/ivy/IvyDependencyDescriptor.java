@@ -25,7 +25,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.internal.component.ExternalConfigurationNotFoundException;
+import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
@@ -125,7 +125,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
      *   - '@' and '#' are special values for matching target configurations. See <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile/dependency.html">the Ivy docs</a> for details.
      */
     @Override
-    public GraphVariantSelectionResult selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponent) {
+    public GraphVariantSelectionResult selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponent, ResolutionFailureHandler resolutionFailureHandler) {
         // TODO - all this matching stuff is constant for a given DependencyMetadata instance
         List<ConfigurationGraphResolveState> targets = Lists.newLinkedList();
         boolean matched = false;
@@ -137,13 +137,13 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
                     matched = true;
                 }
                 for (String targetPattern : targetPatterns) {
-                    findMatches(fromComponent, targetComponent, fromConfigName, config, targetPattern, targets);
+                    findMatches(fromComponent, targetComponent, fromConfigName, config, targetPattern, targets, resolutionFailureHandler);
                 }
             }
         }
         if (!matched && confs.containsKey("%")) {
             for (String targetPattern : confs.get("%")) {
-                findMatches(fromComponent, targetComponent, fromConfigName, fromConfigName, targetPattern, targets);
+                findMatches(fromComponent, targetComponent, fromConfigName, fromConfigName, targetPattern, targets, resolutionFailureHandler);
             }
         }
 
@@ -159,7 +159,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
             }
             if (!excludeWildcards) {
                 for (String targetPattern : wildcardPatterns) {
-                    findMatches(fromComponent, targetComponent, fromConfigName, fromConfigName, targetPattern, targets);
+                    findMatches(fromComponent, targetComponent, fromConfigName, fromConfigName, targetPattern, targets, resolutionFailureHandler);
                 }
             }
         }
@@ -172,7 +172,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
         return new GraphVariantSelectionResult(builder.build(), false);
     }
 
-    private void findMatches(ComponentIdentifier fromComponent, ComponentGraphResolveState targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, List<ConfigurationGraphResolveState> targetConfigurations) {
+    private void findMatches(ComponentIdentifier fromComponent, ComponentGraphResolveState targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, List<ConfigurationGraphResolveState> targetConfigurations, ResolutionFailureHandler resolutionFailureHandler) {
         int startFallback = targetPattern.indexOf('(');
         if (startFallback >= 0) {
             if (targetPattern.endsWith(")")) {
@@ -204,7 +204,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
 
         ConfigurationGraphResolveState configuration = targetComponent.getConfiguration(targetPattern);
         if (configuration == null) {
-            throw new ExternalConfigurationNotFoundException(fromComponent, fromConfiguration, targetPattern, targetComponent.getId());
+            throw resolutionFailureHandler.externalConfigurationNotFoundFailure(fromComponent, fromConfiguration, targetPattern, targetComponent.getId());
         }
         maybeAddConfiguration(targetConfigurations, configuration);
     }

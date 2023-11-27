@@ -3,7 +3,7 @@
 	<wb-module deploy-name="webservice">
 		<property name="context-root" value="webservice"/>
 		<wb-resource deploy-path="/WEB-INF/classes" source-path="src/main/java"/>
-		<dependent-module archiveName="api.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/api/api">
+		<dependent-module archiveName="api-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/api/api">
 			<dependency-type>uses</dependency-type>
 		</dependent-module>
 	</wb-module>

@@ -96,10 +96,14 @@ public abstract class AvailableJavaHomes {
     public static Jvm getJdk17() {
         return getJdk(JavaVersion.VERSION_17);
     }
+    @Nullable
+    public static Jvm getJdk21() {
+        return getJdk(JavaVersion.VERSION_21);
+    }
 
     @Nullable
     public static Jvm getHighestSupportedLTS() {
-        return getJdk17();
+        return getJdk21();
     }
 
     @Nullable

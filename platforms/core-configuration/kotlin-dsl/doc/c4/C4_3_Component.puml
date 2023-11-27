@@ -103,7 +103,7 @@ Boundary(kotlinTools, "Kotlin Toolchain") {
     Rel_Neighbor(kgp, kotlinc, "Uses", "Daemon")
 }
 
-System_Ext(buildCache, "Gradle Build Cache", "Local, Gradle Enterprise Build Cache Node, etc...")
+System_Ext(buildCache, "Gradle Build Cache", "Local, Develocity Build Cache Node, etc...")
 
 Rel(dev, gradle, "Uses", "Command Line")
 Rel(dev, editor, "Uses", "GUI")

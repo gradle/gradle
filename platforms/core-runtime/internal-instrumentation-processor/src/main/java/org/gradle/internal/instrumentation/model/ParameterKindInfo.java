@@ -21,7 +21,7 @@ import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
 import java.lang.annotation.Annotation;
 
 public enum ParameterKindInfo {
-    RECEIVER, METHOD_PARAMETER, VARARG_METHOD_PARAMETER, CALLER_CLASS_NAME, KOTLIN_DEFAULT_MASK;
+    RECEIVER, METHOD_PARAMETER, VARARG_METHOD_PARAMETER, CALLER_CLASS_NAME, KOTLIN_DEFAULT_MASK, INJECT_VISITOR_CONTEXT;
 
     public boolean isSourceParameter() {
         return this == METHOD_PARAMETER || this == VARARG_METHOD_PARAMETER;
@@ -39,6 +39,9 @@ public enum ParameterKindInfo {
         }
         if (annotation instanceof ParameterKind.VarargParameter) {
             return VARARG_METHOD_PARAMETER;
+        }
+        if (annotation instanceof ParameterKind.InjectVisitorContext) {
+            return INJECT_VISITOR_CONTEXT;
         }
         throw new IllegalArgumentException("Unexpected annotation " + annotation);
     }

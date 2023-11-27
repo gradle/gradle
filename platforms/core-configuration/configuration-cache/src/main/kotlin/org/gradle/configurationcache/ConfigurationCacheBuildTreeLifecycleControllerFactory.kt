@@ -30,13 +30,11 @@ import org.gradle.internal.buildtree.BuildTreeWorkExecutor
 import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.resources.ProjectLeaseRegistry
 
 
 class ConfigurationCacheBuildTreeLifecycleControllerFactory(
     private val buildModelParameters: BuildModelParameters,
     buildOperationExecutor: BuildOperationExecutor,
-    projectLeaseRegistry: ProjectLeaseRegistry,
     private val cache: BuildTreeConfigurationCache,
     private val taskGraph: BuildTreeWorkGraphController,
     private val stateTransitionControllerFactory: StateTransitionControllerFactory,
@@ -45,7 +43,7 @@ class ConfigurationCacheBuildTreeLifecycleControllerFactory(
     private val buildStateRegistry: BuildStateRegistry,
 ) : BuildTreeLifecycleControllerFactory {
     private
-    val vintageFactory = VintageBuildTreeLifecycleControllerFactory(buildModelParameters, taskGraph, buildOperationExecutor, projectLeaseRegistry, stateTransitionControllerFactory, startParameter)
+    val vintageFactory = VintageBuildTreeLifecycleControllerFactory(buildModelParameters, taskGraph, buildOperationExecutor, stateTransitionControllerFactory, startParameter)
 
     override fun createRootBuildController(targetBuild: BuildLifecycleController, workExecutor: BuildTreeWorkExecutor, finishExecutor: BuildTreeFinishExecutor): BuildTreeLifecycleController {
         // Some temporary wiring: the cache implementation is still scoped to the root build rather than the build tree

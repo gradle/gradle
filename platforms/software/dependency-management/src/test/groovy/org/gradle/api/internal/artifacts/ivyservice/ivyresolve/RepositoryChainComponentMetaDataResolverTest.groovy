@@ -26,8 +26,12 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState
 import org.gradle.internal.component.model.ComponentOverrideMetadata
+import org.gradle.internal.model.CalculatedValueContainerFactory
+import org.gradle.internal.resolve.ModuleVersionNotFoundException
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
+import org.gradle.internal.resources.ProjectLeaseRegistry
+import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification
 
 class RepositoryChainComponentMetaDataResolverTest extends Specification {
@@ -46,7 +50,8 @@ class RepositoryChainComponentMetaDataResolverTest extends Specification {
     def remoteAccess2 = Mock(ModuleComponentRepositoryAccess)
 
     final VersionedComponentChooser componentSelectionStrategy = Mock(VersionedComponentChooser)
-    final RepositoryChainComponentMetaDataResolver resolver = new RepositoryChainComponentMetaDataResolver(componentSelectionStrategy)
+    def calculatedValueContainerFactory = new CalculatedValueContainerFactory(Mock(ProjectLeaseRegistry), Mock(ServiceRegistry))
+    final RepositoryChainComponentMetaDataResolver resolver = new RepositoryChainComponentMetaDataResolver(componentSelectionStrategy, calculatedValueContainerFactory)
 
     def addRepo1() {
         addModuleComponentRepository("repo1", localAccess, remoteAccess)
@@ -150,7 +155,7 @@ class RepositoryChainComponentMetaDataResolverTest extends Specification {
             result.missing()
         }
         1 * result.attempted("scheme:thing")
-        1 * result.notFound(moduleComponentId)
+        1 * result.failed(_) >> { args -> assert args[0] instanceof ModuleVersionNotFoundException }
 
         and:
         0 * localAccess._
@@ -173,7 +178,7 @@ class RepositoryChainComponentMetaDataResolverTest extends Specification {
         1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.missing()
         }
-        1 * result.notFound(moduleComponentId)
+        1 * result.failed(_) >> { args -> assert args[0] instanceof ModuleVersionNotFoundException }
 
         and:
         0 * localAccess._

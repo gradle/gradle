@@ -33,7 +33,7 @@ import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.model.InputNormalizer;
-import org.gradle.internal.execution.workspace.WorkspaceProvider;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -43,6 +43,7 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.UncategorizedBuildOperations;
 import org.gradle.internal.properties.PropertyValue;
+import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.operations.dependencies.transforms.ExecuteTransformActionBuildOperationType;
 import org.gradle.operations.dependencies.transforms.IdentifyTransformExecutionProgressDetails;
 import org.gradle.operations.dependencies.transforms.SnapshotTransformInputsBuildOperationType;
@@ -50,7 +51,6 @@ import org.gradle.operations.dependencies.transforms.SnapshotTransformInputsBuil
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.File;
-import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
@@ -61,7 +61,7 @@ import static org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL;
 
 abstract class AbstractTransformExecution implements UnitOfWork {
     private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
-    private static final String INPUT_ARTIFACT_PROPERTY_NAME = "inputArtifact";
+    protected static final String INPUT_ARTIFACT_PROPERTY_NAME = "inputArtifact";
     private static final String OUTPUT_DIRECTORY_PROPERTY_NAME = "outputDirectory";
     private static final String RESULTS_FILE_PROPERTY_NAME = "resultsFile";
     protected static final String INPUT_ARTIFACT_PATH_PROPERTY_NAME = "inputArtifactPath";
@@ -82,11 +82,10 @@ abstract class AbstractTransformExecution implements UnitOfWork {
 
     private final Provider<FileSystemLocation> inputArtifactProvider;
     protected final InputFingerprinter inputFingerprinter;
-    private final TransformWorkspaceServices workspaceServices;
 
     private BuildOperationContext operationContext;
 
-    public AbstractTransformExecution(
+    protected AbstractTransformExecution(
         Transform transform,
         File inputArtifact,
         TransformDependencies dependencies,
@@ -96,8 +95,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         BuildOperationExecutor buildOperationExecutor,
         BuildOperationProgressEventEmitter progressEventEmitter,
         FileCollectionFactory fileCollectionFactory,
-        InputFingerprinter inputFingerprinter,
-        TransformWorkspaceServices workspaceServices
+        InputFingerprinter inputFingerprinter
     ) {
         this.transform = transform;
         this.inputArtifact = inputArtifact;
@@ -110,13 +108,21 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         this.progressEventEmitter = progressEventEmitter;
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
-        this.workspaceServices = workspaceServices;
     }
 
     @Override
     public Optional<String> getBuildOperationWorkType() {
         return Optional.of("TRANSFORM");
     }
+
+    @Override
+    public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
+        TransformWorkspaceIdentity transformWorkspaceIdentity = createIdentity(identityInputs, identityFileInputs);
+        emitIdentifyTransformExecutionProgressDetails(transformWorkspaceIdentity);
+        return transformWorkspaceIdentity;
+    }
+
+    protected abstract TransformWorkspaceIdentity createIdentity(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs);
 
     @Override
     public WorkOutput execute(ExecutionRequest executionRequest) {
@@ -136,7 +142,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
                     File workspace = executionRequest.getWorkspace();
                     InputChangesInternal inputChanges = executionRequest.getInputChanges().orElse(null);
                     TransformExecutionResult result = transform.transform(inputArtifactProvider, getOutputDir(workspace), dependencies, inputChanges);
-                    TransformExecutionResultSerializer resultSerializer = new TransformExecutionResultSerializer(getOutputDir(workspace));
+                    TransformExecutionResultSerializer resultSerializer = new TransformExecutionResultSerializer();
                     resultSerializer.writeToFile(getResultsFile(workspace), result);
                     return result;
                 } finally {
@@ -161,21 +167,16 @@ abstract class AbstractTransformExecution implements UnitOfWork {
             }
 
             @Override
-            public Object getOutput() {
-                return result;
+            public Object getOutput(File workspace) {
+                return result.resolveForWorkspace(getOutputDir(workspace));
             }
         };
     }
 
     @Override
     public Object loadAlreadyProducedOutput(File workspace) {
-        TransformExecutionResultSerializer resultSerializer = new TransformExecutionResultSerializer(getOutputDir(workspace));
-        return resultSerializer.readResultsFile(getResultsFile(workspace));
-    }
-
-    @Override
-    public WorkspaceProvider getWorkspaceProvider() {
-        return workspaceServices.getWorkspaceProvider();
+        TransformExecutionResultSerializer resultSerializer = new TransformExecutionResultSerializer();
+        return resultSerializer.readResultsFile(getResultsFile(workspace)).resolveForWorkspace(getOutputDir(workspace));
     }
 
     @Override
@@ -189,11 +190,6 @@ abstract class AbstractTransformExecution implements UnitOfWork {
 
     private static File getResultsFile(File workspace) {
         return new File(workspace, "results.bin");
-    }
-
-    @Override
-    public Optional<Duration> getTimeout() {
-        return Optional.empty();
     }
 
     @Override
@@ -239,9 +235,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
             subject.getInitialComponentIdentifier()));
     }
 
-    @Override
-    @OverridingMethodsMustInvokeSuper
-    public void visitRegularInputs(InputVisitor visitor) {
+    protected void visitInputArtifact(InputVisitor visitor) {
         visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, INCREMENTAL,
             new InputFileValueSupplier(
                 inputArtifactProvider,

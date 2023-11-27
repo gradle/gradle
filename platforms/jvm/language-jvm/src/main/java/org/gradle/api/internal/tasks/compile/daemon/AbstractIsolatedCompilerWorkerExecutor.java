@@ -33,7 +33,7 @@ import org.gradle.workers.internal.WorkerFactory;
 import javax.inject.Inject;
 
 /**
- * Base implementation of {@link CompilerWorkerExecutor} which handles submitting a compile work item to exeute.
+ * Base implementation of {@link CompilerWorkerExecutor} which handles submitting a compile work item to execute.
  * Inheritors need to provide an appropriate isolated worker requirement depending on what isolation mode is being used.
  */
 abstract public class AbstractIsolatedCompilerWorkerExecutor implements CompilerWorkerExecutor {

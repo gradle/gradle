@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":native"))
     implementation(project(":process-services"))
+    implementation(project(":problems-api"))
 
     testImplementation(testFixtures(project(":core")))
 }

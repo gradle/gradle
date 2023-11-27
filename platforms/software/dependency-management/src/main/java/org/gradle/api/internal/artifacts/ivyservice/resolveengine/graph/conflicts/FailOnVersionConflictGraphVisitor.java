@@ -23,9 +23,7 @@ import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 
 import java.util.Collections;
 import java.util.Set;
@@ -43,11 +41,6 @@ public class FailOnVersionConflictGraphVisitor implements DependencyGraphVisitor
     public FailOnVersionConflictGraphVisitor(String projectPath, String configurationName) {
         this.projectPath = projectPath;
         this.configurationName = configurationName;
-    }
-
-    @Override
-    public void start(RootGraphNode root) {
-
     }
 
     @Override
@@ -74,21 +67,6 @@ public class FailOnVersionConflictGraphVisitor implements DependencyGraphVisitor
         }
         assert conflictDescription != null;
         return owner.getGroup() + ":" + owner.getName() + " " + conflictDescription;
-    }
-
-    @Override
-    public void visitSelector(DependencyGraphSelector selector) {
-
-    }
-
-    @Override
-    public void visitEdges(DependencyGraphNode node) {
-
-    }
-
-    @Override
-    public void finish(DependencyGraphNode root) {
-
     }
 
     public Set<Throwable> collectConflictFailures() {

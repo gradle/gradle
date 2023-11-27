@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.cache;
 
-import org.gradle.api.artifacts.ArtifactIdentifier;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 
 import java.io.File;
 
 /**
  * Command methods for controlling artifact resolution via the DSL.
  */
-public interface ArtifactResolutionControl extends ResolutionControl<ArtifactIdentifier, File> {
+public interface ArtifactResolutionControl extends ResolutionControl<ModuleComponentArtifactMetadata, File> {
     boolean belongsToChangingModule();
 }

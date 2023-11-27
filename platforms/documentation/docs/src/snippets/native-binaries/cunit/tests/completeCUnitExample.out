@@ -3,7 +3,6 @@ There were test failures:
   1. /home/user/gradle/samples/src/operatorsTest/c/test_plus.c:6  - plus(0, -2) == -2
   2. /home/user/gradle/samples/src/operatorsTest/c/test_plus.c:7  - plus(2, 2) == 4
 
-
 FAILURE: Build failed with an exception.
 
 * What went wrong:

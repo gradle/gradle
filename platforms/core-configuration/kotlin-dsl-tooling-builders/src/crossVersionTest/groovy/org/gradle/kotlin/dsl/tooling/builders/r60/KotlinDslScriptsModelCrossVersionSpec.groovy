@@ -25,7 +25,7 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 import java.lang.reflect.Proxy
 
-import static org.gradle.kotlin.dsl.tooling.builders.KotlinScriptModelParameters.setModelParameters
+import static org.gradle.kotlin.dsl.tooling.fixtures.KotlinScriptModelParameters.setModelParameters
 
 @TargetGradleVersion(">=6.0")
 @LeaksFileHandles("Kotlin Compiler Daemon taking time to shut down")

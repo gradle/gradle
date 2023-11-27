@@ -29,11 +29,11 @@ import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.BuildableProblemBuilder;
 import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ReportableProblem;
+import org.gradle.api.problems.ReportableProblemBuilder;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -61,8 +61,8 @@ import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuil
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.ACCESSOR_NAME_CLASH;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.TOO_MANY_ENTRIES;
 import static org.gradle.api.problems.Severity.ERROR;
-import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.RenderingUtils.oxfordJoin;
+import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
@@ -532,7 +532,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             .severity(ERROR);
     }
 
-    private RuntimeException throwVersionCatalogProblemException(BuildableProblemBuilder problem) {
+    private RuntimeException throwVersionCatalogProblemException(ReportableProblemBuilder problem) {
         throw throwErrorWithNewProblemsApi(ERROR_HEADER, ImmutableList.of(problem.build()));
     }
 

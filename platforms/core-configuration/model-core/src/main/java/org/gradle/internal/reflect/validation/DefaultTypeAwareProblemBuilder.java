@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
 import static java.lang.Boolean.TRUE;
 
 @NonNullApi
-public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder implements TypeAwareProblemBuilder {
+public class DefaultTypeAwareProblemBuilder extends DelegatingReportableProblemBuilder implements TypeAwareProblemBuilder {
 
     public static final String TYPE_NAME = "typeName";
     public static final String PLUGIN_ID = "pluginId";

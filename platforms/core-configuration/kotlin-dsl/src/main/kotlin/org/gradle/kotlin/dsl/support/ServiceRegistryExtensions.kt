@@ -19,4 +19,4 @@ import org.gradle.internal.service.ServiceRegistry
 
 
 inline fun <reified T : Any> ServiceRegistry.get(): T =
-    this[T::class.java]!!
+    this[T::class.java]

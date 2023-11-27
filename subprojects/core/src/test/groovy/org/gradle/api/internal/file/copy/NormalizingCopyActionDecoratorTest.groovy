@@ -15,13 +15,10 @@
  */
 package org.gradle.api.internal.file.copy
 
-import org.gradle.api.file.FileCopyDetails
+
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
 import org.gradle.api.tasks.WorkResults
-import org.hamcrest.BaseMatcher
-import org.hamcrest.Description
-import org.hamcrest.Matcher
 import spock.lang.Specification
 
 import static org.gradle.api.internal.file.TestFiles.fileSystem
@@ -112,19 +109,8 @@ class NormalizingCopyActionDecoratorTest extends Specification {
         return Stub(FileCopyDetailsInternal) {
             getRelativePath() >> RelativePath.parse(false, path)
             isDirectory() >> isDir
-            isIncludeEmptyDirs() >> includeEmptyDirs
-        }
-    }
-
-    private Matcher<FileCopyDetailsInternal> hasPath(final String path) {
-        return new BaseMatcher<FileCopyDetailsInternal>() {
-            void describeTo(Description description) {
-                description.appendText("has path ").appendValue(path)
-            }
-
-            boolean matches(Object o) {
-                FileCopyDetails details = (FileCopyDetails) o
-                return details.getRelativePath().getPathString().equals(path)
+            getSpecResolver() >> Stub(CopySpecResolver) {
+                getIncludeEmptyDirs() >> includeEmptyDirs
             }
         }
     }

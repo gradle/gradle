@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactSelectionDetails;
 import org.gradle.api.artifacts.DependencyResolveDetails;
@@ -200,7 +201,6 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             attributesFactory,
             objectFactory,
             capabilityNotationParser,
-            instantiator,
             selector);
         detailsAction.execute(details);
         return details.selector;
@@ -510,19 +510,16 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         private final ImmutableAttributesFactory attributesFactory;
         private final ObjectFactory objectFactory;
         private final NotationParser<Object, Capability> capabilityNotationParser;
-        private final Instantiator instantatior;
         private ComponentSelector selector;
 
         @Inject
         public DefaultVariantSelectionDetails(ImmutableAttributesFactory attributesFactory,
                                               ObjectFactory objectFactory,
                                               NotationParser<Object, Capability> capabilityNotationParser,
-                                              Instantiator instantatior,
                                               ComponentSelector selector) {
             this.attributesFactory = attributesFactory;
             this.objectFactory = objectFactory;
             this.capabilityNotationParser = capabilityNotationParser;
-            this.instantatior = instantatior;
             this.selector = selector;
         }
 
@@ -569,14 +566,14 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
 
         @Override
         public void capabilities(Action<? super ModuleDependencyCapabilitiesHandler> configurationAction) {
-            ModuleDependencyCapabilitiesInternal handler = instantatior.newInstance(DefaultMutableModuleDependencyCapabilitiesHandler.class,
+            ModuleDependencyCapabilitiesInternal handler = objectFactory.newInstance(DefaultMutableModuleDependencyCapabilitiesHandler.class,
                 capabilityNotationParser
             );
             configurationAction.execute(handler);
             if (selector instanceof ProjectComponentSelector) {
-                selector = DefaultProjectComponentSelector.withCapabilities((ProjectComponentSelector) selector, handler.getRequestedCapabilities());
+                selector = DefaultProjectComponentSelector.withCapabilities((ProjectComponentSelector) selector, ImmutableList.copyOf(handler.getRequestedCapabilities().get()));
             } else if (selector instanceof ModuleComponentSelector) {
-                selector = DefaultModuleComponentSelector.withCapabilities((ModuleComponentSelector) selector, handler.getRequestedCapabilities());
+                selector = DefaultModuleComponentSelector.withCapabilities((ModuleComponentSelector) selector, ImmutableList.copyOf(handler.getRequestedCapabilities().get()));
             }
         }
     }

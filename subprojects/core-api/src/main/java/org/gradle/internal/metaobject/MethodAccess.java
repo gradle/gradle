@@ -16,6 +16,8 @@
 
 package org.gradle.internal.metaobject;
 
+import javax.annotation.Nullable;
+
 /**
  * Provides dynamic access to methods of some object.
  */
@@ -25,10 +27,10 @@ public interface MethodAccess {
      *
      * <p>Note that not every method is known. Some methods may require an attempt invoke it in order for them to be discovered.</p>
      */
-    boolean hasMethod(String name, Object... arguments);
+    boolean hasMethod(String name, @Nullable Object... arguments);
 
     /**
      * Invokes the method with the given name and arguments.
      */
-    DynamicInvokeResult tryInvokeMethod(String name, Object... arguments);
+    DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... arguments);
 }

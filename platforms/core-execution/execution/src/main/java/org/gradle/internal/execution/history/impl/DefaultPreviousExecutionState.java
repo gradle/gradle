@@ -59,4 +59,9 @@ public class DefaultPreviousExecutionState extends AbstractInputExecutionState<F
     public boolean isSuccessful() {
         return successful;
     }
+
+    @Override
+    public boolean isReused() {
+        return true;
+    }
 }

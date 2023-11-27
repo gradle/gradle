@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,46 +16,15 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.cache.CacheConfigurationsInternal;
-import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.cache.Cache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider;
-import org.gradle.internal.file.FileAccessTimeJournal;
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Closeable;
 
-@NotThreadSafe
-public class ImmutableTransformWorkspaceServices implements TransformWorkspaceServices, Closeable {
-    private final CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache;
-    private final DefaultImmutableWorkspaceProvider workspaceProvider;
+public interface ImmutableTransformWorkspaceServices extends Closeable {
+    ImmutableWorkspaceProvider getWorkspaceProvider();
 
-    public ImmutableTransformWorkspaceServices(
-        CacheBuilder cacheBuilder,
-        FileAccessTimeJournal fileAccessTimeJournal,
-        ExecutionHistoryStore executionHistoryStore,
-        CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache,
-        CacheConfigurationsInternal cacheConfigurations
-    ) {
-        this.workspaceProvider = DefaultImmutableWorkspaceProvider.withExternalHistory(cacheBuilder, fileAccessTimeJournal, executionHistoryStore, cacheConfigurations);
-        this.identityCache = identityCache;
-    }
-
-    @Override
-    public DefaultImmutableWorkspaceProvider getWorkspaceProvider() {
-        return workspaceProvider;
-    }
-
-    @Override
-    public CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformExecutionResult>> getIdentityCache() {
-        return identityCache;
-    }
-
-    @Override
-    public void close() {
-        workspaceProvider.close();
-    }
+    Cache<UnitOfWork.Identity, Try<TransformExecutionResult.TransformWorkspaceResult>> getIdentityCache();
 }

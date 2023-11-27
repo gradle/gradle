@@ -43,9 +43,18 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     private final MemoryManager memoryManager;
     private int connectTimeoutSeconds = 120;
 
-    public DefaultWorkerProcessFactory(LoggingManager loggingManager, MessagingServer server, ClassPathRegistry classPathRegistry, IdGenerator<Long> idGenerator,
-                                       File gradleUserHomeDir, TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory,
-                                       JvmVersionDetector jvmVersionDetector, OutputEventListener outputEventListener, MemoryManager memoryManager) {
+    public DefaultWorkerProcessFactory(
+        LoggingManager loggingManager,
+        MessagingServer server,
+        ClassPathRegistry classPathRegistry,
+        IdGenerator<Long> idGenerator,
+        File gradleUserHomeDir,
+        TemporaryFileProvider temporaryFileProvider,
+        JavaExecHandleFactory execHandleFactory,
+        JvmVersionDetector jvmVersionDetector,
+        OutputEventListener outputEventListener,
+        MemoryManager memoryManager
+    ) {
         this.loggingManager = loggingManager;
         this.server = server;
         this.idGenerator = idGenerator;

@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r85
 
 import groovy.json.JsonSlurper
 import org.gradle.api.problems.Problems
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -30,8 +31,8 @@ import org.gradle.tooling.events.problems.ProblemEvent
 @TargetGradleVersion(">=8.5")
 class ProblemServiceModelBuilderCrossVersionTest extends ToolingApiSpecification {
 
-    def setup() {
-        file('build.gradle') << """
+    def withSampleProject(boolean includeAdditionalMetadata = false) {
+        buildFile << """
             import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
             import org.gradle.tooling.provider.model.ToolingModelBuilder
             import ${Problems.name}
@@ -57,7 +58,14 @@ class ProblemServiceModelBuilderCrossVersionTest extends ToolingApiSpecification
                     return modelName == '${CustomModel.name}'
                 }
                 Object buildAll(String modelName, Project project) {
-                    problemService.create { it.label("label").undocumented().noLocation().category("testcategory") }.report()
+                    problemService.create {
+                        it.label("label")
+                            .undocumented()
+                            .noLocation()
+                            .category("testcategory")
+                            .withException(new RuntimeException("test"))
+                            ${if (includeAdditionalMetadata) { ".additionalData(\"keyToString\", \"value\")" }}
+                    }.report()
                     return new CustomModel()
                 }
             }
@@ -74,13 +82,47 @@ class ProblemServiceModelBuilderCrossVersionTest extends ToolingApiSpecification
         """
     }
 
+    @TargetGradleVersion(">=8.6")
+    @ToolingApiVersion(">=8.6")
     def "Can use problems service in model builder"() {
         given:
+        withSampleProject()
         ProblemProgressListener listener = new ProblemProgressListener()
 
         when:
-        withConnection { connection ->
-            connection.model(CustomModel)
+        withConnection {
+            it.model(CustomModel)
+                .setJavaHome(javaHome)
+                .addProgressListener(listener)
+                .get()
+        }
+        def problems = listener.problems
+
+        then:
+        problems.size() == 1
+        problems[0].label.label == 'label'
+        problems[0].category.category== 'testcategory'
+        problems[0].exception.exception.message == 'test'
+
+        where:
+        javaHome << [
+            AvailableJavaHomes.jdk8.javaHome,
+            AvailableJavaHomes.jdk17.javaHome,
+            AvailableJavaHomes.jdk21.javaHome
+        ]
+    }
+
+    @ToolingApiVersion("<8.6")
+    @TargetGradleVersion("<8.6")
+    def "Can use problems service in model builder before 8"() {
+        given:
+        withSampleProject()
+        ProblemProgressListener listener = new ProblemProgressListener()
+
+        when:
+        withConnection {
+            it.model(CustomModel)
+                .setJavaHome(javaHome)
                 .addProgressListener(listener)
                 .get()
         }
@@ -90,6 +132,27 @@ class ProblemServiceModelBuilderCrossVersionTest extends ToolingApiSpecification
         problems.size() == 1
         problems[0].label == 'label'
         problems[0].problemCategory == 'testcategory'
+    }
+
+    @ToolingApiVersion(">=8.6")
+    @TargetGradleVersion(">=8.6")
+    def "Can add additional metadata"() {
+        given:
+        withSampleProject(true)
+        ProblemProgressListener listener = new ProblemProgressListener()
+
+        when:
+        withConnection { connection ->
+            connection.model(CustomModel)
+                .addProgressListener(listener)
+                .get()
+        }
+
+        then:
+        listener.problems.size() == 1
+        listener.problems[0].additionalData.asMap == [
+            'keyToString': 'value'
+        ]
     }
 
     class ProblemProgressListener implements ProgressListener {

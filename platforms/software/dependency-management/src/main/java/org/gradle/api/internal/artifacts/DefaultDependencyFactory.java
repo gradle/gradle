@@ -35,16 +35,14 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
 import java.util.Map;
 
 
-@ServiceScope(Scopes.Build.class)
 public class DefaultDependencyFactory implements DependencyFactoryInternal {
     private final Instantiator instantiator;
     private final DependencyNotationParser dependencyNotationParser;
@@ -53,6 +51,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     @SuppressWarnings("deprecation")
     private final NotationParser<Object, org.gradle.api.artifacts.ClientModule> clientModuleNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
+    private final ObjectFactory objectFactory;
     private final ProjectDependencyFactory projectDependencyFactory;
     private final ImmutableAttributesFactory attributesFactory;
 
@@ -62,6 +61,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         NotationParser<Object, DependencyConstraint> dependencyConstraintNotationParser,
         @SuppressWarnings("deprecation") NotationParser<Object, org.gradle.api.artifacts.ClientModule> clientModuleNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
+        ObjectFactory objectFactory,
         ProjectDependencyFactory projectDependencyFactory,
         ImmutableAttributesFactory attributesFactory
     ) {
@@ -70,6 +70,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         this.dependencyConstraintNotationParser = dependencyConstraintNotationParser;
         this.clientModuleNotationParser = clientModuleNotationParser;
         this.capabilityNotationParser = capabilityNotationParser;
+        this.objectFactory = objectFactory;
         this.projectDependencyFactory = projectDependencyFactory;
         this.attributesFactory = attributesFactory;
     }
@@ -90,6 +91,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         if (dependency instanceof AbstractModuleDependency) {
             AbstractModuleDependency moduleDependency = (AbstractModuleDependency) dependency;
             moduleDependency.setAttributesFactory(attributesFactory);
+            moduleDependency.setObjectFactory(objectFactory);
             moduleDependency.setCapabilityNotationParser(capabilityNotationParser);
         }
     }

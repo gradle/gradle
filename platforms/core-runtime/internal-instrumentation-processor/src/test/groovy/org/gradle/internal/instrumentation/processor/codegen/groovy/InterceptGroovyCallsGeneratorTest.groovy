@@ -56,4 +56,31 @@ class InterceptGroovyCallsGeneratorTest extends InstrumentationCodeGenTest {
             .generatedSourceFile(fqName(expectedJvmInterceptors))
             .containsElementsIn(expectedJvmInterceptors)
     }
+
+    def "should fail if Groovy interceptors use @InjectVisitorContext"() {
+        given:
+        def givenSource = source """
+            package org.gradle.test;
+            import org.gradle.internal.instrumentation.api.annotations.*;
+            import org.gradle.internal.instrumentation.api.annotations.CallableKind.*;
+            import org.gradle.internal.instrumentation.api.annotations.ParameterKind.*;
+            import java.io.File;
+
+            @SpecificGroovyCallInterceptors(generatedClassName = "my.InterceptorDeclaration_GroovyBytecodeImpl")
+            public class FileInterceptorsDeclaration {
+                @InterceptCalls
+                @InstanceMethod
+                public static File[] intercept_listFiles(@Receiver File thisFile, @InjectVisitorContext Object context) {
+                    return new File[0];
+                }
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        assertThat(compilation).failed()
+        assertThat(compilation).hadErrorContaining("Parameter with @InjectVisitorContext annotation is not supported for Groovy interception.")
+    }
 }
