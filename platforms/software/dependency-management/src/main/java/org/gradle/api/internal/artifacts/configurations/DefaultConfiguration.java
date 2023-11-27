@@ -389,6 +389,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return metaDataProvider.getModule();
     }
 
+    @Deprecated
     @Override
     public boolean isVisible() {
         return visible;

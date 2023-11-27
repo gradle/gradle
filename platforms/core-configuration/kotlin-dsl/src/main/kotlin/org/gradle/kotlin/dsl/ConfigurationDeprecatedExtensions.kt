@@ -160,6 +160,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.state
  */
 @Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().isVisible"), level = DeprecationLevel.HIDDEN)
 var <T : Configuration> NamedDomainObjectProvider<T>.isVisible
+    @Suppress("DEPRECATION")
     get() = get().isVisible
     set(value) {
         get().isVisible = value

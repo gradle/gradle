@@ -120,7 +120,7 @@ public abstract class BasePlugin implements Plugin<Project> {
         configurations.all(configuration -> {
             if (!configuration.equals(archivesConfiguration)) {
                 configuration.getArtifacts().configureEach(artifact -> {
-                    if (configuration.isVisible()) {
+                    if (isConfigurationVisible(configuration)) {
                         defaultArtifacts.addCandidateInternal(artifact, true);
                     }
                 });
@@ -174,6 +174,11 @@ public abstract class BasePlugin implements Plugin<Project> {
 
             return archiveArtifacts.getBuildDependencies();
         });
+    }
+
+    @SuppressWarnings("deprecation")
+    private static boolean isConfigurationVisible(Configuration configuration) {
+        return configuration.isVisible();
     }
 
     private static String getArtifactDisplayName(PublishArtifact artifact) {

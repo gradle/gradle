@@ -137,11 +137,13 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts =
             getConfigurationArtifacts(parent, model, calculatedValueContainerFactory, configurationName, description, hierarchy, sourceArtifacts);
 
+        @SuppressWarnings("deprecation")
+        boolean visible = configuration.isVisible();
         return new DefaultLocalConfigurationMetadata(
             configurationName,
             description,
             componentId,
-            configuration.isVisible(),
+            visible,
             configuration.isTransitive(),
             hierarchy,
             attributes,
