@@ -17,7 +17,9 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -26,7 +28,9 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import java.io.File;
 import java.util.Map;
 
-class NormalizedIdentityImmutableTransformExecution extends AbstractTransformExecution {
+class NormalizedIdentityImmutableTransformExecution extends AbstractTransformExecution implements ImmutableUnitOfWork {
+    private final ImmutableWorkspaceProvider workspaceProvider;
+
     public NormalizedIdentityImmutableTransformExecution(
         Transform transform,
         File inputArtifact,
@@ -38,12 +42,18 @@ class NormalizedIdentityImmutableTransformExecution extends AbstractTransformExe
         BuildOperationProgressEventEmitter progressEventEmitter,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
-        TransformWorkspaceServices workspaceServices
+        ImmutableWorkspaceProvider workspaceProvider
     ) {
         super(
             transform, inputArtifact, dependencies, subject,
-            transformExecutionListener, buildOperationExecutor, progressEventEmitter, fileCollectionFactory, inputFingerprinter, workspaceServices
+            transformExecutionListener, buildOperationExecutor, progressEventEmitter, fileCollectionFactory, inputFingerprinter
         );
+        this.workspaceProvider = workspaceProvider;
+    }
+
+    @Override
+    public ImmutableWorkspaceProvider getWorkspaceProvider() {
+        return workspaceProvider;
     }
 
     @Override

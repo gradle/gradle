@@ -16,16 +16,21 @@
 
 package org.gradle.internal.classpath
 
-import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
 import org.gradle.internal.classpath.intercept.GroovyInterceptorsSubstitution
+import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorFactoryProvider
+import org.gradle.internal.classpath.intercept.JvmInterceptorsSubstitution
+import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter
 import spock.lang.Specification
 
 import java.util.function.Predicate
 
 abstract class AbstractCallInterceptionTest extends Specification {
+    protected BytecodeInterceptorFilter bytecodeInterceptorFilter = BytecodeInterceptorFilter.ALL
+
     protected abstract Predicate<String> shouldInstrumentAndReloadClassByName()
 
-    protected abstract JvmBytecodeInterceptorSet jvmBytecodeInterceptorSet()
+    protected abstract JvmBytecodeInterceptorFactoryProvider jvmBytecodeInterceptorSet()
 
     protected abstract GroovyCallInterceptorsProvider groovyCallInterceptors()
 
@@ -35,20 +40,30 @@ abstract class AbstractCallInterceptionTest extends Specification {
 
     protected InstrumentedClasses instrumentedClasses
 
+    private JvmInterceptorsSubstitution jvmInterceptorsSubstitution
     private GroovyInterceptorsSubstitution groovyInterceptorsSubstitution
 
     def setup() {
+        // Substitutions should be set before the InstrumentedClasses is constructed
+        jvmInterceptorsSubstitution = new JvmInterceptorsSubstitution(jvmBytecodeInterceptorSet())
+        jvmInterceptorsSubstitution.setupForCurrentThread()
+        groovyInterceptorsSubstitution = new GroovyInterceptorsSubstitution(groovyCallInterceptors())
+        groovyInterceptorsSubstitution.setupForCurrentThread()
         instrumentedClasses = new InstrumentedClasses(
             getClass().classLoader,
             shouldInstrumentAndReloadClassByName(),
-            jvmBytecodeInterceptorSet(),
+            bytecodeInterceptorFilter,
             typeRegistry()
         )
-        groovyInterceptorsSubstitution = new GroovyInterceptorsSubstitution(groovyCallInterceptors())
-        groovyInterceptorsSubstitution.setupForCurrentThread()
     }
 
     def cleanup() {
+        jvmInterceptorsSubstitution.cleanupForCurrentThread()
         groovyInterceptorsSubstitution.cleanupForCurrentThread()
+    }
+
+    def resetInterceptors() {
+        cleanup()
+        setup()
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
+import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
@@ -35,6 +36,11 @@ public class MissingFileSnapshot extends AbstractFileSystemLocationSnapshot impl
 
     public MissingFileSnapshot(String absolutePath, AccessType accessType) {
         this(absolutePath, PathUtil.getFileName(absolutePath), accessType);
+    }
+
+    @Override
+    protected Optional<MissingFileSnapshot> relocateDirectAccess(String targetPath, String name, Interner<String> interner) {
+        return Optional.of(new MissingFileSnapshot(targetPath, name, getAccessType()));
     }
 
     @Override

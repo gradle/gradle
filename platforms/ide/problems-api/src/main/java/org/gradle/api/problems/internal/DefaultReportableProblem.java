@@ -42,10 +42,9 @@ public class DefaultReportableProblem extends DefaultProblem implements Reportab
         @Nullable List<String> solutions,
         @Nullable RuntimeException cause,
         String problemCategory,
-        Map<String, String> additionalMetadata,
-        @Nullable InternalProblems problemService,
-        @Nullable OperationIdentifier buildOperationId
-        ) {
+        Map<String, Object> additionalData,
+        @Nullable OperationIdentifier buildOperationId,
+        @Nullable InternalProblems problemService) {
         super(
             message,
             severity,
@@ -55,7 +54,7 @@ public class DefaultReportableProblem extends DefaultProblem implements Reportab
             solutions,
             cause,
             problemCategory,
-            additionalMetadata,
+            additionalData,
             buildOperationId
         );
         this.problemService = problemService;

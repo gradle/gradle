@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -89,6 +90,7 @@ import org.gradle.api.internal.artifacts.transform.ImmutableTransformWorkspaceSe
 import org.gradle.api.internal.artifacts.transform.MutableTransformWorkspaceServices;
 import org.gradle.api.internal.artifacts.transform.TransformActionScheme;
 import org.gradle.api.internal.artifacts.transform.TransformExecutionListener;
+import org.gradle.api.internal.artifacts.transform.TransformExecutionResult;
 import org.gradle.api.internal.artifacts.transform.TransformInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformParameterScheme;
 import org.gradle.api.internal.artifacts.transform.TransformRegistrationFactory;
@@ -112,6 +114,9 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.cache.Cache;
+import org.gradle.cache.ManualEvictionInMemoryCache;
+import org.gradle.internal.Try;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.build.BuildState;
@@ -123,7 +128,10 @@ import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
+import org.gradle.internal.execution.workspace.impl.NonLockingMutableWorkspaceProvider;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -149,6 +157,7 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.util.internal.SimpleMapInterner;
 
+import java.io.File;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -220,7 +229,24 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         MutableTransformWorkspaceServices createTransformWorkspaceServices(ProjectLayout projectLayout, ExecutionHistoryStore executionHistoryStore) {
-            return new MutableTransformWorkspaceServices(projectLayout.getBuildDirectory().dir(".transforms"), executionHistoryStore);
+            Supplier<File> baseDirectory = projectLayout.getBuildDirectory().dir(".transforms").map(Directory::getAsFile)::get;
+            Cache<UnitOfWork.Identity, Try<TransformExecutionResult.TransformWorkspaceResult>> identityCache = new ManualEvictionInMemoryCache<>();
+            return new MutableTransformWorkspaceServices() {
+                @Override
+                public MutableWorkspaceProvider getWorkspaceProvider() {
+                    return new NonLockingMutableWorkspaceProvider(executionHistoryStore, baseDirectory.get());
+                }
+
+                @Override
+                public Cache<UnitOfWork.Identity, Try<TransformExecutionResult.TransformWorkspaceResult>> getIdentityCache() {
+                    return identityCache;
+                }
+
+                @Override
+                public Supplier<File> getReservedFileSystemLocation() {
+                    return baseDirectory;
+                }
+            };
         }
 
         TransformInvocationFactory createTransformInvocationFactory(

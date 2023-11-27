@@ -21,7 +21,7 @@ import org.gradle.api.Task;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 /**
  * An execution plan that has been finalized and can no longer be mutated.
@@ -52,7 +52,7 @@ public interface QueryableExecutionPlan {
 
         @Override
         public ScheduledNodes getScheduledNodes() {
-            return visitor -> visitor.accept(Collections.emptyList());
+            return visitor -> visitor.accept(Collections.emptyList(), Collections.emptySet());
         }
 
         @Override
@@ -97,6 +97,11 @@ public interface QueryableExecutionPlan {
      * An immutable snapshot of the set of scheduled nodes.
      */
     interface ScheduledNodes {
-        void visitNodes(Consumer<List<Node>> visitor);
+        /**
+         * Invokes the consumer with the list of scheduled nodes and the set of entry nodes. Entry nodes may not be a subset of scheduled nodes.
+         *
+         * @param visitor the consumer of nodes and entry nodes
+         */
+        void visitNodes(BiConsumer<List<Node>, Set<Node>> visitor);
     }
 }

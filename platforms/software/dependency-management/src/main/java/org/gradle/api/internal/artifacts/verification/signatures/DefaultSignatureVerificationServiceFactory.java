@@ -103,7 +103,7 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         }
         keyService = keyrings.applyTo(keyService);
         File effectiveKeyringsFile = keyrings.getEffectiveKeyringsFile();
-        HashCode keyringFileHash = effectiveKeyringsFile != null && observed(effectiveKeyringsFile).exists()
+        HashCode keyringFileHash = observed(effectiveKeyringsFile).exists()
             ? fileHasher.hash(effectiveKeyringsFile)
             : NO_KEYRING_FILE_HASH;
         DefaultSignatureVerificationService delegate = new DefaultSignatureVerificationService(keyService);

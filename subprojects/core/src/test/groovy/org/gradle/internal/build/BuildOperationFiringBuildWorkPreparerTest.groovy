@@ -32,7 +32,7 @@ import org.gradle.internal.taskgraph.NodeIdentity
 import org.gradle.util.Path
 import spock.lang.Specification
 
-import java.util.function.Consumer
+import java.util.function.BiConsumer
 
 class BuildOperationFiringBuildWorkPreparerTest extends Specification {
 
@@ -48,8 +48,8 @@ class BuildOperationFiringBuildWorkPreparerTest extends Specification {
         List<Node> nodes = [t]
 
         def scheduledNodesStub = Stub(QueryableExecutionPlan.ScheduledNodes) {
-            visitNodes(_) >> { Consumer<List<Node>> consumer ->
-                consumer.accept(nodes)
+            visitNodes(_) >> { BiConsumer<List<Node>, Set<Node>> consumer ->
+                consumer.accept(nodes, new HashSet<Node>(nodes))
             }
         }
 

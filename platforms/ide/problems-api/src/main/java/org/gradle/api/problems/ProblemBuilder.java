@@ -29,7 +29,7 @@ import org.gradle.api.Incubating;
  *          .label("test problem")
  *          .undocumented()
  *          .noLocation()
- *          .cotegory("problemCategory")
+ *          .category("problemCategory")
  *          .severity(Severity.ERROR)
  *          .details("this is a test")
  *  }</pre>
@@ -56,10 +56,14 @@ public interface ProblemBuilder {
 
     /**
      * Specifies arbitrary data associated with this problem.
+     * <p>
+     * The only supported value type is {@link String}. Future Gradle versions may support additional types.
      *
      * @return this
+     * @throws RuntimeException for null values and for values with unsupported type.
+     * @since 8.6
      */
-    ProblemBuilder additionalData(String key, String value);
+    ProblemBuilder additionalData(String key, Object value);
 
     /**
      * The exception causing this problem.

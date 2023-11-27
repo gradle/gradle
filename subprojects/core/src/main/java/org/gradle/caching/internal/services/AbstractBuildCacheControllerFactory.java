@@ -37,7 +37,6 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +53,6 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
     protected final StartParameter startParameter;
     protected final StringInterner stringInterner;
     protected final BuildOperationExecutor buildOperationExecutor;
-    protected final FileSystemAccess fileSystemAccess;
     protected final OriginMetadataFactory originMetadataFactory;
 
     public enum BuildCacheMode {
@@ -69,13 +67,11 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
         StartParameter startParameter,
         BuildOperationExecutor buildOperationExecutor,
         OriginMetadataFactory originMetadataFactory,
-        FileSystemAccess fileSystemAccess,
         StringInterner stringInterner
     ) {
         this.startParameter = startParameter;
         this.buildOperationExecutor = buildOperationExecutor;
         this.originMetadataFactory = originMetadataFactory;
-        this.fileSystemAccess = fileSystemAccess;
         this.stringInterner = stringInterner;
     }
 

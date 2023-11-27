@@ -18,12 +18,12 @@ package org.gradle.internal.execution.history.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.execution.history.InputExecutionState;
+import org.gradle.internal.execution.history.ExecutionInputState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-public class AbstractInputExecutionState<C extends FileCollectionFingerprint> implements InputExecutionState {
+public class AbstractInputExecutionState<C extends FileCollectionFingerprint> implements ExecutionInputState {
     protected final ImplementationSnapshot implementation;
     protected final ImmutableList<ImplementationSnapshot> additionalImplementations;
     protected final ImmutableSortedMap<String, ValueSnapshot> inputProperties;

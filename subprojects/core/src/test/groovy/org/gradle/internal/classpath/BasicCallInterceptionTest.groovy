@@ -18,6 +18,7 @@ package org.gradle.internal.classpath
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorFactoryProvider
 
 import java.util.function.Predicate
 
@@ -31,7 +32,7 @@ import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTes
 import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.doTestVararg
 import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.doTestVarargWithArray
 import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.doTestVarargWithNullItem
-import static org.gradle.internal.classpath.JvmBytecodeInterceptorSet.*
+import static org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorFactoryProvider.*
 
 class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
     @Override
@@ -40,8 +41,8 @@ class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
     }
 
     @Override
-    protected JvmBytecodeInterceptorSet jvmBytecodeInterceptorSet() {
-        return DEFAULT + new ClassLoaderSourceJvmBytecodeInterceptorSet(this.class.classLoader, TEST_GENERATED_CLASSES_PACKAGE)
+    protected JvmBytecodeInterceptorFactoryProvider jvmBytecodeInterceptorSet() {
+        return DEFAULT + new ClassLoaderSourceJvmBytecodeInterceptorFactoryProvider(this.class.classLoader, TEST_GENERATED_CLASSES_PACKAGE)
     }
 
     @Override

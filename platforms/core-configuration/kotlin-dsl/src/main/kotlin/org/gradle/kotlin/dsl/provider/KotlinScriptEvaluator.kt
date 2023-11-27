@@ -34,6 +34,7 @@ import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransfor
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.ImmutableUnitOfWork
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.InputVisitor
@@ -257,18 +258,22 @@ class StandardKotlinScriptEvaluator(
             accessorsClassPath: ClassPath,
             initializer: (File) -> Unit
         ): File = try {
-            executionEngineFor(scriptHost).createRequest(
-                CompileKotlinScript(
-                    programId,
-                    compilationClassPath,
-                    accessorsClassPath,
-                    initializer,
-                    classpathHasher,
-                    workspaceProvider,
-                    fileCollectionFactory,
-                    inputFingerprinter
+            executionEngineFor(scriptHost)
+                .createRequest(
+                    CompileKotlinScript(
+                        programId,
+                        compilationClassPath,
+                        accessorsClassPath,
+                        initializer,
+                        classpathHasher,
+                        workspaceProvider,
+                        fileCollectionFactory,
+                        inputFingerprinter
+                    )
                 )
-            ).execute().execution.get().output as File
+                .execute()
+                .getOutputAs(File::class.java)
+                .get()
         } catch (e: CacheOpenException) {
             throw e.cause as? ScriptCompilationException ?: e
         }
@@ -356,7 +361,7 @@ class CompileKotlinScript(
     private val workspaceProvider: KotlinDslWorkspaceProvider,
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter
-) : UnitOfWork {
+) : ImmutableUnitOfWork {
 
     companion object {
         const val JVM_TARGET = "jvmTarget"
@@ -366,7 +371,6 @@ class CompileKotlinScript(
         const val SOURCE_HASH = "sourceHash"
         const val COMPILATION_CLASS_PATH = "compilationClassPath"
         const val ACCESSORS_CLASS_PATH = "accessorsClassPath"
-        val IDENTITY_HASH__PROPERTIES = listOf(JVM_TARGET, TEMPLATE_ID, SOURCE_HASH, COMPILATION_CLASS_PATH, ACCESSORS_CLASS_PATH)
     }
 
     override fun visitIdentityInputs(
@@ -398,8 +402,8 @@ class CompileKotlinScript(
         identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>
     ): UnitOfWork.Identity {
         val identityHash = newHasher().let { hasher ->
-            IDENTITY_HASH__PROPERTIES.forEach {
-                requireNotNull(identityInputs[it]).appendToHasher(hasher)
+            identityInputs.values.forEach {
+                requireNotNull(it).appendToHasher(hasher)
             }
             hasher.hash().toString()
         }
@@ -409,15 +413,11 @@ class CompileKotlinScript(
     override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput {
         val workspace = executionRequest.workspace
         compileTo(classesDir(workspace))
-        return workOutputFor(workspace)
-    }
-
-    private
-    fun workOutputFor(workspace: File): UnitOfWork.WorkOutput =
-        object : UnitOfWork.WorkOutput {
+        return object : UnitOfWork.WorkOutput {
             override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
-            override fun getOutput() = loadAlreadyProducedOutput(workspace)
+            override fun getOutput(workspace: File) = loadAlreadyProducedOutput(workspace)
         }
+    }
 
     override fun getDisplayName(): String =
         "Kotlin DSL script compilation (${programId.templateId})"

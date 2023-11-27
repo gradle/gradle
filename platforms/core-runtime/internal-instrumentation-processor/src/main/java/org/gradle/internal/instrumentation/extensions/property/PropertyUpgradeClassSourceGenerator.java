@@ -34,7 +34,6 @@ import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInst
 import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
 
 import javax.lang.model.element.Modifier;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
@@ -56,7 +55,7 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
     @Override
     protected Consumer<TypeSpec.Builder> classContentForClass(
         String className,
-        Collection<CallInterceptionRequest> requestsClassGroup,
+        List<CallInterceptionRequest> requestsClassGroup,
         Consumer<? super CallInterceptionRequest> onProcessedRequest,
         Consumer<? super HasFailures.FailureInfo> onFailure
     ) {

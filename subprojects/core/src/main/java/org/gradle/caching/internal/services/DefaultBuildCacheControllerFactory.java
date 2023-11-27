@@ -30,7 +30,6 @@ import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.DirectoryBuildCacheService;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.vfs.FileSystemAccess;
 
 import javax.annotation.Nullable;
 
@@ -43,7 +42,6 @@ public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheContro
         StartParameter startParameter,
         BuildOperationExecutor buildOperationExecutor,
         OriginMetadataFactory originMetadataFactory,
-        FileSystemAccess fileSystemAccess,
         StringInterner stringInterner,
         TemporaryFileProvider temporaryFileProvider,
         BuildCacheEntryPacker packer
@@ -52,7 +50,6 @@ public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheContro
             startParameter,
             buildOperationExecutor,
             originMetadataFactory,
-            fileSystemAccess,
             stringInterner
         );
         this.temporaryFileProvider = temporaryFileProvider;
@@ -79,7 +76,6 @@ public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheContro
             logStackTraces,
             emitDebugLogging,
             !Boolean.getBoolean(REMOTE_CONTINUE_ON_ERROR_PROPERTY),
-            fileSystemAccess,
             packer,
             originMetadataFactory,
             stringInterner

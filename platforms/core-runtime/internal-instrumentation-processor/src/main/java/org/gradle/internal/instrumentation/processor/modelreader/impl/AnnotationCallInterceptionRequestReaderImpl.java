@@ -256,6 +256,7 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
         ParameterKind.Receiver.class,
         ParameterKind.CallerClassName.class,
         ParameterKind.KotlinDefaultMask.class,
-        ParameterKind.VarargParameter.class
+        ParameterKind.VarargParameter.class,
+        ParameterKind.InjectVisitorContext.class
     });
 }

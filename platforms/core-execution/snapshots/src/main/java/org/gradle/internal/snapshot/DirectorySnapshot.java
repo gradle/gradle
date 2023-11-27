@@ -18,12 +18,15 @@ package org.gradle.internal.snapshot;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
+import java.io.File;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.snapshot.ChildMapFactory.childMapFromSorted;
@@ -48,6 +51,28 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot {
         super(absolutePath, name, accessType);
         this.contentHash = contentHash;
         this.children = children;
+    }
+
+    @Override
+    protected Optional<DirectorySnapshot> relocateDirectAccess(String targetPath, String name, Interner<String> interner) {
+        ImmutableList.Builder<ChildMap.Entry<FileSystemLocationSnapshot>> relocatedChildren = ImmutableList.builderWithExpectedSize(children.size());
+        AtomicBoolean alreadyFoundASymlink = new AtomicBoolean(false);
+        children.stream()
+            .map(child -> child.getValue().relocate(targetPath + File.separatorChar + child.getPath(), interner)
+                .map(relocatedSnapshot -> new ChildMap.Entry<FileSystemLocationSnapshot>(child.getPath(), relocatedSnapshot)))
+            .forEach(relocatedChild -> {
+                if (!alreadyFoundASymlink.get()) {
+                    if (relocatedChild.isPresent()) {
+                        relocatedChildren.add(relocatedChild.get());
+                    } else {
+                        alreadyFoundASymlink.set(true);
+                    }
+                }
+            });
+        if (alreadyFoundASymlink.get()) {
+            return Optional.empty();
+        }
+        return Optional.of(new DirectorySnapshot(targetPath, name, getAccessType(), contentHash, childMapFromSorted(relocatedChildren.build())));
     }
 
     @Override

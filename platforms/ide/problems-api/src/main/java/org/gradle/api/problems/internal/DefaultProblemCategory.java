@@ -16,12 +16,12 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.problems.ProblemCategory;
 import org.gradle.util.Path;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.util.List;
-
-import static java.lang.String.join;
 
 /**
  * Default implementation for {@link ProblemCategory}
@@ -34,7 +34,7 @@ public class DefaultProblemCategory implements ProblemCategory {
     public static final String VALIDATION = "validation";
 
     public static final String SEPARATOR = Path.SEPARATOR;
-    protected Path category;
+    private final Path category;
 
     public DefaultProblemCategory(String category) {
         if (category.startsWith(SEPARATOR)) {
@@ -51,7 +51,7 @@ public class DefaultProblemCategory implements ProblemCategory {
         if (details.length == 0) {
             return new DefaultProblemCategory(category);
         }
-        return new DefaultProblemCategory(category + SEPARATOR + join(SEPARATOR, details));
+        return new DefaultProblemCategory(category + SEPARATOR + CollectionUtils.join(SEPARATOR, details));
     }
 
     public String segment(int i) {
@@ -88,7 +88,7 @@ public class DefaultProblemCategory implements ProblemCategory {
 
     @Override
     public List<String> getSubCategories() {
-        return category.segments().subList(NAMESPACE_START_INDEX + (hasPluginId() ? 3 : 1), category.segmentCount());
+        return ImmutableList.copyOf(category.segments().subList(NAMESPACE_START_INDEX + (hasPluginId() ? 3 : 1), category.segmentCount()));
     }
 
     @Override

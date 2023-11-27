@@ -986,7 +986,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         def node1 = requiredNode()
         def node2 = requiredNode(node1)
         def node3 = requiredNode(node2)
-        executionPlan.setScheduledNodes([node3, node1, node2])
+        executionPlan.setScheduledWork(scheduledWork(node3, node1, node2))
 
         when:
         populateGraph()
@@ -1182,5 +1182,9 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         task.getShouldRunAfter() >> brokenDependencies()
         task.getFinalizedBy() >> taskDependencyResolvingTo(task, [])
         return task
+    }
+
+    private ScheduledWork scheduledWork(Node... nodes) {
+        return new ScheduledWork(nodes as List<Node>, nodes as List<Node>)
     }
 }
