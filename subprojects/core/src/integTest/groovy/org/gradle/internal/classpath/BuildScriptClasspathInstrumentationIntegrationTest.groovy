@@ -70,8 +70,8 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "--info")
 
         then:
-        allTransformsFor("buildSrc.jar") == ["InstrumentArtifactTransform"]
-        allTransformsFor("included-1.0.jar") == ["InstrumentArtifactTransform"]
+        allTransformsFor("buildSrc.jar") == ["InstrumentingArtifactTransform"]
+        allTransformsFor("included-1.0.jar") == ["InstrumentingArtifactTransform"]
     }
 
     def "external dependencies should not be copied to the global artifact transform cache"() {
