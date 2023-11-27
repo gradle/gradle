@@ -49,6 +49,8 @@ import static org.hamcrest.MatcherAssert.assertThat
 @CompileStatic
 abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpecification implements KotlinDslTestProjectInitiation {
 
+    private String targetKotlinVersion
+
     def setup() {
         // Required for the lenient classpath mode
         toolingApi.requireDaemons()
@@ -65,8 +67,6 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         // TODO remove - see https://github.com/gradle/gradle/issues/26810
         file('gradle.properties') << 'org.gradle.kotlin.dsl.skipMetadataVersionCheck=false'
     }
-
-    private String targetKotlinVersion
 
     protected String getTargetKotlinVersion() {
         if (targetKotlinVersion == null) {
