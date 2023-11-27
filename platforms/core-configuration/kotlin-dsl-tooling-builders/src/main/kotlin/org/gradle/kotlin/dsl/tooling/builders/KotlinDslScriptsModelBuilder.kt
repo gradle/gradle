@@ -20,8 +20,9 @@ import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.resources.ProjectLeaseRegistry
 import org.gradle.internal.time.Time
-import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.kotlin.dsl.tooling.builders.internal.DiscoveredKotlinScriptsModel
+import org.gradle.kotlin.dsl.tooling.builders.internal.hasKotlinDslExtension
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.tooling.model.kotlin.dsl.EditorPosition
 import org.gradle.tooling.model.kotlin.dsl.EditorReport
@@ -30,6 +31,7 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.tooling.provider.model.ToolingModelBuilder
+import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
 import java.io.File
 import java.io.Serializable
 
@@ -107,7 +109,7 @@ data class StandardEditorPosition(
 
 
 internal
-object KotlinDslScriptsModelBuilder : ToolingModelBuilder {
+class KotlinDslScriptsModelBuilder(private val intermediateToolingModelProvider: IntermediateToolingModelProvider) : ToolingModelBuilder {
 
     override fun canBuild(modelName: String): Boolean =
         modelName == KotlinDslScriptsModel::class.qualifiedName
@@ -115,7 +117,7 @@ object KotlinDslScriptsModelBuilder : ToolingModelBuilder {
     override fun buildAll(modelName: String, project: Project): KotlinDslScriptsModel {
         requireRootProject(project)
         val timer = Time.startTimer()
-        val parameter = project.parameterFromRequest()
+        val parameter = project.parameterFromRequest(intermediateToolingModelProvider)
         try {
             return project.leaseRegistry.allowUncontrolledAccessToAnyProject {
                 buildFor(parameter, project).also {
@@ -186,7 +188,7 @@ fun dehydrateScriptModels(
 
 
 private
-fun Project.parameterFromRequest(): KotlinDslScriptsParameter =
+fun Project.parameterFromRequest(intermediateToolingModelProvider: IntermediateToolingModelProvider): KotlinDslScriptsParameter =
     KotlinDslScriptsParameter(
         findProperty(KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME) as? String,
         (findProperty(KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME) as? String)
@@ -197,49 +199,35 @@ fun Project.parameterFromRequest(): KotlinDslScriptsParameter =
             ?.filter { it.isFile }
             ?.toList()
             ?.takeIf { it.isNotEmpty() }
-            ?: collectKotlinDslScripts()
+            ?: collectKotlinDslScripts(intermediateToolingModelProvider)
     )
 
 
 // TODO:kotlin-dsl naive implementation for now, refine
 private
-fun Project.collectKotlinDslScripts(): List<File> = sequence<File> {
-
-    val extension = ".gradle.kts"
-
+fun Project.collectKotlinDslScripts(intermediateToolingModelProvider: IntermediateToolingModelProvider): List<File> = sequence<File> {
     // Init Scripts
     project
         .gradle
         .startParameter
         .allInitScripts
         .filter(File::isFile)
-        .filter { it.name.endsWith(extension) }
+        .filter { it.hasKotlinDslExtension }
         .forEach { yield(it) }
 
     // Settings Script
     val settingsScriptFile = File((project as ProjectInternal).gradle.settings.settingsScript.fileName)
-    if (settingsScriptFile.isFile && settingsScriptFile.name.endsWith(extension)) {
+    if (settingsScriptFile.isFile && settingsScriptFile.hasKotlinDslExtension) {
         yield(settingsScriptFile)
     }
 
-    allprojects.forEach { p ->
+    val projectScripts =
+        intermediateToolingModelProvider.getModels(allprojects.toList(), DiscoveredKotlinScriptsModel::class.java)
 
-        // Project Scripts
-        if (p.buildFile.isFile && p.buildFile.name.endsWith(extension)) {
-            yield(p.buildFile)
-        }
-
-        // Precompiled Scripts
-        if (p.plugins.hasPlugin("org.gradle.kotlin.kotlin-dsl")) {
-            yieldAll(p.precompiledScriptPluginsSupport.collectScriptPluginFilesOf(p))
-        }
+    projectScripts.forEach {
+        yieldAll(it.scripts)
     }
 }.toList()
-
-
-private
-val Project.precompiledScriptPluginsSupport
-    get() = serviceOf<PrecompiledScriptPluginsSupport>()
 
 
 private
