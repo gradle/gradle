@@ -16,11 +16,7 @@
 
 package org.gradle.internal.resource.transport.aws.s3;
 
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import com.google.common.io.ByteStreams;
-import org.gradle.internal.IoActions;
+
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
@@ -30,6 +26,7 @@ import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,52 +50,26 @@ public class S3ResourceConnector extends AbstractExternalResourceAccessor implem
     @Override
     public ExternalResourceReadResponse openResource(ExternalResourceName location, boolean revalidate) {
         LOGGER.debug("Attempting to get resource: {}", location);
-        S3Object s3Object = s3Client.getResource(location.getUri());
-        if (s3Object == null) {
+        S3Client.GetResourceResponse resourceItems = s3Client.getResource(location.getUri());
+        if (resourceItems == null) {
             return null;
         }
-        return new S3Resource(s3Object, location.getUri());
+        return new S3Resource(resourceItems, location.getUri());
     }
 
     @Override
     public ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate) {
         LOGGER.debug("Attempting to get resource metadata: {}", location);
-        S3Object s3Object = s3Client.getMetaData(location.getUri());
-        if (s3Object == null) {
+        HeadObjectResponse headObjectResponse = s3Client.getMetaData(location.getUri());
+        if (headObjectResponse == null) {
             return null;
         }
-        try {
-            ObjectMetadata objectMetadata = s3Object.getObjectMetadata();
-            return new DefaultExternalResourceMetaData(location.getUri(),
-                objectMetadata.getLastModified().getTime(),
-                objectMetadata.getContentLength(),
-                objectMetadata.getContentType(),
-                objectMetadata.getETag(),
-                null); // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file (when less than 5Gb)
-        } finally {
-            discardEmptyContentAndClose(s3Object);
-        }
-    }
-
-    private static void discardEmptyContentAndClose(S3Object s3Object) {
-        // Consume the content stream to avoid warning from S3 SDK. The response should have only 1 byte there because Range header was specified.
-        try {
-            S3ObjectInputStream objectContent = s3Object.getObjectContent();
-            if (objectContent == null) {
-                return;
-            }
-            long downloadedContentLength = ByteStreams.exhaust(objectContent);
-            if (downloadedContentLength > 1L) {
-                // This may happen if the endpoint ignores Range HTTP header for whatever reason.
-                LOGGER.debug("Downloaded {} bytes of the object content for metadata request which is too much.", downloadedContentLength);
-            }
-        } catch (IOException e) {
-            // Don't complain loudly to the user about the error there because we were discarding the response anyway.
-            LOGGER.debug("Exception while consuming empty object content from metadata request", e);
-        } finally {
-            // This also closes objectContent, no need to close it explicitly.
-            IoActions.closeQuietly(s3Object);
-        }
+        return new DefaultExternalResourceMetaData(location.getUri(),
+            headObjectResponse.lastModified().toEpochMilli(),
+            headObjectResponse.contentLength(),
+            headObjectResponse.contentType(),
+            headObjectResponse.eTag(),
+            null); // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file (when less than 5Gb)
     }
 
     @Override

@@ -19,6 +19,7 @@ dependencies {
     implementation(libs.awsS3Sts) {
         because("Loaded by the AWS libraries with reflection when present: https://github.com/gradle/gradle/issues/15332")
     }
+    implementation(libs.awsApacheHttpClient)
     implementation(libs.jaxbImpl)
     implementation(libs.jacksonCore)
     implementation(libs.jacksonDatabind)
@@ -29,6 +30,7 @@ dependencies {
     testImplementation(testFixtures(project(":dependency-management")))
     testImplementation(testFixtures(project(":ivy")))
     testImplementation(testFixtures(project(":maven")))
+    testImplementation(libs.awsS3Control)
 
     integTestImplementation(project(":logging"))
     integTestImplementation(libs.commonsIo)

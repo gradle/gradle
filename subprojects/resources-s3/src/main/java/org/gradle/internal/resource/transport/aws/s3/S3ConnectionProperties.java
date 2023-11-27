@@ -28,15 +28,15 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Set;
 
-import static com.amazonaws.services.s3.internal.Constants.S3_HOSTNAME;
 import static java.lang.System.getProperty;
 
 public class S3ConnectionProperties {
-    public static final String S3_ENDPOINT_PROPERTY = "org.gradle.s3.endpoint";
+    public static final String S3_HOSTNAME = "s3.amazonaws.com";
     //The maximum number of times to retry a request when S3 responds with a http 5xx error
     public static final String S3_MAX_ERROR_RETRY = "org.gradle.s3.maxErrorRetry";
     private static final Set<String> SUPPORTED_SCHEMES = Sets.newHashSet("HTTP", "HTTPS");
     private static final long DEFAULT_PART_SIZE = 50 * 1024 * 1024;
+    private static final String S3_ENDPOINT_PROPERTY = "org.gradle.s3.endpoint";
 
     private final Optional<URI> endpoint;
     private final HttpProxySettings proxySettings;

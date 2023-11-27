@@ -26,10 +26,11 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.internal.TextUtil
-import org.joda.time.DateTimeZone
-import org.joda.time.format.DateTimeFormat
-import org.joda.time.format.DateTimeFormatter
-import org.joda.time.tz.FixedDateTimeZone
+
+import java.time.ZoneId
+
+import java.time.format.DateTimeFormatter
+import java.time.Instant
 
 import javax.servlet.ServletException
 import javax.servlet.http.HttpServletRequest
@@ -39,10 +40,11 @@ import java.security.MessageDigest
 class S3Server extends HttpServer implements RepositoryServer {
 
     public static final String BUCKET_NAME = "tests3bucket"
-    private static final DateTimeZone GMT = new FixedDateTimeZone("GMT", "GMT", 0, 0)
-    protected static final DateTimeFormatter RCF_822_DATE_FORMAT = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss z")
+    protected static final DateTimeFormatter RCF_822_DATE_FORMAT = DateTimeFormatter
+        .ofPattern("EEE, dd MMM yyyy HH:mm:ss z")
         .withLocale(Locale.US)
-        .withZone(GMT);
+        .withZone(ZoneId.of('GMT'));
+
 
     public static final String ETAG = 'd41d8cd98f00b204e9800998ecf8427e'
     public static final String X_AMZ_REQUEST_ID = '0A398F9A1BAD4027'
@@ -178,7 +180,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                     'Date': DATE_HEADER,
                     'Server': SERVER_AMAZON_S3,
                     'Content-Length': length,
-                    'Last-Modified': RCF_822_DATE_FORMAT.print(new Date().getTime())
+                    'Last-Modified': RCF_822_DATE_FORMAT.format(Instant.now())
                 ]
                 body = { xml.toString() }
             }
@@ -216,7 +218,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                     'Server': SERVER_AMAZON_S3,
                     'ETag': calculateEtag(file),
                     'Content-Length': 0,
-                    'Last-Modified': RCF_822_DATE_FORMAT.print(new Date().getTime())
+                    'Last-Modified': RCF_822_DATE_FORMAT.format(Instant.now())
                 ]
             }
         }
@@ -259,7 +261,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                     'x-amz-request-id': X_AMZ_REQUEST_ID,
                     'Date': DATE_HEADER,
                     'Server': SERVER_AMAZON_S3,
-                    'Last-Modified': RCF_822_DATE_FORMAT.print(new Date().getTime())
+                    'Last-Modified': RCF_822_DATE_FORMAT.format(Instant.now())
                 ]
                 body = { responseXml.toString() }
             }
@@ -270,7 +272,7 @@ class S3Server extends HttpServer implements RepositoryServer {
     def stubMetaData(File file, String url) {
         HttpStub httpStub = HttpStub.stubInteraction {
             request {
-                method = 'GET'
+                method = 'HEAD'
                 path = url
                 headers = [
                     'Content-Type': "application/x-www-form-urlencoded; charset=utf-8",
@@ -288,7 +290,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                     'Accept-Ranges': 'bytes',
                     'Content-Type': 'application/octet-stream',
                     'Content-Length': "0",
-                    'Last-Modified': RCF_822_DATE_FORMAT.print(new Date().getTime())
+                    'Last-Modified': RCF_822_DATE_FORMAT.format(Instant.now())
                 ]
             }
         }
@@ -348,7 +350,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                     'Accept-Ranges': 'bytes',
                     'Content-Type': 'application/octet-stream',
                     'Content-Length': { file.length() },
-                    'Last-Modified': RCF_822_DATE_FORMAT.print(new Date().getTime())
+                    'Last-Modified': RCF_822_DATE_FORMAT.format(Instant.now())
                 ]
                 body = { file.bytes }
             }
@@ -375,10 +377,11 @@ class S3Server extends HttpServer implements RepositoryServer {
             ListBucketResult(xmlns: "http://s3.amazonaws.com/doc/2006-03-01/") {
                 Name(bucketName)
                 Prefix(prefix)
-                Marker()
                 MaxKeys('1000')
                 Delimiter('/')
                 IsTruncated('false')
+                KeyCount(files.size() + dirs.size())
+
                 files.each { currentFile ->
                     Contents {
                         Key(prefix + currentFile.name)
@@ -393,8 +396,8 @@ class S3Server extends HttpServer implements RepositoryServer {
                     }
                 }
 
-                CommonPrefixes {
-                    dirs.each { File dir ->
+                dirs.each { File dir ->
+                    CommonPrefixes {
                         String path = TextUtil.normaliseFileSeparators(dir.absolutePath)
                         Prefix("${prefix}${dir.name}/")
                     }
@@ -402,11 +405,10 @@ class S3Server extends HttpServer implements RepositoryServer {
             }
         }
 
-        println(xml.toString())
         HttpStub httpStub = HttpStub.stubInteraction {
             request {
                 method = 'GET'
-                path = "/${bucketName}/"
+                path = "/${bucketName}"
                 headers = [
                     'Content-Type': "application/x-www-form-urlencoded; charset=utf-8",
                     'Connection': 'Keep-Alive'
@@ -414,8 +416,8 @@ class S3Server extends HttpServer implements RepositoryServer {
                 params = [
                     'prefix': [prefix],
                     'delimiter': ['/'],
-                    'max-keys': ["1000"],
-                    'encoding-type': ['url']
+                    'max-keys': ['1000'],
+                    'list-type': ['2']
                 ]
             }
             response {

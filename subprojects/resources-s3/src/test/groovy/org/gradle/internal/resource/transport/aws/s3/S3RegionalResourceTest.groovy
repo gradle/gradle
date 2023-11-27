@@ -16,41 +16,50 @@
 
 package org.gradle.internal.resource.transport.aws.s3
 
-import com.amazonaws.regions.RegionUtils
-import com.amazonaws.regions.Regions
-import com.amazonaws.services.s3.model.Region
+//import software.amazon.awssdk.regions.RegionUtils
+//import software.amazon.awssdk.regions.Regions
+import software.amazon.awssdk.regions.Region
+//import software.amazon.awssdk.services.s3.model.Region
 import com.google.common.base.Optional
 import spock.lang.Specification
 
-import static com.amazonaws.regions.Region.getRegion
+//import static software.amazon.awssdk.regions.Region.getRegion
 
 class S3RegionalResourceTest extends Specification {
 
     def "should determine the aws region from virtual hosted urls"() {
+        given:
+        Map<String, Region> knownBucketRegions = new HashMap<>();
+        knownBucketRegions.put('somebucket-alias', Region.US_WEST_2)
+
         expect:
-        S3RegionalResource regionalResource = new S3RegionalResource(uri)
+        S3RegionalResource regionalResource = new S3RegionalResource(uri, knownBucketRegions)
         regionalResource.region == expectedRegion
         regionalResource.bucketName == expectedBucket
         regionalResource.key == expectedKey
 
 
         where:
-        uri                                                                           | expectedRegion                                                      | expectedBucket  | expectedKey
+        uri                                                                           | expectedRegion                     | expectedBucket  | expectedKey
 
-        new URI("s3://somebucket.au/a/b/file.txt")                                    | Optional.absent()                                                   | 'somebucket.au' | 'a/b/file.txt'
-        new URI("s3://somebucket.au.s3.amazonaws.com/a/b/file.txt")                   | Optional.absent()                                                   | 'somebucket.au' | 'a/b/file.txt'
-        new URI("s3://somebucket.au.s3-external-1.amazonaws.com/a/b/file.txt")        | Optional.of(getRegion(Regions.US_EAST_1))                           | 'somebucket.au' | 'a/b/file.txt'
-        new URI("s3://somebucket.au.s3.eu-central-1.amazonaws.com/a/b/file.txt")      | Optional.of(getRegion(Regions.EU_CENTRAL_1))                        | 'somebucket.au' | 'a/b/file.txt'
-        new URI("s3://somebucket.au.s3-eu-central-1.amazonaws.com/a/b/file.txt")      | Optional.of(getRegion(Regions.EU_CENTRAL_1))                        | 'somebucket.au' | 'a/b/file.txt'
-        new URI("s3://somebucket.au.s3-ap-southeast-2.amazonaws.com/a/b/file.txt")    | Optional.of(getRegion(Regions.AP_SOUTHEAST_2))                      | 'somebucket.au' | 'a/b/file.txt'
-        new URI("s3://somebucket.au.s3.cn-north-1.amazonaws.com.cn/a/b/file.txt")     | Optional.of(RegionUtils.getRegion(Region.CN_Beijing.firstRegionId)) | 'somebucket.au' | 'a/b/file.txt'
 
-        new URI("s3://somebucket-1.2.3/a/b/file.txt")                                 | Optional.absent()                                                   | 'somebucket-1.2.3' | 'a/b/file.txt'
-        new URI("s3://somebucket-1.2.3.s3.amazonaws.com/a/b/file.txt")                | Optional.absent()                                                   | 'somebucket-1.2.3' | 'a/b/file.txt'
-        new URI("s3://somebucket-1.2.3.s3-external-1.amazonaws.com/a/b/file.txt")     | Optional.of(getRegion(Regions.US_EAST_1))                           | 'somebucket-1.2.3' | 'a/b/file.txt'
-        new URI("s3://somebucket-1.2.3.s3.eu-central-1.amazonaws.com/a/b/file.txt")   | Optional.of(getRegion(Regions.EU_CENTRAL_1))                        | 'somebucket-1.2.3' | 'a/b/file.txt'
-        new URI("s3://somebucket-1.2.3.s3-eu-central-1.amazonaws.com/a/b/file.txt")   | Optional.of(getRegion(Regions.EU_CENTRAL_1))                        | 'somebucket-1.2.3' | 'a/b/file.txt'
-        new URI("s3://somebucket-1.2.3.s3-ap-southeast-2.amazonaws.com/a/b/file.txt") | Optional.of(getRegion(Regions.AP_SOUTHEAST_2))                      | 'somebucket-1.2.3' | 'a/b/file.txt'
-        new URI("s3://somebucket-1.2.3.s3.cn-north-1.amazonaws.com.cn/a/b/file.txt")  | Optional.of(RegionUtils.getRegion(Region.CN_Beijing.firstRegionId)) | 'somebucket-1.2.3' | 'a/b/file.txt'
+        new URI("s3://somebucket.au/a/b/file.txt")                                    | Optional.absent()                  | 'somebucket.au' | 'a/b/file.txt'
+        new URI("s3://somebucket.au.s3.amazonaws.com/a/b/file.txt")                   | Optional.absent()                  | 'somebucket.au' | 'a/b/file.txt'
+        new URI("s3://somebucket.au.s3-external-1.amazonaws.com/a/b/file.txt")        | Optional.of(Region.US_EAST_1)      | 'somebucket.au' | 'a/b/file.txt'
+        new URI("s3://somebucket.au.s3.eu-central-1.amazonaws.com/a/b/file.txt")      | Optional.of(Region.EU_CENTRAL_1)   | 'somebucket.au' | 'a/b/file.txt'
+        new URI("s3://somebucket.au.s3-eu-central-1.amazonaws.com/a/b/file.txt")      | Optional.of(Region.EU_CENTRAL_1)   | 'somebucket.au' | 'a/b/file.txt'
+        new URI("s3://somebucket.au.s3-ap-southeast-2.amazonaws.com/a/b/file.txt")    | Optional.of(Region.AP_SOUTHEAST_2) | 'somebucket.au' | 'a/b/file.txt'
+        new URI("s3://somebucket.au.s3.cn-north-1.amazonaws.com.cn/a/b/file.txt")     | Optional.of(Region.CN_NORTH_1)     | 'somebucket.au' | 'a/b/file.txt'
+
+        new URI("s3://somebucket-1.2.3/a/b/file.txt")                                 | Optional.absent()                  | 'somebucket-1.2.3' | 'a/b/file.txt'
+        new URI("s3://somebucket-1.2.3.s3.amazonaws.com/a/b/file.txt")                | Optional.absent()                  | 'somebucket-1.2.3' | 'a/b/file.txt'
+        new URI("s3://somebucket-1.2.3.s3-external-1.amazonaws.com/a/b/file.txt")     | Optional.of(Region.US_EAST_1)      | 'somebucket-1.2.3' | 'a/b/file.txt'
+        new URI("s3://somebucket-1.2.3.s3.eu-central-1.amazonaws.com/a/b/file.txt")   | Optional.of(Region.EU_CENTRAL_1)   | 'somebucket-1.2.3' | 'a/b/file.txt'
+        new URI("s3://somebucket-1.2.3.s3-eu-central-1.amazonaws.com/a/b/file.txt")   | Optional.of(Region.EU_CENTRAL_1)   | 'somebucket-1.2.3' | 'a/b/file.txt'
+        new URI("s3://somebucket-1.2.3.s3-ap-southeast-2.amazonaws.com/a/b/file.txt") | Optional.of(Region.AP_SOUTHEAST_2) | 'somebucket-1.2.3' | 'a/b/file.txt'
+        new URI("s3://somebucket-1.2.3.s3.cn-north-1.amazonaws.com.cn/a/b/file.txt")  | Optional.of(Region.CN_NORTH_1)     | 'somebucket-1.2.3' | 'a/b/file.txt'
+
+        new URI("s3://somebucket-alias/a/b/file.txt")                                 | Optional.of(Region.US_WEST_2)      | 'somebucket-alias' | 'a/b/file.txt'
+
     }
 }

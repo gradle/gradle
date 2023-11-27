@@ -16,8 +16,9 @@
 
 package org.gradle.internal.resource.transport.aws.s3;
 
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.CommonPrefix;
+import software.amazon.awssdk.services.s3.model.S3Object;
 import com.google.common.base.Function;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
@@ -33,10 +34,10 @@ public class S3ResourceResolver {
 
     private static final Pattern FILENAME_PATTERN = Pattern.compile("[^/]+\\.*$");
 
-    private static final Function<S3ObjectSummary, String> EXTRACT_FILE_NAME = new Function<S3ObjectSummary, String>() {
+    private static final Function<S3Object, String> EXTRACT_FILE_NAME = new Function<S3Object, String>() {
         @Override
-        public String apply(S3ObjectSummary input) {
-            Matcher matcher = FILENAME_PATTERN.matcher(input.getKey());
+        public String apply(S3Object input) {
+            Matcher matcher = FILENAME_PATTERN.matcher(input.key());
             if (matcher.find()) {
                 String group = matcher.group(0);
                 return group.contains(".") ? group : null;
@@ -45,17 +46,16 @@ public class S3ResourceResolver {
         }
     };
 
-    public List<String> resolveResourceNames(ObjectListing objectListing) {
+    public List<String> resolveResourceNames(ListObjectsV2Response objectListing) {
         List<String> results = new ArrayList<String>();
-
         results.addAll(resolveFileResourceNames(objectListing));
         results.addAll(resolveDirectoryResourceNames(objectListing));
 
         return results;
     }
 
-    private List<String> resolveFileResourceNames(ObjectListing objectListing) {
-        List<S3ObjectSummary> objectSummaries = objectListing.getObjectSummaries();
+    private List<String> resolveFileResourceNames(ListObjectsV2Response objectListing) {
+        List<S3Object> objectSummaries = objectListing.contents();
         if (null != objectSummaries) {
             return ImmutableList.copyOf(Iterables.filter(
                 Iterables.transform(objectSummaries, EXTRACT_FILE_NAME),
@@ -66,14 +66,14 @@ public class S3ResourceResolver {
 
     }
 
-    private List<String> resolveDirectoryResourceNames(ObjectListing objectListing) {
+    private List<String> resolveDirectoryResourceNames(ListObjectsV2Response objectListing) {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
-        if (objectListing.getCommonPrefixes() != null) {
-            for (String prefix : objectListing.getCommonPrefixes()) {
+        if (objectListing.hasCommonPrefixes()) {
+            for (CommonPrefix prefix : objectListing.commonPrefixes()) {
                 /**
-                 * The common prefixes will also include the prefix of the <code>ObjectListing</code>
+                 * The common prefixes will also include the prefix of the <code>ListObjectsV2Response</code>
                  */
-                String directChild = prefix.split(Pattern.quote(objectListing.getPrefix()))[1];
+                String directChild = prefix.prefix().split(Pattern.quote(objectListing.prefix()))[1];
                 if (directChild.endsWith("/")) {
                     builder.add(directChild.substring(0, directChild.length() - 1));
                 } else {

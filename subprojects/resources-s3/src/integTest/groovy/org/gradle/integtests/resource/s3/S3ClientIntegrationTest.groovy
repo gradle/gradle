@@ -16,14 +16,16 @@
 
 package org.gradle.integtests.resource.s3
 
-import com.amazonaws.services.s3.model.CreateBucketRequest
-import com.amazonaws.services.s3.model.DeleteBucketRequest
-import com.amazonaws.services.s3.model.DeleteObjectRequest
-import com.amazonaws.services.s3.model.ListObjectsRequest
-import com.amazonaws.services.s3.model.ObjectListing
-import com.amazonaws.services.s3.model.Region
-import com.amazonaws.services.s3.model.S3Object
-import com.amazonaws.services.s3.model.S3ObjectSummary
+import org.gradle.api.credentials.AwsCredentials
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest
+import software.amazon.awssdk.services.s3.model.DeleteBucketRequest
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse
+
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.s3.model.S3Object
 import com.google.common.base.Optional
 import org.apache.commons.io.IOUtils
 import org.gradle.api.Action
@@ -83,7 +85,7 @@ class S3ClientIntegrationTest extends Specification {
             getMultipartThreshold() >> 1024
         }
 
-        S3Client s3Client = new S3Client(authenticationImpl, s3SystemProperties)
+        S3Client s3Client = new S3Client(authenticationImpl as AwsCredentials, s3SystemProperties)
 
         when:
         def stream = new FileInputStream(file)
@@ -94,26 +96,23 @@ class S3ClientIntegrationTest extends Specification {
 
         when:
         server.stubMetaData(file, "/${bucketName}/maven/release/$FILE_NAME")
-        S3Object data = s3Client.getMetaData(uri)
-        def metadata = null
-        IoActions.withResource(data, {
-            metadata = data.getObjectMetadata()
-        } as Action)
+        HeadObjectResponse metadata = s3Client.getMetaData(uri)
 
         then:
-        metadata.getContentLength() == 0
-        metadata.getETag() ==~ /\w{32}/
+        metadata.contentLength() == 0
+        metadata.eTag() ==~ /\w{32}/
 
         when:
         server.stubGetFile(file, "/${bucketName}/maven/release/$FILE_NAME")
 
         then:
-        S3Object object = s3Client.getResource(uri)
+        S3Client.GetResourceResponse getResourceResponse = s3Client.getResource(uri)
+        def object = getResourceResponse.getResponseInputStream()
         IoActions.withResource(object, {
-            object.metadata.getContentLength() == fileContents.length()
-            object.metadata.getETag() ==~ /\w{32}/
+            object.response().contentLength() == fileContents.length()
+            object.response().eTag() ==~ /\w{32}/
             ByteArrayOutputStream outStream = new ByteArrayOutputStream()
-            IOUtils.copyLarge(object.getObjectContent(), outStream);
+            IOUtils.copyLarge(object, outStream);
             outStream.toString() == fileContents
         } as Action)
 
@@ -214,13 +213,13 @@ class S3ClientIntegrationTest extends Specification {
             def uri = new URI("s3://${bucketName}.${regionForUrl}${key}")
 
             S3RegionalResource s3RegionalResource = new S3RegionalResource(uri)
-            s3Client.amazonS3Client.setRegion(s3RegionalResource.getRegion().get())
+            s3Client.amazonS3ClientMock.setRegion(s3RegionalResource.getRegion().get())
 
 
             println "Regional uri: ${uri}"
             println("Creating bucket: ${bucketName}")
             CreateBucketRequest createBucketRequest = new CreateBucketRequest(bucketName, region)
-            s3Client.amazonS3Client.createBucket(createBucketRequest)
+            s3Client.amazonS3ClientMock.createBucket(createBucketRequest)
 
             println "-- uploading"
             s3Client.put(new FileInputStream(file), file.length(), uri)
@@ -228,19 +227,19 @@ class S3ClientIntegrationTest extends Specification {
             println "------Getting object"
             s3Client.getResource(uri).close()
 
-            ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
+            ListObjectsV2Request listObjectsRequest = new ListObjectsV2Request()
                     .withBucketName(bucketName)
 
-            ObjectListing objects = s3Client.amazonS3Client.listObjects(listObjectsRequest)
-            objects.objectSummaries.each { S3ObjectSummary summary ->
-                println "-- Deleting object ${summary.getKey()}"
+            ListObjectsV2Response objects = s3Client.amazonS3ClientMock.listObjectsV2(listObjectsRequest)
+            objects.contents.each { S3Object summary ->
+                println "-- Deleting object ${summary.key()}"
                 DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(bucketName, summary.getKey())
-                s3Client.amazonS3Client.deleteObject(deleteObjectRequest)
+                s3Client.amazonS3ClientMock.deleteObject(deleteObjectRequest)
             }
 
             println("Deleting bucket: ${bucketName}")
             DeleteBucketRequest deleteBucketRequest = new DeleteBucketRequest(bucketName)
-            s3Client.amazonS3Client.deleteBucket(deleteBucketRequest)
+            s3Client.amazonS3ClientMock.deleteBucket(deleteBucketRequest)
         }
     }
 }
