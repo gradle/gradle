@@ -209,33 +209,34 @@ trait KotlinDslTestProjectInitiation {
         withDefaultSettingsIn("buildSrc").append("""
             include(":a", ":b", ":c")
         """)
-        withFile("buildSrc/$defaultBuildKotlinFileName", """
+
+        withBuildScriptIn("buildSrc", """
             plugins {
                 java
                 `kotlin-dsl` apply false
             }
 
-            val kotlinDslProjects = listOf(project.project(":a"), project.project(":b"))
-
-            kotlinDslProjects.forEach {
-                it.apply(plugin = "org.gradle.kotlin.kotlin-dsl")
-            }
-
             dependencies {
-                kotlinDslProjects.forEach {
-                    "runtimeOnly"(project(it.path))
-                }
+                "runtimeOnly"(project(":a"))
+                "runtimeOnly"(project(":b"))
             }
         """)
 
-        withFile("buildSrc/a/$defaultBuildKotlinFileName", """
+        // Duplication in build scripts to avoid Isolated Projects violations without introducing shared build logic
+        withBuildScriptIn("buildSrc/a", """
+            plugins {
+                id("org.gradle.kotlin.kotlin-dsl")
+            }
             $repositoriesBlock
         """)
-        withFile("buildSrc/b/$defaultBuildKotlinFileName", """
+        withBuildScriptIn("buildSrc/b", """
+            plugins {
+                id("org.gradle.kotlin.kotlin-dsl")
+            }
             $repositoriesBlock
             dependencies { implementation(project(":c")) }
         """)
-        withFile("buildSrc/c/$defaultBuildKotlinFileName", """
+        withBuildScriptIn("buildSrc/c", """
             plugins { java }
             $repositoriesBlock
         """)
