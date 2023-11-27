@@ -32,6 +32,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTraceElement
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTracer
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.ReflectionContext
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.reflect
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.kotlinFunctionAsConfigureLambda
 import kotlinx.ast.common.ast.Ast
 import org.antlr.v4.kotlinruntime.misc.ParseCancellationException
 import org.gradle.api.initialization.Settings
@@ -115,7 +116,7 @@ class DefaultRestrictedKotlinScriptEvaluator(
         val context = ReflectionContext(SchemaTypeRefContext(schema), resolution, trace)
         val topLevel = reflect(resolution.topLevelReceiver, context)
 
-        RestrictedReflectionToObjectConverter(emptyMap(), target).apply(topLevel)
+        RestrictedReflectionToObjectConverter(emptyMap(), target, kotlinFunctionAsConfigureLambda).apply(topLevel)
         return RestrictedKotlinScriptEvaluator.EvaluationResult.Evaluated
     }
 
