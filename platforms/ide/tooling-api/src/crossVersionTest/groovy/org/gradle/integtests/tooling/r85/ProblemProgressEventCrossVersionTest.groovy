@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r84
+package org.gradle.integtests.tooling.r85
 
 import groovy.json.JsonSlurper
 import org.gradle.api.problems.Severity
@@ -27,8 +27,8 @@ import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.ProblemDescriptor
 import org.gradle.tooling.events.problems.ProblemEvent
 
-@ToolingApiVersion(">=8.5")
-@TargetGradleVersion(">=8.5")
+@ToolingApiVersion("=8.5")
+@TargetGradleVersion("=8.5")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     class MyProgressListener implements ProgressListener {

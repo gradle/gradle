@@ -33,7 +33,7 @@ public interface Problem {
     /**
      * Returns the problem category.
      *
-     * @return the problem category
+     * @return the problem category.
      *
      * @since 8.5
      */
@@ -90,10 +90,11 @@ public interface Problem {
     RuntimeException getException();
 
     /**
-     * Additional Data about the problem.
-     * In a map so it can be somewhat structured.
+     * Additional data attached to the problem.
+     * <p>
+     * The only supported value type is {@link String}.
      */
-    Map<String, String> getAdditionalData();
+    Map<String, Object> getAdditionalData();
 
     /**
      * Returns a problem builder with fields initialized with values from this instance.

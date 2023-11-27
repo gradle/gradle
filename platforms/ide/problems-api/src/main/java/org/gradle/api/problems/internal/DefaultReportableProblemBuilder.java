@@ -57,7 +57,7 @@ public class DefaultReportableProblemBuilder extends DefaultBasicProblemBuilder 
             getSolutions(),
             getExceptionForProblemInstantiation(), //TODO: don't create exception if already reported often
             getProblemCategory(),
-            getAdditionalMetadata(),
+            getAdditionalData(),
             problemsService);
     }
 
@@ -132,7 +132,7 @@ public class DefaultReportableProblemBuilder extends DefaultBasicProblemBuilder 
         return this;
     }
 
-    public UnboundReportableProblemBuilder additionalData(String key, String value) {
+    public UnboundReportableProblemBuilder additionalData(String key, Object value) {
         super.additionalData(key, value);
         return this;
     }

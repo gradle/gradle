@@ -89,13 +89,14 @@ public class TypeValidationProblemRenderer {
             .replaceAll(": ?[. ]", ": ");
     }
 
-    public static String introductionFor(Map<String, String> additionalMetadata) {
+    public static String introductionFor(Map<String, Object> additionalMetadata) {
         StringBuilder builder = new StringBuilder();
         String rootType = ofNullable(additionalMetadata.get(TYPE_NAME))
+            .map(Object::toString)
             .filter(TypeValidationProblemRenderer::shouldRenderType)
             .orElse(null);
-        DefaultPluginId pluginId = ofNullable(additionalMetadata.get(PLUGIN_ID)).map(DefaultPluginId::new).orElse(null);
-        boolean typeRelevant = rootType != null && !parseBoolean(additionalMetadata.get(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE));
+        DefaultPluginId pluginId = ofNullable(additionalMetadata.get(PLUGIN_ID)).map(Object::toString).map(DefaultPluginId::new).orElse(null);
+        boolean typeRelevant = rootType != null && !parseBoolean(additionalMetadata.getOrDefault(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE, "").toString());
         if (typeRelevant) {
             if (pluginId != null) {
                 builder.append("In plugin '")
@@ -107,7 +108,7 @@ public class TypeValidationProblemRenderer {
             builder.append(rootType).append("' ");
         }
 
-        String property = additionalMetadata.get(PROPERTY_NAME);
+        Object property = additionalMetadata.get(PROPERTY_NAME);
         if (property != null) {
             if (typeRelevant) {
                 builder.append("property '");

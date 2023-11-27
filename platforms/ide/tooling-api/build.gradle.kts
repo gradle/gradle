@@ -33,6 +33,7 @@ dependencies {
     implementation(project(":persistent-cache"))
 
     implementation(libs.guava)
+    implementation(libs.jsr305)
 
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":core"))
