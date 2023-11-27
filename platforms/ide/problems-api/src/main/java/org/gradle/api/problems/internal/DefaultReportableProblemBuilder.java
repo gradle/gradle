@@ -58,6 +58,7 @@ public class DefaultReportableProblemBuilder extends DefaultBasicProblemBuilder 
             getExceptionForProblemInstantiation(), //TODO: don't create exception if already reported often
             getProblemCategory(),
             getAdditionalData(),
+            getCurrentOperationId(),
             problemsService);
     }
 

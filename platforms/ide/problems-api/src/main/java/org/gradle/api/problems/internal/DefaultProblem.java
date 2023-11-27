@@ -25,14 +25,16 @@ import org.gradle.api.problems.ProblemCategory;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.UnboundBasicProblemBuilder;
 import org.gradle.api.problems.locations.ProblemLocation;
+import org.gradle.internal.operations.OperationIdentifier;
 
 import javax.annotation.Nullable;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 @NonNullApi
-public class DefaultProblem implements Problem {
+public class DefaultProblem implements Problem, Serializable {
     private final String label;
     private Severity severity;
     private final List<ProblemLocation> locations;
@@ -43,6 +45,9 @@ public class DefaultProblem implements Problem {
     private final String problemCategory;
     private final Map<String, Object> additionalData;
 
+    @Nullable
+    private OperationIdentifier buildOperationId;
+
     protected DefaultProblem(
         String label,
         Severity severity,
@@ -52,7 +57,8 @@ public class DefaultProblem implements Problem {
         @Nullable List<String> solutions,
         @Nullable RuntimeException cause,
         String problemCategory,
-        Map<String, Object> additionalData
+        Map<String, Object> additionalData,
+        @Nullable OperationIdentifier buildOperationId
     ) {
         this.label = label;
         this.severity = severity;
@@ -63,6 +69,7 @@ public class DefaultProblem implements Problem {
         this.cause = cause;
         this.problemCategory = problemCategory;
         this.additionalData = ImmutableMap.copyOf(additionalData);
+        this.buildOperationId = buildOperationId;
     }
 
     @Override
@@ -111,10 +118,24 @@ public class DefaultProblem implements Problem {
         return additionalData;
     }
 
+    public void setBuildOperationRef(@Nullable OperationIdentifier buildOperationId) {
+        this.buildOperationId = buildOperationId;
+    }
+
+    @Nullable
+    public OperationIdentifier getBuildOperationId() {
+        return buildOperationId;
+    }
+
+    public void setSeverity(Severity severity) {
+        this.severity = severity;
+    }
+
     @Override
     public UnboundBasicProblemBuilder toBuilder() {
         return new DefaultBasicProblemBuilder(this);
     }
+
     private static boolean equals(@Nullable Object a, @Nullable Object b) {
         return (a == b) || (a != null && a.equals(b));
     }
@@ -136,15 +157,13 @@ public class DefaultProblem implements Problem {
             equals(description, that.description) &&
             equals(solutions, that.solutions) &&
             equals(cause, that.cause) &&
-            equals(additionalData, that.additionalData);
+            equals(additionalData, that.additionalData) &&
+            equals(buildOperationId, that.buildOperationId);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{label, severity, locations, documentationLink, description, solutions, cause, additionalData});
+        return Arrays.hashCode(new Object[]{label, severity, locations, documentationLink, description, solutions, cause, additionalData, buildOperationId});
     }
 
-    public void setSeverity(Severity severity) {
-        this.severity = severity;
-    }
 }

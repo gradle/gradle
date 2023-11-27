@@ -93,6 +93,8 @@ public interface Problem {
      * Additional data attached to the problem.
      * <p>
      * The only supported value type is {@link String}.
+     *
+     * @since 8.5
      */
     Map<String, Object> getAdditionalData();
 

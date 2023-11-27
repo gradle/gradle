@@ -38,7 +38,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
 
     def warningReporter = Mock(ValidateStep.ValidationWarningRecorder)
     def virtualFileSystem = Mock(VirtualFileSystem)
-    def emitter = Mock(BuildOperationProgressEventEmitter)
+    def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
     def step = new ValidateStep<>(virtualFileSystem, warningReporter, delegate)
     def delegateResult = Mock(Result)
 
@@ -88,7 +88,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
             }
         }
         0 * _
-        _ * emitter.emitNowIfCurrent(_ as Object) >> {}
+        _ * buildOperationProgressEventEmitter.emitNowIfCurrent(_ as Object) >> {}
     }
 
     def "fails when there are multiple violations"() {
@@ -129,7 +129,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
             }
         }
         0 * _
-        _ * emitter.emitNowIfCurrent(_ as Object) >> {}
+        _ * buildOperationProgressEventEmitter.emitNowIfCurrent(_ as Object) >> {}
     }
 
     def "reports deprecation warning and invalidates VFS for validation warning"() {
@@ -152,7 +152,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         }
 
         then:
-        _ * emitter.emitNowIfCurrent(_ as Object) >> {}
+        _ * buildOperationProgressEventEmitter.emitNowIfCurrent(_ as Object) >> {}
         1 * warningReporter.recordValidationWarnings(work, { List<Problem> warnings ->
             convertToSingleLine(renderMinimalInformationAbout(warnings.first(), false, false)) == expectedWarning
         })
@@ -200,7 +200,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         }
 
         then:
-        _ * emitter.emitNowIfCurrent(_ as Object) >> {}
+        _ * buildOperationProgressEventEmitter.emitNowIfCurrent(_ as Object) >> {}
         1 * warningReporter.recordValidationWarnings(work, { warnings -> convertToSingleLine(renderMinimalInformationAbout(warnings.first(), true, false)) == expectedWarning })
 
         then:

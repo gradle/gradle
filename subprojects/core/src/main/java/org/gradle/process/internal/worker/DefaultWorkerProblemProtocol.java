@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.operations;
+package org.gradle.process.internal.worker;
 
-import javax.annotation.Nullable;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.internal.DefaultProblem;
+import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
+import org.gradle.process.internal.worker.problem.WorkerProblemProtocol;
 
-public class NoOpBuildOperationProgressEventEmitter implements BuildOperationProgressEventEmitter {
-    @Override
-    public void emit(OperationIdentifier operationIdentifier, long timestamp, @Nullable Object details) {}
-
-    @Override
-    public void emitNow(@Nullable OperationIdentifier operationIdentifier, @Nullable Object details) {}
-
-    @Override
-    public void emitNowIfCurrent(Object details) {}
+@NonNullApi
+public class DefaultWorkerProblemProtocol implements WorkerProblemProtocol {
 
     @Override
-    public void emitIfCurrent(long time, Object details) {}
+    public void reportProblem(DefaultProblem problem) {
+        InternalProblems problemService = (InternalProblems) ProblemsProgressEventEmitterHolder.get();
+        problemService.report(problem);
+    }
 
-    @Override
-    public void emitNowForCurrent(Object details) {}
 }

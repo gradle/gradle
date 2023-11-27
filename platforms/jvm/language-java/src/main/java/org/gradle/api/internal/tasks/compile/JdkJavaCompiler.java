@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.reflect.GradleStandardJavaFileManager;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -26,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.tools.DiagnosticListener;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
@@ -40,10 +42,12 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkJavaCompiler.class);
 
     private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
+    private final DiagnosticToProblemListener diagnosticToProblemListener;
 
     @Inject
-    public JdkJavaCompiler(Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory) {
+    public JdkJavaCompiler(Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory, Problems problems) {
         this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
+        this.diagnosticToProblemListener = new DiagnosticToProblemListener(problems);
     }
 
     @Override
@@ -51,7 +55,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         LOGGER.info("Compiling with JDK Java compiler API.");
 
         ApiCompilerResult result = new ApiCompilerResult();
-        JavaCompiler.CompilationTask task = createCompileTask(spec, result);
+        JavaCompiler.CompilationTask task = createCompileTask(spec, result, diagnosticToProblemListener);
         boolean success = task.call();
         if (!success) {
             throw new CompilationFailedException(result);
@@ -59,7 +63,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         return result;
     }
 
-    private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec, ApiCompilerResult result) {
+    private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec, ApiCompilerResult result, DiagnosticListener<JavaFileObject> diagnosticListener) {
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
         JavaCompiler compiler = javaHomeBasedJavaCompilerFactory.create();
         MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();

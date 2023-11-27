@@ -14,27 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.locations;
-
-import org.gradle.api.Incubating;
-
-import java.io.Serializable;
-
 /**
- * Represents a location information of a problem.
- *
- * @since 8.5
+ * Package containing all parts concerning the transport of problems
+ * between the worker and the daemon process.
  */
-@Incubating
-public interface ProblemLocation extends Serializable {
+@NonNullApi
+package org.gradle.process.internal.worker.problem;
 
-    /**
-     * Returns an identifier of the location type.
-     * <p>
-     * As locations will be serialized into a JSON format,
-     * this identifier is used to distinguish between different location types.
-     *
-     * @since 8.5
-     */
-    String getType();
-}
+import org.gradle.api.NonNullApi;

@@ -22,6 +22,7 @@ import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.UnboundReportableProblemBuilder;
 import org.gradle.api.problems.locations.ProblemLocation;
+import org.gradle.internal.operations.OperationIdentifier;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -42,8 +43,8 @@ public class DefaultReportableProblem extends DefaultProblem implements Reportab
         @Nullable RuntimeException cause,
         String problemCategory,
         Map<String, Object> additionalData,
-        @Nullable InternalProblems problemService
-    ) {
+        @Nullable OperationIdentifier buildOperationId,
+        @Nullable InternalProblems problemService) {
         super(
             message,
             severity,
@@ -53,7 +54,8 @@ public class DefaultReportableProblem extends DefaultProblem implements Reportab
             solutions,
             cause,
             problemCategory,
-            additionalData
+            additionalData,
+            buildOperationId
         );
         this.problemService = problemService;
     }
@@ -64,7 +66,7 @@ public class DefaultReportableProblem extends DefaultProblem implements Reportab
 
     @Override
     public void report() {
-        problemService.reportAsProgressEvent(this);
+        problemService.report(this);
     }
 
     @Override

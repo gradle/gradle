@@ -24,6 +24,9 @@ import org.gradle.api.problems.locations.FileLocation;
 import org.gradle.api.problems.locations.PluginIdLocation;
 import org.gradle.api.problems.locations.ProblemLocation;
 import org.gradle.api.problems.locations.TaskPathLocation;
+import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -45,6 +48,7 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
     private RuntimeException exception;
     private final Map<String, Object> additionalData;
     private boolean collectLocation = false;
+    @Nullable private OperationIdentifier currentOperationId = null;
 
     public DefaultBasicProblemBuilder(Problem problem) {
         this.label = problem.getLabel();
@@ -57,6 +61,10 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
         this.solutions = new ArrayList<String>(problem.getSolutions());
         this.exception = problem.getException();
         this.additionalData = new HashMap<String, Object>(problem.getAdditionalData());
+
+        if (problem instanceof DefaultProblem) {
+            this.currentOperationId = ((DefaultProblem) problem).getBuildOperationId();
+        }
     }
 
     public DefaultBasicProblemBuilder() {
@@ -75,7 +83,25 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
             getSolutions(),
             getExceptionForProblemInstantiation(), // TODO: don't create exception if already reported often
             getProblemCategory(),
-            getAdditionalData());
+            getAdditionalData(),
+            getCurrentOperationId()
+        );
+    }
+
+    @Nullable
+    public OperationIdentifier getCurrentOperationId() {
+        if (currentOperationId != null) {
+            // If we have a carried over operation id, use it
+            return currentOperationId;
+        } else {
+            // Otherwise, try to get the current operation id
+            BuildOperationRef buildOperationRef = CurrentBuildOperationRef.instance().get();
+            if (buildOperationRef == null) {
+                return null;
+            } else {
+                return buildOperationRef.getId();
+            }
+        }
     }
 
     public RuntimeException getExceptionForProblemInstantiation() {

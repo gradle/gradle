@@ -35,5 +35,5 @@ public interface InternalProblems extends Problems {
      * @return a new problem builder
      */
     ProblemBuilderDefiningLabel createProblemBuilder();
-    void reportAsProgressEvent(Problem problem);
+    void report(Problem problem);
 }
