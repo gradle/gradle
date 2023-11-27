@@ -16,10 +16,12 @@
 
 package org.gradle.internal.resource.transport.aws.s3
 
-import com.amazonaws.services.s3.model.ObjectMetadata
-import com.amazonaws.services.s3.model.S3Object
+import software.amazon.awssdk.services.s3.model.GetObjectResponse
+
+import software.amazon.awssdk.core.ResponseInputStream
 import org.gradle.internal.resource.ExternalResourceName
 import spock.lang.Specification
+
 
 class S3ResourceConnectorTest extends Specification {
     def uri = new URI("http://somewhere")
@@ -34,12 +36,14 @@ class S3ResourceConnectorTest extends Specification {
     }
 
     def "should get a resource"() {
-        ObjectMetadata objectMetadata = Mock()
-        S3Client s3Client = Mock {
-            1 * getResource(uri) >> Mock(S3Object) {
-                getObjectMetadata() >> objectMetadata
-            }
-        }
+        S3Client s3Client = Mock()
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client =
+            software.amazon.awssdk.services.s3.S3Client.builder().build()
+        def getObjectResponse = GetObjectResponse.builder().build()
+        ResponseInputStream<GetObjectResponse> responseInputStream =
+            new ResponseInputStream(getObjectResponse, new ByteArrayInputStream('contents'.getBytes()))
+        def getResourceResponse = new S3Client.GetResourceResponse(amazonS3Client, responseInputStream)
+        1 * s3Client.getResource(uri) >> getResourceResponse
 
         when:
         def s3Resource = new S3ResourceConnector(s3Client).openResource(name, false)
@@ -49,24 +53,6 @@ class S3ResourceConnectorTest extends Specification {
 
         cleanup:
         s3Resource?.close()
-    }
-
-
-    def "should call close() on S3Object when getMetaData is called"() {
-        S3Object s3object = Mock(S3Object) {
-            getObjectMetadata() >> Mock(ObjectMetadata) {
-                getLastModified() >> new Date()
-            }
-        }
-        S3Client s3Client = Mock {
-            1 * getMetaData(uri) >> s3object
-        }
-
-        when:
-        new S3ResourceConnector(s3Client).getMetaData(name, false)
-
-        then:
-        1 * s3object.close()
     }
 
 }
