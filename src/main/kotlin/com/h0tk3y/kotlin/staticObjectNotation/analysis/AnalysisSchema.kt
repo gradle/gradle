@@ -24,13 +24,13 @@ sealed interface DataType {
     data object BooleanDataType : ConstantType<Boolean> {
         override fun toString(): String = "Boolean"
     }
-    
+
     // TODO: implement nulls?
     data object NullType : DataType
-    
+
     data object UnitType : DataType
 
-    // TODO: `Any` type? 
+    // TODO: `Any` type?
     // TODO: Support subtyping of some sort in the schema rather than via reflection?
 
     data class DataClass<JvmDataClass : Any>(
@@ -139,7 +139,7 @@ sealed interface FunctionSemantics {
         enum class ReturnType {
             UNIT, CONFIGURED_OBJECT
         }
-        
+
         override val returnValueType: DataTypeRef
             get() = when (returnType) {
                 ReturnType.UNIT -> DataType.UnitType.ref
@@ -154,7 +154,7 @@ sealed interface FunctionSemantics {
         override val returnValueType: DataTypeRef
             get() = objectType
     }
-    
+
     class Pure(override val returnValueType: DataTypeRef) : NewObjectFunctionSemantics
 }
 
@@ -165,7 +165,7 @@ sealed interface ConfigureAccessor {
         override val objectType: DataTypeRef
             get() = dataProperty.type
     }
-    
+
     // TODO: configure all elements by addition key?
     // TODO: Do we want to support configuring external objects?
 }

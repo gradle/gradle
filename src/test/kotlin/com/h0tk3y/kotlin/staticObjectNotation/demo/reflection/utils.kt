@@ -13,7 +13,7 @@ fun AnalysisSchema.reflect(code: String): ObjectReflection {
     val trace = assignmentTrace(resolution)
     val context = ReflectionContext(SchemaTypeRefContext(this), resolution, trace)
     val topLevel = com.h0tk3y.kotlin.staticObjectNotation.objectGraph.reflect(resolution.topLevelReceiver, context)
-    
+
     return topLevel
 }
 
