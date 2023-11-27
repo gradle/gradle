@@ -266,6 +266,7 @@ fun Project.enableScriptCompilationOf(
                 dependsOn(generatePrecompiledScriptPluginAccessors)
                 metadataDir.set(accessorsMetadata)
                 classPathFiles.from(compileClasspath)
+                val objects = objects
                 onConfigure { resolverEnvironment ->
                     configureKotlinCompilerArguments(objects, resolverEnvironment)
                 }
