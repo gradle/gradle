@@ -79,7 +79,13 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         executer.expectDocumentedDeprecationWarning("The configuration default was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with the name default. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
         executer.expectDocumentedDeprecationWarning("Gradle will mutate the usage of configuration default to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names has been deprecated. This will fail with an error in Gradle 9.0. Do not create a configuration with the name default. For more information, please refer to https://docs.gradle.org/current/userguide/authoring_maintainable_build_scripts.html#sec:dont_anticipate_configuration_creation in the Gradle documentation.")
         executer.expectDocumentedDeprecationWarning("The configuration archives was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with the name archives. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
-        executer.expectDocumentedDeprecationWarning("Gradle will mutate the usage of configuration archives to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names has been deprecated. This will fail with an error in Gradle 9.0. Do not create a configuration with the name archives. For more information, please refer to https://docs.gradle.org/current/userguide/authoring_maintainable_build_scripts.html#sec:dont_anticipate_configuration_creation in the Gradle documentation.")
+        executer.expectDocumentedDeprecationWarning("""Configuration archives already exists with permitted usage(s):
+\tConsumable - this configuration can be selected by another project as a dependency
+\tResolvable - this configuration can be resolved by this project to a set of files
+\tDeclarable - this configuration can have dependencies added to it
+Yet Gradle expected to create it with the usage(s):
+\tConsumable - this configuration can be selected by another project as a dependency (but this behavior is marked deprecated)
+Gradle will mutate the usage of configuration archives to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names has been deprecated. This will fail with an error in Gradle 9.0. Do not create a configuration with the name archives. For more information, please refer to https://docs.gradle.org/current/userguide/authoring_maintainable_build_scripts.html#sec:dont_anticipate_configuration_creation in the Gradle documentation.""")
         succeeds "help"
     }
 
@@ -122,6 +128,8 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("task ':jar1' for configuration 'default' is automatically built by the 'assemble' task. Building configuration artifacts automatically in this manner has been deprecated. Starting with Gradle 9.0, the 'assemble' task will no longer build this artifact automatically. Set the gradle property 'org.gradle.preview.explicit-assemble=true' to opt into the new behavior and silence this warning. To continue building this artifact when running 'assemble', manually define the task dependency with 'tasks.assemble.dependsOn(Object)' Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_archives_configuration")
+        executer.expectDocumentedDeprecationWarning("task ':jar2' is automatically built by the 'assemble' task since it was added to the 'archives' configuration. Building 'archives' configuration artifacts automatically in this manner has been deprecated. Starting with Gradle 9.0, the 'assemble' task will no longer build this artifact automatically. Set the gradle property 'org.gradle.preview.explicit-assemble=true' to opt into the new behavior and silence this warning. To continue building this artifact when running 'assemble', manually define the task dependency with 'tasks.assemble.dependsOn(Object)' Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_archives_configuration")
         succeeds("assemble")
 
         executedAndNotSkipped(":jar1", ":jar2")
@@ -178,6 +186,7 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("task ':jar1' for configuration 'foo' is automatically built by the 'assemble' task. Building configuration artifacts automatically in this manner has been deprecated. Starting with Gradle 9.0, the 'assemble' task will no longer build this artifact automatically. Set the gradle property 'org.gradle.preview.explicit-assemble=true' to opt into the new behavior and silence this warning. To continue building this artifact when running 'assemble', manually define the task dependency with 'tasks.assemble.dependsOn(Object)' Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_archives_configuration")
         succeeds("assemble")
 
         executedAndNotSkipped(":jar1")
@@ -207,6 +216,7 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("task ':jar1' for configuration 'foo' is automatically built by the 'assemble' task. Building configuration artifacts automatically in this manner has been deprecated. Starting with Gradle 9.0, the 'assemble' task will no longer build this artifact automatically. Set the gradle property 'org.gradle.preview.explicit-assemble=true' to opt into the new behavior and silence this warning. To continue building this artifact when running 'assemble', manually define the task dependency with 'tasks.assemble.dependsOn(Object)' Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_archives_configuration")
         succeeds("assemble")
 
         executedAndNotSkipped(":jar1")

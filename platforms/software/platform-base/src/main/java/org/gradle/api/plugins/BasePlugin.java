@@ -189,7 +189,7 @@ public abstract class BasePlugin implements Plugin<Project> {
     }
 
     private static void linkArchiveArtifactsToAssembleTask(Project project, Supplier<TaskDependency> assembleBuildDependencies) {
-        if ("true".equals(project.findProperty(EXPLICIT_ASSEMBLE_PROPERTY_NAME))) {
+        if ("true".equals(project.getProviders().gradleProperty(EXPLICIT_ASSEMBLE_PROPERTY_NAME).get())) {
             return;
         }
 
