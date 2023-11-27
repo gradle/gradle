@@ -106,30 +106,30 @@ subprojects/smoke-test/                 @gradle/bt-support
 subprojects/soak/                       @gradle/bt-support
 
 # Documentation
-subprojects/docs/src/docs/                                                        @gradle/bt-devrel-education
-subprojects/docs/src/samples/                                                     @gradle/bt-devrel-education
-subprojects/docs/src/docs-asciidoctor-extensions-base/                            @gradle/bt-devrel-education
-subprojects/docs/src/docs-asciidoctor-extensions/                                 @gradle/bt-devrel-education
+platforms/documentation/docs/src/docs/                                                        @gradle/bt-devrel-education
+platforms/documentation/docs/src/samples/                                                     @gradle/bt-devrel-education
+platforms/documentation/docs/src/docs-asciidoctor-extensions-base/                            @gradle/bt-devrel-education
+platforms/documentation/docs/src/docs-asciidoctor-extensions/                                 @gradle/bt-devrel-education
 
-subprojects/docs/src/snippets/kotlinDsl/                                                @gradle/bt-devrel-education @gradle/bt-kotlin-dsl-maintainers
-subprojects/docs/src/docs/userguide/api/kotlin_dsl.adoc                                 @gradle/bt-devrel-education @gradle/bt-kotlin-dsl-maintainers
-subprojects/docs/src/docs/userguide/migration/migrating_from_groovy_to_kotlin_dsl.adoc  @gradle/bt-devrel-education @gradle/bt-kotlin-dsl-maintainers
+platforms/documentation/docs/src/snippets/kotlinDsl/                                                @gradle/bt-devrel-education @gradle/bt-kotlin-dsl-maintainers
+platforms/documentation/docs/src/docs/userguide/api/kotlin_dsl.adoc                                 @gradle/bt-devrel-education @gradle/bt-kotlin-dsl-maintainers
+platforms/documentation/docs/src/docs/userguide/migration/migrating_from_groovy_to_kotlin_dsl.adoc  @gradle/bt-devrel-education @gradle/bt-kotlin-dsl-maintainers
 
-subprojects/docs/src/docs/userguide/core-plugins/base_plugin.adoc                 @gradle/bt-devrel-education @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/build_dashboard_plugin.adoc      @gradle/bt-devrel-education @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/build_init_plugin.adoc           @gradle/bt-devrel-education @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/checkstyle_plugin.adoc           @gradle/bt-devrel-education @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/codenarc_plugin.adoc             @gradle/bt-devrel-education @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/distribution_plugin.adoc         @gradle/bt-devrel-education @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/ear_plugin.adoc                  @gradle/bt-devrel-education @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/jacoco_plugin.adoc               @gradle/bt-devrel-education @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/java_gradle_plugin.adoc          @gradle/bt-devrel-education @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/pmd_plugin.adoc                  @gradle/bt-devrel-education @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/war_plugin.adoc                  @gradle/bt-devrel-education @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/dep-man/                                      @gradle/bt-devrel-education @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/jvm/                                          @gradle/bt-devrel-education @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/reference/directory_layout.adoc               @gradle/bt-devrel-education @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/troubleshooting/version_catalog_problems.adoc @gradle/bt-devrel-education @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/core-plugins/base_plugin.adoc                 @gradle/bt-devrel-education @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/core-plugins/build_dashboard_plugin.adoc      @gradle/bt-devrel-education @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/core-plugins/build_init_plugin.adoc           @gradle/bt-devrel-education @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/core-plugins/checkstyle_plugin.adoc           @gradle/bt-devrel-education @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/core-plugins/codenarc_plugin.adoc             @gradle/bt-devrel-education @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/core-plugins/distribution_plugin.adoc         @gradle/bt-devrel-education @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/core-plugins/ear_plugin.adoc                  @gradle/bt-devrel-education @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/core-plugins/jacoco_plugin.adoc               @gradle/bt-devrel-education @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/core-plugins/java_gradle_plugin.adoc          @gradle/bt-devrel-education @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/core-plugins/pmd_plugin.adoc                  @gradle/bt-devrel-education @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/core-plugins/war_plugin.adoc                  @gradle/bt-devrel-education @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/dep-man/                                      @gradle/bt-devrel-education @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/jvm/                                          @gradle/bt-devrel-education @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/reference/directory_layout.adoc               @gradle/bt-devrel-education @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/troubleshooting/version_catalog_problems.adoc @gradle/bt-devrel-education @gradle/bt-jvm
 
 # Core Runtime
 platforms/core-runtime/                                     @gradle/bt-core-runtime-maintainers

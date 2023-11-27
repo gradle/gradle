@@ -140,10 +140,10 @@ platforms:
   - documentation:
     name: 'documentation'
     subprojects:
-      - 'subprojects/docs/'
-      - 'subprojects/docs-asciidoctor-extensions/'
-      - 'subprojects/docs-asciidoctor-extensions-base/'
-      - 'subprojects/samples/'
+      - 'platforms/documentation/docs/'
+      - 'platforms/documentation/docs-asciidoctor-extensions/'
+      - 'platforms/documentation/docs-asciidoctor-extensions-base/'
+      - 'platforms/documentation/samples/'
   - extensibility:
     name: 'extensibility'
     subprojects:
@@ -173,7 +173,7 @@ platforms:
       - 'platforms/core-configuration/kotlin-dsl-tooling-builders/'
       - 'platforms/core-configuration/kotlin-dsl-tooling-models/'
       - 'build-logic/kotlin-dsl/'
-      - 'subprojects/docs/src/snippets/kotlinDsl/'
+      - 'platforms/documentation/docs/src/snippets/kotlinDsl/'
   - release_coordination:
     name: 'release_coordination'
     subprojects:

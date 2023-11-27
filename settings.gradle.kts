@@ -127,6 +127,14 @@ platform("core-execution") {
     subproject("workers")
 }
 
+// Documentation Platform
+platform("documentation") {
+    subproject("docs")
+    subproject("docs-asciidoctor-extensions-base")
+    subproject("docs-asciidoctor-extensions")
+    subproject("samples")
+}
+
 // IDE Platform
 platform("ide") {
     subproject("base-ide-plugins")
@@ -203,10 +211,6 @@ platform("enterprise") {
 
 // Internal utility and verification projects
 unassigned {
-    subproject("docs")
-    subproject("docs-asciidoctor-extensions-base")
-    subproject("docs-asciidoctor-extensions")
-    subproject("samples")
     subproject("architecture-test")
     subproject("internal-testing")
     subproject("internal-integ-testing")
