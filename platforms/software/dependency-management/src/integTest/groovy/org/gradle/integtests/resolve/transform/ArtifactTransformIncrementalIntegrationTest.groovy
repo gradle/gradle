@@ -20,38 +20,41 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
 
-    def "incremental artifact transform in buildscript block for included build runs without exception"() {
-        createDirs("a", "included")
+    // TODO: Check if that is actually correct behaviour?
+    def "can query incremental changes in buildscript block"() {
+        given:
+        createDirs("a", "b")
         settingsFile << """
-            includeBuild("included") {
+            includeBuild("b") {
                 dependencySubstitution {
-                    substitute(module("com.test:lib")).using(project(":b"))
+                    substitute(module("com.test:b")).using(project(":"))
                 }
             }
             include ":a"
         """
         file("a/build.gradle") << """
+            import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE
+
             buildscript {
                 def artifactType = Attribute.of('artifactType', String)
                 dependencies {
-                    classpath "com.test:lib:1.0"
+                    classpath "com.test:b:1.0"
                     registerTransform(MakeColor) {
-                        from.attribute(artifactType, 'jar')
-                        to.attribute(artifactType, 'green')
+                        from.attribute(ARTIFACT_TYPE_ATTRIBUTE, 'jar')
+                        to.attribute(ARTIFACT_TYPE_ATTRIBUTE, 'green')
                         parameters.targetColor.set('green')
                     }
                 }
-                configurations.classpath.attributes.attribute(artifactType, 'green')
+                buildscript.configurations.classpath.files
+                buildscript.configurations.classpath.incoming.artifactView {
+                    attributes.attribute(ARTIFACT_TYPE_ATTRIBUTE, 'green')
+                }.files.files
             }
         """
-        file("included/b/build.gradle") << """
+        file("b/build.gradle") << """
             plugins {
                 id("java-library")
             }
-        """
-        file("included/settings.gradle") << """
-            rootProject.name = "included"
-            include ":b"
         """
         file("buildSrc/src/main/groovy/MakeColor.groovy") << """
             import javax.inject.Inject
@@ -59,6 +62,7 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
             import org.gradle.api.file.*
             import org.gradle.api.provider.*
             import org.gradle.api.tasks.*
+            import org.gradle.work.*
             import org.gradle.work.InputChanges
 
             @CacheableTransform
@@ -77,16 +81,46 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
                 @Override
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
-                    println "processing [\${input.name}]"
+                    println "processing [\${input.name}], incrementally: \${inputChanges.incremental}"
+                    def changes = inputChanges.getFileChanges(inputArtifact)
+                    println("Added: " + changes.findAll { it.changeType == ChangeType.ADDED }*.file.name)
+                    println("Removed: " + changes.findAll { it.changeType == ChangeType.REMOVED }*.file.name)
+                    println("Modified: " + changes.findAll { it.changeType == ChangeType.MODIFIED }*.file.name)
                     def output = outputs.file("\${input.name}.\${parameters.targetColor.get()}")
                     output.text = "\${input.exists() ? input.text : 'missing'}-\${parameters.targetColor.get()}"
                 }
             }
         """
 
-        expect:
+        when:
+        file("b/src/main/java/Hello.java") << "class Hello {}"
         succeeds ":a:help"
-        outputContains("processing [b.jar]")
+
+        then:
+        outputContains("processing [b.jar], incrementally: false")
+        outputContains("Added: []")
+        outputContains("Removed: []")
+        outputContains("Modified: []")
+
+        when:
+        file("b/src/main/java/Hello2.java") << "class Hello2 {}"
+        succeeds ":a:help"
+
+        then:
+        outputContains("processing [b.jar], incrementally: true")
+        outputContains("Added: [b.jar]")
+        outputContains("Removed: []")
+        outputContains("Modified: []")
+
+        when:
+        file("b/src/main/java/Hello3.java") << "class Hello3 {}"
+        succeeds ":a:help"
+
+        then:
+        outputContains("processing [b.jar], incrementally: true")
+        outputContains("Added: []")
+        outputContains("Removed: []")
+        outputContains("Modified: [b.jar]")
     }
 
     def "can query incremental changes"() {
