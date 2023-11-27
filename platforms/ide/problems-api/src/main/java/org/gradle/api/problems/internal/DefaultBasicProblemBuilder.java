@@ -194,7 +194,7 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
 
     @Override
     public UnboundBasicProblemBuilder category(String category, String... details) {
-        this.problemCategory = DefaultProblemCategory.category(namespace, category, details);
+        this.problemCategory = DefaultProblemCategory.create(namespace, category, details);
         return this;
     }
 

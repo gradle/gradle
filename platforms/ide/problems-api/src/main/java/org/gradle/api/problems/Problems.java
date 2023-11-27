@@ -17,8 +17,6 @@
 package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Problems API service.
@@ -30,19 +28,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * @since 8.4
  */
 @Incubating
-@ServiceScope(Scopes.BuildTree.class)
 public interface Problems {
-
-    /**
-     * Sets the namespace for the problems service.
-     * TODO (donat) this is not correct, but I needed a place to inject the namespace information.
-     * The proper place would be to push all problem creation one level down and allow access to it via this method.
-     *
-     * @param namespace the namespace.
-     * @return this
-     * @since 8.6
-     */
-    Problems withPluginNamespace(String namespace);
 
     /**
      * Configures a new problem with error severity, reports it and uses it to throw a new exception.

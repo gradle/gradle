@@ -29,7 +29,7 @@ import org.gradle.util.internal.TextUtil;
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
-import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
+import static org.gradle.api.problems.internal.DefaultProblemCategory.CATEGORY_VALIDATION;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public abstract class AbstractValidatingProperty implements ValidatingProperty {
@@ -53,7 +53,7 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
                 .label("doesn't have a configured value")
                 .documentedAt(userManual("validation_problems", VALUE_NOT_SET.toLowerCase()))
                 .noLocation()
-                .category(VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(VALUE_NOT_SET))
+                .category(CATEGORY_VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(VALUE_NOT_SET))
                 .severity(Severity.ERROR)
                 .details("This property isn't marked as optional and no value has been configured");
             if (hasConfigurableValue) {

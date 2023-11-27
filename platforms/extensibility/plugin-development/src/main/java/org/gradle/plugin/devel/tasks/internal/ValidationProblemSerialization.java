@@ -26,7 +26,9 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.ProblemCategory;
 import org.gradle.api.problems.ReportableProblem;
+import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.api.problems.internal.DefaultReportableProblem;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.locations.FileLocation;
@@ -41,6 +43,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -62,6 +65,7 @@ public class ValidationProblemSerialization {
 
         gsonBuilder.registerTypeHierarchyAdapter(DocLink.class, new DocLinkAdapter());
         gsonBuilder.registerTypeHierarchyAdapter(ProblemLocation.class, new LocationAdapter());
+        gsonBuilder.registerTypeHierarchyAdapter(ProblemCategory.class, new ProblemCategoryAdapter());
         gsonBuilder.registerTypeAdapterFactory(new ThrowableAdapterFactory());
 
         return gsonBuilder;
@@ -385,6 +389,61 @@ public class ValidationProblemSerialization {
                     return finalConsultDocumentationMessage;
                 }
             };
+        }
+    }
+
+    public static class ProblemCategoryAdapter extends TypeAdapter<ProblemCategory> {
+
+        @Override
+        public void write(JsonWriter out, @Nullable ProblemCategory value) throws IOException {
+            if (value == null) {
+                out.nullValue();
+                return;
+            }
+
+            out.beginObject();
+            out.name("namespace").value(value.getNamespace());
+            out.name("category").value(value.getCategory());
+            out.name("subcategories").beginArray();
+            for (String sc : value.getSubCategories()) {
+                out.value(sc);
+            }
+            out.endArray();
+            out.endObject();
+        }
+
+        @Override
+        public ProblemCategory read(JsonReader in) throws IOException {
+            in.beginObject();
+            String namespace = null;
+            String category = null;
+            List<String> subcategories = new ArrayList<>();
+            String name;
+            while (in.hasNext()) {
+                name = in.nextName();
+                switch (name) {
+                    case "namespace": {
+                        namespace = in.nextString();
+                        break;
+                    }
+                    case "category": {
+                        category = in.nextString();
+                        break;
+                    }
+                    case "subcategories": {
+                        in.beginArray();
+                        while (in.hasNext()) {
+                            subcategories.add(in.nextString());
+                        }
+                        in.endArray();
+                        break;
+                    }
+                    default:
+                        in.skipValue();
+                }
+            }
+            in.endObject();
+            return DefaultProblemCategory.create(namespace, category, subcategories.toArray(new String[0]));
         }
     }
 

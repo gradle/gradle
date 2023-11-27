@@ -45,7 +45,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import static org.gradle.api.problems.Severity.WARNING;
-import static org.gradle.api.problems.internal.DefaultProblemCategory.DEPRECATION;
+import static org.gradle.api.problems.internal.DefaultProblemCategory.CATEGORY_DEPRECATION;
 
 public class LoggingDeprecatedFeatureHandler implements FeatureHandler<DeprecatedFeatureUsage> {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
@@ -96,7 +96,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                             .documentedAt(usage.getDocumentationUrl());
                         return addPossibleLocation(diagnostics, problemBuilderDefiningLocation)
                             // TODO (donat) we can further categorize deprecation warnings https://github.com/gradle/gradle/issues/26928
-                            .category(DEPRECATION, TextUtil.screamingSnakeToKebabCase(usage.getType().name()))
+                            .category(CATEGORY_DEPRECATION, TextUtil.screamingSnakeToKebabCase(usage.getType().name()))
                             .severity(WARNING);
                     }
                 })

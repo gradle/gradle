@@ -22,39 +22,42 @@ import org.gradle.api.problems.ProblemCategory;
 import org.gradle.util.Path;
 import org.gradle.util.internal.CollectionUtils;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
 /**
  * Default implementation for {@link ProblemCategory}
  */
-public class DefaultProblemCategory implements ProblemCategory {
+public class DefaultProblemCategory implements ProblemCategory, InternalProblemCategory, Serializable {
 
-    public static final String GRADLE_PLUGIN_MARKER = "gradle-plugin";
-    public static final String DEPRECATION = "deprecation";
-    public static final String VALIDATION = "validation";
+    private static final String NAMESPACE_GRADLE_CORE = "gradle";
+    private static final String NAMESPACE_PREFIX_GRADLE_PLUGIN = "gradle-plugin";
+    private static final String SEPARATOR = Path.SEPARATOR;
 
-    public static final String SEPARATOR = Path.SEPARATOR;
+    public static final String CATEGORY_DEPRECATION = "deprecation";
+    public static final String CATEGORY_VALIDATION = "validation";
 
     private final String namespace;
     private final String category;
     private final List<String> subcategories;
 
-    private  DefaultProblemCategory(String namespace, String category, String... subcategories) {
+    private DefaultProblemCategory(String namespace, String category, String... subcategories) {
         this.namespace = namespace;
         this.category = category;
         this.subcategories = Arrays.asList(subcategories);
     }
-    public static DefaultProblemCategory category(String namespace, String category, String... subcategories) {
+
+    public static DefaultProblemCategory create(String namespace, String category, String... subcategories) {
         return new DefaultProblemCategory(namespace, category, subcategories);
     }
 
-    public String segment(int i) {
-        switch (i) {
-            case 0: return namespace;
-            case 1: return category;
-            default: return subcategories.get(i - 2);
-        }
+    public static String getCoreNamespace() {
+        return NAMESPACE_GRADLE_CORE;
+    }
+
+    public static String getPluginNamespace(String pluginId) {
+        return NAMESPACE_PREFIX_GRADLE_PLUGIN + SEPARATOR + pluginId;
     }
 
     public int segmentCount() {
@@ -67,12 +70,12 @@ public class DefaultProblemCategory implements ProblemCategory {
 
     @Override
     public boolean hasPluginId() {
-        return namespace.startsWith(GRADLE_PLUGIN_MARKER);
+        return namespace.startsWith(NAMESPACE_PREFIX_GRADLE_PLUGIN);
     }
 
     @Override
     public String getPluginId() {
-        return namespace.substring(GRADLE_PLUGIN_MARKER.length() + 1); // TODO (donat) add static factories for gradle core and gradle plugin categories
+        return namespace.substring(NAMESPACE_PREFIX_GRADLE_PLUGIN.length() + 1); // TODO (donat) add static factories for gradle core and gradle plugin categories
     }
 
     @Override

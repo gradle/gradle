@@ -44,9 +44,6 @@ import java.util.List;
  */
 @Incubating
 public interface ProblemCategory {
-    boolean hasPluginId(); // TODO (donat) this should go to InternalProblemCategory
-
-    String getPluginId();
 
     String getNamespace();
 

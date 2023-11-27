@@ -21,7 +21,10 @@ import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ReportableProblem;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scopes.BuildTree.class)
 public interface InternalProblems extends Problems {
 
     /**

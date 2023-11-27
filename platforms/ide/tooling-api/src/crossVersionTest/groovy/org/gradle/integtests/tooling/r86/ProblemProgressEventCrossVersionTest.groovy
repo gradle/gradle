@@ -98,6 +98,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         given:
         buildFile << """
             import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.ProblemsServiceAccessor
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
@@ -123,11 +124,11 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
             abstract class ProblemReportingTask extends DefaultTask {
                 @Inject
-                protected abstract Problems getProblems();
+                protected abstract ProblemsServiceAccessor getProblems();
 
                 @TaskAction
                 void run() {
-                    problems.withPluginNamespace("org.example.plugin").create {
+                    Problems problems = getProblems().withPluginNamespace("org.example.plugin").get().create {
                         it.label("shortProblemMessage")
                         $documentationConfig
                         .fileLocation("/tmp/foo", 1, 2, 3)

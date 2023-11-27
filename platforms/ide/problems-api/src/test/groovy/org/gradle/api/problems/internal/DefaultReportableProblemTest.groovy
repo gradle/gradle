@@ -80,7 +80,7 @@ class DefaultReportableProblemTest extends Specification {
             "description",
             [],
             new RuntimeException("cause"),
-            "a:b:c",
+            DefaultProblemCategory.create('a', 'b', 'c'),
             additionalData,
             new OperationIdentifier(1),
             internalProblems,
@@ -97,7 +97,7 @@ class DefaultReportableProblemTest extends Specification {
             "description",
             [],
             new RuntimeException("cause"),
-            "a:b:c",
+            DefaultProblemCategory.create('a', 'b', 'c'),
             [:],
             new OperationIdentifier(1)
         )

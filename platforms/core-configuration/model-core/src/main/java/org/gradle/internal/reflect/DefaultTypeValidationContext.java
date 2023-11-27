@@ -31,7 +31,7 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
-import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
+import static org.gradle.api.problems.internal.DefaultProblemCategory.CATEGORY_VALIDATION;
 
 public class DefaultTypeValidationContext extends ProblemRecordingTypeValidationContext {
 
@@ -54,7 +54,7 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
 
     public static final String[] MISSING_NORMALIZATION_CATEGORY_DETAILS = new String[]
         {"property", "missing-normalization-annotation"};
-    public static final DefaultProblemCategory MISSING_NORMALIZATION_CATEGORY = DefaultProblemCategory.category("gradle", VALIDATION, MISSING_NORMALIZATION_CATEGORY_DETAILS); // TODO (donat) namespace probably should not be encoded here
+    public static final DefaultProblemCategory MISSING_NORMALIZATION_CATEGORY = DefaultProblemCategory.create(DefaultProblemCategory.getCoreNamespace(), CATEGORY_VALIDATION, MISSING_NORMALIZATION_CATEGORY_DETAILS);
 
     public static boolean onlyAffectsCacheableWork(ProblemCategory problemCategory) {
         return MISSING_NORMALIZATION_CATEGORY.equals(problemCategory);
