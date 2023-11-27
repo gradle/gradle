@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.provider;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Transformer;
 
@@ -52,11 +51,6 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     @Override
     public Class<OUT> getType() {
         return type;
-    }
-
-    @VisibleForTesting
-    public Transformer<? extends OUT, ? super IN> getTransformer() {
-        return transformer;
     }
 
     @Override
