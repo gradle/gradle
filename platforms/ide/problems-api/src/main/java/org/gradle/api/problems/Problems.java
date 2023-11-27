@@ -17,7 +17,7 @@
 package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
@@ -30,7 +30,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * @since 8.4
  */
 @Incubating
-@ServiceScope(Scope.Global.class)
+@ServiceScope(Scopes.BuildTree.class)
 public interface Problems {
 
     /**
