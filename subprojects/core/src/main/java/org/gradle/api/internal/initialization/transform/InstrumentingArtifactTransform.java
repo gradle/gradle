@@ -20,22 +20,14 @@ import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.PathSensitive;
-import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.cache.GlobalCache;
 import org.gradle.cache.GlobalCacheLocations;
-import org.gradle.cache.internal.DefaultGlobalCacheLocations;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.classpath.InPlaceClasspathBuilder;
 import org.gradle.internal.classpath.TransformedClassPath;
@@ -51,7 +43,6 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.List;
 
 import static org.gradle.api.internal.initialization.transform.InstrumentingArtifactTransform.InstrumentArtifactTransformParameters;
 
@@ -62,10 +53,6 @@ import static org.gradle.api.internal.initialization.transform.InstrumentingArti
 public abstract class InstrumentingArtifactTransform implements TransformAction<InstrumentArtifactTransformParameters> {
 
     public interface InstrumentArtifactTransformParameters extends TransformParameters {
-        @InputFiles
-        @PathSensitive(PathSensitivity.NAME_ONLY)
-        ConfigurableFileCollection getClassHierarchy();
-
         @Input
         Property<Boolean> getAgentSupported();
 
@@ -75,9 +62,6 @@ public abstract class InstrumentingArtifactTransform implements TransformAction<
         @Input
         @Optional
         Property<String> getUpgradedPropertiesHash();
-
-        @Internal
-        ListProperty<GlobalCache> getCacheLocations();
     }
 
     @Inject
@@ -107,9 +91,7 @@ public abstract class InstrumentingArtifactTransform implements TransformAction<
         transform.transform(outputFile);
 
         // Copy original jars after in case they are not in global cache
-        List<GlobalCache> globalCaches = getParameters().getCacheLocations().get();
-        GlobalCacheLocations globalCacheRoots = new DefaultGlobalCacheLocations(globalCaches);
-        if (globalCacheRoots.isInsideGlobalCache(getInputAsFile().getAbsolutePath())) {
+        if (instrumentationServices.getGlobalCacheLocations().isInsideGlobalCache(getInputAsFile().getAbsolutePath())) {
             // The global caches are additive only, so we can use it directly since it shouldn't be deleted or changed during the build.
             outputs.file(getInput());
         } else {
@@ -122,15 +104,21 @@ public abstract class InstrumentingArtifactTransform implements TransformAction<
 
         private final ClasspathElementTransformFactoryForAgent transformFactory;
         private final ClasspathElementTransformFactoryForLegacy legacyTransformFactory;
+        private final GlobalCacheLocations globalCacheLocations;
 
         @Inject
-        public InstrumentationServices(Stat stat) {
+        public InstrumentationServices(Stat stat, GlobalCacheLocations globalCacheLocations) {
             this.transformFactory = new ClasspathElementTransformFactoryForAgent(new InPlaceClasspathBuilder(), new ClasspathWalker(stat));
             this.legacyTransformFactory = new ClasspathElementTransformFactoryForLegacy(new InPlaceClasspathBuilder(), new ClasspathWalker(stat));
+            this.globalCacheLocations = globalCacheLocations;
         }
 
         public ClasspathElementTransformFactory getTransformFactory(boolean isAgentSupported) {
             return isAgentSupported ? transformFactory : legacyTransformFactory;
+        }
+
+        public GlobalCacheLocations getGlobalCacheLocations() {
+            return globalCacheLocations;
         }
     }
 }

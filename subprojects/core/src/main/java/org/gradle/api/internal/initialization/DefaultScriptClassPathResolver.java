@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -34,13 +33,10 @@ import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
-import org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform;
 import org.gradle.api.internal.initialization.transform.InstrumentingArtifactTransform;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.cache.GlobalCache;
 import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classanalysis.AsmConstants;
-import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
@@ -49,12 +45,10 @@ import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.util.GradleVersion;
 
-import java.io.File;
-import java.io.Serializable;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.JAR_TYPE;
 
 public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
@@ -66,21 +60,15 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     private static final Attribute<Boolean> HIERARCHY_COLLECTED_ATTRIBUTE = Attribute.of("org.gradle.internal.hierarchy-collected", Boolean.class);
     private static final Attribute<Boolean> INSTRUMENTED_ATTRIBUTE = Attribute.of("org.gradle.internal.instrumented", Boolean.class);
     private final NamedObjectInstantiator instantiator;
-    private final CachedClasspathTransformer classpathTransformer;
-    private final List<GlobalCache> globalCaches;
     private final AgentStatus agentStatus;
     private final GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry;
 
     public DefaultScriptClassPathResolver(
         NamedObjectInstantiator instantiator,
-        CachedClasspathTransformer classpathTransformer,
-        List<GlobalCache> globalCaches,
         AgentStatus agentStatus,
         GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry
     ) {
         this.instantiator = instantiator;
-        this.classpathTransformer = classpathTransformer;
-        this.globalCaches = globalCaches;
         this.agentStatus = agentStatus;
         this.gradleCoreInstrumentingTypeRegistry = gradleCoreInstrumentingTypeRegistry;
     }
@@ -102,31 +90,18 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             version.reject(Log4jBannedVersion.LOG4J2_CORE_VULNERABLE_VERSION_RANGE);
         })));
 
-        dependencyHandler.getArtifactTypes().getByName("jar").getAttributes()
+        dependencyHandler.getArtifactTypes().getByName(JAR_TYPE).getAttributes()
             .attribute(INSTRUMENTED_ATTRIBUTE, false)
             .attribute(HIERARCHY_COLLECTED_ATTRIBUTE, false);
     }
 
     @Override
     public ClassPath resolveClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler, ConfigurationContainer configContainer) {
-        FileCollection instrumentedView = getInstrumentedView(classpathConfiguration, dependencyHandler, configContainer);
+        FileCollection instrumentedView = getInstrumentedView(classpathConfiguration, dependencyHandler);
         return TransformedClassPath.handleInstrumentingArtifactTransform(DefaultClassPath.of(instrumentedView));
     }
 
-    private FileCollection getInstrumentedView(Configuration classpathConfiguration, DependencyHandler dependencyHandler, ConfigurationContainer configContainer) {
-        // Register collect type hierarchy
-        ArtifactView hierarchyCollectedView = artifactView(classpathConfiguration, config -> {
-            config.attributes(it -> it.attribute(HIERARCHY_COLLECTED_ATTRIBUTE, true));
-            config.componentFilter(id -> !(id instanceof ProjectComponentIdentifier) && DefaultScriptClassPathResolver.filterGradleDependencies(id));
-        });
-        dependencyHandler.registerTransform(
-            CollectDirectClassSuperTypesTransform.class,
-            spec -> {
-                spec.getFrom().attribute(HIERARCHY_COLLECTED_ATTRIBUTE, false);
-                spec.getTo().attribute(HIERARCHY_COLLECTED_ATTRIBUTE, true);
-            }
-        );
-
+    private FileCollection getInstrumentedView(Configuration classpathConfiguration, DependencyHandler dependencyHandler) {
         // Register instrumentation and upgrades transform
         dependencyHandler.registerTransform(
             InstrumentingArtifactTransform.class,
@@ -134,8 +109,6 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
                 spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, false);
                 spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, true);
                 spec.parameters(parameters -> {
-                    parameters.getClassHierarchy().setFrom(hierarchyCollectedView.getFiles());
-                    parameters.getCacheLocations().set(getSerializableGlobalCaches());
                     parameters.getAgentSupported().set(agentStatus.isAgentInstrumentationEnabled());
                     parameters.getMaxSupportedJavaVersion().set(AsmConstants.MAX_SUPPORTED_JAVA_VERSION);
                     parameters.getUpgradedPropertiesHash().set(gradleCoreInstrumentingTypeRegistry.getUpgradedPropertiesHash().map(Object::toString).orElse(null));
@@ -149,12 +122,6 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         }).getFiles();
     }
 
-    private List<GlobalCache> getSerializableGlobalCaches() {
-        return globalCaches.stream()
-            .map(SerializableGlobalCache::new)
-            .collect(Collectors.toList());
-    }
-
     private static ArtifactView artifactView(Configuration configuration, Action<? super ArtifactView.ViewConfiguration> configAction) {
         return configuration.getIncoming().artifactView(configAction);
     }
@@ -165,20 +132,5 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             return !DefaultScriptClassPathResolver.NO_GRADLE_API.contains(classPathNotation);
         }
         return true;
-    }
-
-    private static class SerializableGlobalCache implements GlobalCache, Serializable {
-        private static final long serialVersionUID = 1L;
-
-        private final List<File> cacheRoots;
-
-        public SerializableGlobalCache(GlobalCache other) {
-            this.cacheRoots = other.getGlobalCacheRoots();
-        }
-
-        @Override
-        public List<File> getGlobalCacheRoots() {
-            return cacheRoots;
-        }
     }
 }
