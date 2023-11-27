@@ -16,23 +16,36 @@
 
 package org.gradle.internal.resource.transport.aws.s3
 
-import com.amazonaws.services.s3.model.ObjectListing
-import com.amazonaws.services.s3.model.S3ObjectSummary
+import software.amazon.awssdk.services.s3.model.CommonPrefix
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response
+import software.amazon.awssdk.services.s3.model.S3Object
 import spock.lang.Specification
 
 class S3ResourceResolverTest extends Specification {
 
     def "should resolve file names"() {
         setup:
-        ObjectListing objectListing = Mock()
-        objectListing.getPrefix() >> 'root/'
-        S3ObjectSummary objectSummary = Mock()
-        objectSummary.getKey() >> '/SNAPSHOT/some.jar'
+        S3Object objectSummary = S3Object
+            .builder()
+            .key('/SNAPSHOT/some.jar')
+            .build();
 
-        S3ObjectSummary objectSummary2 = Mock()
-        objectSummary2.getKey() >> '/SNAPSHOT/someOther.jar'
-        objectListing.getObjectSummaries() >> [objectSummary, objectSummary2]
-        objectListing.getCommonPrefixes() >> ['root/SNAPSHOT']
+        S3Object objectSummary2 = S3Object
+            .builder()
+            .key('/SNAPSHOT/someOther.jar')
+            .build();
+
+        CommonPrefix commonPrefix = CommonPrefix
+            .builder()
+            .prefix('root/SNAPSHOT')
+            .build();
+
+        ListObjectsV2Response objectListing = ListObjectsV2Response
+            .builder()
+            .prefix('root/')
+            .contents([objectSummary, objectSummary2])
+            .commonPrefixes([commonPrefix])
+            .build();
 
         S3ResourceResolver resolver = new S3ResourceResolver()
 
@@ -45,12 +58,17 @@ class S3ResourceResolverTest extends Specification {
 
     def "should clean common prefixes"() {
         setup:
-        ObjectListing objectListing = Mock()
-        S3ObjectSummary objectSummary = Mock()
-        objectSummary.getKey() >> '/SNAPSHOT/some.jar'
-        objectListing.getPrefix() >> 'root/'
-        objectListing.getObjectSummaries() >> [objectSummary]
-        objectListing.getCommonPrefixes() >> [prefix]
+        S3Object objectSummary = S3Object
+            .builder()
+            .key('/SNAPSHOT/some.jar')
+            .build();
+
+        ListObjectsV2Response objectListing = ListObjectsV2Response
+            .builder()
+            .prefix('root/')
+            .contents([objectSummary])
+            .commonPrefixes([CommonPrefix.builder().prefix(prefix).build()])
+            .build();
 
         S3ResourceResolver resolver = new S3ResourceResolver()
 
@@ -67,10 +85,16 @@ class S3ResourceResolverTest extends Specification {
     }
 
     def "should extract file name from s3 listing"() {
-        ObjectListing objectListing = Mock()
-        S3ObjectSummary objectSummary = Mock()
-        objectSummary.getKey() >> listing
-        objectListing.getObjectSummaries() >> [objectSummary]
+        setup:
+        S3Object objectSummary = S3Object
+            .builder()
+            .key(listing)
+            .build();
+
+        ListObjectsV2Response objectListing = ListObjectsV2Response
+            .builder()
+            .contents([objectSummary])
+            .build();
 
         S3ResourceResolver resolver = new S3ResourceResolver()
 

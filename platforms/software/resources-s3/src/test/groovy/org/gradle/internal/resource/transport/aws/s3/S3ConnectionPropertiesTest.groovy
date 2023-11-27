@@ -19,6 +19,8 @@ package org.gradle.internal.resource.transport.aws.s3
 import org.gradle.internal.resource.transport.http.HttpProxySettings
 import spock.lang.Specification
 
+import static org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties.S3_HOSTNAME
+
 class S3ConnectionPropertiesTest extends Specification {
 
     final S3ConnectionProperties s3ConnectionProperties = new S3ConnectionProperties()
