@@ -82,8 +82,8 @@ class DefaultReportableProblemTest extends Specification {
             new RuntimeException("cause"),
             "a:b:c",
             additionalData,
+            new OperationIdentifier(1),
             internalProblems,
-            new OperationIdentifier(1)
         )
     }
 
