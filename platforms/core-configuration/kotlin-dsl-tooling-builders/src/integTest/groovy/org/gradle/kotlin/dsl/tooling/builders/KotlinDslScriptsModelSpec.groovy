@@ -28,23 +28,18 @@ import org.junit.rules.RuleChain
 class KotlinDslScriptsModelSpec extends AbstractIntegrationSpec implements KotlinDslTestProjectInitiation {
     @Delegate
     ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
-    TestOutputStream stderr = new TestOutputStream()
-    TestOutputStream stdout = new TestOutputStream()
 
     @Rule
     public RuleChain cleanupRule = RuleChain.outerRule(temporaryFolder).around(toolingApi)
 
     def 'exceptions in different scripts are reported on the corresponding scripts'() {
-
-        given:
         requireIsolatedUserHome()
 
-        when:
         def spec = withMultipleSubprojects()
         spec.scripts["a"] << "throw RuntimeException(\"ex1\")"
         spec.scripts["b"] << "throw RuntimeException(\"ex2\")"
 
-
+        when:
         def model = loadValidatedToolingModel(KotlinDslScriptsModel) {
             KotlinScriptModelParameters.setModelParameters(it, true, true, [])
         }
@@ -52,7 +47,6 @@ class KotlinDslScriptsModelSpec extends AbstractIntegrationSpec implements Kotli
         Map<File, KotlinDslScriptsModel> singleRequestModels = model.scriptModels
 
         then:
-
         singleRequestModels[spec.scripts["a"]].exceptions.size() == 1
         singleRequestModels[spec.scripts["b"]].exceptions.size() == 1
         singleRequestModels[spec.scripts["settings"]].exceptions.isEmpty()
