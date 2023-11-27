@@ -112,24 +112,40 @@ import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore;
+import org.gradle.internal.execution.history.OverlappingOutputDetector;
+import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.impl.DefaultExecutionEngine;
 import org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep;
+import org.gradle.internal.execution.steps.AssignMutableWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CachingContext;
 import org.gradle.internal.execution.steps.CachingResult;
+import org.gradle.internal.execution.steps.CaptureIncrementalStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CaptureNonIncrementalStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep;
+import org.gradle.internal.execution.steps.ChangingOutputsContext;
+import org.gradle.internal.execution.steps.ChoosePipelineStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
+import org.gradle.internal.execution.steps.IdentityContext;
+import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
 import org.gradle.internal.execution.steps.NeverUpToDateStep;
 import org.gradle.internal.execution.steps.NoInputChangesStep;
+import org.gradle.internal.execution.steps.OverlappingOutputsFilter;
 import org.gradle.internal.execution.steps.PreCreateOutputParentsStep;
+import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
+import org.gradle.internal.execution.steps.ResolveChangesStep;
+import org.gradle.internal.execution.steps.ResolveInputChangesStep;
+import org.gradle.internal.execution.steps.Result;
+import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.Step;
+import org.gradle.internal.execution.steps.StoreExecutionStateStep;
 import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.steps.UpToDateResult;
 import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.execution.steps.ValidationFinishedContext;
+import org.gradle.internal.execution.steps.WorkspaceResult;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.RelativeFilePathResolver;
@@ -477,12 +493,14 @@ class DependencyManagementBuildScopeServices {
     ExecutionEngine createExecutionEngine(
         BuildInvocationScopeId buildInvocationScopeId,
         BuildOperationExecutor buildOperationExecutor,
-        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         CurrentBuildOperationRef currentBuildOperationRef,
+        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         Deleter deleter,
+        ExecutionStateChangeDetector changeDetector,
         FileSystemAccess fileSystemAccess,
         ListenerManager listenerManager,
         ImmutableWorkspaceMetadataStore immutableWorkspaceMetadataStore,
+        OverlappingOutputDetector overlappingOutputDetector,
         OutputSnapshotter outputSnapshotter,
         Problems problems,
         TimeoutHandler timeoutHandler,
@@ -492,9 +510,14 @@ class DependencyManagementBuildScopeServices {
         OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
 
         // @formatter:off
-        return new DefaultExecutionEngine(problems,
-            new IdentifyStep<>(buildOperationExecutor,
-            new IdentityCacheStep<>(
+        // CHECKSTYLE:OFF
+        Step<ChangingOutputsContext, Result> sharedExecutionPipeline =
+            new PreCreateOutputParentsStep<>(
+            new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
+            new ExecuteStep<>(buildOperationExecutor
+        )));
+
+        Step<IdentityContext, WorkspaceResult> immutablePipeline =
             new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
             new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
@@ -502,12 +525,34 @@ class DependencyManagementBuildScopeServices {
             new NeverUpToDateStep<>(
             new NoInputChangesStep<>(
             new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter, NO_FILTER,
-            // TODO Use a shared execution pipeline
             new BroadcastChangingOutputsStep<>(outputChangeListener,
-            new PreCreateOutputParentsStep<>(
-            new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
-            new ExecuteStep<>(buildOperationExecutor
-        ))))))))))))));
+            sharedExecutionPipeline
+        ))))))));
+
+        Step<IdentityContext,WorkspaceResult> mutablePipeline =
+            new AssignMutableWorkspaceStep<>(
+            new LoadPreviousExecutionStateStep<>(
+            new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
+            new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
+            new NoOpCachingStateStep<>(
+            new ResolveChangesStep<>(changeDetector,
+            new SkipUpToDateStep<>(
+            new StoreExecutionStateStep<>(
+            new ResolveInputChangesStep<>(
+            new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter, new OverlappingOutputsFilter(),
+            new BroadcastChangingOutputsStep<>(outputChangeListener,
+            new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
+            sharedExecutionPipeline
+        ))))))))))));
+
+        return new DefaultExecutionEngine(problems,
+            new IdentifyStep<>(buildOperationExecutor,
+            new IdentityCacheStep<>(
+            new ChoosePipelineStep<>(
+                immutablePipeline,
+                mutablePipeline
+        ))));
+        // CHECKSTYLE:ON
         // @formatter:on
     }
 
