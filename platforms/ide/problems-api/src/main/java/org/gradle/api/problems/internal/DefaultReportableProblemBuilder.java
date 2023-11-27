@@ -34,7 +34,8 @@ public class DefaultReportableProblemBuilder extends DefaultBasicProblemBuilder 
 
     private final InternalProblems problemsService;
 
-    public DefaultReportableProblemBuilder(InternalProblems problemsService) {
+    public DefaultReportableProblemBuilder(InternalProblems problemsService, String namespace) {
+        super(namespace);
         this.problemsService = problemsService;
 
     }
@@ -123,7 +124,7 @@ public class DefaultReportableProblemBuilder extends DefaultBasicProblemBuilder 
     }
 
     @Override
-    public UnboundReportableProblemBuilder category(String category, String... details){
+    public UnboundReportableProblemBuilder category(String category, String... details) {
         super.category(category, details);
         return this;
     }

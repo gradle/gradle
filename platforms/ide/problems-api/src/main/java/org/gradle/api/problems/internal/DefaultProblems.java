@@ -21,6 +21,7 @@ import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderSpec;
 import org.gradle.api.problems.ProblemEmitter;
 import org.gradle.api.problems.ProblemTransformer;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -33,6 +34,7 @@ public class DefaultProblems implements InternalProblems {
 
     private ProblemEmitter emitter;
     private final List<ProblemTransformer> transformers;
+    private String namespace = "gradle";
 
     public DefaultProblems(ProblemEmitter emitter) {
         this(emitter, Collections.<ProblemTransformer>emptyList());
@@ -49,8 +51,14 @@ public class DefaultProblems implements InternalProblems {
     }
 
     @Override
+    public Problems withPluginNamespace(String pluginId) {
+        this.namespace = DefaultProblemCategory.GRADLE_PLUGIN_MARKER + ":" + pluginId;
+        return this;
+    }
+
+    @Override
     public DefaultReportableProblemBuilder createProblemBuilder() {
-        return new DefaultReportableProblemBuilder(this);
+        return new DefaultReportableProblemBuilder(this, namespace);
     }
 
     @Override

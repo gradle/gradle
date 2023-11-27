@@ -20,9 +20,9 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemCategory;
-import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ReportableProblem;
+import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.model.internal.type.ModelType;
@@ -31,7 +31,6 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
-import static org.gradle.api.problems.internal.DefaultProblemCategory.SEPARATOR;
 import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
 
 public class DefaultTypeValidationContext extends ProblemRecordingTypeValidationContext {
@@ -53,8 +52,9 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
         this.reportCacheabilityProblems = reportCacheabilityProblems;
     }
 
-    public static final String MISSING_NORMALIZATION_CATEGORY_DETAILS = "property" + SEPARATOR + "missing-normalization-annotation";
-    public static final DefaultProblemCategory MISSING_NORMALIZATION_CATEGORY = new DefaultProblemCategory(VALIDATION + SEPARATOR  + MISSING_NORMALIZATION_CATEGORY_DETAILS);
+    public static final String[] MISSING_NORMALIZATION_CATEGORY_DETAILS = new String[]
+        {"property", "missing-normalization-annotation"};
+    public static final DefaultProblemCategory MISSING_NORMALIZATION_CATEGORY = DefaultProblemCategory.category("gradle", VALIDATION, MISSING_NORMALIZATION_CATEGORY_DETAILS); // TODO (donat) namespace probably should not be encoded here
 
     public static boolean onlyAffectsCacheableWork(ProblemCategory problemCategory) {
         return MISSING_NORMALIZATION_CATEGORY.equals(problemCategory);

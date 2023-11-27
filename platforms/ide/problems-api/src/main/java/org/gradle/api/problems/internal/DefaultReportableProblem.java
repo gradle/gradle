@@ -18,6 +18,7 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.ProblemCategory;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.UnboundReportableProblemBuilder;
@@ -41,7 +42,7 @@ public class DefaultReportableProblem extends DefaultProblem implements Reportab
         @Nullable String description,
         @Nullable List<String> solutions,
         @Nullable RuntimeException cause,
-        String problemCategory,
+        ProblemCategory problemCategory,
         Map<String, Object> additionalData,
         @Nullable OperationIdentifier buildOperationId,
         @Nullable InternalProblems problemService) {

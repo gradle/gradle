@@ -127,7 +127,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
                 @TaskAction
                 void run() {
-                    problems.create {
+                    problems.withPluginNamespace("org.example.plugin").create {
                         it.label("shortProblemMessage")
                         $documentationConfig
                         .fileLocation("/tmp/foo", 1, 2, 3)
@@ -154,7 +154,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         problems.size() == 1
-        problems[0].category.namespace == 'main' // TODO this is a bug; see https://github.com/gradle/gradle/issues/27123
+        problems[0].category.namespace == 'gradle-plugin:org.example.plugin'
         problems[0].category.category == 'main'
         problems[0].category.subCategories == ['sub','id']
         problems[0].additionalData.asMap == ['aKey' : 'aValue']

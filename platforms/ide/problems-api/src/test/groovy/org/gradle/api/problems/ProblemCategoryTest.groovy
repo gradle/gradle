@@ -33,13 +33,13 @@ class ProblemCategoryTest extends Specification {
 
     def 'hasPluginId true'() {
         expect:
-        def category = new DefaultProblemCategory('gradle-plugin:plugin-id:deprecation')
+        def category = new DefaultProblemCategory('gradle-plugin:plugin-id', 'deprecation', [] as String[])
         category.hasPluginId()
     }
 
     def 'hasPluginId false'() {
         expect:
-        def category = new DefaultProblemCategory('gradle:deprecation')
+        def category = new DefaultProblemCategory('gradle', 'deprecation', [] as String[])
         !category.hasPluginId()
     }
 }

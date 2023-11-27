@@ -42,7 +42,7 @@ public class DefaultProblem implements Problem, Serializable {
     private final String description;
     private final List<String> solutions;
     private final RuntimeException cause;
-    private final String problemCategory;
+    private final ProblemCategory problemCategory;
     private final Map<String, Object> additionalData;
 
     @Nullable
@@ -56,7 +56,7 @@ public class DefaultProblem implements Problem, Serializable {
         @Nullable String description,
         @Nullable List<String> solutions,
         @Nullable RuntimeException cause,
-        String problemCategory,
+        ProblemCategory problemCategory,
         Map<String, Object> additionalData,
         @Nullable OperationIdentifier buildOperationId
     ) {
@@ -110,7 +110,7 @@ public class DefaultProblem implements Problem, Serializable {
 
     @Override
     public ProblemCategory getProblemCategory() {
-        return new DefaultProblemCategory(problemCategory);
+        return problemCategory;
     }
 
     @Override

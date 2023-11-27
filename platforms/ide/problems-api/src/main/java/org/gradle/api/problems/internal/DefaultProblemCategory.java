@@ -16,11 +16,13 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.problems.ProblemCategory;
 import org.gradle.util.Path;
 import org.gradle.util.internal.CollectionUtils;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -28,67 +30,64 @@ import java.util.List;
  */
 public class DefaultProblemCategory implements ProblemCategory {
 
-    public static final int NAMESPACE_START_INDEX = 0;
     public static final String GRADLE_PLUGIN_MARKER = "gradle-plugin";
     public static final String DEPRECATION = "deprecation";
     public static final String VALIDATION = "validation";
 
     public static final String SEPARATOR = Path.SEPARATOR;
-    private final Path category;
 
-    public DefaultProblemCategory(String category) {
-        if (category.startsWith(SEPARATOR)) {
-            throw new IllegalArgumentException("Problem category cannot start with '" + SEPARATOR + "'");
-        }
-        Path path = Path.path(category);
-        if (path.segmentCount() < NAMESPACE_START_INDEX + 1) {
-            throw new IllegalArgumentException("Problem category must have at least " + (NAMESPACE_START_INDEX + 1) + " segments");
-        }
-        this.category = path;
+    private final String namespace;
+    private final String category;
+    private final List<String> subcategories;
+
+    private  DefaultProblemCategory(String namespace, String category, String... subcategories) {
+        this.namespace = namespace;
+        this.category = category;
+        this.subcategories = Arrays.asList(subcategories);
     }
-
-    public static DefaultProblemCategory category(String category, String... details) {
-        if (details.length == 0) {
-            return new DefaultProblemCategory(category);
-        }
-        return new DefaultProblemCategory(category + SEPARATOR + CollectionUtils.join(SEPARATOR, details));
+    public static DefaultProblemCategory category(String namespace, String category, String... subcategories) {
+        return new DefaultProblemCategory(namespace, category, subcategories);
     }
 
     public String segment(int i) {
-        return category.segment(i);
+        switch (i) {
+            case 0: return namespace;
+            case 1: return category;
+            default: return subcategories.get(i - 2);
+        }
     }
 
     public int segmentCount() {
-        return category.segmentCount();
+        return subcategories.size() + 2;
     }
 
     public String toString() {
-        return category.toString();
+        return namespace + SEPARATOR + category + CollectionUtils.join(SEPARATOR, subcategories);
     }
 
     @Override
     public boolean hasPluginId() {
-        return category.segmentCount() > NAMESPACE_START_INDEX + 1 && category.segment(NAMESPACE_START_INDEX).equals(GRADLE_PLUGIN_MARKER);
+        return namespace.startsWith(GRADLE_PLUGIN_MARKER);
     }
 
     @Override
     public String getPluginId() {
-        return category.segment(NAMESPACE_START_INDEX + 1);
+        return namespace.substring(GRADLE_PLUGIN_MARKER.length() + 1); // TODO (donat) add static factories for gradle core and gradle plugin categories
     }
 
     @Override
     public String getNamespace() {
-        return category.segment(NAMESPACE_START_INDEX);
+        return namespace;
     }
 
     @Override
     public String getCategory() {
-        return category.segment(NAMESPACE_START_INDEX + (hasPluginId() ? 2 : 0));
+        return category;
     }
 
     @Override
     public List<String> getSubCategories() {
-        return ImmutableList.copyOf(category.segments().subList(NAMESPACE_START_INDEX + (hasPluginId() ? 3 : 1), category.segmentCount()));
+        return ImmutableList.copyOf(subcategories);
     }
 
     @Override
@@ -96,17 +95,15 @@ public class DefaultProblemCategory implements ProblemCategory {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof DefaultProblemCategory)) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         DefaultProblemCategory that = (DefaultProblemCategory) o;
-
-        return category.equals(that.category);
+        return Objects.equal(namespace, that.namespace) && Objects.equal(category, that.category) && Objects.equal(subcategories, that.subcategories);
     }
 
     @Override
     public int hashCode() {
-        return category.hashCode();
+        return Objects.hashCode(namespace, category, subcategories);
     }
 }
