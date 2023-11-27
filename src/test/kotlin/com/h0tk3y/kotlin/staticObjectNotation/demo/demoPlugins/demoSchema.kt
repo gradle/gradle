@@ -6,6 +6,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterSemantics.StoreV
 import com.h0tk3y.kotlin.staticObjectNotation.demo.boolean
 import com.h0tk3y.kotlin.staticObjectNotation.demo.string
 import com.h0tk3y.kotlin.staticObjectNotation.demo.typeRef
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.kotlinFunctionAsConfigureLambda
 
 fun demoSchema(): AnalysisSchema {
     val topLevelScopeRef = typeRef<TopLevelScope>()
@@ -70,6 +71,7 @@ fun demoSchema(): AnalysisSchema {
         listOf(topLevelScope, pluginsBlock, pluginDefinition).associateBy { FqName.parse(it.kClass.java.name) },
         emptyMap(),
         emptyMap(),
-        emptySet()
+        emptySet(),
+        kotlinFunctionAsConfigureLambda
     )
 }

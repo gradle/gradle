@@ -1,5 +1,6 @@
 package com.h0tk3y.kotlin.staticObjectNotation.analysis
 
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.ConfigureLambdaHandler
 import kotlin.reflect.KClass
 
 data class AnalysisSchema(
@@ -8,6 +9,7 @@ data class AnalysisSchema(
     val externalFunctionsByFqName: Map<FqName, DataTopLevelFunction>,
     val externalObjectsByFqName: Map<FqName, ExternalObjectProviderKey>,
     val defaultImports: Set<FqName>,
+    val configureLambdas: ConfigureLambdaHandler
 )
 
 sealed interface DataType {

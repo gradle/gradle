@@ -1,5 +1,26 @@
-package com.h0tk3y.kotlin.staticObjectNotation
+/*
+ * Copyright 2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
+package com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder
+
+import com.h0tk3y.kotlin.staticObjectNotation.Adding
+import com.h0tk3y.kotlin.staticObjectNotation.Builder
+import com.h0tk3y.kotlin.staticObjectNotation.Configuring
+import com.h0tk3y.kotlin.staticObjectNotation.HasDefaultValue
+import com.h0tk3y.kotlin.staticObjectNotation.Restricted
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ConfigureAccessor
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataBuilderFunction
@@ -17,7 +38,6 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterSemantics
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.SchemaMemberFunction
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.fqName
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ref
-import com.h0tk3y.kotlin.staticObjectNotation.types.isConfigureLambda
 import java.util.Locale
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
@@ -41,19 +61,21 @@ fun schemaFromTypes(
     externalFunctions: List<KFunction<*>> = emptyList(),
     externalObjects: Map<FqName, KClass<*>> = emptyMap(),
     defaultImports: List<FqName> = emptyList(),
+    configureLambdas: ConfigureLambdaHandler = kotlinFunctionAsConfigureLambda
 ): AnalysisSchema {
     val preIndex = createPreIndex(types)
 
-    val dataTypes = types.map { createDataType(it, preIndex) }
+    val dataTypes = types.map { createDataType(it, preIndex, configureLambdas) }
 
-    val extFunctions = externalFunctions.map { dataTopLevelFunction(it, preIndex) }.associateBy { it.fqName }
+    val extFunctions = externalFunctions.map { dataTopLevelFunction(it, preIndex, configureLambdas) }.associateBy { it.fqName }
     val extObjects = externalObjects.map { (key, value) -> key to ExternalObjectProviderKey(value.toDataTypeRef()) }.toMap()
     return AnalysisSchema(
         dataTypes.single { it.kClass == topLevelReceiver },
         dataTypes.associateBy { FqName.parse(it.kClass.qualifiedName!!) },
         extFunctions,
         extObjects,
-        defaultImports.toSet ()
+        defaultImports.toSet(),
+        configureLambdas
     )
 }
 
@@ -87,14 +109,15 @@ fun createPreIndex(types: List<KClass<*>>): PreIndex {
 
 fun createDataType(
     kClass: KClass<*>,
-    preIndex: PreIndex
+    preIndex: PreIndex,
+    configureLambdas: ConfigureLambdaHandler
 ): DataType.DataClass<*> {
     val properties = preIndex.getAllProperties(kClass)
 
     val functions = kClass.memberFunctions
         .filter { it.isIncluded && it.visibility == KVisibility.PUBLIC && !it.isIgnored }
         .map { function ->
-            memberFunction(kClass, function, preIndex)
+            memberFunction(kClass, function, preIndex, configureLambdas)
         }
     return DataType.DataClass(kClass, properties, functions, constructors(kClass, preIndex))
 }
@@ -155,7 +178,8 @@ private data class CollectedPropertyInformation(
 
 private fun dataTopLevelFunction(
     function: KFunction<*>,
-    preIndex: PreIndex
+    preIndex: PreIndex,
+    configureLambdas: ConfigureLambdaHandler
 ): DataTopLevelFunction {
     check(function.instanceParameter == null)
 
@@ -167,7 +191,7 @@ private fun dataTopLevelFunction(
 
     val fnParams = function.parameters
     val params = fnParams.filterIndexed { index, it ->
-        index != fnParams.lastIndex || !isConfigureLambda(it, returnTypeClassifier)
+        index != fnParams.lastIndex || !configureLambdas.isConfigureLambda(returnTypeClassifier)
     }.map { dataParameter(function, it, function.returnType.toKClass(), semanticsFromSignature, preIndex) }
 
     return DataTopLevelFunction(
@@ -181,7 +205,8 @@ private fun dataTopLevelFunction(
 private fun memberFunction(
     inType: KClass<*>,
     function: KFunction<*>,
-    preIndex: PreIndex
+    preIndex: PreIndex,
+    configureLambdas: ConfigureLambdaHandler
 ): SchemaMemberFunction {
     val thisTypeRef = inType.toDataTypeRef()
 
@@ -191,16 +216,19 @@ private fun memberFunction(
     val returnClass = function.returnType.classifier as KClass<*>
     val fnParams = function.parameters
 
-    val semanticsFromSignature = inferFunctionSemanticsFromSignature(function, function.returnType, inType, preIndex)
+    val semanticsFromSignature = inferFunctionSemanticsFromSignature(function, function.returnType, inType, preIndex, configureLambdas)
     val maybeConfigureType = if (semanticsFromSignature is FunctionSemantics.AccessAndConfigure) {
         // TODO: be careful with non-class types?
-        inType.memberProperties.find { it.name == function.name }?.returnType
+        inType.memberProperties.find {
+            it.name == function.name ||
+                function.annotations.filterIsInstance<Configuring>().singleOrNull()?.propertyName == it.name
+        }?.returnType
     } else null
 
     val params = fnParams
         .filterIndexed { index, it ->
             it != function.instanceParameter && run {
-                index != fnParams.lastIndex || !isConfigureLambda(it, maybeConfigureType ?: function.returnType)
+                index != fnParams.lastIndex || !configureLambdas.isConfigureLambdaForType(maybeConfigureType ?: function.returnType, it.type)
             }
         }
         .map { fnParam -> dataParameter(function, fnParam, returnClass, semanticsFromSignature, preIndex) }
@@ -225,7 +253,8 @@ private fun inferFunctionSemanticsFromSignature(
     function: KFunction<*>,
     returnTypeClassifier: KType,
     inType: KClass<*>?,
-    preIndex: PreIndex
+    preIndex: PreIndex,
+    configureLambdas: ConfigureLambdaHandler
 ): FunctionSemantics {
     return when {
         function.annotations.any { it is Builder } -> {
@@ -236,7 +265,7 @@ private fun inferFunctionSemanticsFromSignature(
         function.annotations.any { it is Adding } -> {
             check(inType != null)
             val hasConfigureLambda =
-                isConfigureLambda(function.parameters[function.parameters.lastIndex], function.returnType)
+                configureLambdas.isConfigureLambdaForType(function.returnType, function.parameters[function.parameters.lastIndex].type)
             FunctionSemantics.AddAndConfigure(returnTypeClassifier.toDataTypeRefOrError(), hasConfigureLambda)
         }
         function.annotations.any { it is Configuring } -> {
@@ -251,7 +280,7 @@ private fun inferFunctionSemanticsFromSignature(
             check(property != null)
 
             val hasConfigureLambda =
-                isConfigureLambda(function.parameters[function.parameters.lastIndex], kProperty.returnType)
+                configureLambdas.isConfigureLambdaForType(kProperty.returnType, function.parameters[function.parameters.lastIndex].type)
 
             check(hasConfigureLambda)
             val returnType = when (function.returnType) {

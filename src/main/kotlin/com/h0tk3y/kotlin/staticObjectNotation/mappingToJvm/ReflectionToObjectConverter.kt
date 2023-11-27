@@ -8,7 +8,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.ObjectOrigin
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterValueBinding
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.ObjectReflection
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.PropertyValueReflection
-import com.h0tk3y.kotlin.staticObjectNotation.types.isConfigureLambda
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.ConfigureLambdaHandler
 import kotlin.reflect.KFunction
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KParameter
@@ -19,7 +19,8 @@ import kotlin.reflect.full.memberProperties
 
 class RestrictedReflectionToObjectConverter(
     private val externalObjectsMap: Map<ExternalObjectProviderKey, Any>,
-    private val topLevelObject: Any
+    private val topLevelObject: Any,
+    private val configureLambdaHandler: ConfigureLambdaHandler
 ) {
     fun apply(objectReflection: ObjectReflection) {
         if (objectReflection is ObjectReflection.DataObjectReflection) {
@@ -162,7 +163,7 @@ class RestrictedReflectionToObjectConverter(
                 val paramName = param.name
                 when {
                     param == kFunction.instanceParameter -> put(param, receiver)
-                    isConfigureLambda(param) -> put(param, universalConfigureLambda)
+                    configureLambdaHandler.isConfigureLambda(param.type) -> put(param, configureLambdaHandler.produceNoopConfigureLambda(param.type))
                     paramName != null && paramName in namedValues -> {
                         put(param, getObjectByResolvedOrigin(namedValues.getValue(paramName)))
                         used += paramName
@@ -175,6 +176,4 @@ class RestrictedReflectionToObjectConverter(
         }
         return if (used.size == namedValues.size) binding else null
     }
-
-    private val universalConfigureLambda: (Nothing) -> Unit = { }
 }

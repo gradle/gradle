@@ -6,6 +6,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterSemantics.Unknow
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterSemantics.StoreValueInProperty
 import com.h0tk3y.kotlin.staticObjectNotation.demo.int
 import com.h0tk3y.kotlin.staticObjectNotation.demo.string
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.kotlinFunctionAsConfigureLambda
 
 val cRef = DataTypeRef.Name(FqName.parse("com.example.C"))
 val abcRef = DataTypeRef.Name(FqName.parse("com.example.Abc"))
@@ -76,7 +77,8 @@ internal fun demoSchema(): AnalysisSchema {
         dataClassesByFqName = listOf(abcClass, cClass, dClass).associateBy { FqName.parse(it.kClass.qualifiedName!!) },
         externalFunctionsByFqName = mapOf(newDFunction.fqName to newDFunction),
         externalObjectsByFqName = emptyMap(),
-        defaultImports = setOf(newDFunction.fqName)
+        defaultImports = setOf(newDFunction.fqName),
+        kotlinFunctionAsConfigureLambda
     )
 }
 

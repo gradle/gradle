@@ -25,13 +25,12 @@ import kotlin.reflect.full.isSubtypeOf
 
 internal fun isConfigureLambda(kParam: KParameter): Boolean {
     val paramType = kParam.type
-    return paramType.isSubtypeOf(configureLambdaTypeFor(Nothing::class.createType()))
+    return isConfigureLambdaType(paramType)
 }
 
-internal fun isConfigureLambda(kParam: KParameter, returnTypeClassifier: KType): Boolean {
-    val paramType = kParam.type
-    return paramType.isSubtypeOf(configureLambdaTypeFor(returnTypeClassifier))
-}
+fun isConfigureLambdaType(paramType: KType) = isConfigureLambdaType(paramType, Nothing::class.createType())
+
+fun isConfigureLambdaType(paramType: KType, returnTypeClassifier: KType) = paramType.isSubtypeOf(configureLambdaTypeFor(returnTypeClassifier))
 
 private fun configureLambdaTypeFor(configuredType: KType) =
     Function1::class.createType(
