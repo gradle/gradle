@@ -215,23 +215,22 @@ trait KotlinDslTestProjectInitiation {
                 `kotlin-dsl` apply false
             }
 
-            val kotlinDslProjects = listOf(project.project(":a"), project.project(":b"))
-
-            kotlinDslProjects.forEach {
-                it.apply(plugin = "org.gradle.kotlin.kotlin-dsl")
-            }
-
             dependencies {
-                kotlinDslProjects.forEach {
-                    "runtimeOnly"(project(it.path))
-                }
+                "runtimeOnly"(project(":a"))
+                "runtimeOnly"(project(":b"))
             }
         """)
 
         withFile("buildSrc/a/$defaultBuildKotlinFileName", """
+            plugins {
+                id("org.gradle.kotlin.kotlin-dsl")
+            }
             $repositoriesBlock
         """)
         withFile("buildSrc/b/$defaultBuildKotlinFileName", """
+            plugins {
+                id("org.gradle.kotlin.kotlin-dsl")
+            }
             $repositoriesBlock
             dependencies { implementation(project(":c")) }
         """)
