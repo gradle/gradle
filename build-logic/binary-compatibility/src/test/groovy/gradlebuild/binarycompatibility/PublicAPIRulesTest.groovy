@@ -199,6 +199,7 @@ class PublicAPIRulesTest extends Specification {
                  String method();
             }
         """
+            // TODO: why is this passing?
         : apiElement == 'class' ? """
             /**
              * @since 11.38
@@ -254,7 +255,7 @@ class PublicAPIRulesTest extends Specification {
         'annotation member' | 'jApiMethod'
     }
 
-    def "if a type is annotated with @since a new #apiElement does not require it"() {
+    def "if a type is annotated with @since a new #apiElement still requires it"() {
         given:
         JApiCompatibility jApiType = getProperty(jApiTypeName)
 
@@ -289,7 +290,8 @@ class PublicAPIRulesTest extends Specification {
         def rule = withContext(new SinceAnnotationMissingRule([:]))
 
         then:
-        rule.maybeViolation(jApiType) == null
+        def violation = rule.maybeViolation(jApiType)
+        violation.severity == Severity.error
 
         where:
         apiElement     | jApiTypeName

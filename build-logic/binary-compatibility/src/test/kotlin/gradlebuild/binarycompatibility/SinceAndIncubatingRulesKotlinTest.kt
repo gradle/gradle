@@ -269,7 +269,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
             )
         }
 
-        checkBinaryCompatibleKotlin(
+        checkNotBinaryCompatibleKotlin(
             v2 = """
 
             /** @since 2.0 */
@@ -291,16 +291,14 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
             """
         ) {
 
+            assertHasNoInformation()
             assertHasNoWarning()
-            assertHasInformation(
-                newApi("Class", "Bar"),
-                newApi("Class", "Bazar"),
-                newApi("Method", "Bazar.getEntries()"),
-                newApi("Method", "Bazar.valueOf(java.lang.String)"),
-                newApi("Method", "Bazar.values()"),
-                newApi("Class", "Cathedral"),
-                newApi("Field", "INSTANCE"),
-                newApi("Class", "Foo")
+            assertHasErrors(
+                added("Constructor", "Bar()"),
+                added("Method", "Bazar.getEntries()"),
+                added("Method", "Bazar.valueOf(java.lang.String)"),
+                added("Method", "Bazar.values()"),
+                added("Field", "INSTANCE"),
             )
         }
     }

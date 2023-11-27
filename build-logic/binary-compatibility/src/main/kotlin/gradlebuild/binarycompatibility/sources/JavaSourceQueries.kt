@@ -36,13 +36,17 @@ import japicmp.model.JApiField
 import japicmp.model.JApiMethod
 
 
+private
+typealias PredicateVisitor = GenericVisitorAdapter<Boolean, Unit?>
+
+
 internal
 object JavaSourceQueries {
 
     fun isOverrideMethod(method: JApiMethod): JavaSourceQuery<Boolean> =
         JavaSourceQuery(
             false,
-            object : GenericVisitorAdapter<Boolean, Unit?>() {
+            object : PredicateVisitor() {
                 override fun visit(declaration: MethodDeclaration, arg: Unit?): Boolean? {
                     if (declaration.name?.asString() == method.name && declaration.hasOverrideAnnotation) {
                         return true
@@ -58,9 +62,9 @@ object JavaSourceQueries {
                 false,
                 when (member) {
                     is JApiClass -> isSinceJavaClassVisitorFor(declaringClassSimpleName, version)
-                    is JApiField -> isSinceJavaFieldVisitorFor(member, declaringClassSimpleName, version)
-                    is JApiConstructor -> isSinceJavaConstructorVisitorFor(member, declaringClassSimpleName, version)
-                    is JApiMethod -> isSinceJavaMethodVisitorFor(member, declaringClassSimpleName, version)
+                    is JApiField -> isSinceJavaFieldVisitorFor(member, version)
+                    is JApiConstructor -> isSinceJavaConstructorVisitorFor(declaringClassSimpleName, version)
+                    is JApiMethod -> isSinceJavaMethodVisitorFor(member, version)
                     else -> throw IllegalStateException("Unsupported japicmp member type ${member::class}")
                 }
             )
@@ -75,12 +79,25 @@ val MethodDeclaration.hasOverrideAnnotation: Boolean
 
 private
 fun isSinceJavaClassVisitorFor(classSimpleName: String, version: String) =
-    NameAndSinceMatchingVisitor(classSimpleName, version)
+    object : PredicateVisitor() {
+
+        override fun visit(declaration: ClassOrInterfaceDeclaration, arg: Unit?): Boolean? =
+            if (declaration.matchesNameAndIsSince(classSimpleName, version)) true
+            else super.visit(declaration, arg)
+
+        override fun visit(declaration: AnnotationDeclaration, arg: Unit?): Boolean? =
+            if (declaration.matchesNameAndIsSince(classSimpleName, version)) true
+            else super.visit(declaration, arg)
+
+        override fun visit(declaration: EnumDeclaration, arg: Unit?): Boolean? =
+            if (declaration.matchesNameAndIsSince(classSimpleName, version)) true
+            else super.visit(declaration, arg)
+    }
 
 
 private
-fun isSinceJavaFieldVisitorFor(field: JApiField, classSimpleName: String, version: String) =
-    object : NameAndSinceMatchingVisitor(classSimpleName, version) {
+fun isSinceJavaFieldVisitorFor(field: JApiField, version: String) =
+    object : PredicateVisitor() {
 
         override fun visit(declaration: FieldDeclaration, arg: Unit?): Boolean? =
             if (matchesName(declaration.fieldName, field.name) && declaration.isSince(version)) true
@@ -93,26 +110,18 @@ fun isSinceJavaFieldVisitorFor(field: JApiField, classSimpleName: String, versio
 
 
 private
-fun isSinceJavaConstructorVisitorFor(constructor: JApiConstructor, classSimpleName: String, version: String) =
-    object : NameAndSinceMatchingVisitor(classSimpleName, version) {
+fun isSinceJavaConstructorVisitorFor(classSimpleName: String, version: String) =
+    object : PredicateVisitor() {
 
         override fun visit(declaration: ConstructorDeclaration, arg: Unit?): Boolean? =
             if (declaration.matchesNameAndIsSince(classSimpleName, version)) true
             else super.visit(declaration, arg)
-
-        override fun visit(declaration: FieldDeclaration, arg: Unit?): Boolean? =
-            if (matchesName(declaration.fieldName, constructor.name) && declaration.isSince(version)) true
-            else null
-
-        override fun visit(declaration: EnumConstantDeclaration, arg: Unit?): Boolean? =
-            if (declaration.matchesNameAndIsSince(constructor.name, version)) true
-            else null
     }
 
 
 private
-fun isSinceJavaMethodVisitorFor(method: JApiMethod, classSimpleName: String, version: String) =
-    object : NameAndSinceMatchingVisitor(classSimpleName, version) {
+fun isSinceJavaMethodVisitorFor(method: JApiMethod, version: String) =
+    object : PredicateVisitor() {
 
         override fun visit(declaration: AnnotationMemberDeclaration, arg: Unit?): Boolean? =
             if (declaration.matchesNameAndIsSince(method.name, version)) true
@@ -122,26 +131,6 @@ fun isSinceJavaMethodVisitorFor(method: JApiMethod, classSimpleName: String, ver
             if (declaration.matchesNameAndIsSince(method.name, version)) true
             else null
     }
-
-
-private
-open class NameAndSinceMatchingVisitor(
-    val classSimpleName: String,
-    val version: String
-) : GenericVisitorAdapter<Boolean, Unit?>() {
-
-    override fun visit(declaration: ClassOrInterfaceDeclaration, arg: Unit?): Boolean? =
-        if (declaration.matchesNameAndIsSince(classSimpleName, version)) true
-        else super.visit(declaration, arg)
-
-    override fun visit(declaration: AnnotationDeclaration, arg: Unit?): Boolean? =
-        if (declaration.matchesNameAndIsSince(classSimpleName, version)) true
-        else super.visit(declaration, arg)
-
-    override fun visit(declaration: EnumDeclaration, arg: Unit?): Boolean? =
-        if (declaration.matchesNameAndIsSince(classSimpleName, version)) true
-        else super.visit(declaration, arg)
-}
 
 
 private

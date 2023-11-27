@@ -53,13 +53,16 @@ object KotlinSourceQueries {
         }
     }
 
+    // TODO: in Kotlin more annotations are implicit
+    //  - Primary constructor
+    //  - Enum built-in methods
+    //  - field INSTANCE
     fun isSince(version: String, member: JApiCompatibility): (KtFile) -> Boolean = { ktFile ->
         val ctMember = member.newCtMember
         val ctDeclaringClass = ctMember.declaringClass
         when {
             ctMember is CtMethod && ctMember.isSynthetic -> true // synthetic members cannot have kdoc
             ctMember is CtClass -> ktFile.ktClassOf(ctMember)?.isDocumentedAsSince(version) == true
-            ktFile.ktClassOf(ctDeclaringClass)?.isDocumentedAsSince(version) == true -> true
             else -> when (ctMember) {
                 is CtField -> ktFile.isDocumentedAsSince(version, ctDeclaringClass, ctMember)
                 is CtConstructor -> ktFile.isDocumentedAsSince(version, ctDeclaringClass, ctMember)
