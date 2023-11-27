@@ -51,10 +51,12 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter {
                     defaultProblem.getBuildOperationId(),
                     new DefaultProblemProgressDetails(problem)
                 );
-            } else {
-                // If the problem is not associated with a build operation, we cannot emit it as a build operation progress event.
-                LOGGER.error("Problem '{}' is not associated with a build operation, it will not be reported", problem.getLabel());
             }
+            // else {
+                // TODO (#27170): Turn this back on after deprecation reporting is fixed.
+                // If the problem is not associated with a build operation, we cannot emit it as a build operation progress event.
+                // LOGGER.error("Problem '{}' is not associated with a build operation, it will not be reported", problem.getLabel());
+            // }
         }
     }
 }
