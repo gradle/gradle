@@ -177,7 +177,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
         then:
         def ops = operations.all(ResolveConfigurationDependenciesBuildOperationType)
-        ops.size() == 4
+        ops.size() == 3
         ops.details.repositories.flatten().unique(false).size() == 1
     }
 
