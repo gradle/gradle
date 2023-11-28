@@ -52,6 +52,7 @@ object DiscoveredKotlinScriptsModelBuilder : ToolingModelBuilder {
     }
 }
 
+
 private
 val Project.precompiledScriptPluginsSupport
     get() = serviceOf<PrecompiledScriptPluginsSupport>()
