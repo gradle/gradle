@@ -19,9 +19,9 @@ package org.gradle.api.internal.tasks.scala;
 import com.google.common.collect.Iterables;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.hash.HashCode;
@@ -93,7 +93,7 @@ public class ZincScalaCompilerFactory {
         }
     }
 
-    static ZincScalaCompiler getCompiler(UnscopedCacheBuilderFactory unscopedCacheBuilderFactory, HashedClasspath hashedScalaClasspath) {
+    static ZincScalaCompiler getCompiler(GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory, HashedClasspath hashedScalaClasspath) {
         ScalaInstance scalaInstance;
         try {
             scalaInstance = getScalaInstance(hashedScalaClasspath);
@@ -107,7 +107,7 @@ public class ZincScalaCompilerFactory {
         String javaVersion = Jvm.current().getJavaVersion().getMajorVersion();
         String zincCacheKey = String.format("zinc-%s_%s_%s", zincVersion, scalaVersion, javaVersion);
         String zincCacheName = String.format("%s compiler cache", zincCacheKey);
-        final PersistentCache zincCache = unscopedCacheBuilderFactory.cache(zincCacheKey)
+        final PersistentCache zincCache = globalScopedCacheBuilderFactory.createCacheBuilder(zincCacheKey)
             .withDisplayName(zincCacheName)
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
             .open();
