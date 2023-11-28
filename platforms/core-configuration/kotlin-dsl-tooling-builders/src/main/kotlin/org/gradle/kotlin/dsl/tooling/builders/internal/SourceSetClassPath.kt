@@ -21,7 +21,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.typeOf
 import java.io.File
 
 
