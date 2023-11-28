@@ -293,6 +293,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             systemProp.${ci.propPrefix}.gradle-enterprise.url=http://localhost:5086
         """.stripIndent()
 
+        setupLocalBuildCache()
         setupJavaProject()
         if (doesNotBundleTestRetryPluginOrSupportsSafeMode(versionNumber)) {
             new TestFile(buildFile).with {
@@ -366,6 +367,11 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             """
         }
 
+        setupLocalBuildCache()
+        setupJavaProject()
+    }
+
+    private void setupLocalBuildCache() {
         settingsFile << """
             buildCache {
                 local {
@@ -373,8 +379,6 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
                 }
             }
         """
-
-        setupJavaProject()
     }
 
     private setupJavaProject() {
