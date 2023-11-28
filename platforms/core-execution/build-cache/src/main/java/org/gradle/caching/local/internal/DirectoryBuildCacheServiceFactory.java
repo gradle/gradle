@@ -18,7 +18,6 @@ package org.gradle.caching.local.internal;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.DefaultCacheCleanupStrategy;
 import org.gradle.cache.PersistentCache;
@@ -96,7 +95,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
             .withCleanupStrategy(createCacheCleanupStrategy(removeUnusedEntriesOlderThan))
             .withDisplayName("Build cache")
             .withLockOptions(mode(OnDemand))
-            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
+            .withCrossVersionCache()
             .open();
         BuildCacheTempFileStore tempFileStore = new DefaultBuildCacheTempFileStore(temporaryFileProvider);
         FileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, target, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);

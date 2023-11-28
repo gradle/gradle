@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.DefaultCacheCleanupStrategy;
@@ -56,7 +55,7 @@ public class WritableArtifactCacheLockingAccessCoordinator implements ArtifactCa
                                                ) {
         cache = unscopedCacheBuilderFactory
                 .cache(cacheMetaData.getCacheDir())
-                .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
+                .withCrossVersionCache()
                 .withDisplayName("artifact cache")
                 .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Don't need to lock anything until we use the caches
                 .withCleanupStrategy(createCacheCleanupStrategy(cacheMetaData, fileAccessTimeJournal, usedGradleVersions, cacheConfigurations))

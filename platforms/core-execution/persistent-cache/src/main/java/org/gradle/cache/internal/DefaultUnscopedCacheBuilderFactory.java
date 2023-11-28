@@ -57,7 +57,6 @@ public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderF
         LockOptions lockOptions = mode(FileLockManager.LockMode.Shared);
         String displayName;
         VersionStrategy versionStrategy = VersionStrategy.CachePerVersion;
-        LockTarget lockTarget = LockTarget.DefaultTarget;
 
         PersistentCacheBuilder(String key) {
             this.key = key;
@@ -76,9 +75,8 @@ public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderF
         }
 
         @Override
-        public CacheBuilder withCrossVersionCache(LockTarget lockTarget) {
+        public CacheBuilder withCrossVersionCache() {
             this.versionStrategy = VersionStrategy.SharedCache;
-            this.lockTarget = lockTarget;
             return this;
         }
 
@@ -115,7 +113,7 @@ public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderF
                 cacheBaseDir = cacheScopeMapping.getBaseDirectory(null, key, versionStrategy);
             }
 
-            return factory.open(cacheBaseDir, displayName, properties, lockTarget, lockOptions, initializer, cacheCleanupStrategy);
+            return factory.open(cacheBaseDir, displayName, properties, lockOptions, initializer, cacheCleanupStrategy);
         }
     }
 }

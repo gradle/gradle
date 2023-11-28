@@ -18,7 +18,6 @@ package org.gradle.internal.classpath;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.DefaultCacheCleanupStrategy;
 import org.gradle.cache.FileLockManager;
@@ -63,7 +62,7 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
         return cacheBuilderFactory
             .createCrossVersionCacheBuilder(CACHE_KEY)
             .withDisplayName(CACHE_NAME)
-            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
+            .withCrossVersionCache()
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
             .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal))
             .open();
