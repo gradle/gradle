@@ -23,13 +23,18 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.VersionNumber
+import spock.lang.TempDir
 
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentHashMap
 
 // https://plugins.gradle.org/plugin/com.gradle.enterprise
 class BuildScanPluginSmokeTest extends AbstractSmokeTest {
+
+    @TempDir
+    File buildCacheDir
 
     enum CI {
         TEAM_CITY(
@@ -360,6 +365,14 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
                 }
             """
         }
+
+        settingsFile << """
+            buildCache {
+                local {
+                    directory = new File("${TextUtil.normaliseFileSeparators(buildCacheDir.absolutePath)}")
+                }
+            }
+        """
 
         setupJavaProject()
     }
