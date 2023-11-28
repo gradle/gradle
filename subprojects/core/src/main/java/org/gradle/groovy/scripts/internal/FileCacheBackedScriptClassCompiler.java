@@ -60,7 +60,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
 
-import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.BUILD_SCRIPT_INSTRUMENTED_ATTRIBUTE;
+import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE;
+import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.INSTRUMENTED_BUILDSCRIPT;
 import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.None;
 
 /**
@@ -149,12 +150,11 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         String className = origin.getClassName();
 
         Configuration buildScriptConfiguration = scriptHandler.getConfigurations().detachedConfiguration();
-        buildScriptConfiguration.getAttributes().attribute(BUILD_SCRIPT_INSTRUMENTED_ATTRIBUTE, false);
         Dependency dependency = scriptHandler.getDependencies().create(fileCollectionFactory.fixed(Collections.singleton(genericClassesDir)));
         buildScriptConfiguration.getDependencies().add(dependency);
-        ArtifactView instrumentedView = buildScriptConfiguration.getIncoming().artifactView(view -> view.getAttributes().attribute(BUILD_SCRIPT_INSTRUMENTED_ATTRIBUTE, true));
+        ArtifactView instrumentedView = buildScriptConfiguration.getIncoming().artifactView(view -> view.getAttributes().attribute(ARTIFACT_TYPE_ATTRIBUTE, INSTRUMENTED_BUILDSCRIPT));
 
-        return classpathTransformer.transform(DefaultClassPath.of(instrumentedView.getFiles().getFiles()), None, new ClassTransform() {
+        return classpathTransformer.transform(DefaultClassPath.of(instrumentedView.getFiles()), None, new ClassTransform() {
             @Override
             public void applyConfigurationTo(Hasher hasher) {
                 hasher.putString(FileCacheBackedScriptClassCompiler.class.getSimpleName());

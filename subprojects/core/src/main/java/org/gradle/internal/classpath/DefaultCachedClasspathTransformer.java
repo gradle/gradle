@@ -172,10 +172,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             return classPath;
         }
         if (transform == StandardTransform.None) {
-            return transformFiles(
-                classPath,
-                instrumentingClasspathFileTransformerFor(classpathElementTransformFactoryForLegacy, additional)
-            );
+            return transformFiles(classPath, instrumentingClasspathFileTransformerFor(classpathElementTransformFactoryForLegacy, additional));
         }
         return transformFiles(
             classPath,

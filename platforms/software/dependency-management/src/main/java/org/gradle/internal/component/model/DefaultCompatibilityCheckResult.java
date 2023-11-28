@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.internal.attributes.CompatibilityCheckResult;
 
 import javax.annotation.Nullable;

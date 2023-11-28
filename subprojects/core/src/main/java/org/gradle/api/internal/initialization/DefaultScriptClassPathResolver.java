@@ -19,23 +19,16 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.ArtifactView;
-import org.gradle.api.artifacts.ComponentMetadataContext;
-import org.gradle.api.artifacts.ComponentMetadataRule;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.AttributeDisambiguationRule;
-import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
-import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.LibraryElements;
-import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
@@ -64,6 +57,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE;
+import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.DIRECTORY_TYPE;
+
 public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     private static final Set<DependencyFactoryInternal.ClassPathNotation> NO_GRADLE_API = EnumSet.copyOf(ImmutableSet.of(
@@ -73,7 +69,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     public static final Attribute<Boolean> HIERARCHY_COLLECTED_ATTRIBUTE = Attribute.of("org.gradle.internal.hierarchy-collected", Boolean.class);
     public static final Attribute<Boolean> INSTRUMENTED_ATTRIBUTE = Attribute.of("org.gradle.internal.instrumented", Boolean.class);
-    public static final Attribute<Boolean> BUILD_SCRIPT_INSTRUMENTED_ATTRIBUTE = Attribute.of("org.gradle.internal.buildscript.instrumented", Boolean.class);
+    public static final String INSTRUMENTED_BUILDSCRIPT = "instrumented-buildscript";
     private final NamedObjectInstantiator instantiator;
     private final CachedClasspathTransformer classpathTransformer;
     private final List<GlobalCache> globalCaches;
@@ -115,8 +111,8 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         dependencyHandler.registerTransform(
             BuildScriptInstrumentingArtifactTransform.class,
             spec -> {
-                spec.getFrom().attribute(BUILD_SCRIPT_INSTRUMENTED_ATTRIBUTE, false);
-                spec.getTo().attribute(BUILD_SCRIPT_INSTRUMENTED_ATTRIBUTE, true);
+                spec.getFrom().attribute(ARTIFACT_TYPE_ATTRIBUTE, DIRECTORY_TYPE);
+                spec.getTo().attribute(ARTIFACT_TYPE_ATTRIBUTE, INSTRUMENTED_BUILDSCRIPT);
                 spec.parameters(parameters -> parameters.getMaxSupportedJavaVersion().set(AsmConstants.MAX_SUPPORTED_JAVA_VERSION));
             }
         );
@@ -133,11 +129,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 //        dependencyHandler.components(componentMetadataHandler -> componentMetadataHandler.all(BuildScriptVariantDerivationRule.class));
         dependencyHandler.getArtifactTypes().getByName("jar").getAttributes()
             .attribute(INSTRUMENTED_ATTRIBUTE, false)
-            .attribute(HIERARCHY_COLLECTED_ATTRIBUTE, false)
-            .attribute(BUILD_SCRIPT_INSTRUMENTED_ATTRIBUTE, false);
-
-        dependencyHandler.getArtifactTypes().getByName("directory").getAttributes()
-            .attribute(BUILD_SCRIPT_INSTRUMENTED_ATTRIBUTE, false);
+            .attribute(HIERARCHY_COLLECTED_ATTRIBUTE, false);
     }
 
     @Override
@@ -212,35 +204,6 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         @Override
         public List<File> getGlobalCacheRoots() {
             return cacheRoots;
-        }
-    }
-
-    public static class BuildScriptInstrumentationDisambiguationRule implements AttributeDisambiguationRule<Boolean> {
-        @Override
-        public void execute(MultipleCandidatesDetails<Boolean> details) {
-            if (details.getConsumerValue() == null) {
-                details.closestMatch(false);
-            }
-        }
-    }
-
-    public static class BuildScriptInstrumentationCompatibilityRule implements AttributeCompatibilityRule<Boolean> {
-        @Override
-        public void execute(CompatibilityCheckDetails<Boolean> details) {
-            Boolean consumer = details.getConsumerValue();
-            Boolean producer = details.getProducerValue();
-            if (consumer == null && producer == null || consumer == false && producer == false) {
-                details.compatible();
-            } else {
-                details.incompatible();
-            }
-        }
-    }
-
-    public static class BuildScriptVariantDerivationRule implements ComponentMetadataRule {
-        @Override
-        public void execute(ComponentMetadataContext context) {
-            context.getDetails().addVariant("default", variant -> variant.attributes(attributes -> attributes.attribute(BUILD_SCRIPT_INSTRUMENTED_ATTRIBUTE, false)));
         }
     }
 }

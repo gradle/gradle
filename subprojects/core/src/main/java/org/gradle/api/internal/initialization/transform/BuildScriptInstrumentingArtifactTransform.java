@@ -64,7 +64,6 @@ public abstract class BuildScriptInstrumentingArtifactTransform implements Trans
 
     @Override
     public void transform(TransformOutputs outputs) {
-        System.out.println("Instrumenting build script jar: " + getInputAsFile().getName());
         String instrumentedJarName = getInput().get().getAsFile().getName();
         InstrumentationServices instrumentationServices = getObjects().newInstance(InstrumentationServices.class);
         File outputFile = outputs.file(instrumentedJarName);
