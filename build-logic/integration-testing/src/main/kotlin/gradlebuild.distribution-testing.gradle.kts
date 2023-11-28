@@ -25,8 +25,6 @@ plugins {
     id("gradlebuild.module-identity")
 }
 
-val docsProjectLocation = "platforms/documentation/docs" // TODO instead of reaching directly into the project we should use dependency management
-
 val intTestHomeDir = repoRoot().dir("intTestHomeDir")
 
 val cachesCleanerService = gradle.sharedServices.registerIfAbsent("cachesCleaner", CachesCleaner::class) {
@@ -75,7 +73,7 @@ fun DistributionTest.configureGradleTestEnvironment() {
         // The user home dir is not wiped out by clean. Move the daemon working space underneath the build dir so they don't pile up on CI.
         // The actual daemon registry dir will be a subfolder using the name of the distribution.
         daemonRegistry = repoRoot().dir("build/daemon")
-        gradleSnippetsDir = repoRoot().dir("$docsProjectLocation/src/snippets")
+        gradleSnippetsDir = project.provider { repoRoot().dir("${project(":docs").rootDir}/src/snippets") }
     }
 
     // Wire the different inputs for local distributions and repos that are declared by dependencies in the build scripts
