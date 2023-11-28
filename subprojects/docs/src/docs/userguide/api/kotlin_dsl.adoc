@@ -174,8 +174,11 @@ All Kotlin DSL build scripts have implicit imports consisting of:
 ** `org.gradle.kotlin.dsl.plugins.dsl`
 ** `org.gradle.kotlin.dsl.precompile`
 
-CAUTION: Use of internal Kotlin DSL APIs in plugins and build scripts has the potential to break builds when either Gradle or plugins change.
+.Avoid using internal Kotlin DSL APIs
+--
+Use of internal Kotlin DSL APIs in plugins and build scripts has the potential to break builds when either Gradle or plugins change.
 The link:{kotlinDslPath}/[Kotlin DSL API] extends the <<authoring_maintainable_build_scripts#sec:avoiding_gradle_internal_apis,Gradle public API>> with the types listed in the link:{kotlinDslPath}/[corresponding API docs] that are in the packages listed above (but not subpackages of those).
+--
 
 [[sec:compilation_warnings]]
 === Compilation warnings
@@ -733,7 +736,10 @@ The plugin achieves this by doing the following:
  ** registers the link:https://kotlinlang.org/docs/sam-with-receiver-plugin.html[SAM-with-receiver Kotlin compiler plugin].
  * Enables support for <<custom_plugins#sec:precompiled_plugins,precompiled script plugins>>.
 
-CAUTION: Each Gradle release is meant to be used with a specific version of the `kotlin-dsl` plugin and compatibility between arbitrary Gradle releases and `kotlin-dsl` plugin versions is not guaranteed. Using an unexpected version of the `kotlin-dsl` plugin in a build will emit a warning and can cause hard to diagnose problems.
+.Avoid specifying a version for the `kotlin-dsl` plugin
+--
+Each Gradle release is meant to be used with a specific version of the `kotlin-dsl` plugin and compatibility between arbitrary Gradle releases and `kotlin-dsl` plugin versions is not guaranteed. Using an unexpected version of the `kotlin-dsl` plugin in a build will emit a warning and can cause hard to diagnose problems.
+--
 
 This is the basic configuration you need to use the plugin:
 

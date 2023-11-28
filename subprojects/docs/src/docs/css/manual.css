@@ -1277,7 +1277,14 @@ body.book #header > h1 {
  * selectors except that they end with `.nowrap`.
  */
 .literalblock pre,
-.literalblock pre[class],
+.literalblock pre[class] {
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: normal;
+}
+
+/*.literalblock pre,
+.literalblock pre[class],*/
 .listingblock pre,
 .listingblock pre[class] {
     overflow-x: auto;
