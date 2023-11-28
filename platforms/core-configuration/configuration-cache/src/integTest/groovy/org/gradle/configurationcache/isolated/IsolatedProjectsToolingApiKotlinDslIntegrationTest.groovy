@@ -17,34 +17,79 @@
 package org.gradle.configurationcache.isolated
 
 import org.gradle.integtests.fixtures.build.KotlinDslTestProjectInitiation
+import org.gradle.tooling.model.kotlin.dsl.EditorReport
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
+
+import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.checkModel
 
 class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest implements KotlinDslTestProjectInitiation {
 
     def "can fetch KotlinDslScripts model for single subproject build"() {
-        withSingleSubproject()
+        withSettings("""
+            include("a")
+        """)
+        withBuildScriptIn("a")
 
-//        when: "fetching without Isolated Projects"
-//        def expectedModel = fetchModel(KotlinDslScriptsModel)
-//
-//        then:
-//        fixture.assertNoConfigurationCache()
+        when: "fetching without Isolated Projects"
+        def expectedModel = fetchModel(KotlinDslScriptsModel)
+
+        then:
+        fixture.assertNoConfigurationCache()
 
         when: "fetching with Isolated Projects"
         executer.withArguments(ENABLE_CLI)
         def model = fetchModel(KotlinDslScriptsModel)
 
         then:
-        model != null
-//        fixture.assertStateStored {
-//        }
-//
-//        when: "fetching again with Isolated Projects"
-//        executer.withArguments(ENABLE_CLI)
-//        fetchModel(KotlinDslScriptsModel)
-//
-//        then:
-//        fixture.assertStateLoaded()
+        fixture.assertStateStored {
+            modelsCreated(":", 4)
+            modelsCreated(":a", 2)
+        }
+
+        checkKotlinDslScriptsModel(model, expectedModel)
+
+        when: "fetching again with Isolated Projects"
+        executer.withArguments(ENABLE_CLI)
+        fetchModel(KotlinDslScriptsModel)
+
+        then:
+        fixture.assertStateLoaded()
     }
 
+    static void checkKotlinDslScriptsModel(actual, expected) {
+        assert expected instanceof KotlinDslScriptsModel
+        assert actual instanceof KotlinDslScriptsModel
+
+        checkModel(actual, expected, [
+            [{ it.scriptModels }, { a, e -> checkKotlinDslScriptModel(a, e) }]
+        ])
+    }
+
+    static void checkKotlinDslScriptModel(actual, expected) {
+        assert expected instanceof KotlinDslScriptModel
+        assert actual instanceof KotlinDslScriptModel
+
+        checkModel(actual, expected, [
+            { it.classPath },
+            { it.sourcePath },
+            { it.implicitImports },
+            [{ it.editorReports }, { a, e -> checkEditorReport(a, e) }],
+            { it.exceptions },
+        ])
+    }
+
+    static void checkEditorReport(actual, expected) {
+        assert expected instanceof EditorReport
+        assert actual instanceof EditorReport
+
+        checkModel(actual, expected, [
+            { it.severity },
+            { it.message },
+            [{ it.position }, [
+                { it.line },
+                { it.column },
+            ]]
+        ])
+    }
 }
