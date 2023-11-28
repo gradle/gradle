@@ -16,11 +16,11 @@
 
 package com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder
 
-import com.h0tk3y.kotlin.staticObjectNotation.types.isConfigureLambdaType
 import java.lang.reflect.Proxy
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeProjection
+import kotlin.reflect.KVariance
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubtypeOf
 
@@ -28,9 +28,6 @@ interface ConfigureLambdaHandler {
     fun isConfigureLambda(type: KType): Boolean
     fun isConfigureLambdaForType(configuredType: KType, maybeLambdaType: KType): Boolean
     fun produceNoopConfigureLambda(lambdaType: KType): Any
-
-    companion object {
-    }
 }
 
 fun ConfigureLambdaHandler.plus(other: ConfigureLambdaHandler) =
@@ -47,8 +44,20 @@ fun ConfigureLambdaHandler.plus(other: ConfigureLambdaHandler) =
 
 val kotlinFunctionAsConfigureLambda: ConfigureLambdaHandler = object : ConfigureLambdaHandler {
     override fun isConfigureLambda(type: KType): Boolean = isConfigureLambdaType(type)
-    override fun isConfigureLambdaForType(configuredType: KType, maybeLambdaType: KType): Boolean = isConfigureLambdaType(configuredType, maybeLambdaType)
+    override fun isConfigureLambdaForType(configuredType: KType, maybeLambdaType: KType): Boolean = isConfigureLambdaType(maybeLambdaType, configuredType)
     override fun produceNoopConfigureLambda(lambdaType: KType): Function1<Any, Unit> = {}
+
+    private fun isConfigureLambdaType(maybeLambdaType: KType) = isConfigureLambdaType(maybeLambdaType, Nothing::class.createType())
+
+    private fun isConfigureLambdaType(maybeLambdaType: KType, configuredType: KType) = maybeLambdaType.isSubtypeOf(configureLambdaTypeFor(configuredType))
+
+    private fun configureLambdaTypeFor(configuredType: KType) =
+        Function1::class.createType(
+            listOf(
+                KTypeProjection(KVariance.INVARIANT, configuredType),
+                KTypeProjection(KVariance.INVARIANT, Unit::class.createType())
+            )
+        )
 }
 
 class CompositeConfigureLambdas(internal val implementations: List<ConfigureLambdaHandler>) : ConfigureLambdaHandler {
@@ -97,6 +106,6 @@ fun treatInterfaceAsConfigureLambda(functionalInterface: KClass<*>): ConfigureLa
         Proxy.newProxyInstance(
             functionalInterface.java.classLoader,
             arrayOf(functionalInterface.java)
-        ) { _, _, _ -> Unit }
+        ) { _, _, _ -> }
     }
 }

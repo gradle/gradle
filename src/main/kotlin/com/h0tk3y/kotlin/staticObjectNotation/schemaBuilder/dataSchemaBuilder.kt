@@ -280,7 +280,7 @@ private fun inferFunctionSemanticsFromSignature(
             check(property != null)
 
             val hasConfigureLambda =
-                configureLambdas.isConfigureLambdaForType(kProperty.returnType, function.parameters[function.parameters.lastIndex].type)
+                configureLambdas.isConfigureLambdaForType(kProperty.returnType, function.parameters.last().type)
 
             check(hasConfigureLambda)
             val returnType = when (function.returnType) {
