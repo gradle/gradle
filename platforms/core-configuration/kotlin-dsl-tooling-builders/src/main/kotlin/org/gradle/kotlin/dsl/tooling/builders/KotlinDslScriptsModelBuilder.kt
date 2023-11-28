@@ -143,7 +143,8 @@ class KotlinDslScriptsModelBuilder(private val intermediateToolingModelProvider:
     private
     fun buildFor(parameter: KotlinDslScriptsParameter, rootProject: Project): KotlinDslScriptsModel {
         val targetScripts = parameter.targetScripts
-        val scriptModels = buildScriptModels(targetScripts, rootProject, parameter.correlationId)
+        val locationAwareHints = rootProject.isLocationAwareEditorHintsEnabled
+        val scriptModels = buildScriptModels(targetScripts, rootProject, parameter.correlationId, locationAwareHints)
         val (commonModel, dehydratedScriptModels) = dehydrateScriptModels(scriptModels)
         val scriptFiles = targetScripts.map { it.script }
         return StandardKotlinDslScriptsModel(scriptFiles, commonModel, dehydratedScriptModels)
@@ -153,12 +154,13 @@ class KotlinDslScriptsModelBuilder(private val intermediateToolingModelProvider:
     fun buildScriptModels(
         targetScripts: List<TargetScript>,
         rootProject: Project,
-        correlationId: String?
+        correlationId: String?,
+        locationAwareHints: Boolean
     ): Map<File, KotlinBuildScriptModel> {
 
         return targetScripts.associateBy(TargetScript::script) { targetScript ->
             val targetProject = targetScript.ownerProject ?: rootProject
-            val parameter = KotlinBuildScriptModelParameter(targetScript.script, correlationId, targetScript.enclosingSourceSet)
+            val parameter = KotlinBuildScriptModelParameter(targetScript.script, correlationId, locationAwareHints, targetScript.enclosingSourceSet)
             // TODO:isolated make batch request to run in parallel
             intermediateToolingModelProvider.getModels(listOf(targetProject), KotlinBuildScriptModel::class.java, parameter).first()
         }
