@@ -23,10 +23,6 @@ import java.util.Map;
 public interface CacheBuilder {
     enum LockTarget {
         /**
-         * Use the cache properties file as the lock target, for backwards compatibility with old Gradle versions.
-         */
-        CachePropertiesFile,
-        /**
          * Use the cache directory as the lock target, for backwards compatibility with old Gradle versions.
          */
         CacheDirectory,

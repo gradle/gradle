@@ -122,7 +122,6 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
 
         where:
         target                                      | lockFile
-        CacheBuilder.LockTarget.CachePropertiesFile | "cache.properties"
         CacheBuilder.LockTarget.CacheDirectory      | "."
         CacheBuilder.LockTarget.DefaultTarget       | "."
     }

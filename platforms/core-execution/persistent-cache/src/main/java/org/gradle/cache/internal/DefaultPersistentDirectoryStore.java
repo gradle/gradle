@@ -55,6 +55,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     private final FileLockManager lockManager;
     private final ExecutorFactory executorFactory;
     private final String displayName;
+
     protected final File propertiesFile;
     private final File gcFile;
     private final ProgressLoggerFactory progressLoggerFactory;
@@ -104,8 +105,6 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
             case CacheDirectory:
             case DefaultTarget:
                 return dir;
-            case CachePropertiesFile:
-                return propertiesFile;
             default:
                 throw new IllegalArgumentException("Unsupported lock target: " + lockTarget);
         }
@@ -140,13 +139,8 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         return Arrays.asList(propertiesFile, gcFile, determineLockTargetFile(getLockTarget()));
     }
 
-    // TODO: Duplicated in DefaultFileLockManager
     static File determineLockTargetFile(File target) {
-        if (target.isDirectory()) {
-            return new File(target, target.getName() + ".lock");
-        } else {
-            return new File(target.getParentFile(), target.getName() + ".lock");
-        }
+        return new File(target, target.getName() + ".lock");
     }
 
     @Override

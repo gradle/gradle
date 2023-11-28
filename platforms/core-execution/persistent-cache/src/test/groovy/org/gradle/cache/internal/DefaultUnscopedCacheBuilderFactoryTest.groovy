@@ -68,11 +68,11 @@ class DefaultUnscopedCacheBuilderFactoryTest extends Specification {
 
     void createsCrossVersionCache() {
         when:
-        repository.cache("a/b/c").withCrossVersionCache(CacheBuilder.LockTarget.CachePropertiesFile).open()
+        repository.cache("a/b/c").withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget).open()
 
         then:
         1 * scopeMapping.getBaseDirectory(null, "a/b/c", VersionStrategy.SharedCache) >> sharedCacheDir
-        1 * cacheFactory.open(sharedCacheDir, null, [:], CacheBuilder.LockTarget.CachePropertiesFile, mode(Shared), null, null) >> cache
+        1 * cacheFactory.open(sharedCacheDir, null, [:], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null, null) >> cache
     }
 
     void canSpecifyInitializerActionForDirectoryCache() {
