@@ -19,9 +19,6 @@ package org.gradle.kotlin.dsl.tooling.builders.internal
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.kotlin.dsl.tooling.builders.EnclosingSourceSet
-import org.gradle.kotlin.dsl.tooling.builders.NoSourceSet
-import org.gradle.kotlin.dsl.tooling.builders.findSourceSetOf
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import java.io.File
 
@@ -29,7 +26,7 @@ import java.io.File
 internal
 data class DiscoveredScript(
     val script: File,
-    val enclosingSourceSet: EnclosingSourceSet?
+    val sourceSetClassPath: SourceSetClassPath?
 )
 
 
@@ -55,7 +52,7 @@ object DiscoveredKotlinScriptsModelBuilder : ToolingModelBuilder {
             // Precompiled Scripts
             if (project.plugins.hasPlugin("org.gradle.kotlin.kotlin-dsl")) {
                 val precompiledScriptFiles = project.precompiledScriptPluginsSupport.collectScriptPluginFilesOf(project)
-                val precompiledScripts = precompiledScriptFiles.map { DiscoveredScript(it, project.findSourceSetOf(it)) }
+                val precompiledScripts = precompiledScriptFiles.map { DiscoveredScript(it, project.findSourceSetClassPath(it)) }
                 addAll(precompiledScripts)
             }
         }

@@ -25,15 +25,11 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
-import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.DependenciesAccessors
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.internal.time.Time.startTimer
-import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
 import org.gradle.kotlin.dsl.accessors.Stage1BlocksAccessorClassPathGenerator
@@ -50,6 +46,10 @@ import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.kotlinScriptTypeFor
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.kotlin.dsl.tooling.builders.internal.NoSourceSet
+import org.gradle.kotlin.dsl.tooling.builders.internal.ResolvedSourceSetClassPath
+import org.gradle.kotlin.dsl.tooling.builders.internal.SourceSetClassPath
+import org.gradle.kotlin.dsl.tooling.builders.internal.findSourceSetClassPath
 import org.gradle.kotlin.dsl.tooling.models.EditorReport
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
@@ -67,7 +67,7 @@ data class KotlinBuildScriptModelParameter(
     val scriptFile: File?,
     val correlationId: String?,
     val locationAwareHints: Boolean,
-    val enclosingSourceSet: EnclosingSourceSet? = null,
+    val sourceSetClassPath: SourceSetClassPath? = null,
 )
 
 
@@ -163,10 +163,10 @@ class KotlinBuildScriptModelBuilder(
         parameter: KotlinBuildScriptModelParameter,
         modelRequestProject: ProjectInternal,
         scriptFile: File
-    ): ProjectSourceSet? = when (val s = parameter.enclosingSourceSet) {
+    ): ResolvedSourceSetClassPath? = when (val s = parameter.sourceSetClassPath) {
         NoSourceSet -> null
-        is ProjectSourceSet -> s
-        null -> modelRequestProject.enclosingSourceSetOf(scriptFile)
+        is ResolvedSourceSetClassPath -> s
+        null -> modelRequestProject.enclosingSourceSetClassPathOf(scriptFile)
     }
 
     private
@@ -199,66 +199,33 @@ fun Project.findProjectWithBuildFile(file: File) =
 
 
 private
-fun Project.enclosingSourceSetOf(file: File): ProjectSourceSet? =
-    findSourceSetOf(file)
-        ?: findSourceSetOfFileIn(subprojects, file)
-
-
-internal
-sealed interface EnclosingSourceSet
-
-
-internal
-object NoSourceSet : EnclosingSourceSet
-
-
-internal
-data class ProjectSourceSet(
-    val projectDir: File,
-    val precompiledScriptPluginsMetadataDir: File,
-    val compileClasspath: ClassPath
-) : EnclosingSourceSet
+fun Project.enclosingSourceSetClassPathOf(file: File): ResolvedSourceSetClassPath? =
+    findSourceSetClassPath(file)
+        ?: findSourceSetClassPathOfFileIn(subprojects, file)
 
 
 private
-fun findSourceSetOfFileIn(projects: Iterable<Project>, file: File): ProjectSourceSet? =
+fun findSourceSetClassPathOfFileIn(projects: Iterable<Project>, file: File): ResolvedSourceSetClassPath? =
     projects
         .asSequence()
-        .mapNotNull { it.findSourceSetOf(file) }
+        .mapNotNull { it.findSourceSetClassPath(file) }
         .firstOrNull()
-
-
-internal
-fun Project.findSourceSetOf(file: File): ProjectSourceSet? =
-    sourceSets?.find { file in it.allSource }?.let {
-        createEnclosingSourceSet(it)
-    }
-
-
-private
-fun Project.createEnclosingSourceSet(it: SourceSet) =
-    ProjectSourceSet(projectDir, precompiledScriptPluginsMetadataDir, DefaultClassPath.of(it.compileClasspath))
-
-
-private
-val Project.sourceSets
-    get() = extensions.findByType(typeOf<SourceSetContainer>())
 
 
 private
 fun precompiledScriptPluginModelBuilder(
     scriptFile: File,
-    enclosingSourceSet: ProjectSourceSet,
+    sourceSetClassPath: ResolvedSourceSetClassPath,
     modelRequestProject: Project,
     locationAwareHints: Boolean
 ) = KotlinScriptTargetModelBuilder(
     scriptFile = scriptFile,
     project = modelRequestProject,
     locationAwareHints = locationAwareHints,
-    scriptClassPath = enclosingSourceSet.compileClasspath,
-    enclosingScriptProjectDir = enclosingSourceSet.projectDir,
+    scriptClassPath = sourceSetClassPath.compileClasspath,
+    enclosingScriptProjectDir = sourceSetClassPath.projectDir,
     additionalImports = {
-        enclosingSourceSet.precompiledScriptPluginsMetadataDir.run {
+        sourceSetClassPath.precompiledScriptPluginsMetadataDir.run {
             implicitImportsFrom(
                 resolve("accessors").resolve(hashOf(scriptFile))
             ) + implicitImportsFrom(
@@ -267,11 +234,6 @@ fun precompiledScriptPluginModelBuilder(
         }
     }
 )
-
-
-private
-val Project.precompiledScriptPluginsMetadataDir: File
-    get() = layout.buildDirectory.dir("kotlin-dsl/precompiled-script-plugins-metadata").get().asFile
 
 
 private
