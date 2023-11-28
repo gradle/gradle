@@ -141,16 +141,27 @@ class KotlinDslScriptsModelBuilder(private val intermediateToolingModelProvider:
         }
 
     private
-    fun buildFor(parameter: KotlinDslScriptsParameter, project: Project): KotlinDslScriptsModel {
-        val scriptModels = parameter.targetScripts.associateBy(TargetScript::script) { targetScript ->
-            KotlinBuildScriptModelBuilder.kotlinBuildScriptModelFor(
-                project,
-                KotlinBuildScriptModelParameter(targetScript.script, parameter.correlationId, targetScript.enclosingSourceSet)
-            )
-        }
+    fun buildFor(parameter: KotlinDslScriptsParameter, rootProject: Project): KotlinDslScriptsModel {
+        val targetScripts = parameter.targetScripts
+        val scriptModels = buildScriptModels(targetScripts, rootProject, parameter.correlationId)
         val (commonModel, dehydratedScriptModels) = dehydrateScriptModels(scriptModels)
-        val scriptFiles = parameter.targetScripts.map { it.script }
+        val scriptFiles = targetScripts.map { it.script }
         return StandardKotlinDslScriptsModel(scriptFiles, commonModel, dehydratedScriptModels)
+    }
+
+    private
+    fun buildScriptModels(
+        targetScripts: List<TargetScript>,
+        rootProject: Project,
+        correlationId: String?
+    ): Map<File, KotlinBuildScriptModel> {
+
+        return targetScripts.associateBy(TargetScript::script) { targetScript ->
+            val targetProject = targetScript.ownerProject ?: rootProject
+            val parameter = KotlinBuildScriptModelParameter(targetScript.script, correlationId, targetScript.enclosingSourceSet)
+            // TODO:isolated make batch request to run in parallel
+            intermediateToolingModelProvider.getModels(listOf(targetProject), KotlinBuildScriptModel::class.java, parameter).first()
+        }
     }
 }
 

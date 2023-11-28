@@ -54,7 +54,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.models.EditorReport
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
-import org.gradle.tooling.provider.model.ToolingModelBuilder
+import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
 import java.io.File
 import java.io.PrintWriter
 import java.io.Serializable
@@ -95,10 +95,16 @@ data class StandardKotlinBuildScriptModel(
 
 
 internal
-object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
+object KotlinBuildScriptModelBuilder : ParameterizedToolingModelBuilder<KotlinBuildScriptModelParameter> {
 
     override fun canBuild(modelName: String): Boolean =
-        modelName == "org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel"
+        modelName == KotlinBuildScriptModel::class.qualifiedName
+
+    override fun getParameterType(): Class<KotlinBuildScriptModelParameter> = KotlinBuildScriptModelParameter::class.java
+
+    override fun buildAll(modelName: String, parameter: KotlinBuildScriptModelParameter, modelRequestProject: Project): Any {
+        return kotlinBuildScriptModelFor(modelRequestProject as ProjectInternal, parameter)
+    }
 
     override fun buildAll(modelName: String, modelRequestProject: Project): KotlinBuildScriptModel {
         val timer = startTimer()
@@ -115,7 +121,7 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
         }
     }
 
-    internal
+    private
     fun kotlinBuildScriptModelFor(modelRequestProject: Project, parameter: KotlinBuildScriptModelParameter) =
         scriptModelBuilderFor(modelRequestProject as ProjectInternal, parameter).buildModel()
 
@@ -181,7 +187,8 @@ fun log(message: String) {
 
 private
 fun Project.findProjectWithBuildFile(file: File) =
-    allprojects.find { it.buildFile == file }
+    if (buildFile == file) this
+    else allprojects.find { it.buildFile == file }
 
 
 private
@@ -278,7 +285,9 @@ fun projectScriptModelBuilder(
         val stage1BlocksAccessorClassPathGenerator = project.serviceOf<Stage1BlocksAccessorClassPathGenerator>()
         val projectAccessorClassPathGenerator = project.serviceOf<ProjectAccessorsClassPathGenerator>()
         val dependenciesAccessors = project.serviceOf<DependenciesAccessors>()
-        projectAccessorClassPathGenerator.projectAccessorsClassPath(project, classPath) + stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(project) + AccessorsClassPath(dependenciesAccessors.classes, dependenciesAccessors.sources)
+        projectAccessorClassPathGenerator.projectAccessorsClassPath(project, classPath) +
+            stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(project) +
+            AccessorsClassPath(dependenciesAccessors.classes, dependenciesAccessors.sources)
     },
     sourceLookupScriptHandlers = sourceLookupScriptHandlersFor(project),
     enclosingScriptProjectDir = project.projectDir
