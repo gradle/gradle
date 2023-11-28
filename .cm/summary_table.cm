@@ -140,10 +140,7 @@ platforms:
   - documentation:
     name: 'documentation'
     subprojects:
-      - 'platforms/documentation/docs/'
-      - 'platforms/documentation/docs-asciidoctor-extensions/'
-      - 'platforms/documentation/docs-asciidoctor-extensions-base/'
-      - 'platforms/documentation/samples/'
+      - 'platforms/documentation/'
   - extensibility:
     name: 'extensibility'
     subprojects:
