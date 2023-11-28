@@ -18,8 +18,6 @@
 As a build author, you define tasks and dependencies between tasks.
 Gradle guarantees that these tasks will execute in order of their dependencies.
 
-image::author-gradle-1.png[]
-
 Your build scripts and plugins configure this dependency graph.
 
 For example, if your project tasks include `build`, `assemble`, `createDocs`, your build script(s) can ensure that they are executed in the order `build` -> `assemble` -> `createDoc`.
@@ -41,6 +39,8 @@ Both plugins and build scripts contribute to the task graph via the <<tutorial_u
 == Build Phases
 
 A Gradle build has three distinct phases.
+
+image::author-gradle-1.png[]
 
 Gradle runs these phases in order:
 

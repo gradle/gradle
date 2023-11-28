@@ -45,9 +45,9 @@ The directory structure should look as follows:
 ├── gradlew
 ├── gradlew.bat
 ├── settings.gradle.kts  // <1>
-├── subproject-one
+├── sub-project-1
 │   └── build.gradle.kts // <2>
-└── subproject-two
+└── sub-project-2
     └── build.gradle.kts // <2>
 ----
 <1> The `settings.gradle.kts` file should include all subprojects.
@@ -76,7 +76,7 @@ The rest of a project path is a colon-separated sequence of project names, where
 
 [source]
 ----
-:subproject-one
+:sub-project-1
 ----
 
 You can see the project paths when running `gradle projects`:
@@ -88,8 +88,8 @@ Root project 'project'
 ------------------------------------------------------------
 
 Root project 'project'
-+--- Project ':subproject-one'
-\--- Project ':subproject-two'
++--- Project ':sub-project-1'
+\--- Project ':sub-project-2'
 ----
 
 Project paths usually reflect the filesystem layout, but there are exceptions.
