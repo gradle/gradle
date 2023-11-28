@@ -21,8 +21,8 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest implements KotlinDslTestProjectInitiation {
 
-    def "can fetch KotlinDslScripts model for multi-project build with buildSrc"() {
-        withMultiProjectBuildWithBuildSrc()
+    def "can fetch KotlinDslScripts model for single subproject build"() {
+        withSingleSubproject()
 
 //        when: "fetching without Isolated Projects"
 //        def expectedModel = fetchModel(KotlinDslScriptsModel)
