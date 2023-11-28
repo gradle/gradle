@@ -4,7 +4,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
 import com.h0tk3y.kotlin.staticObjectNotation.demo.printResolutionResults
 import com.h0tk3y.kotlin.staticObjectNotation.demo.printResolvedAssignments
 import com.h0tk3y.kotlin.staticObjectNotation.demo.resolve
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.schemaFromTypes
+import com.h0tk3y.kotlin.staticObjectNotation.schemaFromTypes
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs

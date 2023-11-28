@@ -4,7 +4,7 @@ import com.example.com.h0tk3y.kotlin.staticObjectNotation.analysis.MyClass
 import com.example.com.h0tk3y.kotlin.staticObjectNotation.analysis.TopLevel
 import com.h0tk3y.kotlin.staticObjectNotation.demo.resolve
 import com.h0tk3y.kotlin.staticObjectNotation.language.PropertyAccess
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.schemaFromTypes
+import com.h0tk3y.kotlin.staticObjectNotation.schemaFromTypes
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs

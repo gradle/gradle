@@ -3,12 +3,11 @@ package com.h0tk3y.kotlin.staticObjectNotation.demo.demoPlugins
 import com.example.com.h0tk3y.kotlin.staticObjectNotation.demo.reflection.printReflection
 import com.example.com.h0tk3y.kotlin.staticObjectNotation.demo.reflection.reflect
 import com.example.com.h0tk3y.kotlin.staticObjectNotation.demo.reflection.reflectAndPrint
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataType
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.FqName
-import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.ObjectReflection
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.ObjectReflection.ConstantValue
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.ObjectReflection.DataObjectReflection
-import kotlinx.ast.common.ast.*
+import kotlinx.ast.common.ast.Ast
+import kotlinx.ast.common.ast.astInfoOrNull
 
 object ReflectionDemo {
     @JvmStatic
