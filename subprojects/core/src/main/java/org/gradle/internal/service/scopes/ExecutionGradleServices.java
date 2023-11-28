@@ -116,7 +116,6 @@ public class ExecutionGradleServices {
     OutputFilesRepository createOutputFilesRepository(BuildScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         PersistentCache cacheAccess = cacheBuilderFactory
             .createCrossVersionCacheBuilder("buildOutputCleanup")
-            .withCrossVersionCache()
             .withDisplayName("Build Output Cleanup Cache")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
             .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))

@@ -48,7 +48,6 @@ public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderF
         CacheCleanupStrategy cacheCleanupStrategy;
         LockOptions lockOptions = mode(FileLockManager.LockMode.Shared);
         String displayName;
-        VersionStrategy versionStrategy = VersionStrategy.CachePerVersion;
 
         PersistentCacheBuilder(File baseDir) {
             this.baseDir = baseDir;
@@ -62,7 +61,6 @@ public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderF
 
         @Override
         public CacheBuilder withCrossVersionCache() {
-            this.versionStrategy = VersionStrategy.SharedCache;
             return this;
         }
 

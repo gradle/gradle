@@ -25,8 +25,7 @@ import java.io.File;
  */
 public interface ScopedCacheBuilderFactory {
     /**
-     * Returns a builder for the cache with the given key and global scope. Default is a Gradle version-specific cache shared by all builds, though this
-     * can be changed using the provided builder.
+     * Creates a builder for a Gradle version-specific cache with the given key in this scope.
      *
      * <p>By default a cache is opened with a shared lock, so that it can be accessed by multiple processes. It is the caller's responsibility
      * to coordinate access to the cache. The initial lock level can be changed using the provided builder </p>
@@ -37,7 +36,10 @@ public interface ScopedCacheBuilderFactory {
     CacheBuilder createCacheBuilder(String key);
 
     /**
-     * Creates a builder for cross Gradle version caches in this scope.
+     * Creates a builder for cross Gradle version caches with the given key in this scope.
+     *
+     * <p>By default a cache is opened with a shared lock, so that it can be accessed by multiple processes. It is the caller's responsibility
+     * to coordinate access to the cache. The initial lock level can be changed using the provided builder </p>
      *
      * @param key A unique name for the cache.
      * @see #createCacheBuilder(String)

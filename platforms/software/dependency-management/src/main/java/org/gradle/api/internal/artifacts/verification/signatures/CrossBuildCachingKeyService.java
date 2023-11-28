@@ -78,7 +78,6 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
             boolean refreshKeys) {
         cache = cacheBuilderFactory
             .createCrossVersionCacheBuilder("keyrings")
-            .withCrossVersionCache()
             .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand))
             .open();
         this.buildOperationExecutor = buildOperationExecutor;

@@ -32,7 +32,7 @@ public interface CacheBuilder {
     CacheBuilder withProperties(Map<String, ?> properties);
 
     /**
-     * Specifies that the cache should be shared by all versions of Gradle. The default is to use a Gradle version specific cache.
+     * This method does not change the behavior of the underlying cache. It exists only as documentation that the cache is intended to be used by multiple versions of Gradle.
      *
      * @return this
      */

@@ -65,7 +65,6 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
     def cacheBuilder = Stub(CacheBuilder) {
         open() >> cache
         withDisplayName(_) >> { cacheBuilder }
-        withCrossVersionCache(_) >> { cacheBuilder }
         withLockOptions(_) >> { cacheBuilder }
         withCleanupStrategy(_) >> { cacheBuilder }
     }
@@ -74,7 +73,6 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
     }
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
     def usedGradleVersions = Stub(UsedGradleVersions)
-    def cleanupActionDecorator = Stub(CleanupActionDecorator)
     def cacheConfigurations = Stub(CacheConfigurationsInternal)
     def cacheFactory = new DefaultClasspathTransformerCacheFactory(usedGradleVersions, cacheConfigurations)
     def classpathWalker = new ClasspathWalker(TestFiles.fileSystem())
