@@ -34,72 +34,49 @@ class DefaultUnscopedCacheBuilderFactoryTest extends Specification {
     private final Map<String, ?> properties = [a: "value", b: "value2"]
     private final CacheFactory cacheFactory = Mock()
     private final PersistentCache cache = Mock()
-    private final CacheScopeMapping scopeMapping = Mock()
-    private final DefaultUnscopedCacheBuilderFactory repository = new DefaultUnscopedCacheBuilderFactory(scopeMapping, cacheFactory)
+    private final DefaultUnscopedCacheBuilderFactory repository = new DefaultUnscopedCacheBuilderFactory(cacheFactory)
 
     void createsGlobalDirectoryBackedCache() {
         when:
-        def result = repository.cache("a/b/c").open()
+        def result = repository.cache(sharedCacheDir).open()
 
         then:
         result == cache
-        1 * scopeMapping.getBaseDirectory(null, "a/b/c", VersionStrategy.CachePerVersion) >> sharedCacheDir
         1 * cacheFactory.open(sharedCacheDir, null, [:], mode(Shared), null, null) >> cache
         0 * cacheFactory._
     }
 
     void createsGlobalCacheWithProperties() {
         when:
-        repository.cache("a/b/c").withProperties(properties).open()
+        repository.cache(sharedCacheDir).withProperties(properties).open()
 
         then:
-        1 * scopeMapping.getBaseDirectory(null, "a/b/c", VersionStrategy.CachePerVersion) >> sharedCacheDir
         1 * cacheFactory.open(sharedCacheDir, null, properties, mode(Shared), null, null) >> cache
-    }
-
-    void createsCacheWithBaseDirectory() {
-        when:
-        repository.cache(sharedCacheDir).open()
-
-        then:
-        1 * cacheFactory.open(sharedCacheDir, null, [:], mode(Shared), null, null) >> cache
-    }
-
-    void createsCrossVersionCache() {
-        when:
-        repository.cache("a/b/c").withCrossVersionCache().open()
-
-        then:
-        1 * scopeMapping.getBaseDirectory(null, "a/b/c", VersionStrategy.SharedCache) >> sharedCacheDir
-        1 * cacheFactory.open(sharedCacheDir, null, [:], mode(Shared), null, null) >> cache
     }
 
     void canSpecifyInitializerActionForDirectoryCache() {
         Action<?> action = Mock()
 
         when:
-        repository.cache("a").withInitializer(action).open()
+        repository.cache(sharedCacheDir).withInitializer(action).open()
 
         then:
-        1 * scopeMapping.getBaseDirectory(null, "a", VersionStrategy.CachePerVersion) >> sharedCacheDir
         1 * cacheFactory.open(sharedCacheDir, null, [:], mode(Shared), action, null) >> cache
     }
 
     void canSpecifyLockModeForDirectoryCache() {
         when:
-        repository.cache("a").withLockOptions(mode(OnDemand)).open()
+        repository.cache(sharedCacheDir).withLockOptions(mode(OnDemand)).open()
 
         then:
-        1 * scopeMapping.getBaseDirectory(null, "a", VersionStrategy.CachePerVersion) >> sharedCacheDir
         1 * cacheFactory.open(sharedCacheDir, null, [:], mode(OnDemand), null, null) >> cache
     }
 
     void canSpecifyDisplayNameForDirectoryCache() {
         when:
-        repository.cache("a").withDisplayName("<cache>").open()
+        repository.cache(sharedCacheDir).withDisplayName("<cache>").open()
 
         then:
-        1 * scopeMapping.getBaseDirectory(null, "a", VersionStrategy.CachePerVersion) >> sharedCacheDir
         1 * cacheFactory.open(sharedCacheDir, "<cache>", [:], mode(Shared), null, null) >> cache
     }
 }

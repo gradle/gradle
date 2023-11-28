@@ -23,6 +23,7 @@ import org.gradle.cache.FileLockReleasedSignal
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.agents.AgentStatus
@@ -224,7 +225,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         given:
         def gradleUserHome = file("home").absoluteFile
         buildFile << """
-            import org.gradle.cache.UnscopedCacheBuilderFactory
+            import org.gradle.cache.scopes.ScopedCacheBuilderFactory
             import org.gradle.cache.PersistentCache
             import org.gradle.cache.FileLockManager
             import org.gradle.cache.internal.filelock.LockOptionsBuilder
@@ -254,9 +255,9 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
 
             abstract class ToolSetupWorkAction implements WorkAction<WorkParameters.None> {
                 void execute() {
-                    UnscopedCacheBuilderFactory cacheBuilderFactory = ZincCompilerServices.getInstance(new File("${escapeString(gradleUserHome)}")).get(UnscopedCacheBuilderFactory.class);
+                    ScopedCacheBuilderFactory cacheBuilderFactory = ZincCompilerServices.getInstance(new File("${escapeString(gradleUserHome)}")).get(${GlobalScopedCacheBuilderFactory.canonicalName}.class);
                     println "Waiting for lock..."
-                    final PersistentCache zincCache = cacheBuilderFactory.cache("zinc-0.3.15")
+                    final PersistentCache zincCache = cacheBuilderFactory.createCacheBuilder("zinc-0.3.15")
                             .withDisplayName("Zinc 0.3.15 compiler cache")
                             .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive))
                             .open();

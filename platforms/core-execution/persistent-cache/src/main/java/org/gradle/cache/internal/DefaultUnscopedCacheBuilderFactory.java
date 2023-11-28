@@ -30,17 +30,10 @@ import java.util.Map;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderFactory {
-    private final CacheScopeMapping cacheScopeMapping;
     private final CacheFactory factory;
 
-    public DefaultUnscopedCacheBuilderFactory(CacheScopeMapping cacheScopeMapping, CacheFactory factory) {
-        this.cacheScopeMapping = cacheScopeMapping;
+    public DefaultUnscopedCacheBuilderFactory(CacheFactory factory) {
         this.factory = factory;
-    }
-
-    @Override
-    public CacheBuilder cache(String key) {
-        return new PersistentCacheBuilder(key);
     }
 
     @Override
@@ -49,7 +42,6 @@ public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderF
     }
 
     private class PersistentCacheBuilder implements CacheBuilder {
-        final String key;
         final File baseDir;
         Map<String, ?> properties = Collections.emptyMap();
         Action<? super PersistentCache> initializer;
@@ -58,13 +50,7 @@ public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderF
         String displayName;
         VersionStrategy versionStrategy = VersionStrategy.CachePerVersion;
 
-        PersistentCacheBuilder(String key) {
-            this.key = key;
-            this.baseDir = null;
-        }
-
         PersistentCacheBuilder(File baseDir) {
-            this.key = null;
             this.baseDir = baseDir;
         }
 
@@ -106,14 +92,7 @@ public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderF
 
         @Override
         public PersistentCache open() {
-            File cacheBaseDir;
-            if (baseDir != null) {
-                cacheBaseDir = baseDir;
-            } else {
-                cacheBaseDir = cacheScopeMapping.getBaseDirectory(null, key, versionStrategy);
-            }
-
-            return factory.open(cacheBaseDir, displayName, properties, lockOptions, initializer, cacheCleanupStrategy);
+            return factory.open(baseDir, displayName, properties, lockOptions, initializer, cacheCleanupStrategy);
         }
     }
 }
