@@ -55,7 +55,7 @@ object DiscoveredKotlinScriptsModelBuilder : ToolingModelBuilder {
             // Precompiled Scripts
             if (project.plugins.hasPlugin("org.gradle.kotlin.kotlin-dsl")) {
                 val precompiledScriptFiles = project.precompiledScriptPluginsSupport.collectScriptPluginFilesOf(project)
-                val precompiledScripts = precompiledScriptFiles.map { DiscoveredScript(it, project.findSourceSetOf(it) ) }
+                val precompiledScripts = precompiledScriptFiles.map { DiscoveredScript(it, project.findSourceSetOf(it)) }
                 addAll(precompiledScripts)
             }
         }

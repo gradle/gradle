@@ -31,9 +31,11 @@ class KotlinScriptingModelBuildersRegistrationAction : ProjectConfigureAction {
         val builders = project.serviceOf<ToolingModelBuilderRegistry>()
         val intermediateToolingModelProvider = project.serviceOf<IntermediateToolingModelProvider>()
 
-        builders.register(KotlinBuildScriptModelBuilder)
+        val kotlinBuildScriptModelBuilder = KotlinBuildScriptModelBuilder(intermediateToolingModelProvider)
+        builders.register(kotlinBuildScriptModelBuilder)
         builders.register(KotlinBuildScriptTemplateModelBuilder)
         builders.register(DiscoveredKotlinScriptsModelBuilder)
+        builders.register(ScriptSourcePathResolutionBuilder)
 
         if (project.parent == null) {
             builders.register(KotlinDslScriptsModelBuilder(intermediateToolingModelProvider))

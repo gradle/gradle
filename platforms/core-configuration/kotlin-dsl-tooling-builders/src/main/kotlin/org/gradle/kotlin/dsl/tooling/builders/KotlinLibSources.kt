@@ -16,24 +16,151 @@
 
 package org.gradle.kotlin.dsl.tooling.builders
 
+import org.gradle.api.Project
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
-
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION
-
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-
 import org.gradle.jvm.JvmLibrary
-
-import org.gradle.kotlin.dsl.embeddedKotlinVersion
-import org.gradle.kotlin.dsl.get
-
+import org.gradle.kotlin.dsl.*
 import org.gradle.language.base.artifact.SourcesArtifact
+import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
+import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
+
+
+internal
+data class ScriptSourcePathRequestParameter(
+    val skipDependencies: Set<ComponentIdentifier>,
+    val resolveKotlinLibSources: Boolean
+)
+
+
+internal
+data class ScriptSourcePathResolutionResult(
+    val sourcePath: ClassPath,
+    val kotlinLibSourcePath: ClassPath,
+    val resolvedDependencies: List<ComponentIdentifier>
+)
+
+
+internal
+object ScriptSourcePathResolutionBuilder : ParameterizedToolingModelBuilder<ScriptSourcePathRequestParameter> {
+
+    override fun canBuild(modelName: String): Boolean =
+        modelName == ScriptSourcePathResolutionResult::class.qualifiedName
+
+    override fun getParameterType(): Class<ScriptSourcePathRequestParameter> = ScriptSourcePathRequestParameter::class.java
+
+    override fun buildAll(modelName: String, parameter: ScriptSourcePathRequestParameter, project: Project): ScriptSourcePathResolutionResult {
+        return build(project, parameter)
+    }
+
+    override fun buildAll(modelName: String, project: Project): ScriptSourcePathResolutionResult {
+        return build(project, ScriptSourcePathRequestParameter(emptySet(), true))
+    }
+
+    private
+    fun build(project: Project, parameter: ScriptSourcePathRequestParameter): ScriptSourcePathResolutionResult {
+        return resolveSourcePath(project, parameter.skipDependencies, parameter.resolveKotlinLibSources)
+    }
+}
+
+
+internal
+fun interface SourcePathBuilder {
+    fun buildSourcePath(): ClassPath
+}
+
+
+internal
+class ScriptHandlerSourcePathBuilder(
+    private val scriptHandlers: List<ScriptHandler>,
+) : SourcePathBuilder {
+
+    constructor(scriptHandler: ScriptHandler) : this(listOf(scriptHandler))
+
+    override fun buildSourcePath(): ClassPath = sourcePathFor(scriptHandlers)
+}
+
+
+internal
+class ProjectScriptSourcePathBuilder(
+    private val project: Project,
+    private val intermediateToolingModelProvider: IntermediateToolingModelProvider
+) : SourcePathBuilder {
+
+    override fun buildSourcePath(): ClassPath {
+        var sourcePath = ClassPath.EMPTY
+        var kotlinLibSourcePath = ClassPath.EMPTY
+
+        val resolvedDependencies = hashSetOf<ComponentIdentifier>()
+        val rootToCurrent = project.projectHierarchyPath
+        for (projectInHierarchy in rootToCurrent) {
+            val isolatedSources = resolveSourcesImpl(projectInHierarchy, resolvedDependencies.toSet(), kotlinLibSourcePath.isEmpty)
+            resolvedDependencies += isolatedSources.resolvedDependencies
+            sourcePath += isolatedSources.sourcePath
+
+            if (kotlinLibSourcePath.isEmpty) {
+                kotlinLibSourcePath = isolatedSources.kotlinLibSourcePath
+            }
+        }
+
+        if (!containsBuiltinKotlinModules(resolvedDependencies)) {
+            sourcePath += kotlinLibSourcePath
+        }
+
+        return sourcePath
+    }
+
+    private
+    fun resolveSourcesImpl(projectInHierarchy: Project, skipDependencies: Set<ComponentIdentifier>, resolveKotlinLibSources: Boolean): ScriptSourcePathResolutionResult {
+        return if (project == projectInHierarchy) {
+            resolveSourcePath(project, skipDependencies, resolveKotlinLibSources)
+        } else {
+            resolveSourcePathForOther(projectInHierarchy, skipDependencies, resolveKotlinLibSources)
+        }
+    }
+
+    private
+    fun resolveSourcePathForOther(other: Project, skipDependencies: Set<ComponentIdentifier>, resolveKotlinLibSources: Boolean): ScriptSourcePathResolutionResult {
+        val parameter = ScriptSourcePathRequestParameter(skipDependencies, resolveKotlinLibSources)
+        return intermediateToolingModelProvider.getModels(listOf(other), ScriptSourcePathResolutionResult::class.java, parameter).first()
+    }
+}
+
+
+private
+fun resolveSourcePath(
+    project: Project,
+    skipDependencies: Set<ComponentIdentifier>,
+    resolveKotlinLibSources: Boolean
+): ScriptSourcePathResolutionResult {
+    val buildscript = project.buildscript
+    val unresolvedDependencies = classpathDependenciesOf(buildscript, skipDependencies)
+    val sourcePath = if (unresolvedDependencies.isEmpty()) ClassPath.EMPTY else resolveSources(buildscript, unresolvedDependencies)
+    val kotlinLibSourcePath = if (resolveKotlinLibSources) kotlinLibSourcesFor(listOf(buildscript)) else ClassPath.EMPTY
+    return ScriptSourcePathResolutionResult(sourcePath, kotlinLibSourcePath, unresolvedDependencies)
+}
+
+
+/**
+ * List of parent projects from the root and down to the current project.
+ */
+private
+val Project.projectHierarchyPath: List<Project>
+    get() = sequence {
+        var project = this@projectHierarchyPath
+        yield(project)
+        while (project != project.rootProject) {
+            project = project.parent!!
+            yield(project)
+        }
+    }.toList().reversed()
 
 
 internal
@@ -60,6 +187,15 @@ fun sourcePathFor(scriptHandlers: List<ScriptHandler>): ClassPath {
 
 
 private
+fun resolveSources(
+    scriptHandler: ScriptHandler,
+    dependenciesToResolve: List<ComponentIdentifier>
+) = resolveSourcesUsing(scriptHandler.dependencies) {
+    forComponents(dependenciesToResolve)
+}
+
+
+private
 fun containsBuiltinKotlinModules(resolvedDependencies: Collection<ComponentIdentifier>): Boolean {
     val resolvedModules = resolvedDependencies.filterIsInstance<ModuleComponentIdentifier>()
     return builtinKotlinModules.all { kotlinModule ->
@@ -68,6 +204,11 @@ fun containsBuiltinKotlinModules(resolvedDependencies: Collection<ComponentIdent
         }
     }
 }
+
+
+private
+fun classpathDependenciesOf(buildscript: ScriptHandler, skipDependencies: Set<ComponentIdentifier>): List<ComponentIdentifier> =
+    classpathDependenciesOf(buildscript).filter { it !in skipDependencies }
 
 
 private
@@ -80,7 +221,7 @@ fun classpathDependenciesOf(buildscript: ScriptHandler): List<ComponentIdentifie
         .map { it.id.componentIdentifier }
 
 
-internal
+private
 fun kotlinLibSourcesFor(scriptHandlers: List<ScriptHandler>): ClassPath =
     scriptHandlers
         .asSequence()
