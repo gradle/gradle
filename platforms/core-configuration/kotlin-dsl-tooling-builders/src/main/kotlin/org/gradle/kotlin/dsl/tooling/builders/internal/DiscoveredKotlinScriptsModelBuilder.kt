@@ -19,13 +19,23 @@ package org.gradle.kotlin.dsl.tooling.builders.internal
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.kotlin.dsl.tooling.builders.EnclosingSourceSet
+import org.gradle.kotlin.dsl.tooling.builders.NoSourceSet
+import org.gradle.kotlin.dsl.tooling.builders.findSourceSetOf
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import java.io.File
 
 
 internal
+data class DiscoveredScript(
+    val script: File,
+    val enclosingSourceSet: EnclosingSourceSet?
+)
+
+
+internal
 data class DiscoveredKotlinScriptsModel(
-    val scripts: List<File>
+    val scripts: List<DiscoveredScript>
 )
 
 
@@ -36,15 +46,17 @@ object DiscoveredKotlinScriptsModelBuilder : ToolingModelBuilder {
         modelName == DiscoveredKotlinScriptsModel::class.qualifiedName
 
     override fun buildAll(modelName: String, project: Project): DiscoveredKotlinScriptsModel {
-        val scripts = buildList<File> {
+        val scripts = buildList {
             // Project Scripts
             if (project.buildFile.isFile && project.buildFile.hasKotlinDslExtension) {
-                add(project.buildFile)
+                add(DiscoveredScript(project.buildFile, NoSourceSet))
             }
 
             // Precompiled Scripts
             if (project.plugins.hasPlugin("org.gradle.kotlin.kotlin-dsl")) {
-                addAll(project.precompiledScriptPluginsSupport.collectScriptPluginFilesOf(project))
+                val precompiledScriptFiles = project.precompiledScriptPluginsSupport.collectScriptPluginFilesOf(project)
+                val precompiledScripts = precompiledScriptFiles.map { DiscoveredScript(it, project.findSourceSetOf(it) ) }
+                addAll(precompiledScripts)
             }
         }
 

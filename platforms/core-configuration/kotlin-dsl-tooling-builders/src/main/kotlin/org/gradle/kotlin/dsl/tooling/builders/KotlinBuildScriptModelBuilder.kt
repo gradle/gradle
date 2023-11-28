@@ -65,7 +65,8 @@ import java.util.EnumSet
 internal
 data class KotlinBuildScriptModelParameter(
     val scriptFile: File?,
-    val correlationId: String?
+    val correlationId: String?,
+    val enclosingSourceSet: EnclosingSourceSet? = null
 )
 
 
@@ -131,7 +132,7 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
             return projectScriptModelBuilder(scriptFile, buildFileProject as ProjectInternal)
         }
 
-        modelRequestProject.enclosingSourceSetOf(scriptFile)?.let { enclosingSourceSet ->
+        resolveEnclosingSourceSet(parameter, modelRequestProject, scriptFile)?.let { enclosingSourceSet ->
             return precompiledScriptPluginModelBuilder(scriptFile, enclosingSourceSet, modelRequestProject)
         }
 
@@ -146,6 +147,16 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
         }
     }
 
+    private fun resolveEnclosingSourceSet(
+        parameter: KotlinBuildScriptModelParameter,
+        modelRequestProject: ProjectInternal,
+        scriptFile: File
+    ): ProjectSourceSet? = when (val s = parameter.enclosingSourceSet) {
+        NoSourceSet -> null
+        is ProjectSourceSet -> s
+        null -> modelRequestProject.enclosingSourceSetOf(scriptFile)
+    }
+
     private
     fun isSettingsFileOf(project: Project, scriptFile: File): Boolean =
         project.settings.settingsScript.resource.file?.canonicalFile == scriptFile
@@ -154,7 +165,8 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     fun requestParameterOf(modelRequestProject: Project) =
         KotlinBuildScriptModelParameter(
             (modelRequestProject.findProperty(KotlinBuildScriptModel.SCRIPT_GRADLE_PROPERTY_NAME) as? String)?.let(::canonicalFile),
-            modelRequestProject.findProperty(KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME) as? String
+            modelRequestProject.findProperty(KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME) as? String,
+            null
         )
 }
 
@@ -173,28 +185,43 @@ fun Project.findProjectWithBuildFile(file: File) =
 
 
 private
-fun Project.enclosingSourceSetOf(file: File): EnclosingSourceSet? =
+fun Project.enclosingSourceSetOf(file: File): ProjectSourceSet? =
     findSourceSetOf(file)
         ?: findSourceSetOfFileIn(subprojects, file)
 
 
-private
-data class EnclosingSourceSet(val project: Project, val sourceSet: SourceSet)
+internal
+sealed interface EnclosingSourceSet
+
+internal
+object NoSourceSet : EnclosingSourceSet
+
+internal
+data class ProjectSourceSet(
+    val projectDir: File,
+    val precompiledScriptPluginsMetadataDir: File,
+    val compileClasspath: ClassPath
+) : EnclosingSourceSet
 
 
 private
-fun findSourceSetOfFileIn(projects: Iterable<Project>, file: File): EnclosingSourceSet? =
+fun findSourceSetOfFileIn(projects: Iterable<Project>, file: File): ProjectSourceSet? =
     projects
         .asSequence()
         .mapNotNull { it.findSourceSetOf(file) }
         .firstOrNull()
 
 
-private
-fun Project.findSourceSetOf(file: File): EnclosingSourceSet? =
+internal
+fun Project.findSourceSetOf(file: File): ProjectSourceSet? =
     sourceSets?.find { file in it.allSource }?.let {
-        EnclosingSourceSet(this, it)
+        createEnclosingSourceSet(it)
     }
+
+
+private
+fun Project.createEnclosingSourceSet(it: SourceSet) =
+    ProjectSourceSet(projectDir, precompiledScriptPluginsMetadataDir, DefaultClassPath.of(it.compileClasspath))
 
 
 private
@@ -205,15 +232,15 @@ val Project.sourceSets
 private
 fun precompiledScriptPluginModelBuilder(
     scriptFile: File,
-    enclosingSourceSet: EnclosingSourceSet,
+    enclosingSourceSet: ProjectSourceSet,
     modelRequestProject: Project
 ) = KotlinScriptTargetModelBuilder(
     scriptFile = scriptFile,
     project = modelRequestProject,
-    scriptClassPath = DefaultClassPath.of(enclosingSourceSet.sourceSet.compileClasspath),
-    enclosingScriptProjectDir = enclosingSourceSet.project.projectDir,
+    scriptClassPath = enclosingSourceSet.compileClasspath,
+    enclosingScriptProjectDir = enclosingSourceSet.projectDir,
     additionalImports = {
-        enclosingSourceSet.project.precompiledScriptPluginsMetadataDir.run {
+        enclosingSourceSet.precompiledScriptPluginsMetadataDir.run {
             implicitImportsFrom(
                 resolve("accessors").resolve(hashOf(scriptFile))
             ) + implicitImportsFrom(
