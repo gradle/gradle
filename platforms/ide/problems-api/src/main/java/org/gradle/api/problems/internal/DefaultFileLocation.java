@@ -14,26 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.locations;
+package org.gradle.api.problems.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.problems.FileLocation;
 
 import javax.annotation.Nullable;
 
-/**
- * A basic problem location pointing to a specific part of a file.
- *
- * @since 8.5
- */
-@Incubating
-public class FileLocation implements ProblemLocation {
+public class DefaultFileLocation implements FileLocation {
 
     private final String path;
     private final Integer line;
     private final Integer column;
     private final Integer length;
 
-    public FileLocation(String path, @Nullable Integer line, @Nullable Integer column, @Nullable Integer length) {
+    public DefaultFileLocation(String path, @Nullable Integer line, @Nullable Integer column, @Nullable Integer length) {
         this.path = path;
         this.line = line;
         this.column = column;
@@ -45,20 +39,22 @@ public class FileLocation implements ProblemLocation {
         return "file";
     }
 
+    @Override
     public String getPath() {
         return path;
     }
-    @Nullable
+
+    @Override
     public Integer getLine() {
         return line;
     }
 
-    @Nullable
+    @Override
     public Integer getColumn() {
         return column;
     }
 
-    @Nullable
+    @Override
     public Integer getLength() {
         return length;
     }

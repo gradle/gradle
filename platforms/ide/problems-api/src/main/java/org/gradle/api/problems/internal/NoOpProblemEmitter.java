@@ -14,32 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.locations;
+package org.gradle.api.problems.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.util.Path;
+import org.gradle.api.problems.Problem;
 
-/**
- * A problem location that stores a task path if the problem was emitted meanwhile executing a task.
- *
- * @since 8.5
- */
-@Incubating
-public class TaskPathLocation implements ProblemLocation {
-
-    private final Path identityPath;
-
-    public TaskPathLocation(Path identityPath) {
-        this.identityPath = identityPath;
-    }
-
+public class NoOpProblemEmitter implements ProblemEmitter {
     @Override
-    public String getType() {
-        return "task";
+    public void emit(Problem problem) {
+        // Do nothing
     }
-
-    public Path getIdentityPath() {
-        return identityPath;
-    }
-
 }

@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 /**
  * Testing if the automatically added problem transformers are present, and if they are working correctly.
  */
-class InjectedProblemTransformerIntegrationTest extends AbstractIntegrationSpec {
+class InjectedProblemsTransformerIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         enableProblemsApiCheck()
@@ -42,12 +42,10 @@ class InjectedProblemTransformerIntegrationTest extends AbstractIntegrationSpec 
 
                 @TaskAction
                 void run() {
-                    problems.create {
+                    problems.forNamespace("org.example.plugin").reporting {
                         it.label("label")
-                        .undocumented()
-                        .noLocation()
                         .category("type")
-                    }.report()
+                    }
                 }
             }
 
@@ -67,7 +65,7 @@ class InjectedProblemTransformerIntegrationTest extends AbstractIntegrationSpec 
         taskPathLocations.size() == 1
 
         def taskPathLocation = taskPathLocations[0]
-        taskPathLocation["identityPath"]["path"] == ":reportProblem"
+        taskPathLocation["buildTreePath"] == ":reportProblem"
     }
 
     def "plugin id is going to be implicitly added to the problem"() {
@@ -88,13 +86,11 @@ class InjectedProblemTransformerIntegrationTest extends AbstractIntegrationSpec 
                 protected abstract Problems getProblems();
 
                 public void apply(Project project) {
-                    getProblems().create(builder ->
+                    getProblems().forNamespace("org.example.plugin").reporting(builder ->
                         builder
                             .label("label")
-                            .undocumented()
-                            .noLocation()
                             .category("type")
-                    ).report();
+                    );
                     project.getTasks().register("reportProblem", t -> {
                         t.doLast(t2 -> {
 

@@ -17,9 +17,9 @@
 package org.gradle.api.internal.catalog
 
 import com.google.common.collect.Interners
-import org.gradle.api.problems.Problems
 import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.api.problems.internal.emitters.NoOpProblemEmitter
+import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.NoOpProblemEmitter
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
@@ -39,10 +39,10 @@ class AbstractVersionCatalogTest extends Specification {
             Interners.newStrongInterner(),
             TestUtil.objectFactory(),
             supplier) {
-            @Override
-            protected Problems getProblemService() {
-                problems
-            }
+                @Override
+                protected InternalProblems getProblemsService() {
+                    problems
+                }
         }
     }
 

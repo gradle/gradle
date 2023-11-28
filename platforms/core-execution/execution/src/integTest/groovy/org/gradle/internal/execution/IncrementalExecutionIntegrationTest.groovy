@@ -247,7 +247,6 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                             .severity(Severity.WARNING)
                             .documentedAt(Documentation.userManual("id", "section"))
                             .details("Test")
-                            .noLocation()
                     }
             }
             .build()
@@ -555,7 +554,6 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                         .withAnnotationType(Object)
                         .label("Validation error")
                         .documentedAt(Documentation.userManual("id", "section"))
-                        .noLocation()
                         .category("test.problem")
                         .details("Test")
                         .severity(Severity.ERROR)

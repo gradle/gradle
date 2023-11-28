@@ -14,7 +14,28 @@
  * limitations under the License.
  */
 
-@NonNullApi
-package org.gradle.api.problems.internal.emitters;
+package org.gradle.api.problems.internal;
 
-import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.TaskPathLocation;
+
+/**
+ * A problem location that stores a task path if the problem was emitted meanwhile executing a task.
+ */
+public class DefaultTaskPathLocation implements TaskPathLocation {
+
+    private final String buildTreePath;
+
+    public DefaultTaskPathLocation(String buildTreePath) {
+        this.buildTreePath = buildTreePath;
+    }
+
+    @Override
+    public String getType() {
+        return "task";
+    }
+
+    public String getBuildTreePath() {
+        return buildTreePath;
+    }
+
+}

@@ -14,14 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal.emitters;
+package org.gradle.api.problems;
 
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemEmitter;
+import org.gradle.api.Incubating;
 
-public class NoOpProblemEmitter implements ProblemEmitter {
-    @Override
-    public void emit(Problem problem) {
-        // Do nothing
-    }
+import java.io.Serializable;
+
+/**
+ * Represents a location information of a problem.
+ *
+ * @since 8.6
+ */
+@Incubating
+public interface ProblemLocation extends Serializable {
+
+    /**
+     * Returns an identifier of the location type.
+     * <p>
+     * As locations will be serialized into a JSON format,
+     * this identifier is used to distinguish between different location types.
+     *
+     * @since 8.6
+     */
+    String getType();
 }

@@ -18,16 +18,12 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemCategory;
+import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.UnboundBasicProblemBuilder;
-import org.gradle.api.problems.locations.FileLocation;
-import org.gradle.api.problems.locations.PluginIdLocation;
-import org.gradle.api.problems.locations.ProblemLocation;
-import org.gradle.api.problems.locations.TaskPathLocation;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -35,29 +31,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
+public class DefaultProblemBuilder implements InternalProblemBuilder {
 
+    private final String namespace;
     private String label;
-    private String problemCategory;
+    private ProblemCategory problemCategory;
     private Severity severity;
     private List<ProblemLocation> locations;
     private String details;
     private DocLink docLink;
-    private boolean explicitlyUndocumented;
     private List<String> solutions;
     private RuntimeException exception;
     private final Map<String, Object> additionalData;
     private boolean collectLocation = false;
     @Nullable private OperationIdentifier currentOperationId = null;
 
-    public DefaultBasicProblemBuilder(Problem problem) {
+    public DefaultProblemBuilder(Problem problem) {
         this.label = problem.getLabel();
-        this.problemCategory = problem.getProblemCategory().toString();
+        this.problemCategory = problem.getProblemCategory();
         this.severity = problem.getSeverity();
         this.locations = new ArrayList<ProblemLocation>(problem.getLocations());
         this.details = problem.getDetails();
         this.docLink = problem.getDocumentationLink();
-        this.explicitlyUndocumented = problem.getDocumentationLink() == null;
         this.solutions = new ArrayList<String>(problem.getSolutions());
         this.exception = problem.getException();
         this.additionalData = new HashMap<String, Object>(problem.getAdditionalData());
@@ -65,25 +60,32 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
         if (problem instanceof DefaultProblem) {
             this.currentOperationId = ((DefaultProblem) problem).getBuildOperationId();
         }
+        this.namespace = problem.getProblemCategory().getNamespace();
     }
 
-    public DefaultBasicProblemBuilder() {
+    public DefaultProblemBuilder(String namespace) {
+        this.namespace = namespace;
         this.locations = new ArrayList<ProblemLocation>();
         this.additionalData = new HashMap<String, Object>();
     }
 
     @Override
     public Problem build() {
+        if (label == null) {
+            throw new IllegalStateException("Label must be specified");
+        } else if (problemCategory == null) {
+            throw new IllegalStateException("Category must be specified");
+        }
         return new DefaultProblem(
-            getLabel(),
+            label,
             getSeverity(getSeverity()),
-            getLocations(),
-            getDocLink(),
-            getDetails(),
-            getSolutions(),
+            locations,
+            docLink,
+            details,
+            solutions,
             getExceptionForProblemInstantiation(), // TODO: don't create exception if already reported often
-            getProblemCategory(),
-            getAdditionalData(),
+            problemCategory,
+            additionalData,
             getCurrentOperationId()
         );
     }
@@ -105,7 +107,7 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
     }
 
     public RuntimeException getExceptionForProblemInstantiation() {
-        return getException() == null && isCollectLocation() ? new RuntimeException() : getException();
+        return getException() == null && collectLocation ? new RuntimeException() : getException();
     }
 
     protected Severity getSeverity(@Nullable Severity severity) {
@@ -122,89 +124,88 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
         return this.severity;
     }
 
-    public UnboundBasicProblemBuilder label(String label, Object... args) {
+    @Override
+    public InternalProblemBuilder label(String label, Object... args) {
         this.label = String.format(label, args);
         return this;
     }
 
     @Override
-    public UnboundBasicProblemBuilder severity(Severity severity) {
+    public InternalProblemBuilder severity(Severity severity) {
         this.severity = severity;
         return this;
     }
 
-    public UnboundBasicProblemBuilder taskPathLocation(Path taskPath) {
-        this.getLocations().add(new TaskPathLocation(taskPath));
+    public InternalProblemBuilder taskPathLocation(String buildTreePath) {
+        this.addLocation(new DefaultTaskPathLocation(buildTreePath));
         return this;
     }
 
-    public UnboundBasicProblemBuilder location(String path, @javax.annotation.Nullable Integer line) {
+    public InternalProblemBuilder location(String path, @javax.annotation.Nullable Integer line) {
         location(path, line, null);
         return this;
     }
 
-    public UnboundBasicProblemBuilder location(String path, @javax.annotation.Nullable Integer line, @javax.annotation.Nullable Integer column) {
-        this.getLocations().add(new FileLocation(path, line, column, 0));
-        return this;
-    }
-
-    public UnboundBasicProblemBuilder fileLocation(String path, @javax.annotation.Nullable Integer line, @javax.annotation.Nullable Integer column, @javax.annotation.Nullable Integer length) {
-        this.getLocations().add(new FileLocation(path, line, column, length));
+    public InternalProblemBuilder location(String path, @javax.annotation.Nullable Integer line, @javax.annotation.Nullable Integer column) {
+        this.addLocation(new DefaultFileLocation(path, line, column, 0));
         return this;
     }
 
     @Override
-    public UnboundBasicProblemBuilder pluginLocation(String pluginId) {
-        this.getLocations().add(new PluginIdLocation(pluginId));
+    public InternalProblemBuilder fileLocation(String path, @javax.annotation.Nullable Integer line, @javax.annotation.Nullable Integer column, @javax.annotation.Nullable Integer length) {
+        this.addLocation(new DefaultFileLocation(path, line, column, length));
         return this;
     }
 
     @Override
-    public UnboundBasicProblemBuilder stackLocation() {
+    public InternalProblemBuilder pluginLocation(String pluginId) {
+        this.addLocation(new DefaultPluginIdLocation(pluginId));
+        return this;
+    }
+
+    @Override
+    public InternalProblemBuilder stackLocation() {
         this.collectLocation = true;
         return this;
     }
 
     @Override
-    public UnboundBasicProblemBuilder noLocation() {
-        return this;
-    }
-
-    public UnboundBasicProblemBuilder details(String details) {
+    public InternalProblemBuilder details(String details) {
         this.details = details;
         return this;
     }
 
-    public UnboundBasicProblemBuilder documentedAt(DocLink doc) {
-        this.explicitlyUndocumented = false;
+    @Override
+    public InternalProblemBuilder documentedAt(DocLink doc) {
         this.docLink = doc;
         return this;
     }
 
     @Override
-    public UnboundBasicProblemBuilder undocumented() {
-        this.explicitlyUndocumented = true;
-        this.docLink = null;
+    public InternalProblemBuilder documentedAt(String url) {
+        this.docLink = new DefaultDocLink(url);
         return this;
     }
 
     @Override
-    public UnboundBasicProblemBuilder category(String category, String... details){
-        this.problemCategory = DefaultProblemCategory.category(category, details).toString();
+    public InternalProblemBuilder category(String category, String... details) {
+        this.problemCategory = DefaultProblemCategory.create(namespace, category, details);
         return this;
     }
 
-    public UnboundBasicProblemBuilder solution(@Nullable String solution) {
-        if (this.getSolutions() == null) {
+    @Override
+    public InternalProblemBuilder solution(@Nullable String solution) {
+        if (this.solutions == null) {
             this.solutions = new ArrayList<String>();
         }
-        this.getSolutions().add(solution);
+        this.solutions.add(solution);
         return this;
     }
 
-    public UnboundBasicProblemBuilder additionalData(String key, Object value) {
+    @Override
+    public InternalProblemBuilder additionalData(String key, Object value) {
         validateAdditionalDataValueType(value);
-        this.getAdditionalData().put(key, value);
+        this.additionalData.put(key, value);
         return this;
     }
 
@@ -215,7 +216,7 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
     }
 
     @Override
-    public UnboundBasicProblemBuilder withException(RuntimeException e) {
+    public InternalProblemBuilder withException(RuntimeException e) {
         this.exception = e;
         return this;
     }
@@ -229,35 +230,7 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
         return label;
     }
 
-    protected String getProblemCategory() {
-        return problemCategory;
-    }
-
-    protected List<ProblemLocation> getLocations() {
-        return locations;
-    }
-
-    protected String getDetails() {
-        return details;
-    }
-
-    protected DocLink getDocLink() {
-        return docLink;
-    }
-
-    protected boolean isExplicitlyUndocumented() {
-        return explicitlyUndocumented;
-    }
-
-    protected List<String> getSolutions() {
-        return solutions;
-    }
-
-    protected Map<String, Object> getAdditionalData() {
-        return additionalData;
-    }
-
-    protected boolean isCollectLocation() {
-        return collectLocation;
+    protected void addLocation(ProblemLocation location) {
+        this.locations.add(location);
     }
 }

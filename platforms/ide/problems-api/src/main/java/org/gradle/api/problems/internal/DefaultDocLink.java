@@ -14,10 +14,29 @@
  * limitations under the License.
  */
 
-/**
- * Location information types, which could be added to a reported problem.
- */
-@NonNullApi
-package org.gradle.api.problems.locations;
+package org.gradle.api.problems.internal;
 
-import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.DocLink;
+
+import javax.annotation.Nullable;
+
+public class DefaultDocLink implements DocLink {
+
+    private final String url;
+
+    public DefaultDocLink(String url) {
+        this.url = url;
+    }
+
+    @Nullable
+    @Override
+    public String getUrl() {
+        return url;
+    }
+
+    @Nullable
+    @Override
+    public String getConsultDocumentationMessage() {
+        return "For more information, please refer to " + url + ".";
+    }
+}

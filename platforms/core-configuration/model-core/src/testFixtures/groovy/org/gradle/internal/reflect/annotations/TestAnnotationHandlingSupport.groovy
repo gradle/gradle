@@ -86,8 +86,6 @@ trait TestAnnotationHandlingSupport {
             if (classWithAnnotationAttached.getAnnotation(ThisIsAThing)?.invalid()) {
                 visitor.visitTypeProblem {
                     it.label("Annotated as invalid thing!")
-                    .noLocation()
-                    .undocumented()
                 }
             }
         }

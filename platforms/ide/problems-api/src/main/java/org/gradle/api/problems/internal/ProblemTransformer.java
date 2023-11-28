@@ -16,14 +16,23 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.Problems;
 
-public interface InternalProblems extends Problems {
+/**
+ * Describes a transformation that can be applied to a problem.
+ * <p>
+ * These transformers could be added to the {@link Problems} service to transform problems before they are reported.
+ */
+public interface ProblemTransformer {
 
     /**
-     * Returns a reporter then provides additional problem service functionality specific for Gradle internals.
+     * Transforms the given problem. The returned problem will be reported instead of the original problem.
      * <p>
-     * @return The reporter.
+     * Transformations do not need to create a new problem, they can also modify the given problem.
+     *
+     * @param problem the problem to transform
+     * @return the transformed problem
      */
-    InternalProblemReporter getInternalReporter();
+    Problem transform(InternalProblem problem);
 }

@@ -16,15 +16,15 @@
 
 package org.gradle.api.problems.internal
 
-import org.gradle.api.problems.ProblemEmitter
+
 import org.gradle.api.problems.Severity
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.operations.OperationIdentifier
 import spock.lang.Specification
 
-class DefaultReportableProblemTest extends Specification {
+class DefaultProblemTest extends Specification {
     def "unbound builder result is equal to original"() {
-        def problem = createReportableTestProblem(severity, additionalData, Mock(InternalProblems))
+        def problem = createTestProblem(severity, additionalData, Mock(InternalProblemReporter))
 
         def newProblem = problem.toBuilder().build()
         expect:
@@ -47,16 +47,15 @@ class DefaultReportableProblemTest extends Specification {
     def "unbound builder result with a change and check report"() {
         given:
         def emitter = Mock(ProblemEmitter)
-        def internalProblems = new DefaultProblems(emitter)
-        def problem = createReportableTestProblem(Severity.WARNING, [:], internalProblems)
+        def problemReporter = new DefaultProblemReporter(emitter, [], "core")
+        def problem = createTestProblem(Severity.WARNING, [:], problemReporter)
         def builder = problem.toBuilder()
         def newProblem = builder
             .solution("solution")
             .build()
 
         when:
-
-        newProblem.report()
+        problemReporter.report(newProblem)
 
         then:
         1 * emitter.emit(newProblem)
@@ -68,11 +67,11 @@ class DefaultReportableProblemTest extends Specification {
         newProblem.locations == problem.locations
         newProblem.severity == problem.severity
         newProblem.solutions == ["solution"]
-        newProblem.class == DefaultReportableProblem
+        newProblem.class == DefaultProblem
     }
 
-    private createReportableTestProblem(Severity severity, Map<String, String> additionalData, InternalProblems internalProblems) {
-        new DefaultReportableProblem(
+    private createTestProblem(Severity severity, Map<String, String> additionalData, InternalProblemReporter internalProblems) {
+        new DefaultProblem(
             "message",
             severity,
             [],
@@ -80,10 +79,9 @@ class DefaultReportableProblemTest extends Specification {
             "description",
             [],
             new RuntimeException("cause"),
-            "a:b:c",
+            DefaultProblemCategory.create('a', 'b', 'c'),
             additionalData,
-            new OperationIdentifier(1),
-            internalProblems,
+            new OperationIdentifier(1)
         )
     }
 
@@ -97,7 +95,7 @@ class DefaultReportableProblemTest extends Specification {
             "description",
             [],
             new RuntimeException("cause"),
-            "a:b:c",
+            DefaultProblemCategory.create('a', 'b', 'c'),
             [:],
             new OperationIdentifier(1)
         )
