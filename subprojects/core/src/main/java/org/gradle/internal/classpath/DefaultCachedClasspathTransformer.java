@@ -157,10 +157,9 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             List<File> transformedJars = transformedClassPath.getAsFiles();
             int size = copiedOriginalJars.size();
             assert size == transformedJars.size();
-            DefaultClassPath.Builder result = DefaultClassPath.builderWithExactSize(size * 2);
+            TransformedClassPath.Builder result = TransformedClassPath.builderWithExactSize(size);
             for (int i = 0; i < size; ++i) {
-                result.add(transformedJars.get(i));
-                result.add(copiedOriginalJars.get(i));
+                result.add(copiedOriginalJars.get(i), transformedJars.get(i));
             }
             return result.build();
         };
