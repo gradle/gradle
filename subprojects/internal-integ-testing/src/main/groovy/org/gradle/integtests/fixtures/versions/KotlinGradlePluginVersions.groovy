@@ -89,9 +89,10 @@ class KotlinGradlePluginVersions {
         return latestsStableOrRC.last()
     }
 
-    private static final VersionNumber KOTLIN_1_8_0 = VersionNumber.parse('1.8.0')
-    private static final VersionNumber KOTLIN_1_9_0 = VersionNumber.parse('1.9.0')
-    private static final VersionNumber KOTLIN_1_9_20 = VersionNumber.parse('1.9.20')
+    static final VersionNumber KOTLIN_1_8_0 = VersionNumber.parse('1.8.0')
+    static final VersionNumber KOTLIN_1_9_0 = VersionNumber.parse('1.9.0')
+    static final VersionNumber KOTLIN_1_9_20 = VersionNumber.parse('1.9.20')
+    static final VersionNumber KOTLIN_2_0_0 = VersionNumber.parse('2.0.0')
 
     static void assumeCurrentJavaVersionIsSupportedBy(String kotlinVersion) {
         VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
