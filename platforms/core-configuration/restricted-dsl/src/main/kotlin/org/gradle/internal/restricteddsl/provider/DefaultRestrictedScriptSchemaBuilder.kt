@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.provider
+package org.gradle.internal.restricteddsl.provider
 
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.schemaFromTypes
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.Settings
-import org.gradle.kotlin.dsl.execution.PluginDependencySpecWithProperties
-import org.gradle.kotlin.dsl.execution.PluginsTopLevelReceiver
-import org.gradle.kotlin.dsl.execution.RestrictedPluginDependenciesSpecScope
-import org.gradle.kotlin.dsl.provider.ScriptSchemaBuildingResult.SchemaAvailable
+import org.gradle.internal.restricteddsl.plugins.PluginDependencySpecWithProperties
+import org.gradle.internal.restricteddsl.plugins.PluginsTopLevelReceiver
+import org.gradle.internal.restricteddsl.plugins.RestrictedPluginDependenciesSpecScope
+
 
 internal
 class DefaultRestrictedScriptSchemaBuilder : RestrictedScriptSchemaBuilder {
@@ -31,19 +31,21 @@ class DefaultRestrictedScriptSchemaBuilder : RestrictedScriptSchemaBuilder {
         scriptContext: RestrictedScriptContext
     ): ScriptSchemaBuildingResult =
         when (scriptContext) {
-            is RestrictedScriptContext.SettingsScript -> SchemaAvailable(schemaForSettingsScript)
-            RestrictedScriptContext.PluginsBlock -> SchemaAvailable(schemaForPluginsBlock)
+            is RestrictedScriptContext.SettingsScript -> ScriptSchemaBuildingResult.SchemaAvailable(schemaForSettingsScript)
+            RestrictedScriptContext.PluginsBlock -> ScriptSchemaBuildingResult.SchemaAvailable(schemaForPluginsBlock)
             is RestrictedScriptContext.UnknownScript -> ScriptSchemaBuildingResult.SchemaNotBuilt
         }
 
-    private val schemaForSettingsScript by lazy {
+    private
+    val schemaForSettingsScript by lazy {
         schemaFromTypes(
             Settings::class,
             listOf(Settings::class, ProjectDescriptor::class)
         )
     }
 
-    private val schemaForPluginsBlock by lazy {
+    private
+    val schemaForPluginsBlock by lazy {
         schemaFromTypes(
             PluginsTopLevelReceiver::class,
             listOf(PluginsTopLevelReceiver::class, RestrictedPluginDependenciesSpecScope::class, PluginDependencySpecWithProperties::class)

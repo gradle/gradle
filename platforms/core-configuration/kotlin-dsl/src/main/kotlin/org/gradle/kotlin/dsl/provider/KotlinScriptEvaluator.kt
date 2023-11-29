@@ -101,7 +101,6 @@ class StandardKotlinScriptEvaluator(
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter,
     private val gradlePropertiesController: GradlePropertiesController,
-    private val restrictedKotlinScriptEvaluator: RestrictedKotlinScriptEvaluator
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -114,17 +113,6 @@ class StandardKotlinScriptEvaluator(
         options: EvalOptions
     ) {
         withOptions(options) {
-            val result = restrictedKotlinScriptEvaluator.evaluate(target, scriptSource)
-            when (result) {
-                is RestrictedKotlinScriptEvaluator.EvaluationResult.Evaluated -> {
-                    // We need to lock the scope here: we don't really need it now, but downstream scopes will rely on us locking it
-                    // TODO: when the scope is used, this call should be removed
-                    targetScope.lock()
-                    return@withOptions
-                }
-                is RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated -> Unit
-            }
-
             interpreter.eval(
                 target,
                 scriptSource,
