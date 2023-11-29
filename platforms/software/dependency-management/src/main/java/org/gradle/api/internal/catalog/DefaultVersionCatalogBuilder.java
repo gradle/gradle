@@ -83,8 +83,8 @@ import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.U
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNDEFINED_VERSION_REFERENCE;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNSUPPORTED_FILE_FORMAT;
 import static org.gradle.api.problems.Severity.ERROR;
-import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.RenderingUtils.oxfordListOf;
+import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuilderInternal {
 
@@ -127,8 +127,6 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     private Import importedCatalog = null;
     private final StrictVersionParser strictVersionParser;
 
-    //    @Inject
-//    private final Problems problemsService;
     private final Property<String> description;
 
     private String currentContext;
