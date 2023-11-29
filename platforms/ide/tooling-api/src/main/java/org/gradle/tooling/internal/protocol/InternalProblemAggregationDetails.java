@@ -13,20 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.events.problems;
 
-import org.gradle.api.Incubating;
+package org.gradle.tooling.internal.protocol;
+
 import org.gradle.api.NonNullApi;
-import org.gradle.tooling.events.ProgressEvent;
 
-/**
- * A problem.
- *
- * @since 8.4
- */
+import java.util.List;
+
 @NonNullApi
-@Incubating
-public interface ProblemEvent extends ProgressEvent {
-    @Override
-    BaseProblemDescriptor getDescriptor();
+public interface InternalProblemAggregationDetails extends InternalProblemDetails {
+    List<InternalProblemAggregation> getSummaries();
 }
