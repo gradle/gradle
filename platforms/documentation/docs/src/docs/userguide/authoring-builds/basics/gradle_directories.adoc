@@ -64,6 +64,8 @@ It is roughly structured as follows:
 <7> Distributions downloaded by the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>>.
 <8> Global <<build_environment.adoc#sec:gradle_configuration_properties,Gradle configuration properties>>.
 
+Consult the <<directory_layout.adoc#dir:gradle_user_home,Gradle Directories reference>> to learn more.
+
 [[dir:project_root]]
 == Project Root directory
 
@@ -104,7 +106,7 @@ The anatomy of a typical project root directory looks as follows:
 <8> Usually, a project is organized into one or multiple subprojects.
 <9> Each subproject has its own Gradle build script.
 
-Consult the <<directory_layout.adoc#directory_layout,Gradle Directories reference>> to learn more.
+Consult the <<directory_layout.adoc#dir:project_root,Gradle Directories reference>> to learn more.
 
 [.text-right]
 **Next Step:** <<intro_multi_project_builds.adoc#intro_multi_project_builds,Learn how to structure Multi-Project Builds>> >>
