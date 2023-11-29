@@ -33,14 +33,14 @@ tasks.register<UpdateAgpVersions>("updateAgpVersions") {
     comment = " Generated - Update by running `./gradlew updateAgpVersions`"
     minimumSupportedMinor = "7.3"
     propertiesFile = layout.projectDirectory.file("gradle/dependency-management/agp-versions.properties")
-    compatibilityDocFile = layout.projectDirectory.file("subprojects/docs/src/docs/userguide/releases/compatibility.adoc")
+    compatibilityDocFile = layout.projectDirectory.file("platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc")
 }
 
 tasks.register<UpdateKotlinVersions>("updateKotlinVersions") {
     comment = " Generated - Update by running `./gradlew updateKotlinVersions`"
     minimumSupported = "1.6.10"
     propertiesFile = layout.projectDirectory.file("gradle/dependency-management/kotlin-versions.properties")
-    compatibilityDocFile = layout.projectDirectory.file("subprojects/docs/src/docs/userguide/releases/compatibility.adoc")
+    compatibilityDocFile = layout.projectDirectory.file("platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc")
 }
 
 data class VersionBuildTimeInfo(val version: String, val buildTime: String)

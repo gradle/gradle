@@ -93,7 +93,7 @@ For convenient consumption, modules can be hosted in a <<#sub:terminology_reposi
 
 Releases of a <<#sub:terminology_module,module>> provide metadata.
 Metadata is the data that describes the module in more detail e.g. information about the location of artifacts or required <<#sub:terminology_transitive_dependency,transitive dependencies>>.
-Gradle offers its own metadata format called link:https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md[Gradle Module Metadata] (`.module` file) but also supports Maven (`.pom`) and Ivy (`ivy.xml`) metadata.
+Gradle offers its own metadata format called link:https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md[Gradle Module Metadata] (`.module` file) but also supports Maven (`.pom`) and Ivy (`ivy.xml`) metadata.
 See the section on <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,understanding Gradle Module Metadata>> for more information on the supported metadata formats.
 
 == Component metadata rule

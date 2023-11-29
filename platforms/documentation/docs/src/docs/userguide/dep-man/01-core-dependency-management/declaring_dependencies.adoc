@@ -458,7 +458,7 @@ You can also tweak which format will be looked up in the <<declaring_repositorie
 === Gradle Module Metadata files
 
 Gradle Module Metadata has been specifically designed to support all features of Gradle's dependency management model and is hence the preferred format.
-You can find its https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md[specification here].
+You can find its https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md[specification here].
 
 [[sub:supported-md-pom]]
 === POM files
