@@ -108,6 +108,7 @@ platform("core-configuration") {
     subproject("kotlin-dsl-integ-tests")
     subproject("model-core")
     subproject("model-groovy")
+    subproject("restricted-dsl")
 }
 
 // Core Execution Platform
