@@ -34,10 +34,10 @@ dependencies {
     implementation(project(":execution"))
     implementation(project(":normalization-java"))
     implementation(project(":wrapper-shared"))
+    implementation(project(":restricted-dsl"))
 
     implementation("org.gradle:kotlin-dsl-shared-runtime")
 
-    implementation(libs.restrictedKotlin)
     implementation(libs.groovy)
     implementation(libs.groovyJson)
     implementation(libs.slf4jApi)

@@ -14,7 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.execution
+package org.gradle.internal.restricteddsl.plugins
+
+/*
+ * Copyright 2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 import com.h0tk3y.kotlin.staticObjectNotation.Adding
 import com.h0tk3y.kotlin.staticObjectNotation.Builder
@@ -46,7 +62,6 @@ abstract class RestrictedPluginDependenciesSpecScope : PluginDependenciesSpec {
 }
 
 
-internal
 abstract class PluginDependencySpecWithProperties : PluginDependencySpec {
     @Restricted
     abstract val version: String?
@@ -62,18 +77,17 @@ abstract class PluginDependencySpecWithProperties : PluginDependencySpec {
 }
 
 
-internal
 class RuntimeTopLevelPluginsReceiver {
     val plugins = PluginsCollectingPluginsBlock()
 }
 
 
-internal
 class PluginsCollectingPluginsBlock() : PluginDependenciesSpec {
     val specs: List<MutablePluginDependencySpec>
         get() = _specs
 
-    private val _specs = mutableListOf<MutablePluginDependencySpec>()
+    private
+    val _specs = mutableListOf<MutablePluginDependencySpec>()
 
     override fun id(id: String): PluginDependencySpec =
         MutablePluginDependencySpec(id)
@@ -84,14 +98,16 @@ class PluginsCollectingPluginsBlock() : PluginDependenciesSpec {
 }
 
 
-internal
 class MutablePluginDependencySpec(
     val id: String
 ) : PluginDependencySpec {
     var version: String? = null
-        private set
+        private
+        set
+
     var apply: Boolean = true
-        private set
+        private
+        set
 
     override fun version(version: String?): PluginDependencySpec {
         this.version = version
@@ -102,7 +118,4 @@ class MutablePluginDependencySpec(
         this.apply = apply
         return this
     }
-
-    fun toRequestSpec(): ResidualProgram.PluginRequestSpec =
-        ResidualProgram.PluginRequestSpec(id, version, apply)
 }

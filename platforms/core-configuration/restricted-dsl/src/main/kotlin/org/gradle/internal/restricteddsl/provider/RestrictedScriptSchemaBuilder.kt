@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.provider
+package org.gradle.internal.restricteddsl.provider
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
-import org.gradle.api.internal.initialization.ClassLoaderScope
 
 internal
 interface RestrictedScriptSchemaBuilder {
