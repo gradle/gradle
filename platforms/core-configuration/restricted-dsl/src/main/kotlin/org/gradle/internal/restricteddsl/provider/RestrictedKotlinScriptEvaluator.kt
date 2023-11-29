@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.provider
+package org.gradle.internal.restricteddsl.provider
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionResult
@@ -37,16 +37,16 @@ import kotlinx.ast.common.ast.Ast
 import org.antlr.v4.kotlinruntime.misc.ParseCancellationException
 import org.gradle.api.initialization.Settings
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.kotlin.dsl.execution.RuntimeTopLevelPluginsReceiver
-import org.gradle.kotlin.dsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated
-import org.gradle.kotlin.dsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.FailuresInLanguageTree
-import org.gradle.kotlin.dsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.FailuresInResolution
-import org.gradle.kotlin.dsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.NoLanguageTree
-import org.gradle.kotlin.dsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.NoParseResult
-import org.gradle.kotlin.dsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.NoSchemaAvailable
-import org.gradle.kotlin.dsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.UnassignedValuesUsed
+import org.gradle.internal.restricteddsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated
+import org.gradle.internal.restricteddsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.FailuresInLanguageTree
+import org.gradle.internal.restricteddsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.FailuresInResolution
+import org.gradle.internal.restricteddsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.NoLanguageTree
+import org.gradle.internal.restricteddsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.NoParseResult
+import org.gradle.internal.restricteddsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.NoSchemaAvailable
+import org.gradle.internal.restricteddsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.UnassignedValuesUsed
+import org.gradle.internal.restricteddsl.plugins.RuntimeTopLevelPluginsReceiver
 
-internal
+
 interface RestrictedKotlinScriptEvaluator {
     fun evaluate(
         target: Any,
@@ -57,7 +57,6 @@ interface RestrictedKotlinScriptEvaluator {
         object Evaluated : EvaluationResult
         class NotEvaluated(val reason: NotEvaluatedReason) : EvaluationResult {
             sealed interface NotEvaluatedReason {
-                object EvaluationNotSupported : NotEvaluatedReason
                 object NoSchemaAvailable : NotEvaluatedReason
                 object NoLanguageTree : NotEvaluatedReason
                 object NoParseResult : NotEvaluatedReason
@@ -69,15 +68,15 @@ interface RestrictedKotlinScriptEvaluator {
     }
 }
 
-internal
-class NoopRestrictedKotlinScriptEvaluator : RestrictedKotlinScriptEvaluator {
-    override fun evaluate(
-        target: Any,
-        scriptSource: ScriptSource,
-    ): RestrictedKotlinScriptEvaluator.EvaluationResult {
-        return NotEvaluated(NotEvaluated.NotEvaluatedReason.EvaluationNotSupported)
-    }
+
+/**
+ * A default implementation of a restricted DSL script evaluator, for use when no additional information needs to be provided at the use site.
+ * TODO: The consumers should get an instance properly injected instead.
+ */
+val defaultRestrictedKotlinScriptEvaluator: RestrictedKotlinScriptEvaluator by lazy {
+    DefaultRestrictedKotlinScriptEvaluator(DefaultRestrictedScriptSchemaBuilder())
 }
+
 
 internal
 class DefaultRestrictedKotlinScriptEvaluator(
@@ -93,7 +92,8 @@ class DefaultRestrictedKotlinScriptEvaluator(
         }
     }
 
-    private fun evaluateWithSchema(schema: AnalysisSchema, scriptSource: ScriptSource, target: Any): RestrictedKotlinScriptEvaluator.EvaluationResult {
+    private
+    fun evaluateWithSchema(schema: AnalysisSchema, scriptSource: ScriptSource, target: Any): RestrictedKotlinScriptEvaluator.EvaluationResult {
         val resolver = defaultCodeResolver()
         val ast = astFromScript(scriptSource).singleOrNull()
             ?: return NotEvaluated(NoParseResult)
@@ -120,27 +120,31 @@ class DefaultRestrictedKotlinScriptEvaluator(
         return RestrictedKotlinScriptEvaluator.EvaluationResult.Evaluated
     }
 
-    private fun assignmentTrace(result: ResolutionResult) =
+    private
+    fun assignmentTrace(result: ResolutionResult) =
         AssignmentTracer { AssignmentResolver() }.produceAssignmentTrace(result)
 
-    private fun astFromScript(scriptSource: ScriptSource): List<Ast> =
+    private
+    fun astFromScript(scriptSource: ScriptSource): List<Ast> =
         try {
             parseToAst(scriptSource.resource.text)
         } catch (e: ParseCancellationException) {
             emptyList()
         }
 
-    private fun languageModelFromAst(ast: Ast): LanguageTreeResult? {
+    private
+    fun languageModelFromAst(ast: Ast): LanguageTreeResult? {
         val result = languageTreeBuilder.build(ast)
         return if (result.results.any { it is FailingResult }) null else result
     }
 
-    private val languageTreeBuilder = LanguageTreeBuilderWithTopLevelBlock(DefaultLanguageTreeBuilder())
+    private
+    val languageTreeBuilder = LanguageTreeBuilderWithTopLevelBlock(DefaultLanguageTreeBuilder())
 
-    private fun scriptContextFor(target: Any) = when (target) {
+    private
+    fun scriptContextFor(target: Any) = when (target) {
         is Settings -> RestrictedScriptContext.SettingsScript
         is RuntimeTopLevelPluginsReceiver -> RestrictedScriptContext.PluginsBlock
         else -> RestrictedScriptContext.UnknownScript
     }
 }
-

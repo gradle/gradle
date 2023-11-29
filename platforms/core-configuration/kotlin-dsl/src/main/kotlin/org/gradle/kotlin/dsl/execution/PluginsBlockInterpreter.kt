@@ -18,10 +18,11 @@ package org.gradle.kotlin.dsl.execution
 
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.internal.resource.StringTextResource
+import org.gradle.internal.restricteddsl.plugins.MutablePluginDependencySpec
+import org.gradle.internal.restricteddsl.plugins.RuntimeTopLevelPluginsReceiver
+import org.gradle.internal.restricteddsl.provider.RestrictedKotlinScriptEvaluator
+import org.gradle.internal.restricteddsl.provider.defaultRestrictedKotlinScriptEvaluator
 import org.gradle.kotlin.dsl.*
-import org.gradle.kotlin.dsl.provider.DefaultRestrictedKotlinScriptEvaluator
-import org.gradle.kotlin.dsl.provider.DefaultRestrictedScriptSchemaBuilder
-import org.gradle.kotlin.dsl.provider.RestrictedKotlinScriptEvaluator
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.jetbrains.kotlin.lexer.KtTokens.DOT
 import org.jetbrains.kotlin.lexer.KtTokens.LBRACE
@@ -42,12 +43,11 @@ sealed class PluginsBlockInterpretation {
     data class Dynamic(val reason: String) : PluginsBlockInterpretation()
 }
 
-private val restrictedDslInterpreter by lazy { DefaultRestrictedKotlinScriptEvaluator(DefaultRestrictedScriptSchemaBuilder()) }
 
 internal
 fun interpret(program: Program.Plugins, isRestrictedDslOnly: Boolean = false): PluginsBlockInterpretation {
     val pluginsTopLevelReceiver = RuntimeTopLevelPluginsReceiver()
-    val isEvaluated = restrictedDslInterpreter.evaluate(
+    val isEvaluated = defaultRestrictedKotlinScriptEvaluator.evaluate(
         pluginsTopLevelReceiver,
         TextResourceScriptSource(StringTextResource("plugins block", program.fragment.identifierString))
     )
@@ -71,6 +71,11 @@ fun interpret(program: Program.Plugins, isRestrictedDslOnly: Boolean = false): P
         )
     }
 }
+
+
+private
+fun MutablePluginDependencySpec.toRequestSpec(): ResidualProgram.PluginRequestSpec =
+    ResidualProgram.PluginRequestSpec(id, version, apply)
 
 
 private
