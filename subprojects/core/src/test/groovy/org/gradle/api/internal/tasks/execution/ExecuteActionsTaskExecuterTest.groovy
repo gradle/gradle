@@ -29,7 +29,6 @@ import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.properties.TaskProperties
-import org.gradle.api.problems.Problems
 import org.gradle.api.tasks.StopActionException
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.TaskExecutionException
@@ -101,7 +100,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
 
         getOutputFilesProducedByWork() >> ImmutableSortedMap.of()
     }
-    def validationContext = new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP, Mock(Problems))
+    def validationContext = new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP)
     def executionContext = Mock(TaskExecutionContext)
     def scriptSource = Mock(ScriptSource)
     def standardOutputCapture = Mock(StandardOutputCapture)
@@ -139,7 +138,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def fileCollectionFactory = fileCollectionFactory()
     def deleter = deleter()
     def validationWarningReporter = Stub(ValidateStep.ValidationWarningRecorder)
-    def problems = Stub(Problems)
 
     // TODO Make this test work with a mock execution engine
     def executionEngine = TestExecutionEngineFactory.createExecutionEngine(
@@ -152,7 +150,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         outputChangeListener,
         outputSnapshotter,
         overlappingOutputDetector,
-        problems,
         validationWarningReporter,
         virtualFileSystem
     )
