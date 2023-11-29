@@ -47,7 +47,9 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
     def setup() {
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
         agpVersion = AndroidTestProject.useAgpLatestStableOrRcVersion(runner)
-        kgpVersion = AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
+        // TODO Use dynamic Kotlin version once https://issuetracker.google.com/issues/312738720 is fixed
+        // kgpVersion = AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
+        kgpVersion = "1.9.20"
     }
 
     @RunFor([
@@ -200,10 +202,10 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
             replaceVersion(text, "kotlin", "$kgpVersion")
 
             // See https://developer.android.com/jetpack/androidx/releases/compose-kotlin#pre-release_kotlin_compatibility
-            replaceVersion(text, "androidxComposeCompiler", "1.5.4-dev-k1.9.20-RC-1edce5fd625")
+            replaceVersion(text, "androidxComposeCompiler", "1.5.4")
 
             // See https://github.com/google/ksp/tags
-            replaceVersion(text, "ksp", "1.9.20-RC-1.0.13")
+            replaceVersion(text, "ksp", "1.9.20-1.0.14")
         }
 
         private static void replaceVersion(StringBuilder text, String target, String version) {
