@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.hash.DefaultFileHasher
 import org.gradle.internal.hash.DefaultStreamHasher
 import org.gradle.internal.hash.FileHasher
+import org.gradle.plugins.ide.eclipse.model.internal.PathUtil
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.GFileUtils
 import org.junit.Rule
@@ -104,7 +105,7 @@ Zip me now!
                     assert cacheDir.list().size() == 1
                     assert cacheDir.listFiles()[0].name.startsWith('zip_')
 
-                    def lockFile = file("${lockFile}")
+                    def lockFile = file("${PathUtil.normalizePath(lockFile.toString())}")
                     assert lockFile.exists()
                 }
             }
