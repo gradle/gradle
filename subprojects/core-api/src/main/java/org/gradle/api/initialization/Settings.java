@@ -17,6 +17,7 @@
 package org.gradle.api.initialization;
 
 import com.h0tk3y.kotlin.staticObjectNotation.Adding;
+import com.h0tk3y.kotlin.staticObjectNotation.Configuring;
 import com.h0tk3y.kotlin.staticObjectNotation.Restricted;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
@@ -338,6 +339,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 3.5
      */
+    @Configuring
     void pluginManagement(Action<? super PluginManagementSpec> pluginManagementSpec);
 
     /**
@@ -345,6 +347,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 3.5
      */
+    @Restricted
     PluginManagementSpec getPluginManagement();
 
     /**
@@ -368,6 +371,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 4.6
      */
+    @Adding
     void enableFeaturePreview(String name);
 
     /**
@@ -376,6 +380,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 6.8
      */
+    @Configuring
     void dependencyResolutionManagement(Action<? super DependencyResolutionManagement> dependencyResolutionConfiguration);
 
     /**
@@ -383,6 +388,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 6.8
      */
+    @Restricted
     DependencyResolutionManagement getDependencyResolutionManagement();
 
     /**
