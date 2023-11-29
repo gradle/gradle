@@ -49,7 +49,8 @@ class DefaultDecompressionCacheCreationIntegrationTest extends AbstractIntegrati
 
     def "file with same name as cache lock dir already exists causes creation failure"() {
         given:
-        File expandedLock = file(".gradle/expanded/${temporaryFolder.getTestDirectory().getName()}/${GradleVersion.current().version}")
+        String rootProjectPathSegment = "__"
+        File expandedLock = file(".gradle/expanded/$rootProjectPathSegment/${GradleVersion.current().version}")
         GFileUtils.parentMkdirs(expandedLock)
         expandedLock.createNewFile()
 

@@ -33,7 +33,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def workingDir = new File("some-dir")
     def options = Stub(DaemonForkOptions)
-    def requirement = new ForkedWorkerRequirement(workingDir, workingDir, options)
+    def requirement = new ForkedWorkerRequirement(workingDir, workingDir, workingDir, options)
     def spec = Stub(IsolatedParametersActionExecutionSpec)
 
     def setup() {
