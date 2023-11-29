@@ -58,6 +58,7 @@ A version conflict occurs when two components:
 Given the conflict above, there exist multiple ways to handle it, either by selecting a version or failing the resolution.
 Different tools that handle dependency management have different ways of handling these type of conflicts.
 
+--
 https://maven.apache.org/[Apache Maven] uses a nearest first strategy.
 
 Maven will take the _shortest_ path to a dependency and use that version.
@@ -70,6 +71,7 @@ Keeping order in a very large graph can be a challenge.
 For example, what if the new version of a dependency ends up having its own dependency declarations in a different order than the previous version?
 
 With Maven, this could have unwanted impact on resolved versions.
+--
 
 NOTE: https://ant.apache.org/ivy/[Apache Ivy] is a very flexible dependency management tool.
 It offers the possibility to customize dependency resolution, including conflict resolution. +

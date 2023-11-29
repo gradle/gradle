@@ -38,6 +38,7 @@ This allows the engine to determine the _component_ we're looking for, but such 
 A _variant_ is typically chosen based on the usage. For example, we might choose a different variant for compiling against a component (in which case we need the API of the component) or when executing code (in which case we need the runtime of the component).
 All variants of a component provide a number of <<dependency_capability_conflict.adoc#sub:capabilities, capabilities>>, which are denoted similarly using GAV coordinates.
 
+--
 A capability is denoted by GAV coordinates, but you must think of it as feature description:
 
 - "I provide an SLF4J binding"
@@ -45,6 +46,7 @@ A capability is denoted by GAV coordinates, but you must think of it as feature 
 - "I provide a Groovy runtime"
 
 And in general, having two components that provide the _same thing_ in the graph is a problem (they conflict).
+--
 
 This is an important concept because:
 
@@ -93,10 +95,13 @@ include::sample[dir="snippets/java-feature-variant/producer/kotlin",files="build
 include::sample[dir="snippets/java-feature-variant/producer/groovy",files="build.gradle[tags=variant_dependencies]"]
 ====
 
+--
 By convention, Gradle maps the feature name to a capability whose group and version are the same as the group and version of the main component, respectively, but whose name is the main component name followed by a `-` followed by the kebab-cased feature name.
 
 For example, if the group is `org.gradle.demo`, the name of the component is `provider`, its version is `1.0` and the feature is named `mongodbSupport`, the feature variant will be `org.gradle.demo:provider-mongodb-support:1.0`.
+
 If you choose the capability name yourself or add more capabilities to a variant, it is recommended to follow the same convention.
+--
 
 [[sec:feature_variant_source_set]]
 === Feature variant source set
@@ -119,11 +124,13 @@ include::sample[dir="snippets/java-feature-variant/producer-separate-sourceset/g
 [[sec::publishing_feature_variants]]
 == Publishing feature variants
 
+--
 Depending on the metadata file format, publishing feature variants may be lossy:
 
 - using {metadata-file-spec}[Gradle Module Metadata], everything is published and consumers will get the full benefit of feature variants
 - using POM metadata (Maven), feature variants are published as **optional dependencies** and artifacts of feature variants are published with different _classifiers_
 - using Ivy metadata, feature variants are published as extra configurations, which are _not_ extended by the `default` configuration
+--
 
 Publishing feature variants is supported using the `maven-publish` and `ivy-publish` plugins only.
 The Java Plugin (or Java Library Plugin) will take care of registering the additional variants for you, so there's no additional configuration required, only the regular publications:
@@ -149,12 +156,14 @@ include::sample[dir="snippets/java-feature-variant/producer-separate-sourceset/g
 [[sec::consuming_feature_variants]]
 == Dependencies on feature variants
 
+--
 As mentioned earlier, feature variants can be lossy when published.
 As a consequence, a consumer can depend on a feature variant only in these cases:
 
 - with a project dependency (in a multi-project build)
 - with Gradle Module Metadata available, that is the publisher MUST have published it
 - within the Ivy world, by declaring a dependency on the configuration matching the feature
+--
 
 A consumer can specify that it needs a specific feature of a producer by declaring required capabilities.
 For example, if a producer declares a "MySQL support" feature like this:

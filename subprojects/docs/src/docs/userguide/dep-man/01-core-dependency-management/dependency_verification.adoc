@@ -19,6 +19,7 @@ Working with external dependencies and plugins published on third-party reposito
 In particular, you need to be aware of what binaries are brought in transitively and if they are legit.
 To mitigate the security risks and avoid integrating compromised dependencies in your project, Gradle supports _dependency verification_.
 
+--
 Dependency verification is, by nature, an inconvenient feature to use.
 It means that whenever you're going to update a dependency, builds are likely to fail.
 It means that merging branches are going to be harder because each branch can have different dependencies.
@@ -34,6 +35,7 @@ Dependency verification is meant to protect yourself from those attacks, by forc
 It is not meant, however, to prevent you from including _vulnerable_ dependencies.
 
 Finding the right balance between security and convenience is hard but Gradle will try to let you choose the "right level" for you.
+--
 
 Dependency verification consists of two different and complementary operations:
 
@@ -145,6 +147,7 @@ Executing this command line will cause Gradle to:
 
 As a consequence, the `verification-metadata.xml` file will be used in subsequent builds to verify dependencies.
 
+--
 There are dependencies that Gradle _cannot_ discover this way.
 In particular, you will notice that the CLI above uses the `help` task.
 If you don't specify any task, Gradle will automatically run the default task and generate a configuration file at the end of the build too.
@@ -156,6 +159,7 @@ A good way to start is just to use the simplest task, `help`, which will discove
 
 Gradle won't verify either checksums or signatures of plugins which use their own HTTP clients.
 Only plugins which use the infrastructure provided by Gradle for performing requests will see their requests verified.
+--
 
 [[sec:verification-update]]
 === Using generation for incremental updates
@@ -332,9 +336,12 @@ However:
 
 As a consequence, signature verification will often be used alongside checksum verification.
 
-NOTE: It's very common to find artifacts which are signed with an expired key.
+.About expired keys
+--
+It's very common to find artifacts which are signed with an expired key.
 This is not a problem for _verification_: key expiry is mostly used to avoid signing with a stolen key.
 If an artifact was signed before expiry, it's still valid.
+--
 
 === Enabling signature verification
 
@@ -437,7 +444,8 @@ The `trusted-key` element works similarly to the <<sec:trusting-artifacts,truste
 - `file`, the name of the artifact _file_ to trust
 - `regex`, a boolean saying if the `group`, `name`, `version` and `file` attributes need to be interpreted as regular expressions (defaults to `false`)
 
-WARNING: You should be careful when trusting a key globally.
+--
+You should be careful when trusting a key globally.
 
 Try to limit it to the appropriate groups or artifacts:
 
@@ -449,6 +457,7 @@ It means you can trust the key `A` for the first artifact, probably only up to t
 Remember that anybody can put an arbitrary name when generating a PGP key, so never trust the key solely based on the key name.
 Verify if the key is listed at the official site.
 For example, Apache projects typically provide a KEYS.txt file that you can trust.
+--
 
 [[sec:ignoring-keys]]
 === Specifying key servers and ignoring keys
@@ -580,12 +589,14 @@ Or, alternatively, you can _ask Gradle to export all keys it used for verificati
 ./gradlew --write-verification-metadata pgp,sha256 --export-keys
 ----
 
+--
 Unless `keyring-format` is specified, this command will generate *both* the binary version and the ASCII-armored file.
 Use this option to choose the preferred format.
 You should only pick one for your project.
 
 It's a good idea to commit this file to VCS (as long as you trust your VCS).
 If you use git and use the binary version, make sure to make it treat this file as binary, by adding this to your `.gitattributes` file:
+--
 
 ----
 *.gpg           binary

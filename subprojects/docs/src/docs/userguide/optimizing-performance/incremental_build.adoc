@@ -606,6 +606,7 @@ Note also that changing the availability of an unavailable file (e.g. modifying 
 
 The inputs for the task are also used to calculate the <<build_cache.adoc#build_cache,build cache>> key used to load task outputs when enabled. For more details see <<build_cache.adoc#sec:task_output_caching,Task output caching>>.
 
+--
 For tracking the implementation of tasks, task actions and nested inputs, Gradle uses the class name and an identifier for the classpath which contains the implementation.
 There are some situations when Gradle is not able to track the implementation precisely:
 
@@ -618,6 +619,7 @@ Therefore, the class name does not identify the implementation of the lambda and
 
 When the implementation of a task, task action or a nested input cannot be tracked precisely, Gradle disables any caching for the task.
 That means that the task will never be up-to-date or loaded from the <<build_cache.adoc#sec:task_output_caching,build cache>>.
+--
 
 [[sec:advanced_inc_build]]
 == Advanced techniques

@@ -306,9 +306,12 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-project
 [[sec:type-safe-project-accessors]]
 ==== Type-safe project dependencies
 
-WARNING: Type-safe project accessors are an incubating feature which must be enabled explicitly.
+--
+Type-safe project accessors are an incubating feature which must be enabled explicitly.
 Implementation may change at any time.
+
 To add support for type-safe project accessors, add this to your `settings.gradle(.kts)` file: `enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")`
+--
 
 One issue with the `project(":some:path")` notation is that you have to remember the path to every project you want to depend on.
 In addition, changing a <<intro_multi_project_builds#sec:project_path,project path>> requires you to change all places where the project dependency is used, but it is easy to miss one or more occurrences (because you have to rely on search and replace).

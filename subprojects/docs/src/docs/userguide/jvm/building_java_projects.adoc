@@ -77,7 +77,10 @@ image::java-sourcesets-compilation.png[]
 The shaded boxes represent properties of the source set itself.
 On top of that, the Java Library Plugin automatically creates a compilation task for every source set you or a plugin defines — named `compile__SourceSet__Java` — and several <<java_plugin.adoc#java_source_set_configurations,dependency configurations>>.
 
-NOTE: Most language plugins, Java included, automatically create a source set called `main`, which is used for the project's production code. This source set is special in that its name is not included in the names of the configurations and tasks, hence why you have just a `compileJava` task and `compileOnly` and `implementation` configurations rather than `compileMainJava`, `mainCompileOnly` and `mainImplementation` respectively.
+.The `main` source set
+--
+Most language plugins, Java included, automatically create a source set called `main`, which is used for the project's production code. This source set is special in that its name is not included in the names of the configurations and tasks, hence why you have just a `compileJava` task and `compileOnly` and `implementation` configurations rather than `compileMainJava`, `mainCompileOnly` and `mainImplementation` respectively.
+--
 
 Java projects typically include resources other than source files, such as properties files, that may need processing — for example by replacing tokens within the files — and packaging within the final JAR.
 The Java Library Plugin handles this by automatically creating a dedicated task for each defined source set called `process__SourceSet__Resources` (or `processResources` for the `main` source set).
@@ -191,9 +194,12 @@ You can learn more about these and how they relate to one another in the <<java_
 
 Be aware that the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> offers two additional configurations — `api` and `compileOnlyApi` — for dependencies that are required for compiling both the module and any modules that depend on it.
 
-NOTE: The Java Library Plugin has historically used the `compile` configuration for dependencies that are required to both compile and run a project's production code.
+.Why no `compile` configuration?
+--
+The Java Library Plugin has historically used the `compile` configuration for dependencies that are required to both compile and run a project's production code.
 It is now deprecated, and will issue warnings when used, because it doesn't distinguish between dependencies that impact the public API of a Java library project and those that don't.
 You can learn more about the importance of this distinction in <<#sec:building_java_libraries,Building Java libraries>>.
+--
 
 We have only scratched the surface here, so we recommend that you read the dedicated dependency management chapters once you're comfortable with the basics of building Java projects with Gradle. Some common scenarios that require further reading include:
 

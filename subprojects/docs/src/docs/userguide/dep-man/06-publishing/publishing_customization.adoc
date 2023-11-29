@@ -93,6 +93,7 @@ In practice, it means that components created this way can be consumed by Gradle
 [[sec:publishing_custom_artifacts_to_maven]]
 == Adding custom artifacts to a publication
 
+--
 Instead of thinking in terms of artifacts, you should embrace the variant aware model of Gradle.
 It is expected that a single module may need multiple artifacts.
 However this rarely stops there, if the additional artifacts represent an <<feature_variants.adoc#feature_variants,optional feature>>, they might also have different dependencies and more.
@@ -103,6 +104,7 @@ Please refer to the <<cross_project_publications.adoc#sec:variant-aware-sharing,
 If you attach extra artifacts to a publication directly, they are published "out of context".
 That means, they are not referenced in the metadata at all and can then only be addressed directly through a classifier on a dependency.
 In contrast to Gradle Module Metadata, Maven pom metadata will not contain information on additional artifacts regardless of whether they are added through a variant or directly, as variants cannot be represented in the pom format.
+--
 
 The following section describes how you publish artifacts directly if you are sure that metadata, for example Gradle or POM metadata, is irrelevant for your use case.
 For example, if your project doesn't need to be consumed by other projects and the only thing required as result of the publishing are the artifacts themselves.

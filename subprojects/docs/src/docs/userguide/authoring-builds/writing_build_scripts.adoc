@@ -20,10 +20,15 @@ that needs to be built, like a library or an application. Each build script is a
 with an object of type link:{groovyDslPath}/org.gradle.api.Project.html[Project].
 As the build script executes, it configures this `Project`.
 
-IMPORTANT: Build scripts_ define `Project` objects. +
-Gradle uses other scripts as well: +
-- <<organizing_gradle_projects.adoc#sec:settings_file,Settings scripts>> define link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] objects. +
+..Build scripts, Settings scripts, and Init scripts
+--
+_Build scripts_ define `Project` objects.
+
+Gradle uses other scripts as well:
+
+- <<organizing_gradle_projects.adoc#sec:settings_file,Settings scripts>> define link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] objects.
 - <<init_scripts.adoc#init_scripts,Init scripts>> define link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[Gradle] objects.
+--
 
 == Properties
 
@@ -95,8 +100,11 @@ The following table lists a few commonly used properties:
 | An `AntBuilder` instance
 |===
 
-IMPORTANT: The _build scripts_ described here target `Project` objects. +
+.Script with other targets
+--
+The _build scripts_ described here target `Project` objects.
 There are also <<organizing_gradle_projects.adoc#sec:settings_file,settings scripts>> and <<init_scripts.adoc#init_scripts,init scripts>> that respectively target link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] and link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[Gradle] objects.
+--
 
 [[sec:the_script_api]]
 == The Script API
@@ -188,8 +196,11 @@ include::{snippetsPath}/tutorial/configureObject/tests/configureObject.out[]
 
 You can also configure arbitrary objects using an external script:
 
-CAUTION: The Kotlin DSL does not support arbitrary object configuration using an external script. +
+.Not supported in Kotlin
+--
+The Kotlin DSL does not support arbitrary object configuration using an external script. +
 For more information, see link:https://github.com/gradle/kotlin-dsl/issues/659[gradle/kotlin-dsl#659].
+--
 
 .Configure arbitrary objects using a script
 ====

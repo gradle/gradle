@@ -66,8 +66,10 @@ include::sample[dir="snippets/tutorial/hello/groovy", files="build.gradle[]"]
 
 In a command-line shell, move to the containing directory and execute the build script with `gradle -q hello`:
 
-TIP: What does `-q` do? +
+.What does `-q` do?
+--
 Most of the examples in this user guide are run with the `-q` command-line option. This suppresses Gradle's log messages, so that only the output of the tasks is shown. This keeps the example output in this user guide a little clearer. You don't need to use this option if you don't want to. See <<logging.adoc#logging,Logging>> for more details about the command-line options which affect Gradle's output.
+--
 
 .Execution of a build script
 ====

@@ -87,7 +87,7 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 
 While the previous section showed how you can enforce a certain version of a transitive dependency, this section covers _excludes_ as a way to remove a transitive dependency completely.
 
-WARNING: Similar as forcing a version of a dependency, excluding a dependency completely requires a conscious decision.
+WARNING: Similar to forcing a version of a dependency, excluding a dependency completely requires a conscious decision.
 Excluding a transitive dependency might lead to runtime errors if external libraries do not properly function without them.
 If you use excludes, make sure that you do not utilise any code path requiring the excluded dependency by sufficient test coverage.
 

@@ -15,7 +15,7 @@
 [[resolution_rules]]
 = Customizing resolution of a dependency directly
 
-WARNING: This section covers mechanisms Gradle offers to directly influence the behavior of the dependency resolution engine.
+This section covers mechanisms Gradle offers to directly influence the behavior of the dependency resolution engine.
 In contrast to the other concepts covered in this chapter, like <<dependency_constraints.adoc#dependency-constraints,dependency constraints>> or <<component_metadata_rules.adoc#sec:component_metadata_rules,component metadata rules>>, which are all *inputs* to resolution, the following mechanisms allow you to write rules which are directly injected into the resolution engine.
 Because of this, they can be seen as _brute force_ solutions, that may hide future problems (e.g. if new dependencies are added).
 Therefore, the general advice is to only use the following mechanisms if other means are not sufficient.

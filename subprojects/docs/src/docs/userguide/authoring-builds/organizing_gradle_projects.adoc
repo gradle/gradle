@@ -211,7 +211,7 @@ Optionally, the `buildSrc` directory can host a build script if additional confi
 =====
 ====
 
-NOTE: A change in `buildSrc` causes the whole project to become out-of-date. +
+NOTE: A change in `buildSrc` causes the whole project to become out-of-date.
 Thus, when making small incremental changes, the <<command_line_interface#sec:command_line_execution_options, `--no-rebuild` command-line option>> is often helpful to get faster feedback. +
 Remember to run a full build regularly or at least when you're done, though.
 

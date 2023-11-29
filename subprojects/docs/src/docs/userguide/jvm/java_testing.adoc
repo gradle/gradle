@@ -97,11 +97,13 @@ You can also enable this behavior by using the `--test-dry-run` command-line opt
 
 See link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] for details on all the available configuration options.
 
+--
 The test process can exit unexpectedly if configured incorrectly. For instance, if the Java executable does not exist or an invalid JVM argument is provided, the test process will fail to start. Similarly, if a test makes programmatic changes to the test process, this can also cause unexpected failures.
 
 For example, issues may occur if a `{javaApi}/java/lang/SecurityManager.html[SecurityManager]` is modified in a test because
 Gradle's internal messaging depends on reflection and socket communication, which may be disrupted if the permissions on the security manager change. In this particular case, you should restore the original `SecurityManager` after the test so that the
 gradle test worker process can continue to function.
+--
 
 [[test_filtering]]
 == Test filtering

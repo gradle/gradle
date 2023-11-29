@@ -244,11 +244,13 @@ This ensures that the precompiled script plugins won't be silently ignored.
 Precompiled script plugins are compiled into class files and packaged into a jar. For all intents and purposes, they are binary plugins and can be applied by plugin ID, tested and published as binary plugins. In fact, the plugin metadata for
 them is generated using the <<java_gradle_plugin#java_gradle_plugin,Gradle Plugin Development Plugin>>.
 
+--
 Kotlin DSL precompiled script plugins built with Gradle 6.0 cannot be used with earlier versions of Gradle.
 This limitation will be lifted in a future version of Gradle.
 
 Groovy DSL precompiled script plugins are available starting with Gradle 6.4.
 Groovy DSL precompiled script plugins can be applied in projects that use Gradle 5.0 and later.
+--
 
 [.multi-language-text.lang-kotlin]
 To apply a precompiled script plugin, you need to know its ID which is derived from the plugin script's

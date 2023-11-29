@@ -1276,15 +1276,16 @@ body.book #header > h1 {
  * These styles are copied from a CSS ruleset in asciidoctor.css that has the same group of
  * selectors except that they end with `.nowrap`.
  */
-.literalblock pre,
-.literalblock pre[class] {
-    overflow-x: auto;
-    white-space: pre-wrap;
-    word-wrap: normal;
-}
+ .openblock .content {
+    background: #fafafa;
+ 	margin-bottom: 1.25em;
+    padding: 1em 1em 0em 1em;
+    border-radius: 4px;
+    overflow: auto !important;
+ }
 
-/*.literalblock pre,
-.literalblock pre[class],*/
+.literalblock pre,
+.literalblock pre[class],
 .listingblock pre,
 .listingblock pre[class] {
     overflow-x: auto;

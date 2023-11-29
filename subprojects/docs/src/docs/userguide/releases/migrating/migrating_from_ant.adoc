@@ -354,10 +354,13 @@ Ivy's Ant tasks would then map to the Gradle tasks like this:
 There is also a convenient `publish` task that publishes _all_ publications to _all_ repositories.
 If you want to limit publications to specific repositories, check out the <<publishing_customization.adoc#sec:publishing_maven:conditional_publishing,relevant section of the Publishing chapter>>.
 
-NOTE: Ivy will, by default, automatically replace dynamic versions of dependencies with the resolved "static" versions when it generates the module descriptor.
+.On dependency versions
+--
+Ivy will, by default, automatically replace dynamic versions of dependencies with the resolved "static" versions when it generates the module descriptor.
 Gradle does _not_ mimic this behavior, declared dependency versions are left unchanged. +
 You can replicate the default Ivy behavior by using the https://plugins.gradle.org/plugin/nebula.ivy-resolved-dependencies[Nebula Ivy Resolved Plugin].
 Alternatively, you can link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyModuleDescriptorSpec.html#org.gradle.api.publish.ivy.IvyModuleDescriptorSpec:withXml(org.gradle.api.Action)[customize the descriptor file] so that it contains the versions you want.
+--
 
 [[migant:custom_tasks]]
 == Dealing with custom Ant tasks
@@ -399,6 +402,8 @@ Here are the most common file-related elements used by Ant builds, along with th
 
 You can see several examples of Gradle's file API and learn more about it in the <<working_with_files#working_with_files,Working with Files>> chapter.
 
+.On paths and filesets
+--
 Ant makes use of the concepts of path-like structures and filesets to enable users to work with collections of files and directories.
 Gradle has a simpler, more powerful model based on link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection]s and link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree]s that can be treated as objects from within the build.
 Both types allow filtering based on Ant's glob syntax, e.g. `++**/books_*++`.
@@ -407,6 +412,7 @@ You can learn more about these types and other aspects of Gradle's file API in t
 You can construct Ant paths and filesets from within your build via the `ant` object if you need to interact with an Ant task that requires them.
 The chapter on <<ant#ant,Ant integration>> has examples that use both `<path>` and `<fileset>`.
 There is also link:{javadocPath}/org/gradle/api/file/FileCollection.html#addToAntBuilder-java.lang.Object-java.lang.String-org.gradle.api.file.FileCollection.AntType-[a method on `FileCollection`] that will convert a file collection to a fileset or similar Ant type.
+--
 
 [[migant:properties]]
 == Migrating Ant properties
@@ -414,8 +420,11 @@ There is also link:{javadocPath}/org/gradle/api/file/FileCollection.html#addToAn
 Ant makes use of a properties map to store values that can be reused throughout the build.
 The big downsides to this approach are that property values are all strings and the properties themselves behave like global variables.
 
-TIP: Sometimes you will want to make use of an Ant task directly from your Gradle build and that task requires one or more Ant properties to be set. +
+.Interacting with Ant properties in Gradle
+--
+Sometimes you will want to make use of an Ant task directly from your Gradle build and that task requires one or more Ant properties to be set. +
 If that's the case, you can easily set those properties via the `ant` object, as described in the <<ant#sec:ant_properties,Using Ant from Gradle>> chapter.
+--
 
 Gradle does use something similar in the form of <<project_properties.adoc#sec:project_properties,project properties>>, which are a reasonable way to parameterize a build.
 These can be set from the command line, in the <<build_environment#sec:gradle_configuration_properties,`gradle.properties` file>>, or via specially named system properties and environment variables.

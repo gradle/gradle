@@ -94,6 +94,7 @@ bindings are basically different logger implementations and you need only one.
 However, the selected implementation may depend on the configuration being resolved.
 For example, for tests, `slf4j-simple` may be enough but for production, `slf4-over-log4j` may be better.
 
+--
 Resolution can only be made in favor of a module _found_ in the graph.
 
 The `select` method only accepts a module found in the _current_ candidates.
@@ -103,5 +104,6 @@ It might be that another conflict exists in the graph for the same capability an
 If no resolution is given for all conflicts on a given capability, the build will fail given the module chosen for resolution was not part of the graph at all.
 
 In addition `select(null)` will result in an error and so should be avoided.
+--
 
 For more information, check out the link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#capabilitiesResolution[the capabilities resolution API].

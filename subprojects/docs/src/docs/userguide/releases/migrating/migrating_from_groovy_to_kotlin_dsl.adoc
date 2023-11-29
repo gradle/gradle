@@ -214,10 +214,14 @@ include::sample[dir="snippets/kotlinDsl/configuring-plugins-imperatively-applied
 
 Again, we strongly recommend that you apply plugins declaratively via the `plugins {}` block.
 
-TIP: Because your IDE knows about the configuration elements that a plugin provides, it will include those elements when you ask your IDE for suggestions. +
-This will happen both at the top level of your build scripts — most plugin extensions are added to the `Project` object — and within an extension's configuration block. +
-You can also run the `:kotlinDslAccessorsReport` task to learn about the extensions contributed by all applied plugins. +
+.Knowing what plugin-provided extensions are available
+--
+Because your IDE knows about the configuration elements that a plugin provides, it will include those elements when you ask your IDE for suggestions.
+This will happen both at the top level of your build scripts — most plugin extensions are added to the `Project` object — and within an extension's configuration block.
+
+You can also run the `:kotlinDslAccessorsReport` task to learn about the extensions contributed by all applied plugins.
 It prints the Kotlin code you can use to access those extensions and provides the name and type of the accessor methods.
+--
 
 If the plugin you want to configure relies on `groovy.lang.Closure` in its method signatures or uses other dynamic Groovy semantics, more work will be required to configure that plugin from a Kotlin DSL build script.
 See the <<kotlin_dsl.adoc#sec:interoperability,interoperability section of the Gradle Kotlin DSL documentation>> for more information on how to call Groovy code from Kotlin code or to keep that plugin's configuration in a Groovy script.
@@ -225,6 +229,8 @@ See the <<kotlin_dsl.adoc#sec:interoperability,interoperability section of the G
 Plugins also contribute tasks that you may want to configure directly.
 This topic is covered in the <<configuring-tasks>> section below.
 
+.Keeping build scripts declarative
+--
 To get the most benefits of the Gradle Kotlin DSL you should strive to keep your build scripts declarative.
 The main thing to remember here is that in order to get type-safe accessors, plugins must be applied before the body of build scripts.
 
@@ -233,6 +239,7 @@ It is strongly recommended to read about <<kotlin_dsl.adoc#sec:configuring_plugi
 If your build is a multi-project build, like mostly all *Android* builds for example, please also read the subsequent section about <<kotlin_dsl.adoc#sec:multi_project_builds,multi-project builds>>.
 
 Finally, there are strategies to <<kotlin_dsl.adoc#sec:plugins_resolution_strategy,use the `plugins {}` block with plugins that aren't published with the correct metadata>>, such as the *Android* Gradle Plugin.
+--
 
 [[configuration-avoidance]]
 == Configuration avoidance
@@ -283,6 +290,8 @@ include::sample[dir="snippets/kotlinDsl/configuring-tasks-basics/groovy",files="
 
 Working with containers in the Gradle Kotlin DSL is <<kotlin_dsl.adoc#kotdsl:containers,documented in detail here>>.
 
+.Knowing the type of a task
+--
 If you don't know what type a task has, then you can find that information out via the built-in `help` task.
 
 Simply pass it the name of the task you're interested in using the `--task` option, like so:
@@ -294,6 +303,7 @@ Simply pass it the name of the task you're interested in using the `--task` opti
 Type
      Jar (org.gradle.api.tasks.bundling.Jar)
 ----
+--
 
 Let's bring all this together by running through a quick worked example that configures the `bootJar` and `bootRun` tasks of a Spring Boot project:
 
@@ -392,8 +402,11 @@ include::sample[dir="snippets/kotlinDsl/configurations-and-dependencies-declarat
 
 Each configuration contributed by an applied plugin is also available as a member of the `configurations` container, so you can reference it just like any other configuration.
 
-TIP:The easiest way to find out what configurations are available is by asking your IDE for suggestions within the `configurations` container. +
+.Knowing what configurations are available
+--
+The easiest way to find out what configurations are available is by asking your IDE for suggestions within the `configurations` container. +
 You can also use the `:kotlinDslAccessorsReport` task, which prints the Kotlin code for accessing the configurations contributed by applied plugins and provides the names for all of those accessors.
+--
 
 Note that if you do not use the `plugins {}` block to apply your plugins, then you won't be able to configure the dependency configurations provided by those plugins in the usual way. Instead, you will have to use string literals for the configuration names, which means you won't get IDE support:
 
@@ -484,7 +497,9 @@ Both link:{kotlin-reference}java-interop.html[calling Java from Kotlin] and link
 The same mostly applies to interoperability with Groovy code.
 In addition, the Kotlin DSL provides several ways to opt into Groovy semantics.
 
-TIP: Please find detailed documentation in the <<kotlin_dsl.adoc#sec:interoperability,interoperability section of the Gradle Kotlin DSL Primer>>.
-
+.On the Gradle Kotlin DSL and interoperability
+--
+Please find detailed documentation in the <<kotlin_dsl.adoc#sec:interoperability,interoperability section of the Gradle Kotlin DSL Primer>>.
+--
 
 

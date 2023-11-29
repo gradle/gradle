@@ -174,7 +174,10 @@ include::sample[dir="snippets/tasks/defineAndConfigure/kotlin",files="build.grad
 include::sample[dir="snippets/tasks/defineAndConfigure/groovy",files="build.gradle[tags=no-description]"]
 ====
 
-TIP: A task has both configuration and actions. When using the `doLast`, you are simply using a shortcut to define an action. Code defined in the configuration section of your task will get executed during the configuration phase of the build regardless of what task was targeted. See <<build_lifecycle.adoc#build_lifecycle,Build Lifecycle>> for more details about the build lifecycle.
+.Don't forget about the build phases
+--
+A task has both configuration and actions. When using the `doLast`, you are simply using a shortcut to define an action. Code defined in the configuration section of your task will get executed during the configuration phase of the build regardless of what task was targeted. See <<build_lifecycle.adoc#build_lifecycle,Build Lifecycle>> for more details about the build lifecycle.
+--
 
 [[sec:passing_arguments_to_a_task_constructor]]
 == Passing arguments to a task constructor

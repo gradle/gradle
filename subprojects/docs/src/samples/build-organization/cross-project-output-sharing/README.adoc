@@ -32,6 +32,8 @@ See also:
 
 == Anti-patterns:
 
+.Don't reference other project tasks directly
+--
 A frequent anti-pattern to declare cross-project dependencies is below.
 
 This publication model is unsafe and can lead to non-reproducible and hard to parallelize builds.
@@ -44,3 +46,4 @@ dependencies {
   // This publication model can make your build flaky and broken!
   implementation project(":other").tasks.someOtherJar
 }
+--

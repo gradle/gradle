@@ -734,7 +734,9 @@ s3://somebucket.s3.eu-central-1.amazonaws.com/maven/release
 When a region-specific endpoint is not specified for buckets requiring V4 Signatures, Gradle will use the default AWS region (us-east-1) and the
 following warning will appear on the console:
 
-> Attempting to re-send the request to .... with AWS V4 authentication. To avoid this warning in the future, use region-specific endpoint to access buckets located in regions that require V4 signing.
+----
+Attempting to re-send the request to .... with AWS V4 authentication. To avoid this warning in the future, use region-specific endpoint to access buckets located in regions that require V4 signing.
+----
 
 Failing to specify the region-specific endpoint for buckets requiring V4 signatures means:
 

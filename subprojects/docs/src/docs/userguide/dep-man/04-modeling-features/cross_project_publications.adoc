@@ -26,6 +26,8 @@ Gradle provides, for example, built-in support for depending on the <<java_testi
 
 In order to be _safe to share_ between projects and allow maximum performance (parallelism), such artifacts must be exposed via _outgoing configurations_.
 
+.Don't reference other project tasks directly
+--
 A frequent anti-pattern to declare cross-project dependencies is:
 
 [source,groovy]
@@ -38,6 +40,7 @@ dependencies {
 
 This publication model is _unsafe_ and can lead to non-reproducible and hard to parallelize builds.
 This section explains how to _properly create cross-project boundaries_ by defining "exchanges" between projects by using _variants_.
+--
 
 There are two, complementary, options to share artifacts between projects.
 The <<#sec:simple-sharing-artifacts-between-projects,simplified version>> is only suitable if what you need to share is a simple artifact that doesn't depend on the consumer.
