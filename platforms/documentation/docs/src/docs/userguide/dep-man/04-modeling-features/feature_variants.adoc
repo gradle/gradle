@@ -16,22 +16,23 @@
 :metadata-file-spec: https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md
 
 [[feature_variants]]
-= Modeling feature variants and optional dependencies
+= Modeling library features
 
-Gradle supports the concept of _feature variants_: when building a library, it's often the case that some features should only be available when some dependencies are present, or when special artifacts are used.
+Gradle supports the concept of _features_: it's often the case that a single library can be split up into multiple related yet distinct libraries, where each _feature_ can be used alongside the _main_ library.
 
-Feature variants let consumers choose what _features_ of a library they need: the dependency management engine will select the right artifacts and dependencies.
+Features allow a component to expose multiple related libraries, each of which can declare its own dependencies.
+These libraries are exposed as variants, similar to how the _main_ library exposes variants for its API and runtime.
 
 This allows for a number of different scenarios (list is non-exhaustive):
 
 - a (better) substitute for {maven-optional-deps}
 - a _main_ library is built with support for different mutually-exclusive implementations of runtime features; the <<sec::incompatible_variants,user must choose one, and only one, implementation of each such feature>>
 - a _main_ library is built with support for optional runtime features, each of which requires a different set of dependencies
-- a _main_ library comes with secondary variants like _test fixtures_
+- a _main_ library comes with supplementary features like _test fixtures_
 - a _main_ library comes with a main artifact, and enabling an additional feature requires additional artifacts
 
 [[sec::feature_variant_selection]]
-== Selection of feature variants and capabilities
+== Selection of features via capabilities
 
 Declaring a dependency on a component is usually done by providing a set of coordinates (group, artifact, version also known as GAV coordinates).
 This allows the engine to determine the _component_ we're looking for, but such a component may provide different _variants_.
@@ -51,108 +52,115 @@ And in general, having two components that provide the _same thing_ in the graph
 
 This is an important concept because:
 
-- by default a variant provides a capability corresponding to the GAV coordinates of its component
-- it is not allowed to have different components or different variants of a component in a dependency graph if they provide the same capability
-- it is allowed to select two variants of the same component, as long as they provide _different capabilities_
+- By default, a variant provides a capability corresponding to the GAV coordinates of its component
+- No two variants in a dependency graph can provide the same capability
+- Multiple variants of a single component may be selected as long as they provide _different capabilities_
 
 A typical component will *only* provide variants with the default capability.
 A Java library, for example, exposes two variants (API and runtime) which provide the _same capability_.
 As a consequence, it is an error to have both the _API_ and _runtime_ of a single component in a dependency graph.
 
-However, imagine that you need the _runtime_ and the _test fixtures_ of a component.
-Then it is allowed as long as the _runtime_ and _test fixtures_ variant of the library declare different capabilities.
+However, imagine that you need the _runtime_ and the _test fixtures runtime_ of a component.
+Then it is allowed as long as the _runtime_ and _test fixtures runtime_ variant of the library declare different capabilities.
 
 If we do so, a consumer would then have to declare two dependencies:
 
-- one on the "main" variant, the library
-- one on the "test fixtures" variant, by _requiring its capability_
+- one on the "main" feature, the library
+- one on the "test fixtures" feature, by _requiring its capability_
 
 [NOTE]
 ====
-While the engine supports feature variants independently of the ecosystem, this feature is currently only available using the Java plugins.
+While the resolution engine supports multi-variant components independently of the ecosystem, _features_ are currently only available using the Java plugins.
 ====
 
 [[sec::declare_feature_variants]]
-== Declaring feature variants
+== Registering features
 
-Feature variants can be declared by applying the `java` or `java-library` plugins.
+Features can be declared by applying the `java-library` plugin.
 The following code illustrates how to declare a feature named `mongodbSupport`:
 
-.Declaring a feature variant
+.Registering a feature
 ====
 include::sample[dir="snippets/java-feature-variant/producer-separate-sourceset/kotlin",files="build.gradle.kts[tags=register_variant,register_variant2]"]
 include::sample[dir="snippets/java-feature-variant/producer-separate-sourceset/groovy",files="build.gradle[tags=register_variant,register_variant2]"]
 ====
 
-Gradle will automatically setup a number of things for you, in a very similar way to how the <<java_library_plugin#java_library_plugin,Java Library Plugin>> sets up configurations:
+Gradle will automatically set up a number of things for you, in a very similar way to how the <<java_library_plugin#java_library_plugin,Java Library Plugin>> sets up configurations.
+
+Dependency scope configurations are created in the same manner as for the main feature:
 
 - the configuration `mongodbSupportApi`, used to _declare API dependencies_ for this feature
 - the configuration `mongodbSupportImplementation`, used to _declare implementation dependencies_ for this feature
+- the configuration `mongodbSupportRuntimeOnly`, used to _declare runtime-only dependencies_ for this feature
+- the configuration `mongodbSupportCompileOnly`, used to _declare compile-only dependencies_ for this feature
+- the configuration `mongodbSupportCompileOnlyApi`, used to _declare compile-only API dependencies_ for this feature
+
+Furthermore, consumable configurations are created in the same manner as for the main feature:
+
 - the configuration `mongodbSupportApiElements`, used by consumers to fetch the artifacts and API dependencies of this feature
 - the configuration `mongodbSupportRuntimeElements`, used by consumers to fetch the artifacts and runtime dependencies of this feature
 
-A feature variant should have a _source set_ with the same name.
+A feature should have a _source set_ with the same name.
 Gradle will create a `Jar` task to bundle the classes built from the feature source set, using a classifier corresponding to the kebab-case name of the feature.
 
-WARNING: Do not use the _main_ source set for feature variants.
+WARNING: Do not use the _main_ source set when registering a feature. This behavior will be deprecated in a future version of Gradle.
 
-Most users will only need to care about the first two configurations, to declare the specific dependencies of this feature:
+Most users will only need to care about the dependency scope configurations, to declare the specific dependencies of this feature:
 
 .Declaring dependencies of a feature
 ====
-include::sample[dir="snippets/java-feature-variant/producer/kotlin",files="build.gradle.kts[tags=variant_dependencies]"]
-include::sample[dir="snippets/java-feature-variant/producer/groovy",files="build.gradle[tags=variant_dependencies]"]
+include::sample[dir="snippets/java-feature-variant/producer-separate-sourceset/kotlin",files="build.gradle.kts[tags=variant_dependencies]"]
+include::sample[dir="snippets/java-feature-variant/producer-separate-sourceset/groovy",files="build.gradle[tags=variant_dependencies]"]
 ====
 
 [NOTE]
 ====
 By convention, Gradle maps the feature name to a capability whose group and version are the same as the group and version of the main component, respectively, but whose name is the main component name followed by a `-` followed by the kebab-cased feature name.
 
-For example, if the group is `org.gradle.demo`, the name of the component is `provider`, its version is `1.0` and the feature is named `mongodbSupport`, the feature variant will be `org.gradle.demo:provider-mongodb-support:1.0`.
+For example, if the component's group is `org.gradle.demo`, its name is `provider`, its version is `1.0`, and the feature is named `mongodbSupport`, the feature's variants will have the `org.gradle.demo:provider-mongodb-support:1.0` capability.
 
 If you choose the capability name yourself or add more capabilities to a variant, it is recommended to follow the same convention.
 ====
 
 [[sec::publishing_feature_variants]]
-== Publishing feature variants
+== Publishing features
 
 [WARNING]
 ====
-Depending on the metadata file format, publishing feature variants may be lossy:
+Depending on the metadata file format, publishing features may be lossy:
 
-- using {metadata-file-spec}[Gradle Module Metadata], everything is published and consumers will get the full benefit of feature variants
-- using POM metadata (Maven), feature variants are published as **optional dependencies** and artifacts of feature variants are published with different _classifiers_
-- using Ivy metadata, feature variants are published as extra configurations, which are _not_ extended by the `default` configuration
+- using {metadata-file-spec}[Gradle Module Metadata], everything is published and consumers will get the full benefit of features
+- using POM metadata (Maven), features are published as **optional dependencies** and artifacts of features are published with different _classifiers_
+- using Ivy metadata, features are published as extra configurations, which are _not_ extended by the `default` configuration
 ====
 
-Publishing feature variants is supported using the `maven-publish` and `ivy-publish` plugins only.
-The Java Plugin (or Java Library Plugin) will take care of registering the additional variants for you, so there's no additional configuration required, only the regular publications:
+Publishing features is supported using the `maven-publish` and `ivy-publish` plugins only.
+The Java Library Plugin will take care of registering the additional variants for you, so there's no additional configuration required, only the regular publications:
 
-.Publishing a component with feature variants
+.Publishing a component with features
 ====
-include::sample[dir="snippets/java-feature-variant/producer/kotlin",files="build.gradle.kts[tags=plugins,publishing]"]
-include::sample[dir="snippets/java-feature-variant/producer/groovy",files="build.gradle[tags=plugins,publishing]"]
+include::sample[dir="snippets/java-feature-variant/producer-separate-sourceset/kotlin",files="build.gradle.kts[tags=plugins,publishing]"]
+include::sample[dir="snippets/java-feature-variant/producer-separate-sourceset/groovy",files="build.gradle[tags=plugins,publishing]"]
 ====
 
 [[sub:javadoc_sources_features_variants]]
 === Adding javadoc and sources JARs
 
-Similar to the <<building_java_projects.adoc#sec:java_packaging,main Javadoc and sources JARs>>, you can configure the added feature variant so that it produces JARs for the Javadoc and sources.
-This however only makes sense when using a source set other than the main one.
+Similar to the <<building_java_projects.adoc#sec:java_packaging,main Javadoc and sources JARs>>, you can configure the added feature so that it produces JARs for the Javadoc and sources.
 
-.Producing javadoc and sources JARs for feature variants
+.Producing javadoc and sources JARs for features
 ====
 include::sample[dir="snippets/java-feature-variant/producer-separate-sourceset/kotlin",files="build.gradle.kts[tags=register_variant_extra_jars]"]
 include::sample[dir="snippets/java-feature-variant/producer-separate-sourceset/groovy",files="build.gradle[tags=register_variant_extra_jars]"]
 ====
 
 [[sec::consuming_feature_variants]]
-== Dependencies on feature variants
+== Dependencies on features
 
 [WARNING]
 ====
-As mentioned earlier, feature variants can be lossy when published.
-As a consequence, a consumer can depend on a feature variant only in these cases:
+As mentioned earlier, features can be lossy when published.
+As a consequence, a consumer can depend on a feature only in these cases:
 
 - with a project dependency (in a multi-project build)
 - with Gradle Module Metadata available, that is the publisher MUST have published it
@@ -179,7 +187,7 @@ include::sample[dir="snippets/java-feature-variant/requiring-features/groovy/con
 This will automatically bring the `mysql-connector-java` dependency on the runtime classpath.
 If there were more than one dependency, all of them would be brought, meaning that a feature can be used to group dependencies which contribute to a feature together.
 
-Similarly, if an external library with feature variants was published with {metadata-file-spec}[Gradle Module Metadata], it is possible to depend on a feature provided by that library:
+Similarly, if an external library with features was published with {metadata-file-spec}[Gradle Module Metadata], it is possible to depend on a feature provided by that library:
 
 .Consuming specific features from an external repository
 ====
@@ -194,11 +202,11 @@ include::sample[dir="snippets/java-feature-variant/requiring-features-external/g
 The main advantage of using _capabilities_ as a way to handle features is that you can precisely handle compatibility of variants.
 The rule is simple:
 
-> It's not allowed to have two variants of components that provide the same capability in a single dependency graph.
+> No two variants in a dependency graph can provide the same capability
 
-We can leverage that to ask Gradle to fail whenever the user mis-configures dependencies.
-Imagine, for example, that your library supports MySQL, Postgres and MongoDB, but that it's only allowed to choose _one_ of those at the same time.
-Not allowed should directly translate to "provide the same capability", so there must be a capability provided by all three features:
+We can leverage this to ensure that Gradle fails whenever the user mis-configures dependencies.
+Consider a situation where your library supports MySQL, Postgres and MongoDB, but that it's only allowed to choose _one_ of those at the same time.
+We can model this restriction by ensuring each feature also provides the same capability, thus making it impossible for these features to be used together in the same graph.
 
 .A producer of multiple features that are mutually exclusive
 ====
@@ -206,13 +214,13 @@ include::sample[dir="snippets/java-feature-variant/incompatible-variants/kotlin/
 include::sample[dir="snippets/java-feature-variant/incompatible-variants/groovy/producer",files="build.gradle[tags=producer]"]
 ====
 
-Here, the producer declares 3 variants, one for each database runtime support:
+Here, the producer declares 3 features, one for each database runtime support:
 
 - `mysql-support` provides both the `db-support` and `mysql-support` capabilities
 - `postgres-support` provides both the `db-support` and `postgres-support` capabilities
 - `mongo-support` provides both the `db-support` and `mongo-support` capabilities
 
-Then if the consumer tries to get both the `postgres-support` and `mysql-support` like this (this also works transitively):
+Then if the consumer tries to get both the `postgres-support` and `mysql-support` features like this (this also works transitively):
 
 .A consumer trying to use 2 incompatible variants at the same time
 ====

@@ -9,20 +9,26 @@ repositories {
 group = 'org.gradle.demo'
 version = '1.0'
 
+sourceSets {
+    mysqlSupport
+    postgresSupport
+    mongoSupport
+}
+
 // tag::producer[]
 java {
     registerFeature('mysqlSupport') {
-        usingSourceSet(sourceSets.main)
+        usingSourceSet(sourceSets.mysqlSupport)
         capability('org.gradle.demo', 'producer-db-support', '1.0')
         capability('org.gradle.demo', 'producer-mysql-support', '1.0')
     }
     registerFeature('postgresSupport') {
-        usingSourceSet(sourceSets.main)
+        usingSourceSet(sourceSets.postgresSupport)
         capability('org.gradle.demo', 'producer-db-support', '1.0')
         capability('org.gradle.demo', 'producer-postgres-support', '1.0')
     }
     registerFeature('mongoSupport') {
-        usingSourceSet(sourceSets.main)
+        usingSourceSet(sourceSets.mongoSupport)
         capability('org.gradle.demo', 'producer-db-support', '1.0')
         capability('org.gradle.demo', 'producer-mongo-support', '1.0')
     }
