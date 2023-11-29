@@ -81,13 +81,16 @@ fun schemaFromTypes(
 
 class PreIndex {
     private val properties = mutableMapOf<KClass<*>, MutableMap<String, DataProperty>>()
+    private val propertyOriginalTypes = mutableMapOf<KClass<*>, MutableMap<String, KType>>()
 
     fun addType(kClass: KClass<*>) {
         properties.getOrPut(kClass) { mutableMapOf() }
+        propertyOriginalTypes.getOrPut(kClass) { mutableMapOf() }
     }
 
-    fun addProperty(kClass: KClass<*>, property: DataProperty) {
+    fun addProperty(kClass: KClass<*>, property: DataProperty, originalType: KType) {
         properties.getOrPut(kClass) { mutableMapOf() }[property.name] = property
+        propertyOriginalTypes.getOrPut(kClass) { mutableMapOf() }[property.name] = originalType
     }
 
     fun hasType(kClass: KClass<*>): Boolean = kClass in properties
@@ -95,6 +98,7 @@ class PreIndex {
     fun getAllProperties(kClass: KClass<*>): List<DataProperty> = properties[kClass]?.values.orEmpty().toList()
 
     fun getProperty(kClass: KClass<*>, name: String) = properties[kClass]?.get(name)
+    fun getPropertyType(kClass: KClass<*>, name: String) = propertyOriginalTypes[kClass]?.get(name)
 }
 
 fun createPreIndex(types: List<KClass<*>>): PreIndex {
@@ -102,7 +106,7 @@ fun createPreIndex(types: List<KClass<*>>): PreIndex {
         types.forEach { type ->
             addType(type)
             val properties = extractProperties(type)
-            properties.forEach { addProperty(type, DataProperty(it.name, it.returnType, it.isReadOnly, it.hasDefaultValue)) }
+            properties.forEach { addProperty(type, DataProperty(it.name, it.returnType, it.isReadOnly, it.hasDefaultValue), it.originalReturnType) }
         }
     }
 }
@@ -144,7 +148,7 @@ private fun memberPropertiesOf(kClass: KClass<*>): List<CollectedPropertyInforma
 private fun propertiesFromAccessorsOf(kClass: KClass<*>): List<CollectedPropertyInformation> {
     val functionsByName = kClass.memberFunctions.groupBy { it.name }
     val getters = functionsByName
-        .filterKeys { it.startsWith("get") && it.substringAfter("get").first().isUpperCase() }
+        .filterKeys { it.startsWith("get") && it.substringAfter("get").firstOrNull()?.isUpperCase() == true }
         .mapValues { (_, functions) -> functions.singleOrNull { fn -> fn.parameters.all { it == fn.instanceParameter } } }
         .filterValues { it != null && it.isIncluded }
     return getters.map { (name, getter) ->
@@ -153,7 +157,7 @@ private fun propertiesFromAccessorsOf(kClass: KClass<*>): List<CollectedProperty
         val propertyName = nameAfterGet.decapitalize()
         val type = getter.returnType.toDataTypeRefOrError()
         val hasSetter = functionsByName["set$nameAfterGet"].orEmpty().any { fn -> fn.parameters.singleOrNull { it != fn.instanceParameter }?.type == getter.returnType }
-        CollectedPropertyInformation(propertyName, type, !hasSetter, true)
+        CollectedPropertyInformation(propertyName, getter.returnType, type, !hasSetter, true)
     }
 }
 
@@ -161,6 +165,7 @@ private fun kPropertyInformation(property: KProperty<*>): CollectedPropertyInfor
     val isReadOnly = property !is KMutableProperty<*>
     return CollectedPropertyInformation(
         property.name,
+        property.returnType,
         property.returnType.toDataTypeRefOrError(),
         isReadOnly,
         hasDefaultValue = run {
@@ -171,6 +176,7 @@ private fun kPropertyInformation(property: KProperty<*>): CollectedPropertyInfor
 
 private data class CollectedPropertyInformation(
     val name: String,
+    val originalReturnType: KType,
     val returnType: DataTypeRef,
     val isReadOnly: Boolean,
     val hasDefaultValue: Boolean
@@ -218,11 +224,8 @@ private fun memberFunction(
 
     val semanticsFromSignature = inferFunctionSemanticsFromSignature(function, function.returnType, inType, preIndex, configureLambdas)
     val maybeConfigureType = if (semanticsFromSignature is FunctionSemantics.AccessAndConfigure) {
-        // TODO: be careful with non-class types?
-        inType.memberProperties.find {
-            it.name == function.name ||
-                function.annotations.filterIsInstance<Configuring>().singleOrNull()?.propertyName == it.name
-        }?.returnType
+        function.annotations.filterIsInstance<Configuring>().singleOrNull()?.propertyName?.let { preIndex.getPropertyType(inType, it) }
+            ?: preIndex.getPropertyType(inType, function.name)
     } else null
 
     val params = fnParams
@@ -274,18 +277,20 @@ private fun inferFunctionSemanticsFromSignature(
             val annotation = function.annotations.filterIsInstance<Configuring>().singleOrNull()
             check(annotation != null)
             val propertyName = annotation.propertyName.ifEmpty { function.name }
-            val kProperty = inType.memberProperties.find { it.name == propertyName }
+            val kProperty = preIndex.getProperty(inType, propertyName)
+            val originalType = preIndex.getPropertyType(inType, propertyName)
             check(kProperty != null)
+            check(originalType != null)
             val property = preIndex.getProperty(inType, propertyName)
             check(property != null)
 
             val hasConfigureLambda =
-                configureLambdas.isConfigureLambdaForType(kProperty.returnType, function.parameters.last().type)
+                configureLambdas.isConfigureLambdaForType(originalType, function.parameters.last().type)
 
             check(hasConfigureLambda)
             val returnType = when (function.returnType) {
                 typeOf<Unit>() -> FunctionSemantics.AccessAndConfigure.ReturnType.UNIT
-                kProperty.returnType -> FunctionSemantics.AccessAndConfigure.ReturnType.CONFIGURED_OBJECT
+                originalType -> FunctionSemantics.AccessAndConfigure.ReturnType.CONFIGURED_OBJECT
                 else -> error("cannot infer the return type of a configuring function; it must be Unit or the configured object type")
             }
             FunctionSemantics.AccessAndConfigure(ConfigureAccessor.Property(inType.toDataTypeRef(), property), returnType)
