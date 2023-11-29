@@ -85,7 +85,6 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         String destDirName = hashOf(sourceSnapshot);
         File destDir = new File(cacheDir, destDirName);
         String destFileName = sourceSnapshot.getType() == FileType.Directory ? source.getName() + ".jar" : source.getName();
-        destFileName = decorateDestinationFileName(source, destFileName, typeRegistry);
         File receipt = new File(destDir, destFileName + ".receipt");
         File transformed = new File(destDir, destFileName);
 
@@ -135,9 +134,5 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
 
     private void transform(File source, File dest, InstrumentingTypeRegistry typeRegistry) {
         classpathElementTransformFactory.createTransformer(source, this.transform, typeRegistry).transform(dest);
-    }
-
-    private String decorateDestinationFileName(File source, String dest, InstrumentingTypeRegistry typeRegistry) {
-        return classpathElementTransformFactory.createTransformer(source, this.transform, typeRegistry).decorateDestinationFileName(dest);
     }
 }

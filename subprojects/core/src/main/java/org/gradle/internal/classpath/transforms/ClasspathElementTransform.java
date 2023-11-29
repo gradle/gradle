@@ -28,12 +28,4 @@ public interface ClasspathElementTransform {
      * @param destination the destination file
      */
     void transform(File destination);
-
-    /**
-     * Modifies the default destination file name if necessary.
-     *
-     * @param rawDestinationName the original destination jar name
-     * @return the modified destination file name
-     */
-    String decorateDestinationFileName(String rawDestinationName);
 }

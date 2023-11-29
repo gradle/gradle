@@ -30,7 +30,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.classpath.InPlaceClasspathBuilder;
-import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForAgent;
@@ -43,8 +42,13 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import static org.gradle.api.internal.initialization.transform.InstrumentingArtifactTransform.InstrumentArtifactTransformParameters;
+import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_JAR_DIR_NAME;
+import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_MARKER_FILE_NAME;
+import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_JAR_DIR_NAME;
 
 /**
  * Artifact transform that instruments plugins with Gradle instrumentation, e.g. for configuration cache detection or property upgrades.
@@ -82,10 +86,13 @@ public abstract class InstrumentingArtifactTransform implements TransformAction<
             return;
         }
 
+        // A marker file that indicates that the result is instrumented jar,
+        // this is important so TransformedClassPath can correctly filter instrumented jars.
+        createNewFile(outputs.file(INSTRUMENTED_MARKER_FILE_NAME));
+
         // Instrument jars
-        String instrumentedJarName = getInput().get().getAsFile().getName().replaceFirst("\\.jar$", TransformedClassPath.INSTRUMENTED_JAR_EXTENSION);
         InstrumentationServices instrumentationServices = getObjects().newInstance(InstrumentationServices.class);
-        File outputFile = outputs.file(instrumentedJarName);
+        File outputFile = outputs.file(INSTRUMENTED_JAR_DIR_NAME + "/" + getInput().get().getAsFile().getName());
         ClasspathElementTransformFactory transformFactory = instrumentationServices.getTransformFactory(getParameters().getAgentSupported().get());
         ClasspathElementTransform transform = transformFactory.createTransformer(getInputAsFile(), new InstrumentingClassTransform(), InstrumentingTypeRegistry.EMPTY);
         transform.transform(outputFile);
@@ -95,10 +102,19 @@ public abstract class InstrumentingArtifactTransform implements TransformAction<
             // The global caches are additive only, so we can use it directly since it shouldn't be deleted or changed during the build.
             outputs.file(getInput());
         } else {
-            File copyOfOriginalFile = outputs.file(getInputAsFile().getName());
+            File copyOfOriginalFile = outputs.file(ORIGINAL_JAR_DIR_NAME + "/" + getInputAsFile().getName());
             GFileUtils.copyFile(getInputAsFile(), copyOfOriginalFile);
         }
     }
+
+    private boolean createNewFile(File file) {
+        try {
+            return file.createNewFile();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
 
     static class InstrumentationServices {
 

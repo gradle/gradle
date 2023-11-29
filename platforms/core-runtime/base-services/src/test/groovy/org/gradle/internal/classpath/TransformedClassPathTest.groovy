@@ -18,6 +18,8 @@ package org.gradle.internal.classpath
 
 import spock.lang.Specification
 
+import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_MARKER_FILE_NAME
+
 class TransformedClassPathTest extends Specification {
     def "transformed jars are returned when present"() {
         given:
@@ -181,18 +183,18 @@ class TransformedClassPathTest extends Specification {
         cp.findTransformedJarFor(file(original)) == (transformed != null ? file(transformed) : null)
 
         where:
-        inputClassPath                                  | outputClassPath             | original | transformed
-        classPath("1.jiar", "1.jar")                    | classPath("1.jar")          | "1.jar"  | "1.jiar"
-        classPath("1.jiar", "1.jar", "2.jar")           | classPath("1.jar", "2.jar") | "1.jar"  | "1.jiar"
-        classPath("1.jiar", "1.jar", "2.jar")           | classPath("1.jar", "2.jar") | "2.jar"  | null
-        classPath("1.jar", "2.jiar", "2.jar")           | classPath("1.jar", "2.jar") | "2.jar"  | "2.jiar"
-        classPath("1.jar", "2.jiar", "2.jar")           | classPath("1.jar", "2.jar") | "1.jar"  | null
-        classPath("1.jiar", "1.jar", "2.jiar", "2.jar") | classPath("1.jar", "2.jar") | "1.jar"  | "1.jiar"
-        classPath("1.jiar", "1.jar", "2.jiar", "2.jar") | classPath("1.jar", "2.jar") | "2.jar"  | "2.jiar"
+        inputClassPath                                                                                                                                  | outputClassPath             | original | transformed
+        classPath(INSTRUMENTED_MARKER_FILE_NAME, "instrumented/1.jar", "1.jar")                                                                         | classPath("1.jar")          | "1.jar"  | "instrumented/1.jar"
+        classPath(INSTRUMENTED_MARKER_FILE_NAME, "instrumented/1.jar", "1.jar", "2.jar")                                                                | classPath("1.jar", "2.jar") | "1.jar"  | "instrumented/1.jar"
+        classPath(INSTRUMENTED_MARKER_FILE_NAME, "instrumented/1.jar", "1.jar", "2.jar")                                                                | classPath("1.jar", "2.jar") | "2.jar"  | null
+        classPath("1.jar", INSTRUMENTED_MARKER_FILE_NAME, "instrumented/2.jar", "2.jar")                                                                | classPath("1.jar", "2.jar") | "2.jar"  | "instrumented/2.jar"
+        classPath("1.jar", INSTRUMENTED_MARKER_FILE_NAME, "instrumented/2.jar", "2.jar")                                                                | classPath("1.jar", "2.jar") | "1.jar"  | null
+        classPath("1/$INSTRUMENTED_MARKER_FILE_NAME", "instrumented/1.jar", "1.jar", "2/$INSTRUMENTED_MARKER_FILE_NAME", "instrumented/2.jar", "2.jar") | classPath("1.jar", "2.jar") | "1.jar"  | "instrumented/1.jar"
+        classPath("1/$INSTRUMENTED_MARKER_FILE_NAME", "instrumented/1.jar", "1.jar", "2/$INSTRUMENTED_MARKER_FILE_NAME", "instrumented/2.jar", "2.jar") | classPath("1.jar", "2.jar") | "2.jar"  | "instrumented/2.jar"
 
-        classPath("1.jar")                              | classPath("1.jar")          | "1.jar"  | null
-        classPath("1.jar", "2.jar")                     | classPath("1.jar", "2.jar") | "1.jar"  | null
-        classPath("1.jar", "2.jar")                     | classPath("1.jar", "2.jar") | "2.jar"  | null
+        classPath("1.jar")                                                                                                                              | classPath("1.jar")          | "1.jar"  | null
+        classPath("1.jar", "2.jar")                                                                                                                     | classPath("1.jar", "2.jar") | "1.jar"  | null
+        classPath("1.jar", "2.jar")                                                                                                                     | classPath("1.jar", "2.jar") | "2.jar"  | null
     }
 
     def "invalid instrumenting artifact transform outputs are detected"() {
@@ -203,11 +205,13 @@ class TransformedClassPathTest extends Specification {
         thrown IllegalArgumentException
 
         where:
-        inputClassPath                          | _
-        transformedClassPath("1.jar": "1.jiar") | _
-        classPath("1.jiar")                     | _
-        classPath("1.jiar", "2.jiar")           | _
-        classPath("1.jar", "1.jiar")            | _
+        inputClassPath                                                                                                      | _
+        transformedClassPath("1.jar": "instrumented/1.jar")                                                                 | _
+        classPath(INSTRUMENTED_MARKER_FILE_NAME, "instrumented/1.jar")                                                      | _
+        classPath(INSTRUMENTED_MARKER_FILE_NAME, "instrumented/1.jar", INSTRUMENTED_MARKER_FILE_NAME, "instrumented/2.jar") | _
+        classPath(INSTRUMENTED_MARKER_FILE_NAME, "instrumented/1.jar", "2.jar")                                             | _
+        classPath(INSTRUMENTED_MARKER_FILE_NAME, "1.jar", "1.jar")                                                          | _
+        classPath(INSTRUMENTED_MARKER_FILE_NAME, "1.jar", "instrumented/1.jar")                                             | _
     }
 
     def "instrumenting artifact transform output is recognized"() {
@@ -219,14 +223,14 @@ class TransformedClassPathTest extends Specification {
         cp.asFiles == outputClassPath.asFiles
 
         where:
-        inputClassPath                                  | outputClassPath
-        classPath("1.jiar", "1.jar")                    | classPath("1.jar")
-        classPath("1.jiar", "1.jar", "2.jar")           | classPath("1.jar", "2.jar")
-        classPath("1.jiar", "1.jar", "2.jar")           | classPath("1.jar", "2.jar")
-        classPath("1.jar", "2.jiar", "2.jar")           | classPath("1.jar", "2.jar")
-        classPath("1.jar", "2.jiar", "2.jar")           | classPath("1.jar", "2.jar")
-        classPath("1.jiar", "1.jar", "2.jiar", "2.jar") | classPath("1.jar", "2.jar")
-        classPath("1.jiar", "1.jar", "2.jiar", "2.jar") | classPath("1.jar", "2.jar")
+        inputClassPath                                                                                                                             | outputClassPath
+        classPath(INSTRUMENTED_MARKER_FILE_NAME, "instrumented/1.jar", "1.jar")                                                                    | classPath("1.jar")
+        classPath(INSTRUMENTED_MARKER_FILE_NAME, "instrumented/1.jar", "1.jar", "2.jar")                                                           | classPath("1.jar", "2.jar")
+        classPath(INSTRUMENTED_MARKER_FILE_NAME, "instrumented/1.jar", "1.jar", "2.jar")                                                           | classPath("1.jar", "2.jar")
+        classPath("1.jar", "2/$INSTRUMENTED_MARKER_FILE_NAME", "instrumented/2.jar", "2.jar")                                                      | classPath("1.jar", "2.jar")
+        classPath("1.jar", "2/$INSTRUMENTED_MARKER_FILE_NAME", "instrumented/2.jar", "2.jar")                                                      | classPath("1.jar", "2.jar")
+        classPath(INSTRUMENTED_MARKER_FILE_NAME, "instrumented/1.jar", "1.jar", "2/$INSTRUMENTED_MARKER_FILE_NAME", "instrumented/2.jar", "2.jar") | classPath("1.jar", "2.jar")
+        classPath(INSTRUMENTED_MARKER_FILE_NAME, "instrumented/1.jar", "1.jar", "2/$INSTRUMENTED_MARKER_FILE_NAME", "instrumented/2.jar", "2.jar") | classPath("1.jar", "2.jar")
     }
 
     def "not instrumenting artifact transform output is recognized"() {
@@ -245,7 +249,7 @@ class TransformedClassPathTest extends Specification {
         ClassPath.EMPTY                                 | ClassPath.EMPTY
     }
 
-    def "transformedclasspath is recognized"() {
+    def "transformed classpath is recognized"() {
         when:
         ClassPath cp = TransformedClassPath.handleInstrumentingArtifactTransform(inputClassPath)
 
@@ -255,8 +259,8 @@ class TransformedClassPathTest extends Specification {
 
         where:
         inputClassPath                          | outputClassPath
-        transformedClassPath("1.jar": "1.jiar") | classPath("1.jar")
-        transformedClassPath("1.jiar": "1.jar") | classPath("1.jiar")
+        transformedClassPath("1.jar": "instrumented/1.jar") | classPath("1.jar")
+        transformedClassPath("instrumented/1.jar": "1.jar") | classPath("instrumented/1.jar")
     }
 
     private static File file(String path) {

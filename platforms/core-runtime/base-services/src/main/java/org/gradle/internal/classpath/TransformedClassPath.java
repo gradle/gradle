@@ -16,7 +16,6 @@
 
 package org.gradle.internal.classpath;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.specs.Spec;
@@ -32,6 +31,8 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 /**
  * A special ClassPath that keeps track of the transformed "doubles" of the original classpath entries (JARs and class directories).
  * An entry can only appear once in the class path, regardless of having a transformed "double".
@@ -43,7 +44,13 @@ import java.util.Set;
  * The class loaders constructed from this classpath can replace classes from the original classpath entries with transformed ones (from "double") when loading.
  */
 public class TransformedClassPath implements ClassPath {
-    public static final String INSTRUMENTED_JAR_EXTENSION = ".jiar";
+
+    /**
+     * A marker file put next to the instrumented jar to indicate that the jar is instrumented.
+     */
+    public static final String INSTRUMENTED_MARKER_FILE_NAME = ".gradle-instrumented.marker";
+    public static final String INSTRUMENTED_JAR_DIR_NAME = "instrumented";
+    public static final String ORIGINAL_JAR_DIR_NAME = "original";
 
     private final ClassPath originalClassPath;
     // mapping of original -> "double"
@@ -243,8 +250,8 @@ public class TransformedClassPath implements ClassPath {
      * Constructs a TransformedClassPath out of the ordinary JAR/directory list, potentially produced by the instrumenting ArtifactTransform.
      * The list is interpreted as follows:
      * <ul>
-     *     <li>An entry with "jiar" extension is considered an instrumented JAR. The following entry is considered the original of this instrumented JAR.</li>
-     *     <li>A "jar" or directory entry not preceded by "jiar" is considered non-transformed original JAR and is appended to the resulting classpath as is.</li>
+     *     <li>An entry after {@link TransformedClassPath#INSTRUMENTED_MARKER_FILE_NAME} is considered an instrumented JAR and the following entry is considered the original of this instrumented JAR.</li>
+     *     <li>A "jar" or directory entry not preceded by {@link TransformedClassPath#INSTRUMENTED_MARKER_FILE_NAME} is considered non-transformed original JAR and is appended to the resulting classpath as is.</li>
      *     <li>The order of entries is kept intact.</li>
      * </ul>
      * <p>
@@ -255,7 +262,7 @@ public class TransformedClassPath implements ClassPath {
      * @throws IllegalArgumentException if the {@code classPath} is already a {@link TransformedClassPath} or if it doesn't conform to the spec.
      */
     public static TransformedClassPath fromInstrumentingArtifactTransformOutput(ClassPath classPath) {
-        Preconditions.checkArgument(!(classPath instanceof TransformedClassPath), "Cannot build the TransformedClassPath out of TransformedClassPath %s", classPath);
+        checkArgument(!(classPath instanceof TransformedClassPath), "Cannot build the TransformedClassPath out of TransformedClassPath %s", classPath);
         return fromInstrumentingArtifactTransformOutputWithExpectedSize(classPath, computeResultSizeOfInstrumentingArtifactTransformOutput(classPath));
     }
 
@@ -284,13 +291,18 @@ public class TransformedClassPath implements ClassPath {
         return fromInstrumentingArtifactTransformOutputWithExpectedSize(classPath, resultSize);
     }
 
+    /**
+     * Each instrumented JAR has a corresponding original entry, but not necessarily vice versa, so the number of originals is the size of the result.
+     */
     private static int computeResultSizeOfInstrumentingArtifactTransformOutput(ClassPath classPath) {
         int resultSize = 0;
-        for (File inputFile : classPath.getAsFiles()) {
-            // Each instrumented JAR has the corresponding original entry, but not necessarily vice versa, so the number of originals is the size of the result.
-            if (!isInstrumentedJar(inputFile)) {
-                ++resultSize;
+        for (int i = 0; i < classPath.getAsFiles().size(); ++i) {
+            File inputFile = classPath.getAsFiles().get(i);
+            if (isInstrumentedMarkerFile(inputFile)) {
+                // Marker file will be followed by instrumented jar and original jar.
+                i += 2;
             }
+            ++resultSize;
         }
         return resultSize;
     }
@@ -301,11 +313,13 @@ public class TransformedClassPath implements ClassPath {
         Builder result = builderWithExactSize(resultSize);
         for (int i = 0; i < inputFiles.size(); ++i) {
             File inputFile = inputFiles.get(i);
-            if (isInstrumentedJar(inputFile)) {
-                Preconditions.checkArgument(i + 1 < inputFiles.size() && !isInstrumentedJar(inputFiles.get(i + 1)), "Missing the original JAR for the instrumented JAR %s", inputFile.getPath());
-                File originalEntry = inputFiles.get(i + 1);
-                result.add(originalEntry, inputFile);
-                ++i; // Skip the original entry.
+            if (isInstrumentedMarkerFile(inputFile)) {
+                checkArgument(i + 2 < inputFiles.size(), "Missing the instrumented or original JAR for classpath %s", inputFiles);
+                File instrumentedJar = inputFiles.get(i + 1);
+                File originalJar = inputFiles.get(i + 2);
+                checkArgument(areInstrumentedAndOriginalJarValid(instrumentedJar, originalJar), "Instrumented JAR doesn't match original JAR %s", originalJar.getName());
+                result.add(originalJar, instrumentedJar);
+                i += 2;
             } else {
                 result.addUntransformed(inputFile);
             }
@@ -314,8 +328,15 @@ public class TransformedClassPath implements ClassPath {
         return result.build();
     }
 
-    private static boolean isInstrumentedJar(File classPathEntry) {
-        return classPathEntry.getName().endsWith(INSTRUMENTED_JAR_EXTENSION);
+    private static boolean areInstrumentedAndOriginalJarValid(File instrumentedJar, File originalJar) {
+        return instrumentedJar.getParentFile() != null
+            && instrumentedJar.getParentFile().getName().equals(INSTRUMENTED_JAR_DIR_NAME)
+            && !originalJar.equals(instrumentedJar)
+            && instrumentedJar.getName().equals(originalJar.getName());
+    }
+
+    private static boolean isInstrumentedMarkerFile(File classPathEntry) {
+        return classPathEntry.getName().equals(INSTRUMENTED_MARKER_FILE_NAME);
     }
 
     /**

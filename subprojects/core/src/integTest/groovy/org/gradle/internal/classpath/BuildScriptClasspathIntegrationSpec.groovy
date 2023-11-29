@@ -241,7 +241,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         succeeds("showBuildscript")
 
         then:
-        def jar = inJar9Cache("proj.jiar").assertExists()
+        def jar = inJar9Cache("proj.jar").assertExists()
         journal.assertExists()
 
         when:
@@ -508,8 +508,8 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         expect:
         succeeds("printMessage", "--info")
 
-        getArtifactTransformJarsByName("testClasses.jar").size() == 1
-        getArtifactTransformJarsByName("testClasses.jiar").size() == 1
+        getArtifactTransformJarsByName("original/testClasses.jar").size() == 1
+        getArtifactTransformJarsByName("instrumented/testClasses.jar").size() == 1
     }
 
     void notInJar9Cache(String filename) {

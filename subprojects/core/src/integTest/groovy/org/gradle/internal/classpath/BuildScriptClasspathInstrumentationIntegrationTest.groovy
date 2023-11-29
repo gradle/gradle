@@ -46,10 +46,10 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks")
 
         then:
-        gradleUserHomeOutput("buildSrc.jar").exists()
-        gradleUserHomeOutput("buildSrc.jiar").exists()
-        gradleUserHomeOutput("included-1.0.jar").exists()
-        gradleUserHomeOutput("included-1.0.jiar").exists()
+        gradleUserHomeOutput("original/buildSrc.jar").exists()
+        gradleUserHomeOutput("instrumented/buildSrc.jar").exists()
+        gradleUserHomeOutput("original/included-1.0.jar").exists()
+        gradleUserHomeOutput("instrumented/included-1.0.jar").exists()
     }
 
     def "buildSrc and included build should be just instrumented and not upgraded"() {
@@ -91,8 +91,8 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks")
 
         then:
-        gradleUserHomeOutputs("commons-lang3-3.8.1.jar").isEmpty()
-        gradleUserHomeOutput("commons-lang3-3.8.1.jiar").exists()
+        gradleUserHomeOutputs("original/commons-lang3-3.8.1.jar").isEmpty()
+        gradleUserHomeOutput("instrumented/commons-lang3-3.8.1.jar").exists()
     }
 
     def withBuildSrc() {
