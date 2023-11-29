@@ -28,13 +28,14 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Unroll
 
 import java.nio.file.Files
 import java.util.stream.Collectors
+
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
     static final int MAX_CACHE_AGE_IN_DAYS = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES
@@ -493,7 +494,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         }
 
         Closure<String> subprojectSource = {File jarPath -> """
-            buildscript { dependencies { classpath files("${TextUtil.normaliseFileSeparators(jarPath.absolutePath)}") } }
+            buildscript { dependencies { classpath files("${normaliseFileSeparators(jarPath.absolutePath)}") } }
 
             tasks.register("printMessage") { doLast { println (new org.gradle.test.BuildClass().message()) } }
         """}
@@ -551,7 +552,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
      * @return the list of transformed JARs in the cache
      */
     List<File> getArtifactTransformJarsByName(String jarName) {
-        return Files.find(artifactTransformCacheDir.toPath(), 4, (path, attributes) -> path.toString().endsWith(jarName))
+        return Files.find(artifactTransformCacheDir.toPath(), 4, (path, attributes) -> normaliseFileSeparators(path.toString()).endsWith(jarName))
             .map { new TestFile(it.toFile()) }
             .collect(Collectors.toList())
     }

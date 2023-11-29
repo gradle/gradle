@@ -42,7 +42,7 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutator extends ClearArt
         Files.walkFileTree(cacheDir.toPath(), new FileVisitor<Path>() {
             @Override
             FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                if (Files.exists(dir.resolve(INSTRUMENTED_MARKER_FILE_NAME))) {
+                if (Files.exists(dir.resolve("transformed/$INSTRUMENTED_MARKER_FILE_NAME"))) {
                     return FileVisitResult.SKIP_SUBTREE
                 }
                 return FileVisitResult.CONTINUE

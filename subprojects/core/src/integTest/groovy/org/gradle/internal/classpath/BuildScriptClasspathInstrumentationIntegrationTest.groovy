@@ -16,7 +16,6 @@
 
 package org.gradle.internal.classpath
 
-
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
@@ -25,6 +24,8 @@ import org.gradle.test.fixtures.file.TestFile
 import java.nio.file.Files
 import java.util.regex.Pattern
 import java.util.stream.Collectors
+
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
 
@@ -144,7 +145,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
     }
 
     Set<TestFile> findOutputs(String outputEndsWith, File cacheDir) {
-        return Files.find(cacheDir.toPath(), 4, (path, attributes) -> path.toString().endsWith(outputEndsWith))
+        return Files.find(cacheDir.toPath(), 4, (path, attributes) -> normaliseFileSeparators(path.toString()).endsWith(outputEndsWith))
             .map { new TestFile(it.toFile()) }
             .collect(Collectors.toSet())
     }

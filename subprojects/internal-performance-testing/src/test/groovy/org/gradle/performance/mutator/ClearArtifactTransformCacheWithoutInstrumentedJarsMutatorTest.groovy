@@ -31,10 +31,12 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutatorTest extends Spec
     def "should cleanup all folders except the ones with instrumented jars"() {
         given:
         createFile(new File(gradleUserHome, "caches/transforms-1/first/transformed/file"))
+        createFile(new File(gradleUserHome, "caches/transforms-1/first/metadata.bin"))
         createFile(new File(gradleUserHome, "caches/transforms-1/first/transformed/instrumented/file"))
         createFile(new File(gradleUserHome, "caches/transforms-1/second/transformed/original/file"))
         createFile(new File(gradleUserHome, "caches/transforms-2/first/transformed/instrumented/file"))
         createFile(new File(gradleUserHome, "caches/transforms-2/first/transformed/original/file"))
+        createFile(new File(gradleUserHome, "caches/transforms-2/second/metadata.bin"))
         createFile(new File(gradleUserHome, "caches/transforms-2/second/transformed/$INSTRUMENTED_MARKER_FILE_NAME"))
         createFile(new File(gradleUserHome, "caches/transforms-2/second/transformed/instrumented/file"))
         createFile(new File(gradleUserHome, "caches/transforms-2/second/transformed/original/file"))
@@ -46,6 +48,7 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutatorTest extends Spec
         then:
         !new File(gradleUserHome, "caches/transforms-1/").exists()
         !new File(gradleUserHome, "caches/transforms-2/first").exists()
+        new File(gradleUserHome, "caches/transforms-2/second/metadata.bin").exists()
         new File(gradleUserHome, "caches/transforms-2/second/transformed/$INSTRUMENTED_MARKER_FILE_NAME").exists()
         new File(gradleUserHome, "caches/transforms-2/second/transformed/instrumented/file").exists()
         new File(gradleUserHome, "caches/transforms-2/second/transformed/original/file").exists()
