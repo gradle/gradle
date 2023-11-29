@@ -15,6 +15,8 @@
  */
 package org.gradle.api.initialization.resolve;
 
+import com.h0tk3y.kotlin.staticObjectNotation.Configuring;
+import com.h0tk3y.kotlin.staticObjectNotation.Restricted;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
@@ -35,12 +37,14 @@ public interface DependencyResolutionManagement {
      * @param repositoryConfiguration the repositories configuration
      */
     @Incubating
+    @Configuring
     void repositories(Action<? super RepositoryHandler> repositoryConfiguration);
 
     /**
      * Returns the shared repository handler
      */
     @Incubating
+    @Restricted
     RepositoryHandler getRepositories();
 
     @Incubating

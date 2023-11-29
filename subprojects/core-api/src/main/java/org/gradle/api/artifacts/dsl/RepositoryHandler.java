@@ -15,6 +15,7 @@
  */
 package org.gradle.api.artifacts.dsl;
 
+import com.h0tk3y.kotlin.staticObjectNotation.Adding;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
@@ -90,6 +91,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @return The Gradle Central Plugin Repository
      * @since 4.4
      */
+    @Adding
     ArtifactRepository gradlePluginPortal();
 
     /**
@@ -195,6 +197,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @return the added resolver
      * @see #mavenCentral(java.util.Map)
      */
+    @Adding
     MavenArtifactRepository mavenCentral();
 
     /**
@@ -280,6 +283,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @return the added resolver
      * @since 4.0
      */
+    @Adding
     MavenArtifactRepository google();
 
     /**

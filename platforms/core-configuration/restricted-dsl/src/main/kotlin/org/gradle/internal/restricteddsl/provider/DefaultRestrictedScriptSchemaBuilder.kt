@@ -16,12 +16,21 @@
 
 package org.gradle.internal.restricteddsl.provider
 
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.kotlinFunctionAsConfigureLambda
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.plus
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.schemaFromTypes
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.treatInterfaceAsConfigureLambda
+import org.gradle.api.Action
+import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.artifacts.repositories.ArtifactRepository
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.Settings
+import org.gradle.api.initialization.resolve.DependencyResolutionManagement
 import org.gradle.internal.restricteddsl.plugins.PluginDependencySpecWithProperties
 import org.gradle.internal.restricteddsl.plugins.PluginsTopLevelReceiver
 import org.gradle.internal.restricteddsl.plugins.RestrictedPluginDependenciesSpecScope
+import org.gradle.plugin.management.PluginManagementSpec
 
 
 internal
@@ -40,7 +49,17 @@ class DefaultRestrictedScriptSchemaBuilder : RestrictedScriptSchemaBuilder {
     val schemaForSettingsScript by lazy {
         schemaFromTypes(
             Settings::class,
-            listOf(Settings::class, ProjectDescriptor::class)
+            listOf(
+                Settings::class,
+                ProjectDescriptor::class,
+                Action::class,
+                PluginManagementSpec::class,
+                DependencyResolutionManagement::class,
+                RepositoryHandler::class,
+                MavenArtifactRepository::class,
+                ArtifactRepository::class
+            ),
+            configureLambdas = treatInterfaceAsConfigureLambda(Action::class).plus(kotlinFunctionAsConfigureLambda)
         )
     }
 
