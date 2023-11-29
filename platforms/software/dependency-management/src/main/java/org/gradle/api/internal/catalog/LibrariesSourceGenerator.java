@@ -33,7 +33,6 @@ import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ReportableProblem;
-import org.gradle.api.problems.ReportableProblemBuilder;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -530,10 +529,6 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             .noLocation()
             .category("dependency-version-catalog", TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()))
             .severity(ERROR);
-    }
-
-    private RuntimeException throwVersionCatalogProblemException(ReportableProblemBuilder problem) {
-        throw throwErrorWithNewProblemsApi(ERROR_HEADER, ImmutableList.of(problem.build()));
     }
 
     private void assertUnique(List<String> names, String prefix, String suffix) {

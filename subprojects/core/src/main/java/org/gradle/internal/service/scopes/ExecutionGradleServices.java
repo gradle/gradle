@@ -201,7 +201,7 @@ public class ExecutionGradleServices {
             sharedExecutionPipeline
         )))))))))))))))));
 
-        return new DefaultExecutionEngine(problems,
+        return new DefaultExecutionEngine(
             new IdentifyStep<>(buildOperationExecutor,
             new IdentityCacheStep<>(
             new ExecuteWorkBuildOperationFiringStep<>(buildOperationExecutor,

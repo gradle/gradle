@@ -90,12 +90,9 @@ public class ResolutionFailureHandler {
     private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
     private static final String AMBIGUOUS_TRANSFORMATION_SECTION = "sub:transform-ambiguity";
 
-    @SuppressWarnings("FieldCanBeLocal")
-    private final Problems problemsService;
     private final DocumentationRegistry documentationRegistry;
 
-    public ResolutionFailureHandler(Problems problemsService, DocumentationRegistry documentationRegistry) {
-        this.problemsService = problemsService;
+    public ResolutionFailureHandler(DocumentationRegistry documentationRegistry) {
         this.documentationRegistry = documentationRegistry;
     }
 

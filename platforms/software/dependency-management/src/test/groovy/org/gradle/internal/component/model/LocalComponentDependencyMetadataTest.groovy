@@ -44,7 +44,6 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.problems.TestProblemsUtil.createTestProblems
 import static com.google.common.collect.ImmutableList.copyOf
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
@@ -56,7 +55,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     def setup() {
         attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         factory = AttributeTestUtil.attributesFactory()
-        variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(createTestProblems(), new DocumentationRegistry()))
+        variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(new DocumentationRegistry()))
     }
 
     def "returns this when same target requested"() {

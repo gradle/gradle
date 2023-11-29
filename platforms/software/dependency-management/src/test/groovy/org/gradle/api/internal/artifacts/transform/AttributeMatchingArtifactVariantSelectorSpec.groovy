@@ -30,8 +30,6 @@ import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
-import static org.gradle.api.problems.TestProblemsUtil.createTestProblems
-
 class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
 
     def consumerProvidedVariantFinder = Mock(ConsumerProvidedVariantFinder)
@@ -59,7 +57,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
     }
 
     def factory = Mock(ArtifactVariantSelector.ResolvedArtifactTransformer)
-    def failureProcessor = new ResolutionFailureHandler(createTestProblems(), new DocumentationRegistry())
+    def failureProcessor = new ResolutionFailureHandler(new DocumentationRegistry())
 
     def 'direct match on variant means no finder interaction'() {
         given:
