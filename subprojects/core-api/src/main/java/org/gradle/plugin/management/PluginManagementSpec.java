@@ -16,6 +16,9 @@
 
 package org.gradle.plugin.management;
 
+import com.h0tk3y.kotlin.staticObjectNotation.Adding;
+import com.h0tk3y.kotlin.staticObjectNotation.Configuring;
+import com.h0tk3y.kotlin.staticObjectNotation.Restricted;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.ConfigurableIncludedPluginBuild;
@@ -33,11 +36,13 @@ public interface PluginManagementSpec {
     /**
      * Defines the plugin repositories to use.
      */
+    @Configuring
     void repositories(Action<? super RepositoryHandler> repositoriesAction);
 
     /**
      * The plugin repositories to use.
      */
+    @Restricted
     RepositoryHandler getRepositories();
 
     /**
@@ -69,6 +74,7 @@ public interface PluginManagementSpec {
      *
      * @since 7.0
      */
+    @Adding
     void includeBuild(String rootProject);
 
     /**
@@ -80,5 +86,4 @@ public interface PluginManagementSpec {
      * @since 7.0
      */
     void includeBuild(String rootProject, Action<ConfigurableIncludedPluginBuild> configuration);
-
 }
