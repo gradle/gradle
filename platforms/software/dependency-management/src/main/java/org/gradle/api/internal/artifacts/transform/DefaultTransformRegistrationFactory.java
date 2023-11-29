@@ -27,7 +27,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
-import org.gradle.api.problems.Problems;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileNormalizer;
@@ -66,7 +65,6 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final DomainObjectContext owner;
     private final InstantiationScheme actionInstantiationScheme;
-    private final Problems problems;
 
     public DefaultTransformRegistrationFactory(
         BuildOperationExecutor buildOperationExecutor,
@@ -80,8 +78,7 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
         DomainObjectContext owner,
         TransformParameterScheme parameterScheme,
         TransformActionScheme actionScheme,
-        ServiceLookup internalServices,
-        Problems problems
+        ServiceLookup internalServices
     ) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.isolatableFactory = isolatableFactory;
@@ -96,14 +93,13 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
         this.actionMetadataStore = actionScheme.getInspectionScheme().getMetadataStore();
         this.parametersPropertyWalker = parameterScheme.getInspectionScheme().getPropertyWalker();
         this.internalServices = internalServices;
-        this.problems = problems;
     }
 
     @Override
     public TransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject) {
         TypeMetadata actionMetadata = actionMetadataStore.getTypeMetadata(implementation);
         boolean cacheable = implementation.isAnnotationPresent(CacheableTransform.class);
-        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(problems, cacheable);
+        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable);
         actionMetadata.visitValidationFailures(null, validationContext);
 
         // Should retain this on the metadata rather than calculate on each invocation
@@ -153,8 +149,8 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
             actionInstantiationScheme,
             owner,
             calculatedValueContainerFactory,
-            internalServices,
-            problems);
+            internalServices
+        );
 
         return new DefaultTransformRegistration(from, to, new TransformStep(transform, transformInvocationFactory, owner, inputFingerprinter));
     }
