@@ -811,7 +811,7 @@ public class TestFile extends File {
     }
 
     public TestFile tarContentsTo(TestFile tarFile) {
-        new TestFileHelper(this).tarContentsTo(tarFile, useNativeTools);
+        new TestFileHelper(this).tarContentsTo(tarFile, useNativeTools, false);
         return this;
     }
 
@@ -821,6 +821,11 @@ public class TestFile extends File {
 
     public TestFile tgzTo(TestFile tarFile, boolean readOnly) {
         new TestFileHelper(this).tgzTo(tarFile, readOnly);
+        return this;
+    }
+
+    public TestFile tgzContentsTo(TestFile tarFile) {
+        new TestFileHelper(this).tarContentsTo(tarFile, useNativeTools, true);
         return this;
     }
 

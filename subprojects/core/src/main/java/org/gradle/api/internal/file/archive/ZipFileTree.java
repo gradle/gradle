@@ -17,15 +17,11 @@ package org.gradle.api.internal.file.archive;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
-import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.file.LinksStrategy;
-import org.gradle.api.file.SymbolicLinkDetails;
-import org.gradle.api.internal.file.DefaultFilePermissions;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.provider.Provider;
@@ -37,10 +33,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -94,40 +87,15 @@ public class ZipFileTree extends AbstractArchiveFileTree {
 
             AtomicBoolean stopFlag = new AtomicBoolean();
             File expandedDir = getExpandedDir();
-            LinksStrategy linksStrategy = visitor.linksStrategy();
             try (ZipFile zip = new ZipFile(zipFile)) {
-                // The iteration order of zip.getEntries() is based on the hash of the zip entry. This isn't much use
-                // to us. So, collect the entries in a map and iterate over them in alphabetical order.
-                Iterator<ZipArchiveEntry> sortedEntries = entriesSortedByName(zip);
-                while (!stopFlag.get() && sortedEntries.hasNext()) {
-                    ZipArchiveEntry entry = sortedEntries.next();
-
-                    SymbolicLinkDetails linkDetails = null;
-                    if (entry.isUnixSymlink()) {
-                        linkDetails = new SymbolicLinkDetailsImpl(entry, zip);
-                    }
-                    boolean preserveLink = linksStrategy.shouldBePreserved(linkDetails, entry.getName());
-                    DetailsImpl details = new DetailsImpl(zipFile, expandedDir, entry, zip, stopFlag, chmod, linkDetails, preserveLink);
-                    if (entry.isDirectory()) {
-                        visitor.visitDir(details);
-                    } else {
-                        visitor.visitFile(details);
-                    }
-                }
+                ZipVisitor zipVisitor = new ZipVisitor(zip, zipFile, expandedDir, visitor, stopFlag, chmod);
+                zipVisitor.visitAll();
+            } catch (GradleException e) {
+                throw e;
             } catch (Exception e) {
                 throw new GradleException(format("Cannot expand %s.", getDisplayName()), e);
             }
         });
-    }
-
-    private Iterator<ZipArchiveEntry> entriesSortedByName(ZipFile zip) {
-        Map<String, ZipArchiveEntry> entriesByName = new TreeMap<>();
-        Enumeration<ZipArchiveEntry> entries = zip.getEntries();
-        while (entries.hasMoreElements()) {
-            ZipArchiveEntry entry = entries.nextElement();
-            entriesByName.put(entry.getName(), entry);
-        }
-        return entriesByName.values().iterator();
     }
 
     @Override
@@ -141,108 +109,115 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         return new File(decompressionCache.getBaseDir(), expandedDirName);
     }
 
-    private static final class DetailsImpl extends AbstractArchiveFileTreeElement {
-        private final File originalFile;
-        private final ZipArchiveEntry entry;
+    private static final class ZipVisitor extends ArchiveVisitor<ZipArchiveEntry> {
         private final ZipFile zip;
-        private final SymbolicLinkDetails linkDetails;
-        private final boolean preserveLink;
 
-        public DetailsImpl(
-            File originalFile,
-            File expandedDir,
-            ZipArchiveEntry entry,
-            ZipFile zip,
-            AtomicBoolean stopFlag,
-            Chmod chmod,
-            @Nullable SymbolicLinkDetails linkDetails,
-            boolean preserveLink
-        ) {
-            super(chmod, expandedDir, stopFlag);
-            this.originalFile = originalFile;
-            this.entry = entry;
+        public ZipVisitor(ZipFile zip, File zipFile, File expandedDir, FileVisitor visitor, AtomicBoolean stopFlag, Chmod chmod) {
+            super(zipFile, expandedDir, visitor, stopFlag, chmod);
             this.zip = zip;
-            this.preserveLink = preserveLink;
-            this.linkDetails = linkDetails;
         }
 
         @Override
-        public String getDisplayName() {
-            return format("zip entry %s!%s", originalFile, entry.getName());
+        protected TreeMap<String, ZipArchiveEntry> getEntries() {
+            if (entries == null) {
+                // The iteration order of zip.getEntries() is based on the hash of the zip entry. This isn't much use
+                // to us. So, collect the entries in a map and iterate over them in alphabetical order.
+                TreeMap<String, ZipArchiveEntry> entriesByName = new TreeMap<>();
+                Enumeration<ZipArchiveEntry> allEntries = zip.getEntries();
+                while (allEntries.hasMoreElements()) {
+                    ZipArchiveEntry entry = allEntries.nextElement();
+                    entriesByName.put(getPath(entry), entry);
+                }
+                entries = entriesByName;
+            }
+            return entries;
         }
 
         @Override
-        protected String getEntryName() {
-            return entry.getName();
+        boolean isSymlink(ZipArchiveEntry zipArchiveEntry) {
+            return zipArchiveEntry.isUnixSymlink();
         }
 
         @Override
-        protected ZipArchiveEntry getArchiveEntry() {
-            return entry;
+        boolean isDirectory(ZipArchiveEntry zipArchiveEntry) {
+            return zipArchiveEntry.isDirectory();
         }
 
         @Override
-        public boolean isSymbolicLink() {
-            return preserveLink && entry.isUnixSymlink();
+        String getPath(ZipArchiveEntry zipArchiveEntry) {
+            return zipArchiveEntry.getName();
         }
 
         @Override
-        public InputStream open() {
+        String getSymlinkTarget(ZipArchiveEntry entry) {
             try {
-                return zip.getInputStream(entry);
+                return zip.getUnixSymlink(entry);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
         }
 
+        @SuppressWarnings("OctalInteger")
         @Override
-        public FilePermissions getPermissions() {
-            int unixMode = entry.getUnixMode() & 0777;
-            if (unixMode != 0) {
-                return new DefaultFilePermissions(unixMode);
-            }
-
-            return super.getPermissions();
+        int getUnixMode(ZipArchiveEntry zipArchiveEntry) {
+            return zipArchiveEntry.getUnixMode() & 0777;
         }
 
+        @Override
+        long getLastModifiedTime(ZipArchiveEntry zipArchiveEntry) {
+            return zipArchiveEntry.getLastModifiedDate().getTime();
+        }
+
+        @Override
+        long getSize(ZipArchiveEntry zipArchiveEntry) {
+            return zipArchiveEntry.getSize();
+        }
+
+        @Override
         @Nullable
-        @Override
-        public SymbolicLinkDetails getSymbolicLinkDetails() {
-            return linkDetails;
+        ZipArchiveEntry getEntry(String path) {
+            return zip.getEntry(path);
         }
 
+        @Override
+        FileVisitDetails createDetails(
+            ZipArchiveEntry zipArchiveEntry,
+            String targetPath,
+            @Nullable ArchiveSymbolicLinkDetails<ZipArchiveEntry> linkDetails,
+            boolean preserveLink
+        ) {
+            return new DetailsImpl(this, zipArchiveEntry, targetPath, linkDetails, preserveLink);
+        }
     }
 
-    private static final class SymbolicLinkDetailsImpl implements SymbolicLinkDetails {
-        private String target;
-        private final ZipArchiveEntry entry;
-        private final ZipFile zip;
+    private static final class DetailsImpl extends AbstractArchiveFileTreeElement<ZipArchiveEntry, ZipVisitor> {
 
-        SymbolicLinkDetailsImpl(ZipArchiveEntry entry, ZipFile zip) {
-            this.entry = entry;
-            this.zip = zip;
+        public DetailsImpl(
+            ZipVisitor zipMetadata,
+            ZipArchiveEntry entry,
+            String targetPath,
+            @Nullable ArchiveSymbolicLinkDetails<ZipArchiveEntry> linkDetails,
+            boolean preserveLink
+        ) {
+            super(zipMetadata, entry, targetPath, linkDetails, preserveLink);
         }
 
         @Override
-        public boolean isRelative() {
-            return !getTarget().startsWith("/"); //FIXME: check properly
+        public String getDisplayName() {
+            return format("zip entry %s!%s", archiveMetadata.getOriginalFile(), entry.getName());
         }
 
         @Override
-        public String getTarget() {
-            if (target == null) {
-                try (InputStream is = zip.getInputStream(entry)) {
-                    target = IOUtils.toString(is, StandardCharsets.UTF_8);
+        public InputStream open() {
+            if (!entry.isUnixSymlink() || linkDetails.targetExists()) {
+                try {
+                    return archiveMetadata.zip.getInputStream(resultEntry);
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw new RuntimeException(e);
                 }
             }
-            return target;
-        }
 
-        @Override
-        public boolean targetExists() {
-            return false;
-        } //FIXME: check properly
+            throw new GradleException(String.format("Couldn't follow symbolic link '%s' pointing to '%s'.", getRelativePath(), linkDetails.getTarget()));
+        }
     }
 }

@@ -16,15 +16,15 @@
 
 package org.gradle.api.internal.file.archive;
 
-import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.file.SymbolicLinkDetails;
 import org.gradle.api.internal.file.CopyableFileTreeElement;
-import org.gradle.internal.file.Chmod;
-import org.gradle.internal.file.PathTraversalChecker;
+import org.gradle.api.internal.file.DefaultFilePermissions;
 
+import javax.annotation.Nullable;
 import java.io.File;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * An implementation of {@link org.gradle.api.file.FileTreeElement FileTreeElement} meant
@@ -32,52 +32,44 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>
  * This implementation extracts the files from the archive to the supplied expansion directory.
  */
-public abstract class AbstractArchiveFileTreeElement extends CopyableFileTreeElement implements FileVisitDetails {
-    private final File expandedDir;
+public abstract class AbstractArchiveFileTreeElement<ENTRY, METADATA extends ArchiveVisitor<ENTRY>> extends CopyableFileTreeElement implements FileVisitDetails {
+
+    protected final METADATA archiveMetadata;
+    protected final ENTRY entry;
+    protected final ENTRY resultEntry;
+    protected final ArchiveSymbolicLinkDetails<ENTRY> linkDetails;
+    protected final boolean preserveLink;
+    private final RelativePath relativePath;
     private File file;
-    private final AtomicBoolean stopFlag;
 
-    /**
-     * Creates a new instance.
-     *
-     * @param chmod the chmod instance to use
-     * @param expandedDir the directory to extract the archived file to
-     * @param stopFlag the stop flag to use
-     */
-    protected AbstractArchiveFileTreeElement(Chmod chmod, File expandedDir, AtomicBoolean stopFlag) {
-        super(chmod);
-        this.expandedDir = expandedDir;
-        this.stopFlag = stopFlag;
+    protected AbstractArchiveFileTreeElement(
+        METADATA archiveMetadata,
+        ENTRY entry,
+        String targetPath,
+        @Nullable ArchiveSymbolicLinkDetails<ENTRY> linkDetails,
+        boolean preserveLink
+    ) {
+        super(archiveMetadata.chmod);
+        this.entry = entry;
+        this.archiveMetadata = archiveMetadata;
+        this.linkDetails = linkDetails;
+        this.preserveLink = preserveLink;
+        this.resultEntry = getResultEntry();
+        this.relativePath = new RelativePath(!archiveMetadata.isDirectory(resultEntry), targetPath.split("/"));
     }
 
-    /**
-     * Returns the archive entry for this element.
-     *
-     * @return the archive entry
-     * @implSpec this method should be overridden to return a more specific type
-     */
-    protected abstract ArchiveEntry getArchiveEntry();
-
-    /**
-     * Returns a safe name for the name of a file contained in the archive.
-     *
-     * @see PathTraversalChecker#safePathName(String)
-     */
-    protected String safeEntryName() {
-        return PathTraversalChecker.safePathName(getEntryName());
+    protected ENTRY getResultEntry() {
+        if (archiveMetadata.isSymlink(entry) && !preserveLink && linkDetails.targetExists()) {
+            return linkDetails.getTargetEntry();
+        } else {
+            return entry;
+        }
     }
-
-    /**
-     * Returns unsafe name for the name of a file contained in the archive.
-     *
-     * @see AbstractArchiveFileTreeElement#safeEntryName
-     */
-    protected abstract String getEntryName();
 
     @Override
     public File getFile() {
         if (file == null) {
-            file = new File(expandedDir, safeEntryName());
+            file = new File(archiveMetadata.expandedDir, archiveMetadata.getPath(entry));
             if (!file.exists()) {
                 copyPreservingPermissions(file);
             }
@@ -87,26 +79,48 @@ public abstract class AbstractArchiveFileTreeElement extends CopyableFileTreeEle
 
     @Override
     public RelativePath getRelativePath() {
-        return new RelativePath(!getArchiveEntry().isDirectory(), safeEntryName().split("/"));
+        return relativePath;
     }
 
     @Override
-    public long getLastModified() {
-        return getArchiveEntry().getLastModifiedDate().getTime();
+    public boolean isSymbolicLink() {
+        return preserveLink && archiveMetadata.isSymlink(entry);
     }
 
     @Override
     public boolean isDirectory() {
-        return getArchiveEntry().isDirectory();
+        return !relativePath.isFile();
+    }
+
+    @Override
+    public FilePermissions getPermissions() {
+        int unixMode = archiveMetadata.getUnixMode(resultEntry);
+        if (unixMode != 0) {
+            return new DefaultFilePermissions(unixMode);
+        }
+
+        return super.getPermissions();
+    }
+
+    @Override
+    public long getLastModified() {
+        return archiveMetadata.getLastModifiedTime(resultEntry);
     }
 
     @Override
     public long getSize() {
-        return getArchiveEntry().getSize();
+        return archiveMetadata.getSize(resultEntry);
+    }
+
+    @Nullable
+    @Override
+    public SymbolicLinkDetails getSymbolicLinkDetails() {
+        return linkDetails;
     }
 
     @Override
     public void stopVisiting() {
-        stopFlag.set(true);
+        archiveMetadata.stopFlag.set(true);
     }
+
 }

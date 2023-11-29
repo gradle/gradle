@@ -263,11 +263,12 @@ class TestFileHelper {
         }
     }
 
-    void tarContentsTo(TestFile tarFile, boolean nativeTools) {
+    void tarContentsTo(TestFile tarFile, boolean nativeTools, boolean compress) {
         assert file.isDirectory()
         assert nativeTools && isUnix(): "not implemented for non-native tools"
+        String options = compress ? "-czf" : "-cf"
         if (nativeTools && isUnix()) {
-            def args = ['tar', "-cf", tarFile.absolutePath] + file.listFiles().collect { it.name }
+            def args = ['tar', options, tarFile.absolutePath] + file.listFiles().collect { it.name }
             def process = args.execute(null, file)
             process.consumeProcessOutput(System.out, System.err)
             assertThat(process.waitFor(), equalTo(0))

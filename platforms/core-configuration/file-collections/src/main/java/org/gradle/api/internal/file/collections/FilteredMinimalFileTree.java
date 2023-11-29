@@ -19,6 +19,7 @@ package org.gradle.api.internal.file.collections;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -94,6 +95,11 @@ public class FilteredMinimalFileTree implements MinimalFileTree, FileSystemMirro
                 if (spec.isSatisfiedBy(fileDetails)) {
                     visitor.visitFile(fileDetails);
                 }
+            }
+
+            @Override
+            public LinksStrategy linksStrategy() {
+                return visitor.linksStrategy();
             }
         });
     }

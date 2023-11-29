@@ -22,6 +22,7 @@ import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
@@ -66,6 +67,11 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
             public void visitFile(FileVisitDetails fileDetails) {
                 found.set(true);
                 fileDetails.stopVisiting();
+            }
+
+            @Override
+            public LinksStrategy linksStrategy() {
+                return LinksStrategy.PRESERVE_ALL;
             }
         });
         return !found.get();
