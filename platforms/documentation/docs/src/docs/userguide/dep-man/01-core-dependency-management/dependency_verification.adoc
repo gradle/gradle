@@ -596,11 +596,11 @@ You should only pick one for your project.
 
 It's a good idea to commit this file to VCS (as long as you trust your VCS).
 If you use git and use the binary version, make sure to make it treat this file as binary, by adding this to your `.gitattributes` file:
---
 
 ----
 *.gpg           binary
 ----
+--
 
 You can also ask Gradle to export all trusted keys without updating the verification metadata file:
 

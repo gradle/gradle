@@ -426,10 +426,24 @@ The following metadata sources are supported:
 | yes
 |===
 
-NOTE: The defaults for Ivy and Maven repositories change with Gradle 6.0. Before 6.0, `artifact()` was included in the defaults.
+--
+The defaults for Ivy and Maven repositories change with Gradle 6.0.
+Before 6.0, `artifact()` was included in the defaults.
 Leading to some inefficiency when modules are missing completely.
-To restore this behavior, for example, for Maven central you can use `mavenCentral { metadataSources { mavenPom(); artifact() } }`.
-In a similar way, you can opt into the new behavior in older Gradle versions using `mavenCentral { metadataSources { mavenPom() } }`
+
+To restore this behavior, for example, for Maven central you can use:
+
+```
+mavenCentral { metadataSources { mavenPom(); artifact() } }
+```
+
+In a similar way, you can opt into the new behavior in older Gradle versions using:
+
+```
+mavenCentral { metadataSources { mavenPom() } }
+```
+
+--
 
 Since Gradle 5.3, when parsing a metadata file, be it Ivy or Maven, Gradle will look for a marker indicating that a matching Gradle Module Metadata files exists.
 If it is found, it will be used instead of the Ivy or Maven file.
@@ -731,18 +745,20 @@ Some of the AWS S3 regions (eu-central-1 - Frankfurt) require that all HTTP requ
 s3://somebucket.s3.eu-central-1.amazonaws.com/maven/release
 ----
 
+--
 When a region-specific endpoint is not specified for buckets requiring V4 Signatures, Gradle will use the default AWS region (us-east-1) and the
 following warning will appear on the console:
 
-----
+```
 Attempting to re-send the request to .... with AWS V4 authentication. To avoid this warning in the future, use region-specific endpoint to access buckets located in regions that require V4 signing.
-----
+```
 
 Failing to specify the region-specific endpoint for buckets requiring V4 signatures means:
 
 * 3 round-trips to AWS, as opposed to one, for every file upload and download.
 * Depending on location - increased network latencies and slower builds.
 * Increased likelihood of transmission failures.
+--
 
 [[sub:s3_cross_account]]
 ==== AWS S3 Cross Account Access

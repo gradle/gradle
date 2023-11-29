@@ -296,21 +296,28 @@ some = "1.4"
 my-lib = { group = "com.mycompany", name="mylib", version.ref="some" }
 ```
 
-
+--
 The TOML file format is very lenient and lets you write "dotted" properties as shortcuts to full object declarations.
 For example, this:
 
-`a.b.c="d"`
+```
+a.b.c="d"
+```
 
 is equivalent to:
 
-`a.b = { c = "d" }`
+```
+a.b = { c = "d" }
+```
 
 or
 
-`a = { b = { c = "d" } }`
+```
+a = { b = { c = "d" } }
+```
 
 See the https://toml.io[TOML specification] for details.
+--
 
 [[sub:type-unsafe-access-to-catalog]]
 === Type unsafe API

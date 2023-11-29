@@ -310,7 +310,11 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-project
 Type-safe project accessors are an incubating feature which must be enabled explicitly.
 Implementation may change at any time.
 
-To add support for type-safe project accessors, add this to your `settings.gradle(.kts)` file: `enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")`
+To add support for type-safe project accessors, add this to your `settings.gradle(.kts)` file:
+
+```
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+```
 --
 
 One issue with the `project(":some:path")` notation is that you have to remember the path to every project you want to depend on.
