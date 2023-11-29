@@ -42,6 +42,11 @@ public class DefaultGlobalCacheLocations implements GlobalCacheLocations {
     }
 
     @Override
+    public FileHierarchySet getCacheRoots() {
+        return globalCacheRoots;
+    }
+
+    @Override
     public String toString() {
         return globalCacheRoots.toString();
     }

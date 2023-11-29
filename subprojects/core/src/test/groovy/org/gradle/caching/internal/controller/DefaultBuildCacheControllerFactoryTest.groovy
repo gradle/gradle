@@ -37,7 +37,6 @@ import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -68,7 +67,6 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
             },
             buildOperationExecuter,
             Stub(OriginMetadataFactory),
-            Stub(FileSystemAccess),
             Stub(StringInterner),
             Stub(TemporaryFileProvider),
             Stub(BuildCacheEntryPacker)

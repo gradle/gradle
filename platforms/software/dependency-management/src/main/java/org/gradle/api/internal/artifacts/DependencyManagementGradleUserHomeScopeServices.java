@@ -23,23 +23,22 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCaches;
 import org.gradle.api.internal.artifacts.transform.ImmutableTransformWorkspaceServices;
 import org.gradle.api.internal.artifacts.transform.ToPlannedTransformStepConverter;
+import org.gradle.api.internal.artifacts.transform.TransformExecutionResult;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
-import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
+import org.gradle.cache.Cache;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
+import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
-import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.execution.plan.ToPlannedNodeConverter;
 import org.gradle.internal.Try;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
+import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
+import org.gradle.internal.execution.workspace.impl.CacheBasedImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
-import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 
 public class DependencyManagementGradleUserHomeScopeServices {
 
@@ -82,41 +81,34 @@ public class DependencyManagementGradleUserHomeScopeServices {
         return artifactCachesProvider;
     }
 
-    ExecutionHistoryCacheAccess createExecutionHistoryCacheAccess(GlobalScopedCacheBuilderFactory cacheBuilderFactory) {
-        return new DefaultExecutionHistoryCacheAccess(cacheBuilderFactory);
-    }
-
-    ExecutionHistoryStore createExecutionHistoryStore(
-        ExecutionHistoryCacheAccess executionHistoryCacheAccess,
-        InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
-        StringInterner stringInterner,
-        ClassLoaderHierarchyHasher classLoaderHasher
-    ) {
-        return new DefaultExecutionHistoryStore(
-            executionHistoryCacheAccess,
-            inMemoryCacheDecoratorFactory,
-            stringInterner,
-            classLoaderHasher
-        );
-    }
-
     ImmutableTransformWorkspaceServices createTransformWorkspaceServices(
         ArtifactCachesProvider artifactCaches,
         UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
         CrossBuildInMemoryCacheFactory crossBuildInMemoryCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
-        ExecutionHistoryStore executionHistoryStore,
         CacheConfigurationsInternal cacheConfigurations
     ) {
-        return new ImmutableTransformWorkspaceServices(
-            unscopedCacheBuilderFactory
-                .cache(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory())
-                .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-                .withDisplayName("Artifact transforms cache"),
-            fileAccessTimeJournal,
-            executionHistoryStore,
-            crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(Try::isSuccessful),
-            cacheConfigurations
-        );
+        CacheBuilder cacheBuilder = unscopedCacheBuilderFactory
+            .cache(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory())
+            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
+            .withDisplayName("Artifact transforms cache");
+        CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformExecutionResult.TransformWorkspaceResult>> identityCache = crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(Try::isSuccessful);
+        CacheBasedImmutableWorkspaceProvider workspaceProvider = CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(cacheBuilder, fileAccessTimeJournal, cacheConfigurations);
+        return new ImmutableTransformWorkspaceServices() {
+            @Override
+            public ImmutableWorkspaceProvider getWorkspaceProvider() {
+                return workspaceProvider;
+            }
+
+            @Override
+            public Cache<UnitOfWork.Identity, Try<TransformExecutionResult.TransformWorkspaceResult>> getIdentityCache() {
+                return identityCache;
+            }
+
+            @Override
+            public void close() {
+                workspaceProvider.close();
+            }
+        };
     }
 }

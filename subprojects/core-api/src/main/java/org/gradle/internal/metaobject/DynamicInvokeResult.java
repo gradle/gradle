@@ -42,7 +42,8 @@ public class DynamicInvokeResult {
         this.value = value;
     }
 
-    public @Nullable Object getValue() {
+    @Nullable
+    public Object getValue() {
         if (isFound()) {
             return value;
         } else {

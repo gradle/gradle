@@ -18,6 +18,7 @@ package org.gradle.internal.deprecation
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.api.problems.ProblemEmitter
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
@@ -43,8 +44,9 @@ class DeprecationMessagesTest extends Specification {
     def setup() {
         def diagnosticsFactory = new NoOpProblemDiagnosticsFactory()
 
-        def mock = Mock(BuildOperationProgressEventEmitter)
-        DeprecationLogger.init(diagnosticsFactory, WarningMode.All, mock, new DefaultProblems(mock))
+        def buildOperationProgressEventEmitter = Stub(BuildOperationProgressEventEmitter)
+        def problemEmitter = Stub(ProblemEmitter)
+        DeprecationLogger.init(diagnosticsFactory, WarningMode.All, buildOperationProgressEventEmitter, new DefaultProblems(problemEmitter))
     }
 
     def cleanup() {

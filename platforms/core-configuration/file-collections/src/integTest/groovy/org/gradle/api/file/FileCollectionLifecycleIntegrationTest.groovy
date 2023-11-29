@@ -140,7 +140,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
         fails('broken')
 
         then:
-        failure.assertHasCause("The value for this file collection is final and cannot be changed.")
+        failure.assertHasCause("The value for this file collection is final and cannot be changed any further.")
     }
 
     def "can disallow changes to file collection without finalizing value"() {
@@ -165,7 +165,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
         fails('broken')
 
         then:
-        failure.assertHasCause("The value for this file collection cannot be changed.")
+        failure.assertHasCause("The value for this file collection cannot be changed any further.")
     }
 
     def "can write but cannot read strict project file collection instance before project configuration completes"() {
@@ -233,11 +233,11 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
         run("show")
 
         then:
-        outputContains("get files failed with: Cannot query the value for this file collection because configuration of root project 'broken' has not completed yet.")
-        outputContains("get elements failed with: Cannot query the value for this file collection because configuration of root project 'broken' has not completed yet.")
-        outputContains("get files in afterEvaluate failed with: Cannot query the value for this file collection because configuration of root project 'broken' has not completed yet.")
-        outputContains("get elements in afterEvaluate failed with: Cannot query the value for this file collection because configuration of root project 'broken' has not completed yet.")
-        outputContains("set after read failed with: The value for this file collection is final and cannot be changed.")
+        outputContains("get files failed with: Cannot query the value of this file collection because configuration of root project 'broken' has not completed yet.")
+        outputContains("get elements failed with: Cannot query the value of this file collection because configuration of root project 'broken' has not completed yet.")
+        outputContains("get files in afterEvaluate failed with: Cannot query the value of this file collection because configuration of root project 'broken' has not completed yet.")
+        outputContains("get elements in afterEvaluate failed with: Cannot query the value of this file collection because configuration of root project 'broken' has not completed yet.")
+        outputContains("set after read failed with: The value for this file collection is final and cannot be changed any further.")
         output.count("value = [${file('some-file-2')}]") == 2
         output.count("elements = [${file('some-file-2')}]") == 2
     }
@@ -274,7 +274,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
         run("show")
 
         then:
-        outputContains("set failed with: The value for this file collection is final and cannot be changed.")
+        outputContains("set failed with: The value for this file collection is final and cannot be changed any further.")
         output.count("value = [${file('some-file')}]") == 2
     }
 
@@ -313,7 +313,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
         run("show")
 
         then:
-        outputContains("finalize failed with: Cannot finalize the value for this file collection because configuration of root project 'broken' has not completed yet.")
+        outputContains("finalize failed with: Cannot finalize the value of this file collection because configuration of root project 'broken' has not completed yet.")
         output.count("value = [${file('some-file')}]") == 2
     }
 

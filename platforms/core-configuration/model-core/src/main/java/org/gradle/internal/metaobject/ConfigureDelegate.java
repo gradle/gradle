@@ -41,7 +41,8 @@ public class ConfigureDelegate extends GroovyObjectSupport {
         return _delegate.toString();
     }
 
-    public @Nullable Object _original_owner() {
+    @Nullable
+    public Object _original_owner() {
         return _original_owner;
     }
 
@@ -53,8 +54,9 @@ public class ConfigureDelegate extends GroovyObjectSupport {
         return DynamicInvokeResult.notFound();
     }
 
+    @Nullable
     @Override
-    public @Nullable Object invokeMethod(String name, Object paramsObj) {
+    public Object invokeMethod(String name, Object paramsObj) {
         Object[] params = (Object[]) paramsObj;
 
         boolean isAlreadyConfiguring = _configuring;
@@ -100,8 +102,9 @@ public class ConfigureDelegate extends GroovyObjectSupport {
         throw _delegate.setMissingProperty(property);
     }
 
+    @Nullable
     @Override
-    public @Nullable Object getProperty(String name) {
+    public Object getProperty(String name) {
         boolean isAlreadyConfiguring = _configuring;
         _configuring = true;
         try {

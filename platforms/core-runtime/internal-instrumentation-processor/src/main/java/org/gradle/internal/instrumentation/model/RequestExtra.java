@@ -16,30 +16,44 @@
 
 package org.gradle.internal.instrumentation.model;
 
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
+
 import javax.lang.model.element.ExecutableElement;
 
 public interface RequestExtra {
     class InterceptJvmCalls implements RequestExtra {
         private final String implementationClassName;
+        private final BytecodeInterceptorType interceptorType;
+
+        public InterceptJvmCalls(String implementationClassName, BytecodeInterceptorType interceptorType) {
+            this.implementationClassName = implementationClassName;
+            this.interceptorType = interceptorType;
+        }
 
         public String getImplementationClassName() {
             return implementationClassName;
         }
 
-        public InterceptJvmCalls(String implementationClassName) {
-            this.implementationClassName = implementationClassName;
+        public BytecodeInterceptorType getInterceptionType() {
+            return interceptorType;
         }
     }
 
     class InterceptGroovyCalls implements RequestExtra {
         private final String implementationClassName;
+        private final BytecodeInterceptorType interceptorType;
+
+        public InterceptGroovyCalls(String implementationClassName, BytecodeInterceptorType interceptorType) {
+            this.implementationClassName = implementationClassName;
+            this.interceptorType = interceptorType;
+        }
 
         public String getImplementationClassName() {
             return implementationClassName;
         }
 
-        public InterceptGroovyCalls(String implementationClassName) {
-            this.implementationClassName = implementationClassName;
+        public BytecodeInterceptorType getInterceptionType() {
+            return interceptorType;
         }
     }
 

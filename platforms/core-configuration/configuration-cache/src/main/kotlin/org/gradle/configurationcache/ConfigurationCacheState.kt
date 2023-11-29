@@ -55,6 +55,7 @@ import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.configurationcache.serialization.writeStrings
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.execution.plan.Node
+import org.gradle.execution.plan.ScheduledWork
 import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.BuildStructureOperationProject
 import org.gradle.initialization.GradlePropertiesController
@@ -213,7 +214,7 @@ class ConfigurationCacheState(
             for (build in builds) {
                 if (build is BuildWithWork) {
                     builder.withWorkGraph(build.build.state) {
-                        it.setScheduledNodes(build.workGraph)
+                        it.setScheduledWork(build.workGraph)
                     }
                 }
             }
@@ -422,15 +423,15 @@ class ConfigurationCacheState(
         val state = build.state
         if (state.projectsAvailable) {
             writeBoolean(true)
-            val scheduledNodes = build.scheduledWork
+            val scheduledWork = build.scheduledWork
             withDebugFrame({ "Gradle" }) {
                 writeGradleState(gradle)
-                val projects = collectProjects(state.projects, scheduledNodes, gradle.serviceOf())
+                val projects = collectProjects(state.projects, scheduledWork.scheduledNodes, gradle.serviceOf())
                 writeProjects(gradle, projects)
                 writeRequiredBuildServicesOf(state, buildTreeState)
             }
             withDebugFrame({ "Work Graph" }) {
-                writeWorkGraphOf(gradle, scheduledNodes)
+                writeWorkGraphOf(gradle, scheduledWork)
             }
             withDebugFrame({ "Flow Scope" }) {
                 writeFlowScopeOf(gradle)
@@ -467,9 +468,9 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun DefaultWriteContext.writeWorkGraphOf(gradle: GradleInternal, scheduledNodes: List<Node>) {
+    suspend fun DefaultWriteContext.writeWorkGraphOf(gradle: GradleInternal, scheduledWork: ScheduledWork) {
         workNodeCodec(gradle).run {
-            writeWork(scheduledNodes)
+            writeWork(scheduledWork)
         }
     }
 

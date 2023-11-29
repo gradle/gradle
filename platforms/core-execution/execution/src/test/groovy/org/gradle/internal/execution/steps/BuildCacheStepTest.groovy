@@ -30,6 +30,7 @@ import org.gradle.internal.execution.caching.CachingState
 import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.file.Deleter
+import org.gradle.internal.vfs.FileSystemAccess
 
 import java.time.Duration
 
@@ -47,9 +48,10 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
     }
     def loadMetadata = Mock(BuildCacheLoadResult)
     def deleter = Mock(Deleter)
+    def fileSystemAccess = Mock(FileSystemAccess)
     def outputChangeListener = Mock(OutputChangeListener)
 
-    def step = new BuildCacheStep(buildCacheController, deleter, outputChangeListener, delegate)
+    def step = new BuildCacheStep(buildCacheController, deleter, fileSystemAccess, outputChangeListener, delegate)
     def delegateResult = Mock(AfterExecutionResult)
 
     def "loads from cache"() {
@@ -63,9 +65,9 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         result.execution.get().outcome == FROM_CACHE
-        result.afterExecutionState.get().reused
-        result.afterExecutionState.get().originMetadata == cachedOriginMetadata
-        result.afterExecutionState.get().outputFilesProducedByWork == outputsFromCache
+        result.afterExecutionOutputState.get().reused
+        result.afterExecutionOutputState.get().originMetadata == cachedOriginMetadata
+        result.afterExecutionOutputState.get().outputFilesProducedByWork == outputsFromCache
 
         interaction { withValidCacheKey() }
 
@@ -163,7 +165,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         then:
         1 * delegate.execute(work, context) >> delegateResult
         1 * delegateResult.execution >> Try.successful(execution)
-        1 * delegateResult.afterExecutionState >> Optional.empty()
+        1 * delegateResult.afterExecutionOutputState >> Optional.empty()
         1 * execution.canStoreOutputsInCache() >> true
 
         then:
@@ -284,7 +286,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         def originMetadata = Mock(OriginMetadata)
         def outputFilesProducedByWork = snapshotsOf("test": [])
 
-        1 * delegateResult.afterExecutionState >> Optional.of(Mock(AfterExecutionState) {
+        1 * delegateResult.afterExecutionOutputState >> Optional.of(Mock(AfterExecutionState) {
             1 * getOutputFilesProducedByWork() >> outputFilesProducedByWork
             1 * getOriginMetadata() >> originMetadata
         })

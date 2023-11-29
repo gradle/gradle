@@ -23,7 +23,6 @@ import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
-import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
@@ -111,7 +110,7 @@ public interface UnitOfWork extends Describable {
          * Implementation-specific output of executing the user code.
          */
         @Nullable
-        Object getOutput();
+        Object getOutput(File workspace);
 
         /**
          * Whether this output should be stored in the build cache.
@@ -134,15 +133,11 @@ public interface UnitOfWork extends Describable {
     @Nullable
     Object loadAlreadyProducedOutput(File workspace);
 
-    /**
-     * Returns the {@link WorkspaceProvider} to allocate a workspace to execution this work in.
-     */
-    WorkspaceProvider getWorkspaceProvider();
-
     default Optional<Duration> getTimeout() {
         return Optional.empty();
     }
 
+    // TODO Move this to IncrementalUnitOfWork
     /**
      * Whether the work should be executed incrementally (if possible) or not.
      */

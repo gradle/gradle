@@ -16,18 +16,13 @@
 
 package org.gradle.api.internal.artifacts.verification.signatures;
 
-import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerificationConfiguration;
 import org.gradle.security.internal.KeyringFilePublicKeyService;
 import org.gradle.security.internal.PublicKeyService;
 import org.gradle.security.internal.PublicKeyServiceChain;
-import org.gradle.security.internal.SecuritySupport;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 
 public class BuildTreeDefinedKeys {
     private static final String VERIFICATION_KEYRING_GPG = "verification-keyring.gpg";
@@ -58,11 +53,10 @@ public class BuildTreeDefinedKeys {
             throw new IllegalArgumentException("Unknown keyring format: " + effectiveFormat);
         }
 
+        this.effectiveKeyringsFile = effectiveFile;
         if (effectiveFile.exists()) {
-            this.effectiveKeyringsFile = effectiveFile;
             this.keyService = new KeyringFilePublicKeyService(effectiveKeyringsFile);
         } else {
-            this.effectiveKeyringsFile = null;
             this.keyService = null;
         }
     }
@@ -77,14 +71,6 @@ public class BuildTreeDefinedKeys {
 
     public File getEffectiveKeyringsFile() {
         return effectiveKeyringsFile;
-    }
-
-    public List<PGPPublicKeyRing> loadKeys() throws IOException {
-        if (effectiveKeyringsFile != null) {
-            return SecuritySupport.loadKeyRingFile(effectiveKeyringsFile);
-        } else {
-            return Collections.emptyList();
-        }
     }
 
     public PublicKeyService applyTo(PublicKeyService original) {

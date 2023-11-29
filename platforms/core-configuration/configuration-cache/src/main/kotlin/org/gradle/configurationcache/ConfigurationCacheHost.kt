@@ -24,7 +24,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.execution.plan.Node
+import org.gradle.execution.plan.ScheduledWork
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
@@ -79,11 +79,11 @@ class ConfigurationCacheHost internal constructor(
         override val hasScheduledWork: Boolean
             get() = gradle.taskGraph.size() > 0
 
-        override val scheduledWork: List<Node>
+        override val scheduledWork: ScheduledWork
             get() {
-                lateinit var nodes: List<Node>
-                gradle.taskGraph.visitScheduledNodes { nodes = it }
-                return nodes
+                lateinit var work: ScheduledWork
+                gradle.taskGraph.visitScheduledNodes { nodes, entryNodes -> work = ScheduledWork(nodes, entryNodes) }
+                return work
             }
     }
 

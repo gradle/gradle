@@ -49,10 +49,11 @@ import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.model.InputNormalizer;
-import org.gradle.internal.execution.workspace.WorkspaceProvider;
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
@@ -82,8 +83,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static org.gradle.internal.execution.ExecutionEngine.Execution;
 
 public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final static String SUPPORTED_PROJECT_NAMES = "[a-zA-Z]([A-Za-z0-9\\-_])*";
@@ -189,8 +188,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
     private void executeWork(UnitOfWork work) {
         ExecutionEngine.Result result = engine.createRequest(work).execute();
-        Execution er = result.getExecution().get();
-        GeneratedAccessors accessors = (GeneratedAccessors) er.getOutput();
+        GeneratedAccessors accessors = result.getOutputAs(GeneratedAccessors.class).get();
         ClassPath generatedClasses = DefaultClassPath.of(accessors.classesDir);
         sources = sources.plus(DefaultClassPath.of(accessors.sourcesDir));
         classes = classes.plus(generatedClasses);
@@ -336,7 +334,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         return classes;
     }
 
-    private abstract class AbstractAccessorUnitOfWork implements UnitOfWork {
+    private abstract class AbstractAccessorUnitOfWork implements ImmutableUnitOfWork {
         private static final String OUT_SOURCES = "sources";
         private static final String OUT_CLASSES = "classes";
 
@@ -350,7 +348,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
 
         @Override
-        public WorkspaceProvider getWorkspaceProvider() {
+        public ImmutableWorkspaceProvider getWorkspaceProvider() {
             return workspace;
         }
 
@@ -375,7 +373,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                 }
 
                 @Override
-                public Object getOutput() {
+                public Object getOutput(File workspace) {
                     return loadAlreadyProducedOutput(workspace);
                 }
             };

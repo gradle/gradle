@@ -18,8 +18,8 @@ package org.gradle.api.internal.file;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.file.Chmod;
 import org.gradle.util.internal.GFileUtils;
@@ -117,8 +117,8 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
     }
 
     @Contextual
-    private static class CopyFileElementException extends GradleException {
-        CopyFileElementException(String message, Throwable cause) {
+    protected static class CopyFileElementException extends GradleException {
+        public CopyFileElementException(String message, Throwable cause) {
             super(message, cause);
         }
     }

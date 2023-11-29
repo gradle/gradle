@@ -16,40 +16,21 @@
 
 package org.gradle.api.problems
 
-
 import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
-import org.gradle.internal.operations.OperationIdentifier
+import org.gradle.api.problems.internal.emitters.NoOpProblemEmitter
 
 /**
- * Static util class that provides methods for creating [Problems] instances for testing.
+ * Static util class that provides methods for creating {@link Problems} instances for testing.
  */
 abstract class TestProblemsUtil {
     private TestProblemsUtil() { /* not instantiable */ }
 
     /**
-     * A [BuildOperationProgressEventEmitter] that does nothing.
-     */
-    static class NoOpBuildOperationProgressEventEmitter implements BuildOperationProgressEventEmitter {
-        @Override
-        void emit(OperationIdentifier operationIdentifier, long timestamp, Object details) {}
-
-        @Override
-        void emitNowIfCurrent(Object details) {}
-
-        @Override
-        void emitIfCurrent(long time, Object details) {}
-
-        @Override
-        void emitNowForCurrent(Object details) {}
-    }
-
-    /**
-     * Creates a new [Problems] instance that does not report problems as build operation events.
+     * Creates a new {@link Problems} instance that does not report problems as build operation events.
      *
      * @return the problems instance
      */
     public static Problems createTestProblems() {
-       return new DefaultProblems(new NoOpBuildOperationProgressEventEmitter())
+       return new DefaultProblems(new NoOpProblemEmitter())
     }
 }

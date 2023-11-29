@@ -57,8 +57,8 @@ public class DefaultTransformOutputs implements TransformOutputsInternal {
             }
 
             @Override
-            public void visitProducedOutput(File outputLocation) {
-                validate(outputLocation);
+            public void visitProducedOutput(String relativePath) {
+                validate(new File(outputDir, relativePath));
             }
 
             private void validate(File output) {
@@ -104,4 +104,5 @@ public class DefaultTransformOutputs implements TransformOutputsInternal {
                 : outputAbsolutePath;
             throw new InvalidUserDataException("Transform output " + reportedPath + " must exist.");
         }
-    }}
+    }
+}

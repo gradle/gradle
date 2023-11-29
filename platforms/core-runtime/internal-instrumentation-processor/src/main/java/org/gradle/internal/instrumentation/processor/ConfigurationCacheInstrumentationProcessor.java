@@ -60,12 +60,16 @@ public class ConfigurationCacheInstrumentationProcessor extends AbstractInstrume
 
             new WithExtensionReferencesReader(),
             new WithExtensionReferencesPostProcessor(),
-            new AddGeneratedClassNameFlagFromClassLevelAnnotation(
+            new AddGeneratedClassNameFlagFromClassLevelAnnotation(processingEnv.getElementUtils(),
                 ifHasExtraOfType(WithExtensionReferencesExtra.ProducedSynthetically.class), SpecificJvmCallInterceptors.class, RequestExtra.InterceptJvmCalls::new
             ),
 
-            new AddGeneratedClassNameFlagFromClassLevelAnnotation(ifHasAnnotation(InterceptJvmCalls.class), SpecificJvmCallInterceptors.class, RequestExtra.InterceptJvmCalls::new),
-            new AddGeneratedClassNameFlagFromClassLevelAnnotation(ifHasAnnotation(InterceptGroovyCalls.class), SpecificGroovyCallInterceptors.class, RequestExtra.InterceptGroovyCalls::new),
+            new AddGeneratedClassNameFlagFromClassLevelAnnotation(processingEnv.getElementUtils(),
+                ifHasAnnotation(InterceptJvmCalls.class), SpecificJvmCallInterceptors.class, RequestExtra.InterceptJvmCalls::new
+            ),
+            new AddGeneratedClassNameFlagFromClassLevelAnnotation(processingEnv.getElementUtils(),
+                ifHasAnnotation(InterceptGroovyCalls.class), SpecificGroovyCallInterceptors.class, RequestExtra.InterceptGroovyCalls::new
+            ),
 
             (CodeGeneratorContributor) InterceptJvmCallsGenerator::new,
             // Generate META-INF/services resource with factories for all generated InterceptJvmCallsGenerator

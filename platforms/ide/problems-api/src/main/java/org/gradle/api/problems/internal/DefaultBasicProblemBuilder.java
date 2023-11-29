@@ -24,6 +24,9 @@ import org.gradle.api.problems.locations.FileLocation;
 import org.gradle.api.problems.locations.PluginIdLocation;
 import org.gradle.api.problems.locations.ProblemLocation;
 import org.gradle.api.problems.locations.TaskPathLocation;
+import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -43,8 +46,9 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
     private boolean explicitlyUndocumented;
     private List<String> solutions;
     private RuntimeException exception;
-    private final Map<String, String> additionalMetadata;
+    private final Map<String, Object> additionalData;
     private boolean collectLocation = false;
+    @Nullable private OperationIdentifier currentOperationId = null;
 
     public DefaultBasicProblemBuilder(Problem problem) {
         this.label = problem.getLabel();
@@ -56,12 +60,16 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
         this.explicitlyUndocumented = problem.getDocumentationLink() == null;
         this.solutions = new ArrayList<String>(problem.getSolutions());
         this.exception = problem.getException();
-        this.additionalMetadata = new HashMap<String, String>(problem.getAdditionalData());
+        this.additionalData = new HashMap<String, Object>(problem.getAdditionalData());
+
+        if (problem instanceof DefaultProblem) {
+            this.currentOperationId = ((DefaultProblem) problem).getBuildOperationId();
+        }
     }
 
     public DefaultBasicProblemBuilder() {
         this.locations = new ArrayList<ProblemLocation>();
-        this.additionalMetadata = new HashMap<String, String>();
+        this.additionalData = new HashMap<String, Object>();
     }
 
     @Override
@@ -75,7 +83,25 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
             getSolutions(),
             getExceptionForProblemInstantiation(), // TODO: don't create exception if already reported often
             getProblemCategory(),
-            getAdditionalMetadata());
+            getAdditionalData(),
+            getCurrentOperationId()
+        );
+    }
+
+    @Nullable
+    public OperationIdentifier getCurrentOperationId() {
+        if (currentOperationId != null) {
+            // If we have a carried over operation id, use it
+            return currentOperationId;
+        } else {
+            // Otherwise, try to get the current operation id
+            BuildOperationRef buildOperationRef = CurrentBuildOperationRef.instance().get();
+            if (buildOperationRef == null) {
+                return null;
+            } else {
+                return buildOperationRef.getId();
+            }
+        }
     }
 
     public RuntimeException getExceptionForProblemInstantiation() {
@@ -176,9 +202,16 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
         return this;
     }
 
-    public UnboundBasicProblemBuilder additionalData(String key, String value) {
-        this.getAdditionalMetadata().put(key, value);
+    public UnboundBasicProblemBuilder additionalData(String key, Object value) {
+        validateAdditionalDataValueType(value);
+        this.getAdditionalData().put(key, value);
         return this;
+    }
+
+    private void validateAdditionalDataValueType(Object value) {
+        if (!(value instanceof String)) {
+            throw new RuntimeException("ProblemBuilder.additionalData() supports values of type String, but " + value.getClass().getName() + " as given.");
+        }
     }
 
     @Override
@@ -220,8 +253,8 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
         return solutions;
     }
 
-    protected Map<String, String> getAdditionalMetadata() {
-        return additionalMetadata;
+    protected Map<String, Object> getAdditionalData() {
+        return additionalData;
     }
 
     protected boolean isCollectLocation() {

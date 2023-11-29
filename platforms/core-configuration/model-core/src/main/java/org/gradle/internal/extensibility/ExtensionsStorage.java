@@ -74,7 +74,8 @@ public class ExtensionsStorage {
         return getHolderByType(type).get();
     }
 
-    public <T> @Nullable T findByType(TypeOf<T> type) {
+    @Nullable
+    public <T> T findByType(TypeOf<T> type) {
         ExtensionHolder<T> found = findHolderByType(type);
         return found != null ? found.get() : null;
     }
@@ -88,14 +89,16 @@ public class ExtensionsStorage {
             "Extension of type '" + type.getSimpleName() + "' does not exist. Currently registered extension types: " + registeredExtensionTypeNames());
     }
 
-    private <T> @Nullable ExtensionHolder<T> findHolderByType(TypeOf<T> type) {
+    @Nullable
+    private <T> ExtensionHolder<T> findHolderByType(TypeOf<T> type) {
         ExtensionHolder<T> firstHolderWithExactPublicType = firstHolderWithExactPublicType(type);
         return firstHolderWithExactPublicType != null
             ? firstHolderWithExactPublicType
             : firstHolderWithAssignableType(type);
     }
 
-    private <T> @Nullable ExtensionHolder<T> firstHolderWithExactPublicType(TypeOf<T> type) {
+    @Nullable
+    private <T> ExtensionHolder<T> firstHolderWithExactPublicType(TypeOf<T> type) {
         for (ExtensionHolder<?> extensionHolder : extensions.values()) {
             if (type.equals(extensionHolder.getPublicType())) {
                 return uncheckedCast(extensionHolder);
@@ -104,7 +107,8 @@ public class ExtensionsStorage {
         return null;
     }
 
-    private <T> @Nullable ExtensionHolder<T> firstHolderWithAssignableType(TypeOf<T> type) {
+    @Nullable
+    private <T> ExtensionHolder<T> firstHolderWithAssignableType(TypeOf<T> type) {
         for (ExtensionHolder<?> extensionHolder : extensions.values()) {
             if (type.isAssignableFrom(extensionHolder.getPublicType())) {
                 return uncheckedCast(extensionHolder);
@@ -121,7 +125,8 @@ public class ExtensionsStorage {
         throw unknownExtensionException(name);
     }
 
-    public @Nullable Object findByName(String name) {
+    @Nullable
+    public Object findByName(String name) {
         ExtensionHolder<?> extensionHolder = extensions.get(name);
         return extensionHolder != null ? extensionHolder.get() : null;
     }
@@ -136,6 +141,7 @@ public class ExtensionsStorage {
 
     /**
      * Doesn't actually return anything. Always throws a {@link UnknownDomainObjectException}.
+     *
      * @return Nothing.
      */
     private UnknownDomainObjectException unknownExtensionException(final String name) {

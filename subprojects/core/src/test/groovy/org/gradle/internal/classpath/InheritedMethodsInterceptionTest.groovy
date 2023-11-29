@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath
 
+import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorFactoryProvider
 import org.gradle.internal.classpath.types.ExternalPluginsInstrumentingTypeRegistry
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
 
@@ -25,7 +26,7 @@ import static java.util.function.Predicate.isEqual
 import static org.gradle.internal.classpath.BasicCallInterceptionTestInterceptorsDeclaration.TEST_GENERATED_CLASSES_PACKAGE
 import static org.gradle.internal.classpath.GroovyCallInterceptorsProvider.ClassLoaderSourceGroovyCallInterceptorsProvider
 import static org.gradle.internal.classpath.InstrumentedClasses.nestedClassesOf
-import static org.gradle.internal.classpath.JvmBytecodeInterceptorSet.*
+import static org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorFactoryProvider.*
 
 /**
  * See {@link BasicCallInterceptionTest} for a basic example
@@ -37,8 +38,8 @@ class InheritedMethodsInterceptionTest extends AbstractCallInterceptionTest {
     }
 
     @Override
-    protected JvmBytecodeInterceptorSet jvmBytecodeInterceptorSet() {
-        return new ClassLoaderSourceJvmBytecodeInterceptorSet(this.class.classLoader, TEST_GENERATED_CLASSES_PACKAGE)
+    protected JvmBytecodeInterceptorFactoryProvider jvmBytecodeInterceptorSet() {
+        return new ClassLoaderSourceJvmBytecodeInterceptorFactoryProvider(this.class.classLoader, TEST_GENERATED_CLASSES_PACKAGE)
     }
 
     @Override

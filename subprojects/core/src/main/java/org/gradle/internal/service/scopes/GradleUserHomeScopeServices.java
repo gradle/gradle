@@ -31,9 +31,9 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.GlobalCache;
 import org.gradle.cache.GlobalCacheLocations;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
@@ -187,9 +187,15 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
     }
 
     WorkerProcessFactory createWorkerProcessFactory(
-        LoggingManagerInternal loggingManagerInternal, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
-        TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory, JvmVersionDetector jvmVersionDetector,
-        MemoryManager memoryManager, GradleUserHomeDirProvider gradleUserHomeDirProvider, OutputEventListener outputEventListener
+        LoggingManagerInternal loggingManagerInternal,
+        MessagingServer messagingServer,
+        ClassPathRegistry classPathRegistry,
+        TemporaryFileProvider temporaryFileProvider,
+        JavaExecHandleFactory execHandleFactory,
+        JvmVersionDetector jvmVersionDetector,
+        MemoryManager memoryManager,
+        GradleUserHomeDirProvider gradleUserHomeDirProvider,
+        OutputEventListener outputEventListener
     ) {
         return new DefaultWorkerProcessFactory(
             loggingManagerInternal,

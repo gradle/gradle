@@ -16,10 +16,12 @@
 
 package org.gradle.internal.snapshot;
 
+import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Comparator;
+import java.util.Optional;
 
 /**
  * A snapshot of a single location on the file system.
@@ -47,6 +49,20 @@ public interface FileSystemLocationSnapshot extends FileSystemSnapshot, FileSyst
      * The absolute path of the file.
      */
     String getAbsolutePath();
+
+    /**
+     * Constructs a copy of this snapshot with a new absolute path.
+     *
+     * Returns the relocated snapshot, or {@link Optional#empty()} if the snapshot was taken of a
+     * hierarchy containing a symlink, as we can't be sure if the snapshot would still be valid of
+     * the relocated link.
+     *
+     * If performance around symlinks becomes more important, we can improve this in multiple ways:
+     * - keep symlinks that don't point outside the relocated snapshot hierarchy,
+     * - re-snapshot relocated locations pointed to by snapshots,
+     * - a combination of the two.
+     */
+    Optional<? extends FileSystemLocationSnapshot> relocate(String targetPath, Interner<String> interner);
 
     /**
      * The hash of the snapshot.

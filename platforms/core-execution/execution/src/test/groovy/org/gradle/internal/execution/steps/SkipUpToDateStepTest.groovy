@@ -65,7 +65,7 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
         def delegateAfterExecutionState = Stub(AfterExecutionState)
 
         delegateResult.execution >> delegateOutcome
-        delegateResult.afterExecutionState >> Optional.of(delegateAfterExecutionState)
+        delegateResult.afterExecutionOutputState >> Optional.of(delegateAfterExecutionState)
 
         when:
         def result = step.execute(work, context)
@@ -87,7 +87,7 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
         0 * _
 
         when:
-        def afterExecutionState = result.afterExecutionState
+        def afterExecutionState = result.afterExecutionOutputState
 
         then:
         afterExecutionState.get() == delegateAfterExecutionState

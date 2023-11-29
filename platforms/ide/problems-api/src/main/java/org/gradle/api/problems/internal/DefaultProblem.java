@@ -25,23 +25,28 @@ import org.gradle.api.problems.ProblemCategory;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.UnboundBasicProblemBuilder;
 import org.gradle.api.problems.locations.ProblemLocation;
+import org.gradle.internal.operations.OperationIdentifier;
 
 import javax.annotation.Nullable;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 @NonNullApi
-public class DefaultProblem implements Problem {
+public class DefaultProblem implements Problem, Serializable {
     private final String label;
     private Severity severity;
-    private final List<ProblemLocation> where;
+    private final List<ProblemLocation> locations;
     private final DocLink documentationLink;
     private final String description;
     private final List<String> solutions;
     private final RuntimeException cause;
     private final String problemCategory;
-    private final Map<String, String> additionalMetadata;
+    private final Map<String, Object> additionalData;
+
+    @Nullable
+    private OperationIdentifier buildOperationId;
 
     protected DefaultProblem(
         String label,
@@ -52,17 +57,19 @@ public class DefaultProblem implements Problem {
         @Nullable List<String> solutions,
         @Nullable RuntimeException cause,
         String problemCategory,
-        Map<String, String> additionalMetadata
+        Map<String, Object> additionalData,
+        @Nullable OperationIdentifier buildOperationId
     ) {
         this.label = label;
         this.severity = severity;
-        this.where = ImmutableList.copyOf(locations);
+        this.locations = ImmutableList.copyOf(locations);
         this.documentationLink = documentationUrl;
         this.description = description;
         this.solutions = solutions == null ? ImmutableList.<String>of() : ImmutableList.copyOf(solutions);
         this.cause = cause;
         this.problemCategory = problemCategory;
-        this.additionalMetadata = ImmutableMap.copyOf(additionalMetadata);
+        this.additionalData = ImmutableMap.copyOf(additionalData);
+        this.buildOperationId = buildOperationId;
     }
 
     @Override
@@ -77,7 +84,7 @@ public class DefaultProblem implements Problem {
 
     @Override
     public List<ProblemLocation> getLocations() {
-        return where;
+        return locations;
     }
 
     @Nullable
@@ -107,14 +114,28 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public Map<String, String> getAdditionalData() {
-        return additionalMetadata;
+    public Map<String, Object> getAdditionalData() {
+        return additionalData;
+    }
+
+    public void setBuildOperationRef(@Nullable OperationIdentifier buildOperationId) {
+        this.buildOperationId = buildOperationId;
+    }
+
+    @Nullable
+    public OperationIdentifier getBuildOperationId() {
+        return buildOperationId;
+    }
+
+    public void setSeverity(Severity severity) {
+        this.severity = severity;
     }
 
     @Override
     public UnboundBasicProblemBuilder toBuilder() {
         return new DefaultBasicProblemBuilder(this);
     }
+
     private static boolean equals(@Nullable Object a, @Nullable Object b) {
         return (a == b) || (a != null && a.equals(b));
     }
@@ -130,21 +151,19 @@ public class DefaultProblem implements Problem {
         DefaultProblem that = (DefaultProblem) o;
         return equals(label, that.label) &&
             severity == that.severity &&
-            equals(where, that.where) &&
+            equals(locations, that.locations) &&
             equals(problemCategory, that.problemCategory) &&
             equals(documentationLink, that.documentationLink) &&
             equals(description, that.description) &&
             equals(solutions, that.solutions) &&
             equals(cause, that.cause) &&
-            equals(additionalMetadata, that.additionalMetadata);
+            equals(additionalData, that.additionalData) &&
+            equals(buildOperationId, that.buildOperationId);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{label, severity, where, documentationLink, description, solutions, cause, additionalMetadata});
+        return Arrays.hashCode(new Object[]{label, severity, locations, documentationLink, description, solutions, cause, additionalData, buildOperationId});
     }
 
-    public void setSeverity(Severity severity) {
-        this.severity = severity;
-    }
 }

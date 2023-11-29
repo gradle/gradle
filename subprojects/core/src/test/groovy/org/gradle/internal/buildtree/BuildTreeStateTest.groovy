@@ -16,6 +16,7 @@
 
 package org.gradle.internal.buildtree
 
+
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.invocation.BuildAction
@@ -36,7 +37,7 @@ class BuildTreeStateTest extends Specification {
 
     def setup() {
         def services = new DefaultServiceRegistry()
-        services.add(Mock(BuildOperationProgressEventEmitter))
+        services.add(Stub(BuildOperationProgressEventEmitter))
         services.add(Mock(BuildModelParameters))
         services.add(Mock(ProjectParallelExecutionController))
         services.add(BuildTreeActionExecutor, actionExecutor)

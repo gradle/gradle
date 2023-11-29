@@ -1,0 +1,392 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[tutorial_using_tasks]]
+= Using Tasks
+
+The work that Gradle can do on a project is defined by one or more _tasks_.
+
+image::author-gradle-5.png[]
+
+A task represents some independent unit of work that a build performs.
+This might be compiling some classes, creating a JAR, generating Javadoc, or publishing some archives to a repository.
+
+When a user runs `./gradlew build` in the command line, Gradle will execute the `build` task along with any other tasks it depends on.
+
+== List available tasks
+
+Gradle provides several default tasks for a project, which are listed by running `./gradlew tasks`:
+
+[source]
+----
+> Task :tasks
+
+------------------------------------------------------------
+Tasks runnable from root project 'myTutorial'
+------------------------------------------------------------
+
+Build Setup tasks
+-----------------
+init - Initializes a new Gradle build.
+wrapper - Generates Gradle wrapper files.
+
+Help tasks
+----------
+buildEnvironment - Displays all buildscript dependencies declared in root project 'myTutorial'.
+...
+----
+
+Tasks either come from *build scripts* or *plugins*.
+
+Once we apply a plugin to our project, such as the `application` plugin, additional tasks become available:
+
+.build.gradle.kts
+[source,kotlin]
+plugins {
+    id("application")
+}
+
+[source]
+----
+$ ./gradlew tasks
+
+> Task :tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+Application tasks
+-----------------
+run - Runs this project as a JVM application
+
+Build tasks
+-----------
+assemble - Assembles the outputs of this project.
+build - Assembles and tests this project.
+
+Documentation tasks
+-------------------
+javadoc - Generates Javadoc API documentation for the main source code.
+
+Other tasks
+-----------
+compileJava - Compiles main Java source.
+
+...
+----
+
+Many of these tasks, such as `assemble`, `build`, and `run`, should be familiar to a developer.
+
+== Task classification
+
+There are two classes of tasks that can be executed:
+
+1. *Actionable tasks* have some action(s) attached to do work in your build: `compileJava`.
+2. *Lifecycle tasks* are tasks with no actions attached: `assemble`, `build`.
+
+Typically, a *lifecycle* tasks depends on many *actionable* tasks, and is used to execute many tasks at once.
+
+[[sec:task_registration]]
+== Task registration and action
+
+Let's take a look at a simple "Hello World" task in a build script:
+
+====
+include::sample[dir="snippets/tutorial/hello/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/hello/groovy", files="build.gradle[]"]
+====
+
+In the example, the build script *registers* a single task called `hello` using the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] API, and adds an *action* to it.
+
+If the tasks in the project are listed, the `hello` task is available to Gradle:
+
+[source]
+----
+$ ./gradlew app:tasks --all
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+Other tasks
+-----------
+compileJava - Compiles main Java source.
+compileTestJava - Compiles test Java source.
+hello
+processResources - Processes main resources.
+processTestResources - Processes test resources.
+startScripts - Creates OS-specific scripts to run the project as a JVM application.
+----
+
+You can execute the task in the build script with `./gradlew hello`:
+
+====
+----
+$ ./gradlew hello
+include::{snippetsPath}/tutorial/hello/tests/hello.out[]
+----
+====
+
+When Gradle executes the `hello` task, it executes the *action* provided.
+In this case, the action is simply a block containing some code: `println("Hello world!")`.
+
+== Task group and description
+
+The `hello` task from the previous section can be detailed with a *description* and assigned to a *group* with the following update:
+
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.register("hello") {
+    group = "Custom"
+    description = "A lovely greeting task."
+    doLast {
+        println("Hello world!")
+    }
+}
+----
+
+Once the task is assigned to a group, it will be listed by `./gradlew tasks`:
+
+[source]
+----
+$ ./gradlew tasks
+
+> Task :tasks
+
+Custom tasks
+------------------
+hello - A lovely greeting task.
+----
+
+To view information about a task, use the `help --task <task-name>` command:
+
+[source]
+----
+$./gradlew help --task hello
+
+> Task :help
+Detailed task information for hello
+
+Path
+:app:hello
+
+Type
+Task (org.gradle.api.Task)
+
+Options
+--rerun     Causes the task to be re-run even if up-to-date.
+
+Description
+A lovely greeting task.
+
+Group
+Custom
+----
+
+As we can see, the `hello` task belongs to the `custom` group.
+
+[[sec:task_dependencies]]
+== Task dependencies
+
+You can declare tasks that depend on other tasks:
+
+====
+include::sample[dir="snippets/tutorial/intro/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/intro/groovy", files="build.gradle[]"]
+
+----
+$ gradle -q intro
+include::{snippetsPath}/tutorial/intro/tests/intro.out[]
+----
+====
+
+The dependency of `taskX` to `taskY` may be declared before `taskY` is defined:
+
+====
+include::sample[dir="snippets/tutorial/lazyDependsOn/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/lazyDependsOn/groovy", files="build.gradle[]"]
+
+----
+$ gradle -q taskX
+include::{snippetsPath}/tutorial/lazyDependsOn/tests/lazyDependsOn.out[]
+----
+====
+
+The `hello` task from the previous example is updated to include a dependency:
+
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.register("hello") {
+    group = "Custom"
+    description = "A lovely greeting task."
+    doLast {
+        println("Hello world!")
+    }
+    dependsOn(tasks.assemble)
+}
+----
+
+The `hello` task now depends on the `assemble` task, which means that Gradle must execute the `assemble` task *before* it can execute the `hello` task:
+
+[source]
+----
+$ ./gradlew :app:hello
+
+> Task :app:compileJava UP-TO-DATE
+> Task :app:processResources NO-SOURCE
+> Task :app:classes UP-TO-DATE
+> Task :app:jar UP-TO-DATE
+> Task :app:startScripts UP-TO-DATE
+> Task :app:distTar UP-TO-DATE
+> Task :app:distZip UP-TO-DATE
+> Task :app:assemble UP-TO-DATE
+
+> Task :app:hello
+Hello world!
+----
+
+[[sec:manipulating_existing_tasks]]
+== Task configuration
+
+Once registered, tasks can be accessed via the link:{javadocPath}/org/gradle/api/tasks/TaskProvider.html[TaskProvider] API for further configuration.
+
+For instance, you can use this to add dependencies to a task at runtime dynamically:
+
+====
+include::sample[dir="snippets/tutorial/dynamicDepends/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/dynamicDepends/groovy", files="build.gradle[]"]
+
+----
+$ gradle -q task0
+include::{snippetsPath}/tutorial/dynamicDepends/tests/dynamicDepends.out[]
+----
+====
+
+Or you can add behavior to an existing task:
+
+[[sec:hello_world]]
+====
+include::sample[dir="snippets/tutorial/helloEnhanced/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/helloEnhanced/groovy", files="build.gradle[]"]
+
+----
+$ gradle -q hello
+include::{snippetsPath}/tutorial/helloEnhanced/tests/helloEnhanced.out[]
+----
+====
+
+TIP: The calls `doFirst` and `doLast` can be executed multiple times.
+They add an action to the beginning or the end of the task's actions list.
+When the task executes, the actions in the action list are executed in order.
+
+Here is an example of the `named` method being used to configure a task added by a plugin:
+
+[source,groovy]
+----
+tasks.named("dokkaHtml") {
+    outputDirectory.set(buildDir.resolve("dokka"))
+}
+----
+
+== Task types
+Gradle tasks are a subclass of link:{javadocPath}/org/gradle/api/Task.html[`Task`].
+
+In the build script, the `HelloTask` class is created by extending link:{javadocPath}/org/gradle/api/DefaultTask.html[`DefaultTask`]:
+
+.build.gradle.kts
+[source, kotlin]
+----
+// Extend the DefaultTask class to create a HelloTask class
+abstract class HelloTask : DefaultTask() {
+    @TaskAction
+    fun hello() {
+        println("hello from HelloTask")
+    }
+}
+
+// Register the hello Task with type HelloTask
+tasks.register<HelloTask>("hello") {
+    group = "Custom tasks"
+    description = "A lovely greeting task."
+}
+----
+
+The `hello` task is registered with the *type* `HelloTask`.
+
+Executing our new `hello` task:
+
+[source]
+----
+$ ./gradlew hello
+
+> Task :app:hello
+hello from HelloTask
+----
+
+Now the `hello` task is of type `HelloTask` instead of type `Task`.
+
+The Gradle `help` task reveals the change:
+
+[source]
+----
+$ ./gradlew help --task hello
+
+> Task :help
+Detailed task information for hello
+
+Path
+:app:hello
+
+Type
+HelloTask (Build_gradle$HelloTask)
+
+Options
+--rerun     Causes the task to be re-run even if up-to-date.
+
+Description
+A lovely greeting task.
+
+Group
+Custom tasks
+----
+
+== Built-in task types
+Gradle provides many built-in task types with common and popular functionality, such as copying or deleting files.
+
+This example task copies `*.war` files from the `source` directory to the `target` directory using the `Copy` built-in task:
+
+[source]
+----
+tasks.register("copyTask",Copy) {
+    from("source")
+    into("target")
+    include("*.war")
+}
+----
+
+There are many task types developers can take advantage of, including `GroovyDoc`, `Zip`, `Jar`, `JacocoReport`, `Sign`, or `Delete`, which are available in the link:link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[DSL].
+
+[[sec:build_scripts_are_code]]
+[[sec:using_ant_tasks_tutorial]]
+[[sec:using_methods]]
+[[sec:default_tasks]]
+[[sec:build_script_external_dependencies]]
+
+[.text-right]
+**Next Step:** <<writing_tasks.adoc#writing_tasks,Learn how to write Tasks>> >>

@@ -55,7 +55,7 @@ abstract class GenerateKotlinExtensionsForGradleApi : DefaultTask() {
 
     @get:InputFiles
     @get:IgnoreEmptyDirectories
-    @get:PathSensitive(PathSensitivity.ABSOLUTE)
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val sources: ConfigurableFileCollection
 
     @get:OutputDirectory

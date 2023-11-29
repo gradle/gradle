@@ -19,6 +19,8 @@ package org.gradle.tooling.events.problems;
 import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationDescriptor;
 
+import java.util.List;
+
 /**
  * Describes a problem operation.
  * <p>
@@ -31,9 +33,84 @@ import org.gradle.tooling.events.OperationDescriptor;
 public interface ProblemDescriptor extends OperationDescriptor {
 
     /**
-     * The problem properties in JSON format.
+     * Mock for the problem properties in JSON format.
+     * <p>
+     * Note: This method is not functional anymore and will not return anything useful.
      *
      * @return the problem properties.
      */
-    String getJson();
+    String getJson(); // TODO https://github.com/gradle/gradle/issues/27125
+
+    /**
+     * Returns the problem category.
+     *
+     * @return the problem category
+     * @since 8.6
+     */
+    ProblemCategory getCategory();
+
+    /**
+     * Returns the problem label.
+     *
+     * @return the problem label
+     * @since 8.6
+     */
+    Label getLabel();
+
+    /**
+     * Returns the details string.
+     *
+     * @return the problem details
+     * @since 8.6
+     */
+    Details getDetails();
+
+    /**
+     * Returns the problem severity.
+     *
+     * @return the problem severity
+     * @since 8.6
+     */
+    Severity getSeverity();
+
+    /**
+     * Returns the locations associated with this problem.
+     *
+     * @return the locations
+     * @since 8.6
+     */
+    List<Location> getLocations();
+
+    /**
+     * Returns the link to the documentation
+     *
+     * @return the locations
+     * @since 8.6
+     */
+    DocumentationLink getDocumentationLink();
+
+    /**
+     * Returns the list of solutions.
+     *
+     * @return the solutions
+     * @since 8.6
+     */
+    List<Solution> getSolutions();
+
+    /**
+     * Additional data associated with this problem.
+     *
+     * @return a map of additional data
+     * @since 8.6
+     */
+    AdditionalData getAdditionalData();
+
+    /**
+     * Returns the exception associated with this problem.
+     *
+     * @return the exception
+     * @since 8.6
+     */
+    @Incubating
+    ExceptionContainer getException();
 }

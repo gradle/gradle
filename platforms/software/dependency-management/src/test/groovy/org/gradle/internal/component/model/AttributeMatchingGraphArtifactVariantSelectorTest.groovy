@@ -24,6 +24,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.capabilities.Capability
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
@@ -462,7 +463,7 @@ All of them match the consumer attributes:
     }
 
     private void performSelection() {
-        GraphVariantSelector variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(createTestProblems()))
+        GraphVariantSelector variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(createTestProblems(), new DocumentationRegistry()))
         selected = variantSelector.selectVariants(
             consumerAttributes,
             requestedCapabilities,

@@ -102,7 +102,7 @@ class DelegatingReportableProblemBuilder implements
     }
 
     @Override
-    public ReportableProblemBuilder additionalData(String key, String value) {
+    public ReportableProblemBuilder additionalData(String key, Object value) {
         return (ReportableProblemBuilder) validateDelegate(((BasicProblemBuilder) delegate).additionalData(key, value));
     }
 

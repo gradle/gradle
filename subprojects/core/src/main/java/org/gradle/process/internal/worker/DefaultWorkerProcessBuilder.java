@@ -36,6 +36,8 @@ import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.worker.child.ApplicationClassesInSystemClassLoaderWorkerImplementationFactory;
 import org.gradle.process.internal.worker.child.WorkerJvmMemoryInfoProtocol;
 import org.gradle.process.internal.worker.child.WorkerLoggingProtocol;
+import org.gradle.process.internal.worker.problem.WorkerProblemProtocol;
+import org.gradle.process.internal.worker.problem.WorkerProblemSerializer;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +64,6 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
 
     private final MemoryManager memoryManager;
     private final JvmVersionDetector jvmVersionDetector;
-
     private Action<? super WorkerProcessContext> action;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private String baseName = "Gradle Worker";
@@ -71,7 +72,15 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private List<URL> implementationModulePath;
     private boolean shouldPublishJvmMemoryInfo;
 
-    DefaultWorkerProcessBuilder(JavaExecHandleFactory execHandleFactory, MessagingServer server, IdGenerator<Long> idGenerator, ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory, OutputEventListener outputEventListener, MemoryManager memoryManager, JvmVersionDetector jvmVersionDetector) {
+    DefaultWorkerProcessBuilder(
+        JavaExecHandleFactory execHandleFactory,
+        MessagingServer server,
+        IdGenerator<Long> idGenerator,
+        ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory,
+        OutputEventListener outputEventListener,
+        MemoryManager memoryManager,
+        JvmVersionDetector jvmVersionDetector
+    ) {
         this.javaCommand = execHandleFactory.newJavaExec();
         this.javaCommand.setExecutable(Jvm.current().getJavaExecutable());
         this.server = server;
@@ -205,6 +214,11 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
                         DefaultWorkerLoggingProtocol defaultWorkerLoggingProtocol = new DefaultWorkerLoggingProtocol(outputEventListener);
                         connection.useParameterSerializers(WorkerLoggingSerializer.create());
                         connection.addIncoming(WorkerLoggingProtocol.class, defaultWorkerLoggingProtocol);
+
+                        DefaultWorkerProblemProtocol defaultWorkerProblemProtocol = new DefaultWorkerProblemProtocol();
+                        connection.useParameterSerializers(WorkerProblemSerializer.create());
+                        connection.addIncoming(WorkerProblemProtocol.class, defaultWorkerProblemProtocol);
+
                         if (shouldPublishJvmMemoryInfo) {
                             connection.useParameterSerializers(WorkerJvmMemoryInfoSerializer.create());
                             connection.addIncoming(WorkerJvmMemoryInfoProtocol.class, memoryStatus);

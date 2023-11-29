@@ -92,7 +92,7 @@ public class BuildModelParameters {
     }
 
     /**
-     * Force parallel tooling API actions? When true, always use parallel execution, when false use a default value.
+     * When {@link #isParallelProjectExecution()} is true, should Tooling API actions run in parallel?
      */
     public boolean isParallelToolingApiActions() {
         return parallelToolingApiActions;

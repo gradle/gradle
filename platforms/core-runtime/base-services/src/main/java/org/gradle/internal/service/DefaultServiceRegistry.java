@@ -21,6 +21,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -91,6 +92,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     private final OwnServices ownServices;
     private final ServiceProvider allServices;
     private final ServiceProvider parentServices;
+    @Nullable
     private final String displayName;
     private final ServiceProvider thisAsServiceProvider;
 
@@ -108,7 +110,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         this(null, parents);
     }
 
-    public DefaultServiceRegistry(String displayName, ServiceRegistry... parents) {
+    public DefaultServiceRegistry(@Nullable String displayName, ServiceRegistry... parents) {
         this.displayName = displayName;
         this.ownServices = new OwnServices();
         if (parents.length == 0) {
@@ -324,6 +326,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         return provider == null ? null : provider.get();
     }
 
+    @Nullable
     private Service getService(Type serviceType) {
         serviceRequested();
         return find(serviceType, allServices);
@@ -340,6 +343,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         return factory;
     }
 
+    @Nullable
     private Service getFactoryService(Class<?> serviceType) {
         serviceRequested();
         return allServices.getFactory(serviceType);
@@ -1072,6 +1076,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         }
     }
 
+    @Nullable
     private static Service find(Type serviceType, ServiceProvider serviceProvider) {
         if (serviceType instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) serviceType;
@@ -1097,6 +1102,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         throw new ServiceValidationException(String.format("Locating services with type %s is not supported.", format(serviceType)));
     }
 
+    @Nullable
     private static Service getFactoryService(Type type, ServiceProvider serviceProvider) {
         if (type instanceof Class) {
             return serviceProvider.getFactory((Class) type);
@@ -1309,7 +1315,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
                 collectTypes(type, types);
             }
 
-            private void collectTypes(Class<?> type, Set<Class<?>> types) {
+            private void collectTypes(@Nullable Class<?> type, Set<Class<?>> types) {
                 if (type == null || !types.add(type)) {
                     return;
                 }

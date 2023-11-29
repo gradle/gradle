@@ -97,7 +97,7 @@ public interface UnboundProblemBuilder extends
      * {@inheritDoc}
      */
     @Override
-    UnboundProblemBuilder additionalData(String key, String value);
+    UnboundProblemBuilder additionalData(String key, Object value);
 
     /**
      * {@inheritDoc}

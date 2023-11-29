@@ -33,7 +33,6 @@ import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.model.InputNormalizer;
-import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -52,7 +51,6 @@ import org.gradle.operations.dependencies.transforms.SnapshotTransformInputsBuil
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.File;
-import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
@@ -84,11 +82,10 @@ abstract class AbstractTransformExecution implements UnitOfWork {
 
     private final Provider<FileSystemLocation> inputArtifactProvider;
     protected final InputFingerprinter inputFingerprinter;
-    private final TransformWorkspaceServices workspaceServices;
 
     private BuildOperationContext operationContext;
 
-    public AbstractTransformExecution(
+    protected AbstractTransformExecution(
         Transform transform,
         File inputArtifact,
         TransformDependencies dependencies,
@@ -98,8 +95,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         BuildOperationExecutor buildOperationExecutor,
         BuildOperationProgressEventEmitter progressEventEmitter,
         FileCollectionFactory fileCollectionFactory,
-        InputFingerprinter inputFingerprinter,
-        TransformWorkspaceServices workspaceServices
+        InputFingerprinter inputFingerprinter
     ) {
         this.transform = transform;
         this.inputArtifact = inputArtifact;
@@ -112,7 +108,6 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         this.progressEventEmitter = progressEventEmitter;
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
-        this.workspaceServices = workspaceServices;
     }
 
     @Override
@@ -147,7 +142,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
                     File workspace = executionRequest.getWorkspace();
                     InputChangesInternal inputChanges = executionRequest.getInputChanges().orElse(null);
                     TransformExecutionResult result = transform.transform(inputArtifactProvider, getOutputDir(workspace), dependencies, inputChanges);
-                    TransformExecutionResultSerializer resultSerializer = new TransformExecutionResultSerializer(getOutputDir(workspace));
+                    TransformExecutionResultSerializer resultSerializer = new TransformExecutionResultSerializer();
                     resultSerializer.writeToFile(getResultsFile(workspace), result);
                     return result;
                 } finally {
@@ -172,21 +167,16 @@ abstract class AbstractTransformExecution implements UnitOfWork {
             }
 
             @Override
-            public Object getOutput() {
-                return result;
+            public Object getOutput(File workspace) {
+                return result.resolveForWorkspace(getOutputDir(workspace));
             }
         };
     }
 
     @Override
     public Object loadAlreadyProducedOutput(File workspace) {
-        TransformExecutionResultSerializer resultSerializer = new TransformExecutionResultSerializer(getOutputDir(workspace));
-        return resultSerializer.readResultsFile(getResultsFile(workspace));
-    }
-
-    @Override
-    public WorkspaceProvider getWorkspaceProvider() {
-        return workspaceServices.getWorkspaceProvider();
+        TransformExecutionResultSerializer resultSerializer = new TransformExecutionResultSerializer();
+        return resultSerializer.readResultsFile(getResultsFile(workspace)).resolveForWorkspace(getOutputDir(workspace));
     }
 
     @Override
@@ -200,11 +190,6 @@ abstract class AbstractTransformExecution implements UnitOfWork {
 
     private static File getResultsFile(File workspace) {
         return new File(workspace, "results.bin");
-    }
-
-    @Override
-    public Optional<Duration> getTimeout() {
-        return Optional.empty();
     }
 
     @Override

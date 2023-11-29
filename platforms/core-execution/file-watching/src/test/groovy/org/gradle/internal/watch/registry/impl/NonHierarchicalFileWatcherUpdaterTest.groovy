@@ -59,7 +59,6 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         when:
         buildFinished()
         then:
-        _ * watchFilter.test(_) >> true
         0 * _
         !vfsHasSnapshotsAt(fileOutsideOfWatchableHierarchies)
     }

@@ -167,7 +167,8 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
         private boolean cache;
         private Object cachedValue;
 
-        public @Nullable Object getValue(org.gradle.api.plugins.Convention convention, IConventionAware conventionAwareObject) {
+        @Nullable
+        public Object getValue(org.gradle.api.plugins.Convention convention, IConventionAware conventionAwareObject) {
             if (!cache) {
                 return doGetValue(convention, conventionAwareObject);
             }
@@ -184,6 +185,7 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
             cachedValue = null;
         }
 
-        abstract @Nullable Object doGetValue(org.gradle.api.plugins.Convention convention, IConventionAware conventionAwareObject);
+        @Nullable
+        abstract Object doGetValue(org.gradle.api.plugins.Convention convention, IConventionAware conventionAwareObject);
     }
 }

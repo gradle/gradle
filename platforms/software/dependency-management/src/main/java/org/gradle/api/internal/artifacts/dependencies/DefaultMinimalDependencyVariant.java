@@ -59,6 +59,7 @@ public class DefaultMinimalDependencyVariant extends DefaultExternalModuleDepend
         MinimalExternalModuleDependencyInternal internal = (MinimalExternalModuleDependencyInternal) delegate;
         setAttributesFactory(internal.getAttributesFactory());
         setCapabilityNotationParser(internal.getCapabilityNotationParser());
+        setObjectFactory(internal.getObjectFactory());
     }
 
     private DefaultMinimalDependencyVariant(

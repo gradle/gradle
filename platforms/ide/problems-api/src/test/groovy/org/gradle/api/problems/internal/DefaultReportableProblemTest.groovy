@@ -16,9 +16,10 @@
 
 package org.gradle.api.problems.internal
 
-
+import org.gradle.api.problems.ProblemEmitter
 import org.gradle.api.problems.Severity
 import org.gradle.internal.deprecation.Documentation
+import org.gradle.internal.operations.OperationIdentifier
 import spock.lang.Specification
 
 class DefaultReportableProblemTest extends Specification {
@@ -45,7 +46,8 @@ class DefaultReportableProblemTest extends Specification {
 
     def "unbound builder result with a change and check report"() {
         given:
-        def internalProblems = Mock(InternalProblems)
+        def emitter = Mock(ProblemEmitter)
+        def internalProblems = new DefaultProblems(emitter)
         def problem = createReportableTestProblem(Severity.WARNING, [:], internalProblems)
         def builder = problem.toBuilder()
         def newProblem = builder
@@ -57,7 +59,7 @@ class DefaultReportableProblemTest extends Specification {
         newProblem.report()
 
         then:
-        1 * internalProblems.reportAsProgressEvent(newProblem)
+        1 * emitter.emit(newProblem)
         newProblem.problemCategory == problem.problemCategory
         newProblem.label == problem.label
         newProblem.additionalData == problem.additionalData
@@ -80,7 +82,8 @@ class DefaultReportableProblemTest extends Specification {
             new RuntimeException("cause"),
             "a:b:c",
             additionalData,
-            internalProblems
+            new OperationIdentifier(1),
+            internalProblems,
         )
     }
 
@@ -95,7 +98,8 @@ class DefaultReportableProblemTest extends Specification {
             [],
             new RuntimeException("cause"),
             "a:b:c",
-            [:]
+            [:],
+            new OperationIdentifier(1)
         )
 
 

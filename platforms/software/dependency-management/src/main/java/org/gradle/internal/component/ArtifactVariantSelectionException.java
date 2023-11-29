@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVariantSelector;
 import org.gradle.internal.exceptions.Contextual;
 
@@ -34,9 +33,5 @@ public class ArtifactVariantSelectionException extends AbstractVariantSelectionE
 
     public ArtifactVariantSelectionException(String message, Throwable cause) {
         super(message, cause);
-    }
-
-    public static ArtifactVariantSelectionException selectionFailed(ResolvedVariantSet producer, Throwable failure) {
-        return new ArtifactVariantSelectionException(String.format("Could not select a variant of %s that matches the consumer attributes.", producer.asDescribable().getDisplayName()), failure);
     }
 }

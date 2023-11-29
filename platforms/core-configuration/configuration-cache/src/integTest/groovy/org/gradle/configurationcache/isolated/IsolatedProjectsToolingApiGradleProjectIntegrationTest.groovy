@@ -18,7 +18,7 @@ package org.gradle.configurationcache.isolated
 
 import org.gradle.tooling.model.GradleProject
 
-import static org.gradle.configurationcache.isolated.ToolingModelChecker.checkGradleProject
+import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.checkGradleProject
 
 class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
 

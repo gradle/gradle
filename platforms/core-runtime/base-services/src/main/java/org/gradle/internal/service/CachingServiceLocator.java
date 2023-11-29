@@ -49,7 +49,7 @@ public class CachingServiceLocator implements ServiceLocator {
     @Override
     public synchronized <T> T get(Class<T> serviceType) throws UnknownServiceException {
         if (services.containsKey(serviceType)) {
-            return Cast.uncheckedCast(services.get(serviceType));
+            return Cast.uncheckedNonnullCast(services.get(serviceType));
         }
         T t = delegate.get(serviceType);
         services.put(serviceType, t);
@@ -59,7 +59,7 @@ public class CachingServiceLocator implements ServiceLocator {
     @Override
     public synchronized <T> List<T> getAll(Class<T> serviceType) throws UnknownServiceException {
         if (allServices.containsKey(serviceType)) {
-            return Cast.uncheckedCast(allServices.get(serviceType));
+            return Cast.uncheckedNonnullCast(allServices.get(serviceType));
         }
         List<T> all = delegate.getAll(serviceType);
         allServices.put(serviceType, all);

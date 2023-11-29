@@ -37,4 +37,4 @@ inline fun <reified T : Any> GradleInternal.serviceOf(): T =
 
 
 inline fun <reified T : Any> ServiceRegistry.get(): T =
-    this[T::class.java]!!
+    this[T::class.java]

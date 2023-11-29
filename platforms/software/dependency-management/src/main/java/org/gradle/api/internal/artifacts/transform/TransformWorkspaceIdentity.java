@@ -76,13 +76,13 @@ class TransformWorkspaceIdentity implements UnitOfWork.Identity {
 
     public static TransformWorkspaceIdentity createNonNormalizedImmutable(
         ValueSnapshot inputArtifactPath,
-        ValueSnapshot inputArtifactSnapshot,
+        HashCode inputArtifactSnapshot,
         ValueSnapshot secondaryInputsSnapshot,
         HashCode dependenciesHash
     ) {
         Hasher hasher = Hashing.newHasher();
         inputArtifactPath.appendToHasher(hasher);
-        inputArtifactSnapshot.appendToHasher(hasher);
+        hasher.putHash(inputArtifactSnapshot);
         secondaryInputsSnapshot.appendToHasher(hasher);
         hasher.putHash(dependenciesHash);
         return new TransformWorkspaceIdentity(secondaryInputsSnapshot, hasher.hash());

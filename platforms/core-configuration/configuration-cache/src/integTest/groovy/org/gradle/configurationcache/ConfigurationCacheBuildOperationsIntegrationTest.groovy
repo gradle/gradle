@@ -471,6 +471,8 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
 
         def calculateGraphOp2 = calculateGraphOps[1]
         assert calculateGraphOp2.parentId == calculateTreeGraphOp2.id
+
+        assert calculateGraphOp.result.requestedTaskPaths == calculateGraphOp2.result.requestedTaskPaths
     }
 
     private void hasCompositeBuildsWorkGraphPopulated() {

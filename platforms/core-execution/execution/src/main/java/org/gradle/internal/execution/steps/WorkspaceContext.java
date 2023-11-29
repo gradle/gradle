@@ -25,19 +25,25 @@ import java.util.Optional;
 public class WorkspaceContext extends IdentityContext {
     private final File workspace;
     private final ExecutionHistoryStore history;
+    private final boolean captureBeforeExecutionState;
 
-    public WorkspaceContext(IdentityContext parent, File workspace, @Nullable ExecutionHistoryStore history) {
+    public WorkspaceContext(IdentityContext parent, File workspace, @Nullable ExecutionHistoryStore history, boolean captureBeforeExecutionState) {
         super(parent);
         this.workspace = workspace;
         this.history = history;
+        this.captureBeforeExecutionState = captureBeforeExecutionState;
     }
 
     protected WorkspaceContext(WorkspaceContext parent) {
-        this(parent, parent.getWorkspace(), parent.getHistory().orElse(null));
+        this(parent, parent.getWorkspace(), parent.getHistory().orElse(null), parent.shouldCaptureBeforeExecutionState());
     }
 
     public File getWorkspace() {
         return workspace;
+    }
+
+    public boolean shouldCaptureBeforeExecutionState() {
+        return captureBeforeExecutionState;
     }
 
     public Optional<ExecutionHistoryStore> getHistory() {
