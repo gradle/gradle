@@ -142,8 +142,7 @@ buildscript {
 
     def "can interpret the settings file with the restricted DSL"() {
         given:
-        file("gradle.properties") << "org.gradle.internal.restricted.dsl=true"
-        settingsKotlinFile << """
+        file("settings.gradle.something") << """
             rootProject.name = "test-value"
             include(":a")
             include(":b")
