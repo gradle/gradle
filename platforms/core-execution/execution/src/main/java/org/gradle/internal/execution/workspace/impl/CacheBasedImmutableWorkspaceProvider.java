@@ -25,6 +25,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
+import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
@@ -32,8 +33,6 @@ import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 import java.io.Closeable;
 import java.io.File;
 import java.util.UUID;
-
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceProvider, Closeable {
     private static final int DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
@@ -81,7 +80,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             // as we are using unique temporary workspaces to run work in
             // and move them atomically into the cache
             // TODO Should use a read-write lock on the cache's base directory for cleanup, though
-            .withLockOptions(mode(FileLockManager.LockMode.None))
+            .withLockOptions(new DefaultLockOptions(FileLockManager.LockMode.None))
             .open();
         this.cache = cache;
         this.baseDirectory = cache.getBaseDir();
