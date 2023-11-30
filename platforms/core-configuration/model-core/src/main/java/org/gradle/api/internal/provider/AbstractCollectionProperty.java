@@ -69,12 +69,14 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     protected abstract C emptyCollection();
 
     public CollectionPropertyConfigurer<T> getConventionValue() {
-        assertCanMutate();
+        // TODO-RC consider dropping assertion
+        //assertCanMutate();
         return new ConventionConfigurer();
     }
 
     public CollectionPropertyConfigurer<T> getExplicitValue() {
-        assertCanMutate();
+        // TODO-RC consider dropping assertion
+        //assertCanMutate();
         return new ExplicitValueConfigurer();
     }
 

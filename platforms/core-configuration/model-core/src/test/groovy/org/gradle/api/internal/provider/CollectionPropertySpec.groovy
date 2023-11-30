@@ -1114,8 +1114,18 @@ The value of this property is derived from: <source>""")
         !property.explicit
     }
 
+    def "can add to convention value"() {
+        given:
+        property.actualValue.addAll(Providers.of(["1", "2"]))
+        property.actualValue.addAll(Providers.of(["3", "4"]))
+        expect:
+        assertValueIs toImmutable(["1", "2", "3", "4"])
+        property.explicit
+    }
+
     def "can add to explicit value"() {
         given:
+        property.set([])
         property.actualValue.addAll(Providers.of(["1", "2"]))
         property.actualValue.addAll(Providers.of(["3", "4"]))
 

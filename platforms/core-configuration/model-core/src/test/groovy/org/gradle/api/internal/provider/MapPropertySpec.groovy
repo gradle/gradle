@@ -1195,7 +1195,7 @@ The value of this property is derived from: <source>""")
         "getOrElse" | _
     }
 
-    def "may configure convention incrementally"() {
+    def "may configure convention value incrementally"() {
         given:
         property.convention([:])
         property.actualValue.put('k0', '1')
@@ -1206,7 +1206,18 @@ The value of this property is derived from: <source>""")
         assert !property.explicit
     }
 
-    def "may configure actual value incrementally"() {
+    def "may configure explicit value incrementally"() {
+        given:
+        property.set([:])
+        property.actualValue.put('k0', '1')
+        property.actualValue.putAll(['k1': '2', 'k2': '3'])
+        property.actualValue.put('k2', '4')
+        expect:
+        assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
+        assert property.explicit
+    }
+
+    def "may configure default value incrementally"() {
         given:
         property.actualValue.put('k0', '1')
         property.actualValue.putAll(['k1': '2', 'k2': '3'])
@@ -1228,6 +1239,7 @@ The value of this property is derived from: <source>""")
     def "may exclude convention component values using a predicate"() {
         given:
         property.convention([:])
+        property.actualValue.removeIf({ it == 'k0' } as Spec)
         property.actualValue.put('k0', '1')
         property.actualValue.put('k1', '2')
         property.actualValue.put('k2', '3')
