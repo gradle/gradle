@@ -93,16 +93,8 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         dependencyHandler.getArtifactTypes().getByName(JAR_TYPE).getAttributes()
             .attribute(INSTRUMENTED_ATTRIBUTE, false)
             .attribute(HIERARCHY_COLLECTED_ATTRIBUTE, false);
-    }
 
-    @Override
-    public ClassPath resolveClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler, ConfigurationContainer configContainer) {
-        FileCollection instrumentedView = getInstrumentedView(classpathConfiguration, dependencyHandler);
-        return TransformedClassPath.handleInstrumentingArtifactTransform(DefaultClassPath.of(instrumentedView));
-    }
-
-    private FileCollection getInstrumentedView(Configuration classpathConfiguration, DependencyHandler dependencyHandler) {
-        // Register instrumentation and upgrades transform
+        // Register instrumentation transform
         dependencyHandler.registerTransform(
             InstrumentingArtifactTransform.class,
             spec -> {
@@ -115,7 +107,15 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
                 });
             }
         );
+    }
 
+    @Override
+    public ClassPath resolveClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler, ConfigurationContainer configContainer) {
+        FileCollection instrumentedView = getInstrumentedView(classpathConfiguration);
+        return TransformedClassPath.handleInstrumentingArtifactTransform(DefaultClassPath.of(instrumentedView));
+    }
+
+    private static FileCollection getInstrumentedView(Configuration classpathConfiguration) {
         return artifactView(classpathConfiguration, config -> {
             config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, true));
             config.componentFilter(DefaultScriptClassPathResolver::filterGradleDependencies);
