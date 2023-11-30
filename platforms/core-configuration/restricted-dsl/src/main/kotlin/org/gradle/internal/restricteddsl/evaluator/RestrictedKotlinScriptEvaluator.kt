@@ -40,11 +40,11 @@ import org.gradle.api.initialization.Settings
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.restricteddsl.plugins.RuntimeTopLevelPluginsReceiver
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated
-import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.FailuresInLanguageTree
-import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.FailuresInResolution
-import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.NoParseResult
-import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.NoSchemaAvailable
-import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.UnassignedValuesUsed
+import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.FailuresInLanguageTree
+import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.FailuresInResolution
+import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.NoParseResult
+import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.NoSchemaAvailable
+import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.UnassignedValuesUsed
 
 
 interface RestrictedKotlinScriptEvaluator {
@@ -55,13 +55,13 @@ interface RestrictedKotlinScriptEvaluator {
 
     sealed interface EvaluationResult {
         object Evaluated : EvaluationResult
-        class NotEvaluated(val reason: NotEvaluatedReason) : EvaluationResult {
-            sealed interface NotEvaluatedReason {
-                data class NoSchemaAvailable(val target: Any) : NotEvaluatedReason
-                object NoParseResult : NotEvaluatedReason
-                data class FailuresInLanguageTree(val failures: List<FailingResult>) : NotEvaluatedReason
-                data class FailuresInResolution(val errors: List<ResolutionError>) : NotEvaluatedReason
-                data class UnassignedValuesUsed(val usages: List<AssignmentTraceElement.UnassignedValueUsed>) : NotEvaluatedReason
+        class NotEvaluated(val stageFailures: List<StageFailure>) : EvaluationResult {
+            sealed interface StageFailure {
+                data class NoSchemaAvailable(val target: Any) : StageFailure
+                object NoParseResult : StageFailure
+                data class FailuresInLanguageTree(val failures: List<FailingResult>) : StageFailure
+                data class FailuresInResolution(val errors: List<ResolutionError>) : StageFailure
+                data class UnassignedValuesUsed(val usages: List<AssignmentTraceElement.UnassignedValueUsed>) : StageFailure
             }
         } // TODO: make reason more structured
     }
@@ -83,7 +83,7 @@ class DefaultRestrictedKotlinScriptEvaluator(
 ) : RestrictedKotlinScriptEvaluator {
     override fun evaluate(target: Any, scriptSource: ScriptSource): RestrictedKotlinScriptEvaluator.EvaluationResult {
         return when (val schema = schemaBuilder.getAnalysisSchemaForScript(target, scriptContextFor(target))) {
-            ScriptSchemaBuildingResult.SchemaNotBuilt -> NotEvaluated(NoSchemaAvailable(target))
+            ScriptSchemaBuildingResult.SchemaNotBuilt -> NotEvaluated(listOf(NoSchemaAvailable(target)))
 
             is ScriptSchemaBuildingResult.SchemaAvailable -> {
                 evaluateWithSchema(schema.schema, scriptSource, target)
@@ -93,24 +93,32 @@ class DefaultRestrictedKotlinScriptEvaluator(
 
     private
     fun evaluateWithSchema(schema: AnalysisSchema, scriptSource: ScriptSource, target: Any): RestrictedKotlinScriptEvaluator.EvaluationResult {
+        val failureReasons = mutableListOf<NotEvaluated.StageFailure>()
+
         val resolver = defaultCodeResolver()
         val ast = astFromScript(scriptSource).singleOrNull()
-            ?: return NotEvaluated(NoParseResult)
+            ?: run {
+                failureReasons += (NoParseResult)
+                return NotEvaluated(failureReasons)
+            }
         val languageModel = languageModelFromAst(ast)
         val failures = languageModel.results.filterIsInstance<FailingResult>()
         if (failures.isNotEmpty()) {
-            return NotEvaluated(FailuresInLanguageTree(failures))
+            failureReasons += FailuresInLanguageTree(failures)
         }
         val elements = languageModel.results.filterIsInstance<Element<*>>().map { it.element }
         val resolution = resolver.resolve(schema, elements)
         if (resolution.errors.isNotEmpty()) {
-            return NotEvaluated(FailuresInResolution(resolution.errors))
+            failureReasons += FailuresInResolution(resolution.errors)
         }
 
         val trace = assignmentTrace(resolution)
         val unassignedValueUsages = trace.elements.filterIsInstance<AssignmentTraceElement.UnassignedValueUsed>()
         if (unassignedValueUsages.isNotEmpty()) {
-            return NotEvaluated(UnassignedValuesUsed(unassignedValueUsages))
+            failureReasons += UnassignedValuesUsed(unassignedValueUsages)
+        }
+        if (failureReasons.isNotEmpty()) {
+            return NotEvaluated(failureReasons)
         }
         val context = ReflectionContext(SchemaTypeRefContext(schema), resolution, trace)
         val topLevel = reflect(resolution.topLevelReceiver, context)
