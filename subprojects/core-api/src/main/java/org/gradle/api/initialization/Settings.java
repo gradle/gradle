@@ -124,7 +124,13 @@ public interface Settings extends PluginAware, ExtensionAware {
         include(Arrays.asList(projectPaths));
     }
 
+    /**
+     * This is a version of {@link Settings#include(String...)} for just one argument.
+     * FIXME: this public API should not be released!
+     * @since 8.6
+     */
     @Adding // TODO: support varargs and remove the workaround
+    @Incubating
     default void include(String projectPath) {
         include(new String[] {projectPath});
     }
