@@ -17,11 +17,11 @@ package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Named;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 
 import javax.annotation.Nullable;
 
@@ -49,7 +49,7 @@ public interface JvmFeatureInternal extends Named {
      * Get the capabilities of this feature. All variants exposed by this feature must provide at least
      * the same capabilities as this feature.
      */
-    CapabilitiesMetadata getCapabilities();
+    ImmutableCapabilities getCapabilities();
 
     // TODO: Are sources and javadoc also target-specific? Some targets, for example java 8 vs 11, may use
     // separate sources which compile to version-specific APIs. Same for javadoc. They are built from the sources

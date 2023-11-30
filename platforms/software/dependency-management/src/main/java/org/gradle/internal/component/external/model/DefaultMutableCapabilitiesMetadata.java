@@ -16,19 +16,26 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.capabilities.MutableCapabilitiesMetadata;
-import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
 
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-public class DefaultMutableCapabilities implements MutableCapabilitiesMetadata, CapabilitiesMetadataInternal {
-    private final List<Capability> descriptors;
+/**
+ * Default implementation of {@link MutableCapabilitiesMetadata}.
+ *
+ * <p>If possible, try to avoid using this type unless interfacing with the public API.</p>
+ */
+public class DefaultMutableCapabilitiesMetadata implements MutableCapabilitiesMetadata {
+    private final Set<ImmutableCapability> descriptors;
 
-    public DefaultMutableCapabilities(List<Capability> descriptors) {
-        this.descriptors = descriptors;
+    public DefaultMutableCapabilitiesMetadata(ImmutableCapabilities capabilities) {
+        this.descriptors = new LinkedHashSet<>(capabilities.asSet());
     }
 
     @Override
@@ -48,11 +55,15 @@ public class DefaultMutableCapabilities implements MutableCapabilitiesMetadata, 
 
     @Override
     public CapabilitiesMetadata asImmutable() {
-        return ImmutableCapabilities.of(getCapabilities());
+        return new DefaultCapabilitiesMetadata(asImmutableCapabilities());
     }
 
     @Override
-    public List<? extends Capability> getCapabilities() {
+    public ImmutableList<? extends Capability> getCapabilities() {
         return ImmutableList.copyOf(descriptors);
+    }
+
+    public ImmutableCapabilities asImmutableCapabilities() {
+        return new ImmutableCapabilities(ImmutableSet.copyOf(descriptors));
     }
 }

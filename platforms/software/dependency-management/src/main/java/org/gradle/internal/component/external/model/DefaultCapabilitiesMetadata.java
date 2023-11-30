@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.capabilities;
+package org.gradle.internal.component.external.model;
 
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
@@ -22,17 +22,21 @@ import org.gradle.api.capabilities.Capability;
 import java.util.List;
 
 /**
- * Internal extension of {@link CapabilitiesMetadata} that adds methods not intended for public consumption.
+ * An immutable implementation of {@link CapabilitiesMetadata}.
+ *
+ * <p>If possible, use {@link ImmutableCapabilities} instead of this type. This type
+ * should only be used when interfacing with the public API.</p>
  */
-public interface CapabilitiesMetadataInternal extends CapabilitiesMetadata {
-    /**
-     * A method that helps performance of selection by quickly checking if a
-     * metadata container only contains a single, shadowed (the implicit) capability.
-     *
-     * @return {@code true} if the variant only contains the implicit capability
-     */
-    default boolean isShadowedCapabilityOnly() {
-        List<? extends Capability> capabilities = getCapabilities();
-        return capabilities.size() == 1 && capabilities.get(0) instanceof ShadowedCapability;
+public class DefaultCapabilitiesMetadata implements CapabilitiesMetadata {
+
+    private final ImmutableCapabilities capabilities;
+
+    public DefaultCapabilitiesMetadata(ImmutableCapabilities capabilities) {
+        this.capabilities = capabilities;
+    }
+
+    @Override
+    public List<? extends Capability> getCapabilities() {
+        return capabilities.asSet().asList();
     }
 }

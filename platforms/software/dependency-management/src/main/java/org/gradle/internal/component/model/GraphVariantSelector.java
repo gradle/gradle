@@ -17,13 +17,13 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -31,10 +31,11 @@ import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.ResolutionFailureHandler;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
@@ -202,8 +203,7 @@ public class GraphVariantSelector {
         boolean explicitlyRequested = !explicitRequestedCapabilities.isEmpty();
         ModuleIdentifier moduleId = targetComponent.getModuleVersionId().getModule();
         for (VariantGraphResolveState variant : consumableVariants) {
-            CapabilitiesMetadata capabilitiesMetadata = variant.getCapabilities();
-            List<? extends Capability> capabilities = capabilitiesMetadata.getCapabilities();
+            ImmutableCapabilities capabilities = variant.getCapabilities();
             MatchResult result;
             if (explicitlyRequested) {
                 // some capabilities are explicitly required (in other words, we're not _necessarily_ looking for the default capability
@@ -211,7 +211,7 @@ public class GraphVariantSelector {
                 result = providesAllCapabilities(targetComponent, explicitRequestedCapabilities, capabilities);
             } else {
                 // we need to make sure the variants we consider provide the implicit capability
-                result = containsImplicitCapability(capabilitiesMetadata, capabilities, moduleId.getGroup(), moduleId.getName());
+                result = containsImplicitCapability(capabilities, moduleId.getGroup(), moduleId.getName());
             }
             if (result.matches) {
                 if (lenient || result == MatchResult.EXACT_MATCH) {
@@ -226,8 +226,9 @@ public class GraphVariantSelector {
      * Determines if a producer variant provides all the requested capabilities. When doing so it does
      * NOT consider capability versions, as they will be used later in the engine during conflict resolution.
      */
-    private MatchResult providesAllCapabilities(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, List<? extends Capability> providerCapabilities) {
-        if (providerCapabilities.isEmpty()) {
+    private MatchResult providesAllCapabilities(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, ImmutableCapabilities providerCapabilities) {
+        ImmutableSet<ImmutableCapability> providerCapabilitiesSet = providerCapabilities.asSet();
+        if (providerCapabilitiesSet.isEmpty()) {
             // producer doesn't declare anything, so we assume that it only provides the implicit capability
             if (explicitRequestedCapabilities.size() == 1) {
                 Capability requested = explicitRequestedCapabilities.iterator().next();
@@ -241,7 +242,7 @@ public class GraphVariantSelector {
             String requestedGroup = requested.getGroup();
             String requestedName = requested.getName();
             boolean found = false;
-            for (Capability provided : providerCapabilities) {
+            for (Capability provided : providerCapabilitiesSet) {
                 if (provided.getGroup().equals(requestedGroup) && provided.getName().equals(requestedName)) {
                     found = true;
                     break;
@@ -251,27 +252,38 @@ public class GraphVariantSelector {
                 return MatchResult.NO_MATCH;
             }
         }
-        boolean exactMatch = explicitRequestedCapabilities.size() == providerCapabilities.size();
+        boolean exactMatch = explicitRequestedCapabilities.size() == providerCapabilitiesSet.size();
         return exactMatch ? MatchResult.EXACT_MATCH : MatchResult.MATCHES_ALL;
     }
 
-    private MatchResult containsImplicitCapability(CapabilitiesMetadata capabilitiesMetadata, Collection<? extends Capability> capabilities, String group, String name) {
-        if (fastContainsImplicitCapability((CapabilitiesMetadataInternal) capabilitiesMetadata, capabilities)) {
+    private MatchResult containsImplicitCapability(ImmutableCapabilities capabilities, String group, String name) {
+        ImmutableSet<ImmutableCapability> capabilitiesSet = capabilities.asSet();
+        if (fastContainsImplicitCapability(capabilitiesSet)) {
             // An empty capability list means that it's an implicit capability only
             return MatchResult.EXACT_MATCH;
         }
-        for (Capability capability : capabilities) {
+        for (Capability capability : capabilitiesSet) {
             capability = unwrap(capability);
             if (group.equals(capability.getGroup()) && name.equals(capability.getName())) {
-                boolean exactMatch = capabilities.size() == 1;
+                boolean exactMatch = capabilitiesSet.size() == 1;
                 return exactMatch ? MatchResult.EXACT_MATCH : MatchResult.MATCHES_ALL;
             }
         }
         return MatchResult.NO_MATCH;
     }
 
-    private boolean fastContainsImplicitCapability(CapabilitiesMetadataInternal capabilitiesMetadata, Collection<? extends Capability> capabilities) {
-        return capabilities.isEmpty() || capabilitiesMetadata.isShadowedCapabilityOnly();
+    /**
+     * A method that helps performance of selection by quickly checking if a
+     * metadata container only contains a single, shadowed (the implicit) capability.
+     *
+     * @return {@code true} if the variant only contains the implicit capability
+     */
+    private static boolean fastContainsImplicitCapability(ImmutableSet<ImmutableCapability> capabilities) {
+        if (capabilities.isEmpty()) {
+            return true;
+        }
+
+        return capabilities.size() == 1 && capabilities.iterator().next() instanceof ShadowedCapability;
     }
 
     private Capability unwrap(Capability capability) {

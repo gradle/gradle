@@ -48,6 +48,7 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveState;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
@@ -65,7 +66,6 @@ import org.gradle.util.internal.CollectionUtils;
 import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -194,7 +194,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
             BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
             artifactResolver.resolveArtifact(componentState.getResolveMetadata(), artifactMetaData, resolveResult);
             try {
-                artifacts.addArtifact(ivyFactory.verifiedArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, Collections.emptyList(), Describables.of(componentState.getId().getDisplayName()), type, resolveResult.getResult().getFile())));
+                artifacts.addArtifact(ivyFactory.verifiedArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, Describables.of(componentState.getId().getDisplayName()), type, resolveResult.getResult().getFile())));
             } catch (Exception e) {
                 artifacts.addArtifact(new DefaultUnresolvedArtifactResult(artifactMetaData.getId(), type, e));
             }

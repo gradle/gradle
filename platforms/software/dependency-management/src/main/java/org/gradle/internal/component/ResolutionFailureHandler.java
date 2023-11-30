@@ -453,7 +453,7 @@ public class ResolutionFailureHandler {
         sb.append(":\n");
         for (VariantGraphResolveState candidate : candidates) {
             sb.append("   - Variant ").append(candidate.getName()).append(" provides ");
-            sb.append(CapabilitiesSupport.sortedCapabilityList(targetComponent, candidate.getCapabilities().getCapabilities())).append("\n");
+            sb.append(CapabilitiesSupport.sortedCapabilityList(targetComponent, candidate.getCapabilities().asSet())).append("\n");
         }
         return sb.toString();
     }
@@ -477,7 +477,7 @@ public class ResolutionFailureHandler {
         formatter.append(variant.getName());
         formatter.append("'");
         if (variantAware) {
-            formatter.append(" " + CapabilitiesSupport.prettifyCapabilities(targetComponent, variant.getCapabilities().getCapabilities()));
+            formatter.append(" " + CapabilitiesSupport.prettifyCapabilities(targetComponent, variant.getCapabilities().asSet()));
         }
         if (ambiguous) {
             formatAttributeMatchesForAmbiguity(formatter, consumerAttributes.asImmutable(), attributeMatcher, producerAttributes.asImmutable(), describer);

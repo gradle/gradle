@@ -23,7 +23,6 @@ import com.google.common.collect.Maps;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
@@ -109,7 +108,7 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
                 excludes = ImmutableList.of();
             } else {
                 attributes = baseConf.getAttributes();
-                capabilities = (ImmutableCapabilities) baseConf.getCapabilities();
+                capabilities = baseConf.getCapabilities();
                 dependencies = Cast.uncheckedCast(baseConf.getDependencies());
                 artifacts = Cast.uncheckedCast(baseConf.getArtifacts());
                 excludes = Cast.uncheckedCast(baseConf.getExcludes());
@@ -156,10 +155,10 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
     ) {
         NameOnlyVariantResolveMetadata variant = new NameOnlyVariantResolveMetadata(configurationName);
         ImmutableAttributes variantAttributes = variantMetadataRules.applyVariantAttributeRules(variant, attributes);
-        CapabilitiesMetadata capabilitiesMetadata = variantMetadataRules.applyCapabilitiesRules(variant, capabilities);
+        ImmutableCapabilities variantCapabilities = variantMetadataRules.applyCapabilitiesRules(variant, capabilities);
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifactsMetadata = variantMetadataRules.applyVariantFilesMetadataRulesToArtifacts(variant, artifacts, id);
         return createConfiguration(id, configurationName, transitive, visible, hierarchy,
-            artifactsMetadata, excludes, variantAttributes, ImmutableCapabilities.of(capabilitiesMetadata.getCapabilities()), variantMetadataRules, configurationHelper, dependenciesOverride, addedByRule, isExternalVariant);
+            artifactsMetadata, excludes, variantAttributes, variantCapabilities, variantMetadataRules, configurationHelper, dependenciesOverride, addedByRule, isExternalVariant);
     }
 
     private final ImmutableMap<String, Configuration> configurationDefinitions;

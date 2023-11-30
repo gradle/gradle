@@ -19,7 +19,6 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -41,7 +40,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
 
     // Could be precomputed, but we avoid doing so if attributes are never requested
     private ImmutableAttributes computedAttributes;
-    private CapabilitiesMetadata computedCapabilities;
+    private ImmutableCapabilities computedCapabilities;
 
     // Fields used for performance optimizations: we avoid computing the derived dependencies (withConstraints, withoutConstraints, ...)
     // eagerly because it's very likely that those methods would only be called on the selected variant. Therefore it's a waste of time
@@ -75,10 +74,10 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
             ImmutableAttributes attributes,
             Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
             DependencyFilter dependencyFilter,
-            CapabilitiesMetadata capabilities,
+            ImmutableCapabilities capabilities,
             boolean externalVariant
     ) {
-        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependenciesFactory, ImmutableCapabilities.of(capabilities), externalVariant);
+        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependenciesFactory, capabilities, externalVariant);
         this.componentMetadataRules = componentMetadataRules;
         this.dependencyFilter = dependencyFilter;
     }
@@ -139,14 +138,14 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
     }
 
     @Override
-    public CapabilitiesMetadata getCapabilities() {
+    public ImmutableCapabilities getCapabilities() {
         if (computedCapabilities == null) {
             computedCapabilities = componentMetadataRules.applyCapabilitiesRules(this, super.getCapabilities());
         }
         return computedCapabilities;
     }
 
-    private CapabilitiesMetadata getRawCapabilities() {
+    private ImmutableCapabilities getRawCapabilities() {
         // We need the raw capabilities when deriving a variant since we pass down the component metadata rules as well
         return super.getCapabilities();
     }
@@ -247,7 +246,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
     public class Builder {
         private String name = DefaultConfigurationMetadata.this.getName();
         private DependencyFilter dependencyFilter = DependencyFilter.ALL;
-        private CapabilitiesMetadata capabilities;
+        private ImmutableCapabilities capabilities;
         private ImmutableAttributes attributes;
         private ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
 
@@ -282,7 +281,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
             return this;
         }
 
-        Builder withCapabilities(CapabilitiesMetadata capabilities) {
+        Builder withCapabilities(ImmutableCapabilities capabilities) {
             this.capabilities = capabilities;
             return this;
         }
