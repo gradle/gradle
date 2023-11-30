@@ -20,8 +20,8 @@ import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.restricteddsl.plugins.MutablePluginDependencySpec
 import org.gradle.internal.restricteddsl.plugins.RuntimeTopLevelPluginsReceiver
-import org.gradle.internal.restricteddsl.provider.RestrictedKotlinScriptEvaluator
-import org.gradle.internal.restricteddsl.provider.defaultRestrictedKotlinScriptEvaluator
+import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator
+import org.gradle.internal.restricteddsl.evaluator.defaultRestrictedKotlinScriptEvaluator
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.jetbrains.kotlin.lexer.KtTokens.DOT
