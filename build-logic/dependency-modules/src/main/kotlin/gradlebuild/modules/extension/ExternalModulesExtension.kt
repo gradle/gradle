@@ -63,7 +63,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val gradleEnterpriseTestAnnotation = "com.gradle:gradle-enterprise-testing-annotations"
     val groovyGroup = if (isBundleGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
     val groovy = "$groovyGroup:groovy"
-    val restrictedKotlin = "org.gradle:restricted-kotlin-dsl"
+    val restrictedKotlin = "com.h0tk3y:kotlin-static-object-notation:1.0-SNAPSHOT"
     val groovyAnt = "$groovyGroup:groovy-ant"
     val groovyAstbuilder = "$groovyGroup:groovy-astbuilder"
     val groovyConsole = "$groovyGroup:groovy-console"
