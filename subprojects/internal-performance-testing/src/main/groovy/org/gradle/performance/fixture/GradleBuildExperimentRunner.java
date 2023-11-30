@@ -103,7 +103,11 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             GradleScenarioInvoker scenarioInvoker = createScenarioInvoker(invocationSettings.getGradleUserHome());
             Logging.setupLogging(workingDirectory);
             if (buildSpec.isUseAndroidStudio()) {
-                StudioGradleScenarioDefinition studioScenarioDefinition = new StudioGradleScenarioDefinition(scenarioDefinition, buildSpec.getStudioJvmArgs(), Collections.emptyList());
+                StudioGradleScenarioDefinition studioScenarioDefinition = new StudioGradleScenarioDefinition(
+                    scenarioDefinition,
+                    buildSpec.getStudioJvmArgs(),
+                    buildSpec.getStudioIdeaProperties()
+                );
                 StudioGradleScenarioInvoker studioScenarioInvoker = new StudioGradleScenarioInvoker(scenarioInvoker);
                 doRunScenario(studioScenarioDefinition, studioScenarioInvoker, invocationSettings, results);
             } else {

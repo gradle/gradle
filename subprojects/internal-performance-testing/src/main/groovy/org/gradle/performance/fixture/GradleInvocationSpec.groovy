@@ -46,9 +46,14 @@ class GradleInvocationSpec implements InvocationSpec {
     final File studioInstallDir
     final File studioSandboxDir
     /**
-     * The JVM arguments for Android Studio
+     * The special JVM arguments for Android Studio.
      */
     final List<String> studioJvmArgs
+    /**
+     * The special idea.properties for Android Studio,
+     * this can be used to set registry values as well, e.g. `gradle.tooling.models.parallel.fetch=true`.
+     */
+    final List<String> studioIdeaProperties
     final boolean expectFailure
     final File buildLog
 
@@ -67,6 +72,7 @@ class GradleInvocationSpec implements InvocationSpec {
         File buildLog,
         boolean useAndroidStudio,
         List<String> studioJvmArgs,
+        List<String> studioIdeaProperties,
         File studioInstallDir,
         File studioSandboxDir
     ) {
@@ -84,6 +90,7 @@ class GradleInvocationSpec implements InvocationSpec {
         this.buildLog = buildLog
         this.useAndroidStudio = useAndroidStudio
         this.studioJvmArgs = studioJvmArgs
+        this.studioIdeaProperties = studioIdeaProperties
         this.studioInstallDir = studioInstallDir
         this.studioSandboxDir = studioSandboxDir
     }
@@ -110,6 +117,7 @@ class GradleInvocationSpec implements InvocationSpec {
         builder.buildLog(buildLog)
         builder.useAndroidStudio = useAndroidStudio
         builder.studioJvmArguments.addAll(studioJvmArgs)
+        builder.studioIdeaProperties.addAll(studioIdeaProperties)
         builder.studioInstallDir = studioInstallDir
         builder.studioSandboxDir = studioSandboxDir
         builder
@@ -140,6 +148,7 @@ class GradleInvocationSpec implements InvocationSpec {
         boolean useToolingApi
         boolean useAndroidStudio
         List<String> studioJvmArguments = []
+        List<String> studioIdeaProperties = []
         File studioInstallDir
         File studioSandboxDir
         boolean expectFailure
@@ -224,8 +233,13 @@ class GradleInvocationSpec implements InvocationSpec {
             this
         }
 
-        InvocationBuilder studioJvmArgs(Iterable<String> args) {
-            this.studioJvmArguments.addAll(args)
+        InvocationBuilder studioJvmArgs(Iterable<String> studioJvmArgs) {
+            this.studioJvmArguments.addAll(studioJvmArgs)
+            this
+        }
+
+        InvocationBuilder studioIdeaProperties(Iterable<String> studioIdeaProperties) {
+            this.studioIdeaProperties.addAll(studioIdeaProperties)
             this
         }
 
@@ -273,6 +287,7 @@ class GradleInvocationSpec implements InvocationSpec {
                 buildLog,
                 useAndroidStudio,
                 studioJvmArguments,
+                studioIdeaProperties,
                 studioInstallDir,
                 studioSandboxDir
             )
