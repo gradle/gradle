@@ -28,41 +28,42 @@ import kotlinx.ast.common.ast.Ast
 import kotlinx.ast.common.ast.astInfoOrNull
 import org.gradle.api.GradleException
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason
+import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure
 
 
 internal
 class RestrictedDslNotEvaluatedException(
     private val scriptSource: ScriptSource,
-    private val notEvaluatedReason: NotEvaluatedReason
+    private val stageFailures: List<StageFailure>
 ) : GradleException() {
     override val message: String
         get() = buildString {
-            append("Restricted DSL file '${scriptSource.fileName}' ")
-            when (notEvaluatedReason) {
-                is NotEvaluatedReason.FailuresInLanguageTree -> {
-                    append("has failures in building the language tree")
-                    if (notEvaluatedReason.failures.isNotEmpty()) {
-                        appendLine()
-                        formatFailuresInLanguageTree(notEvaluatedReason.failures).forEach {
-                            appendLine(it.indent())
+            appendLine("Failed to interpret the restricted DSL file '${scriptSource.fileName}':")
+            stageFailures.forEach { stageFailure ->
+                when (stageFailure) {
+                    is StageFailure.FailuresInLanguageTree -> {
+                        appendLine("Failures in building the language tree:".indent(1))
+                        if (stageFailure.failures.isNotEmpty()) {
+                            formatFailuresInLanguageTree(stageFailure.failures).forEach {
+                                appendLine(it.indent(2))
+                            }
                         }
                     }
-                }
 
-                is NotEvaluatedReason.FailuresInResolution -> {
-                    appendLine("has failures in resolution")
-                    notEvaluatedReason.errors.forEach {
-                        appendLine(formatResolutionError(it).intern())
+                    is StageFailure.FailuresInResolution -> {
+                        appendLine("Failures in resolution:".indent(1))
+                        stageFailure.errors.forEach {
+                            appendLine(formatResolutionError(it).indent(2))
+                        }
                     }
-                }
 
-                NotEvaluatedReason.NoParseResult -> append("contains syntax errors")
-                is NotEvaluatedReason.NoSchemaAvailable -> append("has no associated schema for ${notEvaluatedReason.target}")
-                is NotEvaluatedReason.UnassignedValuesUsed -> {
-                    appendLine("used unassigned values")
-                    notEvaluatedReason.usages.forEach { unassigned ->
-                        appendLine(describedUnassignedValueUsage(unassigned))
+                    StageFailure.NoParseResult -> appendLine("Failed to parse due to syntax errors")
+                    is StageFailure.NoSchemaAvailable -> appendLine("No associated schema for ${stageFailure.target}")
+                    is StageFailure.UnassignedValuesUsed -> {
+                        appendLine("Unassigned value usages".indent(1))
+                        stageFailure.usages.forEach { unassigned ->
+                            appendLine(describedUnassignedValueUsage(unassigned).indent(2))
+                        }
                     }
                 }
             }
@@ -86,7 +87,7 @@ class RestrictedDslNotEvaluatedException(
 
     private
     fun formatResolutionError(resolutionError: ResolutionError): String =
-        elementLocationString(resolutionError.element).indent() + ": " + describeResolutionErrorReason(resolutionError.errorReason)
+        elementLocationString(resolutionError.element) + ": " + describeResolutionErrorReason(resolutionError.errorReason)
 
     private
     fun describeResolutionErrorReason(errorReason: ErrorReason) = when (errorReason) {

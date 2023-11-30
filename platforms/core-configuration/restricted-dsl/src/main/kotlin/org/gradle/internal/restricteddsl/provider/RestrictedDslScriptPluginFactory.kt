@@ -62,7 +62,7 @@ class RestrictedDslScriptPluginFactory @Inject constructor(
                     targetScope.lock()
                 }
                 is RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated ->
-                    throw RestrictedDslNotEvaluatedException(scriptSource, result.reason)
+                    throw RestrictedDslNotEvaluatedException(scriptSource, result.stageFailures)
             }
         }
 }
