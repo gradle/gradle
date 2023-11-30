@@ -375,6 +375,10 @@ class FunctionCallResolverImpl(
         binding: ParameterArgumentBinding,
         argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>
     ): Boolean = binding.binding.all { (param, arg) ->
+        if (arg !in argResolution) {
+            // The expression for this argument has not even resolved
+            return@all false
+        }
         checkIsAssignable(
             getDataType(argResolution.getValue(arg)),
             resolveRef(param.type)
