@@ -22,7 +22,9 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.artifacts.repositories.UrlArtifactRepository;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
@@ -31,6 +33,7 @@ import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
 
 import javax.annotation.Nonnull;
+import java.net.URI;
 import java.util.Iterator;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -46,6 +49,20 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
 
     public ArtifactRepositoriesPluginResolver(DependencyResolutionServices resolutionServices) {
         this.resolutionServices = resolutionServices;
+
+        String pluginRepoUrl = System.getProperty("org.gradle.custom-init.repository");
+        System.out.println("Additional plugin repository URL: " + pluginRepoUrl);
+        if (pluginRepoUrl != null) {
+            System.out.println("Added " + pluginRepoUrl);
+            RepositoryHandler repositories = resolutionServices.getResolveRepositoryHandler();
+            repositories.mavenLocal(repo -> repo.setUrl(URI.create(pluginRepoUrl)));
+            System.out.println("Repositories in "+ repositories.getClass().getName() + "@"+ System.identityHashCode(repositories) + " after local added: ");
+            for (ArtifactRepository repo: repositories) {
+                System.out.println(repo.getName());
+                System.out.println(((UrlArtifactRepository)repo).getUrl());
+            }
+        }
+
     }
 
     @Override
@@ -85,7 +102,14 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
 
     private void handleNotFound(PluginResolutionResult result, String message) {
         StringBuilder detail = new StringBuilder("Searched in the following repositories:\n");
-        for (Iterator<ArtifactRepository> it = resolutionServices.getResolveRepositoryHandler().iterator(); it.hasNext();) {
+        RepositoryHandler repositories = resolutionServices.getResolveRepositoryHandler();
+        System.out.println("Listing " + repositories.getClass().getName() + "@"+ System.identityHashCode(repositories));
+        System.out.println("Repositories: ");
+        for (ArtifactRepository repo: repositories) {
+            System.out.println(repo.getName());
+            System.out.println(((UrlArtifactRepository)repo).getUrl());
+        }
+        for (Iterator<ArtifactRepository> it = repositories.iterator(); it.hasNext();) {
             detail.append("  ").append(((ArtifactRepositoryInternal) it.next()).getDisplayName());
             if (it.hasNext()) {
                 detail.append("\n");

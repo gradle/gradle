@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
+import org.gradle.buildinit.plugins.internal.action.CustomInitBuiltInCommand;
 import org.gradle.buildinit.plugins.internal.action.InitBuiltInCommand;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -34,6 +35,7 @@ public class BuildInitServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(InitBuiltInCommand.class);
+        registration.add(CustomInitBuiltInCommand.class);
     }
 
     @Override

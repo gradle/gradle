@@ -15,20 +15,33 @@
  */
 package org.gradle.integtests.tooling
 
+import org.gradle.api.DefaultTask
+import org.gradle.api.Plugin
+import org.gradle.api.Project
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.options.Option
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.integtests.tooling.fixture.ProgressEvents
+import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.time.CountdownTimer
 import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.provider.model.ToolingModelBuilder
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 import spock.lang.IgnoreIf
@@ -63,6 +76,97 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
         buildFile << LOG_LEVEL_TEST_SCRIPT
     }
 
+    def "tooling api can apply an arbitrary plugin"() {
+        def events = ProgressEvents.create()
+        def handler = new TestResultHandler()
+
+        when:
+        toolingApi.withConnection { connection ->
+            connection.newBuild()
+                .addArguments('-Dorg.gradle.custom-init.plugin=org.gradle.hello-world', '-Dorg.gradle.custom-init.version=0.2', 'helloWorld')
+                .addProgressListener(events)
+                .run(handler)
+        }
+        handler.finished()
+
+        then:
+        assert events.operation("Execute doHelloWorld for :helloWorld") != null
+        handler.assertNoFailure()
+    }
+
+    def "tooling api can retrieve model created by an external plugin"() {
+        def events = ProgressEvents.create()
+        withCustomPlugin()
+        settingsFile << "rootProject.name = 'foobar'"
+
+        when:
+        def model = toolingApi.withConnection { ProjectConnection connection ->
+            connection.model(Map)
+                .addArguments(
+                    "-Dorg.gradle.custom-init.repository=${mavenRepo.uri}",
+                    '-Dorg.gradle.custom-init.plugin=custom-model-plugin',
+                    '-Dorg.gradle.custom-init.version=1.0'
+                )
+                .addProgressListener(events)
+                .get()
+        }
+
+        then:
+        model != null
+        model == ["foobar": "success"]
+    }
+
+    private void withCustomPlugin() {
+        createDir('plugin') {
+            file("settings.gradle") << ""
+            file("src/main/java/CustomModelBuilderPlugin.java") << """
+                import ${ToolingModelBuilder.name};
+                import ${Collections.name};
+                public abstract class CustomModelBuilderPlugin implements ${Plugin.name}<$Project.name> {
+                    @javax.inject.Inject
+                    public abstract ${ToolingModelBuilderRegistry.name} getModelBuilders();
+
+                    private static class CustomModelBuilder implements ToolingModelBuilder {
+                        @Override
+                        public boolean canBuild(String modelName) {
+                            return modelName.equals("java.util.Map");
+                        }
+                        @Override
+                        public Object buildAll(String modelName, $Project.name project) {
+                            return Collections.singletonMap(project.getName(), "success");
+                        }
+                    }
+
+                    @Override
+                    public void apply($Project.name project) {
+                        getModelBuilders().register(new CustomModelBuilder());
+                    }
+                }
+            """
+            file("build.gradle") << """
+                plugins {
+                    id("java-gradle-plugin")
+                    id("maven-publish")
+                }
+                group = "com.example"
+                version = "1.0"
+                publishing {
+                    repositories {
+                        maven { url '$mavenRepo.uri' }
+                    }
+                }
+                gradlePlugin {
+                    plugins {
+                        customModelPlugin {
+                            id = 'custom-model-plugin'
+                            implementationClass = 'CustomModelBuilderPlugin'
+                        }
+                    }
+                }
+            """
+        }
+        executer.inDirectory(file("plugin")).withTasks("publish").run()
+    }
 
     def "tooling api uses to the current version of gradle when none has been specified"() {
         buildFile << "assert gradle.gradleVersion == '${GradleVersion.current().version}'"

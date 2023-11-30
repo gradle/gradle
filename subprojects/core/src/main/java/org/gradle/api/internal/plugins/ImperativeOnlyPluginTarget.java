@@ -39,8 +39,14 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
     @Override
     public void applyImperative(@Nullable String pluginId, Plugin<?> plugin) {
         // TODO validate that the plugin accepts this kind of argument
-        Plugin<T> cast = uncheckedCast(plugin);
-        cast.apply(target);
+        try {
+      //      plugin.getClass().getDeclaredMethod("apply", target.getClass());
+            System.out.println(String.format("Applying %s (%s) to %s", pluginId, plugin.getClass().getName(), target));
+            Plugin<T> cast = uncheckedCast(plugin);
+            cast.apply(target);
+        } catch (ClassCastException e) {
+            System.out.println(String.format("Skipping %s (%s) to %s", pluginId, plugin.getClass().getName(), target));
+        }
     }
 
     @Override
