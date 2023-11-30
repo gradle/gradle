@@ -1,6 +1,7 @@
 package com.h0tk3y.kotlin.staticObjectNotation.analysis
 
 import com.h0tk3y.kotlin.staticObjectNotation.language.Expr
+import com.h0tk3y.kotlin.staticObjectNotation.language.FunctionCall
 import com.h0tk3y.kotlin.staticObjectNotation.language.LanguageTreeElement
 import com.h0tk3y.kotlin.staticObjectNotation.language.LocalValue
 
@@ -21,6 +22,9 @@ data class ResolutionError(
 sealed interface ErrorReason {
     data class AmbiguousImport(val fqName: FqName) : ErrorReason
     data class UnresolvedReference(val reference: Expr) : ErrorReason
+    data class UnresolvedFunctionCallArguments(val functionCall: FunctionCall) : ErrorReason
+    data class UnresolvedFunctionCallReceiver(val functionCall: FunctionCall) : ErrorReason
+    data class UnresolvedFunctionCallSignature(val functionCall: FunctionCall) : ErrorReason
     data class AmbiguousFunctions(val functions: List<FunctionCallResolver.FunctionResolutionAndBinding>) : ErrorReason
     data class ValReassignment(val localVal: LocalValue) : ErrorReason
     data class ExternalReassignment(val external: ObjectOrigin.External) : ErrorReason

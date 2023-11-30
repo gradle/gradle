@@ -29,12 +29,23 @@ class FunctionCallResolverImpl(
         context: AnalysisContext,
         functionCall: FunctionCall
     ): ObjectOrigin.FunctionOrigin? = with(context) {
-        val argResolutions = functionCall.args.filterIsInstance<FunctionArgument.ValueArgument>()
-            .associateWith {
-                expressionResolver.doResolveExpression(this, it.expr)
-                // TODO report failure to resolve a function because of unresolved argument?
-                    ?: return@doResolveFunctionCall null
+        val argResolutions = lazy {
+            var hasErrors = false
+            val result = buildMap<FunctionArgument.ValueArgument, ObjectOrigin> {
+                functionCall.args.filterIsInstance<FunctionArgument.ValueArgument>().forEach {
+                    val resolution = expressionResolver.doResolveExpression(context, it.expr)
+                    if (resolution == null) {
+                        hasErrors = true
+                    } else {
+                        put(it, resolution)
+                    }
+                }
             }
+            if (hasErrors) {
+                errorCollector(ResolutionError(functionCall, ErrorReason.UnresolvedFunctionCallArguments(functionCall)))
+            }
+            result
+        }
 
         if (functionCall.args.count { it is FunctionArgument.Lambda } > 1) {
             // TODO: report functions with more than one lambda, as those are not supported for now
@@ -49,16 +60,16 @@ class FunctionCallResolverImpl(
     private fun AnalysisContext.invokeIfSingleOverload(
         overloads: List<FunctionResolutionAndBinding>,
         functionCall: FunctionCall,
-        argResolutions: Map<FunctionArgument.ValueArgument, ObjectOrigin>
+        argResolutions: Lazy<Map<FunctionArgument.ValueArgument, ObjectOrigin>>
     ) = when (overloads.size) {
         0 -> {
-            errorCollector(ResolutionError(functionCall, ErrorReason.UnresolvedReference(functionCall)))
+            errorCollector(ResolutionError(functionCall, ErrorReason.UnresolvedFunctionCallSignature(functionCall)))
             null
         }
 
         1 -> {
             val resolution = overloads.single()
-            doProduceAndHandleFunctionResult(resolution, argResolutions, functionCall, resolution.receiver)
+            doProduceAndHandleFunctionResult(resolution, argResolutions.value, functionCall, resolution.receiver)
         }
 
         else -> {
@@ -70,20 +81,23 @@ class FunctionCallResolverImpl(
     // TODO: check the resolution order with the Kotlin spec
     private fun AnalysisContext.lookupFunctions(
         functionCall: FunctionCall,
-        argResolutions: Map<FunctionArgument.ValueArgument, ObjectOrigin>,
+        argResolutions: Lazy<Map<FunctionArgument.ValueArgument, ObjectOrigin>>,
         context: AnalysisContext
     ): List<FunctionResolutionAndBinding> {
+        var hasErrorInReceiverResolution = false
         val overloads: List<FunctionResolutionAndBinding> = buildList {
             when (functionCall.receiver) {
                 is Expr -> {
                     val receiver = expressionResolver.doResolveExpression(context, functionCall.receiver)
                     if (receiver != null) {
-                        addAll(findMemberFunction(receiver, functionCall, argResolutions))
+                        addAll(findMemberFunction(receiver, functionCall, argResolutions.value))
+                    } else {
+                        hasErrorInReceiverResolution = true
                     }
                 }
                 null -> {
                     for (scope in currentScopes.asReversed()) {
-                        addAll(findMemberFunction(scope.receiver, functionCall, argResolutions))
+                        addAll(findMemberFunction(scope.receiver, functionCall, argResolutions.value))
                         if (isNotEmpty()) {
                             break
                         }
@@ -91,10 +105,13 @@ class FunctionCallResolverImpl(
                 }
             }
             if (isEmpty()) {
-                addAll(findDataConstructor(functionCall, argResolutions))
+                addAll(findDataConstructor(functionCall, argResolutions.value))
             }
             if (isEmpty()) {
-                addAll(findTopLevelFunction(functionCall, argResolutions))
+                addAll(findTopLevelFunction(functionCall, argResolutions.value))
+            }
+            if (isEmpty() && hasErrorInReceiverResolution) {
+                errorCollector(ResolutionError(functionCall, ErrorReason.UnresolvedFunctionCallReceiver(functionCall)))
             }
         }
         return overloads
