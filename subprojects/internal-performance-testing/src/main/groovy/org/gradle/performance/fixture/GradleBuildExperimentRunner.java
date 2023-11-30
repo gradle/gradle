@@ -53,6 +53,7 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.function.Consumer;
@@ -102,7 +103,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             GradleScenarioInvoker scenarioInvoker = createScenarioInvoker(invocationSettings.getGradleUserHome());
             Logging.setupLogging(workingDirectory);
             if (buildSpec.isUseAndroidStudio()) {
-                StudioGradleScenarioDefinition studioScenarioDefinition = new StudioGradleScenarioDefinition(scenarioDefinition, buildSpec.getStudioJvmArgs());
+                StudioGradleScenarioDefinition studioScenarioDefinition = new StudioGradleScenarioDefinition(scenarioDefinition, buildSpec.getStudioJvmArgs(), Collections.emptyList());
                 StudioGradleScenarioInvoker studioScenarioInvoker = new StudioGradleScenarioInvoker(scenarioInvoker);
                 doRunScenario(studioScenarioDefinition, studioScenarioInvoker, invocationSettings, results);
             } else {
