@@ -45,17 +45,25 @@ sealed class PluginsBlockInterpretation {
 
 
 internal
-fun interpret(program: Program.Plugins, isRestrictedDslOnly: Boolean = false): PluginsBlockInterpretation {
-    val pluginsTopLevelReceiver = RuntimeTopLevelPluginsReceiver()
-    val isEvaluated = defaultRestrictedKotlinScriptEvaluator.evaluate(
-        pluginsTopLevelReceiver,
-        TextResourceScriptSource(StringTextResource("plugins block", program.fragment.identifierString))
-    )
-    if (isEvaluated is RestrictedKotlinScriptEvaluator.EvaluationResult.Evaluated) {
-        return PluginsBlockInterpretation.Static(pluginsTopLevelReceiver.plugins.specs.map { it.toRequestSpec() })
-    }
-    if (isRestrictedDslOnly && isEvaluated is RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated) {
-        return PluginsBlockInterpretation.Dynamic(isEvaluated.reason.toString())
+enum class RestrictedDslPluginsBlockMode {
+    OFF, WITH_FALLBACK, RESTRICTED_ONLY
+}
+
+
+internal
+fun interpret(program: Program.Plugins, restrictedDslMode: RestrictedDslPluginsBlockMode = RestrictedDslPluginsBlockMode.OFF): PluginsBlockInterpretation {
+    if (restrictedDslMode != RestrictedDslPluginsBlockMode.OFF) {
+        val pluginsTopLevelReceiver = RuntimeTopLevelPluginsReceiver()
+        val isEvaluated = defaultRestrictedKotlinScriptEvaluator.evaluate(
+            pluginsTopLevelReceiver,
+            TextResourceScriptSource(StringTextResource("plugins block", program.fragment.identifierString))
+        )
+        if (isEvaluated is RestrictedKotlinScriptEvaluator.EvaluationResult.Evaluated) {
+            return PluginsBlockInterpretation.Static(pluginsTopLevelReceiver.plugins.specs.map { it.toRequestSpec() })
+        }
+        if (restrictedDslMode == RestrictedDslPluginsBlockMode.RESTRICTED_ONLY && isEvaluated is RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated) {
+            return PluginsBlockInterpretation.Dynamic(isEvaluated.stageFailures.toString())
+        }
     }
 
     val blockString = program.fragment.blockString

@@ -27,7 +27,7 @@ class RestrictedPluginsBlockInterpreterTest : PluginsBlockInterpreterTest() {
 
     override fun assertStaticInterpretationOf(pluginsBlock: String, vararg specs: PluginRequestSpec) {
         assertThat(
-            interpret(Program.Plugins(fragment("plugins", pluginsBlock)), isRestrictedDslOnly = true),
+            interpret(Program.Plugins(fragment("plugins", pluginsBlock)), restrictedDslMode = RestrictedDslPluginsBlockMode.RESTRICTED_ONLY),
             equalTo(
                 PluginsBlockInterpretation.Static(specs.asList())
             )

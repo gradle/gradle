@@ -715,7 +715,7 @@ open class PluginsBlockInterpreterTest {
     internal
     open fun assertStaticInterpretationOf(pluginsBlock: String, vararg specs: PluginRequestSpec) {
         assertThat(
-            interpret(Program.Plugins(fragment("plugins", pluginsBlock))),
+            interpret(Program.Plugins(fragment("plugins", pluginsBlock)), RestrictedDslPluginsBlockMode.WITH_FALLBACK),
             equalTo(
                 PluginsBlockInterpretation.Static(specs.asList())
             )
@@ -725,7 +725,7 @@ open class PluginsBlockInterpreterTest {
     private
     fun assertDynamicInterpretationOf(pluginsBlock: String, reason: String) {
         assertThat(
-            interpret(Program.Plugins(fragment("plugins", pluginsBlock))),
+            interpret(Program.Plugins(fragment("plugins", pluginsBlock)), RestrictedDslPluginsBlockMode.WITH_FALLBACK),
             equalTo(
                 PluginsBlockInterpretation.Dynamic(reason)
             )
