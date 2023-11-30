@@ -16,18 +16,11 @@
 
 package org.gradle.internal.restricteddsl.provider
 
-import org.gradle.api.GradleScriptException
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.restricteddsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.FailuresInLanguageTree
-import org.gradle.internal.restricteddsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.FailuresInResolution
-import org.gradle.internal.restricteddsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.NoLanguageTree
-import org.gradle.internal.restricteddsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.NoParseResult
-import org.gradle.internal.restricteddsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.NoSchemaAvailable
-import org.gradle.internal.restricteddsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.UnassignedValuesUsed
 import javax.inject.Inject
 
 /*
@@ -60,35 +53,14 @@ class RestrictedDslScriptPluginFactory @Inject constructor(
         topLevelScript: Boolean
     ): ScriptPlugin =
         RestrictedDslPlugin(scriptSource) { target ->
-            val result = restrictedKotlinScriptEvaluator.evaluate(target, scriptSource)
-            when (result) {
+            when (val result = restrictedKotlinScriptEvaluator.evaluate(target, scriptSource)) {
                 is RestrictedKotlinScriptEvaluator.EvaluationResult.Evaluated -> {
                     // We need to lock the scope here: we don't really need it now, but downstream scopes will rely on us locking it
                     // TODO: when the scope is used, this call should be removed
                     targetScope.lock()
                 }
-                is RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated -> reportErrors(scriptSource, result)
+                is RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated ->
+                    throw RestrictedDslNotEvaluatedException(scriptSource, result.reason)
             }
         }
-
-    private
-    fun reportErrors(
-        scriptSource: ScriptSource,
-        evaluationResult: RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated
-    ) {
-        val exceptionMessage = buildString {
-            append("Restricted DSL file '${scriptSource.fileName}': ")
-            append(
-                when (evaluationResult.reason) {
-                    FailuresInLanguageTree -> "has failures in building the language tree"
-                    FailuresInResolution -> "has failures in resolution"
-                    NoLanguageTree -> "cannot be interpreted"
-                    NoParseResult -> "failed to parse"
-                    NoSchemaAvailable -> "has no associated schema"
-                    UnassignedValuesUsed -> "used unassigned values"
-                }
-            )
-        }
-        throw GradleScriptException(exceptionMessage, RuntimeException())
-    }
 }
