@@ -17,6 +17,7 @@
 package org.gradle.internal.restricteddsl.provider
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionError
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionResult
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.SchemaTypeRefContext
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.defaultCodeResolver
@@ -37,14 +38,13 @@ import kotlinx.ast.common.ast.Ast
 import org.antlr.v4.kotlinruntime.misc.ParseCancellationException
 import org.gradle.api.initialization.Settings
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.restricteddsl.plugins.RuntimeTopLevelPluginsReceiver
 import org.gradle.internal.restricteddsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated
 import org.gradle.internal.restricteddsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.FailuresInLanguageTree
 import org.gradle.internal.restricteddsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.FailuresInResolution
-import org.gradle.internal.restricteddsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.NoLanguageTree
 import org.gradle.internal.restricteddsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.NoParseResult
 import org.gradle.internal.restricteddsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.NoSchemaAvailable
 import org.gradle.internal.restricteddsl.provider.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.NotEvaluatedReason.UnassignedValuesUsed
-import org.gradle.internal.restricteddsl.plugins.RuntimeTopLevelPluginsReceiver
 
 
 interface RestrictedKotlinScriptEvaluator {
@@ -57,12 +57,11 @@ interface RestrictedKotlinScriptEvaluator {
         object Evaluated : EvaluationResult
         class NotEvaluated(val reason: NotEvaluatedReason) : EvaluationResult {
             sealed interface NotEvaluatedReason {
-                object NoSchemaAvailable : NotEvaluatedReason
-                object NoLanguageTree : NotEvaluatedReason
+                data class NoSchemaAvailable(val target: Any) : NotEvaluatedReason
                 object NoParseResult : NotEvaluatedReason
-                object FailuresInLanguageTree : NotEvaluatedReason
-                object FailuresInResolution : NotEvaluatedReason
-                object UnassignedValuesUsed : NotEvaluatedReason
+                data class FailuresInLanguageTree(val failures: List<FailingResult>) : NotEvaluatedReason
+                data class FailuresInResolution(val errors: List<ResolutionError>) : NotEvaluatedReason
+                data class UnassignedValuesUsed(val usages: List<AssignmentTraceElement.UnassignedValueUsed>) : NotEvaluatedReason
             }
         } // TODO: make reason more structured
     }
@@ -84,7 +83,7 @@ class DefaultRestrictedKotlinScriptEvaluator(
 ) : RestrictedKotlinScriptEvaluator {
     override fun evaluate(target: Any, scriptSource: ScriptSource): RestrictedKotlinScriptEvaluator.EvaluationResult {
         return when (val schema = schemaBuilder.getAnalysisSchemaForScript(target, scriptContextFor(target))) {
-            ScriptSchemaBuildingResult.SchemaNotBuilt -> NotEvaluated(NoSchemaAvailable)
+            ScriptSchemaBuildingResult.SchemaNotBuilt -> NotEvaluated(NoSchemaAvailable(target))
 
             is ScriptSchemaBuildingResult.SchemaAvailable -> {
                 evaluateWithSchema(schema.schema, scriptSource, target)
@@ -98,20 +97,20 @@ class DefaultRestrictedKotlinScriptEvaluator(
         val ast = astFromScript(scriptSource).singleOrNull()
             ?: return NotEvaluated(NoParseResult)
         val languageModel = languageModelFromAst(ast)
-            ?: return NotEvaluated(NoLanguageTree)
         val failures = languageModel.results.filterIsInstance<FailingResult>()
         if (failures.isNotEmpty()) {
-            return NotEvaluated(FailuresInLanguageTree)
+            return NotEvaluated(FailuresInLanguageTree(failures))
         }
         val elements = languageModel.results.filterIsInstance<Element<*>>().map { it.element }
         val resolution = resolver.resolve(schema, elements)
         if (resolution.errors.isNotEmpty()) {
-            return NotEvaluated(FailuresInResolution)
+            return NotEvaluated(FailuresInResolution(resolution.errors))
         }
 
         val trace = assignmentTrace(resolution)
-        if (trace.elements.any { it is AssignmentTraceElement.UnassignedValueUsed }) {
-            return NotEvaluated(UnassignedValuesUsed)
+        val unassignedValueUsages = trace.elements.filterIsInstance<AssignmentTraceElement.UnassignedValueUsed>()
+        if (unassignedValueUsages.isNotEmpty()) {
+            return NotEvaluated(UnassignedValuesUsed(unassignedValueUsages))
         }
         val context = ReflectionContext(SchemaTypeRefContext(schema), resolution, trace)
         val topLevel = reflect(resolution.topLevelReceiver, context)
@@ -133,10 +132,8 @@ class DefaultRestrictedKotlinScriptEvaluator(
         }
 
     private
-    fun languageModelFromAst(ast: Ast): LanguageTreeResult? {
-        val result = languageTreeBuilder.build(ast)
-        return if (result.results.any { it is FailingResult }) null else result
-    }
+    fun languageModelFromAst(ast: Ast): LanguageTreeResult =
+        languageTreeBuilder.build(ast)
 
     private
     val languageTreeBuilder = LanguageTreeBuilderWithTopLevelBlock(DefaultLanguageTreeBuilder())
