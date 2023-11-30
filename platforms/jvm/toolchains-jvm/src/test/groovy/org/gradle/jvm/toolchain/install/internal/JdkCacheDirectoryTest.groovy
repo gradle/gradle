@@ -36,11 +36,15 @@ import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.InstallationLocation
 import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.Resources
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.TempDir
+
+import java.nio.file.Files
+import java.nio.file.Paths
 
 import static org.junit.Assume.assumeTrue
 
@@ -141,7 +145,7 @@ class JdkCacheDirectoryTest extends Specification {
         new File(installedJdk, "file").exists()
     }
 
-    @Ignore
+    @Requires(UnitTestPreconditions.MacOs)
     def "provisions jdk from tar.gz archive with MacOS symlinks"() {
         def jdkArchive = resources.getResource("jdk-with-symlinks.tar.gz")
         def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector())
@@ -151,28 +155,9 @@ class JdkCacheDirectoryTest extends Specification {
 
         then:
         installedJdk.exists()
-        new File(installedJdk, "jdk-with-symlinks/bin/file").exists()
-
-        //TODO: completely wrong; the uncompressed archive should look like this:
-        // .
-        // ├── bin -> zulu-11.jdk/Contents/Home/bin
-        // ├── file
-        // └── zulu-11.jdk
-        //     └── Contents
-        //         └── Home
-        //             └── bin
-        //                 └── file
-        // but actually looks like this:
-        // .
-        // ├── bin
-        // ├── file
-        // └── zulu-11.jdk
-        //     └── Contents
-        //         └── Home
-        //             └── bin
-        //                 └── file
-        // the symbolic link handling is AND HAS NOT BEEN WORKING
-        // the test has been passing because it checks the existence of zulu-11.jdk/Contents/Home/bin/file, which has nothing to do with the symbolic link
+        def location = Paths.get(jdkCacheDirectory.getDownloadLocation().toString(), "ibm-11-arch-${os()}", "jdk-with-symlinks")
+        Files.readSymbolicLink(location.resolve("bin")).toString() == "zulu-11.jdk/Contents/Home/bin"
+        location.resolve("provisioned.ok").toFile().exists()
     }
 
     private GradleUserHomeDirProvider newHomeDirProvider() {

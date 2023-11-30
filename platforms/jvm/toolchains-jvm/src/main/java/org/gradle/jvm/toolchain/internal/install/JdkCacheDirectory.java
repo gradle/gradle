@@ -22,6 +22,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
@@ -144,6 +145,7 @@ public class JdkCacheDirectory {
             operations.copy(copySpec -> {
                 copySpec.from(unpackFolder[0]);
                 copySpec.into(installFolder[0]);
+                copySpec.getLinksStrategy().set(LinksStrategy.PRESERVE_RELATIVE);
             });
 
             LOGGER.info("Installed toolchain from {} into {}", uri, installFolder[0]);
@@ -235,6 +237,7 @@ public class JdkCacheDirectory {
                 spec.from(fileTree);
                 spec.into(unpackFolder);
                 spec.setDuplicatesStrategy(DuplicatesStrategy.WARN);
+                spec.getLinksStrategy().set(LinksStrategy.PRESERVE_RELATIVE);
             });
         }
 
