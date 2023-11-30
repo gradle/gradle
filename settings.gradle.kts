@@ -1,4 +1,4 @@
-import org.gradle.internal.impldep.org.apache.ivy.core.IvyPatternHelper.substitute
+rootProject.name = "kotlin-static-object-notation"
 
 pluginManagement {
     fun RepositoryHandler.setup() {
@@ -12,15 +12,15 @@ pluginManagement {
     dependencyResolutionManagement {
         @Suppress("UnstableApiUsage")
         repositories.setup()
-        
+
         @Suppress("UnstableApiUsage")
         this.repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-        
+
         repositories {
             maven("https://jitpack.io")
         }
-        
-        versionCatalogs { 
+
+        versionCatalogs {
             create("libs") {
                 val kotlinVersion = version("kotlin", "1.9.20")
                 plugin("kotlin.jvm", "org.jetbrains.kotlin.jvm").versionRef(kotlinVersion)
@@ -29,9 +29,4 @@ pluginManagement {
     }
 }
 
-includeBuild("ast") {
-    dependencySubstitution {
-        substitute(module("kotlinx.ast:parser-antlr-kotlin")).using(project(":parser-antlr-kotlin"))
-        substitute(module("kotlinx.ast:grammar-kotlin-parser-antlr-kotlin")).using(project(":grammar-kotlin-parser-antlr-kotlin"))
-    }
-}
+includeBuild("ast")
