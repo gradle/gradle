@@ -812,6 +812,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "restricted-dsl",
+    "path": "platforms/core-configuration/restricted-dsl",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "samples",
     "path": "platforms/documentation/samples",
     "unitTests": false,
