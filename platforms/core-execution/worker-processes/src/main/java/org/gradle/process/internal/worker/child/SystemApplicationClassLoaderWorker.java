@@ -176,14 +176,6 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         return loggingManagerInternal;
     }
 
-//    private void configureProblems(WorkerServices services, ObjectConnection connection) {
-//        connection.useParameterSerializers(WorkerProblemSerializer.create());
-//        final WorkerProblemProtocol workerProblemProtocol = connection.addOutgoing(WorkerProblemProtocol.class);
-//
-//        DefaultProblems problems = (DefaultProblems) services.get(Problems.class);
-//        problems.setEmitter(new WorkerProblemEmitter(workerProblemProtocol));
-//    }
-
     private static class WorkerServices extends DefaultServiceRegistry {
         public WorkerServices(ServiceRegistry parent, final File gradleUserHomeDir) {
             super(parent);
