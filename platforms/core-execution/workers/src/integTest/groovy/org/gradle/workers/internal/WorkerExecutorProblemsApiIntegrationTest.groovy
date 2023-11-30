@@ -16,12 +16,16 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.Jvm
 import org.gradle.workers.fixtures.WorkerExecutorFixture
+import org.junit.Assume
 
 class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
-    def setup() {
+    def setupBuild(Jvm javaVersion) {
         file('buildSrc/build.gradle') << """
             plugins {
                 id 'java'
@@ -29,6 +33,12 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
             dependencies {
                 implementation(gradleApi())
+            }
+
+            tasks.withType(JavaCompile) {
+                options.fork = true
+                // We don't use toolchains here for consistency with the rest of the test suite
+                options.forkOptions.javaHome = file('${javaVersion.javaHome}')
             }
         """
         file('buildSrc/src/main/java/org/gradle/test/ProblemsWorkerTaskParameter.java') << """
@@ -42,7 +52,11 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
         file('buildSrc/src/main/java/org/gradle/test/ProblemWorkerTask.java') << """
             package org.gradle.test;
 
+            import org.gradle.api.problems.ProblemBuilder;
+            import org.gradle.api.problems.ProblemBuilderDefiningLabel;
+            import org.gradle.api.problems.ProblemBuilderSpec;
             import org.gradle.api.problems.Problems;
+            import org.gradle.api.problems.ReportableProblem;
             import org.gradle.workers.WorkAction;
 
             import javax.inject.Inject;
@@ -54,11 +68,17 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
                 @Override
                 public void execute() {
-                    getProblems().create(problem -> problem
-                            .label("label")
-                            .undocumented()
-                            .stackLocation()
-                            .category("type")
+                    getProblems().create(
+                        new ProblemBuilderSpec() {
+                            @Override
+                            public ProblemBuilder apply(ProblemBuilderDefiningLabel builder) {
+                                return builder
+                                    .label("label")
+                                    .undocumented()
+                                    .stackLocation()
+                                    .category("type");
+                            }
+                        }
                     ).report();
                 }
             }
@@ -96,4 +116,45 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
         where:
         isolationMode << WorkerExecutorFixture.ISOLATION_MODES
     }
+
+    def "problems can be logged, when using process isolation with different Java versions"() {
+        Assume.assumeNotNull(javaVersion)
+        setupBuild(javaVersion)
+        enableProblemsApiCheck()
+
+        given:
+        buildFile << """
+            import javax.inject.Inject
+            import org.gradle.test.ProblemWorkerTask
+
+
+            abstract class ProblemTask extends DefaultTask {
+                @Inject
+                abstract WorkerExecutor getWorkerExecutor();
+
+                @TaskAction
+                void executeTask() {
+                    getWorkerExecutor().processIsolation({
+                        it.forkOptions.executable = "${javaVersion.javaExecutable}"
+                    }).submit(ProblemWorkerTask.class) {}
+                }
+            }
+
+            tasks.register("reportProblem", ProblemTask)
+        """
+
+        when:
+        run("reportProblem")
+
+        then:
+        collectedProblems.size() == 1
+
+        where:
+        javaVersion << [
+            AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_6),
+            AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_7),
+            AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8),
+        ]
+    }
+
 }
