@@ -1611,7 +1611,7 @@ components.java.withVariantsFromConfiguration(configurations.runtimeElements) { 
 =====
 ====
 
-In this example, the Maven and Ivy publications will contain the main JAR artifacts for the project, whereas the GMM link:https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md[module file] will omit them.
+In this example, the Maven and Ivy publications will contain the main JAR artifacts for the project, whereas the GMM link:https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md[module file] will omit them.
 
 [[minimum_test_jvm_version]]
 ==== Running tests on JVM versions 6 and 7
