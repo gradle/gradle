@@ -30,6 +30,23 @@
     --rem-base: 18;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark mode variables go here */
+        --caution-color: #e40046;
+        --caution-on-color: #000;
+        --important-color: #802392;
+        --important-on-color: #000;
+        --note-color: #2d7dd2;
+        --note-on-color: #000;
+        --tip-color: #43b929;
+        --tip-on-color: #000;
+        --warning-color: #f70;
+        --warning-on-color: #000;
+        --admonition-background: #000;
+  }
+}
+
 /* Lato (normal, regular) */
 @font-face {
     font-family: Lato;
