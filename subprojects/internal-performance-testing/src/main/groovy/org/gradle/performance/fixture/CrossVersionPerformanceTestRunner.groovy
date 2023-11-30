@@ -70,6 +70,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     boolean useToolingApi = false
     boolean useAndroidStudio = false
     List<String> studioJvmArgs = []
+    List<String> studioIdeaProperties = []
     File studioInstallDir
 
     List<String> tasksToRun = []
@@ -210,6 +211,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 useToolingApi(this.useToolingApi)
                 useAndroidStudio(this.useAndroidStudio)
                 studioJvmArgs(this.studioJvmArgs)
+                studioIdeaProperties(this.studioIdeaProperties)
                 studioInstallDir(this.studioInstallDir)
                 studioSandboxDir(studioSandboxDirAsFile)
                 buildAction(this.buildAction)
