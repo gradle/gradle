@@ -18,6 +18,8 @@ package org.gradle.process.internal.worker.request;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
@@ -35,6 +37,7 @@ import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.process.internal.worker.RequestHandler;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.gradle.process.internal.worker.child.WorkerLogEventListener;
+import org.gradle.process.internal.worker.problem.WorkerProblemEmitter;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -44,7 +47,7 @@ import java.util.concurrent.CountDownLatch;
 public class WorkerAction implements Action<WorkerProcessContext>, Serializable, RequestProtocol, StreamFailureHandler, Stoppable, StreamCompletion {
     private final String workerImplementationName;
     private transient CountDownLatch completed;
-    private transient ResponseProtocol responder;
+    private transient WorkerActionStatusProtocol workStatus;
     private transient WorkerLogEventListener workerLogEventListener;
     private transient RequestHandler<Object, Object> implementation;
     private transient InstantiatorFactory instantiatorFactory;
@@ -58,6 +61,11 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     public void execute(WorkerProcessContext workerProcessContext) {
         completed = new CountDownLatch(1);
 
+        ObjectConnection connection = workerProcessContext.getServerConnection();
+        connection.addIncoming(RequestProtocol.class, this);
+        workStatus = connection.addOutgoing(WorkerActionStatusProtocol.class);
+        workerLogEventListener = workerProcessContext.getServiceRegistry().get(WorkerLogEventListener.class);
+
         RequestArgumentSerializers argumentSerializers = new RequestArgumentSerializers();
         try {
             ServiceRegistry parentServices = workerProcessContext.getServiceRegistry();
@@ -68,23 +76,20 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
             // Make the argument serializers available so work implementations can register their own serializers
             serviceRegistry.add(RequestArgumentSerializers.class, argumentSerializers);
             serviceRegistry.add(InstantiatorFactory.class, instantiatorFactory);
+            serviceRegistry.add(Problems.class, new DefaultProblems(new WorkerProblemEmitter(workStatus)));
             Class<?> workerImplementation = Class.forName(workerImplementationName);
             implementation = Cast.uncheckedNonnullCast(instantiatorFactory.inject(serviceRegistry).newInstance(workerImplementation));
         } catch (Exception e) {
             failure = e;
         }
 
-        ObjectConnection connection = workerProcessContext.getServerConnection();
-        connection.addIncoming(RequestProtocol.class, this);
-        responder = connection.addOutgoing(ResponseProtocol.class);
-        workerLogEventListener = workerProcessContext.getServiceRegistry().get(WorkerLogEventListener.class);
         if (failure == null) {
             connection.useParameterSerializers(RequestSerializerRegistry.create(this.getClass().getClassLoader(), argumentSerializers));
         } else {
             // Discard incoming requests, as the serializers may not have been configured
             connection.useParameterSerializers(RequestSerializerRegistry.createDiscardRequestArg());
             // Notify the client
-            responder.infrastructureFailed(failure);
+            workStatus.infrastructureFailed(failure);
         }
 
         connection.connect();
@@ -132,7 +137,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
                     // action will have the build operation associated.  By using the responder, we ensure that all
                     // messages arrive on the same incoming queue in the build process and the completed message will only
                     // arrive after all log messages have been processed.
-                    result = workerLogEventListener.withWorkerLoggingProtocol(responder, new Callable<Object>() {
+                    result = workerLogEventListener.withWorkerLoggingProtocol(workStatus, new Callable<Object>() {
                         @Override
                         public Object call() throws Exception {
                             return implementation.run(request.getArg());
@@ -141,21 +146,21 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
                 } catch (Throwable failure) {
                     if (failure instanceof NoClassDefFoundError) {
                         // Assume an infrastructure problem
-                        responder.infrastructureFailed(failure);
+                        workStatus.infrastructureFailed(failure);
                     } else {
-                        responder.failed(failure);
+                        workStatus.failed(failure);
                     }
                     return;
                 }
-                responder.completed(result);
+                workStatus.completed(result);
             } catch (Throwable t) {
-                responder.infrastructureFailed(t);
+                workStatus.infrastructureFailed(t);
             }
         });
     }
 
     @Override
     public void handleStreamFailure(Throwable t) {
-        responder.failed(t);
+        workStatus.failed(t);
     }
 }

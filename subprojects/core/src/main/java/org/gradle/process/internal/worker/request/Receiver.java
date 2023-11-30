@@ -16,26 +16,31 @@
 
 package org.gradle.process.internal.worker.request;
 
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.dispatch.StreamCompletion;
+import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
-import org.gradle.process.internal.worker.DefaultWorkerLoggingProtocol;
 import org.gradle.process.internal.worker.WorkerProcessException;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-public class Receiver extends DefaultWorkerLoggingProtocol implements ResponseProtocol, StreamCompletion, StreamFailureHandler {
+public class Receiver implements WorkerActionStatusProtocol, StreamCompletion, StreamFailureHandler {
     private static final Object NULL = new Object();
     private static final Object END = new Object();
     private final BlockingQueue<Object> received = new ArrayBlockingQueue<Object>(10);
     private final String baseName;
+    private final OutputEventListener outputEventListener;
     private Object next;
 
     public Receiver(String baseName, OutputEventListener outputEventListener) {
-        super(outputEventListener);
         this.baseName = baseName;
+        this.outputEventListener = outputEventListener;
     }
 
     public boolean awaitNextResult() {
@@ -99,6 +104,23 @@ public class Receiver extends DefaultWorkerLoggingProtocol implements ResponsePr
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
+
+    @Override
+    public void reportProblem(Problem problem) {
+        InternalProblems problems = (InternalProblems) ProblemsProgressEventEmitterHolder.get();
+        problems.report(problem);
+    }
+
+    @Override
+    public void sendOutputEvent(LogEvent event) {
+
+    }
+
+    @Override
+    public void sendOutputEvent(StyledTextOutputEvent event) {
+
+    }
+
 
     static class Failure {
         final Throwable failure;

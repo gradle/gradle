@@ -14,21 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal.worker;
+package org.gradle.process.internal.worker.request;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.internal.DefaultProblem;
-import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
+import org.gradle.process.internal.worker.child.WorkerLoggingProtocol;
 import org.gradle.process.internal.worker.problem.WorkerProblemProtocol;
 
-@NonNullApi
-public class DefaultWorkerProblemProtocol implements WorkerProblemProtocol {
-
-    @Override
-    public void reportProblem(DefaultProblem problem) {
-        InternalProblems problemService = (InternalProblems) ProblemsProgressEventEmitterHolder.get();
-        problemService.report(problem);
-    }
-
+public interface WorkerActionStatusProtocol extends ResponseProtocol, WorkerLoggingProtocol, WorkerProblemProtocol {
 }

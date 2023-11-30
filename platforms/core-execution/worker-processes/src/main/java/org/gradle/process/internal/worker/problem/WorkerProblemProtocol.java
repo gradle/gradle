@@ -16,11 +16,11 @@
 
 package org.gradle.process.internal.worker.problem;
 
-import org.gradle.api.problems.internal.DefaultProblem;
+import org.gradle.api.problems.Problem;
 
 /**
  * Interface used between the worker and the daemon to report problems.
  */
 public interface WorkerProblemProtocol {
-    void reportProblem(DefaultProblem problem);
+    void reportProblem(Problem problem);
 }

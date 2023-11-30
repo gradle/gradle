@@ -32,8 +32,8 @@ import org.gradle.process.internal.worker.request.Request;
 import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
 import org.gradle.process.internal.worker.request.RequestProtocol;
 import org.gradle.process.internal.worker.request.RequestSerializerRegistry;
-import org.gradle.process.internal.worker.request.ResponseProtocol;
 import org.gradle.process.internal.worker.request.WorkerAction;
+import org.gradle.process.internal.worker.request.WorkerActionStatusProtocol;
 
 import java.io.File;
 import java.net.URL;
@@ -156,7 +156,7 @@ class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWo
                 } catch (Exception e) {
                     throw WorkerProcessException.runFailed(getBaseName(), e);
                 }
-                workerProcess.getConnection().addIncoming(ResponseProtocol.class, receiver);
+                workerProcess.getConnection().addIncoming(WorkerActionStatusProtocol.class, receiver);
                 workerProcess.getConnection().useJavaSerializationForParameters(workerImplementation.getClassLoader());
                 workerProcess.getConnection().useParameterSerializers(RequestSerializerRegistry.create(workerImplementation.getClassLoader(), argumentSerializers));
 
