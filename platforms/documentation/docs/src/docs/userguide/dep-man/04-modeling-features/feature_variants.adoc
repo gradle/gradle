@@ -101,21 +101,19 @@ Furthermore, consumable configurations are created in the same manner as for the
 - the configuration `mongodbSupportApiElements`, used by consumers to fetch the artifacts and API dependencies of this feature
 - the configuration `mongodbSupportRuntimeElements`, used by consumers to fetch the artifacts and runtime dependencies of this feature
 
-<<<<<<< HEAD:subprojects/docs/src/docs/userguide/dep-man/04-modeling-features/feature_variants.adoc
 A feature variant should have a _source set_ with the same name.
 Gradle will create a `Jar` task to bundle the classes built from the feature source set, using a classifier corresponding to the kebab-case name of the feature.
 
 WARNING: Do not use the _main_ source set for feature variants.
 
 Most users will only need to care about the first two configurations to declare the specific dependencies of this feature:
-=======
+
 A feature should have a _source set_ with the same name.
 Gradle will create a `Jar` task to bundle the classes built from the feature source set, using a classifier corresponding to the kebab-case name of the feature.
 
 WARNING: Do not use the _main_ source set when registering a feature. This behavior will be deprecated in a future version of Gradle.
 
 Most users will only need to care about the dependency scope configurations to declare the specific dependencies of this feature:
->>>>>>> 9a71ea9b4f2845a12096499df93c45af86ee2f4b:platforms/documentation/docs/src/docs/userguide/dep-man/04-modeling-features/feature_variants.adoc
 
 .Declaring dependencies of a feature
 ====
