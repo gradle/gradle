@@ -1366,9 +1366,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         getExecutePlannedStepOperations(0).empty
 
         buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 2
-        // The execution engine in DependencyManagementBuildScopeServices doesn't fire build operations
-        buildOperations.none(ExecuteWorkBuildOperationType)
-        buildOperations.none(SnapshotTransformInputsBuildOperationType)
+        buildOperations.all(ExecuteWorkBuildOperationType).size() == 2
+        buildOperations.all(SnapshotTransformInputsBuildOperationType).size() == 2
         buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 2
     }
 
@@ -1391,9 +1390,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         getExecutePlannedStepOperations(2)
 
         buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 2
-        // The execution engine in DependencyManagementBuildScopeServices doesn't fire build operations
-        buildOperations.all(ExecuteWorkBuildOperationType).size() == 0
-        buildOperations.all(SnapshotTransformInputsBuildOperationType).size() == 0
+        buildOperations.all(ExecuteWorkBuildOperationType).size() == 2
+        buildOperations.all(SnapshotTransformInputsBuildOperationType).size() == 2
         buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 2
     }
 
