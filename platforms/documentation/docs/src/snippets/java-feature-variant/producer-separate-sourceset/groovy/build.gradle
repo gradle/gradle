@@ -1,6 +1,10 @@
+// tag::plugins[]
 plugins {
     id 'java-library'
+    id 'maven-publish'
 }
+// ...
+// end::plugins[]
 
 repositories {
     mavenCentral()
@@ -36,3 +40,14 @@ dependencies {
     mongodbSupportImplementation 'org.mongodb:mongodb-driver-sync:3.9.1'
 }
 // end::variant_dependencies[]
+
+// tag::publishing[]
+publishing {
+    publications {
+        myLibrary(MavenPublication) {
+            from components.java
+        }
+    }
+}
+// end::publishing[]
+
