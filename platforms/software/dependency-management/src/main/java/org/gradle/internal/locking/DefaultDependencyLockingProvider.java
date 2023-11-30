@@ -157,7 +157,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
                 allLockState = lockFileReaderWriter.readUniqueLockFile();
                 uniqueLockStateLoaded = true;
             } catch (IllegalStateException e) {
-                throw new InvalidLockFileException("project '" + context.getProjectPath().getPath() + "'", e);
+                throw new InvalidLockFileException("project '" + context.getProjectPath().getPath() + "'", e, LockFileReaderWriter.FORMATTING_DOC_LINK);
             }
         }
     }
@@ -182,7 +182,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         try {
             lockedIdentifier = converter.convertFromLockNotation(module);
         } catch (IllegalArgumentException e) {
-            throw new InvalidLockFileException("configuration '" + context.identityPath(configurationName).getPath() + "'", e);
+            throw new InvalidLockFileException("configuration '" + context.identityPath(configurationName).getPath() + "'", e, LockFileReaderWriter.FORMATTING_DOC_LINK);
         }
         return lockedIdentifier;
     }
