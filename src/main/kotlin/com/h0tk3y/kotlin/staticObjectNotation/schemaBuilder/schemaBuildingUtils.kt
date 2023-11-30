@@ -100,7 +100,7 @@ fun treatInterfaceAsConfigureLambda(functionalInterface: KClass<*>): ConfigureLa
     override fun produceNoopConfigureLambda(lambdaType: KType): Any =
         if (lambdaType.isSubtypeOf(starProjectedType)) {
             noopConfigureLambdaInstance
-        } else throw IllegalAccessException("requested lambda type $lambdaType is not a subtype of the interface $starProjectedType")
+        } else throw IllegalArgumentException("requested lambda type $lambdaType is not a subtype of the interface $starProjectedType")
 
     private val noopConfigureLambdaInstance: Any by lazy {
         Proxy.newProxyInstance(
