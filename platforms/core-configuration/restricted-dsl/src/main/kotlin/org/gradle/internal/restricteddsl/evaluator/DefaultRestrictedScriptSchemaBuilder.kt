@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.restricteddsl.provider
+package org.gradle.internal.restricteddsl.evaluator
 
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.kotlinFunctionAsConfigureLambda
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.plus

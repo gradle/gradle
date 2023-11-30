@@ -16,6 +16,9 @@
 
 package org.gradle.internal.restricteddsl.provider
 
+import org.gradle.internal.restricteddsl.evaluator.DefaultRestrictedKotlinScriptEvaluator
+import org.gradle.internal.restricteddsl.evaluator.DefaultRestrictedScriptSchemaBuilder
+import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 

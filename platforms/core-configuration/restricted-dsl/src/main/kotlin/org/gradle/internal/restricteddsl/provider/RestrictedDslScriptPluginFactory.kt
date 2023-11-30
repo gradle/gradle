@@ -21,6 +21,8 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.restricteddsl.evaluator.RestrictedDslNotEvaluatedException
+import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator
 import javax.inject.Inject
 
 /*
