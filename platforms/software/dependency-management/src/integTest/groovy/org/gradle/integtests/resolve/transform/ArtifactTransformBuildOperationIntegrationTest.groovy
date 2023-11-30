@@ -1458,8 +1458,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             : consumerBuildFile
         buildscriptDestination << """
             buildscript {
-                // Can't use color, since we need to use the configuration directly and
-                // can't go via an artifact view
                 def artifactType = Attribute.of('artifactType', String)
                 dependencies {
                     classpath("test:test:1.0")
@@ -1475,7 +1473,9 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                         parameters.targetColor.set('green')
                     }
                 }
-                configurations.classpath.attributes.attribute(artifactType, 'green')
+                configurations.classpath.incoming.artifactView {
+                    attributes.attribute(artifactType, 'green')
+                }.files.files
             }
         """
         if (inExternalScript) {
