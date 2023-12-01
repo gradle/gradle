@@ -33,10 +33,10 @@ import org.gradle.caching.internal.controller.operations.UnpackOperationResult;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.controller.service.BuildCacheServiceRole;
 import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration;
-import org.gradle.caching.internal.controller.service.DefaultLocalBuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.LocalBuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.NullLocalBuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.NullRemoteBuildCacheServiceHandle;
+import org.gradle.caching.internal.controller.service.OpFiringLocalBuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.OpFiringRemoteBuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.RemoteBuildCacheServiceHandle;
 import org.gradle.caching.internal.origin.OriginMetadata;
@@ -95,7 +95,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         StringInterner stringInterner
     ) {
         this.emitDebugLogging = emitDebugLogging;
-        this.local = toLocalHandle(config.getLocal(), config.isLocalPush());
+        this.local = toLocalHandle(config.getLocal(), config.isLocalPush(), buildOperationExecutor);
         this.remote = toRemoteHandle(config.getRemote(), config.isRemotePush(), buildOperationExecutor, logStackTraces, disableRemoteOnError);
         this.tmp = toTempFileStore(config.getLocal(), temporaryFileProvider);
         this.packExecutor = new PackOperationExecutor(
@@ -279,10 +279,10 @@ public class DefaultBuildCacheController implements BuildCacheController {
             : new OpFiringRemoteBuildCacheServiceHandle(service, push, BuildCacheServiceRole.REMOTE, buildOperationExecutor, logStackTraces, disableOnError);
     }
 
-    private static LocalBuildCacheServiceHandle toLocalHandle(@Nullable LocalBuildCacheService local, boolean localPush) {
+    private static LocalBuildCacheServiceHandle toLocalHandle(@Nullable LocalBuildCacheService local, boolean localPush, BuildOperationExecutor buildOperationExecutor) {
         return local == null
             ? NullLocalBuildCacheServiceHandle.INSTANCE
-            : new DefaultLocalBuildCacheServiceHandle(local, localPush);
+            : new OpFiringLocalBuildCacheServiceHandle(local, localPush, buildOperationExecutor);
     }
 
     private static BuildCacheTempFileStore toTempFileStore(@Nullable LocalBuildCacheService local, TemporaryFileProvider temporaryFileProvider) {
