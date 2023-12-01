@@ -393,7 +393,7 @@
   },
   {
     "name": "instrumentation-declarations",
-    "path": "subprojects/instrumentation-declarations",
+    "path": "platforms/core-runtime/instrumentation-declarations",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false

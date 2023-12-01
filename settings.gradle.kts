@@ -59,7 +59,6 @@ unassigned {
     subproject("composite-builds")
     subproject("core-api")
     subproject("build-profile")
-    subproject("instrumentation-declarations")
 }
 
 // Core Runtime Platform
@@ -75,6 +74,7 @@ platform("core-runtime") {
     subproject("functional")
     subproject("installation-beacon")
     subproject("instrumentation-agent")
+    subproject("instrumentation-declarations")
     subproject("internal-instrumentation-api")
     subproject("internal-instrumentation-processor")
     subproject("launcher")
