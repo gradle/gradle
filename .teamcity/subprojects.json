@@ -379,7 +379,7 @@
   },
   {
     "name": "installation-beacon",
-    "path": "subprojects/installation-beacon",
+    "path": "platforms/core-runtime/installation-beacon",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false

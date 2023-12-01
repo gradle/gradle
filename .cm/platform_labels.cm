@@ -123,7 +123,6 @@ platforms:
     name: 'core_runtime'
     subprojects:
       - 'platforms/core-runtime/'
-      - 'subprojects/installation-beacon/'
   - documentation:
     name: 'documentation'
     subprojects:
