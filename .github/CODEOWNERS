@@ -30,7 +30,7 @@ subprojects/internal-testing/               @gradle/bt-developer-productivity
 subprojects/precondition-tester/            @gradle/bt-developer-productivity
 
 # Architecture Decision Records
-architecture-standards                      @gradle/bt-architecture-council
+architecture-standards/                     @gradle/bt-architecture-council
 
 # Core automation platform (core/configuration)
 platforms/core-configuration/               @gradle/bt-configuration
