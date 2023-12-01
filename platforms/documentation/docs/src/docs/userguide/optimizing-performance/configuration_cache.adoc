@@ -662,7 +662,7 @@ If problems with the configuration cache are found then Gradle will fail the bui
 
 [TIP]
 ====
-A good testing strategy for a Gradle plugin is to run its whole test suite with the configuration cache enabled. +
+A good testing strategy for a Gradle plugin is to run its whole test suite with the configuration cache enabled.
 
 This requires testing the plugin with a supported Gradle version.
 
