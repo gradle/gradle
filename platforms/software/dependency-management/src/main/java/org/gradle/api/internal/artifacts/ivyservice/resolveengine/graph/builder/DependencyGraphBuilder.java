@@ -606,7 +606,7 @@ public class DependencyGraphBuilder {
         }
 
         // Collect the components to sort in consumer-first order
-        LinkedList<ComponentState> queue = Lists.newLinkedList();
+        LinkedList<ComponentState> queue = new LinkedList<>();
         for (ModuleResolveState module : resolveState.getModules()) {
             if (module.getSelected() != null && !module.isVirtualPlatform()) {
                 queue.add(module.getSelected());

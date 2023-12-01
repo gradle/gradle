@@ -16,7 +16,6 @@
 
 package org.gradle.ide.visualstudio.tasks.internal
 
-import com.google.common.collect.Maps
 import com.google.common.collect.Sets
 import org.gradle.api.Action
 import org.gradle.ide.visualstudio.TextProvider
@@ -29,8 +28,8 @@ import static org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject.ge
 
 class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
     List<Action<? super TextProvider>> actions = new ArrayList<Action<? super TextProvider>>();
-    private Map<File, String> projects = Maps.newLinkedHashMap()
-    private Map<File, Set<VisualStudioProjectConfigurationMetadata>> projectConfigurations = Maps.newLinkedHashMap()
+    private Map<File, String> projects = new LinkedHashMap<>()
+    private Map<File, Set<VisualStudioProjectConfigurationMetadata>> projectConfigurations = new LinkedHashMap<>()
     private baseText
 
     protected String getDefaultResourceName() {

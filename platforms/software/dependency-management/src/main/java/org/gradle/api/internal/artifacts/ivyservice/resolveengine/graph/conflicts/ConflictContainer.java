@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import static com.google.common.collect.Lists.newLinkedList;
 import static java.util.Collections.singletonList;
 
 /**
@@ -37,7 +36,7 @@ import static java.util.Collections.singletonList;
  */
 class ConflictContainer<K, T> {
 
-    final LinkedList<Conflict> conflicts = newLinkedList();
+    final LinkedList<Conflict> conflicts = new LinkedList<>();
     private final Map<K, Conflict> conflictsByParticipant = new HashMap<>();
 
     private final Map<K, Collection<? extends T>> elements = new HashMap<>();

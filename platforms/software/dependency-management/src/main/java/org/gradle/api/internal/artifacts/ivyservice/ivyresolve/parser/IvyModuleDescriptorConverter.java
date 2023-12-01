@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
@@ -47,6 +46,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -168,7 +168,7 @@ public class IvyModuleDescriptorConverter {
         }
 
         String[] modConfs = dependencyDescriptor.getModuleConfigurations();
-        Map<String, List<String>> results = Maps.newLinkedHashMap();
+        Map<String, List<String>> results = new LinkedHashMap<>();
         for (String modConf : modConfs) {
             results.put(modConf, Arrays.asList(dependencyDescriptor.getDependencyConfigurations(modConfs)));
         }

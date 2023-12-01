@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
-import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
@@ -58,6 +57,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -113,14 +113,14 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     private final Interner<ImmutableVersionConstraint> versionConstraintInterner;
     private final ObjectFactory objects;
     private final String name;
-    private final Map<String, VersionModel> versionConstraints = Maps.newLinkedHashMap();
-    private final Map<String, Supplier<DependencyModel>> libraries = Maps.newLinkedHashMap();
+    private final Map<String, VersionModel> versionConstraints = new LinkedHashMap<>();
+    private final Map<String, Supplier<DependencyModel>> libraries = new LinkedHashMap<>();
     /**
      * Aliases that are being constructed, used to detect unfinished builders.
      */
     private final Set<String> aliasesInProgress = new LinkedHashSet<>();
-    private final Map<String, Supplier<PluginModel>> plugins = Maps.newLinkedHashMap();
-    private final Map<String, BundleModel> bundles = Maps.newLinkedHashMap();
+    private final Map<String, Supplier<PluginModel>> plugins = new LinkedHashMap<>();
+    private final Map<String, BundleModel> bundles = new LinkedHashMap<>();
     private final Lazy<DefaultVersionCatalog> model = Lazy.unsafe().of(this::doBuild);
     private final Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier;
     private Import importedCatalog = null;

@@ -17,13 +17,13 @@
 package org.gradle.platform.base.internal.dependents;
 
 import com.google.common.collect.LinkedListMultimap;
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.internal.Cast;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,7 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class DefaultDependentBinariesResolver implements DependentBinariesResolver {
 
-    private final Map<String, DependentBinariesResolutionStrategy> strategies = Maps.newLinkedHashMap();
+    private final Map<String, DependentBinariesResolutionStrategy> strategies = new LinkedHashMap<>();
 
 
     @Override

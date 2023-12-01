@@ -17,7 +17,6 @@ package org.gradle.api.internal;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
@@ -59,6 +58,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -604,7 +604,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected static class UnfilteredIndex<T> implements Index<T> {
-        private final Map<String, ProviderInternal<? extends T>> pendingMap = Maps.newLinkedHashMap();
+        private final Map<String, ProviderInternal<? extends T>> pendingMap = new LinkedHashMap<>();
         private final NavigableMap<String, T> map = new TreeMap<String, T>();
 
         @Override
@@ -761,7 +761,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         public Map<String, ProviderInternal<? extends T>> getPendingAsMap() {
             // TODO not sure if we can clean up the generics here and do less unchecked casting
             Map<String, ProviderInternal<?>> delegateMap = Cast.uncheckedCast(delegate.getPendingAsMap());
-            Map<String, ProviderInternal<? extends T>> filteredMap = Maps.newLinkedHashMap();
+            Map<String, ProviderInternal<? extends T>> filteredMap = new LinkedHashMap<>();
             for (Map.Entry<String, ProviderInternal<?>> entry : delegateMap.entrySet()) {
                 String name = entry.getKey();
                 ProviderInternal<?> provider = entry.getValue();

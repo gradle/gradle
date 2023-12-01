@@ -19,7 +19,6 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import groovy.util.Node;
 import groovy.util.NodeList;
 import org.gradle.internal.Cast;
@@ -72,7 +71,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         this.path = normalizePath(path);
         this.exported = false;
         this.accessRules = new LinkedHashSet<>();
-        this.entryAttributes = Maps.newLinkedHashMap();
+        this.entryAttributes = new LinkedHashMap<>();
     }
 
     public String getPath() {
@@ -168,7 +167,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
     }
 
     private Map<String, Object> readEntryAttributes(Node node) {
-        Map<String, Object> attributes = Maps.newLinkedHashMap();
+        Map<String, Object> attributes = new LinkedHashMap<>();
         NodeList attributesNodes = (NodeList) node.get("attributes");
         for (Object attributesEntry : attributesNodes) {
             NodeList attributeNodes = (NodeList) ((Node) attributesEntry).get("attribute");

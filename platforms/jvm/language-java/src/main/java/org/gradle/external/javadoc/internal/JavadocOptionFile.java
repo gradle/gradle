@@ -16,7 +16,6 @@
 
 package org.gradle.external.javadoc.internal;
 
-import com.google.common.collect.Maps;
 import org.gradle.external.javadoc.JavadocOptionFileOption;
 import org.gradle.external.javadoc.OptionLessJavadocOptionFileOption;
 import org.gradle.internal.Cast;
@@ -50,7 +49,7 @@ public class JavadocOptionFile {
     }
 
     private static Map<String, JavadocOptionFileOptionInternal<?>> duplicateOptions(Map<String, JavadocOptionFileOptionInternal<?>> original) {
-        Map<String, JavadocOptionFileOptionInternal<?>> duplicateOptions = Maps.newLinkedHashMap();
+        Map<String, JavadocOptionFileOptionInternal<?>> duplicateOptions = new LinkedHashMap<>();
         for (Map.Entry<String, JavadocOptionFileOptionInternal<?>> entry : original.entrySet()) {
             duplicateOptions.put(entry.getKey(), entry.getValue().duplicate());
         }

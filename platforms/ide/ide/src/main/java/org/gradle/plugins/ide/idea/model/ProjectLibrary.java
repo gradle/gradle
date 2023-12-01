@@ -16,10 +16,10 @@
 package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.Maps;
 import groovy.util.Node;
 
 import java.io.File;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -106,7 +106,7 @@ public class ProjectLibrary {
     }
 
     public void addToNode(Node parentNode, PathFactory pathFactory) {
-        Map<String, Object> libraryAttributes = Maps.newLinkedHashMap();
+        Map<String, Object> libraryAttributes = new LinkedHashMap<>();
         libraryAttributes.put("name", name);
         if (type != null) {
             libraryAttributes.put("type", type);
@@ -114,19 +114,19 @@ public class ProjectLibrary {
         Node libraryNode = parentNode.appendNode("library", libraryAttributes);
         Node classesNode = libraryNode.appendNode("CLASSES");
         for (File file : classes) {
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("url", pathFactory.path(file).getUrl());
             classesNode.appendNode("root", attributes);
         }
         Node javadocNode = libraryNode.appendNode("JAVADOC");
         for (File file : javadoc) {
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("url", pathFactory.path(file).getUrl());
             javadocNode.appendNode("root", attributes);
         }
         Node sourcesNode = libraryNode.appendNode("SOURCES");
         for (File file : sources) {
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("url", pathFactory.path(file).getUrl());
             sourcesNode.appendNode("root", attributes);
         }
@@ -135,7 +135,7 @@ public class ProjectLibrary {
             Node properties = libraryNode.appendNode("properties");
             Node compilerClasspathNode = properties.appendNode("compiler-classpath");
             for (File file : compilerClasspath) {
-                Map<String, Object> attributes = Maps.newLinkedHashMap();
+                Map<String, Object> attributes = new LinkedHashMap<>();
                 attributes.put("url", pathFactory.path(file, true).getUrl());
                 compilerClasspathNode.appendNode("root", attributes);
             }

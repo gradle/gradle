@@ -18,7 +18,6 @@ package org.gradle.performance.results;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.performance.measure.Amount;
 import org.gradle.performance.measure.DataSeries;
 import org.gradle.performance.measure.Duration;
@@ -38,6 +37,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -226,7 +226,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                 PreparedStatement operationsForExecution = connection.prepareStatement("select version, testExecution, totalTime from testOperation "
                     + "where testExecution in (select t.* from ( select id from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and (" + channelPatternQuery + buildIdQuery + ") order by startTime desc limit ?) as t)")
             ) {
-                Map<Long, CrossVersionPerformanceResults> results = Maps.newLinkedHashMap();
+                Map<Long, CrossVersionPerformanceResults> results = new LinkedHashMap<>();
                 Set<String> allVersions = new TreeSet<>(Comparator.comparing(this::resolveGradleVersion));
                 Set<String> allBranches = new TreeSet<>();
 

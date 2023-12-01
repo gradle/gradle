@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.internal.resolver;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Table;
@@ -48,6 +47,7 @@ import org.gradle.language.java.artifact.JavadocArtifact;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -100,9 +100,9 @@ public class IdeDependencySet {
      * We should fix this, as other IDE vendors will face the same problem.
      */
     private class IdeDependencyResult {
-        private final Map<ComponentArtifactIdentifier, ResolvedArtifactResult> resolvedArtifacts = Maps.newLinkedHashMap();
+        private final Map<ComponentArtifactIdentifier, ResolvedArtifactResult> resolvedArtifacts = new LinkedHashMap<>();
         private final SetMultimap<ComponentArtifactIdentifier, Configuration> configurations = MultimapBuilder.hashKeys().linkedHashSetValues().build();
-        private final Map<ComponentSelector, UnresolvedDependencyResult> unresolvedDependencies = Maps.newLinkedHashMap();
+        private final Map<ComponentSelector, UnresolvedDependencyResult> unresolvedDependencies = new LinkedHashMap<>();
         private final Table<ModuleComponentIdentifier, Class<? extends Artifact>, Set<ResolvedArtifactResult>> auxiliaryArtifacts = HashBasedTable.create();
 
         public void visit(IdeDependencyVisitor visitor) {

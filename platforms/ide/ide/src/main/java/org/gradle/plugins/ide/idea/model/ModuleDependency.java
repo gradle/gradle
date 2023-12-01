@@ -17,9 +17,9 @@ package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
 import groovy.util.Node;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -72,7 +72,7 @@ public class ModuleDependency implements Dependency {
 
     @Override
     public void addToNode(Node parentNode) {
-        Map<String, Object> attributes = Maps.newLinkedHashMap();
+        Map<String, Object> attributes = new LinkedHashMap<>();
         attributes.put("type", "module");
         attributes.put("module-name", name);
         if (exported) {

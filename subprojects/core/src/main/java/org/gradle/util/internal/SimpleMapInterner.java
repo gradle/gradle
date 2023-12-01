@@ -16,10 +16,10 @@
 package org.gradle.util.internal;
 
 import com.google.common.collect.Interner;
-import com.google.common.collect.Maps;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SimpleMapInterner implements Interner<String> {
     private final Map<String, String> internedStrings;
@@ -33,7 +33,7 @@ public class SimpleMapInterner implements Interner<String> {
     }
 
     public static SimpleMapInterner threadSafe() {
-        return new SimpleMapInterner(Maps.<String, String>newConcurrentMap());
+        return new SimpleMapInterner(new ConcurrentHashMap<>());
     }
 
     @Override

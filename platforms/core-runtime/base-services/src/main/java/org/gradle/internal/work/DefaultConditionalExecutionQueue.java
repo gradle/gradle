@@ -16,13 +16,13 @@
 
 package org.gradle.internal.work;
 
-import com.google.common.collect.Lists;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 
 import javax.annotation.Nullable;
 import java.util.Deque;
+import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -42,7 +42,7 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
     private final int maxWorkers;
     private final WorkerLeaseService workerLeaseService;
     private final ManagedExecutor executor;
-    private final Deque<ConditionalExecution<T>> queue = Lists.newLinkedList();
+    private final Deque<ConditionalExecution<T>> queue = new LinkedList<ConditionalExecution<T>>();
     private final ReentrantLock lock = new ReentrantLock();
     private final Condition workAvailable = lock.newCondition();
     private QueueState queueState = QueueState.Working;

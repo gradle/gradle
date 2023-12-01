@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.project;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -45,6 +44,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -56,7 +56,7 @@ import java.util.function.Function;
 public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closeable {
     private final WorkerLeaseService workerLeaseService;
     private final Object lock = new Object();
-    private final Map<Path, ProjectStateImpl> projectsByPath = Maps.newLinkedHashMap();
+    private final Map<Path, ProjectStateImpl> projectsByPath = new LinkedHashMap<>();
     private final Map<ProjectComponentIdentifier, ProjectStateImpl> projectsById = new HashMap<>();
     private final Map<BuildIdentifier, DefaultBuildProjectRegistry> projectsByBuild = new HashMap<>();
 
@@ -190,7 +190,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
     private static class DefaultBuildProjectRegistry implements BuildProjectRegistry {
         private final BuildState owner;
         private final WorkerLeaseService workerLeaseService;
-        private final Map<Path, ProjectStateImpl> projectsByPath = Maps.newLinkedHashMap();
+        private final Map<Path, ProjectStateImpl> projectsByPath = new LinkedHashMap<>();
 
         public DefaultBuildProjectRegistry(BuildState owner, WorkerLeaseService workerLeaseService) {
             this.owner = owner;

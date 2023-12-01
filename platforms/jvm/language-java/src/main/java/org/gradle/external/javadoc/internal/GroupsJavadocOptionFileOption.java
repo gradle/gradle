@@ -17,10 +17,10 @@
 package org.gradle.external.javadoc.internal;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -51,7 +51,7 @@ public class GroupsJavadocOptionFileOption extends AbstractJavadocOptionFileOpti
 
     @Override
     public GroupsJavadocOptionFileOption duplicate() {
-        Map<String, List<String>> duplicateValue = Maps.newLinkedHashMap();
+        Map<String, List<String>> duplicateValue = new LinkedHashMap<>();
         for (Map.Entry<String, List<String>> entry : value.entrySet()) {
             duplicateValue.put(entry.getKey(), Lists.newArrayList(entry.getValue()));
         }

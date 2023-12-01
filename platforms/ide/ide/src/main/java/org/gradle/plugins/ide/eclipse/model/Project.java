@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
 import org.gradle.internal.xml.XmlTransformer;
@@ -28,6 +27,7 @@ import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObje
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -189,7 +189,7 @@ public class Project extends XmlPersistableConfigurationObject {
     private void readBuildCommands() {
         for (Node commandNode : getChildren(findFirstChildNamed(getXml(), "buildSpec"), "buildCommand")) {
             String name = findFirstChildNamed(commandNode, "name").text();
-            Map<String, String> arguments = Maps.newLinkedHashMap();
+            Map<String, String> arguments = new LinkedHashMap<>();
             for (Node dictionaryNode : getChildren(findFirstChildNamed(commandNode, "arguments"), "dictionary")) {
                 String key = findFirstChildNamed(dictionaryNode, "key").text();
                 String value = findFirstChildNamed(dictionaryNode, "value").text();

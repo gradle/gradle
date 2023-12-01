@@ -17,7 +17,6 @@ package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import groovy.util.Node;
 import org.gradle.internal.Cast;
 import org.gradle.internal.xml.XmlTransformer;
@@ -25,6 +24,7 @@ import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObje
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -366,7 +366,7 @@ public class Module extends XmlPersistableConfigurationObject {
             if (moduleJdk != null) {
                 moduleRootManager.remove(moduleJdk);
             }
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("type", "jdk");
             attributes.put("jdkName", jdkName);
             attributes.put("jdkType", "JavaSDK");
@@ -375,7 +375,7 @@ public class Module extends XmlPersistableConfigurationObject {
             if (moduleJdk != null) {
                 moduleRootManager.remove(moduleJdk);
             }
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("type", "inheritedJdk");
             moduleRootManager.appendNode("orderEntry", attributes);
         }
@@ -400,7 +400,7 @@ public class Module extends XmlPersistableConfigurationObject {
     private void addSourceAndExcludeFolderToXml() {
         Node content = findOrCreateContentNode();
         for (Path path : sourceFolders) {
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("url", path.getUrl());
             attributes.put("isTestSource", "false");
             if (generatedSourceFolders.contains(path)) {
@@ -409,7 +409,7 @@ public class Module extends XmlPersistableConfigurationObject {
             content.appendNode("sourceFolder", attributes);
         }
         for (Path path : testSourceFolders) {
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("url", path.getUrl());
             attributes.put("isTestSource", "true");
             if (generatedSourceFolders.contains(path)) {
@@ -421,7 +421,7 @@ public class Module extends XmlPersistableConfigurationObject {
             if (sourceFolders.contains(path)) {
                 continue;
             }
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("url", path.getUrl());
             attributes.put("type", "java-resource");
             if (generatedSourceFolders.contains(path)) {
@@ -433,7 +433,7 @@ public class Module extends XmlPersistableConfigurationObject {
             if (testSourceFolders.contains(path)) {
                 continue;
             }
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("url", path.getUrl());
             attributes.put("type", "java-test-resource");
             if (generatedSourceFolders.contains(path)) {
@@ -442,7 +442,7 @@ public class Module extends XmlPersistableConfigurationObject {
             content.appendNode("sourceFolder", attributes);
         }
         for (Path path : excludeFolders) {
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("url", path.getUrl());
             content.appendNode("excludeFolder", attributes);
         }

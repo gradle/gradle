@@ -16,8 +16,6 @@
 
 package org.gradle.plugins.ide.idea.model.internal;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -42,7 +40,9 @@ import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -88,7 +88,7 @@ public class IdeaDependenciesProvider {
 
     private Set<Dependency> getDependencies(IdeaModule ideaModule) {
         Set<Dependency> dependencies = new LinkedHashSet<>();
-        Map<ComponentSelector, UnresolvedDependencyResult> unresolvedDependencies = Maps.newLinkedHashMap();
+        Map<ComponentSelector, UnresolvedDependencyResult> unresolvedDependencies = new LinkedHashMap<>();
         for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
             IdeaDependenciesVisitor visitor = visitDependencies(ideaModule, scope);
             dependencies.addAll(visitor.getDependencies());
@@ -140,10 +140,10 @@ public class IdeaDependenciesProvider {
         private final UnresolvedIdeDependencyHandler unresolvedIdeDependencyHandler = new UnresolvedIdeDependencyHandler();
         private final String scope;
 
-        private final List<Dependency> projectDependencies = Lists.newLinkedList();
-        private final List<Dependency> moduleDependencies = Lists.newLinkedList();
-        private final List<Dependency> fileDependencies = Lists.newLinkedList();
-        private final Map<ComponentSelector, UnresolvedDependencyResult> unresolvedDependencies = Maps.newLinkedHashMap();
+        private final List<Dependency> projectDependencies = new LinkedList<>();
+        private final List<Dependency> moduleDependencies = new LinkedList<>();
+        private final List<Dependency> fileDependencies = new LinkedList<>();
+        private final Map<ComponentSelector, UnresolvedDependencyResult> unresolvedDependencies = new LinkedHashMap<>();
 
         private IdeaDependenciesVisitor(IdeaModule ideaModule, String scope) {
             this.ideaModule = ideaModule;

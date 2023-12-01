@@ -17,7 +17,6 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
@@ -29,6 +28,7 @@ import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,7 +53,7 @@ public class PropertyAccessorExtractionContext {
     }
 
     private Map<Class<? extends Annotation>, Annotation> collectAnnotations(Iterable<Method> methods) {
-        Map<Class<? extends Annotation>, Annotation> annotations = Maps.newLinkedHashMap();
+        Map<Class<? extends Annotation>, Annotation> annotations = new LinkedHashMap<>();
         for (Method method : methods) {
             for (Annotation annotation : method.getDeclaredAnnotations()) {
                 // Make sure more specific annotation doesn't get overwritten with less specific one

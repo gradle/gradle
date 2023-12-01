@@ -17,7 +17,6 @@ package org.gradle.api.internal.catalog;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
@@ -45,6 +44,7 @@ import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -724,7 +724,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         private final ClassNode parent;
         private final AccessorKind kind;
         private final String name;
-        private final Map<String, ClassNode> children = Maps.newLinkedHashMap();
+        private final Map<String, ClassNode> children = new LinkedHashMap<>();
         private final Set<String> aliases = new LinkedHashSet<>();
         private final Set<String> leafAliases = new LinkedHashSet<>();
         public boolean wrapping;

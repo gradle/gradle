@@ -18,7 +18,6 @@ package org.gradle.model.internal.registry;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
 import org.gradle.internal.Cast;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.DuplicateModelException;
@@ -41,6 +40,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import static org.gradle.model.internal.core.ModelNode.State.Created;
 import static org.gradle.model.internal.core.ModelNode.State.Initialized;
@@ -255,7 +255,7 @@ class ModelElementNode extends ModelNodeInternal {
             );
         }
         if (links == null) {
-            links = Maps.newTreeMap();
+            links = new TreeMap<>();
         }
         links.put(child.getPath().getName(), child);
         modelRegistry.registerNode(child, registration.getActions());

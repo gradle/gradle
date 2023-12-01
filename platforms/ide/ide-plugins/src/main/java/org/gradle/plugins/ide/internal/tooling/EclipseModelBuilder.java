@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -79,6 +78,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -333,7 +333,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
 
         List<DefaultEclipseBuildCommand> buildCommands = new ArrayList<>();
         for (BuildCommand b : xmlProject.getBuildCommands()) {
-            Map<String, String> arguments = Maps.newLinkedHashMap();
+            Map<String, String> arguments = new LinkedHashMap<>();
             for (Map.Entry<String, String> entry : b.getArguments().entrySet()) {
                 arguments.put(convertGString(entry.getKey()), convertGString(entry.getValue()));
             }

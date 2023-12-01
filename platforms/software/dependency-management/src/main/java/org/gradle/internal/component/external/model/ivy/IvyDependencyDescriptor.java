@@ -20,7 +20,6 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -40,6 +39,7 @@ import org.gradle.internal.component.model.VariantGraphResolveState;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -127,7 +127,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
     @Override
     public GraphVariantSelectionResult selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponent, ResolutionFailureHandler resolutionFailureHandler) {
         // TODO - all this matching stuff is constant for a given DependencyMetadata instance
-        List<ConfigurationGraphResolveState> targets = Lists.newLinkedList();
+        List<ConfigurationGraphResolveState> targets = new LinkedList<>();
         boolean matched = false;
         String fromConfigName = fromConfiguration.getName();
         for (String config : fromConfiguration.getHierarchy()) {

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report;
 
-import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.gradle.api.UncheckedIOException;
@@ -42,6 +41,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Generates an HTML report for verification. This report, unlike the text report,
@@ -49,7 +49,7 @@ import java.util.Map;
  * new contents.
  */
 class HtmlDependencyVerificationReportRenderer implements DependencyVerificationReportRenderer {
-    private final Map<String, Section> sections = Maps.newTreeMap();
+    private final Map<String, Section> sections = new TreeMap<>();
     private Section currentSection;
     private final StringBuilder contents = new StringBuilder();
     private final DocumentationRegistry documentationRegistry;

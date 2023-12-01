@@ -15,7 +15,6 @@
  */
 package org.gradle.execution;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.Task;
@@ -25,6 +24,7 @@ import org.gradle.api.tasks.TaskContainer;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -77,7 +77,7 @@ public class TaskNameResolver {
      * Finds the names of all tasks, without necessarily creating or configuring the tasks. Returns an empty map when none are found.
      */
     public Map<String, TaskSelectionResult> selectAll(ProjectInternal project, boolean includeSubProjects) {
-        Map<String, TaskSelectionResult> selected = Maps.newLinkedHashMap();
+        Map<String, TaskSelectionResult> selected = new LinkedHashMap<>();
 
         if (includeSubProjects) {
             Set<String> taskNames = new LinkedHashSet<>();

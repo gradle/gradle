@@ -20,7 +20,6 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Enums;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
@@ -40,6 +39,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -64,7 +64,7 @@ public class AnnotationProcessorDetector {
     }
 
     public Map<String, AnnotationProcessorDeclaration> detectProcessors(Iterable<File> processorPath) {
-        Map<String, AnnotationProcessorDeclaration> processors = Maps.newLinkedHashMap();
+        Map<String, AnnotationProcessorDeclaration> processors = new LinkedHashMap<>();
         for (File jarOrClassesDir : processorPath) {
             for (AnnotationProcessorDeclaration declaration : cache.get(jarOrClassesDir)) {
                 String className = declaration.getClassName();

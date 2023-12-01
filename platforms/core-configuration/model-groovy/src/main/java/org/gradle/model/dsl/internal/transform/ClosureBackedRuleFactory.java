@@ -16,7 +16,6 @@
 
 package org.gradle.model.dsl.internal.transform;
 
-import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import org.gradle.api.Transformer;
 import org.gradle.internal.BiAction;
@@ -38,6 +37,7 @@ import org.gradle.util.internal.ClosureBackedAction;
 import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -73,7 +73,7 @@ public class ClosureBackedRuleFactory {
                 final boolean supportsNestedRules = node.canBeViewedAs(MANAGED_INSTANCE_TYPE);
                 InputReferences inputs = transformedClosure.inputReferences();
                 List<InputReference> inputReferences = supportsNestedRules ? inputs.getOwnReferences() : inputs.getAllReferences();
-                final Map<String, PotentialInput> inputValues = Maps.newLinkedHashMap();
+                final Map<String, PotentialInput> inputValues = new LinkedHashMap<>();
                 List<ModelReference<?>> inputModelReferences = new ArrayList<>();
 
                 for (InputReference inputReference : inputReferences) {

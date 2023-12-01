@@ -19,7 +19,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
@@ -429,9 +428,9 @@ public abstract class IdeaPlugin extends IdePlugin {
     }
 
     private void setupScopes(JvmFeatureInternal mainFeature, JvmTestSuite defaultTestSuite) {
-        Map<String, Map<String, Collection<Configuration>>> scopes = Maps.newLinkedHashMap();
+        Map<String, Map<String, Collection<Configuration>>> scopes = new LinkedHashMap<>();
         for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
-            Map<String, Collection<Configuration>> plusMinus = Maps.newLinkedHashMap();
+            Map<String, Collection<Configuration>> plusMinus = new LinkedHashMap<>();
             plusMinus.put(IdeaDependenciesProvider.SCOPE_PLUS, new ArrayList<>());
             plusMinus.put(IdeaDependenciesProvider.SCOPE_MINUS, new ArrayList<>());
             scopes.put(scope.name(), plusMinus);

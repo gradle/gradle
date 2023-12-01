@@ -18,9 +18,9 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import groovy.util.Node;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -90,7 +90,7 @@ public class Facet {
     }
 
     public void appendNode(Node node) {
-        Map<String, Object> attributes = Maps.newLinkedHashMap();
+        Map<String, Object> attributes = new LinkedHashMap<>();
         attributes.put("facet", name);
         if (type == FacetType.installed) {
             attributes.put("version", version);

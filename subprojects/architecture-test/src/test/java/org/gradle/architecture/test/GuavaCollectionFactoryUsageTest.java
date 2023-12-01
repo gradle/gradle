@@ -37,15 +37,23 @@ public class GuavaCollectionFactoryUsageTest {
         noClasses()
             .should()
             .callMethod(com.google.common.collect.Lists.class, "newArrayList")
+            .orShould()
+            .callMethod(com.google.common.collect.Lists.class, "newLinkedList")
             .because("The no-argument versions of these List creation factory methods are deprecated, see the notes on their Javadoc");
 
     @ArchTest
     public static final ArchRule guava_new_map_factories_are_deprecated =
         noClasses()
             .should()
-            .callMethod(com.google.common.collect.Maps.class, "newConcurrentHashMap")
+            .callMethod(com.google.common.collect.Maps.class, "newConcurrentMap")
             .orShould()
             .callMethod(com.google.common.collect.Maps.class, "newHashMap")
+            .orShould()
+            .callMethod(com.google.common.collect.Maps.class, "newLinkedHashMap")
+            .orShould()
+            .callMethod(com.google.common.collect.Maps.class, "newIdentityHashMap")
+            .orShould()
+            .callMethod(com.google.common.collect.Maps.class, "newTreeMap")
             .because("The no-argument versions of these Map creation factory methods are deprecated, see the notes on their Javadoc");
 
     @ArchTest
