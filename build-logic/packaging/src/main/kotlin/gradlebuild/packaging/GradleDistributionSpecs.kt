@@ -103,11 +103,17 @@ object GradleDistributionSpecs {
                 "build-logic-commons", "build-logic-commons/*",
                 "build-logic", "build-logic/*",
                 "build-logic-settings", "build-logic-settings/*",
-                "subprojects/*", "platforms/*/*"
+                "subprojects/*", "platforms/*/*",
+                // FIXME: remove these once the codebase is merged
+                "kotlin-static-object-notation/",
+                "kotlin-static-object-notation/*",
+                "kotlin-static-object-notation/*/*",
             ).forEach {
                 include("$it/*.gradle")
                 include("$it/*.gradle.kts")
                 include("$it/src/")
+                // FIXME: remove these once the kotlin-static-object-notation codebase is merged
+                include("$it/gradle.properties")
             }
             include("*.gradle.kts")
             include("gradle.properties")
