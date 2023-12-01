@@ -21,6 +21,7 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+
 /**
  * Tests that various Guava collection factory methods are not used.
  *
@@ -37,6 +38,8 @@ public class GuavaCollectionFactoryUsageTest {
         noClasses()
             .should()
             .callMethod(com.google.common.collect.Lists.class, "newArrayList")
+            .orShould()
+            .callMethod(com.google.common.collect.Lists.class, "newCopyOnWriteArrayList")
             .orShould()
             .callMethod(com.google.common.collect.Lists.class, "newLinkedList")
             .because("The no-argument versions of these List creation factory methods are deprecated, see the notes on their Javadoc");
@@ -60,6 +63,8 @@ public class GuavaCollectionFactoryUsageTest {
     public static final ArchRule guava_new_set_factories_are_deprecated =
         noClasses()
             .should()
+            .callMethod(com.google.common.collect.Sets.class, "newCopyOnWriteArraySet")
+            .orShould()
             .callMethod(com.google.common.collect.Sets.class, "newHashSet")
             .orShould()
             .callMethod(com.google.common.collect.Sets.class, "newLinkedHashSet")
