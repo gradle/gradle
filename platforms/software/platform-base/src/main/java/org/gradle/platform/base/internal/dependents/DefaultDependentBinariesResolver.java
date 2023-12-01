@@ -17,12 +17,12 @@
 package org.gradle.platform.base.internal.dependents;
 
 import com.google.common.collect.LinkedListMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.internal.Cast;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +47,7 @@ public class DefaultDependentBinariesResolver implements DependentBinariesResolv
 
     @Override
     public DependentBinariesResolutionResult resolve(BinarySpecInternal target) {
-        List<DependentBinariesResolvedResult> roots = Lists.newArrayList();
+        List<DependentBinariesResolvedResult> roots = new ArrayList<>();
         for (DependentBinariesResolutionStrategy strategy : strategies.values()) {
             DependentBinariesResolutionResult result = strategy.resolve(target);
             roots.add(result.getRoot());
@@ -63,7 +63,7 @@ public class DefaultDependentBinariesResolver implements DependentBinariesResolv
         boolean hasNotBuildables = false;
         boolean hasTestSuites = false;
         LinkedListMultimap<LibraryBinaryIdentifier, DependentBinariesResolvedResult> index = LinkedListMultimap.create();
-        List<DependentBinariesResolvedResult> allChildren = Lists.newArrayList();
+        List<DependentBinariesResolvedResult> allChildren = new ArrayList<>();
         for (DependentBinariesResolvedResult result : results) {
             if (!result.isBuildable()) {
                 hasNotBuildables = true;
@@ -76,7 +76,7 @@ public class DefaultDependentBinariesResolver implements DependentBinariesResolv
                 index.put(child.getId(), child);
             }
         }
-        List<DependentBinariesResolvedResult> children = Lists.newArrayList();
+        List<DependentBinariesResolvedResult> children = new ArrayList<>();
         for (Collection<DependentBinariesResolvedResult> childResults : index.asMap().values()) {
             children.add(mergeResults(childResults));
         }

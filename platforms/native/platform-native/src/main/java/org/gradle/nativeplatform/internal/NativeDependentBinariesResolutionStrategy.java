@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.internal;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import org.gradle.api.CircularReferenceException;
@@ -46,6 +45,7 @@ import org.gradle.platform.base.internal.dependents.DependentBinariesResolvedRes
 import javax.annotation.Nullable;
 import java.io.StringWriter;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
@@ -81,7 +81,7 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
         List<NativeBinarySpecInternal> getDependents(NativeBinarySpecInternal target) {
             List<NativeBinarySpecInternal> result = dependents.get(target);
             if (result == null) {
-                result = Lists.newArrayList();
+                result = new ArrayList<>();
                 for (NativeBinarySpecInternal dependentBinary : dependencies.keySet()) {
                     if (dependencies.get(dependentBinary).contains(target)) {
                         result.add(dependentBinary);
@@ -194,7 +194,7 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
     }
 
     private List<NativeBinarySpecInternal> allBinariesOf(ModelMap<VariantComponentSpec> components) {
-        List<NativeBinarySpecInternal> binaries = Lists.newArrayList();
+        List<NativeBinarySpecInternal> binaries = new ArrayList<>();
         for (VariantComponentSpec nativeComponent : components) {
             for (NativeBinarySpecInternal nativeBinary : nativeComponent.getBinaries().withType(NativeBinarySpecInternal.class)) {
                 binaries.add(nativeBinary);
@@ -217,7 +217,7 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
             return result;
         }
         stack.push(target);
-        result = Lists.newArrayList();
+        result = new ArrayList<>();
         List<NativeBinarySpecInternal> dependents = state.getDependents(target);
         for (NativeBinarySpecInternal dependent : dependents) {
             List<DependentBinariesResolvedResult> children = doBuildResolvedResult(dependent, state, stack);

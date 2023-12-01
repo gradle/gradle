@@ -16,12 +16,12 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import com.google.common.collect.Lists;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
 import org.gradle.nativeplatform.toolchain.internal.MacroArgsConverter;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,7 +31,7 @@ import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs
 abstract class VisualCppCompilerArgsTransformer<T extends NativeCompileSpec> implements ArgsTransformer<T> {
     @Override
     public List<String> transform(T spec) {
-        List<String> args = Lists.newArrayList();
+        List<String> args = new ArrayList<>();
         addToolSpecificArgs(spec, args);
         addMacroArgs(spec, args);
         addUserArgs(spec, args);

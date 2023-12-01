@@ -17,7 +17,6 @@
 package org.gradle.model.internal.registry;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ChainingModelProjection;
 import org.gradle.model.internal.core.EmptyModelProjection;
@@ -37,6 +36,7 @@ import org.gradle.model.internal.inspect.ExtractedRuleSource;
 import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -75,7 +75,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
     public void addRegistrationActionBinder(RuleBinder binder) {
         if (registrationActionBinders == null) {
-            registrationActionBinders = Lists.newArrayList();
+            registrationActionBinders = new ArrayList<>();
         }
         registrationActionBinders.add(binder);
     }
@@ -104,7 +104,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
             node.dependents.add(this);
         }
         if (executedRules == null) {
-            executedRules = Lists.newArrayList();
+            executedRules = new ArrayList<>();
         }
         executedRules.add(binder.getDescriptor());
     }
@@ -186,7 +186,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
             throw new IllegalStateException(String.format("Cannot add projections to '%s' as it is already in state %s.", getPath(), state));
         }
         if (projections == null) {
-            projections = Lists.newArrayList();
+            projections = new ArrayList<>();
         }
         projections.add(projection);
     }

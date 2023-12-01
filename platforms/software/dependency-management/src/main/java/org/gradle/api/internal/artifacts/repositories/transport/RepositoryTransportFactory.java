@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
@@ -41,6 +40,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -50,7 +50,7 @@ import java.util.Set;
 
 @ServiceScope(Scopes.Build.class)
 public class RepositoryTransportFactory {
-    private final List<ResourceConnectorFactory> registeredProtocols = Lists.newArrayList();
+    private final List<ResourceConnectorFactory> registeredProtocols = new ArrayList<>();
 
     private final TemporaryFileProvider temporaryFileProvider;
     private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;

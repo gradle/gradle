@@ -79,8 +79,8 @@ public class NodeState implements DependencyGraphNode {
     private static final Logger LOGGER = LoggerFactory.getLogger(NodeState.class);
     private final Long nodeId;
     private final ComponentState component;
-    private final List<EdgeState> incomingEdges = Lists.newArrayList();
-    private final List<EdgeState> outgoingEdges = Lists.newArrayList();
+    private final List<EdgeState> incomingEdges = new ArrayList<>();
+    private final List<EdgeState> outgoingEdges = new ArrayList<>();
     private final ResolvedConfigurationIdentifier id;
 
     private final VariantGraphResolveState variantState;
@@ -614,7 +614,7 @@ public class NodeState implements DependencyGraphNode {
             potentialEdge.component.getModule().maybeCreateVirtualMetadata(resolveState);
         }
         if (virtualEdges == null) {
-            virtualEdges = Lists.newArrayList();
+            virtualEdges = new ArrayList<>();
         }
         EdgeState edge = potentialEdge.edge;
         virtualEdges.add(edge);
@@ -1014,7 +1014,7 @@ public class NodeState implements DependencyGraphNode {
                 continue;
             }
             if (endorsesStrictVersionsFrom == null) {
-                endorsesStrictVersionsFrom = Lists.newArrayList();
+                endorsesStrictVersionsFrom = new ArrayList<>();
             }
             endorsesStrictVersionsFrom.add(edgeState);
         }

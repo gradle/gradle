@@ -18,7 +18,6 @@ package org.gradle.api.tasks.testing;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
@@ -85,6 +84,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -574,7 +574,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     @Internal
     protected List<String> getNoMatchingTestErrorReasons() {
-        List<String> reasons = Lists.newArrayList();
+        List<String> reasons = new ArrayList<String>();
         if (!getFilter().getIncludePatterns().isEmpty()) {
             reasons.add(getFilter().getIncludePatterns() + "(filter.includeTestsMatching)");
         }

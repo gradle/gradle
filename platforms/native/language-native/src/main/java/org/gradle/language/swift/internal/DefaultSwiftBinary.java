@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift.internal;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.Configuration;
@@ -54,6 +53,7 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -255,7 +255,7 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
                         if (moduleMaps.containsKey(id)) {
                             moduleMap = moduleMaps.get(id);
                         } else {
-                            moduleMap = new ModuleMap(moduleName, Lists.<String>newArrayList());
+                            moduleMap = new ModuleMap(moduleName, new ArrayList<>());
                             moduleMaps.put(id, moduleMap);
                         }
                         moduleMap.getPublicHeaderPaths().add(artifact.getFile().getAbsolutePath());

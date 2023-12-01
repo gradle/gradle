@@ -19,7 +19,6 @@ package org.gradle.internal.component.external.model;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -290,9 +289,9 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
 
     protected static class MutableVariantImpl implements MutableComponentVariant {
         private final String name;
-        private final List<ComponentVariant.Dependency> dependencies = Lists.newArrayList();
-        private final List<ComponentVariant.DependencyConstraint> dependencyConstraints = Lists.newArrayList();
-        private final List<FileImpl> files = Lists.newArrayList();
+        private final List<ComponentVariant.Dependency> dependencies = new ArrayList<>();
+        private final List<ComponentVariant.DependencyConstraint> dependencyConstraints = new ArrayList<>();
+        private final List<FileImpl> files = new ArrayList<>();
         private final Set<Capability> capabilities = new LinkedHashSet<>();
         private boolean availableExternally;
 

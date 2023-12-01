@@ -31,6 +31,7 @@ import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -167,7 +168,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                 }
                 executionsForName.setInt(++idx, mostRecentN);
                 try (ResultSet testExecutions = executionsForName.executeQuery()) {
-                    List<CrossBuildPerformanceResults> results = Lists.newArrayList();
+                    List<CrossBuildPerformanceResults> results = new ArrayList<>();
                     Set<BuildDisplayInfo> builds = Sets.newTreeSet(Comparator.comparing(BuildDisplayInfo::getDisplayName));
                     while (testExecutions.next()) {
                         long id = testExecutions.getLong(1);

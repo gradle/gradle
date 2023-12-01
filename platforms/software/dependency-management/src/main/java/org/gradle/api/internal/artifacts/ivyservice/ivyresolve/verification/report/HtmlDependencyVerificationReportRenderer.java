@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.bouncycastle.openpgp.PGPPublicKey;
@@ -40,6 +39,7 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -412,7 +412,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
 
     private static class Section {
         private final String title;
-        private final List<ArtifactErrors> errors = Lists.newArrayList();
+        private final List<ArtifactErrors> errors = new ArrayList<>();
         private ArtifactErrors currentArtifact;
 
         private Section(String title) {
@@ -432,7 +432,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
 
     private static class ArtifactErrors {
         final ModuleComponentArtifactIdentifier key;
-        final List<RepositoryAwareVerificationFailure> failures = Lists.newArrayList();
+        final List<RepositoryAwareVerificationFailure> failures = new ArrayList<>();
 
         private ArtifactErrors(ModuleComponentArtifactIdentifier key) {
             this.key = key;

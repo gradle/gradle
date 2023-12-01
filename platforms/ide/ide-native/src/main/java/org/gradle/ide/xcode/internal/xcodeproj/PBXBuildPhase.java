@@ -16,8 +16,7 @@
 
 package org.gradle.ide.xcode.internal.xcodeproj;
 
-import com.google.common.collect.Lists;
-
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -27,7 +26,7 @@ public abstract class PBXBuildPhase extends PBXProjectItem {
     private final List<PBXBuildFile> files;
 
     public PBXBuildPhase() {
-        this.files = Lists.newArrayList();
+        this.files = new ArrayList<>();
     }
 
     public List<PBXBuildFile> getFiles() {

@@ -16,7 +16,6 @@
 
 package org.gradle.deployment.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.BuildResult;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -29,6 +28,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -114,7 +114,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
     public Collection<Deployment> getRunningDeployments() {
         lock.lock();
         try {
-            List<Deployment> runningDeployments = Lists.newArrayList();
+            List<Deployment> runningDeployments = new ArrayList<>();
             for (RegisteredDeployment deployment : deployments.values()) {
                 if (deployment.getHandle().isRunning()) {
                     runningDeployments.add(deployment.getDeployment());

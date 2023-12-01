@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.attributes;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -97,7 +96,7 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
 
     ImmutableAttributes doConcatIsolatable(ImmutableAttributes node, Attribute<?> key, @Nullable Isolatable<?> value) {
         synchronized (this) {
-            List<DefaultImmutableAttributes> nodeChildren = children.computeIfAbsent(node, k -> Lists.newArrayList());
+            List<DefaultImmutableAttributes> nodeChildren = children.computeIfAbsent(node, k -> new ArrayList<>());
             for (DefaultImmutableAttributes child : nodeChildren) {
                 if (child.attribute.equals(key) && child.value.equals(value)) {
                     return child;

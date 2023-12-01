@@ -16,13 +16,17 @@
 
 package org.gradle.model.internal.registry;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 class RuleBindings {
     private final NodeAtStateIndex rulesBySubject;
@@ -176,7 +180,7 @@ class RuleBindings {
 
     private class ScopeIndex {
         final Map<ModelType<?>, PredicateMatches> types = Maps.newLinkedHashMap();
-        final List<ModelNodeInternal> nodes = Lists.newArrayList();
+        final List<ModelNodeInternal> nodes = new ArrayList<>();
 
         public void addNode(ModelNodeInternal node) {
             nodes.add(node);

@@ -24,6 +24,7 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -40,7 +41,7 @@ abstract class MessageBuilderHelper {
 
     static Collection<String> pathTo(EdgeState edge, boolean includeLast) {
         List<List<EdgeState>> acc = Lists.newArrayListWithExpectedSize(1);
-        pathTo(edge, Lists.newArrayList(), acc, new HashSet<>());
+        pathTo(edge, new ArrayList<>(), acc, new HashSet<>());
         List<String> result = Lists.newArrayListWithCapacity(acc.size());
         for (List<EdgeState> path : acc) {
             EdgeState target = Iterators.getLast(path.iterator());

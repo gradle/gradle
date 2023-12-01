@@ -67,6 +67,7 @@ import org.gradle.testing.base.TestingExtension;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -431,8 +432,8 @@ public abstract class IdeaPlugin extends IdePlugin {
         Map<String, Map<String, Collection<Configuration>>> scopes = Maps.newLinkedHashMap();
         for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
             Map<String, Collection<Configuration>> plusMinus = Maps.newLinkedHashMap();
-            plusMinus.put(IdeaDependenciesProvider.SCOPE_PLUS, Lists.<Configuration>newArrayList());
-            plusMinus.put(IdeaDependenciesProvider.SCOPE_MINUS, Lists.<Configuration>newArrayList());
+            plusMinus.put(IdeaDependenciesProvider.SCOPE_PLUS, new ArrayList<>());
+            plusMinus.put(IdeaDependenciesProvider.SCOPE_MINUS, new ArrayList<>());
             scopes.put(scope.name(), plusMinus);
         }
 

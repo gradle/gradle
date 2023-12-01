@@ -26,6 +26,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.primitives.Ints;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -185,7 +186,7 @@ public class HierarchicalElementDeduplicator<T> {
             Splitter splitter = Splitter.on('-').omitEmptyStrings();
             List<String> prefixParts = Lists.newArrayList(splitter.split(prefix));
             List<String> postfixParts = Lists.newArrayList(splitter.split(originalName));
-            List<String> words = Lists.newArrayList();
+            List<String> words = new ArrayList<>();
 
             if (postfixParts.size() > 1) {
                 String postfixHead = postfixParts.get(0);

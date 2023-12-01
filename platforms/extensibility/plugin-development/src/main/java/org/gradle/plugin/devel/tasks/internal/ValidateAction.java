@@ -17,7 +17,6 @@
 package org.gradle.plugin.devel.tasks.internal;
 
 import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 import org.gradle.api.Task;
@@ -99,7 +98,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
             @Nonnull
             private List<String> getClassNames(FileVisitDetails fileDetails) {
                 ClassReader reader = createClassReader(fileDetails);
-                List<String> classNames = Lists.newArrayList();
+                List<String> classNames = new ArrayList<>();
                 reader.accept(new TaskNameCollectorVisitor(classNames), ClassReader.SKIP_CODE);
                 return classNames;
             }

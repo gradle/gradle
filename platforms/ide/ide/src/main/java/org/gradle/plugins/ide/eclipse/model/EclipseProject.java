@@ -16,7 +16,6 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
@@ -27,6 +26,7 @@ import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter;
 import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -139,9 +139,9 @@ public abstract class EclipseProject {
 
     private Set<String> referencedProjects = new LinkedHashSet<>();
 
-    private List<String> natures = Lists.newArrayList();
+    private List<String> natures = new ArrayList<>();
 
-    private List<BuildCommand> buildCommands = Lists.newArrayList();
+    private List<BuildCommand> buildCommands = new ArrayList<>();
 
     private Set<Link> linkedResources = new LinkedHashSet<>();
 

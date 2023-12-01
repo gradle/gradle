@@ -17,7 +17,6 @@
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.Include;
@@ -56,8 +55,8 @@ public class RegexBackedCSourceParser implements CSourceParser {
 
     protected IncludeDirectives parseSource(Reader sourceReader) throws IOException {
         Set<Include> includes = new LinkedHashSet<>();
-        List<Macro> macros = Lists.newArrayList();
-        List<MacroFunction> macroFunctions = Lists.newArrayList();
+        List<Macro> macros = new ArrayList<>();
+        List<MacroFunction> macroFunctions = new ArrayList<>();
         BufferedReader reader = new BufferedReader(sourceReader);
         PreprocessingReader lineReader = new PreprocessingReader(reader);
         Buffer buffer = new Buffer();

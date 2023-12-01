@@ -45,6 +45,7 @@ import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -117,13 +118,13 @@ public class IvyModuleDescriptorConverter {
             configMappings.putAll(entry.getKey(), entry.getValue());
         }
 
-        List<Artifact> artifacts = Lists.newArrayList();
+        List<Artifact> artifacts = new ArrayList<>();
         for (DependencyArtifactDescriptor ivyArtifact : dependencyDescriptor.getAllDependencyArtifacts()) {
             IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(ivyArtifact.getName(), ivyArtifact.getType(), ivyArtifact.getExt(), ivyArtifact.getExtraAttributes().get(CLASSIFIER));
             artifacts.add(new Artifact(ivyArtifactName, Sets.newHashSet(ivyArtifact.getConfigurations())));
         }
 
-        List<Exclude> excludes = Lists.newArrayList();
+        List<Exclude> excludes = new ArrayList<>();
         for (ExcludeRule excludeRule : dependencyDescriptor.getAllExcludeRules()) {
             excludes.add(forIvyExclude(excludeRule));
         }

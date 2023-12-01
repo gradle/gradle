@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.verification.exceptions.ComponentVerificationException;
@@ -36,6 +35,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 import javax.annotation.Nullable;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -50,14 +50,14 @@ public class DependencyVerifierBuilder {
         .thenComparing(ModuleComponentIdentifier::getModule)
         .thenComparing(ModuleComponentIdentifier::getVersion);
     private final Map<ModuleComponentIdentifier, ComponentVerificationsBuilder> byComponent = new HashMap<>();
-    private final List<DependencyVerificationConfiguration.TrustedArtifact> trustedArtifacts = Lists.newArrayList();
+    private final List<DependencyVerificationConfiguration.TrustedArtifact> trustedArtifacts = new ArrayList<>();
     private final Set<DependencyVerificationConfiguration.TrustedKey> trustedKeys = new LinkedHashSet<>();
-    private final List<URI> keyServers = Lists.newArrayList();
+    private final List<URI> keyServers = new ArrayList<>();
     private final Set<IgnoredKey> ignoredKeys = new LinkedHashSet<>();
     private boolean isVerifyMetadata = true;
     private boolean isVerifySignatures = false;
     private boolean useKeyServers = true;
-    private final List<String> topLevelComments = Lists.newArrayList();
+    private final List<String> topLevelComments = new ArrayList<>();
     private DependencyVerificationConfiguration.KeyringFormat keyringFormat = null;
 
     public void setKeyringFormat(String newKeyringFormat) {

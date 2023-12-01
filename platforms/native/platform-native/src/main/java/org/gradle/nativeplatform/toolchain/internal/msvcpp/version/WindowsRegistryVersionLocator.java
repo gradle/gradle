@@ -16,13 +16,13 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 
-import com.google.common.collect.Lists;
 import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.FileUtils;
 import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class WindowsRegistryVersionLocator extends AbstractVisualStudioVersionLocator implements VisualStudioVersionLocator {
@@ -40,7 +40,7 @@ public class WindowsRegistryVersionLocator extends AbstractVisualStudioVersionLo
 
     @Override
     protected List<VisualStudioInstallCandidate> locateInstalls() {
-        List<VisualStudioInstallCandidate> installs = Lists.newArrayList();
+        List<VisualStudioInstallCandidate> installs = new ArrayList<>();
         for (String baseKey : REGISTRY_BASEPATHS) {
             locateInstallsInRegistry(installs, baseKey);
         }

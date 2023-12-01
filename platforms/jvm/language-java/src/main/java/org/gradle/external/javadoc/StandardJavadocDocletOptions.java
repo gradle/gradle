@@ -31,6 +31,7 @@ import org.gradle.external.javadoc.internal.LinksOfflineJavadocOptionFileOption;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -142,7 +143,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         footer = addStringOption(OPTION_FOOTER);
         bottom = addStringOption(OPTION_BOTTOM);
         links = addMultilineStringsOption(OPTION_LINK);
-        linksOffline = addOption(new LinksOfflineJavadocOptionFileOption(OPTION_LINKOFFLINE, Lists.newArrayList()));
+        linksOffline = addOption(new LinksOfflineJavadocOptionFileOption(OPTION_LINKOFFLINE, new ArrayList<>()));
         linkSource = addBooleanOption(OPTION_LINKSOURCE);
         groups = addOption(new GroupsJavadocOptionFileOption(OPTION_GROUP, Maps.newLinkedHashMap()));
         noDeprecated = addBooleanOption(OPTION_NODEPRECATED);

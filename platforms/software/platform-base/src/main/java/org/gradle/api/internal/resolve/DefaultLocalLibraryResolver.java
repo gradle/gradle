@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.resolve;
 
-import com.google.common.collect.Lists;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
@@ -25,6 +24,7 @@ import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.VariantComponent;
 import org.gradle.platform.base.VariantComponentSpec;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +34,7 @@ public class DefaultLocalLibraryResolver implements LocalLibraryResolver {
 
     @Override
     public Collection<VariantComponent> resolveCandidates(ModelRegistry projectModel, String libraryName) {
-        List<VariantComponent> librarySpecs = Lists.newArrayList();
+        List<VariantComponent> librarySpecs = new ArrayList<>();
         collectLocalComponents(projectModel, "components", librarySpecs);
         collectLocalComponents(projectModel, "testSuites", librarySpecs);
         if (librarySpecs.isEmpty()) {

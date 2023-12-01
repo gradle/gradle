@@ -16,9 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
-import com.google.common.collect.Lists;
-import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriter;
 import org.gradle.internal.process.ArgWriter;
+import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriter;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -39,7 +38,7 @@ class GccOptionsFileArgsWriter extends OptionsFileArgsWriter {
     @Override
     public List<String> transformArgs(List<String> originalArgs, File tempDir) {
         List<String> commandLineOnlyArgs = getCommandLineOnlyArgs(originalArgs);
-        List<String> finalArgs = Lists.newArrayList();
+        List<String> finalArgs = new ArrayList<>();
         finalArgs.addAll(ArgWriter.argsFileGenerator(new File(tempDir, "options.txt"), ArgWriter.unixStyleFactory()).transform(originalArgs));
         finalArgs.addAll(commandLineOnlyArgs);
         return finalArgs;

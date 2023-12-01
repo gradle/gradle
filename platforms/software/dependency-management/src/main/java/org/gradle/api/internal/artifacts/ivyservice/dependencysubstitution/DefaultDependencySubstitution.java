@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ArtifactSelectionDetails;
@@ -30,6 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -81,7 +81,7 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
 
     void addRuleDescriptor(ComponentSelectionDescriptorInternal ruleDescriptor) {
         if (this.ruleDescriptors == null) {
-            this.ruleDescriptors = Lists.newArrayList();
+            this.ruleDescriptors = new ArrayList<>();
         }
         this.ruleDescriptors.add(ruleDescriptor);
     }

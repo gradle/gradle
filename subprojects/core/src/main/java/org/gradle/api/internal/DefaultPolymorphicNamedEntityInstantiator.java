@@ -18,11 +18,11 @@ package org.gradle.api.internal;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -52,7 +52,7 @@ public class DefaultPolymorphicNamedEntityInstantiator<T> implements Polymorphic
     }
 
     public String getSupportedTypeNames() {
-        List<String> names = Lists.newArrayList();
+        List<String> names = new ArrayList<>();
         for (Class<?> clazz : factories.keySet()) {
             names.add(clazz.getSimpleName());
         }

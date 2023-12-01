@@ -70,6 +70,7 @@ import org.gradle.testing.base.plugins.TestSuiteBasePlugin;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -280,7 +281,7 @@ public abstract class EclipsePlugin extends IdePlugin {
                 ((IConventionAware) model.getClasspath()).getConventionMapping().map("classFolders", new Callable<List<File>>() {
                     @Override
                     public List<File> call() {
-                        List<File> result = Lists.newArrayList();
+                        List<File> result = new ArrayList<>();
                         for (SourceSet sourceSet : project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets()) {
                             result.addAll(sourceSet.getOutput().getDirs().getFiles());
                         }

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.transform.TransformAction;
@@ -36,10 +35,11 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultVariantTransformRegistry implements VariantTransformRegistry {
-    private final List<TransformRegistration> registrations = Lists.newArrayList();
+    private final List<TransformRegistration> registrations = new ArrayList<>();
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final ServiceRegistry services;
     private final InstantiatorFactory instantiatorFactory;

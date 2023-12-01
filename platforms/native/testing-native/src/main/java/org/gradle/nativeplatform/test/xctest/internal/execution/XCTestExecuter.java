@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.xctest.internal.execution;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
@@ -42,6 +41,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
@@ -176,7 +176,7 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
         }
 
         private static List<String> toTestArgs(String testName) {
-            List<String> args = Lists.newArrayList();
+            List<String> args = new ArrayList<>();
             if (!testName.equals(XCTestSelection.INCLUDE_ALL_TESTS)) {
                 if (OperatingSystem.current().isMacOsX()) {
                     args.add("-XCTest");

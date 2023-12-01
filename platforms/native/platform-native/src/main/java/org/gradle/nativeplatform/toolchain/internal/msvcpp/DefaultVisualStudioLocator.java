@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import com.google.common.collect.Lists;
 import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate;
@@ -174,7 +173,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
 
     private VisualCppInstall buildLegacyVisualCppInstall(String name, File vsPath, File basePath, VersionNumber version) {
 
-        List<ArchitectureDescriptorBuilder> architectureDescriptorBuilders = Lists.newArrayList();
+        List<ArchitectureDescriptorBuilder> architectureDescriptorBuilders = new ArrayList<>();
 
         architectureDescriptorBuilders.add(LEGACY_X86_ON_X86);
         architectureDescriptorBuilders.add(LEGACY_AMD64_ON_X86);
@@ -203,7 +202,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
 
     private VisualCppInstall buildVisualCppInstall(String name, File vsPath, File basePath, VersionNumber version) {
 
-        List<ArchitectureDescriptorBuilder> architectureDescriptorBuilders = Lists.newArrayList();
+        List<ArchitectureDescriptorBuilder> architectureDescriptorBuilders = new ArrayList<>();
 
         architectureDescriptorBuilders.add(X86_ON_X86);
         architectureDescriptorBuilders.add(AMD64_ON_X86);

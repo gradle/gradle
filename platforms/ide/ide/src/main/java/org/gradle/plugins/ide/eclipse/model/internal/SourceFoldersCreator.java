@@ -38,6 +38,7 @@ import org.gradle.plugins.ide.eclipse.model.SourceFolder;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -148,7 +149,7 @@ public class SourceFoldersCreator {
         // externals are mapped to linked resources so we just need a name of the resource, without full path
         // non-unique folder names are naively deduped by adding parent filename as a prefix till unique
         // since this seems like a rare edge case this simple approach should be enough
-        List<SourceFolder> trimmedSourceFolders = Lists.newArrayList();
+        List<SourceFolder> trimmedSourceFolders = new ArrayList<>();
         for (SourceFolder folder : externalSourceFolders) {
             folder.trim();
             File parentFile = folder.getDir().getParentFile();

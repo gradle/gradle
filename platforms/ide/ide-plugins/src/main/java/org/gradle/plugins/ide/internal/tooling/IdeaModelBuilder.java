@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
@@ -112,7 +111,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                 .setTargetBytecodeVersion(projectTargetBytecodeLevel)
                 .setJdk(DefaultInstalledJdk.current()));
 
-        List<DefaultIdeaModule> ideaModules = Lists.newArrayList();
+        List<DefaultIdeaModule> ideaModules = new ArrayList<>();
         for (IdeaModule module : projectModel.getModules()) {
             ideaModules.add(createModule(module, out, rootGradleProject));
         }

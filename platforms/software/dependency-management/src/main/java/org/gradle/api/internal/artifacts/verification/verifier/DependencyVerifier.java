@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -37,6 +36,7 @@ import org.gradle.security.internal.PublicKeyService;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -282,7 +282,7 @@ public class DependencyVerifier {
         @Override
         public void missingKey(String keyId) {
             if (missingKeys == null) {
-                missingKeys = Lists.newArrayList();
+                missingKeys = new ArrayList<>();
             }
             missingKeys.add(keyId);
         }
@@ -291,12 +291,12 @@ public class DependencyVerifier {
         public void verified(PGPPublicKey key, boolean trusted) {
             if (trusted) {
                 if (trustedKeys == null) {
-                    trustedKeys = Lists.newArrayList();
+                    trustedKeys = new ArrayList<>();
                 }
                 trustedKeys.add(key);
             } else {
                 if (validNotTrusted == null) {
-                    validNotTrusted = Lists.newArrayList();
+                    validNotTrusted = new ArrayList<>();
                 }
                 validNotTrusted.add(key);
             }
@@ -305,7 +305,7 @@ public class DependencyVerifier {
         @Override
         public void failed(PGPPublicKey pgpPublicKey) {
             if (failedKeys == null) {
-                failedKeys = Lists.newArrayList();
+                failedKeys = new ArrayList<>();
             }
             failedKeys.add(pgpPublicKey);
         }
@@ -313,7 +313,7 @@ public class DependencyVerifier {
         @Override
         public void ignored(String keyId) {
             if (ignoredKeys == null) {
-                ignoredKeys = Lists.newArrayList();
+                ignoredKeys = new ArrayList<>();
             }
             ignoredKeys.add(keyId);
         }

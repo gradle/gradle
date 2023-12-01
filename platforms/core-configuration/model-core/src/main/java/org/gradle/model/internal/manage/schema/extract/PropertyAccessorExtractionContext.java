@@ -17,7 +17,6 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.PropertyAccessorType;
@@ -27,6 +26,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -104,7 +104,7 @@ public class PropertyAccessorExtractionContext {
     public List<Method> getGetters() {
         List<Method> getters;
         if (mostSpecificDeclaration.getReturnType()==Boolean.TYPE) {
-            getters = Lists.newArrayList();
+            getters = new ArrayList<>();
             for (Method getter : declaringMethods) {
                 if (Proxy.isProxyClass(getter.getDeclaringClass())) {
                     continue;

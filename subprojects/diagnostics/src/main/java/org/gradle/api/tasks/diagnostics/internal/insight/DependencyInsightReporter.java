@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
@@ -44,6 +43,7 @@ import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -102,7 +102,7 @@ public class DependencyInsightReporter {
         List<Section> reasonSections = selectionReasonsSection.getChildren();
 
         String reasonShortDescription;
-        List<Section> extraDetails = Lists.newArrayList();
+        List<Section> extraDetails = new ArrayList<>();
 
         boolean displayFullReasonSection = reason.hasCustomDescriptions() || reasonSections.size() > 1;
         if (displayFullReasonSection) {

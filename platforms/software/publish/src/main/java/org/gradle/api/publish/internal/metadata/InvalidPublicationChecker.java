@@ -30,11 +30,10 @@ import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-
-import static com.google.common.collect.Lists.newArrayList;
 
 @NotThreadSafe
 public class InvalidPublicationChecker {
@@ -44,7 +43,7 @@ public class InvalidPublicationChecker {
     private final String publicationName;
     private final String taskPath;
     private final BiMap<String, VariantIdentity> variants = HashBiMap.create();
-    private final List<String> errors = newArrayList();
+    private final List<String> errors = new ArrayList<>();
     private final Set<String> explanations = new LinkedHashSet<>();
     private boolean publicationHasVersion = false;
     private boolean publicationHasDependencyOrConstraint = false;

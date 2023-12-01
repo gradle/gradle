@@ -20,7 +20,6 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
@@ -45,6 +44,7 @@ import org.gradle.plugins.ide.idea.model.ProjectLibrary;
 import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -123,7 +123,7 @@ public class IdeaScalaConfigurer {
     private static Iterable<File> getIdeaModuleLibraryDependenciesAsFiles(IdeaModule ideaModule) {
         // could make resolveDependencies() cache its result for later use by GenerateIdeaModule
         Set<Dependency> dependencies = ideaModule.resolveDependencies();
-        List<File> files = Lists.newArrayList();
+        List<File> files = new ArrayList<>();
         for (ModuleLibrary moduleLibrary : Iterables.filter(dependencies, ModuleLibrary.class)) {
             for (FilePath filePath : Iterables.filter(moduleLibrary.getClasses(), FilePath.class)) {
                 files.add(filePath.getFile());

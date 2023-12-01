@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
@@ -148,7 +147,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         tasksFactory = new TasksFactory(includeTasks);
         projectDependenciesOnly = modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
         currentProject = project;
-        eclipseProjects = Lists.newArrayList();
+        eclipseProjects = new ArrayList<>();
         ProjectInternal root = (ProjectInternal) project.getRootProject();
         rootGradleProject = gradleProjectBuilder.buildForRoot(project);
         tasksFactory.collectTasks(root);
@@ -359,7 +358,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
     }
 
     private static List<DefaultClasspathAttribute> createAttributes(AbstractClasspathEntry classpathEntry) {
-        List<DefaultClasspathAttribute> result = Lists.newArrayList();
+        List<DefaultClasspathAttribute> result = new ArrayList<>();
         Map<String, Object> attributes = classpathEntry.getEntryAttributes();
         for (Map.Entry<String, Object> entry : attributes.entrySet()) {
             Object value = entry.getValue();
@@ -369,7 +368,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
     }
 
     private static List<DefaultAccessRule> createAccessRules(AbstractClasspathEntry classpathEntry) {
-        List<DefaultAccessRule> result = Lists.newArrayList();
+        List<DefaultAccessRule> result = new ArrayList<>();
         for (AccessRule accessRule : classpathEntry.getAccessRules()) {
             result.add(createAccessRule(accessRule));
         }

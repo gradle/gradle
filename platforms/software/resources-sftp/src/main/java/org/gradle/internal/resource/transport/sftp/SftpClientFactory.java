@@ -18,7 +18,6 @@ package org.gradle.internal.resource.transport.sftp;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.HostKey;
@@ -36,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 @ThreadSafe
@@ -44,7 +44,7 @@ public class SftpClientFactory implements Stoppable {
 
     private SftpClientCreator sftpClientCreator = new SftpClientCreator();
     private final Object lock = new Object();
-    private final List<LockableSftpClient> allClients = Lists.newArrayList();
+    private final List<LockableSftpClient> allClients = new ArrayList<>();
     private final ListMultimap<SftpHost, LockableSftpClient> idleClients = ArrayListMultimap.create();
 
     public LockableSftpClient createSftpClient(URI uri, PasswordCredentials credentials) {

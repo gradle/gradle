@@ -26,6 +26,7 @@ import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter;
 import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilterMatcher;
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -50,8 +51,8 @@ public class Project extends XmlPersistableConfigurationObject {
     private String name;
     private String comment;
     private Set<String> referencedProjects = new LinkedHashSet<>();
-    private List<String> natures = Lists.newArrayList();
-    private List<BuildCommand> buildCommands = Lists.newArrayList();
+    private List<String> natures = new ArrayList<>();
+    private List<BuildCommand> buildCommands = new ArrayList<>();
     private Set<Link> linkedResources = new LinkedHashSet<>();
     private Set<ResourceFilter> resourceFilters = new LinkedHashSet<>();
 

@@ -16,7 +16,6 @@
 
 package org.gradle.util.ports
 
-import com.google.common.collect.Lists
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -26,7 +25,7 @@ import org.junit.runners.model.Statement
  */
 class ReleasingPortAllocator implements PortAllocator, TestRule {
     final PortAllocator delegate
-    List<Integer> portsAllocated = Lists.newArrayList()
+    List<Integer> portsAllocated = new ArrayList<>()
 
     ReleasingPortAllocator() {
         this(FixedAvailablePortAllocator.getInstance())

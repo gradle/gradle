@@ -20,7 +20,6 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Enums;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
@@ -38,6 +37,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -204,7 +204,7 @@ public class AnnotationProcessorDetector {
         }
 
         private class MetadataLineProcessor implements LineProcessor<List<String>> {
-            private List<String> lines = Lists.newArrayList();
+            private List<String> lines = new ArrayList<>();
 
             @Override
             public boolean processLine(String line) {

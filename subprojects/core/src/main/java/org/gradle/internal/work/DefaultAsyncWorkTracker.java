@@ -19,11 +19,11 @@ package org.gradle.internal.work;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.util.internal.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -124,7 +124,7 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
     private void waitForItemsAndGatherFailures(Iterable<AsyncWorkCompletion> workItems) {
         // Release worker lease while waiting
         workerLeaseService.withoutLock(workerLeaseService.getCurrentWorkerLease(), () -> {
-            final List<Throwable> failures = Lists.newArrayList();
+            final List<Throwable> failures = new ArrayList<>();
             for (AsyncWorkCompletion item : workItems) {
                 try {
                     item.waitForCompletion();
