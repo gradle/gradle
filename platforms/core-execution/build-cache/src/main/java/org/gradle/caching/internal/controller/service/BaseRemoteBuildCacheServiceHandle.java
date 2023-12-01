@@ -31,6 +31,19 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OpFiringRemoteBuildCacheServiceHandle.class);
 
+    protected enum Operation {
+        LOAD("load", "from"),
+        STORE("store", "in");
+
+        private final String verb;
+        private final String preposition;
+
+        Operation(String verb, String preposition) {
+            this.verb = verb;
+            this.preposition = preposition;
+        }
+    }
+
     protected final BuildCacheService service;
 
     protected final BuildCacheServiceRole role;
@@ -76,7 +89,7 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
         try {
             loadInner(description, key, loadTarget);
         } catch (Exception e) {
-            failure("load", "from", key, e);
+            failure(Operation.LOAD, key, e);
         }
         return maybeUnpack(loadTarget, unpackFunction);
     }
@@ -112,7 +125,7 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
             storeInner(description, key, new StoreTarget(file));
             return true;
         } catch (Exception e) {
-            failure("store", "in", key, e);
+            failure(Operation.STORE, key, e);
             return false;
         }
     }
@@ -121,12 +134,13 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
         service.store(key, storeTarget);
     }
 
-    private void failure(String verb, String preposition, BuildCacheKey key, Throwable e) {
+    private void failure(Operation operation, BuildCacheKey key, Throwable e) {
         if (disableOnError) {
             disabled = true;
+            onCacheDisabled(key, operation, e);
         }
 
-        String description = "Could not " + verb + " entry " + key.getDisplayName() + " " + preposition + " " + role.getDisplayName() + " build cache";
+        String description = "Could not " + operation.verb + " entry " + key.getDisplayName() + " " + operation.preposition + " " + role.getDisplayName() + " build cache";
         if (LOGGER.isWarnEnabled()) {
             if (logStackTraces) {
                 LOGGER.warn(description, e);
@@ -134,6 +148,9 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
                 LOGGER.warn(description + ": " + e.getMessage());
             }
         }
+    }
+
+    protected void onCacheDisabled(BuildCacheKey key, Operation operation, Throwable e) {
     }
 
     @Override

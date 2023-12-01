@@ -52,6 +52,7 @@ import org.gradle.internal.file.TreeType;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -86,6 +87,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
     public DefaultBuildCacheController(
         BuildCacheServicesConfiguration config,
         BuildOperationExecutor buildOperationExecutor,
+        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
         TemporaryFileProvider temporaryFileProvider,
         boolean logStackTraces,
         boolean emitDebugLogging,
@@ -96,7 +98,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
     ) {
         this.emitDebugLogging = emitDebugLogging;
         this.local = toLocalHandle(config.getLocal(), config.isLocalPush(), buildOperationExecutor);
-        this.remote = toRemoteHandle(config.getRemote(), config.isRemotePush(), buildOperationExecutor, logStackTraces, disableRemoteOnError);
+        this.remote = toRemoteHandle(config.getBuildPath(), config.getRemote(), config.isRemotePush(), buildOperationExecutor, buildOperationProgressEventEmitter, logStackTraces, disableRemoteOnError);
         this.tmp = toTempFileStore(config.getLocal(), temporaryFileProvider);
         this.packExecutor = new PackOperationExecutor(
             buildOperationExecutor,
@@ -273,10 +275,10 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
     }
 
-    private static RemoteBuildCacheServiceHandle toRemoteHandle(@Nullable BuildCacheService service, boolean push, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces, boolean disableOnError) {
+    private static RemoteBuildCacheServiceHandle toRemoteHandle(String buildPath, @Nullable BuildCacheService service, boolean push, BuildOperationExecutor buildOperationExecutor, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter, boolean logStackTraces, boolean disableOnError) {
         return service == null
             ? NullRemoteBuildCacheServiceHandle.INSTANCE
-            : new OpFiringRemoteBuildCacheServiceHandle(service, push, BuildCacheServiceRole.REMOTE, buildOperationExecutor, logStackTraces, disableOnError);
+            : new OpFiringRemoteBuildCacheServiceHandle(buildPath, service, push, BuildCacheServiceRole.REMOTE, buildOperationExecutor, buildOperationProgressEventEmitter, logStackTraces, disableOnError);
     }
 
     private static LocalBuildCacheServiceHandle toLocalHandle(@Nullable LocalBuildCacheService local, boolean localPush, BuildOperationExecutor buildOperationExecutor) {

@@ -24,21 +24,36 @@ import org.gradle.caching.internal.controller.operations.LoadOperationHitResult;
 import org.gradle.caching.internal.controller.operations.LoadOperationMissResult;
 import org.gradle.caching.internal.controller.operations.StoreOperationDetails;
 import org.gradle.caching.internal.controller.operations.StoreOperationResult;
+import org.gradle.caching.internal.operations.BuildCacheRemoteDisableProgressDetails;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheServiceHandle {
 
+    private final String buildPath;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationProgressEventEmitter buildOperationProgressEventEmitter;
 
-    public OpFiringRemoteBuildCacheServiceHandle(BuildCacheService service, boolean push, BuildCacheServiceRole role, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces, boolean disableOnError) {
+    public OpFiringRemoteBuildCacheServiceHandle(
+        String buildPath,
+        BuildCacheService service,
+        boolean push,
+        BuildCacheServiceRole role,
+        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
+        boolean logStackTraces,
+        boolean disableOnError
+    ) {
         super(service, push, role, logStackTraces, disableOnError);
+        this.buildPath = buildPath;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationProgressEventEmitter = buildOperationProgressEventEmitter;
     }
 
     @Override
@@ -79,6 +94,23 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
                     .progressDisplayName("Uploading to remote build cache");
             }
         });
+    }
+
+    @Override
+    protected void onCacheDisabled(BuildCacheKey key, Operation operation, Throwable e) {
+        BuildCacheRemoteDisableProgressDetails.BuildCacheOperationType operationType = convertToBuildOperationType(operation);
+        buildOperationProgressEventEmitter.emitNowIfCurrent(new RemoteDisableProgressDetails(key, e, operationType));
+    }
+
+    private static BuildCacheRemoteDisableProgressDetails.BuildCacheOperationType convertToBuildOperationType(Operation operation) {
+        switch (operation) {
+            case LOAD:
+                return BuildCacheRemoteDisableProgressDetails.BuildCacheOperationType.LOAD;
+            case STORE:
+                return BuildCacheRemoteDisableProgressDetails.BuildCacheOperationType.STORE;
+            default:
+                throw new IllegalStateException();
+        }
     }
 
     private class OpFiringEntryReader implements BuildCacheEntryReader {
@@ -126,6 +158,38 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
 
         IOException getIOException() {
             return (IOException) getCause();
+        }
+    }
+
+    private class RemoteDisableProgressDetails implements BuildCacheRemoteDisableProgressDetails {
+        private final BuildCacheKey key;
+        private final Throwable e;
+        private final BuildCacheOperationType operationType;
+
+        public RemoteDisableProgressDetails(BuildCacheKey key, Throwable e, BuildCacheOperationType operationType) {
+            this.key = key;
+            this.e = e;
+            this.operationType = operationType;
+        }
+
+        @Override
+        public String getBuildPath() {
+            return buildPath;
+        }
+
+        @Override
+        public String getCacheKey() {
+            return key.getDisplayName();
+        }
+
+        @Override
+        public Throwable getFailure() {
+            return e;
+        }
+
+        @Override
+        public BuildCacheOperationType getOperationType() {
+            return operationType;
         }
     }
 }
