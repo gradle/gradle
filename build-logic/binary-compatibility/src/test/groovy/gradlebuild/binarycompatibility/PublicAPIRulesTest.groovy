@@ -26,6 +26,7 @@ import japicmp.model.JApiCompatibility
 import japicmp.model.JApiConstructor
 import japicmp.model.JApiField
 import japicmp.model.JApiMethod
+import japicmp.model.JApiParameter
 import me.champeau.gradle.japicmp.report.AbstractContextAwareViolationRule
 import me.champeau.gradle.japicmp.report.Severity
 import me.champeau.gradle.japicmp.report.ViolationCheckContext
@@ -45,10 +46,10 @@ class PublicAPIRulesTest extends Specification {
 
     BinaryCompatibilityRepository repository
 
-    def jApiClassifier = Stub(JApiClass) //represents interfaces, enums and annotations
+    def jApiClassifier = Stub(JApiClass) // represents interfaces, enums and annotations
     def jApiMethod = Stub(JApiMethod)
-    def jApiField = Stub(JApiField) //represents fields and enum literals
-    def jApiConstructor = Stub(JApiConstructor) //represents fields and enum literals
+    def jApiField = Stub(JApiField) // represents fields and enum literals
+    def jApiConstructor = Stub(JApiConstructor)
     def incubatingAnnotation = Stub(JApiAnnotation)
     def deprecatedAnnotation = Stub(JApiAnnotation)
     def overrideAnnotation = Stub(JApiAnnotation)
@@ -131,29 +132,29 @@ class PublicAPIRulesTest extends Specification {
 
         when:
         sourceFile.text = apiElement.startsWith('enum') ? """
-            public enum $TEST_INTERFACE_SIMPLE_NAME {
-                field;
-                void method() { }
-            }
-        """
-        : apiElement.startsWith('annotation') ? """
-            public @interface $TEST_INTERFACE_SIMPLE_NAME {
-                String method();
-            }
-        """
-        : apiElement == 'interface' ? """
-            public interface $TEST_INTERFACE_SIMPLE_NAME {
-                String field = "value";
-                void method();
-            }
-        """
-        : """
-            public class $TEST_INTERFACE_SIMPLE_NAME {
-                public String field = "value";
-                public void method() { }
-                public $TEST_INTERFACE_SIMPLE_NAME() { }
-            }
-        """
+                public enum $TEST_INTERFACE_SIMPLE_NAME {
+                    field;
+                    void method() { }
+                }
+            """
+            : apiElement.startsWith('annotation') ? """
+                public @interface $TEST_INTERFACE_SIMPLE_NAME {
+                    String method();
+                }
+            """
+            : apiElement == 'interface' ? """
+                public interface $TEST_INTERFACE_SIMPLE_NAME {
+                    String field = "value";
+                    void method();
+                }
+            """
+            : """
+                public class $TEST_INTERFACE_SIMPLE_NAME {
+                    public String field = "value";
+                    public void method() { }
+                    public $TEST_INTERFACE_SIMPLE_NAME() { }
+                }
+            """
 
         then:
         rule.maybeViolation(jApiType).humanExplanation =~ 'Is not annotated with @since 11.38'
@@ -161,81 +162,81 @@ class PublicAPIRulesTest extends Specification {
         when:
         repository.emptyCaches()
         sourceFile.text = apiElement == 'enum' ? """
-            /**
-             * @since 11.38
-             */
-            public enum $TEST_INTERFACE_SIMPLE_NAME {
-                field;
+                /**
+                 * @since 11.38
+                 */
+                public enum $TEST_INTERFACE_SIMPLE_NAME {
+                    field;
 
-                void method() { }
-            }
-        """
-        : apiElement.startsWith('enum') ? """
-            public enum $TEST_INTERFACE_SIMPLE_NAME {
-                /**
-                 * @since 11.38
-                 */
-                field;
+                    void method() { }
+                }
+            """
+            : apiElement.startsWith('enum') ? """
+                public enum $TEST_INTERFACE_SIMPLE_NAME {
+                    /**
+                     * @since 11.38
+                     */
+                    field;
 
+                    /**
+                     * @since 11.38
+                     */
+                    void method() { }
+                }
+            """
+            : apiElement == 'annotation' ? """
                 /**
                  * @since 11.38
                  */
-                void method() { }
-            }
-        """
-        : apiElement == 'annotation' ? """
-            /**
-             * @since 11.38
-             */
-            public @interface $TEST_INTERFACE_SIMPLE_NAME {
-                String method();
-            }
-        """
-        : apiElement == 'annotation member' ? """
-            public @interface $TEST_INTERFACE_SIMPLE_NAME {
+                public @interface $TEST_INTERFACE_SIMPLE_NAME {
+                    String method();
+                }
+            """
+            : apiElement == 'annotation member' ? """
+                public @interface $TEST_INTERFACE_SIMPLE_NAME {
+                    /**
+                     * @since 11.38
+                     */
+                     String method();
+                }
+            """
+            : apiElement == 'class' ? """
                 /**
                  * @since 11.38
                  */
-                 String method();
-            }
-        """
-        : apiElement == 'class' ? """
-            /**
-             * @since 11.38
-             */
-            public class $TEST_INTERFACE_SIMPLE_NAME {
-                public String field = "value";
-                public void method() { }
-                public $TEST_INTERFACE_SIMPLE_NAME() { }
-            }
-        """
-        : apiElement == 'interface' ? """
-            /**
-             * @since 11.38
-             */
-            public interface $TEST_INTERFACE_SIMPLE_NAME {
-                String field = "value";
-                void method();
-            }
-        """
-        : """
-            public class $TEST_INTERFACE_SIMPLE_NAME {
+                public class $TEST_INTERFACE_SIMPLE_NAME {
+                    public String field = "value";
+                    public void method() { }
+                    public $TEST_INTERFACE_SIMPLE_NAME() { }
+                }
+            """
+            : apiElement == 'interface' ? """
                 /**
                  * @since 11.38
                  */
-                public $TEST_INTERFACE_SIMPLE_NAME() { }
+                public interface $TEST_INTERFACE_SIMPLE_NAME {
+                    String field = "value";
+                    void method();
+                }
+            """
+            : """
+                public class $TEST_INTERFACE_SIMPLE_NAME {
+                    /**
+                     * @since 11.38
+                     */
+                    public $TEST_INTERFACE_SIMPLE_NAME() { }
 
-                /**
-                 * @since 11.38
-                 */
-                String field = "value";
+                    /**
+                     * @since 11.38
+                     */
+                    String field = "value";
 
-                /**
-                 * @since 11.38
-                 */
-                void method();
-            }
-        """
+                    /**
+                     * @since 11.38
+                     */
+                    void method();
+                }
+            """
 
         then:
         rule.maybeViolation(jApiType) == null
@@ -254,50 +255,61 @@ class PublicAPIRulesTest extends Specification {
         'annotation member' | 'jApiMethod'
     }
 
-    def "if a type is annotated with @since a new #apiElement does not require it"() {
+    def "if a type is annotated with @since a new #apiElement still requires it"() {
         given:
         JApiCompatibility jApiType = getProperty(jApiTypeName)
 
         when:
         sourceFile.text = apiElement.startsWith('enum') ? """
-            /**
-             * @since 11.38
-             */
-            public enum $TEST_INTERFACE_SIMPLE_NAME {
-                field;
-                void method() { }
-            }
-        """
+                /**
+                 * @since 11.38
+                 */
+                public enum $TEST_INTERFACE_SIMPLE_NAME {
+                    field;
+                    void method() { }
+                }
+            """
             : apiElement == 'constructor' ? """
-            /**
-             * @since 11.38
-             */
-            public class $TEST_INTERFACE_SIMPLE_NAME {
-                public ApiTest() { }
-            }
-        """
+                /**
+                 * @since 11.38
+                 */
+                public class $TEST_INTERFACE_SIMPLE_NAME {
+                    public ApiTest() { }
+                }
+            """
+            : apiElement == 'annotation member' ? """
+                /**
+                 * @since 11.38
+                 */
+                public @interface $TEST_INTERFACE_SIMPLE_NAME {
+                     String method();
+                }
+            """
             : """
-            /**
-             * @since 11.38
-             */
-            public interface $TEST_INTERFACE_SIMPLE_NAME {
-                String field = "value";
-                void method();
-            }
-        """
+                /**
+                 * @since 11.38
+                 */
+                public interface $TEST_INTERFACE_SIMPLE_NAME {
+                    String field = "value";
+                    void method();
+                }
+            """
 
         def rule = withContext(new SinceAnnotationMissingRule([:]))
 
         then:
-        rule.maybeViolation(jApiType) == null
+        def violation = rule.maybeViolation(jApiType)
+        violation.severity == Severity.error
+        violation.humanExplanation =~ 'Is not annotated with @since 11.38'
 
         where:
-        apiElement     | jApiTypeName
-        'method'       | 'jApiMethod'
-        'field'        | 'jApiField'
-        'constructor'  | 'jApiConstructor'
-        'enum literal' | 'jApiField'
-        'enum method'  | 'jApiMethod'
+        apiElement          | jApiTypeName
+        'method'            | 'jApiMethod'
+        'field'             | 'jApiField'
+        'constructor'       | 'jApiConstructor'
+        'enum literal'      | 'jApiField'
+        'enum method'       | 'jApiMethod'
+        'annotation member' | 'jApiMethod'
     }
 
     def "if a new #apiElement is annotated with @Deprecated it does require @Incubating or @since annotations"() {
@@ -411,6 +423,56 @@ class PublicAPIRulesTest extends Specification {
 
         then:
         rule.maybeViolation(jApiInnerClass) == null
+    }
+
+    def "the @since annotation on implicit enum method '#implicitMethod#paramTypes' is not required"() {
+        given:
+        def rule = withContext(new SinceAnnotationMissingRule([:]))
+        def jApiMethod = Stub(JApiMethod)
+        jApiMethod.name >> implicitMethod
+        jApiMethod.jApiClass >> jApiClassifier
+        jApiMethod.parameters >> paramTypes.collect { paramStub(it) }
+
+        when:
+        sourceFile.text = """
+            public enum $TEST_INTERFACE_SIMPLE_NAME {
+            }
+        """
+
+        then:
+        rule.maybeViolation(jApiMethod) == null
+
+        where:
+        implicitMethod | paramTypes
+        "values"       | []
+        "valueOf"      | ["java.lang.String"]
+    }
+
+    def "the @since annotation on implicit enum method '#implicitMethod' overload is required"() {
+        given:
+        def rule = withContext(new SinceAnnotationMissingRule([:]))
+        def jApiMethod = Stub(JApiMethod)
+        jApiMethod.name >> implicitMethod
+        jApiMethod.jApiClass >> jApiClassifier
+        jApiMethod.parameters >> [paramStub("boolean")]
+
+        when:
+        sourceFile.text = """
+            public enum $TEST_INTERFACE_SIMPLE_NAME {
+            }
+        """
+
+        then:
+        rule.maybeViolation(jApiMethod).humanExplanation =~ 'Is not annotated with @since 11.38'
+
+        where:
+        implicitMethod << ["values", "valueOf"]
+    }
+
+    private def paramStub(String type) {
+        def stub = Stub(JApiParameter)
+        stub.type >> type
+        return stub
     }
 
     AbstractContextAwareViolationRule withContext(AbstractContextAwareViolationRule rule) {
