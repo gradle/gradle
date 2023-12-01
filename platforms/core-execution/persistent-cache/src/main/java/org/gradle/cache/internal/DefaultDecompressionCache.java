@@ -16,8 +16,9 @@
 
 package org.gradle.cache.internal;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.IndexedCache;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 
@@ -27,33 +28,32 @@ import java.io.File;
  * The default implementation of {@link DecompressionCache} that can be used to store decompressed data extracted from archive files like zip and tars.
  *
  * Will manage access to the cache, so that access to the archive's contents
- * are only permitted to one client at a time.  The cache will be a Gradle cross version cache.
+ * are only permitted to one client at a time.
  */
 public class DefaultDecompressionCache implements DecompressionCache {
+    private static final String EXPANSION_CACHE_KEY = "expanded";
     private static final String EXPANSION_CACHE_NAME = "Compressed Files Expansion Cache";
 
     private final PersistentCache cache;
+    private final IndexedCache<File, File> index;
 
-    public DefaultDecompressionCache(ScopedCacheBuilderFactory cacheBuilderFactory) {
-        this.cache = cacheBuilderFactory.createCrossVersionCacheBuilder(EXPANSION_CACHE_KEY)
+    public DefaultDecompressionCache(ScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        this.cache = cacheBuilderFactory.createCacheBuilder(EXPANSION_CACHE_KEY)
                 .withDisplayName(EXPANSION_CACHE_NAME)
                 .withInitialLockMode(FileLockManager.LockMode.OnDemand)
                 .open();
-    }
-
-    @VisibleForTesting
-    public DefaultDecompressionCache(PersistentCache cache) {
-        this.cache = cache;
-    }
-
-    @Override
-    public void useCache(Runnable action) {
-        cache.useCache(action);
+        this.index = cache.createIndexedCache(
+            IndexedCacheParameters.of("expanded-files", File.class, File.class)
+                .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(100, true))
+        );
     }
 
     @Override
-    public File getBaseDir() {
-        return cache.getBaseDir();
+    public void useCache(File expandedDir, Runnable action) {
+        index.get(expandedDir, () -> {
+                action.run();
+                return expandedDir;
+        });
     }
 
     @Override

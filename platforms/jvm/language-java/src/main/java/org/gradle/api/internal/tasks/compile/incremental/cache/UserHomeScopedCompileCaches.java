@@ -32,8 +32,6 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 
 import java.io.Closeable;
 
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
-
 public class UserHomeScopedCompileCaches implements GeneralCompileCaches, Closeable {
     private final Cache<HashCode, ClassSetAnalysisData> classpathEntrySnapshotCache;
     private final PersistentCache cache;
