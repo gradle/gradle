@@ -105,7 +105,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
         ComponentIdentifier componentId = ComponentToOperationConverter.convertComponentIdentifier(targetComponentVariant.getComponentId());
         Map<String, String> sourceAttributes = AttributesToMapConverter.convertToMap(this.sourceAttributes);
         Map<String, String> targetAttributes = AttributesToMapConverter.convertToMap(targetComponentVariant.getAttributes());
-        List<Capability> capabilities = targetComponentVariant.getCapabilities().stream()
+        List<Capability> capabilities = targetComponentVariant.getCapabilities().asSet().stream()
             .map(TransformStepNode::convertCapability)
             .collect(Collectors.toList());
 

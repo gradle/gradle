@@ -16,8 +16,25 @@
 
 package org.gradle.internal.locking;
 
-public class InvalidLockFileException extends RuntimeException {
-    public InvalidLockFileException(String name, Exception cause) {
+import org.gradle.internal.exceptions.ResolutionProvider;
+
+import java.util.Collections;
+import java.util.List;
+
+public class InvalidLockFileException extends RuntimeException implements ResolutionProvider {
+    private final String resolutionMessage;
+
+    public InvalidLockFileException(String name, Exception cause, String resolutionMessage) {
         super("Invalid lock state for " + name, cause);
+        this.resolutionMessage = resolutionMessage;
+    }
+    public InvalidLockFileException(String name, String resolutionMessage) {
+        super("Invalid lock state for " + name);
+        this.resolutionMessage = resolutionMessage;
+    }
+
+    @Override
+    public List<String> getResolutions() {
+        return Collections.singletonList(resolutionMessage);
     }
 }

@@ -19,7 +19,6 @@ package org.gradle.internal.execution
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Iterables
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.problems.Problems
 import org.gradle.api.problems.Severity
 import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
@@ -106,7 +105,6 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def changeDetector = new DefaultExecutionStateChangeDetector()
     def overlappingOutputDetector = new DefaultOverlappingOutputDetector()
     def deleter = TestFiles.deleter()
-    def problems = Stub(Problems)
 
     ExecutionEngine createExecutor() {
         TestExecutionEngineFactory.createExecutionEngine(
@@ -119,7 +117,6 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             outputChangeListener,
             outputSnapshotter,
             overlappingOutputDetector,
-            problems,
             validationWarningReporter,
             virtualFileSystem
         )

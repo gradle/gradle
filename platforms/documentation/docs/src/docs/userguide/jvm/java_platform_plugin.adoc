@@ -14,7 +14,7 @@
 
 :maven-bom: https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Management
 :spring-boot-bom: https://docs.spring.io/spring-boot/docs/current/reference/html/using-boot-build-systems.html#using-boot-dependency-management
-:metadata-file-spec: https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md
+:metadata-file-spec: https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md
 
 [[java_platform_plugin]]
 = The Java Platform Plugin

@@ -28,21 +28,40 @@ import org.gradle.tooling.events.problems.internal.DefaultSeverity;
 public interface Severity {
 
     // Note: the static fields must be in sync with entries from org.gradle.api.problems.Severity.
+    /**
+     * Advice-level severity.
+     *
+     * @since 8.6
+     */
     Severity ADVICE = new DefaultSeverity(0, true);
+
+    /**
+     * Warning-level severity.
+     *
+     * @since 8.6
+     */
     Severity WARNING = new DefaultSeverity(1, true);
+
+    /**
+     * Error-level severity.
+     *
+     * @since 8.6
+     */
     Severity ERROR = new DefaultSeverity(2, true);
 
     /**
      * The severity level represented by a string.
      *
      * @return the severity
+     * @since 8.6
      */
     int getSeverity();
 
     /**
-     * returns true if this severity is one of {@link #ADVICE}, {@link #WARNING}, or {@link #ERROR}.
+     * Returns true if this severity is one of {@link #ADVICE}, {@link #WARNING}, or {@link #ERROR}.
      *
      * @return if this instance is a known severity
+     * @since 8.6
      */
     boolean isKnown();
 }

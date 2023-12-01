@@ -36,20 +36,22 @@ import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleM
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.capabilities.CapabilityInternal;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
+import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.descriptor.MavenScope;
-import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.internal.component.external.model.ComponentVariant;
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.ShadowedImmutableCapability;
-import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-import org.gradle.api.internal.capabilities.ShadowedCapability;
+import org.gradle.internal.component.external.model.ShadowedImmutableCapability;
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor;
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata;
@@ -141,7 +143,7 @@ public class ModuleMetadataSerializer {
                 writeVariantDependencies(variant.getDependencies());
                 writeVariantConstraints(variant.getDependencyConstraints());
                 writeVariantFiles(variant.getFiles());
-                writeVariantCapabilities(variant.getCapabilities().getCapabilities());
+                writeVariantCapabilities(variant.getCapabilities());
                 encoder.writeBoolean(variant.isExternalVariant());
             }
         }
@@ -185,9 +187,10 @@ public class ModuleMetadataSerializer {
             }
         }
 
-        private void writeVariantCapabilities(List<? extends Capability> capabilities) throws IOException {
-            encoder.writeSmallInt(capabilities.size());
-            for (Capability capability: capabilities) {
+        private void writeVariantCapabilities(ImmutableCapabilities capabilities) throws IOException {
+            ImmutableSet<ImmutableCapability> capabilitySet = capabilities.asSet();
+            encoder.writeSmallInt(capabilitySet.size());
+            for (Capability capability : capabilitySet) {
                 boolean shadowed = capability instanceof ShadowedCapability;
                 if (shadowed) {
                     ShadowedCapability shadowedCapability = (ShadowedCapability) capability;

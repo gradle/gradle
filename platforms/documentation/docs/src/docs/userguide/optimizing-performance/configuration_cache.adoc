@@ -160,7 +160,7 @@ If enabled in a `gradle.properties` file, you can override that setting and disa
 === Ignoring problems
 
 By default, Gradle will fail the build if any configuration cache problems are encountered.
-When gradually improving your plugin or build logic to support the configuration cache it can be useful to temporarily turn problems into warnings.
+When gradually improving your plugin or build logic to support the configuration cache it can be useful to temporarily turn problems into warnings, with no guarantee that the build will work.
 
 This can be done from the command line:
 

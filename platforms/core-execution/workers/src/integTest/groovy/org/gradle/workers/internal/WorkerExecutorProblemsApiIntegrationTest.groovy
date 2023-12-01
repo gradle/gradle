@@ -18,7 +18,9 @@ package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.workers.fixtures.WorkerExecutorFixture
+import spock.lang.Ignore
 
+@Ignore("https://github.com/gradle/gradle/issues/27213")
 class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {

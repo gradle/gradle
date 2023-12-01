@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenArtifacts;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -29,6 +28,7 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -41,13 +41,13 @@ import java.util.List;
 public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Visitor {
     private final List<BoundTransformStep> transformSteps;
     private final ImmutableAttributes target;
-    private final List<? extends Capability> capabilities;
+    private final ImmutableCapabilities capabilities;
     private final ImmutableList.Builder<ResolvedArtifactSet.Artifacts> result;
 
     public TransformingAsyncArtifactListener(
         List<BoundTransformStep> transformSteps,
         ImmutableAttributes target,
-        List<? extends Capability> capabilities,
+        ImmutableCapabilities capabilities,
         ImmutableList.Builder<ResolvedArtifactSet.Artifacts> result
     ) {
         this.transformSteps = transformSteps;
@@ -60,7 +60,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
     public void visitArtifacts(ResolvedArtifactSet.Artifacts artifacts) {
         artifacts.visit(new ArtifactVisitor() {
             @Override
-            public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, List<? extends Capability> variantCapabilities, ResolvableArtifact artifact) {
+            public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ImmutableCapabilities variantCapabilities, ResolvableArtifact artifact) {
                 TransformedArtifact transformedArtifact = new TransformedArtifact(variantName, target, capabilities, artifact, transformSteps);
                 result.add(transformedArtifact);
             }
@@ -85,14 +85,14 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
 
     public static class TransformedArtifact implements ResolvedArtifactSet.Artifacts, RunnableBuildOperation {
         private final DisplayName variantName;
-        private final List<? extends Capability> capabilities;
+        private final ImmutableCapabilities capabilities;
         private final ResolvableArtifact artifact;
         private final ImmutableAttributes target;
         private final List<BoundTransformStep> transformSteps;
         private Try<TransformStepSubject> transformedSubject;
         private Deferrable<Try<TransformStepSubject>> invocation;
 
-        public TransformedArtifact(DisplayName variantName, ImmutableAttributes target, List<? extends Capability> capabilities, ResolvableArtifact artifact, List<BoundTransformStep> transformSteps) {
+        public TransformedArtifact(DisplayName variantName, ImmutableAttributes target, ImmutableCapabilities capabilities, ResolvableArtifact artifact, List<BoundTransformStep> transformSteps) {
             this.variantName = variantName;
             this.artifact = artifact;
             this.target = target;
@@ -112,7 +112,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
             return target;
         }
 
-        public List<? extends Capability> getCapabilities() {
+        public ImmutableCapabilities getCapabilities() {
             return capabilities;
         }
 

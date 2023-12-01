@@ -41,6 +41,8 @@ public class ToolingParameterProxy implements InvocationHandler {
 
     /**
      * Check if the given interface can be instantiated by this proxy.
+     * <p>
+     * If this validation is modified, also update the javadocs for {@link org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder}.
      */
     static void validateParameter(Class<?> clazz) {
         if (!clazz.isInterface()) {

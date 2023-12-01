@@ -131,8 +131,8 @@ class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
 
         when:
         // The constructor and `with` methods have side effects, like creating domain objects in project-scope containers
-        def f1 = new DefaultJvmFeature("feature1", one, Collections.emptyList(), project, false, false)
-        def f2 = new DefaultJvmFeature("feature2", two, Collections.emptyList(), project, false, false)
+        def f1 = new DefaultJvmFeature("feature1", one, Collections.emptySet(), project, false, false)
+        def f2 = new DefaultJvmFeature("feature2", two, Collections.emptySet(), project, false, false)
 
         f1.withJavadocJar()
         f1.withSourcesJar()
@@ -153,7 +153,7 @@ class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
         return new DefaultJvmFeature(
             name,
             sourceSet,
-            Collections.emptyList(),
+            Collections.emptySet(),
             project,
             false,
             false

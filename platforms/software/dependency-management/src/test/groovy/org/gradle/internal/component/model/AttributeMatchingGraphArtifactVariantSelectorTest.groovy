@@ -39,7 +39,6 @@ import org.gradle.util.TestUtil
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
-import static org.gradle.api.problems.TestProblemsUtil.createTestProblems
 import static org.gradle.util.AttributeTestUtil.attributes
 
 class AttributeMatchingGraphArtifactVariantSelectorTest extends Specification {
@@ -463,7 +462,7 @@ All of them match the consumer attributes:
     }
 
     private void performSelection() {
-        GraphVariantSelector variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(createTestProblems(), new DocumentationRegistry()))
+        GraphVariantSelector variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(new DocumentationRegistry()))
         selected = variantSelector.selectVariants(
             consumerAttributes,
             requestedCapabilities,

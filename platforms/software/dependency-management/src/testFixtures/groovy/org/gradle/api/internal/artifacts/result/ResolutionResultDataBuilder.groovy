@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
+import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.util.AttributeTestUtil
 
@@ -60,7 +61,7 @@ class ResolutionResultDataBuilder {
         def ownerId = DefaultModuleComponentIdentifier.newId(
             newId(ownerGroup, ownerModule, ownerVersion)
         )
-        return new DefaultResolvedVariantResult(ownerId, Describables.of(name), mutableAttributes, [], null)
+        return new DefaultResolvedVariantResult(ownerId, Describables.of(name), mutableAttributes, ImmutableCapabilities.EMPTY, null)
     }
 
     static ModuleComponentSelector newSelector(String group, String module, String version) {

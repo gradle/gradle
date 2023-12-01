@@ -298,8 +298,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 domainObjectContext,
                 parameterScheme,
                 actionScheme,
-                internalServices,
-                problems
+                internalServices
             );
         }
 
@@ -519,8 +518,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultGlobalDependencyResolutionRules(componentMetadataProcessorFactory, moduleMetadataProcessor, rules);
         }
 
-        ResolutionFailureHandler createResolutionFailureProcessor(Problems problems, DocumentationRegistry documentationRegistry) {
-            return new ResolutionFailureHandler(problems, documentationRegistry);
+        ResolutionFailureHandler createResolutionFailureProcessor(DocumentationRegistry documentationRegistry) {
+            return new ResolutionFailureHandler(documentationRegistry);
         }
 
         GraphVariantSelector createGraphVariantSelector(ResolutionFailureHandler resolutionFailureHandler) {
