@@ -40,6 +40,7 @@ public interface ProblemCategory {
      * Returns the namespace. Describes the component reporting the problem (Gradle core or plugin ID).
      *
      * @return the problem's namespace.
+     * @since 8.6
      */
     String getNamespace();
 
@@ -47,6 +48,7 @@ public interface ProblemCategory {
      * The main problem category.
      *
      * @return The category string.
+     * @since 8.6
      */
     String getCategory();
 
@@ -54,6 +56,7 @@ public interface ProblemCategory {
      * The problem's subcategories.
      *
      * @return the subcategories.
+     * @since 8.6
      */
     List<String> getSubCategories();
 }

@@ -28,14 +28,34 @@ import javax.annotation.Nullable;
 @Incubating
 public interface FileLocation extends Location {
 
+    /**
+     * File path.
+     *
+     * @since 8.6
+     */
     String getPath();
 
+    /**
+     * An index of the line in the file, if available.
+     *
+     * @since 8.6
+     */
     @Nullable
     Integer getLine();
 
+    /**
+     * An index of the column in the file, if available.
+     *
+     * @since 8.6
+     */
     @Nullable
     Integer getColumn();
 
+    /**
+     * The length of the region in the file, if available.
+     *
+     * @since 8.6
+     */
     @Nullable
     Integer getLength();
 }

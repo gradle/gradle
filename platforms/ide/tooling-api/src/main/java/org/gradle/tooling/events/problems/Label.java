@@ -30,6 +30,7 @@ public interface Label {
      * Returns the brief description of a problem.
      *
      * @return the label
+     * @since 8.6
      */
     String getLabel();
 }
