@@ -8,4 +8,4 @@ If we see fit, we can break these out to per-platform ones, or keep a hybrid app
 
 Our aim is to keep the process lightweight and approachable.
 
-For this reason we adopt a [Light Markdown ADR template](0001-use-architectural-decision-records.md#format).
+For this reason we adopt a [lightweight Markdown ADR template](0001-use-architectural-decision-records.md#format).
