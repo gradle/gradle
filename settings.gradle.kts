@@ -45,7 +45,6 @@ unassigned {
 
 // Gradle Distributions - for testing and for publishing a full distribution
 unassigned {
-    subproject("distributions-core")
     subproject("distributions-full")
 }
 
@@ -69,6 +68,7 @@ platform("core-runtime") {
     subproject("build-profile")
     subproject("cli")
     subproject("distributions-basics")
+    subproject("distributions-core")
     subproject("file-temp")
     subproject("files")
     subproject("functional")

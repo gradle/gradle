@@ -190,7 +190,7 @@
   },
   {
     "name": "distributions-core",
-    "path": "subprojects/distributions-core",
+    "path": "platforms/core-runtime/distributions-core",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
