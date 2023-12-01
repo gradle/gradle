@@ -32,6 +32,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildTypeSettings
 import jetbrains.buildServer.configs.kotlin.v2019_2.CheckoutMode
 import jetbrains.buildServer.configs.kotlin.v2019_2.Dependencies
+import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
 import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
@@ -114,7 +115,11 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, b
     paramsForBuildToolBuild(buildJvm, os, arch)
     params {
         // The promotion job doesn't have a branch, so %teamcity.build.branch% doesn't work.
-        param("env.BUILD_BRANCH", "%teamcity.build.branch%")
+        param(
+            "env.BUILD_BRANCH",
+            if (this@applyDefaultSettings is FunctionalTest) "%dep.Gradle_${DslContext.uuidPrefix}_Check_CompileAllBuild.teamcity.build.branch%"
+            else "%teamcity.build.branch%"
+        )
     }
 
     vcs {
