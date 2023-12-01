@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.verification.exceptions.ComponentVerificationException;
 import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException;
@@ -39,6 +38,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -51,9 +51,9 @@ public class DependencyVerifierBuilder {
         .thenComparing(ModuleComponentIdentifier::getVersion);
     private final Map<ModuleComponentIdentifier, ComponentVerificationsBuilder> byComponent = new HashMap<>();
     private final List<DependencyVerificationConfiguration.TrustedArtifact> trustedArtifacts = Lists.newArrayList();
-    private final Set<DependencyVerificationConfiguration.TrustedKey> trustedKeys = Sets.newLinkedHashSet();
+    private final Set<DependencyVerificationConfiguration.TrustedKey> trustedKeys = new LinkedHashSet<>();
     private final List<URI> keyServers = Lists.newArrayList();
-    private final Set<IgnoredKey> ignoredKeys = Sets.newLinkedHashSet();
+    private final Set<IgnoredKey> ignoredKeys = new LinkedHashSet<>();
     private boolean isVerifyMetadata = true;
     private boolean isVerifySignatures = false;
     private boolean useKeyServers = true;
@@ -221,8 +221,8 @@ public class DependencyVerifierBuilder {
 
     protected static class ArtifactVerificationBuilder {
         private final Map<ChecksumKind, ChecksumBuilder> builder = Maps.newEnumMap(ChecksumKind.class);
-        private final Set<String> pgpKeys = Sets.newLinkedHashSet();
-        private final Set<IgnoredKey> ignoredPgpKeys = Sets.newLinkedHashSet();
+        private final Set<String> pgpKeys = new LinkedHashSet<>();
+        private final Set<IgnoredKey> ignoredPgpKeys = new LinkedHashSet<>();
 
         void addChecksum(ChecksumKind kind, String value, @Nullable String origin, @Nullable String reason) {
             ChecksumBuilder builder = this.builder.computeIfAbsent(kind, ChecksumBuilder::new);
@@ -324,7 +324,7 @@ public class DependencyVerifierBuilder {
                 value = checksum;
             } else if (!value.equals(checksum)) {
                 if (alternatives == null) {
-                    alternatives = Sets.newLinkedHashSet();
+                    alternatives = new LinkedHashSet<>();
                 }
                 alternatives.add(checksum);
             }

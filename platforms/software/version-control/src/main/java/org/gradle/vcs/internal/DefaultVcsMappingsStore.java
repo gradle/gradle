@@ -16,7 +16,6 @@
 
 package org.gradle.vcs.internal;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.GradleException;
@@ -30,11 +29,12 @@ import org.gradle.vcs.VersionControlSpec;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
 public class DefaultVcsMappingsStore implements VcsMappingsStore, VcsResolver {
-    private final Set<Action<? super VcsMapping>> rootVcsMappings = Sets.newLinkedHashSet();
+    private final Set<Action<? super VcsMapping>> rootVcsMappings = new LinkedHashSet<>();
     private final Map<Gradle, Set<Action<? super VcsMapping>>> vcsMappings = new HashMap<>();
     private final VcsMappingFactory vcsMappingFactory;
 
@@ -89,7 +89,7 @@ public class DefaultVcsMappingsStore implements VcsMappingsStore, VcsResolver {
             rootVcsMappings.add(rule);
         } else {
             if (!vcsMappings.containsKey(gradle)) {
-                vcsMappings.put(gradle, Sets.<Action<? super VcsMapping>>newLinkedHashSet());
+                vcsMappings.put(gradle, new LinkedHashSet<>());
             }
             vcsMappings.get(gradle).add(rule);
         }

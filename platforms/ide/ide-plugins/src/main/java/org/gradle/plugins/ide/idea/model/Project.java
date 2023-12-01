@@ -28,6 +28,7 @@ import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObje
 
 import java.io.File;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,11 +44,11 @@ public class Project extends XmlPersistableConfigurationObject {
     private List<IdeaModule> modules;
     private JavaVersion bytecodeVersion;
 
-    private Set<Path> modulePaths = Sets.newLinkedHashSet();
-    private Set<String> wildcards = Sets.newLinkedHashSet();
+    private Set<Path> modulePaths = new LinkedHashSet<>();
+    private Set<String> wildcards = new LinkedHashSet<>();
     private Jdk jdk;
     private String vcs;
-    private Set<ProjectLibrary> projectLibraries = Sets.newLinkedHashSet();
+    private Set<ProjectLibrary> projectLibraries = new LinkedHashSet<>();
 
     public Project(XmlTransformer xmlTransformer, Object pathFactory) {
         super(xmlTransformer);
@@ -199,7 +200,7 @@ public class Project extends XmlPersistableConfigurationObject {
     }
 
     private Set<File> collectRootUrlAsFiles(List<Node> nodes) {
-        Set<File> files = Sets.newLinkedHashSet();
+        Set<File> files = new LinkedHashSet<>();
         for (Node node : nodes) {
             for (Node root : getChildren(node, "root")) {
                 String url = (String) root.attribute("url");

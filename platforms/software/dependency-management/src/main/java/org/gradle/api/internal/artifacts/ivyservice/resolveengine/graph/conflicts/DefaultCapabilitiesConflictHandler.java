@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -36,6 +35,7 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -101,7 +101,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
     private Set<NodeState> findNodesFor(CapabilityInternal capability) {
         String capabilityId = capability.getCapabilityId();
 
-        return capabilityWithoutVersionToNodes.computeIfAbsent(capabilityId, k -> Sets.newLinkedHashSet());
+        return capabilityWithoutVersionToNodes.computeIfAbsent(capabilityId, k -> new LinkedHashSet<>());
     }
 
     @Override

@@ -19,7 +19,6 @@ package org.gradle.plugins.ide.internal.tooling;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
-import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -33,6 +32,7 @@ import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,7 +67,7 @@ public class BuildInvocationsBuilder implements ToolingModelBuilder {
         // construct task selectors
         List<LaunchableGradleTaskSelector> selectors = Lists.newArrayList();
         Map<String, LaunchableGradleTaskSelector> selectorsByName = Maps.newTreeMap(Ordering.natural());
-        Set<String> visibleTasks = Sets.newLinkedHashSet();
+        Set<String> visibleTasks = new LinkedHashSet<>();
         findTasks(project, selectorsByName, visibleTasks);
         for (String selectorName : selectorsByName.keySet()) {
             LaunchableGradleTaskSelector selector = selectorsByName.get(selectorName);

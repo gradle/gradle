@@ -20,7 +20,6 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -279,7 +278,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     @Override
     public void belongsTo(VirtualComponentIdentifier platform) {
         if (owners == null) {
-            owners = Sets.newLinkedHashSet();
+            owners = new LinkedHashSet<>();
         }
         owners.add(platform);
     }

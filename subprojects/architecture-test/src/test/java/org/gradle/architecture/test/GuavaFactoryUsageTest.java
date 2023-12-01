@@ -32,6 +32,13 @@ public class GuavaFactoryUsageTest {
             .because("We want to avoid using Guava's newHashSet method");
 
     @ArchTest
+    public static final ArchRule no_guava_sets_newlinkedhashset_calls =
+        noClasses()
+            .should()
+            .callMethod(com.google.common.collect.Sets.class, "newLinkedHashSet")
+            .because("We want to avoid using Guava's newLinkedHashSet method");
+
+    @ArchTest
     public static final ArchRule no_guava_maps_newhashmap_calls =
         noClasses()
             .should()

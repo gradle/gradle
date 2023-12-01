@@ -21,7 +21,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
-import com.google.common.collect.Sets;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
@@ -50,6 +49,7 @@ import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,7 +74,7 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
 
         void registerBinary(NativeBinarySpecInternal binary) {
             if (dependencies.get(binary) == null) {
-                dependencies.put(binary, Sets.<NativeBinarySpecInternal>newLinkedHashSet());
+                dependencies.put(binary, new LinkedHashSet<>());
             }
         }
 

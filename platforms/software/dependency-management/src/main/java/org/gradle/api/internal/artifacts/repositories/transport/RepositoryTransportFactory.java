@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.repositories.transport;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
@@ -45,6 +44,7 @@ import org.gradle.util.internal.BuildCommencedTimeProvider;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -86,7 +86,7 @@ public class RepositoryTransportFactory {
     }
 
     public Set<String> getRegisteredProtocols() {
-        Set<String> validSchemes = Sets.newLinkedHashSet();
+        Set<String> validSchemes = new LinkedHashSet<>();
         for (ResourceConnectorFactory registeredProtocol : registeredProtocols) {
             validSchemes.addAll(registeredProtocol.getSupportedProtocols());
         }

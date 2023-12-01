@@ -18,7 +18,6 @@ package org.gradle.language.swift.internal;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -55,6 +54,7 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -235,7 +235,7 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
         @Override
         public Set<File> getFiles() {
             if (result == null) {
-                result = Sets.newLinkedHashSet();
+                result = new LinkedHashSet<>();
                 Map<ComponentIdentifier, ModuleMap> moduleMaps = Maps.newLinkedHashMap();
                 for (ResolvedArtifactResult artifact : importPathConfig.getIncoming().getArtifacts()) {
                     Usage usage = artifact.getVariant().getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE);

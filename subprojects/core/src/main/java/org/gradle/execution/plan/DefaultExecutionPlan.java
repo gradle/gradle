@@ -19,7 +19,6 @@ package org.gradle.execution.plan;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
@@ -332,7 +331,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
 
     static class NodeMapping extends AbstractCollection<Node> {
         private final Map<Task, LocalTaskNode> taskMapping = Maps.newLinkedHashMap();
-        private final Set<Node> nodes = Sets.newLinkedHashSet();
+        private final Set<Node> nodes = new LinkedHashSet<>();
 
         @Override
         public boolean contains(Object o) {

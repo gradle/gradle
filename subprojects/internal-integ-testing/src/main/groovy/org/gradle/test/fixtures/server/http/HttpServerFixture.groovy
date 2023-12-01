@@ -16,7 +16,7 @@
 
 package org.gradle.test.fixtures.server.http
 
-import com.google.common.collect.Sets
+
 import groovy.transform.CompileStatic
 import org.eclipse.jetty.http.HttpVersion
 import org.eclipse.jetty.server.Connector
@@ -48,8 +48,8 @@ trait HttpServerFixture {
 
     private boolean logRequests = true
     private boolean useHostnameForUrl = false
-    private final Set<String> authenticationAttempts = Sets.newLinkedHashSet()
-    private final Set<Map<String, String>> allHeaders = Sets.newLinkedHashSet()
+    private final Set<String> authenticationAttempts = new LinkedHashSet<>()
+    private final Set<Map<String, String>> allHeaders = new LinkedHashSet<>()
     private boolean configured
 
     Server getServer() {

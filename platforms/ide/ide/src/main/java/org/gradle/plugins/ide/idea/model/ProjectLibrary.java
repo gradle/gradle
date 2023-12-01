@@ -17,10 +17,10 @@ package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import groovy.util.Node;
 
 import java.io.File;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,10 +31,10 @@ public class ProjectLibrary {
 
     private String name;
     private String type;
-    private Set<File> compilerClasspath = Sets.newLinkedHashSet();
-    private Set<File> classes = Sets.newLinkedHashSet();
-    private Set<File> javadoc = Sets.newLinkedHashSet();
-    private Set<File> sources = Sets.newLinkedHashSet();
+    private Set<File> compilerClasspath = new LinkedHashSet<>();
+    private Set<File> classes = new LinkedHashSet<>();
+    private Set<File> javadoc = new LinkedHashSet<>();
+    private Set<File> sources = new LinkedHashSet<>();
 
     /**
      * The name of the library.

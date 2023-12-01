@@ -32,6 +32,7 @@ import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -120,7 +121,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     @Override
     public List<PerformanceExperiment> getPerformanceExperiments() {
         return withConnection("load test history", connection -> {
-            Set<PerformanceExperiment> testNames = Sets.newLinkedHashSet();
+            Set<PerformanceExperiment> testNames = new LinkedHashSet<>();
             try (PreparedStatement testIdsStatement = connection.prepareStatement(
                 "select testClass, testId, testProject" +
                     "   from testExecutionExperiment" +

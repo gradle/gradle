@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
-import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactCollection;
@@ -49,6 +48,7 @@ import org.gradle.language.java.artifact.JavadocArtifact;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -188,7 +188,7 @@ public class IdeDependencySet {
 
             for (ComponentArtifactsResult artifactsResult : result.getResolvedComponents()) {
                 for (Class<? extends Artifact> type : types) {
-                    Set<ResolvedArtifactResult> resolvedArtifactResults = Sets.newLinkedHashSet();
+                    Set<ResolvedArtifactResult> resolvedArtifactResults = new LinkedHashSet<>();
 
                     for (ArtifactResult artifactResult : artifactsResult.getArtifacts(type)) {
                         if (artifactResult instanceof ResolvedArtifactResult) {
@@ -201,7 +201,7 @@ public class IdeDependencySet {
         }
 
         private Set<ModuleComponentIdentifier> getModuleComponentIdentifiers() {
-            Set<ModuleComponentIdentifier> componentIdentifiers = Sets.newLinkedHashSet();
+            Set<ModuleComponentIdentifier> componentIdentifiers = new LinkedHashSet<>();
             for (ComponentArtifactIdentifier identifier : resolvedArtifacts.keySet()) {
                 ComponentIdentifier componentIdentifier = identifier.getComponentIdentifier();
                 if (componentIdentifier instanceof ModuleComponentIdentifier) {

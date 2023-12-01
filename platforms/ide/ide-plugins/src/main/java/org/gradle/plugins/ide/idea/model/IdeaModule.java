@@ -161,13 +161,13 @@ public abstract class IdeaModule {
 
     private String name;
     private Set<File> sourceDirs;
-    private Set<File> generatedSourceDirs = Sets.newLinkedHashSet();
-    private Set<File> resourceDirs = Sets.newLinkedHashSet();
+    private Set<File> generatedSourceDirs = new LinkedHashSet<>();
+    private Set<File> resourceDirs = new LinkedHashSet<>();
     /**
      * <strong>This field is {@code @Deprecated}, please use {@link #testResources} instead.</strong>
      */
     @Deprecated
-    private Set<File> testResourceDirs = Sets.newLinkedHashSet();
+    private Set<File> testResourceDirs = new LinkedHashSet<>();
     private ConfigurableFileCollection testResources;
     private Map<String, Map<String, Collection<Configuration>>> scopes = Maps.newLinkedHashMap();
     private boolean downloadSources = true;

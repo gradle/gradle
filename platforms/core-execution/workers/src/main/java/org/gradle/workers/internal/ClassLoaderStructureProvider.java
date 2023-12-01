@@ -16,7 +16,6 @@
 
 package org.gradle.workers.internal;
 
-import com.google.common.collect.Sets;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.MixInLegacyTypesClassLoader;
 import org.gradle.internal.classloader.ClasspathUtil;
@@ -28,6 +27,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class ClassLoaderStructureProvider {
@@ -60,7 +60,7 @@ public class ClassLoaderStructureProvider {
      * Returns a spec representing the combined "user" classloader for the given classes and additional classpath.  The user classloader assumes it is used as a child of a classloader with the Gradle API.
      */
     public VisitableURLClassLoader.Spec getUserSpec(String name, Iterable<File> additionalClasspath, Class<?>... classes) {
-        Set<URL> classpath = Sets.newLinkedHashSet();
+        Set<URL> classpath = new LinkedHashSet<>();
         classpath.addAll(DefaultClassPath.of(additionalClasspath).getAsURLs());
 
         Set<ClassLoader> uniqueClassloaders = new HashSet<>();

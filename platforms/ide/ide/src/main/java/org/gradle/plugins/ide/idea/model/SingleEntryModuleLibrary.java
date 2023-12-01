@@ -16,12 +16,12 @@
 package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -56,7 +56,7 @@ public class SingleEntryModuleLibrary extends ModuleLibrary {
             Collections.singletonList(library),
             javadoc != null ? Collections.singletonList(javadoc) : Lists.<Path>newArrayList(),
             source != null ? Collections.singletonList(source) : Lists.<Path>newArrayList(),
-            Sets.<JarDirectory>newLinkedHashSet(),
+            new LinkedHashSet<>(),
             scope
         );
     }
@@ -68,7 +68,7 @@ public class SingleEntryModuleLibrary extends ModuleLibrary {
      * @param scope scope
      */
     public SingleEntryModuleLibrary(FilePath library, String scope) {
-        this(library, Sets.<FilePath>newLinkedHashSet(), Sets.<FilePath>newLinkedHashSet(), scope);
+        this(library, new LinkedHashSet<>(), new LinkedHashSet<>(), scope);
     }
 
     /**

@@ -19,7 +19,6 @@ package org.gradle.model.internal.registry;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.gradle.internal.Cast;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.DuplicateModelException;
@@ -39,6 +38,7 @@ import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -146,7 +146,7 @@ class ModelElementNode extends ModelNodeInternal {
         if (links == null) {
             return Collections.emptySet();
         }
-        Set<String> names = Sets.newLinkedHashSet();
+        Set<String> names = new LinkedHashSet<>();
         for (Map.Entry<String, ModelNodeInternal> entry : links.entrySet()) {
             ModelNodeInternal link = entry.getValue();
             if (predicate.apply(link)) {

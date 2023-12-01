@@ -24,13 +24,13 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -205,7 +205,7 @@ public class HierarchicalElementDeduplicator<T> {
         }
 
         private Set<String> getDuplicateNames() {
-            Set<String> duplicates = Sets.newLinkedHashSet();
+            Set<String> duplicates = new LinkedHashSet<>();
             for (Entry<String, Collection<T>> entry : elementsByName.asMap().entrySet()) {
                 if (entry.getValue().size() > 1) {
                     duplicates.add(entry.getKey());
@@ -215,7 +215,7 @@ public class HierarchicalElementDeduplicator<T> {
         }
 
         private Set<T> getNotYetRenamedElements(Collection<T> elementsToRename) {
-            Set<T> notYetRenamed = Sets.newLinkedHashSet();
+            Set<T> notYetRenamed = new LinkedHashSet<>();
             for (T element : elementsToRename) {
                 if (!hasBeenRenamed(element)) {
                     notYetRenamed.add(element);

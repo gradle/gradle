@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.idea.model.internal;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -43,6 +42,7 @@ import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,7 +64,7 @@ public class IdeaDependenciesProvider {
     }
 
     public Set<Dependency> provide(final IdeaModule ideaModule) {
-        Set<Dependency> result = Sets.newLinkedHashSet();
+        Set<Dependency> result = new LinkedHashSet<>();
         result.addAll(getOutputLocations(ideaModule));
         result.addAll(getDependencies(ideaModule));
         return result;
@@ -74,7 +74,7 @@ public class IdeaDependenciesProvider {
         if (ideaModule.getSingleEntryLibraries() == null) {
             return Collections.emptySet();
         }
-        Set<SingleEntryModuleLibrary> outputLocations = Sets.newLinkedHashSet();
+        Set<SingleEntryModuleLibrary> outputLocations = new LinkedHashSet<>();
         for (Map.Entry<String, Iterable<File>> outputLocation : ideaModule.getSingleEntryLibraries().entrySet()) {
             String scope = outputLocation.getKey();
             for (File file : outputLocation.getValue()) {
@@ -87,7 +87,7 @@ public class IdeaDependenciesProvider {
     }
 
     private Set<Dependency> getDependencies(IdeaModule ideaModule) {
-        Set<Dependency> dependencies = Sets.newLinkedHashSet();
+        Set<Dependency> dependencies = new LinkedHashSet<>();
         Map<ComponentSelector, UnresolvedDependencyResult> unresolvedDependencies = Maps.newLinkedHashMap();
         for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
             IdeaDependenciesVisitor visitor = visitDependencies(ideaModule, scope);
@@ -178,12 +178,12 @@ public class IdeaDependenciesProvider {
             ModuleComponentIdentifier moduleId = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
             SingleEntryModuleLibrary library = new SingleEntryModuleLibrary(toPath(ideaModule, artifact.getFile()), scope);
             library.setModuleVersion(DefaultModuleVersionIdentifier.newId(moduleId.getModuleIdentifier(), moduleId.getVersion()));
-            Set<Path> sourcePaths = Sets.newLinkedHashSet();
+            Set<Path> sourcePaths = new LinkedHashSet<>();
             for (ResolvedArtifactResult sourceArtifact : sources) {
                 sourcePaths.add(toPath(ideaModule, sourceArtifact.getFile()));
             }
             library.setSources(sourcePaths);
-            Set<Path> javaDocPaths = Sets.newLinkedHashSet();
+            Set<Path> javaDocPaths = new LinkedHashSet<>();
             for (ResolvedArtifactResult javaDocArtifact : javaDoc) {
                 javaDocPaths.add(toPath(ideaModule, javaDocArtifact.getFile()));
             }
@@ -226,7 +226,7 @@ public class IdeaDependenciesProvider {
          * that, so defer that until later.
          */
         public Collection<Dependency> getDependencies() {
-            Collection<Dependency> dependencies = Sets.newLinkedHashSet();
+            Collection<Dependency> dependencies = new LinkedHashSet<>();
             dependencies.addAll(projectDependencies);
             dependencies.addAll(moduleDependencies);
             dependencies.addAll(fileDependencies);

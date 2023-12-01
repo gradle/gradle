@@ -28,6 +28,7 @@ import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.inject.Inject;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -136,15 +137,15 @@ public abstract class EclipseProject {
 
     private String comment;
 
-    private Set<String> referencedProjects = Sets.newLinkedHashSet();
+    private Set<String> referencedProjects = new LinkedHashSet<>();
 
     private List<String> natures = Lists.newArrayList();
 
     private List<BuildCommand> buildCommands = Lists.newArrayList();
 
-    private Set<Link> linkedResources = Sets.newLinkedHashSet();
+    private Set<Link> linkedResources = new LinkedHashSet<>();
 
-    private Set<ResourceFilter> resourceFilters = Sets.newLinkedHashSet();
+    private Set<ResourceFilter> resourceFilters = new LinkedHashSet<>();
 
     private final XmlFileContentMerger file;
 

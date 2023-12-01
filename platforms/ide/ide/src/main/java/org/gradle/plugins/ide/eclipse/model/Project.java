@@ -27,6 +27,7 @@ import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilterMatche
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,11 +49,11 @@ public class Project extends XmlPersistableConfigurationObject {
 
     private String name;
     private String comment;
-    private Set<String> referencedProjects = Sets.newLinkedHashSet();
+    private Set<String> referencedProjects = new LinkedHashSet<>();
     private List<String> natures = Lists.newArrayList();
     private List<BuildCommand> buildCommands = Lists.newArrayList();
-    private Set<Link> linkedResources = Sets.newLinkedHashSet();
-    private Set<ResourceFilter> resourceFilters = Sets.newLinkedHashSet();
+    private Set<Link> linkedResources = new LinkedHashSet<>();
+    private Set<ResourceFilter> resourceFilters = new LinkedHashSet<>();
 
     public Project(XmlTransformer xmlTransformer) {
         super(xmlTransformer);
@@ -382,7 +383,7 @@ public class Project extends XmlPersistableConfigurationObject {
         Node idNode = findFirstChildNamed(matcherNode, "id");
         Node argumentsNode = findFirstChildNamed(matcherNode, "arguments");
         String arguments = null;
-        Set<ResourceFilterMatcher> children = Sets.newLinkedHashSet();
+        Set<ResourceFilterMatcher> children = new LinkedHashSet<>();
         // A matcher may have either a text argument or children matcher nodes, but not both
         if (argumentsNode != null && findFirstChildNamed(argumentsNode, "matcher") != null) {
             for (Node childMatcherNode : getChildren(argumentsNode, "matcher")) {

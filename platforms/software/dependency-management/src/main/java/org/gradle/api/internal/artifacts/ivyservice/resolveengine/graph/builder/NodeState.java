@@ -65,6 +65,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -381,7 +382,7 @@ public class NodeState implements DependencyGraphNode {
 
     private void prepareToRecomputeEdge(EdgeState edgeToRecompute) {
         if (edgesToRecompute == null) {
-            edgesToRecompute = Sets.newLinkedHashSet();
+            edgesToRecompute = new LinkedHashSet<>();
         }
         edgesToRecompute.add(edgeToRecompute);
         resolveState.onMoreSelected(this);
@@ -1128,7 +1129,7 @@ public class NodeState implements DependencyGraphNode {
 
     void prepareForConstraintNoLongerPending(ModuleIdentifier moduleIdentifier) {
         if (upcomingNoLongerPendingConstraints == null) {
-            upcomingNoLongerPendingConstraints = Sets.newLinkedHashSet();
+            upcomingNoLongerPendingConstraints = new LinkedHashSet<>();
         }
         upcomingNoLongerPendingConstraints.add(moduleIdentifier);
         // Trigger a replay on this node, to add new constraints to graph

@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.configurations;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
@@ -803,7 +802,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     private void assertNoDependencyResolutionConsistencyCycle() {
-        Set<ConfigurationInternal> sources = Sets.newLinkedHashSet();
+        Set<ConfigurationInternal> sources = new LinkedHashSet<>();
         ConfigurationInternal src = this;
         while (src != null) {
             if (!sources.add(src)) {
@@ -1031,7 +1030,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public Set<ExcludeRule> getAllExcludeRules() {
-        Set<ExcludeRule> result = Sets.newLinkedHashSet();
+        Set<ExcludeRule> result = new LinkedHashSet<>();
         result.addAll(getExcludeRules());
         for (Configuration config : extendsFrom) {
             result.addAll(((ConfigurationInternal) config).getAllExcludeRules());
@@ -1045,7 +1044,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private synchronized void initExcludeRules() {
         if (parsedExcludeRules == null) {
             NotationParser<Object, ExcludeRule> parser = ExcludeRuleNotationConverter.parser();
-            parsedExcludeRules = Sets.newLinkedHashSet();
+            parsedExcludeRules = new LinkedHashSet<>();
             for (Object excludeRule : excludeRules) {
                 parsedExcludeRules.add(parser.parseNotation(excludeRule));
             }

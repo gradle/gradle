@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
@@ -59,6 +58,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -118,7 +118,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     /**
      * Aliases that are being constructed, used to detect unfinished builders.
      */
-    private final Set<String> aliasesInProgress = Sets.newLinkedHashSet();
+    private final Set<String> aliasesInProgress = new LinkedHashSet<>();
     private final Map<String, Supplier<PluginModel>> plugins = Maps.newLinkedHashMap();
     private final Map<String, BundleModel> bundles = Maps.newLinkedHashMap();
     private final Lazy<DefaultVersionCatalog> model = Lazy.unsafe().of(this::doBuild);
