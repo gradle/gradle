@@ -1,4 +1,4 @@
-# ADR-0002 - Avoid Java serialization
+# ADR-0002 - Avoid using Java serialization
 
 ## Date
 
