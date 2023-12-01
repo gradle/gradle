@@ -71,8 +71,8 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "--info")
 
         then:
-        allTransformsFor("buildSrc.jar") == ["InstrumentingArtifactTransform"]
-        allTransformsFor("included-1.0.jar") == ["InstrumentingArtifactTransform"]
+        allTransformsFor("buildSrc.jar") == ["ProjectDependencyInstrumentingArtifactTransform"]
+        allTransformsFor("included-1.0.jar") == ["ProjectDependencyInstrumentingArtifactTransform"]
     }
 
     def "external dependencies should not be copied to the global artifact transform cache"() {
@@ -89,9 +89,10 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         """
 
         when:
-        run("tasks")
+        run("tasks", "--info")
 
         then:
+        allTransformsFor("commons-lang3-3.8.1.jar") == ["ExternalDependencyInstrumentingArtifactTransform"]
         gradleUserHomeOutputs("original/commons-lang3-3.8.1.jar").isEmpty()
         gradleUserHomeOutput("instrumented/commons-lang3-3.8.1.jar").exists()
     }
