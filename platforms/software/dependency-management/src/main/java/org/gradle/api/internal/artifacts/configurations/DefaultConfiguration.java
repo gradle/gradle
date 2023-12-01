@@ -139,6 +139,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -195,7 +196,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final FileCollectionFactory fileCollectionFactory;
     private final ResolveExceptionContextualizer exceptionContextualizer;
 
-    private final Set<MutationValidator> childMutationValidators = Sets.newHashSet();
+    private final Set<MutationValidator> childMutationValidators = new HashSet<>();
     private final MutationValidator parentMutationValidator = DefaultConfiguration.this::validateParentMutation;
     private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
     private final ConfigurationsProvider configurationsProvider;

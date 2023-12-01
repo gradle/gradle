@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
@@ -64,6 +63,8 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -104,8 +105,8 @@ public class NodeState implements DependencyGraphNode {
     private Multimap<ModuleIdentifier, DependencyState> potentiallyActivatedConstraints;
 
     // caches
-    private final Map<DependencyMetadata, DependencyState> dependencyStateCache = Maps.newHashMap();
-    private final Map<DependencyState, EdgeState> edgesCache = Maps.newHashMap();
+    private final Map<DependencyMetadata, DependencyState> dependencyStateCache = new HashMap<>();
+    private final Map<DependencyState, EdgeState> edgesCache = new HashMap<>();
 
     // Caches the list of dependency states for dependencies
     private List<DependencyState> cachedDependencyStates;
@@ -860,7 +861,7 @@ public class NodeState implements DependencyGraphNode {
             ModuleComponentSelector selector = (ModuleComponentSelector) dependencyState.getDependency().getSelector();
             if (!StringUtils.isEmpty(selector.getVersionConstraint().getStrictVersion())) {
                 if (constraintsSet == null) {
-                    constraintsSet = Sets.newHashSet();
+                    constraintsSet = new HashSet<>();
                 }
                 constraintsSet.add(selector.getModuleIdentifier());
             }
@@ -965,7 +966,7 @@ public class NodeState implements DependencyGraphNode {
                         singleStrictVersionConstraints = sourceNode.ownStrictVersionConstraints;
                     } else {
                         if (collectedConstraints == null) {
-                            collectedConstraints = Sets.newHashSet();
+                            collectedConstraints = new HashSet<>();
                             collectedConstraints.addAll(singleStrictVersionConstraints.getModules());
                         }
                         collectedConstraints.addAll(sourceNode.ownStrictVersionConstraints.getModules());
@@ -987,7 +988,7 @@ public class NodeState implements DependencyGraphNode {
             for (ModuleIdentifier ownConstraint : ownStrictVersionConstraints.getModules()) {
                 if (resultSet.contains(ownConstraint)) {
                     if (collectedConstraints == null) {
-                        collectedConstraints = Sets.newHashSet();
+                        collectedConstraints = new HashSet<>();
                         collectedConstraints.addAll(singleStrictVersionConstraints.getModules());
                     }
                     collectedConstraints.remove(ownConstraint);

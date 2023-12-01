@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -40,6 +39,8 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -179,7 +180,7 @@ public class DependencyVerifier {
             if (artifactSpecificKeys.isEmpty()) {
                 return config.getIgnoredKeys().stream().map(IgnoredKey::getKeyId).collect(Collectors.toSet());
             }
-            Set<String> allKeys = Sets.newHashSet();
+            Set<String> allKeys = new HashSet<>();
             artifactSpecificKeys.stream()
                 .map(IgnoredKey::getKeyId)
                 .forEach(allKeys::add);
@@ -325,7 +326,7 @@ public class DependencyVerifier {
         }
 
         public SignatureVerificationFailure asError(PublicKeyService publicKeyService) {
-            Map<String, SignatureVerificationFailure.SignatureError> errors = Maps.newHashMap();
+            Map<String, SignatureVerificationFailure.SignatureError> errors = new HashMap<>();
             if (missingKeys != null) {
                 for (String missingKey : missingKeys) {
                     errors.put(missingKey, error(null, SignatureVerificationFailure.FailureKind.MISSING_KEY));

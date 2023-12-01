@@ -16,7 +16,6 @@
 
 package org.gradle.ide.fixtures
 
-import com.google.common.collect.Maps
 import groovy.transform.CompileStatic
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.GUtil
@@ -77,7 +76,7 @@ Actual: \${actual[key]}
     }
 
     static List<String> buildEnvironment(TestFile testDirectory) {
-        Map<String, String> envvars = Maps.newHashMap()
+        Map<String, String> envvars = new HashMap()
         envvars.putAll(System.getenv())
 
         Properties props = GUtil.loadProperties(testDirectory.file("gradle-environment"))

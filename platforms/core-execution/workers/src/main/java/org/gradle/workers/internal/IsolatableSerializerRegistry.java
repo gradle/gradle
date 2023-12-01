@@ -19,7 +19,6 @@ package org.gradle.workers.internal;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.Cast;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -37,11 +36,11 @@ import org.gradle.internal.snapshot.impl.IntegerValueSnapshot;
 import org.gradle.internal.snapshot.impl.IsolatedArray;
 import org.gradle.internal.snapshot.impl.IsolatedEnumValueSnapshot;
 import org.gradle.internal.snapshot.impl.IsolatedImmutableManagedValue;
+import org.gradle.internal.snapshot.impl.IsolatedJavaSerializedValueSnapshot;
 import org.gradle.internal.snapshot.impl.IsolatedList;
 import org.gradle.internal.snapshot.impl.IsolatedManagedValue;
 import org.gradle.internal.snapshot.impl.IsolatedMap;
 import org.gradle.internal.snapshot.impl.IsolatedProperties;
-import org.gradle.internal.snapshot.impl.IsolatedJavaSerializedValueSnapshot;
 import org.gradle.internal.snapshot.impl.IsolatedSet;
 import org.gradle.internal.snapshot.impl.LongValueSnapshot;
 import org.gradle.internal.snapshot.impl.MapEntrySnapshot;
@@ -54,6 +53,7 @@ import org.gradle.internal.state.ManagedFactoryRegistry;
 
 import java.lang.reflect.Array;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -83,7 +83,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
     private static final byte OTHER_TYPE = (byte) 2;
     private static final byte NULL_TYPE = (byte) 3;
 
-    private final Map<Byte, IsolatableSerializer<?>> isolatableSerializers = Maps.newHashMap();
+    private final Map<Byte, IsolatableSerializer<?>> isolatableSerializers = new HashMap<>();
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ManagedFactoryRegistry managedFactoryRegistry;
 

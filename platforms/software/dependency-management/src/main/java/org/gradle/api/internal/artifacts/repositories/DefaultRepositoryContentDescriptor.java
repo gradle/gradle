@@ -35,6 +35,8 @@ import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -189,7 +191,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     private void addInclude(String group, @Nullable String moduleName, @Nullable String version, MatcherKind matcherKind) {
         assertMutable();
         if (includeSpecs == null) {
-            includeSpecs = Sets.newHashSet();
+            includeSpecs = new HashSet<>();
         }
         includeSpecs.add(new ContentSpec(matcherKind, group, moduleName, version, versionSelectorScheme, versionSelectors, true));
     }
@@ -245,7 +247,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     private void addExclude(String group, @Nullable String moduleName, @Nullable String version, MatcherKind matcherKind) {
         assertMutable();
         if (excludeSpecs == null) {
-            excludeSpecs = Sets.newHashSet();
+            excludeSpecs = new HashSet<>();
         }
         excludeSpecs.add(new ContentSpec(matcherKind, group, moduleName, version, versionSelectorScheme, versionSelectors, false));
     }
@@ -253,7 +255,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     @Override
     public void onlyForConfigurations(String... configurationNames) {
         if (includedConfigurations == null) {
-            includedConfigurations = Sets.newHashSet();
+            includedConfigurations = new HashSet<>();
         }
         Collections.addAll(includedConfigurations, configurationNames);
     }
@@ -261,7 +263,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     @Override
     public void notForConfigurations(String... configurationNames) {
         if (excludedConfigurations == null) {
-            excludedConfigurations = Sets.newHashSet();
+            excludedConfigurations = new HashSet<>();
         }
         Collections.addAll(excludedConfigurations, configurationNames);
     }
@@ -270,7 +272,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     @SuppressWarnings("unchecked")
     public <T> void onlyForAttribute(Attribute<T> attribute, T... validValues) {
         if (requiredAttributes == null) {
-            requiredAttributes = Maps.newHashMap();
+            requiredAttributes = new HashMap<>();
         }
         requiredAttributes.put(Cast.uncheckedCast(attribute), ImmutableSet.copyOf(validValues));
     }
@@ -531,4 +533,3 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         }
     }
 }
-

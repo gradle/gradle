@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
@@ -26,6 +25,7 @@ import org.gradle.internal.component.model.ForcingDependencyMetadata;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -40,7 +40,7 @@ abstract class MessageBuilderHelper {
 
     static Collection<String> pathTo(EdgeState edge, boolean includeLast) {
         List<List<EdgeState>> acc = Lists.newArrayListWithExpectedSize(1);
-        pathTo(edge, Lists.newArrayList(), acc, Sets.newHashSet());
+        pathTo(edge, Lists.newArrayList(), acc, new HashSet<>());
         List<String> result = Lists.newArrayListWithCapacity(acc.size());
         for (List<EdgeState> path : acc) {
             EdgeState target = Iterators.getLast(path.iterator());

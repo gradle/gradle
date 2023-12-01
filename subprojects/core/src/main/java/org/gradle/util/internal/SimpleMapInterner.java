@@ -18,6 +18,7 @@ package org.gradle.util.internal;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Maps;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class SimpleMapInterner implements Interner<String> {
@@ -28,7 +29,7 @@ public class SimpleMapInterner implements Interner<String> {
     }
 
     public static SimpleMapInterner notThreadSafe() {
-        return new SimpleMapInterner(Maps.<String, String>newHashMap());
+        return new SimpleMapInterner(new HashMap<>());
     }
 
     public static SimpleMapInterner threadSafe() {

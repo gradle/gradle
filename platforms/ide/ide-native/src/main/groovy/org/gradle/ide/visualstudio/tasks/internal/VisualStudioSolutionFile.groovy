@@ -41,7 +41,7 @@ class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
         projects.each { VisualStudioProjectMetadata project ->
             this.projects[project.file] = project.name
             if (!this.projectConfigurations.containsKey(project.file)) {
-                this.projectConfigurations[project.file] = Sets.newHashSet();
+                this.projectConfigurations[project.file] = new HashSet();
             }
             project.configurations.each { configuration ->
                 this.projectConfigurations[project.file].add(configuration)

@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy.internal.publication;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Maps;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
@@ -56,6 +55,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -150,7 +150,7 @@ public class IvyComponentParser {
     public Set<IvyArtifact> parseArtifacts(SoftwareComponentInternal component) {
         Set<IvyArtifact> artifacts = new LinkedHashSet<>();
 
-        Map<String, IvyArtifact> seenArtifacts = Maps.newHashMap();
+        Map<String, IvyArtifact> seenArtifacts = new HashMap<>();
         for (SoftwareComponentVariant variant : component.getUsages()) {
             String conf = mapVariantNameToIvyConfiguration(variant.getName());
             for (PublishArtifact publishArtifact : variant.getArtifacts()) {

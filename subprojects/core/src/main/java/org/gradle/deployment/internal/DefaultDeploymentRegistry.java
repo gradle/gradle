@@ -17,7 +17,6 @@
 package org.gradle.deployment.internal;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.BuildResult;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -31,6 +30,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -40,7 +40,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
     private static final Logger LOGGER = Logging.getLogger(DefaultDeploymentRegistry.class);
 
     private final Lock lock = new ReentrantLock();
-    private final Map<String, RegisteredDeployment> deployments = Maps.newHashMap();
+    private final Map<String, RegisteredDeployment> deployments = new HashMap<>();
     private final PendingChangesManager pendingChangesManager;
     private final PendingChanges pendingChanges;
     private final BuildOperationExecutor buildOperationExecutor;

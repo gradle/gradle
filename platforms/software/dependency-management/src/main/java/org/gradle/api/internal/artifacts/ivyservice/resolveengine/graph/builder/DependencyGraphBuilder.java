@@ -66,6 +66,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -493,7 +494,7 @@ public class DependencyGraphBuilder {
             return;
         }
         Set<Set<NodeState>> combinations = Sets.combinations(selectedNodes, 2);
-        Set<NodeState> incompatibleNodes = Sets.newHashSet();
+        Set<NodeState> incompatibleNodes = new HashSet<>();
         for (Set<NodeState> combination : combinations) {
             Iterator<NodeState> it = combination.iterator();
             NodeState first = it.next();

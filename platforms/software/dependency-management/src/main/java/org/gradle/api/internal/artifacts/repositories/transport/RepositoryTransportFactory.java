@@ -44,6 +44,7 @@ import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -136,7 +137,7 @@ public class RepositoryTransportFactory {
     }
 
     private void validateConnectorFactoryCredentials(Set<String> schemes, ResourceConnectorFactory factory, Collection<Authentication> authentications) {
-        Set<Class<? extends Authentication>> configuredAuthenticationTypes = Sets.newHashSet();
+        Set<Class<? extends Authentication>> configuredAuthenticationTypes = new HashSet<>();
 
         for (Authentication authentication : authentications) {
             AuthenticationInternal authenticationInternal = (AuthenticationInternal) authentication;

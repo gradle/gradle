@@ -17,7 +17,6 @@
 package org.gradle.language.swift.tasks;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
@@ -64,6 +63,7 @@ import org.gradle.work.InputChanges;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -280,7 +280,7 @@ public abstract class SwiftCompile extends DefaultTask {
     @TaskAction
     protected void compile(InputChanges inputs) {
         final List<File> removedFiles = Lists.newArrayList();
-        final Set<File> changedFiles = Sets.newHashSet();
+        final Set<File> changedFiles = new HashSet<>();
         boolean isIncremental = inputs.isIncremental();
 
         // TODO: This should become smarter and move into the compiler infrastructure instead

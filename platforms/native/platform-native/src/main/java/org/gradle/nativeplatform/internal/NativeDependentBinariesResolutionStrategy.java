@@ -49,6 +49,7 @@ import java.io.StringWriter;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -69,7 +70,7 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
 
     private static class State {
         private final Map<NativeBinarySpecInternal, Set<NativeBinarySpecInternal>> dependencies = Maps.newLinkedHashMap();
-        private final Map<NativeBinarySpecInternal, List<NativeBinarySpecInternal>> dependents = Maps.newHashMap();
+        private final Map<NativeBinarySpecInternal, List<NativeBinarySpecInternal>> dependents = new HashMap<>();
 
         void registerBinary(NativeBinarySpecInternal binary) {
             if (dependencies.get(binary) == null) {

@@ -17,7 +17,6 @@
 package org.gradle.api.reporting.dependencies.internal;
 
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import groovy.json.JsonBuilder;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -207,8 +206,8 @@ class JsonProjectDependencyRenderer {
         } else {
             root = configuration.getUnresolvableResult();
         }
-        Set<ModuleIdentifier> modules = Sets.newHashSet();
-        Set<ComponentIdentifier> visited = Sets.newHashSet();
+        Set<ModuleIdentifier> modules = new HashSet<>();
+        Set<ComponentIdentifier> visited = new HashSet<>();
         populateModulesWithChildDependencies(root, visited, modules);
         return modules;
     }

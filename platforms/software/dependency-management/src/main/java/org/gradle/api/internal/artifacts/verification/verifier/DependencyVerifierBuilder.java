@@ -38,6 +38,7 @@ import javax.annotation.Nullable;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -48,7 +49,7 @@ public class DependencyVerifierBuilder {
     private static final Comparator<ModuleComponentIdentifier> MODULE_COMPONENT_IDENTIFIER_COMPARATOR = Comparator.comparing(ModuleComponentIdentifier::getGroup)
         .thenComparing(ModuleComponentIdentifier::getModule)
         .thenComparing(ModuleComponentIdentifier::getVersion);
-    private final Map<ModuleComponentIdentifier, ComponentVerificationsBuilder> byComponent = Maps.newHashMap();
+    private final Map<ModuleComponentIdentifier, ComponentVerificationsBuilder> byComponent = new HashMap<>();
     private final List<DependencyVerificationConfiguration.TrustedArtifact> trustedArtifacts = Lists.newArrayList();
     private final Set<DependencyVerificationConfiguration.TrustedKey> trustedKeys = Sets.newLinkedHashSet();
     private final List<URI> keyServers = Lists.newArrayList();
@@ -175,7 +176,7 @@ public class DependencyVerifierBuilder {
 
     protected static class ComponentVerificationsBuilder {
         private final ModuleComponentIdentifier component;
-        private final Map<String, ArtifactVerificationBuilder> byArtifact = Maps.newHashMap();
+        private final Map<String, ArtifactVerificationBuilder> byArtifact = new HashMap<>();
 
         protected ComponentVerificationsBuilder(ModuleComponentIdentifier component) {
             this.component = component;

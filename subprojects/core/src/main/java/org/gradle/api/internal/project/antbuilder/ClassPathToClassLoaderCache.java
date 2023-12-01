@@ -16,7 +16,6 @@
 package org.gradle.api.internal.project.antbuilder;
 
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
@@ -27,6 +26,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
@@ -49,7 +49,7 @@ public class ClassPathToClassLoaderCache implements Stoppable {
     // Protects the following fields
     private final Lock lock = new ReentrantLock();
     private final Map<ClassPath, CacheEntry> cacheEntries = Maps.newConcurrentMap();
-    private final Set<CachedClassLoader> inUseClassLoaders = Sets.newHashSet();
+    private final Set<CachedClassLoader> inUseClassLoaders = new HashSet<>();
     private final GroovySystemLoaderFactory groovySystemLoaderFactory;
 
     public ClassPathToClassLoaderCache(GroovySystemLoaderFactory groovySystemLoaderFactory) {

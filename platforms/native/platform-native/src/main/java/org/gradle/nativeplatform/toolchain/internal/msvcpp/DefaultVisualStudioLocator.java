@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate;
@@ -191,7 +190,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
 
         // populates descriptors, last descriptor in wins for a given architecture
-        Map<Architecture, ArchitectureSpecificVisualCpp> descriptors = Maps.newHashMap();
+        Map<Architecture, ArchitectureSpecificVisualCpp> descriptors = new HashMap<>();
         for (ArchitectureDescriptorBuilder architectureDescriptorBuilder : architectureDescriptorBuilders) {
             ArchitectureSpecificVisualCpp descriptor = architectureDescriptorBuilder.buildDescriptor(version, basePath, vsPath);
             if (descriptor.isInstalled()) {
@@ -221,7 +220,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
 
         // populates descriptors, last descriptor in wins for a given architecture
-        Map<Architecture, ArchitectureSpecificVisualCpp> descriptors = Maps.newHashMap();
+        Map<Architecture, ArchitectureSpecificVisualCpp> descriptors = new HashMap<>();
         for (ArchitectureDescriptorBuilder architectureDescriptorBuilder : architectureDescriptorBuilders) {
             ArchitectureSpecificVisualCpp descriptor = architectureDescriptorBuilder.buildDescriptor(version, basePath, vsPath);
             if (descriptor.isInstalled()) {

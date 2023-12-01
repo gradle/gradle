@@ -18,7 +18,6 @@ package org.gradle.api.internal.catalog;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.VersionCatalog;
@@ -76,6 +75,7 @@ import java.io.File;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -103,7 +103,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final ImmutableAttributesFactory attributesFactory;
     private final CapabilityNotationParser capabilityNotationParser;
     private final List<DefaultVersionCatalog> models = Lists.newArrayList();
-    private final Map<String, Class<? extends ExternalModuleDependencyFactory>> factories = Maps.newHashMap();
+    private final Map<String, Class<? extends ExternalModuleDependencyFactory>> factories = new HashMap<>();
 
     private ClassLoaderScope classLoaderScope;
     private Class<? extends TypeSafeProjectDependencyFactory> generatedProjectFactory;

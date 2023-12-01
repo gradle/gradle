@@ -60,9 +60,9 @@ public class DefaultPluginManager implements PluginManagerInternal {
     private final PluginTarget target;
     private final PluginRegistry pluginRegistry;
     private final DefaultPluginContainer pluginContainer;
-    private final Map<Class<?>, PluginImplementation<?>> plugins = Maps.newHashMap();
+    private final Map<Class<?>, PluginImplementation<?>> plugins = new HashMap<>();
     private final Map<Class<?>, Plugin> instances = Maps.newLinkedHashMap();
-    private final Map<PluginId, DomainObjectSet<PluginWithId>> idMappings = Maps.newHashMap();
+    private final Map<PluginId, DomainObjectSet<PluginWithId>> idMappings = new HashMap<>();
 
     private final BuildOperationExecutor buildOperationExecutor;
     private final UserCodeApplicationContext userCodeApplicationContext;
@@ -366,4 +366,3 @@ public class DefaultPluginManager implements PluginManagerInternal {
     private static final ApplyPluginBuildOperationType.Result OPERATION_RESULT = new ApplyPluginBuildOperationType.Result() {
     };
 }
-

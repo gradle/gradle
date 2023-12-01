@@ -63,6 +63,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -119,7 +120,7 @@ public class MavenComponentParser {
     public Set<MavenArtifact> parseArtifacts(SoftwareComponentInternal component) {
         // TODO Artifact names should be determined by the source variant. We shouldn't
         //      blindly "pass-through" the artifact file name.
-        Set<ArtifactKey> seenArtifacts = Sets.newHashSet();
+        Set<ArtifactKey> seenArtifacts = new HashSet<>();
         return createSortedVariantsStream(component)
             .flatMap(variant -> variant.getArtifacts().stream())
             .filter(artifact -> {
@@ -140,9 +141,9 @@ public class MavenComponentParser {
         PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(
             LOG, UNSUPPORTED_FEATURE, INCOMPATIBLE_FEATURE, PUBLICATION_WARNING_FOOTER, "suppressPomMetadataWarningsFor");
 
-        Set<MavenDependencyKey> seenDependencies = Sets.newHashSet();
-        Set<MavenDependencyKey> seenPlatforms = Sets.newHashSet();
-        Set<DependencyConstraint> seenConstraints = Sets.newHashSet();
+        Set<MavenDependencyKey> seenDependencies = new HashSet<>();
+        Set<MavenDependencyKey> seenPlatforms = new HashSet<>();
+        Set<DependencyConstraint> seenConstraints = new HashSet<>();
 
         List<MavenDependency> dependencies = new ArrayList<>();
         List<MavenDependency> constraints = new ArrayList<>();

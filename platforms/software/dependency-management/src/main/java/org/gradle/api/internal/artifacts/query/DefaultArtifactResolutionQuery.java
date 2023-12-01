@@ -66,6 +66,7 @@ import org.gradle.util.internal.CollectionUtils;
 import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -150,7 +151,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     }
 
     private ArtifactResolutionResult createResult(ComponentMetaDataResolver componentMetaDataResolver, ArtifactResolver artifactResolver) {
-        Set<ComponentResult> componentResults = Sets.newHashSet();
+        Set<ComponentResult> componentResults = new HashSet<>();
 
         for (ComponentIdentifier componentId : componentIds) {
             try {

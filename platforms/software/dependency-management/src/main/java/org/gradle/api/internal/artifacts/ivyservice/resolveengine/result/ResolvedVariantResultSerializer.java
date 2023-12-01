@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
@@ -32,6 +31,7 @@ import org.gradle.internal.serialize.Serializer;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -40,7 +40,7 @@ import java.util.Map;
  */
 @NotThreadSafe
 public class ResolvedVariantResultSerializer implements Serializer<ResolvedVariantResult> {
-    private final Map<ResolvedVariantResult, Integer> written = Maps.newHashMap();
+    private final Map<ResolvedVariantResult, Integer> written = new HashMap<>();
     private final List<ResolvedVariantResult> read = Lists.newArrayList();
 
     private final ComponentIdentifierSerializer componentIdentifierSerializer;

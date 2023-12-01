@@ -19,18 +19,18 @@ package org.gradle.api.internal;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectFactory;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class DefaultPolymorphicNamedEntityInstantiator<T> implements PolymorphicNamedEntityInstantiator<T> {
-    private final Map<Class<? extends T>, NamedDomainObjectFactory<? extends T>> factories = Maps.newHashMap();
+    private final Map<Class<? extends T>, NamedDomainObjectFactory<? extends T>> factories = new HashMap<>();
     private final Class<? extends T> baseType;
     private final String displayName;
 

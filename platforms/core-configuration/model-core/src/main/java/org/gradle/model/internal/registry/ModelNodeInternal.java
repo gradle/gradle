@@ -18,7 +18,6 @@ package org.gradle.model.internal.registry;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ChainingModelProjection;
 import org.gradle.model.internal.core.EmptyModelProjection;
@@ -39,6 +38,7 @@ import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -95,11 +95,11 @@ abstract class ModelNodeInternal implements MutableModelNode {
         for (ModelBinding inputBinding : binder.getInputBindings()) {
             ModelNodeInternal node = inputBinding.getNode();
             if (dependencies == null) {
-                dependencies = Sets.newHashSet();
+                dependencies = new HashSet<>();
             }
             dependencies.add(node);
             if (node.dependents == null) {
-                node.dependents = Sets.newHashSet();
+                node.dependents = new HashSet<>();
             }
             node.dependents.add(this);
         }

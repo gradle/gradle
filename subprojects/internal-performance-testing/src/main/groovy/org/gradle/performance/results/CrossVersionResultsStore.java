@@ -355,7 +355,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
 
     private Map<PerformanceExperiment, BigDecimal> queryFlakinessData(String sql, Timestamp time) {
         return withConnection("query flakiness data", connection -> {
-            Map<PerformanceExperiment, BigDecimal> results = Maps.newHashMap();
+            Map<PerformanceExperiment, BigDecimal> results = new HashMap();
             try (
                 PreparedStatement statement = prepareStatement(connection, sql, time);
                 ResultSet resultSet = statement.executeQuery()

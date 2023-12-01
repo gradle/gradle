@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultMutationGuard;
 import org.gradle.api.internal.MutationGuard;
@@ -40,6 +39,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -319,8 +319,8 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     protected static class Element<T> extends TypedCollector<T> {
         private List<T> cache;
         private final List<T> removedValues = Lists.newArrayList();
-        private final Set<T> realizedValues = Sets.newHashSet();
-        private final Set<Integer> duplicates = Sets.newHashSet(); // TODO IntSet
+        private final Set<T> realizedValues = new HashSet<>();
+        private final Set<Integer> duplicates = new HashSet<>(); // TODO IntSet
         private boolean realized;
         private final Action<T> realizeAction;
 

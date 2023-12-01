@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
@@ -35,13 +34,15 @@ import org.gradle.api.internal.capabilities.CapabilityInternal;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictHandler {
     private final List<Resolver> resolvers = Lists.newArrayListWithExpectedSize(3);
-    private final Map<String, Set<NodeState>> capabilityWithoutVersionToNodes = Maps.newHashMap();
+    private final Map<String, Set<NodeState>> capabilityWithoutVersionToNodes = new HashMap<>();
     private final Deque<CapabilityConflict> conflicts = new ArrayDeque<>();
 
     @Override
@@ -178,7 +179,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
     private static class Details implements ResolutionDetails {
         private final CapabilityConflict conflict;
-        private final Set<NodeState> evicted = Sets.newHashSet();
+        private final Set<NodeState> evicted = new HashSet<>();
         private NodeState selected;
         private Describable reason;
 
@@ -249,7 +250,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
         @Override
         public void withParticipatingModules(Action<? super ModuleIdentifier> action) {
-            Set<ModuleIdentifier> seen = Sets.newHashSet();
+            Set<ModuleIdentifier> seen = new HashSet<>();
             for (NodeState node : conflict.nodes) {
                 ModuleIdentifier module = node.getComponent().getId().getModule();
                 if (seen.add(module)) {
@@ -289,7 +290,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
     }
 
     private static boolean sameComponentAppearsMultipleTimes(CapabilityConflict conflict) {
-        Set<ComponentState> components = Sets.newHashSet();
+        Set<ComponentState> components = new HashSet<>();
         for (NodeState node : conflict.nodes) {
             if (!components.add(node.getComponent())) {
                 return true;

@@ -18,11 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Map;
@@ -30,7 +30,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 import static com.google.common.collect.Lists.newLinkedList;
-import static com.google.common.collect.Maps.newHashMap;
 import static java.util.Collections.singletonList;
 
 /**
@@ -39,9 +38,9 @@ import static java.util.Collections.singletonList;
 class ConflictContainer<K, T> {
 
     final LinkedList<Conflict> conflicts = newLinkedList();
-    private final Map<K, Conflict> conflictsByParticipant = Maps.newHashMap();
+    private final Map<K, Conflict> conflictsByParticipant = new HashMap<>();
 
-    private final Map<K, Collection<? extends T>> elements = newHashMap();
+    private final Map<K, Collection<? extends T>> elements = new HashMap<>();
     private final Multimap<K, K> targetToSource = LinkedHashMultimap.create();
 
     /**

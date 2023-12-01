@@ -27,6 +27,7 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
 
 public class ClassLoaderStructureProvider {
@@ -62,7 +63,7 @@ public class ClassLoaderStructureProvider {
         Set<URL> classpath = Sets.newLinkedHashSet();
         classpath.addAll(DefaultClassPath.of(additionalClasspath).getAsURLs());
 
-        Set<ClassLoader> uniqueClassloaders = Sets.newHashSet();
+        Set<ClassLoader> uniqueClassloaders = new HashSet<>();
         for (Class<?> clazz : classes) {
             ClassLoader classLoader = clazz.getClassLoader();
             // System types come from the system classloader and their classloader is null.

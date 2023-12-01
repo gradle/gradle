@@ -16,7 +16,6 @@
 package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -29,6 +28,7 @@ import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,7 +44,7 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
         this.isolatableFactory = isolatableFactory;
         this.instantiator = instantiator;
         this.root = ImmutableAttributes.EMPTY;
-        this.children = Maps.newHashMap();
+        this.children = new HashMap<>();
         this.children.put(root, new ArrayList<DefaultImmutableAttributes>());
         this.usageCompatibilityHandler = new UsageCompatibilityHandler(isolatableFactory, instantiator);
     }

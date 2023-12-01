@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
@@ -31,6 +30,7 @@ import com.google.common.primitives.Ints;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -81,9 +81,9 @@ public class HierarchicalElementDeduplicator<T> {
         private StatefulDeduplicator(Iterable<? extends T> elements) {
             this.elements = Lists.newArrayList(elements);
             this.elementsByName = LinkedHashMultimap.create();
-            this.originalNames = Maps.newHashMap();
-            this.newNames = Maps.newHashMap();
-            this.prefixes = Maps.newHashMap();
+            this.originalNames = new HashMap<>();
+            this.newNames = new HashMap<>();
+            this.prefixes = new HashMap<>();
         }
 
         private Map<T, String> getNewNames() {

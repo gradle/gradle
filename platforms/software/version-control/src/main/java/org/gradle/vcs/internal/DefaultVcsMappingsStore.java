@@ -16,7 +16,6 @@
 
 package org.gradle.vcs.internal;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
@@ -29,12 +28,14 @@ import org.gradle.vcs.VcsMapping;
 import org.gradle.vcs.VersionControlSpec;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 public class DefaultVcsMappingsStore implements VcsMappingsStore, VcsResolver {
     private final Set<Action<? super VcsMapping>> rootVcsMappings = Sets.newLinkedHashSet();
-    private final Map<Gradle, Set<Action<? super VcsMapping>>> vcsMappings = Maps.newHashMap();
+    private final Map<Gradle, Set<Action<? super VcsMapping>>> vcsMappings = new HashMap<>();
     private final VcsMappingFactory vcsMappingFactory;
 
     public DefaultVcsMappingsStore(VcsMappingFactory vcsMappingFactory) {
@@ -63,7 +64,7 @@ public class DefaultVcsMappingsStore implements VcsMappingsStore, VcsResolver {
     private void applyTo(VcsMappingInternal mapping) {
         Actions.composite(rootVcsMappings).execute(mapping);
         if (!mapping.hasRepository()) {
-            Set<VersionControlSpec> resolutions = Sets.newHashSet();
+            Set<VersionControlSpec> resolutions = new HashSet<>();
             for (Gradle gradle : vcsMappings.keySet()) {
                 Actions.composite(vcsMappings.get(gradle)).execute(mapping);
                 if (mapping.hasRepository()) {

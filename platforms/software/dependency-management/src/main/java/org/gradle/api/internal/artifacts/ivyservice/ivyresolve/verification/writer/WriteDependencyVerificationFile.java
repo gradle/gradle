@@ -78,6 +78,7 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -253,7 +254,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     private void exportKeys(SignatureVerificationService signatureVerificationService, DependencyVerifier verifier, BuildTreeDefinedKeys existingKeyring) throws IOException {
-        Set<String> keysToExport = Sets.newHashSet();
+        Set<String> keysToExport = new HashSet<>();
         verifier.getConfiguration()
             .getTrustedKeys()
             .stream()

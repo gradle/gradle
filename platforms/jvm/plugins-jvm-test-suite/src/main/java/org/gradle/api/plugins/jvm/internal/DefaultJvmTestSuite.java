@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.jvm.internal;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
@@ -24,7 +23,18 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
+import org.gradle.api.plugins.jvm.JvmComponentDependencies;
+import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.testing.toolchains.internal.FrameworkCachingJvmTestToolchain;
 import org.gradle.api.testing.toolchains.internal.JUnit4TestToolchain;
 import org.gradle.api.testing.toolchains.internal.JUnit4ToolchainParameters;
@@ -39,17 +49,6 @@ import org.gradle.api.testing.toolchains.internal.SpockTestToolchain;
 import org.gradle.api.testing.toolchains.internal.SpockToolchainParameters;
 import org.gradle.api.testing.toolchains.internal.TestNGTestToolchain;
 import org.gradle.api.testing.toolchains.internal.TestNGToolchainParameters;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.jvm.JvmComponentDependencies;
-import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Actions;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
@@ -58,6 +57,7 @@ import org.gradle.internal.service.ServiceRegistry;
 
 import javax.inject.Inject;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -320,7 +320,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         private final ObjectFactory objectFactory;
         private final ServiceLookup parentServices;
         private final InstantiatorFactory instantiatorFactory;
-        private final Map<Class<? extends JvmTestToolchain<?>>, JvmTestToolchain<?>> cache = Maps.newHashMap();
+        private final Map<Class<? extends JvmTestToolchain<?>>, JvmTestToolchain<?>> cache = new HashMap<>();
 
         public ToolchainFactory(ObjectFactory objectFactory, ServiceLookup parentServices, InstantiatorFactory instantiatorFactory) {
             this.objectFactory = objectFactory;
