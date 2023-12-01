@@ -196,9 +196,13 @@ NOTE: If you declare a module dependency, Gradle looks for a module metadata fil
 If such a module metadata file exists, it is parsed and the artifacts of this module (e.g. `hibernate-3.0.5.jar`) as well as its dependencies (e.g. `cglib`) are downloaded.
 If no such module metadata file exists, as of Gradle 6.0, you need to configure <<declaring_repositories.adoc#sec:supported_metadata_sources,metadata sources definitions>> to look for an artifact file called `hibernate-3.0.5.jar` directly.
 
-IMPORTANT: In Maven, a module can have one and only one artifact. +
+[IMPORTANT]
+====
+In Maven, a module can have one and only one artifact.
+
 In Gradle and Ivy, a module can have multiple artifacts.
 Each artifact can have a different set of dependencies.
+====
 
 [[sub:file_dependencies]]
 === File dependencies

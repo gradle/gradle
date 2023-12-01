@@ -947,11 +947,15 @@ include::{snippetsPath}/native-binaries/cunit/groovy/build.gradle[tag=complete-e
 include::{snippetsPath}/native-binaries/cunit/tests/completeCUnitExample.out[]
 ----
 
-NOTE: The current support for CUnit is quite rudimentary. Plans for future integration include: +
-* Allow tests to be declared with Javadoc-style annotations. +
-* Improved HTML reporting, similar to that available for JUnit. +
-* Real-time feedback for test execution. +
+[NOTE]
+====
+The current support for CUnit is quite rudimentary. Plans for future integration include:
+
+* Allow tests to be declared with Javadoc-style annotations.
+* Improved HTML reporting, similar to that available for JUnit.
+* Real-time feedback for test execution.
 * Support for additional test frameworks.
+====
 
 [[native_binaries:google_test]]
 == GoogleTest support
@@ -984,7 +988,11 @@ NOTE: The GoogleTest sources provided by your project require the core GoogleTes
 
 For each link:{groovyDslPath}/org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec.html[GoogleTestTestSuiteBinarySpec], Gradle will create a task to execute this binary, which will run all of the registered GoogleTest tests. Test results will be found in the `__${build.dir}__/test-results` directory.
 
-NOTE: The current support for GoogleTest is quite rudimentary. Plans for future integration include: +
-* Improved HTML reporting, similar to that available for JUnit. +
-* Real-time feedback for test execution. +
+[NOTE]
+====
+The current support for GoogleTest is quite rudimentary. Plans for future integration include:
+
+* Improved HTML reporting, similar to that available for JUnit.
+* Real-time feedback for test execution.
 * Support for additional test frameworks.
+====

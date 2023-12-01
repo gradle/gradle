@@ -35,10 +35,14 @@ There might be different use cases for downgrading:
 In all situations, this is best expressed saying that your code _strictly depends on_ a version of a transitive.
 Using <<rich_versions.adoc#sec:strict-version,strict versions>>, you will effectively depend on the version you declare, even if a transitive dependency says otherwise.
 
-NOTE: Strict dependencies are to some extent similar to Maven's _nearest first_ strategy, but there are subtle differences: +
-- _strict dependencies_ don't suffer an ordering problem: they are applied transitively to the subgraph, and it doesn't matter in which order dependencies are declared. +
-- conflicting strict dependencies will trigger a build failure that you have to resolve +
+[NOTE]
+====
+Strict dependencies are to some extent similar to Maven's _nearest first_ strategy, but there are subtle differences:
+
+- _strict dependencies_ don't suffer an ordering problem: they are applied transitively to the subgraph, and it doesn't matter in which order dependencies are declared.
+- conflicting strict dependencies will trigger a build failure that you have to resolve
 - strict dependencies can be used with rich versions, meaning that <<#sec:strict-version-consequences,it's better to express the requirement in terms of a _strict range_ combined with a single _preferred version_>>.
+====
 
 Let's say a project uses the link:https://hc.apache.org/httpcomponents-client-ga/[HttpClient library] for performing HTTP calls. HttpClient pulls in link:https://commons.apache.org/proper/commons-codec/[Commons Codec] as transitive dependency with version 1.10.
 However, the production source code of the project requires an API from Commons Codec 1.9 which is not available in 1.10 anymore.

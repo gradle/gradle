@@ -200,8 +200,12 @@ include::sample[dir="snippets/maven-publish/specify-relocation/groovy/library",f
 
 Only the property which has changed needs to be specified under `relocation`, that is `artifactId` and / or `groupId`. All other properties are optional.
 
-TIP: Specifying the `version` can be useful when the new artifact has a different version, for example because version numbering has started at 1.0.0 again. +
+[TIP]
+====
+Specifying the `version` can be useful when the new artifact has a different version, for example because version numbering has started at 1.0.0 again.
+
 A custom `message` allows explaining why the artifact coordinates have changed.
+====
 
 The relocation POM should be created for what would be the next version of the old artifact. For example when the artifact coordinates of `com.example:lib:1.0.0` are changed and the artifact with the new coordinates continues version numbering and is published as `com.new-example:lib:2.0.0`, then the relocation POM should specify a relocation from `com.example:lib:2.0.0` to `com.new-example:lib:2.0.0`.
 

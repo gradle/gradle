@@ -589,7 +589,8 @@ You can use any regular expression supported by the Java `{javaApi}/java/util/re
 There are two common issues people come across when using regular expressions in this context:
 
 1. If you use a slashy string (those delimited by '/') for the first argument, you _must_ include the parentheses for `rename()` as shown in the above example.
-2. It's safest to use single quotes for the second argument, otherwise you need to escape the '$' in group substitutions, i.e. `"\$1\$2"`. +
+2. It's safest to use single quotes for the second argument, otherwise you need to escape the '$' in group substitutions, i.e. `"\$1\$2"`.
+
 The first is a minor inconvenience, but slashy strings have the advantage that you don't have to escape backslash ('\') characters in the regular expression. The second issue stems from Groovy's support for embedded expressions using `${ }` syntax in double-quoted and slashy strings.
 --
 
@@ -668,8 +669,12 @@ include::sample[dir="snippets/files/copy/groovy",files="build.gradle[tags=standa
 
 Both the `copyAssets` and `distApp` tasks will process the static resources under `src/main/webapp`, as specified by `webAssetsSpec`.
 
-NOTE: The configuration defined by `webAssetsSpec` will _not_ apply to the app classes included by the `distApp` task. That's because `from appClasses` is its own child specification independent of `with webAssetsSpec`. +
+[NOTE]
+====
+The configuration defined by `webAssetsSpec` will _not_ apply to the app classes included by the `distApp` task. That's because `from appClasses` is its own child specification independent of `with webAssetsSpec`.
+
 This can be confusing to understand, so it's probably best to treat `with()` as an extra `from()` specification in the task. Hence it doesn't make sense to define a standalone copy spec without at least one `from()` defined.
+====
 
 If you encounter a scenario in which you want to apply the same copy configuration to _different_ sets of files, then you can share the configuration block directly without using `copySpec()`. Here's an example that has two independent tasks that happen to want to process image files only:
 

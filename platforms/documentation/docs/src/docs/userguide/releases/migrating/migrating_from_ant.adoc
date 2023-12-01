@@ -357,7 +357,8 @@ If you want to limit publications to specific repositories, check out the <<publ
 .On dependency versions
 --
 Ivy will, by default, automatically replace dynamic versions of dependencies with the resolved "static" versions when it generates the module descriptor.
-Gradle does _not_ mimic this behavior, declared dependency versions are left unchanged. +
+Gradle does _not_ mimic this behavior, declared dependency versions are left unchanged.
+
 You can replicate the default Ivy behavior by using the https://plugins.gradle.org/plugin/nebula.ivy-resolved-dependencies[Nebula Ivy Resolved Plugin].
 Alternatively, you can link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyModuleDescriptorSpec.html#org.gradle.api.publish.ivy.IvyModuleDescriptorSpec:withXml(org.gradle.api.Action)[customize the descriptor file] so that it contains the versions you want.
 --
@@ -422,7 +423,8 @@ The big downsides to this approach are that property values are all strings and 
 
 .Interacting with Ant properties in Gradle
 --
-Sometimes you will want to make use of an Ant task directly from your Gradle build and that task requires one or more Ant properties to be set. +
+Sometimes you will want to make use of an Ant task directly from your Gradle build and that task requires one or more Ant properties to be set.
+
 If that's the case, you can easily set those properties via the `ant` object, as described in the <<ant#sec:ant_properties,Using Ant from Gradle>> chapter.
 --
 

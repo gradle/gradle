@@ -27,9 +27,13 @@ Gradle's newer Kotlin DSL provides a pleasant editing experience in supported ID
 
 image::intellij-idea-android-studio.png[IntelliJ IDEA and Android Studio]
 
-TIP: Please also read the <<kotlin_dsl.adoc#kotlin_dsl,Gradle Kotlin DSL Primer>> to learn the specificities, limitations and usage of the Gradle Kotlin DSL. +
-The rest of the user manual contain build script excerpts that demonstrate both the Groovy DSL and the Kotlin DSL. +
+[TIP]
+====
+Please also read the <<kotlin_dsl.adoc#kotlin_dsl,Gradle Kotlin DSL Primer>> to learn the specificities, limitations and usage of the Gradle Kotlin DSL.
+
+The rest of the user manual contain build script excerpts that demonstrate both the Groovy DSL and the Kotlin DSL.
 This is the best place where to find how to do this and what with each DSL ; and it covers all Gradle features from <<plugins.adoc#plugins,using plugins>> to <<dependency_constraints.adoc#dependency-constraints,customizing the dependency resolution behavior>>.
+====
 
 == Before you start migrating
 
@@ -189,9 +193,13 @@ include::sample[dir="snippets/kotlinDsl/applying-plugins-imperative/kotlin",file
 include::sample[dir="snippets/kotlinDsl/applying-plugins-imperative/groovy",files="build.gradle[tags=script]"]
 ====
 
-NOTE: **We strongly recommend that you use the `plugins {}` block in preference to the `apply()` function.** +
+[NOTE]
+====
+**We strongly recommend that you use the `plugins {}` block in preference to the `apply()` function.**
+
 The declarative nature of the `plugins {}` block enables the Kotlin DSL to provide type-safe accessors to the extensions, configurations and other features contributed by the applied plugins, which makes it easy for IDEs to discover the details of the plugins' models and makes them easy to configure. +
 See the <<plugins.adoc#sec:plugins_block,`plugins {}` block documentation>> in the Gradle user manual for more information.
+====
 
 [[configuring-plugins]]
 == Configuring plugins
@@ -404,7 +412,8 @@ Each configuration contributed by an applied plugin is also available as a membe
 
 .Knowing what configurations are available
 --
-The easiest way to find out what configurations are available is by asking your IDE for suggestions within the `configurations` container. +
+The easiest way to find out what configurations are available is by asking your IDE for suggestions within the `configurations` container.
+
 You can also use the `:kotlinDslAccessorsReport` task, which prints the Kotlin code for accessing the configurations contributed by applied plugins and provides the names for all of those accessors.
 --
 

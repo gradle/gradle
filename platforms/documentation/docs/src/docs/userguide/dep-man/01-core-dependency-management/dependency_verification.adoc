@@ -392,10 +392,15 @@ In practice, it means you need to list the keys that you trust for each artifact
 </component>
 ----
 
-WARNING: For the `pgp` and `trusted-key` elements, Gradle _requires_ full fingerprint IDs (e.g. `b801e2f8ef035068ec1139cc29579f18fa8fd93b` instead of a long ID `29579f18fa8fd93b`).
-This minimizes the chance of a https://en.wikipedia.org/wiki/Collision_attack[collision attack]. +
-At the time, https://www.rfc-editor.org/rfc/rfc4880#section-12.2[V4 key fingerprints] are of 160-bit (40 characters) length. We accept longer keys to be future-proof in case a longer key fingerprint is introduced. +
+[WARNING]
+====
+For the `pgp` and `trusted-key` elements, Gradle _requires_ full fingerprint IDs (e.g. `b801e2f8ef035068ec1139cc29579f18fa8fd93b` instead of a long ID `29579f18fa8fd93b`).
+This minimizes the chance of a https://en.wikipedia.org/wiki/Collision_attack[collision attack].
+
+At the time, https://www.rfc-editor.org/rfc/rfc4880#section-12.2[V4 key fingerprints] are of 160-bit (40 characters) length. We accept longer keys to be future-proof in case a longer key fingerprint is introduced.
+
 In `ignore-key` elements, either fingerprints or long (64-bit) IDs can be used. A shorter ID can only result in a bigger range of exclusion, therefore, it's safe to use.
+====
 
 This effectively means that you trust `com.github.javaparser:javaparser-core:3.6.11` if it's signed with the key `8756c4f765c9ac3cb6b85d62379ce192d401ab61`.
 

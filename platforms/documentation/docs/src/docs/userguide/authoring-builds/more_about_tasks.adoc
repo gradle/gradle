@@ -163,8 +163,12 @@ include::sample[dir="snippets/tasks/configureUsingBlock/groovy",files="build.gra
 
 Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more options for configuring tasks.
 
-TIP: If you use the _Kotlin DSL_ and the task you want to configure was added by a plugin, you can use a convenient accessor for the task. +
+[TIP]
+====
+If you use the _Kotlin DSL_ and the task you want to configure was added by a plugin, you can use a convenient accessor for the task.
+
 That is, instead of `tasks.named("test")` you can just write `tasks.test`.
+====
 
 You can also use a configuration block when you define a task.
 

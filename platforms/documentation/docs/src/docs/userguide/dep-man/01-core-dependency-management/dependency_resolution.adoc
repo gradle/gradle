@@ -73,9 +73,13 @@ For example, what if the new version of a dependency ends up having its own depe
 With Maven, this could have unwanted impact on resolved versions.
 --
 
-NOTE: https://ant.apache.org/ivy/[Apache Ivy] is a very flexible dependency management tool.
-It offers the possibility to customize dependency resolution, including conflict resolution. +
+[NOTE]
+====
+https://ant.apache.org/ivy/[Apache Ivy] is a very flexible dependency management tool.
+It offers the possibility to customize dependency resolution, including conflict resolution.
+
 This flexibility comes with the price of making it hard to reason about.
+====
 
 Gradle will consider _all_ requested versions, wherever they appear in the dependency graph.
 Out of these versions, it will select the _highest_ one. More information on version ordering

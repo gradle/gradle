@@ -350,9 +350,13 @@ include::sample[dir="snippets/dependencyManagement/catalogs-toml/kotlin/buildSrc
 include::sample[dir="snippets/dependencyManagement/catalogs-toml/groovy/buildSrc",files="settings.gradle[tags=import_main_catalog]"]
 ====
 
-WARNING: Only a single file will be accepted when using the link:{javadocPath}/org/gradle/api/initialization/dsl/VersionCatalogBuilder.html#from-java.lang.Object-[VersionCatalogBuilder.from(Object dependencyNotation)] method.
-This means that notations like link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)] must refer to a single file, otherwise the build will fail. +
+[WARNING]
+====
+Only a single file will be accepted when using the link:{javadocPath}/org/gradle/api/initialization/dsl/VersionCatalogBuilder.html#from-java.lang.Object-[VersionCatalogBuilder.from(Object dependencyNotation)] method.
+This means that notations like link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)] must refer to a single file, otherwise the build will fail.
+
 If a more complicated structure is required (version catalogs imported from multiple files), it's advisable to use a code-based approach, instead of TOML file.
+====
 
 This technique can therefore be used to declare multiple catalogs from different files:
 

@@ -2,9 +2,13 @@ You want to share a file made by a task in one project with a task in another pr
 For example, one task makes a file, and the other task reads the file and uses some information inside it.
 This is one way you can share information across project boundaries. (Another way is to use extension objects.)
 
-NOTE: This demonstrates the <<../userguide/cross_project_publications.adoc#simple-sharing-artifacts-between-projects, simple version>> of sharing information across project boundaries, by explicitly specifying which producer project's _consumable configuration_ to use for a locally available artifact. +
+[NOTE]
+====
+This demonstrates the <<../userguide/cross_project_publications.adoc#simple-sharing-artifacts-between-projects, simple version>> of sharing information across project boundaries, by explicitly specifying which producer project's _consumable configuration_ to use for a locally available artifact. +
+
 When the producer publishes an artifact to a repository, to retrieve that artifact you will need to use <<../userguide/cross_project_publications.adoc#variant-aware-sharing, the advanced version>> of variant aware dependency resolution.
 This method will also work locally.
+====
 
 == Example
 

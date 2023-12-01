@@ -232,11 +232,16 @@ And that's it! Now we have:
 Gradle therefore offers a powerful mechanism to select the right variants based on preferences and compatibility.
 More details can be found in the <<variant_attributes.adoc#variant_attributes, variant aware plugins section of the documentation>>.
 
-WARNING: By adding a value to an existing attribute like we have done, or by defining new attributes, we are extending the model.
+WARNING:
+====
+By adding a value to an existing attribute like we have done, or by defining new attributes, we are extending the model.
 This means that _all consumers_ have to know about this extended model.
+
 For local consumers, this is usually not a problem because all projects understand and share the same schema, but if you had to publish this new variant to an external repository, it means that external consumers would have to add the same rules to their builds for them to pass.
-This is in general not a problem for _ecosystem plugins_ (e.g: the Kotlin plugin) where consumption is in any case not possible without applying the plugin, but it is a problem if you add custom values or attributes. +
+This is in general not a problem for _ecosystem plugins_ (e.g: the Kotlin plugin) where consumption is in any case not possible without applying the plugin, but it is a problem if you add custom values or attributes.
+
 So, **avoid publishing custom variants** if they are for internal use only.
+====
 
 [[targeting-different-platforms]]
 == Targeting different platforms

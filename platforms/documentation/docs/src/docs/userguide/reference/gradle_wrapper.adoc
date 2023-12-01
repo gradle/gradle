@@ -54,10 +54,14 @@ $ gradle wrapper
 include::{snippetsPath}/wrapper/simple/tests/wrapperCommandLine.out[]
 ----
 
-TIP: To make the Wrapper files available to other developers and execution environments, you need to check them into version control. +
-Wrapper files, including the JAR file, are small. +
-Adding the JAR file to version control is expected. +
+[TIP]
+====
+To make the Wrapper files available to other developers and execution environments, you need to check them into version control.
+Wrapper files, including the JAR file, are small.
+Adding the JAR file to version control is expected.
+
 Some organizations do not allow projects to submit binary files to version control, and there is no workaround available.
+====
 
 The generated Wrapper properties file, `gradle/wrapper/gradle-wrapper.properties`, stores the information about the Gradle distribution:
 
@@ -274,8 +278,12 @@ This enables you to host the Gradle distribution on a private protected server.
 You can specify a username and password in two different ways depending on your use case: as system properties or directly embedded in the `distributionUrl`.
 Credentials in system properties take precedence over the ones embedded in `distributionUrl`.
 
-TIP: HTTP Basic Authentication should only be used with `HTTPS` URLs and not plain `HTTP` ones. +
+[TIP]
+====
+HTTP Basic Authentication should only be used with `HTTPS` URLs and not plain `HTTP` ones.
+
 With Basic Authentication, the user credentials are sent in clear text.
+====
 
 System properties can be specified in the `.gradle/gradle.properties` file in the user's home directory or by other <<build_environment.adoc#sec:gradle_configuration_properties,means>>.
 

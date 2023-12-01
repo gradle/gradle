@@ -53,7 +53,8 @@ For external components, variants are defined by published Gradle Module Metadat
 
 .Variants vs configurations
 --
-Variants and configurations are sometimes used interchangeably in the documentation, DSL or API for historical reasons. +
+Variants and configurations are sometimes used interchangeably in the documentation, DSL or API for historical reasons.
+
 All components provide _variants_ and those variants may be backed by a consumable configuration.
 Not all configurations are variants because they may be used for declaring or resolving dependencies.
 --
@@ -87,9 +88,13 @@ A component may also expose _different variants_ for different consumers for the
 
 Gradle performs _variant aware selection_ by matching the attributes requested by the consumer against attributes defined by the producer. The <<variant_attributes.adoc#sec:abm_algorithm, selection algorithm>> is detailed in another section.
 
-NOTE: There are two exceptions to this rule that bypass variant aware resolution: +
-- when a producer has no variants, a default artifact is chosen. +
+[NOTE]
+====
+There are two exceptions to this rule that bypass variant aware resolution:
+
+- when a producer has no variants, a default artifact is chosen.
 - when a consumer _explicitly selects a configuration by name_, the artifacts of the configuration are chosen.
+====
 
 == A simple example
 
