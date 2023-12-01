@@ -42,6 +42,7 @@ public interface BasicProblemBuilder extends ProblemBuilder {
      * Creates the new problem. Calling {@link #build()} won't report the problem via build operations, it can be done separately by calling {@link ReportableProblem#report()}.
      *
      * @return the new problem
+     * @since 8.6
      */
     Problem build();
 }
