@@ -113,7 +113,7 @@
   },
   {
     "name": "build-profile",
-    "path": "subprojects/build-profile",
+    "path": "platforms/core-runtime/build-profile",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

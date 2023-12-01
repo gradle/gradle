@@ -58,7 +58,6 @@ unassigned {
     subproject("diagnostics")
     subproject("composite-builds")
     subproject("core-api")
-    subproject("build-profile")
 }
 
 // Core Runtime Platform
@@ -68,6 +67,7 @@ platform("core-runtime") {
     subproject("bootstrap")
     subproject("build-operations")
     subproject("build-option")
+    subproject("build-profile")
     subproject("cli")
     subproject("file-temp")
     subproject("files")

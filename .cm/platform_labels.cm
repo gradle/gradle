@@ -118,7 +118,6 @@ platforms:
     subprojects:
       - 'platforms/core-execution/'
       - 'platforms/core-runtime/build-operations/'
-      - 'subprojects/build-profile/'
   - core_runtime:
     name: 'core_runtime'
     subprojects:
