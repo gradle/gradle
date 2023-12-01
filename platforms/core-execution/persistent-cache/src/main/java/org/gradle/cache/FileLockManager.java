@@ -62,7 +62,7 @@ public interface FileLockManager {
     FileLock lock(File target, LockOptions options, String targetDisplayName, String operationDisplayName, @Nullable Action<FileLockReleasedSignal> whenContended) throws LockTimeoutException;
 
     /**
-     * These modes can be used either with {@link FileLockManager} or when creating {@link PersistentCache} via {@link CacheBuilder#withLockOptions(LockOptions)}
+     * These modes can be used either with {@link FileLockManager} or when creating {@link PersistentCache} via {@link CacheBuilder#withInitialLockMode(LockMode)}
      */
     enum LockMode {
 

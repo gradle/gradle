@@ -47,8 +47,10 @@ public interface CacheBuilder {
      * Specifies the <em>initial</em> lock options to use. See {@link PersistentCache} for details.
      *
      * Note that not every combination of cache type and lock options is supported.
+     *
+     * @param mode the lock mode to use
      */
-    CacheBuilder withLockOptions(LockOptions lockOptions);
+    CacheBuilder withInitialLockMode(FileLockManager.LockMode mode);
 
     /**
      * Specifies an action to execute to initialize the cache contents, if the cache does not exist or is invalid. An exclusive lock is held while the initializer is executing, to prevent

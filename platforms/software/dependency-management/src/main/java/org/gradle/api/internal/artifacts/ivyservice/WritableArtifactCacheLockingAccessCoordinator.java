@@ -41,8 +41,6 @@ import java.io.Closeable;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
-
 public class WritableArtifactCacheLockingAccessCoordinator implements ArtifactCacheLockingAccessCoordinator, Closeable {
     private final PersistentCache cache;
 
@@ -57,7 +55,7 @@ public class WritableArtifactCacheLockingAccessCoordinator implements ArtifactCa
                 .cache(cacheMetaData.getCacheDir())
                 .withCrossVersionCache()
                 .withDisplayName("artifact cache")
-                .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Don't need to lock anything until we use the caches
+                .withInitialLockMode(FileLockManager.LockMode.OnDemand) // Don't need to lock anything until we use the caches
                 .withCleanupStrategy(createCacheCleanupStrategy(cacheMetaData, fileAccessTimeJournal, usedGradleVersions, cacheConfigurations))
                 .open();
     }

@@ -23,8 +23,6 @@ import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 
 import java.io.File;
 
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
-
 /**
  * The default implementation of {@link DecompressionCache} that can be used to store decompressed data extracted from archive files like zip and tars.
  *
@@ -39,7 +37,7 @@ public class DefaultDecompressionCache implements DecompressionCache {
     public DefaultDecompressionCache(ScopedCacheBuilderFactory cacheBuilderFactory) {
         this.cache = cacheBuilderFactory.createCrossVersionCacheBuilder(EXPANSION_CACHE_KEY)
                 .withDisplayName(EXPANSION_CACHE_NAME)
-                .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) //TODO: the documentation above says this is a cross-version cache, not it's not! should it be?
+                .withInitialLockMode(FileLockManager.LockMode.OnDemand)
                 .open();
     }
 

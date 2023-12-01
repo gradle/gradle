@@ -27,7 +27,6 @@ import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
-import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -78,7 +77,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
             boolean refreshKeys) {
         cache = cacheBuilderFactory
             .createCrossVersionCacheBuilder("keyrings")
-            .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand))
+            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
             .open();
         this.buildOperationExecutor = buildOperationExecutor;
         this.delegate = delegate;

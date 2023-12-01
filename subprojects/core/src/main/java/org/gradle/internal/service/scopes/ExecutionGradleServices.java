@@ -91,7 +91,6 @@ import org.gradle.util.GradleVersion;
 import java.util.Collections;
 import java.util.function.Supplier;
 
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 import static org.gradle.internal.execution.steps.AfterExecutionOutputFilter.NO_FILTER;
 
 public class ExecutionGradleServices {
@@ -117,7 +116,7 @@ public class ExecutionGradleServices {
         PersistentCache cacheAccess = cacheBuilderFactory
             .createCrossVersionCacheBuilder("buildOutputCleanup")
             .withDisplayName("Build Output Cleanup Cache")
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
+            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
             .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
             .open();
         return new DefaultOutputFilesRepository(cacheAccess, inMemoryCacheDecoratorFactory);

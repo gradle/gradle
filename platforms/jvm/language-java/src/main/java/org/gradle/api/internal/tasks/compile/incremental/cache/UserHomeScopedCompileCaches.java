@@ -43,7 +43,7 @@ public class UserHomeScopedCompileCaches implements GeneralCompileCaches, Closea
         cache = cacheBuilderFactory
             .createCacheBuilder("javaCompile")
             .withDisplayName("Java compile cache")
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
+            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
             .open();
         IndexedCacheParameters<HashCode, ClassSetAnalysisData> jarCacheParameters = IndexedCacheParameters.of(
             "jarAnalysis",

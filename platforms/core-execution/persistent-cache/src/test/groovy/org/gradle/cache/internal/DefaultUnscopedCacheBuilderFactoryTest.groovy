@@ -66,7 +66,7 @@ class DefaultUnscopedCacheBuilderFactoryTest extends Specification {
 
     void canSpecifyLockModeForDirectoryCache() {
         when:
-        repository.cache(sharedCacheDir).withLockOptions(mode(OnDemand)).open()
+        repository.cache(sharedCacheDir).withInitialLockMode(OnDemand).open()
 
         then:
         1 * cacheFactory.open(sharedCacheDir, null, [:], mode(OnDemand), null, null) >> cache

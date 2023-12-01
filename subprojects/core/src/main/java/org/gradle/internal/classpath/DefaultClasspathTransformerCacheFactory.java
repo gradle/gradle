@@ -34,7 +34,6 @@ import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
 import static org.gradle.cache.internal.CacheVersionMapping.introducedIn;
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultClasspathTransformerCacheFactory implements ClasspathTransformerCacheFactory {
     private static final CacheVersionMapping CACHE_VERSION_MAPPING = introducedIn("2.2")
@@ -62,7 +61,7 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
         return cacheBuilderFactory
             .createCrossVersionCacheBuilder(CACHE_KEY)
             .withDisplayName(CACHE_NAME)
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
+            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
             .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal))
             .open();
     }

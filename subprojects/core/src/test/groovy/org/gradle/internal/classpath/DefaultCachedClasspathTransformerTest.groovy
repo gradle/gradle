@@ -22,7 +22,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.GlobalCacheLocations
-import org.gradle.cache.internal.CleanupActionDecorator
 import org.gradle.cache.internal.UsedGradleVersions
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.Pair
@@ -65,7 +64,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
     def cacheBuilder = Stub(CacheBuilder) {
         open() >> cache
         withDisplayName(_) >> { cacheBuilder }
-        withLockOptions(_) >> { cacheBuilder }
+        withInitialLockMode(_) >> { cacheBuilder }
         withCleanupStrategy(_) >> { cacheBuilder }
     }
     def cacheBuilderFactory = Stub(GlobalScopedCacheBuilderFactory) {
