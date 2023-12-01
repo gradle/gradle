@@ -24,8 +24,8 @@ import org.objectweb.asm.ModuleVisitor;
 import org.objectweb.asm.Opcodes;
 
 import java.util.SortedSet;
+import java.util.TreeSet;
 
-import static com.google.common.collect.Sets.newTreeSet;
 import static org.objectweb.asm.Opcodes.ACC_FINAL;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PROTECTED;
@@ -42,9 +42,9 @@ import static org.objectweb.asm.Opcodes.ACC_SUPER;
  */
 public class ApiMemberSelector extends ClassVisitor {
 
-    private final SortedSet<MethodMember> methods = newTreeSet();
-    private final SortedSet<FieldMember> fields = newTreeSet();
-    private final SortedSet<InnerClassMember> innerClasses = newTreeSet();
+    private final SortedSet<MethodMember> methods = new TreeSet<>();
+    private final SortedSet<FieldMember> fields = new TreeSet<>();
+    private final SortedSet<InnerClassMember> innerClasses = new TreeSet<>();
 
     private final String className;
     private final ApiMemberWriter apiMemberWriter;

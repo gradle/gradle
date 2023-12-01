@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.verification.verifier;
 
-import com.google.common.collect.Sets;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -27,6 +26,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 public class SignatureVerificationFailure extends AbstractVerificationFailure {
     private final Map<String, SignatureError> errors;
@@ -99,7 +99,7 @@ public class SignatureVerificationFailure extends AbstractVerificationFailure {
         keyService.findByFingerprint(key.getFingerprint(), new PublicKeyResultBuilder() {
             @Override
             public void keyRing(PGPPublicKeyRing keyring) {
-                Set<String> userIds = Sets.newTreeSet();
+                Set<String> userIds = new TreeSet<>();
                 collectUserIds(userIds, key);
                 keyring.getPublicKeys().forEachRemaining(userkey -> collectUserIds(userIds, userkey));
                 if (!userIds.isEmpty()) {
