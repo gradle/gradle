@@ -39,9 +39,13 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         buildFile << """
             apply plugin: 'java-library'
 
+            sourceSets {
+                myFeature
+            }
+
             java {
                 registerFeature("myFeature") {
-                    usingSourceSet(sourceSets.main)
+                    usingSourceSet(sourceSets.myFeature)
                 }
             }
 
@@ -59,7 +63,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
                 }
             }
         """
-        file("src/main/java/com/bar/Bar.java") << """
+        file("src/myFeature/java/com/bar/Bar.java") << """
             package com.bar;
             import com.foo.Foo;
 
@@ -72,7 +76,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         """
 
         when:
-        succeeds ':compileJava'
+        succeeds ':compileMyFeatureJava'
 
         then:
         executedAndNotSkipped ':b:compileJava'
@@ -97,9 +101,13 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
 
             group = 'org.gradle.test'
 
+            sourceSets {
+                myFeature
+            }
+
             java {
                 registerFeature("myFeature") {
-                    usingSourceSet(sourceSets.main)
+                    usingSourceSet(sourceSets.myFeature)
                 }
             }
 
@@ -152,7 +160,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         """
         }
 
-        file("b/src/main/java/com/foo/Foo.java") << """
+        file("b/src/myFeature/java/com/foo/Foo.java") << """
             package com.foo;
             public class Foo {
                 public void foo() {
@@ -175,8 +183,8 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         succeeds ':compileJava'
 
         then:
-        executedAndNotSkipped ':b:compileJava', ':c:compileJava', ':d:compileJava', ':e:compileJava', ':f:compileJava'
-        packagingTasks(compileClasspathPackaging, 'b')
+        executedAndNotSkipped ':b:compileMyFeatureJava', ':c:compileJava', ':d:compileJava', ':e:compileJava', ':f:compileJava'
+        packagingTasks(compileClasspathPackaging, 'b', 'myFeature')
         packagingTasks(compileClasspathPackaging, 'c')
         packagingTasks(compileClasspathPackaging, 'd')
         packagingTasks(compileClasspathPackaging, 'e')
@@ -186,7 +194,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         succeeds 'clean', ':verifyClasspath'
 
         then:
-        executedAndNotSkipped ':b:jar', ':c:jar', ':d:jar', ':g:jar' // runtime
+        executedAndNotSkipped ':b:myFeatureJar', ':c:jar', ':d:jar', ':g:jar' // runtime
         packagingTasks(compileClasspathPackaging, 'e') // compile time only
         packagingTasks(compileClasspathPackaging, 'f') // compile time only
 
@@ -206,9 +214,13 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         file("b/build.gradle") << """
             apply plugin: 'java-library'
 
+            sourceSets {
+                myFeature
+            }
+
             java {
                 registerFeature("myFeature") {
-                    usingSourceSet(sourceSets.main)
+                    usingSourceSet(sourceSets.myFeature)
                 }
             }
 
@@ -246,7 +258,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
                 }
             }
         """
-        file("src/main/java/com/bar/Bar.java") << """
+        file("src/myFeature/java/com/bar/Bar.java") << """
             package com.bar;
             import com.foo.Foo;
 
@@ -262,9 +274,8 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         succeeds ':compileJava'
 
         then:
-        executedAndNotSkipped ':b:compileJava', ':c:compileJava'
+        executedAndNotSkipped ':b:compileJava'
         packagingTasks(compileClasspathPackaging, 'b')
-        packagingTasks(compileClasspathPackaging, 'c')
 
         when:
         succeeds 'clean', ':resolveRuntime'
@@ -492,6 +503,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("Registering a feature using the main source set has been deprecated. This will fail with an error in Gradle 9.0. The main source set is reserved for production code and should not be used for features. Use another source set instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_register_feature_main_source_set")
         run 'test'
 
         then:
@@ -540,7 +552,44 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         executedAndNotSkipped ':compileMain211Java', ':compileMain212Java'
     }
 
-    def "creates configurations when using main source set and java-library is not applied" () {
+    def "creates main feature with main source set when java plugin not applied" () {
+        given:
+        buildFile << """
+            plugins {
+                id('java-base')
+            }
+
+            sourceSets {
+               main
+            }
+
+            configurations {
+                testCompileClasspath
+                testRuntimeClasspath
+            }
+
+            java {
+               registerFeature('main') {
+                  usingSourceSet(sourceSets.main)
+               }
+            }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("Registering a feature using the main source set has been deprecated. This will fail with an error in Gradle 9.0. The main source set is reserved for production code and should not be used for features. Use another source set instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_register_feature_main_source_set")
+        succeeds 'dependencies'
+
+        then:
+        outputContains("mainRuntimeOnly")
+        outputContains("mainCompileOnly")
+        outputContains("mainImplementation")
+        outputContains("mainApi")
+        outputContains("mainCompileOnlyApi")
+        outputContains("mainRuntimeElements")
+        outputContains("mainApiElements")
+    }
+
+    def "creates configurations when using main source set, non-main feature, java-library is not applied" () {
         given:
         buildFile << """
             plugins {
@@ -564,6 +613,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("Registering a feature using the main source set has been deprecated. This will fail with an error in Gradle 9.0. The main source set is reserved for production code and should not be used for features. Use another source set instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_register_feature_main_source_set")
         succeeds 'dependencies'
 
         then:
@@ -590,6 +640,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("Registering a feature using the main source set has been deprecated. This will fail with an error in Gradle 9.0. The main source set is reserved for production code and should not be used for features. Use another source set instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_register_feature_main_source_set")
         run 'dependencies'
 
         then:
