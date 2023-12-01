@@ -4,10 +4,6 @@
 
 2023-12-01
 
-## Decision makers
-
-* Build tool team
-
 ## Context
 
 In a distributed team with many subteams, the best solution to communicate decisions is to use a format accessible by everyone in charge of development.
@@ -43,11 +39,6 @@ The format for ADR in this module should follow this template:
 ## Date
 
 20XY-AB-CD
-
-## Decision makers
-
-* XXX
-* YYY
 
 ## Context
 
