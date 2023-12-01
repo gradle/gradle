@@ -69,8 +69,11 @@ class GradleMetadataJavaLibraryCrossVersionIntegrationTest extends CrossVersionI
 
             java {
                 if (JavaPluginExtension.metaClass.respondsTo(delegate, 'registerFeature')) {
+                    sourceSets {
+                        hibernateSupport
+                    }
                     registerFeature("hibernateSupport") {
-                        usingSourceSet(sourceSets.main)
+                        usingSourceSet(sourceSets.hibernateSupport)
                         capability("com.acme", "producer-hibernate-support", "1.0")
                     }
                 }

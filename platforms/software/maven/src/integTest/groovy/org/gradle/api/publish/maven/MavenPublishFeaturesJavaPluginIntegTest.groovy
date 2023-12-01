@@ -23,9 +23,13 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
         given:
         buildFile << """
 
+            sourceSets {
+                feature
+            }
+
             java {
                 registerFeature("feature") {
-                    usingSourceSet(sourceSets.main)
+                    usingSourceSet(sourceSets.feature)
                 }
             }
 
@@ -53,7 +57,7 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
             noMoreDependencies()
         }
         javaLibrary.parsedModuleMetadata.variant("featureRuntimeElements") {
-            assert files*.name == ['publishTest-1.9.jar']
+            assert files*.name == ['publishTest-1.9-feature.jar']
             dependency('org', 'optionaldep', '1.0')
             noMoreDependencies()
         }
@@ -70,7 +74,7 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
         resolveRuntimeArtifacts(javaLibrary) {
             optionalFeatureCapabilities << "org.gradle.test:publishTest-feature:1.0"
             withModuleMetadata {
-                expectFiles "publishTest-1.9.jar", "optionaldep-1.0.jar"
+                expectFiles "publishTest-1.9.jar", "publishTest-1.9-feature.jar", "optionaldep-1.0.jar"
             }
             withoutModuleMetadata {
                 shouldFail {
@@ -87,9 +91,13 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
         given:
         buildFile << """
 
+            sourceSets {
+                feature
+            }
+
             java {
                 registerFeature("feature") {
-                    usingSourceSet(sourceSets.main)
+                    usingSourceSet(sourceSets.feature)
                 }
             }
 
@@ -119,7 +127,7 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
             noMoreDependencies()
         }
         javaLibrary.parsedModuleMetadata.variant("featureApiElements") {
-            assert files*.name == ["${name}-${version}.jar"]
+            assert files*.name == ["${name}-${version}-feature.jar"]
             noMoreDependencies()
         }
         javaLibrary.parsedModuleMetadata.variant("featureRuntimeElements") {
@@ -139,7 +147,7 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
         resolveRuntimeArtifacts(javaLibrary) {
             optionalFeatureCapabilities << "$group:${name}-feature:1.0"
             withModuleMetadata {
-                expectFiles "${name}-${version}.jar", "optionaldep-1.0.jar"
+                expectFiles "${name}-${version}.jar", "${name}-${version}-feature.jar", "optionaldep-1.0.jar"
             }
             withoutModuleMetadata {
                 shouldFail {
