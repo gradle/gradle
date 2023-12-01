@@ -183,7 +183,7 @@
   },
   {
     "name": "distributions-basics",
-    "path": "subprojects/distributions-basics",
+    "path": "platforms/core-runtime/distributions-basics",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
