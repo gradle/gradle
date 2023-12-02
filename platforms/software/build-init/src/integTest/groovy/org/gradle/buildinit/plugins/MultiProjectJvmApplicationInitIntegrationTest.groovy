@@ -21,7 +21,6 @@ import org.gradle.buildinit.plugins.internal.modifiers.Language
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.JAVA
@@ -42,8 +41,7 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         return null
     }
 
-    @Unroll("creates multi-project application sample when incubating flag = #incubating")
-    def "creates multi-project application sample"() {
+    def "creates multi-project application sample when incubating flag = #incubating"() {
         given:
         def dsl = buildDsl
         def language = jvmLanguage.name
@@ -62,7 +60,7 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         def buildLogicDir = targetDir.file(incubating ? "build-logic" : "buildSrc")
         assertBuildLogicSources(dsl, language, buildLogicDir, settingsFile, buildFile)
 
-        assertApplicationProjectsSources(buildFile, language, "org.example", ext)
+        assertApplicationProjectsSources(buildFile, language, "org.example.", ext)
 
         when:
         succeeds "build"
@@ -85,6 +83,8 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
     }
 
     def "creates multi-project application with source package #description"() {
+        def expectedPackagePrefix = expectedPackage.isEmpty() ? "" : "$expectedPackage."
+
         given:
         def dsl = buildDsl
         def language = jvmLanguage.name
@@ -106,7 +106,7 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         def buildLogicDir = targetDir.file("buildSrc")
         assertBuildLogicSources(dsl, language, buildLogicDir, settingsFile, buildFile)
 
-        assertApplicationProjectsSources(buildFile, language, expectedPackage, ext)
+        assertApplicationProjectsSources(buildFile, language, expectedPackagePrefix, ext)
 
         expect:
         succeeds "build"
@@ -123,6 +123,7 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         "from option"                           | "my.sourcepackage" | null               | "my.sourcepackage"
         "from property"                         | null               | "my.sourcepackage" | "my.sourcepackage"
         "from option when property is also set" | "my.sourcepackage" | "my.overridden"    | "my.sourcepackage"
+        "from property with empty value"        | null               | ""                 | ""
     }
 
     void assertBuildLogicSources(BuildInitDsl dsl, String language, TestFile buildLogicDir, String settingsFile, String buildFile) {
@@ -141,12 +142,12 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         )
     }
 
-    void assertApplicationProjectsSources(String buildFile, String language, String expectedPackage, String ext) {
-        def expectedPackageDir = packageToDir(expectedPackage)
+    void assertApplicationProjectsSources(String buildFile, String language, String expectedPackagePrefix, String ext) {
+        def expectedPackageDirPrefix = packageToDir(expectedPackagePrefix)
         def appFiles = [buildFile,
-                        "src/main/${language}/${expectedPackageDir}/app/App.${ext}",
-                        "src/main/${language}/${expectedPackageDir}/app/MessageUtils.${ext}",
-                        "src/test/${language}/${expectedPackageDir}/app/MessageUtilsTest.${ext}",
+                        "src/main/${language}/${expectedPackageDirPrefix}app/App.${ext}",
+                        "src/main/${language}/${expectedPackageDirPrefix}app/MessageUtils.${ext}",
+                        "src/test/${language}/${expectedPackageDirPrefix}app/MessageUtilsTest.${ext}",
                         "src/main/resources",
                         "src/test/resources"]
         targetDir.file("app").assertHasDescendants(appFiles*.toString())
@@ -154,22 +155,22 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         targetDir.file("app/$buildFile").assertContents(
             containsLine(allOf( // Ignore quote variations, `=` vs `set` and AppKt
                 containsText("mainClass"),
-                containsText("${expectedPackage}.app.App")
+                containsText("${expectedPackagePrefix}app.App")
             ))
         )
 
         def listFiles = [buildFile,
-                         "src/main/${language}/${expectedPackageDir}/list/LinkedList.${ext}",
-                         "src/test/${language}/${expectedPackageDir}/list/LinkedListTest.${ext}",
+                         "src/main/${language}/${expectedPackageDirPrefix}list/LinkedList.${ext}",
+                         "src/test/${language}/${expectedPackageDirPrefix}list/LinkedListTest.${ext}",
                          "src/main/resources",
                          "src/test/resources"]
         targetDir.file("list").assertHasDescendants(listFiles*.toString())
 
         def utilFiles = [
             buildFile,
-            "src/main/${language}/${expectedPackageDir}/utilities/JoinUtils.${ext}",
-            "src/main/${language}/${expectedPackageDir}/utilities/SplitUtils.${ext}",
-            "src/main/${language}/${expectedPackageDir}/utilities/StringUtils.${ext}",
+            "src/main/${language}/${expectedPackageDirPrefix}utilities/JoinUtils.${ext}",
+            "src/main/${language}/${expectedPackageDirPrefix}utilities/SplitUtils.${ext}",
+            "src/main/${language}/${expectedPackageDirPrefix}utilities/StringUtils.${ext}",
             "src/main/resources",
             "src/test/resources"
         ]*.toString()
