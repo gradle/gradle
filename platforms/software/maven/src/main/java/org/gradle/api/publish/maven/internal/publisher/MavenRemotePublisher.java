@@ -20,6 +20,7 @@ import org.apache.maven.artifact.repository.metadata.Metadata;
 import org.apache.maven.artifact.repository.metadata.Snapshot;
 import org.apache.maven.artifact.repository.metadata.SnapshotVersion;
 import org.apache.maven.artifact.repository.metadata.Versioning;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
@@ -32,6 +33,7 @@ import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
 import java.text.DateFormat;
@@ -39,6 +41,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
+@NonNullApi
 public class MavenRemotePublisher extends AbstractMavenPublisher {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenRemotePublisher.class);
     private final BuildCommencedTimeProvider timeProvider;
@@ -49,7 +52,8 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
     }
 
     @Override
-    public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
+    public void publish(MavenNormalizedPublication publication, @Nullable MavenArtifactRepository artifactRepository) {
+        assert artifactRepository != null;
         URI repositoryUrl = artifactRepository.getUrl();
         LOGGER.info("Publishing to repository '{}' ({})", artifactRepository.getName(), repositoryUrl);
 
@@ -105,8 +109,8 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
     private int getNextBuildNumber(ExternalResourceRepository repository, ExternalResourceName metadataResource) {
         ExternalResourceReadResult<Metadata> existing = readExistingMetadata(repository, metadataResource);
 
-        if (existing != null) {
-            Metadata recessive = existing.getResult();
+        Metadata recessive = existing.getResult();
+        if (recessive != null) {
             Versioning versioning = recessive.getVersioning();
             if (versioning != null) {
                 Snapshot snapshot = versioning.getSnapshot();

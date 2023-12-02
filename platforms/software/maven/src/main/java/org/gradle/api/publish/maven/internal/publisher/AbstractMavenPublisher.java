@@ -20,6 +20,7 @@ import org.apache.maven.artifact.repository.metadata.Metadata;
 import org.apache.maven.artifact.repository.metadata.Versioning;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Reader;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Writer;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.NetworkOperationBackOffAndRetry;
@@ -39,16 +40,22 @@ import org.gradle.internal.xml.XmlTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
+@NonNullApi
 abstract class AbstractMavenPublisher implements MavenPublisher {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenPublisher.class);
 
+    private final NetworkOperationBackOffAndRetry<ExternalResourceReadResult<Metadata>> metadataRetryCaller = new NetworkOperationBackOffAndRetry<>();
     private static final String POM_FILE_ENCODING = "UTF-8";
     private static final String SNAPSHOT_VERSION = "SNAPSHOT";
     private static final Pattern VERSION_FILE_PATTERN = Pattern.compile("^(.*)-([0-9]{8}.[0-9]{6})-([0-9]+)$");
@@ -113,12 +120,11 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
     private Versioning getExistingVersioning(ExternalResourceRepository repository, ExternalResourceName metadataResource) {
         ExternalResourceReadResult<Metadata> existing = readExistingMetadata(repository, metadataResource);
 
-        if (existing != null) {
-            Metadata recessive = existing.getResult();
-            if (recessive.getVersioning() != null) {
-                return recessive.getVersioning();
-            }
+        Metadata recessive = existing.getResult();
+        if (recessive != null && recessive.getVersioning() != null) {
+            return recessive.getVersioning();
         }
+
         return new Versioning();
     }
 
@@ -134,7 +140,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         return metadataFile;
     }
 
-    private boolean isSnapshot(String version) {
+    private boolean isSnapshot(@Nullable String version) {
         if (version != null) {
             if (version.regionMatches(true, version.length() - SNAPSHOT_VERSION.length(),
                 SNAPSHOT_VERSION, 0, SNAPSHOT_VERSION.length())) {
@@ -146,14 +152,26 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         return false;
     }
 
+    @Nonnull
     ExternalResourceReadResult<Metadata> readExistingMetadata(ExternalResourceRepository repository, ExternalResourceName metadataResource) {
-        return repository.resource(metadataResource).withContentIfPresent(inputStream -> {
-            try {
-                return new MetadataXpp3Reader().read(inputStream, false);
-            } catch (Exception e) {
-                throw UncheckedException.throwAsUncheckedException(e);
+        return metadataRetryCaller.withBackoffAndRetry(new Callable<ExternalResourceReadResult<Metadata>>() {
+            @Override
+            public ExternalResourceReadResult<Metadata> call() {
+                return Objects.requireNonNull(repository.resource(metadataResource).withContentIfPresent(inputStream -> {
+                    try {
+                        return new MetadataXpp3Reader().read(inputStream, false);
+                    } catch (Exception e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                }));
+            }
+
+            @Override
+            public String toString() {
+                return "GET " + metadataResource.getDisplayName();
             }
         });
+
     }
 
     protected abstract Metadata createSnapshotMetadata(MavenNormalizedPublication publication, String groupId, String artifactId, String version, ExternalResourceRepository repository, ExternalResourceName metadataResource);
@@ -162,7 +180,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
      * Publishes artifacts for a single Maven module.
      */
     private static class ModuleArtifactPublisher {
-        private final NetworkOperationBackOffAndRetry networkOperationRunner = new NetworkOperationBackOffAndRetry();
+        private final NetworkOperationBackOffAndRetry<Void> networkOperationCaller = new NetworkOperationBackOffAndRetry<>();
         private final ExternalResourceRepository repository;
         private final boolean localRepo;
         private final URI rootUri;
@@ -207,7 +225,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         /**
          * Publishes a single module artifact, based on classifier and extension.
          */
-        void publish(String classifier, String extension, File content) {
+        void publish(@Nullable String classifier, String extension, File content) {
             StringBuilder path = new StringBuilder(128);
             path.append(groupPath).append('/');
             path.append(artifactId).append('/');
@@ -273,10 +291,11 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         }
 
         private void putResource(ExternalResourceName externalResource, ReadableContent readableContent) {
-            networkOperationRunner.withBackoffAndRetry(new Runnable() {
+            networkOperationCaller.withBackoffAndRetry(new Callable<Void>() {
                 @Override
-                public void run() {
+                public Void call() {
                     repository.resource(externalResource).put(readableContent);
+                    return null;
                 }
 
                 @Override
