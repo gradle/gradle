@@ -56,7 +56,7 @@ dependencies {
         api("javax.activation:activation:1.1.1")
         api("javax.xml.bind:jaxb-api:2.3.1")
         api("com.sun.xml.bind:jaxb-core:2.2.11")
-        api("com.sun.xml.bind:jaxb-impl:2.2.11")
+        api("com.sun.xml.bind:jaxb-impl:4.0.4")
         api("junit:junit:4.13.2")
         api("org.spockframework:spock-core:$spockVersion")
         api("org.spockframework:spock-junit4:$spockVersion")
