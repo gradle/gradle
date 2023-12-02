@@ -57,38 +57,38 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
 
         def buildLogicFolder = targetDir.file(incubating ? "build-logic" : "buildSrc")
 
-        def commonConventionsPath = "src/main/${dsl.id}/some.thing.${dsl.fileNameFor("${language}-common-conventions")}"
+        def commonConventionsPath = "src/main/${dsl.id}/org.example.${dsl.fileNameFor("${language}-common-conventions")}"
         buildLogicFolder.assertHasDescendants(
             settingsFile,
             buildFile,
             commonConventionsPath,
-            "src/main/${dsl.id}/some.thing.${dsl.fileNameFor("${language}-application-conventions")}",
-            "src/main/${dsl.id}/some.thing.${dsl.fileNameFor("${language}-library-conventions")}",
+            "src/main/${dsl.id}/org.example.${dsl.fileNameFor("${language}-application-conventions")}",
+            "src/main/${dsl.id}/org.example.${dsl.fileNameFor("${language}-library-conventions")}",
         )
         buildLogicFolder.file(commonConventionsPath).assertContents(
             containsText("JavaLanguageVersion.of(" + Jvm.current().javaVersion.majorVersion + ")")
         )
 
         def appFiles = [buildFile,
-                        "src/main/${language}/some/thing/app/App.${ext}",
-                        "src/main/${language}/some/thing/app/MessageUtils.${ext}",
-                        "src/test/${language}/some/thing/app/MessageUtilsTest.${ext}",
+                        "src/main/${language}/org/example/app/App.${ext}",
+                        "src/main/${language}/org/example/app/MessageUtils.${ext}",
+                        "src/test/${language}/org/example/app/MessageUtilsTest.${ext}",
                         "src/main/resources",
                         "src/test/resources"]
         targetDir.file("app").assertHasDescendants(appFiles*.toString())
 
         def listFiles = [buildFile,
-                         "src/main/${language}/some/thing/list/LinkedList.${ext}",
-                         "src/test/${language}/some/thing/list/LinkedListTest.${ext}",
+                         "src/main/${language}/org/example/list/LinkedList.${ext}",
+                         "src/test/${language}/org/example/list/LinkedListTest.${ext}",
                          "src/main/resources",
                          "src/test/resources"]
         targetDir.file("list").assertHasDescendants(listFiles*.toString())
 
         def utilFiles = [
             buildFile,
-            "src/main/${language}/some/thing/utilities/JoinUtils.${ext}",
-            "src/main/${language}/some/thing/utilities/SplitUtils.${ext}",
-            "src/main/${language}/some/thing/utilities/StringUtils.${ext}",
+            "src/main/${language}/org/example/utilities/JoinUtils.${ext}",
+            "src/main/${language}/org/example/utilities/SplitUtils.${ext}",
+            "src/main/${language}/org/example/utilities/StringUtils.${ext}",
             "src/main/resources",
             "src/test/resources"
         ]*.toString()
@@ -98,11 +98,11 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         succeeds "build"
 
         then:
-        assertTestPassed("app", "some.thing.app.MessageUtilsTest", "testGetMessage")
-        assertTestPassed("list", "some.thing.list.LinkedListTest", "testConstructor")
-        assertTestPassed("list", "some.thing.list.LinkedListTest", "testAdd")
-        assertTestPassed("list", "some.thing.list.LinkedListTest", "testRemove")
-        assertTestPassed("list", "some.thing.list.LinkedListTest", "testRemoveMissing")
+        assertTestPassed("app", "org.example.app.MessageUtilsTest", "testGetMessage")
+        assertTestPassed("list", "org.example.list.LinkedListTest", "testConstructor")
+        assertTestPassed("list", "org.example.list.LinkedListTest", "testAdd")
+        assertTestPassed("list", "org.example.list.LinkedListTest", "testRemove")
+        assertTestPassed("list", "org.example.list.LinkedListTest", "testRemoveMissing")
 
         when:
         succeeds "run"
@@ -113,7 +113,6 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         where:
         incubating << [true, false]
     }
-
 
     void assertTestPassed(String subprojectName, String className, String name) {
         def result = new DefaultTestExecutionResult(targetDir.file(subprojectName))

@@ -395,8 +395,6 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         fails 'clean', 'build', '--continue'
 
         then:
-
-        then:
         targetDir.file("build/libs/util-2.5.jar").exists()
         failure.assertHasDescription("Execution failed for task ':test'.")
         failure.assertHasCause("There were failing tests.")
