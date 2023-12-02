@@ -55,8 +55,9 @@ Calling `link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html#regi
 Currently, features created while calling `link:{javadocPath}/org/gradle/api/plugins/FeatureSpec.html#usingSourceSet-org.gradle.api.tasks.SourceSet-[usingSourceSet]` with the `main` source set are initialized differently than features created while calling `usingSourceSet` with any other source set.
 Previously, when using the `main` source set, new `implementation`, `compileOnly`, `runtimeOnly`, `api`, and `compileOnlyApi` configurations were created, and the compile and runtime classpaths of the `main` source set were configured to extend these configurations.
 
-Starting in Gradle 9.0, the `main` source set will not be treated any differently than any other source set.
-With the `java-library` plugin applied, or any other plugin that applies the `java` plugin, this will effectively cause calling `usingSourceSet` with the `main` source set to throw an exception, as the `java` plugin already configures a main feature.
+Starting in Gradle 9.0, the `main` source set will be treated like any other source set.
+With the `java-library` plugin applied (or any other plugin that applies the `java` plugin), calling `usingSourceSet` with the `main` source set will throw an exception.
+This is because the `java` plugin already configures a main feature.
 Only if the `java` plugin is not applied will the `main` source set be permitted when calling `usingSourceSet`.
 In this case, the `main` source set will be treated the same as any other source set, and no special configurations will be created.
 
