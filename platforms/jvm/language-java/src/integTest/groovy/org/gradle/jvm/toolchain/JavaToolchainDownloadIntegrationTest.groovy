@@ -16,10 +16,10 @@
 
 package org.gradle.jvm.toolchain
 
-import net.rubygrapefruit.platform.internal.DefaultSystemInfo
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.platform.Architecture
 import org.gradle.platform.internal.DefaultBuildPlatform
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
@@ -154,7 +154,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private def getFailureMessageBuildPlatform() {
-        def buildPlatform = new DefaultBuildPlatform(new DefaultSystemInfo(), OperatingSystem.current())
+        def buildPlatform = new DefaultBuildPlatform(Architecture.current(), OperatingSystem.current())
         return "for ${buildPlatform.operatingSystem} on ${buildPlatform.architecture.toString().toLowerCase()}"
     }
 
