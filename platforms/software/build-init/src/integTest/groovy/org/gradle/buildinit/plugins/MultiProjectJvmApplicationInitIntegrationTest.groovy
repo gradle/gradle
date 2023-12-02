@@ -20,6 +20,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.Language
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.internal.jvm.Jvm
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.GROOVY
@@ -58,20 +59,8 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         targetDir.file(settingsFile).exists()
         !targetDir.file(buildFile).exists()
 
-
-        def buildLogicFolder = targetDir.file(incubating ? "build-logic" : "buildSrc")
-
-        def commonConventionsPath = "src/main/${dsl.id}/org.example.${dsl.fileNameFor("${language}-common-conventions")}"
-        buildLogicFolder.assertHasDescendants(
-            settingsFile,
-            buildFile,
-            commonConventionsPath,
-            "src/main/${dsl.id}/org.example.${dsl.fileNameFor("${language}-application-conventions")}",
-            "src/main/${dsl.id}/org.example.${dsl.fileNameFor("${language}-library-conventions")}",
-        )
-        buildLogicFolder.file(commonConventionsPath).assertContents(
-            containsText("JavaLanguageVersion.of(" + Jvm.current().javaVersion.majorVersion + ")")
-        )
+        def buildLogicDir = targetDir.file(incubating ? "build-logic" : "buildSrc")
+        assertBuildLogicSources(dsl, language, buildLogicDir, settingsFile, buildFile)
 
         assertApplicationProjectsSources(buildFile, language, "org.example", ext)
 
@@ -114,16 +103,8 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         targetDir.file(settingsFile).exists()
         !targetDir.file(buildFile).exists()
 
-        def buildLogicFolder = targetDir.file("buildSrc")
-
-        def commonConventionsPath = "src/main/${dsl.id}/${expectedPackage}.${dsl.fileNameFor("${language}-common-conventions")}"
-        buildLogicFolder.assertHasDescendants(
-            settingsFile,
-            buildFile,
-            commonConventionsPath,
-            "src/main/${dsl.id}/${expectedPackage}.${dsl.fileNameFor("${language}-application-conventions")}",
-            "src/main/${dsl.id}/${expectedPackage}.${dsl.fileNameFor("${language}-library-conventions")}",
-        )
+        def buildLogicDir = targetDir.file("buildSrc")
+        assertBuildLogicSources(dsl, language, buildLogicDir, settingsFile, buildFile)
 
         assertApplicationProjectsSources(buildFile, language, expectedPackage, ext)
 
@@ -142,6 +123,22 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         "from option"                           | "my.sourcepackage" | null               | "my.sourcepackage"
         "from property"                         | null               | "my.sourcepackage" | "my.sourcepackage"
         "from option when property is also set" | "my.sourcepackage" | "my.overridden"    | "my.sourcepackage"
+    }
+
+    void assertBuildLogicSources(BuildInitDsl dsl, String language, TestFile buildLogicDir, String settingsFile, String buildFile) {
+        def commonConventionsPath = "src/main/${dsl.id}/buildlogic.${dsl.fileNameFor("${language}-common-conventions")}"
+
+        buildLogicDir.assertHasDescendants(
+            settingsFile,
+            buildFile,
+            commonConventionsPath,
+            "src/main/${dsl.id}/buildlogic.${dsl.fileNameFor("${language}-application-conventions")}",
+            "src/main/${dsl.id}/buildlogic.${dsl.fileNameFor("${language}-library-conventions")}",
+        )
+
+        buildLogicDir.file(commonConventionsPath).assertContents(
+            containsText("JavaLanguageVersion.of(" + Jvm.current().javaVersion.majorVersion + ")")
+        )
     }
 
     void assertApplicationProjectsSources(String buildFile, String language, String expectedPackage, String ext) {
