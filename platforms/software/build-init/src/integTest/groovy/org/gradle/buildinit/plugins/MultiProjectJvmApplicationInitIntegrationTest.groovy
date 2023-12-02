@@ -26,10 +26,14 @@ import static org.gradle.buildinit.plugins.internal.modifiers.Language.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.JAVA
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.KOTLIN
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.SCALA
+import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.containsText
+import static org.hamcrest.core.AllOf.allOf
 
 abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
+
     abstract BuildInitDsl getBuildDsl()
+
     abstract Language getJvmLanguage()
 
     @Override
@@ -69,30 +73,7 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
             containsText("JavaLanguageVersion.of(" + Jvm.current().javaVersion.majorVersion + ")")
         )
 
-        def appFiles = [buildFile,
-                        "src/main/${language}/org/example/app/App.${ext}",
-                        "src/main/${language}/org/example/app/MessageUtils.${ext}",
-                        "src/test/${language}/org/example/app/MessageUtilsTest.${ext}",
-                        "src/main/resources",
-                        "src/test/resources"]
-        targetDir.file("app").assertHasDescendants(appFiles*.toString())
-
-        def listFiles = [buildFile,
-                         "src/main/${language}/org/example/list/LinkedList.${ext}",
-                         "src/test/${language}/org/example/list/LinkedListTest.${ext}",
-                         "src/main/resources",
-                         "src/test/resources"]
-        targetDir.file("list").assertHasDescendants(listFiles*.toString())
-
-        def utilFiles = [
-            buildFile,
-            "src/main/${language}/org/example/utilities/JoinUtils.${ext}",
-            "src/main/${language}/org/example/utilities/SplitUtils.${ext}",
-            "src/main/${language}/org/example/utilities/StringUtils.${ext}",
-            "src/main/resources",
-            "src/test/resources"
-        ]*.toString()
-        targetDir.file("utilities").assertHasDescendants(utilFiles)
+        assertApplicationProjectsSources(buildFile, language, "org.example", ext)
 
         when:
         succeeds "build"
@@ -114,10 +95,98 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         incubating << [true, false]
     }
 
+    def "creates multi-project application with source package #description"() {
+        given:
+        def dsl = buildDsl
+        def language = jvmLanguage.name
+        def ext = jvmLanguage.extension
+        def settingsFile = dsl.fileNameFor('settings')
+        def buildFile = dsl.fileNameFor('build')
+
+        def sourcePackageOption = optionPackage == null ? [] : ['--package', optionPackage]
+        def sourcePackageProperty = propertyPackage == null ? [] : ['-Porg.gradle.buildinit.source.package=' + propertyPackage]
+
+        when:
+        def tasks = ['init', '--type', "${language}-application".toString(), '--split-project', '--dsl', dsl.id] + sourcePackageProperty + sourcePackageOption
+        run(tasks)
+
+        then:
+        targetDir.file(settingsFile).exists()
+        !targetDir.file(buildFile).exists()
+
+        def buildLogicFolder = targetDir.file("buildSrc")
+
+        def commonConventionsPath = "src/main/${dsl.id}/${expectedPackage}.${dsl.fileNameFor("${language}-common-conventions")}"
+        buildLogicFolder.assertHasDescendants(
+            settingsFile,
+            buildFile,
+            commonConventionsPath,
+            "src/main/${dsl.id}/${expectedPackage}.${dsl.fileNameFor("${language}-application-conventions")}",
+            "src/main/${dsl.id}/${expectedPackage}.${dsl.fileNameFor("${language}-library-conventions")}",
+        )
+
+        assertApplicationProjectsSources(buildFile, language, expectedPackage, ext)
+
+        expect:
+        succeeds "build"
+
+        when:
+        succeeds "run"
+
+        then:
+        outputContains("Hello World!")
+
+        where:
+        description                             | optionPackage      | propertyPackage    | expectedPackage
+        "default value"                         | null               | null               | "org.example"
+        "from option"                           | "my.sourcepackage" | null               | "my.sourcepackage"
+        "from property"                         | null               | "my.sourcepackage" | "my.sourcepackage"
+        "from option when property is also set" | "my.sourcepackage" | "my.overridden"    | "my.sourcepackage"
+    }
+
+    void assertApplicationProjectsSources(String buildFile, String language, String expectedPackage, String ext) {
+        def expectedPackageDir = packageToDir(expectedPackage)
+        def appFiles = [buildFile,
+                        "src/main/${language}/${expectedPackageDir}/app/App.${ext}",
+                        "src/main/${language}/${expectedPackageDir}/app/MessageUtils.${ext}",
+                        "src/test/${language}/${expectedPackageDir}/app/MessageUtilsTest.${ext}",
+                        "src/main/resources",
+                        "src/test/resources"]
+        targetDir.file("app").assertHasDescendants(appFiles*.toString())
+
+        targetDir.file("app/$buildFile").assertContents(
+            containsLine(allOf( // Ignore quote variations, `=` vs `set` and AppKt
+                containsText("mainClass"),
+                containsText("${expectedPackage}.app.App")
+            ))
+        )
+
+        def listFiles = [buildFile,
+                         "src/main/${language}/${expectedPackageDir}/list/LinkedList.${ext}",
+                         "src/test/${language}/${expectedPackageDir}/list/LinkedListTest.${ext}",
+                         "src/main/resources",
+                         "src/test/resources"]
+        targetDir.file("list").assertHasDescendants(listFiles*.toString())
+
+        def utilFiles = [
+            buildFile,
+            "src/main/${language}/${expectedPackageDir}/utilities/JoinUtils.${ext}",
+            "src/main/${language}/${expectedPackageDir}/utilities/SplitUtils.${ext}",
+            "src/main/${language}/${expectedPackageDir}/utilities/StringUtils.${ext}",
+            "src/main/resources",
+            "src/test/resources"
+        ]*.toString()
+        targetDir.file("utilities").assertHasDescendants(utilFiles)
+    }
+
     void assertTestPassed(String subprojectName, String className, String name) {
         def result = new DefaultTestExecutionResult(targetDir.file(subprojectName))
         result.assertTestClassesExecuted(className)
         result.testClass(className).assertTestPassed(name)
+    }
+
+    String packageToDir(String packageName) {
+        packageName.replace('.', '/')
     }
 }
 
