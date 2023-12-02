@@ -15,7 +15,7 @@ val groovyVersion = GroovySystem.getVersion()
 val isGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
 val codenarcVersion = if (isGroovy4) "3.1.0-groovy-4.0" else "3.1.0"
 val spockVersion = if (isGroovy4) "2.2-groovy-4.0" else "2.2-groovy-3.0"
-val asmVersion = "9.5"
+val asmVersion = "9.6"
 // To try out better kotlin compilation avoidance and incremental compilation
 // with -Pkotlin.incremental.useClasspathSnapshot=true
 val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
