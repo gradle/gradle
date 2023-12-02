@@ -50,7 +50,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpec {
     }
 
     @Override
-    public void capability(String group, String name, String version)  {
+    public void capability(String group, String name, String version) {
         capabilities.add(new DefaultImmutableCapability(group, name, version));
     }
 
@@ -83,7 +83,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpec {
         }
 
         if (SourceSet.isMain(sourceSet)) {
-            DeprecationLogger.deprecate("Registering a feature using the main source set")
+            DeprecationLogger.deprecateBehaviour(String.format("The '%s' feature was created using the main source set.", name))
                 .withAdvice("The main source set is reserved for production code and should not be used for features. Use another source set instead.")
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(8, "deprecate_register_feature_main_source_set")

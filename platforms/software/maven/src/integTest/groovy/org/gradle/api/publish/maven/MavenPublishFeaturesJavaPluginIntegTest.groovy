@@ -27,6 +27,8 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
                 feature
             }
 
+            repositories { maven { url "${mavenRepo.uri}" } }
+
             java {
                 registerFeature("feature") {
                     usingSourceSet(sourceSets.feature)
@@ -94,6 +96,8 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
             sourceSets {
                 feature
             }
+
+            repositories { maven { url "${mavenRepo.uri}" } }
 
             java {
                 registerFeature("feature") {

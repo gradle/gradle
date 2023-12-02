@@ -59,7 +59,6 @@ Starting in Gradle 9.0, the `main` source set will be treated like any other sou
 With the `java-library` plugin applied (or any other plugin that applies the `java` plugin), calling `usingSourceSet` with the `main` source set will throw an exception.
 This is because the `java` plugin already configures a main feature.
 Only if the `java` plugin is not applied will the `main` source set be permitted when calling `usingSourceSet`.
-In this case, the `main` source set will be treated the same as any other source set, and no special configurations will be created.
 
 Code that currently registers features with the main source set, like so:
 =====
