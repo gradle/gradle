@@ -16,7 +16,10 @@
 
 package org.gradle.platform;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
+
+import javax.annotation.Nonnull;
 
 /**
  * Constants for various processor architectures Gradle runs on.
@@ -36,7 +39,66 @@ public enum Architecture {
     X86_64,
 
     /**
-     * 64-bit reduced instruction set computer (RISC) architectures, including "aarch64", "arm64".
+     * 64-bit reduced instruction set computer (RISC) ARM architectures, including "aarch64", "arm64".
      */
-    AARCH64
+    AARCH64,
+
+    /**
+     * 64-bit IBM PowerPC (big-endian)
+     * @since 8.6
+     */
+    PPC64,
+
+    /**
+     * 64-bit IBM PowerPC (little-endian)
+     * @since 8.6
+     */
+    PPC64LE,
+
+    /**
+     * 64-bit IBM Z architectures (historically called "s390x" on Linux)
+     * @since 8.6
+     */
+    S390X,
+
+    /**
+     * 64-bit Sun/Oracle SPARC V9
+     * @since 8.6
+     */
+    SPARC_V9;
+
+    /**
+     * Get the architecture of the current machine
+     * @since 8.6
+     */
+    @Nonnull
+    public static Architecture current() {
+        return forName(System.getProperty("os.arch", "none"));
+    }
+
+    /**
+     * Determine the architecture from the value of the "os.arch" system property
+     * @since 8.6
+     */
+    @Nonnull
+    public static Architecture forName(String arch) {
+        String archName = arch.toLowerCase();
+        if (archName.equals("x86")) {
+            return X86;
+        } else if (archName.equals("amd64") || archName.equals("x86_64")) {
+            return X86_64;
+        } else if (archName.equals("aarch64")) {
+            return AARCH64;
+        } else if (archName.equals("ppc64")) {
+            return PPC64;
+        } else if (archName.equals("ppc64le")) {
+            return PPC64LE;
+        } else if (archName.equals("s390x")) {
+            return S390X;
+        } else if (archName.equals("sparcv9")) {
+            return SPARC_V9;
+        } else {
+            throw new GradleException("Unhandled system architecture: " + arch);
+        }
+    }
 }
