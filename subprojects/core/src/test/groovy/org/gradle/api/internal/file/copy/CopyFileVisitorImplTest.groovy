@@ -17,11 +17,13 @@ package org.gradle.api.internal.file.copy
 
 import org.gradle.api.Action
 import org.gradle.api.file.FileCopyDetails
-import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
-import org.gradle.api.file.FileVisitor
+import org.gradle.api.file.LinksStrategy
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
+import org.gradle.api.internal.provider.DefaultProperty
+import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
@@ -32,11 +34,10 @@ class CopyFileVisitorImplTest extends Specification {
     Instantiator instantiator = Mock()
     ObjectFactory objectFactory = Mock()
     FileSystem fileSystem = Mock()
-    FileTree source = Mock()
-    FileVisitor copyFileVisitorImpl
+    Property<LinksStrategy> linksStrategy = new DefaultProperty<>(Mock(PropertyHost), LinksStrategy);
 
-    def setup() {
-        copyFileVisitorImpl = new CopyFileVisitorImpl(specResolver, action, instantiator, objectFactory, fileSystem, false)
+    def createVisitor() {
+        new CopyFileVisitorImpl(specResolver, action, instantiator, objectFactory, fileSystem, false)
     }
 
     def "visit directory"() {
@@ -45,10 +46,11 @@ class CopyFileVisitorImplTest extends Specification {
         DefaultFileCopyDetails defaultFileCopyDetails = new DefaultFileCopyDetails(dirDetails, specResolver, objectFactory, fileSystem)
 
         when:
-        copyFileVisitorImpl.visitDir(dirDetails)
+        createVisitor().visitDir(dirDetails)
 
         then:
         1 * instantiator.newInstance(DefaultFileCopyDetails.class, dirDetails, specResolver, objectFactory, fileSystem) >> defaultFileCopyDetails
+        1 * specResolver.getLinksStrategy() >> linksStrategy
         1 * action.processFile(defaultFileCopyDetails)
         0 * defaultFileCopyDetails.excluded
     }
@@ -59,11 +61,12 @@ class CopyFileVisitorImplTest extends Specification {
         DefaultFileCopyDetails defaultFileCopyDetails = new DefaultFileCopyDetails(dirDetails, specResolver, objectFactory, fileSystem)
 
         when:
-        copyFileVisitorImpl.visitFile(dirDetails)
+        createVisitor().visitFile(dirDetails)
 
         then:
         1 * instantiator.newInstance(DefaultFileCopyDetails.class, dirDetails, specResolver, objectFactory, fileSystem) >> defaultFileCopyDetails
         1 * specResolver.getAllCopyActions() >> []
+        1 * specResolver.getLinksStrategy() >> linksStrategy
         1 * action.processFile(defaultFileCopyDetails)
         0 * defaultFileCopyDetails.excluded
     }
@@ -76,11 +79,12 @@ class CopyFileVisitorImplTest extends Specification {
         Action<? super FileCopyDetails> fileCopyAction2 = Mock()
 
         when:
-        copyFileVisitorImpl.visitFile(dirDetails)
+        createVisitor().visitFile(dirDetails)
 
         then:
         1 * instantiator.newInstance(DefaultFileCopyDetails.class, dirDetails, specResolver, objectFactory, fileSystem) >> defaultFileCopyDetails
         1 * specResolver.getAllCopyActions() >> [fileCopyAction1, fileCopyAction2]
+        1 * specResolver.getLinksStrategy() >> linksStrategy
         1 * action.processFile(defaultFileCopyDetails)
         1 * fileCopyAction1.execute(defaultFileCopyDetails)
         1 * fileCopyAction2.execute(defaultFileCopyDetails)
@@ -95,11 +99,12 @@ class CopyFileVisitorImplTest extends Specification {
         Action<? super FileCopyDetails> fileCopyAction2 = Mock()
 
         when:
-        copyFileVisitorImpl.visitFile(dirDetails)
+        createVisitor().visitFile(dirDetails)
 
         then:
         1 * instantiator.newInstance(DefaultFileCopyDetails.class, dirDetails, specResolver, objectFactory, fileSystem) >> defaultFileCopyDetails
         1 * specResolver.getAllCopyActions() >> [fileCopyAction1, fileCopyAction2]
+        1 * specResolver.getLinksStrategy() >> linksStrategy
         0 * action.processFile(defaultFileCopyDetails)
         1 * fileCopyAction1.execute(defaultFileCopyDetails)
         1 * defaultFileCopyDetails.excluded >> true

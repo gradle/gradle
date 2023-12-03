@@ -140,7 +140,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
 
     private void processSingleFile(Path file, FileVisitDetails details, LinksStrategy linksStrategy, FileVisitor visitor, Spec<FileTreeElement> spec) {
         if (spec.isSatisfiedBy(details)) {
-            linksStrategy.maybeThrowOnBrokenLink(details.getSymbolicLinkDetails(), details.getRelativePath().toString());
+            linksStrategy.maybeThrowOnBrokenLink(details);
             visitor.visitFile(details);
         }
     }

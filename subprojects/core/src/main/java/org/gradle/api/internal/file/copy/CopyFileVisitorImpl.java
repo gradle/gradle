@@ -32,6 +32,7 @@ public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
     private final ObjectFactory objectFactory;
     private final FileSystem fileSystem;
     private final boolean reproducibleFileOrder;
+    private final LinksStrategy linksStrategy;
 
     public CopyFileVisitorImpl(
         CopySpecResolver spec, CopyActionProcessingStreamAction action, Instantiator instantiator, ObjectFactory objectFactory, FileSystem fileSystem,
@@ -43,6 +44,7 @@ public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
         this.objectFactory = objectFactory;
         this.fileSystem = fileSystem;
         this.reproducibleFileOrder = reproducibleFileOrder;
+        this.linksStrategy = copySpecResolver.getLinksStrategy().getOrElse(LinksStrategy.FOLLOW);
     }
 
     @Override
@@ -62,6 +64,7 @@ public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
 
     private void processFile(FileVisitDetails visitDetails) {
         DefaultFileCopyDetails details = createDefaultFileCopyDetails(visitDetails);
+        linksStrategy.maybeThrowOnBrokenLink(details);
         for (Action<? super FileCopyDetails> action : copySpecResolver.getAllCopyActions()) {
             action.execute(details);
             if (details.isExcluded()) {
@@ -82,6 +85,6 @@ public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
 
     @Override
     public LinksStrategy linksStrategy() {
-        return copySpecResolver.getLinksStrategy().getOrElse(LinksStrategy.FOLLOW);
+        return linksStrategy;
     }
 }

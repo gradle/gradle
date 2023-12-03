@@ -54,9 +54,11 @@ public interface LinksStrategy extends Serializable {
      **/
     LinksStrategy PRESERVE_RELATIVE = new LinksStrategy() {
         @Override
-        public void maybeThrowOnBrokenLink(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
-            if (linkDetails != null && !linkDetails.isRelative()) {
-                throw new GradleException(String.format("Links strategy is set to %s, but a symlink pointing outside was visited: '%s' pointing to '%s'.", this, pathHint(originalPath), linkDetails.getTarget()));
+        public void maybeThrowOnBrokenLink(FileVisitDetails fileDetails) {
+            if (fileDetails.getSymbolicLinkDetails() != null && !fileDetails.getSymbolicLinkDetails().isRelative()) {
+                throw new GradleException(String.format("Links strategy is set to %s, but a symlink pointing outside was visited: '%s' pointing to '%s'.",
+                    this, pathHint(fileDetails), fileDetails.getSymbolicLinkDetails().getTarget())
+                );
             }
         }
 
@@ -71,7 +73,7 @@ public interface LinksStrategy extends Serializable {
      **/
     LinksStrategy PRESERVE_ALL = new LinksStrategy() {
         @Override
-        public void maybeThrowOnBrokenLink(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
+        public void maybeThrowOnBrokenLink(FileVisitDetails fileDetails) {
             // do nothing
         }
 
@@ -86,9 +88,11 @@ public interface LinksStrategy extends Serializable {
      **/
     LinksStrategy ERROR = new LinksStrategy() {
         @Override
-        public void maybeThrowOnBrokenLink(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
-            if (linkDetails != null) {
-                throw new GradleException(String.format("Links strategy is set to %s, but a symlink was visited: '%s' pointing to '%s'.", this, pathHint(originalPath), linkDetails.getTarget()));
+        public void maybeThrowOnBrokenLink(FileVisitDetails fileDetails) {
+            if (fileDetails.getSymbolicLinkDetails() != null) {
+                throw new GradleException(String.format("Links strategy is set to %s, but a symlink was visited: '%s' pointing to '%s'.",
+                    this, pathHint(fileDetails), fileDetails.getSymbolicLinkDetails().getTarget())
+                );
             }
         }
 
@@ -98,7 +102,13 @@ public interface LinksStrategy extends Serializable {
         }
     };
 
-    static String pathHint(String originalPath) {
+    /**
+     * Utility method to get a path hint for a file visit details.
+     *
+     * @since 8.6
+     **/
+    static String pathHint(FileVisitDetails fileDetails) {
+        String originalPath = fileDetails.getPath();
         return originalPath.equals("") ? "." : originalPath;
     }
 
@@ -106,9 +116,11 @@ public interface LinksStrategy extends Serializable {
         return linkDetails != null;
     }
 
-    default void maybeThrowOnBrokenLink(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
-        if (linkDetails != null && !linkDetails.targetExists()) {
-            throw new GradleException(String.format("Couldn't follow symbolic link '%s' pointing to '%s'.", pathHint(originalPath), linkDetails.getTarget()));
+    default void maybeThrowOnBrokenLink(FileVisitDetails fileDetails) {
+        if (fileDetails.getSymbolicLinkDetails() != null && !fileDetails.getSymbolicLinkDetails().targetExists()) {
+            throw new GradleException(String.format("Couldn't follow symbolic link '%s' pointing to '%s'.",
+                pathHint(fileDetails), fileDetails.getSymbolicLinkDetails().getTarget())
+            );
         }
     }
 

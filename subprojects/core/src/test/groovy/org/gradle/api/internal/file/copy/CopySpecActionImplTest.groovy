@@ -15,10 +15,14 @@
  */
 package org.gradle.api.internal.file.copy
 
-import org.gradle.api.Action
+
 import org.gradle.api.file.FileTree
+import org.gradle.api.file.LinksStrategy
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
+import org.gradle.api.internal.provider.DefaultProperty
+import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
@@ -30,18 +34,19 @@ class CopySpecActionImplTest extends Specification {
     FileSystem fileSystem = Mock()
     CopySpecResolver copySpecResolver = Mock()
     FileTree source = Mock()
-    Action<CopySpecInternal> copySpecInternalAction
+    Property<LinksStrategy> linksStrategy = new DefaultProperty<>(Mock(PropertyHost), LinksStrategy);
 
-    def setup() {
-        copySpecInternalAction = new CopySpecActionImpl(action, instantiator, objectFactory, fileSystem, false)
+    def createAction() {
+        new CopySpecActionImpl(action, instantiator, objectFactory, fileSystem, false)
     }
 
     def "can visit spec source"() {
         when:
-        copySpecInternalAction.execute(copySpecResolver)
+        createAction().execute(copySpecResolver)
 
         then:
         1 * copySpecResolver.getSource() >> source
+        1 * copySpecResolver.getLinksStrategy() >> linksStrategy
         1 * source.visit(_ as CopyFileVisitorImpl)
     }
 }

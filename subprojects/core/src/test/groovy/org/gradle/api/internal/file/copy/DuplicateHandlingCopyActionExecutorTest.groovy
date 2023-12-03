@@ -23,17 +23,20 @@ import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
+import org.gradle.api.file.LinksStrategy
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.provider.DefaultProperty
+import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.WorkResults
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.logging.TestOutputEventListener
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.util.internal.ClosureBackedAction
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.ClosureBackedAction
 import org.junit.Rule
 import spock.lang.Shared
 import spock.lang.Specification
@@ -191,6 +194,7 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
             }
             fileTree
         }
+        copySpecResolver.getLinksStrategy() >> new DefaultProperty<>(Mock(PropertyHost), LinksStrategy)
         copySpec.walk(_) >> { Action it -> it.execute(copySpecResolver) }
     }
 

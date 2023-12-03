@@ -66,7 +66,7 @@ class PathVisitor implements java.nio.file.FileVisitor<Path> {
         FileVisitDetails details = getFileVisitDetails(dir, attrs);
         if (directoryDetailsHolder.size() == 0 || shouldVisit(details)) {
             if (details.isSymbolicLink()) {
-                linksStrategy.maybeThrowOnBrokenLink(details.getSymbolicLinkDetails(), details.getRelativePath().toString());
+                linksStrategy.maybeThrowOnBrokenLink(details);
                 visitor.visitFile(details);
                 return FileVisitResult.SKIP_SUBTREE;
             }
@@ -90,7 +90,7 @@ class PathVisitor implements java.nio.file.FileVisitor<Path> {
     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
         FileVisitDetails details = getFileVisitDetails(file, attrs);
         if (shouldVisit(details)) {
-            linksStrategy.maybeThrowOnBrokenLink(details.getSymbolicLinkDetails(), details.getRelativePath().toString());
+            linksStrategy.maybeThrowOnBrokenLink(details);
             visitor.visitFile(details);
         }
         return checkStopFlag();
