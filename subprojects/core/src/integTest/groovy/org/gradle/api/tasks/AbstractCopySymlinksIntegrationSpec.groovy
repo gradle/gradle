@@ -38,11 +38,38 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
 
     abstract String constructBuildScript(String inputConfig, String mainPath = "")
 
+    LinksStrategy getDefaultLinksStrategy() {
+        LinksStrategy.FOLLOW
+    };
+
     TestFile inputDirectory
 
     def setup() {
         inputDirectory = createDir("input")
         executer.withStacktraceEnabled()
+    }
+
+    def "proper default strategy should be used"() {
+        given:
+        def originalFile = inputDirectory.createFile("original.txt") << "some text"
+        def link = inputDirectory.file("link").createLink(originalFile)
+
+        when:
+        buildKotlinFile << constructBuildScript("")
+
+        then:
+        if (defaultLinksStrategy == LinksStrategy.FOLLOW) {
+            succeeds(mainTask)
+            def outputDirectory = getResultDir()
+
+            def originalCopy = outputDirectory.file(originalFile.name)
+            isCopy(originalCopy, originalFile)
+
+            def linkCopy = outputDirectory.file(link.name)
+            isCopy(linkCopy, originalCopy)
+        } else {
+            fails(mainTask).assertHasCause("Links strategy is set to PRESERVE_RELATIVE, but a symlink pointing outside was visited")
+        }
     }
 
     def "symlinked files should be copied as #hint if linksStrategy=#linksStrategy"() {
@@ -70,7 +97,6 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         LinksStrategy.PRESERVE_ALL      | "isValidSymlink" | "valid symlink"
         LinksStrategy.PRESERVE_RELATIVE | "isValidSymlink" | "valid symlink"
         LinksStrategy.FOLLOW            | "isCopy"         | "full copy"
-        null                            | "isCopy"         | "full copy"
     }
 
     def "symlinked files should be reported as error if linksStrategy is ERROR"() {
@@ -276,7 +302,6 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         LinksStrategy.PRESERVE_ALL      | "isValidSymlink" | "valid symlink"
         LinksStrategy.PRESERVE_RELATIVE | "isValidSymlink" | "valid symlink"
         LinksStrategy.FOLLOW            | "isCopy"         | "full copy"
-        null                            | "isCopy"         | "full copy"
     }
 
     def "symlinked files with absolute path should be copied as #hint if linksStrategy=#linksStrategy"() {
@@ -350,10 +375,7 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         failure.assertHasCause("Couldn't follow symbolic link '${link.name}' pointing to 'non-existent-file'.")
 
         where:
-        linksStrategy << [
-            LinksStrategy.FOLLOW,
-            null
-        ]
+        linksStrategy << [LinksStrategy.FOLLOW]
     }
 
     def "broken links should be preserved as is if linksStrategy=LinksStrategy.PRESERVE_ALL"() {
@@ -436,7 +458,6 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         LinksStrategy.PRESERVE_ALL      | "isValidSymlink"
         LinksStrategy.PRESERVE_RELATIVE | "isValidSymlink"
         LinksStrategy.FOLLOW            | "isCopy"
-        null                            | "isCopy"
     }
 
     def "symlinks are not processed by expand with #linksStrategy"() {
@@ -467,7 +488,6 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         LinksStrategy.PRESERVE_ALL      | "isValidSymlink"
         LinksStrategy.PRESERVE_RELATIVE | "isValidSymlink"
         LinksStrategy.FOLLOW            | "isCopy"
-        null                            | "isCopy"
     }
 
     def "symlinks should respect inclusions and similar transformations for #linksStrategy"() {
@@ -501,7 +521,6 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         linksStrategy              | copied
         LinksStrategy.PRESERVE_ALL | false
         LinksStrategy.FOLLOW       | true
-        null                       | true
     }
 
     def "links permissions are preserved"() {
@@ -602,7 +621,6 @@ abstract class AbstractFileSystemCopySymlinksIntegrationSpec extends AbstractCop
         linksStrategy              | expectedOutcome  | hint
         LinksStrategy.PRESERVE_ALL | "isValidSymlink" | "absolute link"
         LinksStrategy.FOLLOW       | "isCopy"         | "full copy"
-        null                       | "isCopy"         | "full copy"
     }
 
     def "intermediate symlinks are followed properly"() {
@@ -727,13 +745,8 @@ abstract class AbstractFileSystemCopySymlinksIntegrationSpec extends AbstractCop
         linksStrategyMain          | linksStrategySibling       | expectedOutcomeMain | expectedOutcomeSibling
         LinksStrategy.FOLLOW       | LinksStrategy.FOLLOW       | "isCopy"            | "isCopy"
         LinksStrategy.FOLLOW       | LinksStrategy.PRESERVE_ALL | "isCopy"            | "isValidSymlink"
-        LinksStrategy.FOLLOW       | null                       | "isCopy"            | "isCopy"
         LinksStrategy.PRESERVE_ALL | LinksStrategy.FOLLOW       | "isValidSymlink"    | "isCopy"
         LinksStrategy.PRESERVE_ALL | LinksStrategy.PRESERVE_ALL | "isValidSymlink"    | "isValidSymlink"
-        LinksStrategy.PRESERVE_ALL | null                       | "isValidSymlink"    | "isValidSymlink"
-        null                       | LinksStrategy.FOLLOW       | "isCopy"            | "isCopy"
-        null                       | LinksStrategy.PRESERVE_ALL | "isCopy"            | "isValidSymlink"
-        null                       | null                       | "isCopy"            | "isCopy"
     }
 
     def "when root is a link to #rootLinkTarget, it should be #expectedOutcome if linksStrategy=#linksStrategy"() {
@@ -785,19 +798,16 @@ abstract class AbstractFileSystemCopySymlinksIntegrationSpec extends AbstractCop
 
         where:
         rootLinkTarget      | linksStrategy                   | expectedOutcome
-        "dir"               | null                            | "copied as dir"
         "dir"               | LinksStrategy.FOLLOW            | "copied as dir"
         "dir"               | LinksStrategy.PRESERVE_ALL      | "copied as link" // it would be inside output dir, but that's consistent with file behavior
         "dir"               | LinksStrategy.PRESERVE_RELATIVE | "treated as relativeness error"
         "dir"               | LinksStrategy.ERROR             | "treated as error"
 
-        "file"              | null                            | "copied as file"
         "file"              | LinksStrategy.FOLLOW            | "copied as file"
         "file"              | LinksStrategy.PRESERVE_ALL      | "copied as link"
         "file"              | LinksStrategy.PRESERVE_RELATIVE | "treated as relativeness error"
         "file"              | LinksStrategy.ERROR             | "treated as error"
 
-        "non-existent-file" | null                            | "treated as broken link error"
         "non-existent-file" | LinksStrategy.FOLLOW            | "treated as broken link error"
         "non-existent-file" | LinksStrategy.PRESERVE_ALL      | "copied as link"
         "non-existent-file" | LinksStrategy.PRESERVE_RELATIVE | "treated as relativeness error"
@@ -806,6 +816,11 @@ abstract class AbstractFileSystemCopySymlinksIntegrationSpec extends AbstractCop
 }
 
 abstract class AbstractArchiveCopySymlinksIntegrationSpec extends AbstractCopySymlinksIntegrationSpec {
+
+    @Override
+    LinksStrategy getDefaultLinksStrategy() {
+        LinksStrategy.PRESERVE_RELATIVE
+    };
 
     def "symlinked files with absolute path should be treated as error if linksStrategy=LinksStrategy.FOLLOW"() {
         given:

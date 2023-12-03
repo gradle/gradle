@@ -195,6 +195,7 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
             fileTree
         }
         copySpecResolver.getLinksStrategy() >> new DefaultProperty<>(Mock(PropertyHost), LinksStrategy)
+        copySpec.getDefaultLinksStrategy() >> LinksStrategy.FOLLOW
         copySpec.walk(_) >> { Action it -> it.execute(copySpecResolver) }
     }
 

@@ -28,16 +28,19 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
 
+import java.util.function.Supplier
+
 class CopyFileVisitorImplTest extends Specification {
     CopySpecResolver specResolver = Mock()
     CopyActionProcessingStreamAction action = Mock()
     Instantiator instantiator = Mock()
     ObjectFactory objectFactory = Mock()
     FileSystem fileSystem = Mock()
-    Property<LinksStrategy> linksStrategy = new DefaultProperty<>(Mock(PropertyHost), LinksStrategy);
+    Property<LinksStrategy> linksStrategy = new DefaultProperty<>(Mock(PropertyHost), LinksStrategy).convention(LinksStrategy.FOLLOW);
+    Supplier defaultLinksStrategy = Mock();
 
     def createVisitor() {
-        new CopyFileVisitorImpl(specResolver, action, instantiator, objectFactory, fileSystem, false)
+        new CopyFileVisitorImpl(specResolver, action, instantiator, objectFactory, fileSystem, false, defaultLinksStrategy)
     }
 
     def "visit directory"() {
@@ -50,7 +53,7 @@ class CopyFileVisitorImplTest extends Specification {
 
         then:
         1 * instantiator.newInstance(DefaultFileCopyDetails.class, dirDetails, specResolver, objectFactory, fileSystem) >> defaultFileCopyDetails
-        1 * specResolver.getLinksStrategy() >> linksStrategy
+        2 * specResolver.getLinksStrategy() >> linksStrategy
         1 * action.processFile(defaultFileCopyDetails)
         0 * defaultFileCopyDetails.excluded
     }
@@ -66,7 +69,7 @@ class CopyFileVisitorImplTest extends Specification {
         then:
         1 * instantiator.newInstance(DefaultFileCopyDetails.class, dirDetails, specResolver, objectFactory, fileSystem) >> defaultFileCopyDetails
         1 * specResolver.getAllCopyActions() >> []
-        1 * specResolver.getLinksStrategy() >> linksStrategy
+        2 * specResolver.getLinksStrategy() >> linksStrategy
         1 * action.processFile(defaultFileCopyDetails)
         0 * defaultFileCopyDetails.excluded
     }
@@ -84,7 +87,7 @@ class CopyFileVisitorImplTest extends Specification {
         then:
         1 * instantiator.newInstance(DefaultFileCopyDetails.class, dirDetails, specResolver, objectFactory, fileSystem) >> defaultFileCopyDetails
         1 * specResolver.getAllCopyActions() >> [fileCopyAction1, fileCopyAction2]
-        1 * specResolver.getLinksStrategy() >> linksStrategy
+        2 * specResolver.getLinksStrategy() >> linksStrategy
         1 * action.processFile(defaultFileCopyDetails)
         1 * fileCopyAction1.execute(defaultFileCopyDetails)
         1 * fileCopyAction2.execute(defaultFileCopyDetails)
@@ -104,7 +107,7 @@ class CopyFileVisitorImplTest extends Specification {
         then:
         1 * instantiator.newInstance(DefaultFileCopyDetails.class, dirDetails, specResolver, objectFactory, fileSystem) >> defaultFileCopyDetails
         1 * specResolver.getAllCopyActions() >> [fileCopyAction1, fileCopyAction2]
-        1 * specResolver.getLinksStrategy() >> linksStrategy
+        2 * specResolver.getLinksStrategy() >> linksStrategy
         0 * action.processFile(defaultFileCopyDetails)
         1 * fileCopyAction1.execute(defaultFileCopyDetails)
         1 * defaultFileCopyDetails.excluded >> true

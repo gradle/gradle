@@ -17,10 +17,13 @@ package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
+
+import java.util.function.Supplier;
 
 public class CopySpecActionImpl implements Action<CopySpecResolver> {
     private final CopyActionProcessingStreamAction action;
@@ -28,18 +31,27 @@ public class CopySpecActionImpl implements Action<CopySpecResolver> {
     private final ObjectFactory objectFactory;
     private final FileSystem fileSystem;
     private final boolean reproducibleFileOrder;
+    private final Supplier<LinksStrategy> defaultLinksStrategy;
 
-    public CopySpecActionImpl(CopyActionProcessingStreamAction action, Instantiator instantiator, ObjectFactory objectFactory, FileSystem fileSystem, boolean reproducibleFileOrder) {
+    public CopySpecActionImpl(
+        CopyActionProcessingStreamAction action,
+        Instantiator instantiator,
+        ObjectFactory objectFactory,
+        FileSystem fileSystem,
+        boolean reproducibleFileOrder,
+        Supplier<LinksStrategy> defaultLinksStrategy
+    ) {
         this.action = action;
         this.instantiator = instantiator;
         this.objectFactory = objectFactory;
         this.fileSystem = fileSystem;
         this.reproducibleFileOrder = reproducibleFileOrder;
+        this.defaultLinksStrategy = defaultLinksStrategy;
     }
 
     @Override
     public void execute(final CopySpecResolver specResolver) {
         FileTree source = specResolver.getSource();
-        source.visit(new CopyFileVisitorImpl(specResolver, action, instantiator, objectFactory, fileSystem, reproducibleFileOrder));
+        source.visit(new CopyFileVisitorImpl(specResolver, action, instantiator, objectFactory, fileSystem, reproducibleFileOrder, defaultLinksStrategy));
     }
 }

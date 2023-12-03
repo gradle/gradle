@@ -49,11 +49,21 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
 
     @Override
     public Set<File> getFiles() {
+        return getFiles(LinksStrategy.FOLLOW);
+    }
+
+    @Override
+    public Set<File> getFiles(LinksStrategy linksStrategy) {
         final Set<File> files = new LinkedHashSet<File>();
         visit(new EmptyFileVisitor() {
             @Override
             public void visitFile(FileVisitDetails fileDetails) {
                 files.add(fileDetails.getFile());
+            }
+
+            @Override
+            public LinksStrategy linksStrategy() {
+                return linksStrategy;
             }
         });
         return files;

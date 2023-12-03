@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.collections;
 import org.gradle.api.Buildable;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.internal.file.AbstractFileTree;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -53,7 +54,11 @@ public final class FileTreeAdapter extends AbstractFileTree {
     @Override
     public Set<File> getFiles() {
         listener.fileCollectionObserved(this);
-        return super.getFiles();
+        if (tree.isArchive()) {
+            // typically, this is `.each` call, and previously Gradle didn't trigger an error
+            return super.getFiles(LinksStrategy.PRESERVE_ALL);
+        }
+        return super.getFiles(LinksStrategy.FOLLOW);
     }
 
     public MinimalFileTree getTree() {

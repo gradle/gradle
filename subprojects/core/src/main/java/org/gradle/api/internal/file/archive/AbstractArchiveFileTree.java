@@ -53,4 +53,9 @@ import java.io.File;
     public void visitDependencies(TaskDependencyResolveContext context) {
         context.add(getBackingFileProvider());
     }
+
+    @Override
+    public boolean isArchive() {
+        return true;
+    }
 }

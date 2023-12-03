@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.file.SyncSpec;
 import org.gradle.api.tasks.util.PatternFilterable;
 
@@ -52,6 +53,8 @@ public interface CopySpecInternal extends SyncSpec {
     PatternFilterable getPreserve();
 
     CopySpecInternal preserve(Action<? super PatternFilterable> action);
+
+    LinksStrategy getDefaultLinksStrategy();
 
     /**
      * Listener triggered when a spec is added to the hierarchy.

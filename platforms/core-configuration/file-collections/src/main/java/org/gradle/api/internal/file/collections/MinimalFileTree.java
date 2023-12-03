@@ -38,6 +38,10 @@ public interface MinimalFileTree extends MinimalFileCollection {
 
     void visitStructure(MinimalFileTreeStructureVisitor visitor, FileTreeInternal owner);
 
+    default boolean isArchive() {
+        return false;
+    }
+
     interface MinimalFileTreeStructureVisitor {
 
         /**

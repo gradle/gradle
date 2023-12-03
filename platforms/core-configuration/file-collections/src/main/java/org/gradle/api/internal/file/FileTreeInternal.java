@@ -17,8 +17,11 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.tasks.util.PatternFilterable;
 
+import java.io.File;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public interface FileTreeInternal extends FileTree, FileCollectionInternal {
@@ -28,4 +31,17 @@ public interface FileTreeInternal extends FileTree, FileCollectionInternal {
 
     @Override
     FileTreeInternal matching(PatternFilterable patterns);
+
+    /**
+     * Returns the contents of this tree as a flattened Set.
+     *
+     * <p>The order of the files in a {@code FileTree} is not stable, even on a single computer.
+     *
+     * @param linksStrategy The strategy to use for handling symbolic links.
+     * @return The files. Returns an empty set if this tree is empty.
+     * @since 8.6
+     */
+    default Set<File> getFiles(LinksStrategy linksStrategy) {
+        return getFiles(); //no-op
+    }
 }

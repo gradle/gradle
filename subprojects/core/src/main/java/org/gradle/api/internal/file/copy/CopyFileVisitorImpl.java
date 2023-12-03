@@ -25,6 +25,8 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 
+import java.util.function.Supplier;
+
 public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
     private final CopySpecResolver copySpecResolver;
     private final CopyActionProcessingStreamAction action;
@@ -36,7 +38,7 @@ public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
 
     public CopyFileVisitorImpl(
         CopySpecResolver spec, CopyActionProcessingStreamAction action, Instantiator instantiator, ObjectFactory objectFactory, FileSystem fileSystem,
-        boolean reproducibleFileOrder
+        boolean reproducibleFileOrder, Supplier<LinksStrategy> defaultLinksStrategy
     ) {
         this.copySpecResolver = spec;
         this.action = action;
@@ -44,7 +46,11 @@ public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
         this.objectFactory = objectFactory;
         this.fileSystem = fileSystem;
         this.reproducibleFileOrder = reproducibleFileOrder;
-        this.linksStrategy = copySpecResolver.getLinksStrategy().getOrElse(LinksStrategy.FOLLOW);
+        if (copySpecResolver.getLinksStrategy().isPresent()) {
+            this.linksStrategy = copySpecResolver.getLinksStrategy().get();
+        } else {
+            this.linksStrategy = defaultLinksStrategy.get();
+        }
     }
 
     @Override
