@@ -114,7 +114,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     private static final JvmVersionDetector JVM_VERSION_DETECTOR = GLOBAL_SERVICES.get(JvmVersionDetector.class);
 
-    protected final static Set<String> PROPAGATED_SYSTEM_PROPERTIES = new HashSet();
+    protected final static Set<String> PROPAGATED_SYSTEM_PROPERTIES = new HashSet<>();
 
     // TODO - don't use statics to communicate between the test runner and executer
     public static void propagateSystemProperty(String name) {

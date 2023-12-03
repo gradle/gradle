@@ -76,7 +76,7 @@ Actual: \${actual[key]}
     }
 
     static List<String> buildEnvironment(TestFile testDirectory) {
-        Map<String, String> envvars = new HashMap()
+        Map<String, String> envvars = new HashMap<>()
         envvars.putAll(System.getenv())
 
         Properties props = GUtil.loadProperties(testDirectory.file("gradle-environment"))
