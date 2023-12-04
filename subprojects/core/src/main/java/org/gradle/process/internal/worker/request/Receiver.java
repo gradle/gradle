@@ -17,30 +17,41 @@
 package org.gradle.process.internal.worker.request;
 
 import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.dispatch.StreamCompletion;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
+import org.gradle.process.internal.worker.DefaultWorkerLoggingProtocol;
+import org.gradle.process.internal.worker.DefaultWorkerProblemProtocol;
 import org.gradle.process.internal.worker.WorkerProcessException;
+import org.gradle.process.internal.worker.child.WorkerLoggingProtocol;
+import org.gradle.process.internal.worker.problem.WorkerProblemProtocol;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-public class Receiver implements WorkerActionStatusProtocol, StreamCompletion, StreamFailureHandler {
+/**
+ * Receives and handles messages about a given worker action executed by a worker process.
+ * <p>
+ * This receiver is used per worker action.
+ */
+public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailureHandler {
     private static final Object NULL = new Object();
     private static final Object END = new Object();
     private final BlockingQueue<Object> received = new ArrayBlockingQueue<Object>(10);
     private final String baseName;
-    private final OutputEventListener outputEventListener;
     private Object next;
 
+    // Sub-handlers for the different protocols implemented by ResponseProtocol
+    private final WorkerLoggingProtocol loggingProtocol;
+    private final WorkerProblemProtocol problemProtocol;
+
     public Receiver(String baseName, OutputEventListener outputEventListener) {
+        this.loggingProtocol = new DefaultWorkerLoggingProtocol(outputEventListener);
+        this.problemProtocol = new DefaultWorkerProblemProtocol();
         this.baseName = baseName;
-        this.outputEventListener = outputEventListener;
     }
 
     public boolean awaitNextResult() {
@@ -107,20 +118,18 @@ public class Receiver implements WorkerActionStatusProtocol, StreamCompletion, S
 
     @Override
     public void reportProblem(Problem problem) {
-        InternalProblems problems = (InternalProblems) ProblemsProgressEventEmitterHolder.get();
-        problems.report(problem);
+        problemProtocol.reportProblem(problem);
     }
 
     @Override
     public void sendOutputEvent(LogEvent event) {
-
+        loggingProtocol.sendOutputEvent(event);
     }
 
     @Override
     public void sendOutputEvent(StyledTextOutputEvent event) {
-
+        loggingProtocol.sendOutputEvent(event);
     }
-
 
     static class Failure {
         final Throwable failure;

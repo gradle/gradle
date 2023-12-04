@@ -14,29 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal.worker.problem;
+package org.gradle.process.internal.worker;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemEmitter;
 import org.gradle.api.problems.internal.DefaultProblem;
+import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
+import org.gradle.process.internal.worker.problem.WorkerProblemProtocol;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * Worker-side implementation of {@link ProblemEmitter}.
+ * Default daemon-side implementation of {@link WorkerProblemProtocol}.
  * <p>
- * This emitter will use the {@link WorkerProblemProtocol} to communicate problems to the daemon.
+ * This implementation will take care of reporting problems received from the worker.
  */
-@NonNullApi
-public class WorkerProblemEmitter implements ProblemEmitter {
-    private final WorkerProblemProtocol protocol;
-
-    public WorkerProblemEmitter(WorkerProblemProtocol protocol) {
-        this.protocol = protocol;
-    }
+public class DefaultWorkerProblemProtocol implements WorkerProblemProtocol {
 
     @Override
-    public void emit(Problem problem) {
+    public void reportProblem(@NotNull Problem problem) {
         System.out.println("Reporter BOID: " + ((DefaultProblem)problem).getBuildOperationId().getId());
-        protocol.reportProblem(problem);
+
+        InternalProblems problems = (InternalProblems) ProblemsProgressEventEmitterHolder.get();
+        problems.report(problem);
     }
 }

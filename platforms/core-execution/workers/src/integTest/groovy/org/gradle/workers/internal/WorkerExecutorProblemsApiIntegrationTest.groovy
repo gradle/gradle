@@ -22,16 +22,14 @@ import org.gradle.workers.fixtures.WorkerExecutorFixture
 
 class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
-    def setupCompilation(Jvm javaVersion) {
+    def forkingOptions(Jvm javaVersion) {
         if (javaVersion == null) {
             return ""
         } else {
             return """
-                tasks.withType(JavaCompile) {
-                    options.fork = true
-                    // We don't use toolchains here for consistency with the rest of the test suite
-                    options.forkOptions.javaHome = file('${javaVersion.javaHome}')
-                }
+                options.fork = true
+                // We don't use toolchains here for consistency with the rest of the test suite
+                options.forkOptions.javaHome = file('${javaVersion.javaHome}')
             """
         }
 
@@ -47,7 +45,9 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
                 implementation(gradleApi())
             }
 
-            ${setupCompilation(javaVersion)}
+            tasks.withType(JavaCompile) {
+                ${forkingOptions(javaVersion)}
+            }
         """
         file('buildSrc/src/main/java/org/gradle/test/ProblemsWorkerTaskParameter.java') << """
             package org.gradle.test;

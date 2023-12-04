@@ -203,24 +203,17 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     public WorkerProcess build() {
         final WorkerJvmMemoryStatus memoryStatus = shouldPublishJvmMemoryInfo ? new WorkerJvmMemoryStatus() : null;
         final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(connectTimeoutSeconds, TimeUnit.SECONDS, memoryStatus);
-        ConnectionAcceptor acceptor = server.accept(new Action<ObjectConnection>() {
-            @Override
-            public void execute(final ObjectConnection connection) {
-                workerProcess.onConnect(connection, new Runnable() {
-                    @Override
-                    public void run() {
-                        DefaultWorkerLoggingProtocol defaultWorkerLoggingProtocol = new DefaultWorkerLoggingProtocol(outputEventListener);
-                        connection.useParameterSerializers(WorkerLoggingSerializer.create());
-                        connection.addIncoming(WorkerLoggingProtocol.class, defaultWorkerLoggingProtocol);
+        ConnectionAcceptor acceptor = server.accept(connection ->
+            workerProcess.onConnect(connection, () -> {
+                DefaultWorkerLoggingProtocol defaultWorkerLoggingProtocol = new DefaultWorkerLoggingProtocol(outputEventListener);
+                connection.useParameterSerializers(WorkerLoggingSerializer.create());
+                connection.addIncoming(WorkerLoggingProtocol.class, defaultWorkerLoggingProtocol);
 
-                        if (shouldPublishJvmMemoryInfo) {
-                            connection.useParameterSerializers(WorkerJvmMemoryInfoSerializer.create());
-                            connection.addIncoming(WorkerJvmMemoryInfoProtocol.class, memoryStatus);
-                        }
-                    }
-                });
-            }
-        });
+                if (shouldPublishJvmMemoryInfo) {
+                    connection.useParameterSerializers(WorkerJvmMemoryInfoSerializer.create());
+                    connection.addIncoming(WorkerJvmMemoryInfoProtocol.class, memoryStatus);
+                }
+            }));
         workerProcess.startAccepting(acceptor);
         Address localAddress = acceptor.getAddress();
 

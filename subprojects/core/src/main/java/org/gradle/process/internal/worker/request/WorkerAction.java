@@ -44,10 +44,13 @@ import java.util.Collections;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 
+/**
+ * Worker-side implementation of {@link RequestProtocol} executing actions.
+ */
 public class WorkerAction implements Action<WorkerProcessContext>, Serializable, RequestProtocol, StreamFailureHandler, Stoppable, StreamCompletion {
     private final String workerImplementationName;
     private transient CountDownLatch completed;
-    private transient WorkerActionStatusProtocol workStatus;
+    private transient ResponseProtocol workStatus;
     private transient WorkerLogEventListener workerLogEventListener;
     private transient RequestHandler<Object, Object> implementation;
     private transient InstantiatorFactory instantiatorFactory;
@@ -63,7 +66,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
 
         ObjectConnection connection = workerProcessContext.getServerConnection();
         connection.addIncoming(RequestProtocol.class, this);
-        workStatus = connection.addOutgoing(WorkerActionStatusProtocol.class);
+        workStatus = connection.addOutgoing(ResponseProtocol.class);
         workerLogEventListener = workerProcessContext.getServiceRegistry().get(WorkerLogEventListener.class);
 
         RequestArgumentSerializers argumentSerializers = new RequestArgumentSerializers();
