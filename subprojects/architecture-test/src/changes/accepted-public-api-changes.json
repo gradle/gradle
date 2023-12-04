@@ -1,3 +1,20 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.file.ConfigurableFileCollection",
+            "member": "Class org.gradle.api.file.ConfigurableFileCollection",
+            "acceptation": "added SupportsConvention",
+            "changes": [
+                "org.gradle.api.provider.SupportsConvention"
+            ]
+        },
+        {
+            "type": "org.gradle.api.provider.Property",
+            "member": "Class org.gradle.api.provider.Property",
+            "acceptation": "added SupportsConvention",
+            "changes": [
+                "org.gradle.api.provider.SupportsConvention"
+            ]
+        }
+    ]
 }
