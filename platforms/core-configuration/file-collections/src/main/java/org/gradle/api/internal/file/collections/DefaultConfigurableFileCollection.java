@@ -221,21 +221,23 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
 
     @Override
-    public void setConvention(Iterable<?> paths) {
+    public ConfigurableFileCollection convention(Iterable<?> paths) {
         assertMutable();
         if (value instanceof EmptyCollector) {
             valueState.implicitValue();
         }
         value = valueState.applyConvention(value, newValue(EMPTY_COLLECTOR, paths));
+        return this;
     }
 
     @Override
-    public void setConvention(Object... paths) {
+    public ConfigurableFileCollection convention(Object... paths) {
         assertMutable();
         if (value instanceof EmptyCollector) {
             valueState.implicitValue();
         }
         value = valueState.applyConvention(value, newValue(EMPTY_COLLECTOR, paths));
+        return this;
     }
 
     @Override

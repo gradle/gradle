@@ -60,10 +60,12 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      * to resolve this file collection.
      *
      * @param paths The paths.
+     * @return this collection
+     *
      * @since 8.6
      */
     @Incubating
-    void setConvention(Iterable<?> paths);
+    ConfigurableFileCollection convention(Iterable<?> paths);
 
     /**
      * Specifies the value to use as the convention (default value) to be used when resolving this file collection,
@@ -73,11 +75,12 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      * to resolve this file collection.
      *
      * @param paths The paths.
+     * @return this collection
      *
      * @since 8.6
      */
     @Incubating
-    void setConvention(Object... paths);
+    ConfigurableFileCollection convention(Object... paths);
 
 
     /**

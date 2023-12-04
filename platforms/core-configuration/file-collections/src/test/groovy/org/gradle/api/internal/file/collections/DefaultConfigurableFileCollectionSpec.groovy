@@ -73,7 +73,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
     def "can set paths as convention to the collection"() {
         when:
-        collection.setConvention("src1", "src2")
+        collection.convention("src1", "src2")
         then:
         collection.from as List == ["src1", "src2"]
     }
@@ -81,7 +81,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
     def "conventions are ignored if a value is explicitly set"() {
         when:
         collection.from("src3")
-        collection.setConvention("src1", "src2")
+        collection.convention("src1", "src2")
         then:
         collection.from as List == ["src3"]
     }
@@ -89,7 +89,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
     def "conventions are brought back if explicit value is unset"() {
         when:
         collection.from("src3")
-        collection.setConvention("src1", "src2")
+        collection.convention("src1", "src2")
         then:
         collection.from as List == ["src3"]
 
