@@ -35,9 +35,18 @@ import java.util.function.Consumer;
 import static java.util.Objects.requireNonNull;
 
 /**
- * A base class that represents a work for compilation of Kotlin and Groovy scripts.
+ * A base class that represents a work for compilation for Kotlin and Groovy scripts.
  */
 public class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWork {
+
+    public enum BuildScriptLanguage {
+        GROOVY,
+        KOTLIN
+    }
+
+    private static final String BUILD_SCRIPT_LANGUAGE = "buildScriptLanguage";
+
+    private final BuildScriptLanguage language;
     private final String displayName;
     private final BuildScriptCompileInputs inputs;
     private final ImmutableWorkspaceProvider workspaceProvider;
@@ -46,6 +55,7 @@ public class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWork {
     private final Consumer<File> compileAction;
 
     public BuildScriptCompileUnitOfWork(
+        BuildScriptLanguage language,
         String displayName,
         BuildScriptCompileInputs inputs,
         ImmutableWorkspaceProvider workspaceProvider,
@@ -53,6 +63,7 @@ public class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWork {
         InputFingerprinter inputFingerprinter,
         Consumer<File> compileAction
     ) {
+        this.language = language;
         this.displayName = displayName;
         this.inputs = inputs;
         this.workspaceProvider = workspaceProvider;
@@ -68,6 +79,7 @@ public class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWork {
 
     @Override
     public void visitIdentityInputs(InputVisitor visitor) {
+        visitor.visitInputProperty(BUILD_SCRIPT_LANGUAGE, language::name);
         inputs.visitIdentityInputs(visitor);
     }
 

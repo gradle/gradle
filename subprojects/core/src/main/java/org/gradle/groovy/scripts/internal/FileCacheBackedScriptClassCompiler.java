@@ -41,6 +41,7 @@ import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork;
 import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork.BuildScriptCompileInputs;
+import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork.BuildScriptLanguage;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
@@ -136,6 +137,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             visitor.visitInputProperty(CLASSPATH_PROPERTY_NAME, () -> classLoaderHierarchyHasher.getClassLoaderHash(classLoader));
         };
         UnitOfWork unitOfWork = new BuildScriptCompileUnitOfWork(
+            BuildScriptLanguage.GROOVY,
             unitOfWorkDisplayName,
             inputs,
             workspaceProvider,

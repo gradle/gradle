@@ -43,6 +43,7 @@ import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork
 import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork.BuildScriptCompileInputs
+import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork.BuildScriptLanguage
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
@@ -318,6 +319,7 @@ class StandardKotlinScriptEvaluator(
             visitor.visitInputProperty(ACCESSORS_CLASS_PATH) { classpathHasher.hash(accessorsClassPath) }
         }
         return BuildScriptCompileUnitOfWork(
+            BuildScriptLanguage.KOTLIN,
             displayName,
             inputs,
             workspaceProvider.scripts,
