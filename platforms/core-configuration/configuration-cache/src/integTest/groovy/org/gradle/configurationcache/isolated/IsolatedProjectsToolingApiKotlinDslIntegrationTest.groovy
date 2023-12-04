@@ -29,6 +29,7 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
         withSettings("""
             include("a")
         """)
+        withBuildScript()
         withBuildScriptIn("a")
 
         when: "fetching without Isolated Projects"
@@ -43,7 +44,7 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
 
         then:
         fixture.assertStateStored {
-            modelsCreated(":", 4)
+            modelsCreated(":", 5)
             modelsCreated(":a", 2)
         }
 
