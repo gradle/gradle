@@ -118,12 +118,10 @@ platforms:
     subprojects:
       - 'platforms/core-execution/'
       - 'platforms/core-runtime/build-operations/'
-      - 'subprojects/build-profile/'
   - core_runtime:
     name: 'core_runtime'
     subprojects:
       - 'platforms/core-runtime/'
-      - 'subprojects/installation-beacon/'
   - documentation:
     name: 'documentation'
     subprojects:

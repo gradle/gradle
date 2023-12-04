@@ -113,7 +113,7 @@
   },
   {
     "name": "build-profile",
-    "path": "subprojects/build-profile",
+    "path": "platforms/core-runtime/build-profile",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -183,14 +183,14 @@
   },
   {
     "name": "distributions-basics",
-    "path": "subprojects/distributions-basics",
+    "path": "platforms/core-runtime/distributions-basics",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "distributions-core",
-    "path": "subprojects/distributions-core",
+    "path": "platforms/core-runtime/distributions-core",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -379,7 +379,7 @@
   },
   {
     "name": "installation-beacon",
-    "path": "subprojects/installation-beacon",
+    "path": "platforms/core-runtime/installation-beacon",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -393,7 +393,7 @@
   },
   {
     "name": "instrumentation-declarations",
-    "path": "subprojects/instrumentation-declarations",
+    "path": "platforms/core-runtime/instrumentation-declarations",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
