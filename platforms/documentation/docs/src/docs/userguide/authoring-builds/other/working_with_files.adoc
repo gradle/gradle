@@ -652,6 +652,26 @@ Default permissions differ for files and directories:
  * *file*: read & write for *owner*, read for *group*, read for *other* (*0644*, *rw-r--r--*)
  * *directory*: read, write & execute for *owner*, read & execute for *group*, read & execute for *other* (*0755*, *rwxr-xr-x*)
 
+[[sec:symlinks]]
+=== Dealing with symbolic links
+
+By default, when copying files, Gradle will copy the contents of a symlink rather than the symlink itself.
+If you want to copy the symlink as is, you can use the `linksStrategy` property on the `CopySpec` to control how symlinks are handled.
+The following example demonstrates how to copy all symlinks as symlinks:
+
+====
+include::sample[dir="snippets/files/copy/kotlin",files="build.gradle.kts[tags=symlinks]"]
+include::sample[dir="snippets/files/copy/groovy",files="build.gradle[tags=symlinks]"]
+====
+
+The available values for `linksStrategy` are:
+
+* `LinksStrategy.FOLLOW` (default): treat any symlink as a file it points to.
+* `LinksStrategy.ERROR`: fail the copy if a symlink is encountered.
+* `LinksStrategy.PRESERVE_ALL`: copy any symlink "as is".
+* `LinksStrategy.PRESERVE_RELATIVE` copy a symlink "as is" if it's relative and points to a file within copy root; otherwise fail the copy.
+Default for <<sec:symlinks_archives>>.
+
 [[sec:using_the_copyspec_class]]
 === Using the `CopySpec` class
 
@@ -926,3 +946,20 @@ include::sample[dir="snippets/files/archives/groovy",files="build.gradle[tags=re
 
 Often you will want to publish an archive, so that it is usable from another project.
 This process is described in <<cross_project_publications.adoc#cross_project_publications,Cross-Project publications>>.
+
+[[sec:symlinks_archives]]
+=== Symbolic links in archives
+
+Archives tasks support <<#sec:symlinks,`linksStrategy` property>>.
+
+Note: if any source of a spec is an archive ([`zipTree`](javadoc/org/gradle/api/file/ArchiveOperations.html#zipTree-java.lang.Object-) or [`tarTree`](javadoc/org/gradle/api/file/ArchiveOperations.html#tarTree-java.lang.Object-), to be more specific), then the default value is `LinksStrategy.PRESERVE_RELATIVE`.
+
+Since an archive is treated as a self-contained file system, some scenarios have limited support.
+Specifically, no link would be followed if it points outside the archive.
+To mitigate that, either exclude them or use `LinksStrategy.PRESERVE_ALL` and another copy task to achieve the desired result.
+
+Another caveat for symlinks handling is related to tar archives.
+Since they are essentially a data stream and do not support random access, it is impossible to follow a symlink to a file that is not processed yet.
+Thus, unless `LinksStrategy.PRESERVE_ALL` is used, all symlinks will be processed after all regular files.
+To know which files are symlink targets and need copying if `LinksStrategy.FOLLOW` is used, the metadata of the archive needs to be collected, so an additional pass over the archive is required.
+In other words, unpacking a tar with `LinksStrategy.FOLLOW` would be significantly slower than `LinksStrategy.PRESERVE_ALL`.

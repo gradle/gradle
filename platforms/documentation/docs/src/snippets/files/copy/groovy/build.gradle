@@ -244,6 +244,14 @@ tasks.register('permissions', Copy) {
 }
 // end::file-permissions[]
 
+// tag::symlinks
+tasks.register('symlinks', Copy) {
+    from("input")
+    into("output")
+    linksStrategy = LinksStrategy.PRESERVE_ALL
+}
+// end::symlinks
+
 tasks.register('test') {
     dependsOn tasks.withType(Copy)
     dependsOn copyMethod

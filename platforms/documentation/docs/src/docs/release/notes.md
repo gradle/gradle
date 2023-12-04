@@ -108,8 +108,62 @@ Names of the generated convention plugins now start with `buildlogic` instead of
 
 Projects generated with Kotlin DSL scripts now use [simple property assignment](/8.4/release-notes.html#assign-stable) syntax with the `=` operator.
 
-<a name="other-improvements"></a>
+<a name="symlinks"></a>
+### Symlinks support in Copy tasks
 
+One of the core principles of Gradle is to treat a symbolic link as the file it points to.
+However, there are some cases when this approach is not desirable.
+One of the common use cases is packing or unpacking archives with symlinks: symlinks help reduce archive size and speed up the packing process.
+The same can be said about copying files with symlinks: copying a symlink is much faster than a file or a directory.
+
+This release presents a new property to [`CopySpec`](javadoc/org/gradle/api/file/CopySpec.html): `linksStrategy`.
+Using this property, you can control how symlinks are handled during the copy process.
+
+The default value of `linksStrategy` for a regular copy task is `LinksStrategy.FOLLOW`, which preserves the existing behavior of Gradle, following every symlink.
+If the source file is an archive ([`zipTree`](javadoc/org/gradle/api/file/ArchiveOperations.html#zipTree-java.lang.Object-)
+or [`tarTree`](javadoc/org/gradle/api/file/ArchiveOperations.html#tarTree-java.lang.Object-)), then the default value is `LinksStrategy.PRESERVE_RELATIVE`.
+With this strategy, symlinks from the archive are preserved unless they are pointing to a location outside the archive.
+`LinksStrategy.ERROR` fails on any symlink, and `LinksStrategy.PRESERVE_ALL` preserves all symlinks.
+
+For example, this directory structure
+
+```
+--- input
+    --- file.txt // "Some text"
+    --- symlink -> file.txt
+```
+
+would be copied to the following directory structure
+
+```
+--- output
+    --- file.txt // "Some text"
+    --- symlink // "Some text"
+```
+
+using this task:
+
+```groovy
+tasks.register('doCopy', Copy) {
+    from("input")
+    into("output")
+    linksStrategy = LinksStrategy.FOLLOW
+}
+```
+
+```kotlin
+tasks.register<Copy>("doCopy") {
+    from("input")
+    into("output")
+    linksStrategy = LinksStrategy.FOLLOW
+}
+```
+
+The same directory structure would be copied "as is" with `LinksStrategy.PRESERVE_ALL` and `LinksStrategy.PRESERVE_RELATIVE`.
+
+See more details in the [User Manual](userguide/working_with_files.html#symlinks).
+
+<a name="other-improvements"></a>
 ### Other improvements
 
 #### Gradle encryption key via an environment variable
