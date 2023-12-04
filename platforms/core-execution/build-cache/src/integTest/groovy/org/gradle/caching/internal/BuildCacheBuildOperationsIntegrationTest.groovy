@@ -315,24 +315,33 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
             tasks.create("t", CustomTask).paths << "out1" << "out2"
         """
 
-        if (expectDeprecation) {
-            executer.expectDeprecationWarning()
-        }
-
         when:
         succeeds("t")
 
         then:
         def remoteMissLoadOp = operations.only(BuildCacheRemoteLoadBuildOperationType)
+        if (localEnabled) {
+            operations.only(BuildCacheLocalLoadBuildOperationType)
+        } else {
+            operations.none(BuildCacheLocalLoadBuildOperationType)
+        }
+
         def packOp = operations.only(BuildCacheArchivePackBuildOperationType)
         def remoteStoreOp = operations.only(BuildCacheRemoteStoreBuildOperationType)
+        def cacheKey = packOp.details.cacheKey
 
-        packOp.details.cacheKey == remoteStoreOp.details.cacheKey
-        def localCacheArtifact = localCache.cacheArtifact(packOp.details.cacheKey.toString())
+        remoteStoreOp.details.cacheKey == cacheKey
+
+        def localCacheArtifact = localCache.cacheArtifact(cacheKey.toString())
         if (localStore) {
             assert packOp.result.archiveSize == localCacheArtifact.length()
+            def localStoreOp = operations.only(BuildCacheLocalStoreBuildOperationType)
+            assert localStoreOp.details.cacheKey == cacheKey
+            assert localStoreOp.details.archiveSize == localCacheArtifact.length()
+            assert localStoreOp.result.stored
         } else {
             assert !localCacheArtifact.exists()
+            operations.none(BuildCacheLocalStoreBuildOperationType)
         }
 
         packOp.result.archiveEntryCount == 5
@@ -341,10 +350,10 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         operations.orderedSerialSiblings(remoteMissLoadOp, packOp, remoteStoreOp)
 
         where:
-        localStore | expectDeprecation | config
-        true       | false             | "remote($remoteCacheClass) { push = true }"
-        false      | false             | "local.push = false; remote($remoteCacheClass) { push = true }"
-        false      | false             | "local.enabled = false; remote($remoteCacheClass) { push = true }"
+        localStore | localEnabled | config
+        true       | true         | "remote($remoteCacheClass) { push = true }"
+        false      | true         | "local.push = false; remote($remoteCacheClass) { push = true }"
+        false      | false        | "local.enabled = false; remote($remoteCacheClass) { push = true }"
     }
 
     def "records ops for remote hit"() {
