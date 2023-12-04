@@ -68,7 +68,7 @@ data class KotlinBuildScriptModelParameter(
     val correlationId: String?,
     val locationAwareHints: Boolean,
     val sourceSetClassPath: SourceSetClassPath? = null,
-)
+) : Serializable
 
 
 internal

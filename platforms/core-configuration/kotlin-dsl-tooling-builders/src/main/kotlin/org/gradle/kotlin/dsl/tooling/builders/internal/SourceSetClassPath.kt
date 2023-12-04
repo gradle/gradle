@@ -23,14 +23,18 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.kotlin.dsl.typeOf
 import java.io.File
+import java.io.Serializable
 
 
 internal
-sealed interface SourceSetClassPath
+sealed interface SourceSetClassPath : Serializable
 
 
 internal
-object NoSourceSet : SourceSetClassPath
+object NoSourceSet : SourceSetClassPath {
+    private
+    fun readResolve(): Any = NoSourceSet
+}
 
 
 internal

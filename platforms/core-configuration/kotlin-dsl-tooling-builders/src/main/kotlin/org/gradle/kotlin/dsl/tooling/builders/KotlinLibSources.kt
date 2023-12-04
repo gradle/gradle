@@ -31,13 +31,14 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.language.base.artifact.SourcesArtifact
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
+import java.io.Serializable
 
 
 internal
 data class ScriptSourcePathRequestParameter(
     val skipDependencies: Set<ComponentIdentifier>,
     val resolveKotlinLibSources: Boolean
-)
+) : Serializable
 
 
 internal
