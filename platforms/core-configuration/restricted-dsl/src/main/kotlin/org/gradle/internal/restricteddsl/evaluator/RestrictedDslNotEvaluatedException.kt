@@ -21,11 +21,9 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionError
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.FailingResult
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.MultipleFailuresResult
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedConstruct
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.text
 import com.h0tk3y.kotlin.staticObjectNotation.language.LanguageTreeElement
+import com.h0tk3y.kotlin.staticObjectNotation.language.SourceData
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTraceElement
-import kotlinx.ast.common.ast.Ast
-import kotlinx.ast.common.ast.astInfoOrNull
 import org.gradle.api.GradleException
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure
@@ -83,7 +81,7 @@ class RestrictedDslNotEvaluatedException(
     private
     fun formatUnsupportedConstruct(unsupportedConstruct: UnsupportedConstruct) =
         // TODO: use a proper phrase instead of the feature enum value name
-        "${astLocationPrefixString(unsupportedConstruct.erroneousAst)}: unsupported language feature: ${unsupportedConstruct.languageFeature}"
+        "${astLocationPrefixString(unsupportedConstruct.erroneousSource)}: unsupported language feature: ${unsupportedConstruct.languageFeature}"
 
     private
     fun formatResolutionError(resolutionError: ResolutionError): String =
@@ -107,7 +105,7 @@ class RestrictedDslNotEvaluatedException(
         ErrorReason.UnitAssignment -> "assignment of a Unit value"
         ErrorReason.UnresolvedAssignmentLhs -> "unresolved assignment target"
         ErrorReason.UnresolvedAssignmentRhs -> "unresolved assigned value"
-        is ErrorReason.UnresolvedReference -> "unresolved reference '${errorReason.reference.originAst.text}'"
+        is ErrorReason.UnresolvedReference -> "unresolved reference '${errorReason.reference.sourceData.text()}'"
         ErrorReason.UnusedConfigureLambda -> "a configuring block is not expected"
         is ErrorReason.ValReassignment -> "assignment to a local 'val ${errorReason.localVal.name}'"
         is ErrorReason.UnresolvedFunctionCallArguments -> "unresolved function call arguments for '${errorReason.functionCall.name}'"
@@ -121,11 +119,11 @@ class RestrictedDslNotEvaluatedException(
 
     private
     fun elementLocationString(languageTreeElement: LanguageTreeElement): String =
-        astLocationPrefixString(languageTreeElement.originAst)
+        astLocationPrefixString(languageTreeElement.sourceData)
 
     private
-    fun astLocationPrefixString(ast: Ast): String =
-        ast.astInfoOrNull?.start?.toString().orEmpty()
+    fun astLocationPrefixString(ast: SourceData): String =
+        if (ast.lineRange.first != -1) "${ast.lineRange.first}:${ast.startColumn}" else ""
 
     private
     fun String.indent(level: Int = 1) = " ".repeat(level * 2) + this

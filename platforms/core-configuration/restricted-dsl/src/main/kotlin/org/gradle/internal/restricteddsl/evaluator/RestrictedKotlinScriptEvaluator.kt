@@ -27,6 +27,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.FailingResult
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeBuilderWithTopLevelBlock
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeResult
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.parseToAst
+import com.h0tk3y.kotlin.staticObjectNotation.language.AstSourceIdentifier
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RestrictedReflectionToObjectConverter
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTraceElement
@@ -101,7 +102,7 @@ class DefaultRestrictedKotlinScriptEvaluator(
                 failureReasons += (NoParseResult)
                 return NotEvaluated(failureReasons)
             }
-        val languageModel = languageModelFromAst(ast)
+        val languageModel = languageModelFromAst(ast, scriptSource)
         val failures = languageModel.results.filterIsInstance<FailingResult>()
         if (failures.isNotEmpty()) {
             failureReasons += FailuresInLanguageTree(failures)
@@ -140,8 +141,8 @@ class DefaultRestrictedKotlinScriptEvaluator(
         }
 
     private
-    fun languageModelFromAst(ast: Ast): LanguageTreeResult =
-        languageTreeBuilder.build(ast)
+    fun languageModelFromAst(ast: Ast, scriptSource: ScriptSource): LanguageTreeResult =
+        languageTreeBuilder.build(ast, AstSourceIdentifier(ast, scriptSource.fileName))
 
     private
     val languageTreeBuilder = LanguageTreeBuilderWithTopLevelBlock(DefaultLanguageTreeBuilder())
