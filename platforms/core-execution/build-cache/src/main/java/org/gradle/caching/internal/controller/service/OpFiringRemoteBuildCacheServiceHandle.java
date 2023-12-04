@@ -24,7 +24,7 @@ import org.gradle.caching.internal.controller.operations.LoadOperationHitResult;
 import org.gradle.caching.internal.controller.operations.LoadOperationMissResult;
 import org.gradle.caching.internal.controller.operations.StoreOperationDetails;
 import org.gradle.caching.internal.controller.operations.StoreOperationResult;
-import org.gradle.caching.internal.operations.BuildCacheRemoteDisableProgressDetails;
+import org.gradle.caching.internal.operations.BuildCacheRemoteDisabledProgressDetails;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -98,16 +98,16 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
 
     @Override
     protected void onCacheDisabled(BuildCacheKey key, Operation operation, Throwable e) {
-        BuildCacheRemoteDisableProgressDetails.BuildCacheOperationType operationType = convertToBuildOperationType(operation);
-        buildOperationProgressEventEmitter.emitNowIfCurrent(new RemoteDisableProgressDetails(key, e, operationType));
+        BuildCacheRemoteDisabledProgressDetails.BuildCacheOperationType operationType = convertToBuildOperationType(operation);
+        buildOperationProgressEventEmitter.emitNowIfCurrent(new RemoteDisabledProgressDetails(key, e, operationType));
     }
 
-    private static BuildCacheRemoteDisableProgressDetails.BuildCacheOperationType convertToBuildOperationType(Operation operation) {
+    private static BuildCacheRemoteDisabledProgressDetails.BuildCacheOperationType convertToBuildOperationType(Operation operation) {
         switch (operation) {
             case LOAD:
-                return BuildCacheRemoteDisableProgressDetails.BuildCacheOperationType.LOAD;
+                return BuildCacheRemoteDisabledProgressDetails.BuildCacheOperationType.LOAD;
             case STORE:
-                return BuildCacheRemoteDisableProgressDetails.BuildCacheOperationType.STORE;
+                return BuildCacheRemoteDisabledProgressDetails.BuildCacheOperationType.STORE;
             default:
                 throw new IllegalStateException();
         }
@@ -161,12 +161,12 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
         }
     }
 
-    private class RemoteDisableProgressDetails implements BuildCacheRemoteDisableProgressDetails {
+    private class RemoteDisabledProgressDetails implements BuildCacheRemoteDisabledProgressDetails {
         private final BuildCacheKey key;
         private final Throwable e;
         private final BuildCacheOperationType operationType;
 
-        public RemoteDisableProgressDetails(BuildCacheKey key, Throwable e, BuildCacheOperationType operationType) {
+        public RemoteDisabledProgressDetails(BuildCacheKey key, Throwable e, BuildCacheOperationType operationType) {
             this.key = key;
             this.e = e;
             this.operationType = operationType;
