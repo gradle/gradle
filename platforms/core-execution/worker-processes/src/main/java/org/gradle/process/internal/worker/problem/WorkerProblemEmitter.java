@@ -19,7 +19,6 @@ package org.gradle.process.internal.worker.problem;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemEmitter;
-import org.gradle.api.problems.internal.DefaultProblem;
 
 /**
  * Worker-side implementation of {@link ProblemEmitter}.
@@ -36,7 +35,6 @@ public class WorkerProblemEmitter implements ProblemEmitter {
 
     @Override
     public void emit(Problem problem) {
-        System.out.println("Reporter BOID: " + ((DefaultProblem)problem).getBuildOperationId().getId());
         protocol.reportProblem(problem);
     }
 }
