@@ -145,7 +145,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         this.objects = objects;
         this.dependencyResolutionServicesSupplier = dependencyResolutionServicesSupplier;
         this.strictVersionParser = new StrictVersionParser(strings);
-        this.description = objects.property(String.class).convention("A catalog of dependencies accessible via the `" + name + "` extension.");
+        this.description = objects.property(String.class).convention("A catalog of dependencies accessible via the {@code " + name + "} extension.");
     }
 
     @Inject
