@@ -75,7 +75,7 @@ public abstract class ArchiveVisitor<ENTRY> {
 
     abstract @Nullable ENTRY getEntry(String path);
 
-    abstract FileVisitDetails createDetails(
+    abstract AbstractArchiveFileTreeElement<ENTRY, ? extends ArchiveVisitor<ENTRY>> createDetails(
         ENTRY entry,
         String targetPath,
         @Nullable ArchiveSymbolicLinkDetails<ENTRY> linkDetails,
@@ -136,25 +136,28 @@ public abstract class ArchiveVisitor<ENTRY> {
     }
 
     protected void visitEntry(ENTRY entry, String targetPath, boolean extract) {
-        ArchiveSymbolicLinkDetails<ENTRY> linkDetails = null;
-        if (isSymlink(entry)) {
-            linkDetails = new ArchiveSymbolicLinkDetails<>(entry, this);
-        }
-        boolean preserveLink = linksStrategy.shouldBePreserved(linkDetails, targetPath);
-        FileVisitDetails details = createDetails(entry, targetPath, linkDetails, preserveLink);
-        if (details.isDirectory()) {
-            visitor.visitDir(details);
-            if (isSymlink(entry)) {
-                @SuppressWarnings("DataFlowIssue") // if it is a dir, then it always has a target
+        if (!isSymlink(entry)) {
+            FileVisitDetails details = createDetails(entry, targetPath, null, false);
+            if (isDirectory(entry)) {
+                visitor.visitDir(details);
+            } else {
+                if (extract) {
+                    details.getFile();
+                }
+                visitor.visitFile(details);
+            }
+        } else {
+            ArchiveSymbolicLinkDetails<ENTRY> linkDetails = new ArchiveSymbolicLinkDetails<>(entry, this);
+            boolean preserveLink = linksStrategy.shouldBePreserved(linkDetails, targetPath);
+            FileVisitDetails details = createDetails(entry, targetPath, linkDetails, preserveLink);
+            if (details.isDirectory()) {
+                visitor.visitDir(details);
                 ENTRY targetEntry = linkDetails.getTargetEntry();
                 String originalPath = getPath(targetEntry);
                 visitRecursively(originalPath, targetPath + '/');
+            } else {
+                visitor.visitFile(details);
             }
-        } else {
-            if (extract) {
-                details.getFile();
-            }
-            visitor.visitFile(details);
         }
     }
 

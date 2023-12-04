@@ -19,7 +19,6 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
@@ -136,7 +135,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
                         visitor, stopFlag, chmod
                     );
                     tarVisitor.visitAll();
-                    if (linkTargets == null) {
+                    if (linkTargets == null && !stopFlag.get()) {
                         linkTargets = tarVisitor.getAllLinkTargets();
                     }
                     hasMetadata = !stopFlag.get();
@@ -377,7 +376,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
         }
 
         @Override
-        FileVisitDetails createDetails(
+        DetailsImpl createDetails(
             TarArchiveEntry tarArchiveEntry,
             String targetPath,
             @Nullable ArchiveSymbolicLinkDetails<TarArchiveEntry> linkDetails,

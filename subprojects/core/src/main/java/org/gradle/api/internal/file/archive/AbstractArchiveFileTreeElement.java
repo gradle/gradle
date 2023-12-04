@@ -19,12 +19,13 @@ package org.gradle.api.internal.file.archive;
 import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.file.SymbolicLinkDetails;
 import org.gradle.api.internal.file.CopyableFileTreeElement;
 import org.gradle.api.internal.file.DefaultFilePermissions;
 
 import javax.annotation.Nullable;
 import java.io.File;
+
+import static org.gradle.internal.file.PathTraversalChecker.safePathName;
 
 /**
  * An implementation of {@link org.gradle.api.file.FileTreeElement FileTreeElement} meant
@@ -37,9 +38,9 @@ public abstract class AbstractArchiveFileTreeElement<ENTRY, METADATA extends Arc
     protected final METADATA archiveMetadata;
     protected final ENTRY entry;
     protected final ENTRY resultEntry;
+    private final String targetPath;
     protected final ArchiveSymbolicLinkDetails<ENTRY> linkDetails;
     protected final boolean preserveLink;
-    private final RelativePath relativePath;
     private File file;
 
     protected AbstractArchiveFileTreeElement(
@@ -54,12 +55,12 @@ public abstract class AbstractArchiveFileTreeElement<ENTRY, METADATA extends Arc
         this.archiveMetadata = archiveMetadata;
         this.linkDetails = linkDetails;
         this.preserveLink = preserveLink;
+        this.targetPath = targetPath;
         this.resultEntry = getResultEntry();
-        this.relativePath = new RelativePath(!archiveMetadata.isDirectory(resultEntry), targetPath.split("/"));
     }
 
     protected ENTRY getResultEntry() {
-        if (archiveMetadata.isSymlink(entry) && !preserveLink && linkDetails.targetExists()) {
+        if (linkDetails != null && !preserveLink && linkDetails.targetExists()) {
             return linkDetails.getTargetEntry();
         } else {
             return entry;
@@ -79,7 +80,7 @@ public abstract class AbstractArchiveFileTreeElement<ENTRY, METADATA extends Arc
 
     @Override
     public RelativePath getRelativePath() {
-        return relativePath;
+        return new RelativePath(!isDirectory(), safePathName(targetPath).split("/"));
     }
 
     @Override
@@ -89,7 +90,7 @@ public abstract class AbstractArchiveFileTreeElement<ENTRY, METADATA extends Arc
 
     @Override
     public boolean isDirectory() {
-        return !relativePath.isFile();
+        return archiveMetadata.isDirectory(resultEntry);
     }
 
     @Override
@@ -114,7 +115,7 @@ public abstract class AbstractArchiveFileTreeElement<ENTRY, METADATA extends Arc
 
     @Nullable
     @Override
-    public SymbolicLinkDetails getSymbolicLinkDetails() {
+    public ArchiveSymbolicLinkDetails<ENTRY> getSymbolicLinkDetails() {
         return linkDetails;
     }
 
