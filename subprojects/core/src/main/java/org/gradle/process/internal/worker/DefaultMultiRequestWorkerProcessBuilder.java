@@ -145,7 +145,7 @@ class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWo
         final Action<WorkerProcess> failureHandler = onFailure;
 
         return new MultiRequestClient<IN, OUT>() {
-            private final Receiver receiver = new Receiver(getBaseName(), outputEventListener);
+            private Receiver receiver = new Receiver(getBaseName(), outputEventListener);
             private RequestProtocol requestProtocol;
 
             @Override
