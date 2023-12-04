@@ -2,6 +2,7 @@ package com.h0tk3y.kotlin.staticObjectNotation.demo
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.*
+import com.h0tk3y.kotlin.staticObjectNotation.language.AstSourceIdentifier
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.*
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver.AssignmentAdditionResult.AssignmentAdded
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver.AssignmentResolutionResult.Assigned
@@ -13,10 +14,10 @@ val boolean = DataType.BooleanDataType.ref
 fun AnalysisSchema.resolve(
     code: String
 ): ResolutionResult {
-    val ast = parseToAst(code)
+    val ast = parseToAst(code).single()
 
     val languageBuilder = LanguageTreeBuilderWithTopLevelBlock(DefaultLanguageTreeBuilder())
-    val tree = languageBuilder.build(ast.single())
+    val tree = languageBuilder.build(ast, AstSourceIdentifier(ast, "demo"))
     val resolver: Resolver = defaultCodeResolver()
     val languageElements = tree.results.filterIsInstance<Element<*>>().map { it.element }
 
@@ -41,7 +42,7 @@ fun AnalysisSchema.resolve(
 fun printResolutionResults(
     result: ResolutionResult
 ) {
-    println(result.errors.joinToString("\n") { "ERROR: ${it.errorReason} in ${it.element.originAst.text}\n" })
+    println(result.errors.joinToString("\n") { "ERROR: ${it.errorReason} in ${it.element.sourceData.text()}\n" })
     println("Assignments:\n" + result.assignments.joinToString("\n") { (k, v) -> "$k := $v" })
     println()
     println("Additions:\n" + result.additions.joinToString("\n") { (container, obj) -> "$container += $obj" })

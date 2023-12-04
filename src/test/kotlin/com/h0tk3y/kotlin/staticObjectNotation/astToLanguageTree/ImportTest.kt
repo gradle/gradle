@@ -5,6 +5,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.ErrorReason
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionError
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
 import com.h0tk3y.kotlin.staticObjectNotation.language.AccessChain
+import com.h0tk3y.kotlin.staticObjectNotation.language.AstSourceIdentifier
 import com.h0tk3y.kotlin.staticObjectNotation.language.Import
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.kotlinFunctionAsConfigureLambda
 import kotlinx.ast.common.ast.Ast
@@ -14,10 +15,6 @@ import kotlin.test.assertTrue
 
 class ImportTest {
     private val resolver = defaultCodeResolver()
-
-    private val ast = object : Ast {
-        override val description: String = "test"
-    }
 
     private fun testContext(errors: MutableList<ResolutionError>): AnalysisContext {
         return AnalysisContext(
@@ -37,8 +34,8 @@ class ImportTest {
     @Test
     fun `collects basic imports`() {
         val imports = listOf(
-            Import(AccessChain(nameParts = listOf("a", "b", "C"), originAst = ast), originAst = ast),
-            Import(AccessChain(nameParts = listOf("a", "b", "c", "d"), originAst = ast), originAst = ast)
+            importOf("a", "b", "C"),
+            importOf("a", "b", "c", "d")
         )
         val errors = mutableListOf<ResolutionError>()
         val result = defaultCodeResolver().collectImports(imports, testContext(errors))
@@ -56,9 +53,9 @@ class ImportTest {
     @Test
     fun `reports ambiguous import errors`() {
         val imports = listOf(
-            Import(AccessChain(nameParts = listOf("a", "b", "C"), originAst = ast), originAst = ast),
-            Import(AccessChain(nameParts = listOf("a", "c", "C"), originAst = ast), originAst = ast),
-            Import(AccessChain(nameParts = listOf("a", "b", "D"), originAst = ast), originAst = ast)
+            importOf("a", "b", "C"),
+            importOf("a", "c", "C"),
+            importOf("a", "b", "D")
         )
         val errors = mutableListOf<ResolutionError>()
         val result = resolver.collectImports(imports, testContext(errors))
@@ -79,9 +76,9 @@ class ImportTest {
     @Test
     fun `does not report errors on the same import appearing more than once`() {
         val imports = listOf(
-            Import(AccessChain(nameParts = listOf("a", "b", "C"), originAst = ast), originAst = ast),
-            Import(AccessChain(nameParts = listOf("a", "b", "C"), originAst = ast), originAst = ast),
-            Import(AccessChain(nameParts = listOf("a", "b", "C"), originAst = ast), originAst = ast),
+            importOf("a", "b", "C"),
+            importOf("a", "b", "C"),
+            importOf("a", "b", "C")
         )
         val errors = mutableListOf<ResolutionError>()
         val result = resolver.collectImports(imports, testContext(errors))
@@ -94,4 +91,12 @@ class ImportTest {
         )
         assertTrue(errors.isEmpty())
     }
+
+    private fun importOf(vararg nameParts: String) = Import(AccessChain(listOf(*nameParts), ast.sourceData(sourceIdentifier)), ast.sourceData(sourceIdentifier))
+
+    private val ast = object : Ast {
+        override val description: String = "test"
+    }
+
+    private val sourceIdentifier = AstSourceIdentifier(ast, "test")
 }

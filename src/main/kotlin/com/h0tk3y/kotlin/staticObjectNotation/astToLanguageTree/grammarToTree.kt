@@ -5,7 +5,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedLangu
 import com.h0tk3y.kotlin.staticObjectNotation.language.*
 import kotlinx.ast.common.ast.Ast
 
-object GrammarToTree {
+class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
     /**
      * script : -shebangLine? -fileAnnotation* -packageHeader importList (statement semi)* EOF
      */
@@ -40,7 +40,7 @@ object GrammarToTree {
         elementAfterBarrier {
             val ident = ast.child(identifier)
             val names = ident.children(simpleIdentifier).map { simpleIdentifier(it).value }
-            Element(Import(AccessChain(names, ident), ast))
+            Element(Import(AccessChain(names, ident.data), ast.data))
         }
     }
 
@@ -118,7 +118,7 @@ object GrammarToTree {
         )
 
         elementAfterBarrier {
-            Element(LocalValue(checked(name), checked(expr), ast))
+            Element(LocalValue(checked(name), checked(expr), ast.data))
         }
     }
 
@@ -150,7 +150,7 @@ object GrammarToTree {
         val expr = collectingFailure(expression(ast.child(expression)))
 
         elementAfterBarrier {
-            Element(Assignment(checked(lhs), checked(expr), ast))
+            Element(Assignment(checked(lhs), checked(expr), ast.data))
         }
     }
 
@@ -166,7 +166,7 @@ object GrammarToTree {
 
         ast.findSingleChild(simpleIdentifier)?.let {
             val name = simpleIdentifier(it)
-            return Element(PropertyAccess(null, name.value, ast))
+            return Element(PropertyAccess(null, name.value, ast.data))
         }
 
         ast.findSingleChild(parenthesizedDirectlyAssignableExpression)?.let {
@@ -179,7 +179,7 @@ object GrammarToTree {
             val postfixUnary = collectingFailure(postfixUnaryExpression(left))
             val suffixAsName = collectingFailure(assignableSuffix(ast.child(assignableSuffix)))
             elementAfterBarrier {
-                Element(PropertyAccess(checked(postfixUnary), checked(suffixAsName), ast))
+                Element(PropertyAccess(checked(postfixUnary), checked(suffixAsName), ast.data))
             }
         }
     }
@@ -202,19 +202,19 @@ object GrammarToTree {
                             if (accExpr !is PropertyAccess) {
                                 return@flatMap failNow(
                                     UnsupportedConstruct(
-                                        ast,
-                                        ast /* TODO */,
+                                        ast.data,
+                                        ast.data /* TODO */,
                                         InvokeOperator
                                     )
                                 )
                             }
                             val receiver = accExpr.receiver
                             val name = accExpr.name
-                            Element(FunctionCall(receiver, name, suffix.arguments, suffix.ast))
+                            Element(FunctionCall(receiver, name, suffix.arguments, suffix.ast.data))
                         }
 
                         is UnarySuffix.NavSuffix -> {
-                            Element(PropertyAccess(accExpr, suffix.name, suffix.ast))
+                            Element(PropertyAccess(accExpr, suffix.name, suffix.ast.data))
                         }
                     }
                 }
@@ -284,7 +284,7 @@ object GrammarToTree {
         collectingFailure(literal.findChild(lambdaParameter)?.unsupportedIn(literal, LambdaWithParameters))
         val statements = collectingFailure(statements(literal.child(statements)))
         elementAfterBarrier {
-            Element(FunctionArgument.Lambda(Block(checked(statements), ast), ast))
+            Element(FunctionArgument.Lambda(Block(checked(statements), ast.data), ast.data))
         }
     }
 
@@ -316,8 +316,8 @@ object GrammarToTree {
             val checkedExpr = checked(expr)
             Syntactic(
                 if (name != null)
-                    FunctionArgument.Named(name, checkedExpr, ast)
-                else FunctionArgument.Positional(checkedExpr, ast)
+                    FunctionArgument.Named(name, checkedExpr, ast.data)
+                else FunctionArgument.Positional(checkedExpr, ast.data)
             )
         }
     }
@@ -361,10 +361,10 @@ object GrammarToTree {
 
         return when (singleChild.kind) {
             parenthesizedExpression -> expression(singleChild.child(expression))
-            simpleIdentifier -> Element(PropertyAccess(null, simpleIdentifier(singleChild).value, ast))
+            simpleIdentifier -> Element(PropertyAccess(null, simpleIdentifier(singleChild).value, ast.data))
             literalConstant -> literalConstant(singleChild)
             stringLiteral -> stringLiteral(singleChild)
-            thisExpression -> Element(This(singleChild))
+            thisExpression -> Element(This(singleChild.data))
             callableReference -> ast.unsupported(CallableReference)
             functionLiteral -> ast.unsupported(FunctionDeclaration)
             objectLiteral -> ast.unsupported(TypeDeclaration)
@@ -393,10 +393,10 @@ object GrammarToTree {
         ast.expectKind(literalConstant)
         val singleChild = ast.singleChild()
         return when (singleChild.kind) {
-            booleanLiteral -> Element(Literal.BooleanLiteral(singleChild.text.toBooleanStrict(), singleChild))
-            integerLiteral -> Element(Literal.IntLiteral(singleChild.text.toInt(), singleChild))
+            booleanLiteral -> Element(Literal.BooleanLiteral(singleChild.text.toBooleanStrict(), singleChild.data))
+            integerLiteral -> Element(Literal.IntLiteral(singleChild.text.toInt(), singleChild.data))
             longLiteral -> Element(
-                Literal.LongLiteral(singleChild.text.removeSuffix("l").removeSuffix("L").toLong(), singleChild)
+                Literal.LongLiteral(singleChild.text.removeSuffix("l").removeSuffix("L").toLong(), singleChild.data)
             )
 
             unsignedLiteral -> ast.unsupported(TodoNotCoveredYet)
@@ -410,7 +410,7 @@ object GrammarToTree {
         return workaround("String literals are simple to parse right away", run {
             val text = ast.findSingleDescendant { it.kind == lineStringText || it.kind == multiLineStringText }?.text
                 ?: ""
-            Element(Literal.StringLiteral(text, ast))
+            Element(Literal.StringLiteral(text, ast.data))
         })
     }
 
@@ -535,8 +535,8 @@ object GrammarToTree {
                             FunctionCall(
                                 acc,
                                 name,
-                                listOf(FunctionArgument.Positional(arg, infixFunctionCall)),
-                                infixOperation
+                                listOf(FunctionArgument.Positional(arg, infixFunctionCall.data)),
+                                infixOperation.data
                             )
                         }
                     )
@@ -636,18 +636,20 @@ object GrammarToTree {
 
         class CheckedResult<T : LanguageResult<*>>(val value: T)
     }
+
+    private val Ast.data get() = sourceData(sourceIdentifier)
+
+    internal fun Ast.unsupported(
+        feature: UnsupportedLanguageFeature
+    ) = UnsupportedConstruct(this.data, this.data, feature)
+
+    internal fun Ast.unsupportedIn(
+        outer: Ast,
+        feature: UnsupportedLanguageFeature
+    ) = UnsupportedConstruct(outer.data, this.data, feature)
+
+    internal fun Ast.unsupportedBecause(
+        erroneousAst: Ast,
+        feature: UnsupportedLanguageFeature
+    ) = UnsupportedConstruct(this.data, erroneousAst.data, feature)
 }
-
-internal fun Ast.unsupported(
-    feature: UnsupportedLanguageFeature
-) = UnsupportedConstruct(this, this, feature)
-
-internal fun Ast.unsupportedIn(
-    outer: Ast,
-    feature: UnsupportedLanguageFeature
-) = UnsupportedConstruct(outer, this, feature)
-
-internal fun Ast.unsupportedBecause(
-    erroneousAst: Ast,
-    feature: UnsupportedLanguageFeature
-) = UnsupportedConstruct(this, erroneousAst, feature)

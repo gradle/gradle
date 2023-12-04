@@ -1,7 +1,7 @@
 package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
 import com.h0tk3y.kotlin.staticObjectNotation.language.LanguageTreeElement
-import kotlinx.ast.common.ast.Ast
+import com.h0tk3y.kotlin.staticObjectNotation.language.SourceData
 
 data class LanguageTreeResult(
     val results: List<ElementResult<*>>
@@ -33,8 +33,8 @@ sealed interface FailingResult : ElementResult<Nothing>, SyntacticResult<Nothing
 }
 
 data class UnsupportedConstruct(
-    val potentialElementAst: Ast,
-    val erroneousAst: Ast,
+    val potentialElementSource: SourceData,
+    val erroneousSource: SourceData,
     val languageFeature: UnsupportedLanguageFeature
 ) : FailingResult
 

@@ -1,5 +1,7 @@
 package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
+import com.h0tk3y.kotlin.staticObjectNotation.language.AstSourceData
+import com.h0tk3y.kotlin.staticObjectNotation.language.SourceIdentifier
 import kotlinx.ast.common.ast.Ast
 import kotlinx.ast.common.ast.AstNode
 import kotlinx.ast.common.ast.AstTerminal
@@ -62,6 +64,8 @@ val Ast.text: String
         is AstTerminal -> this.text
         else -> traverse().filterIsInstance<AstTerminal>().joinToString("") { it.text }
     }
+
+fun Ast.sourceData(sourceIdentifier: SourceIdentifier) = AstSourceData(sourceIdentifier, this)
 
 @Suppress("EnumEntryName")
 enum class AstKind(astDescription: String? = null) {

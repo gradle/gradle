@@ -42,8 +42,8 @@ object ReflectionDemo {
 
         val version = kotlinKaptPlugin.properties[versionProp] as ConstantValue
 
-        val ast = version.objectOrigin.originElement.originAst
-        val versionRange = ast.rangeOrNull
+        val ast = version.objectOrigin.originElement.sourceData
+        val versionRange = ast.indexRange
 
         println("=== version range:")
         println(versionRange)
