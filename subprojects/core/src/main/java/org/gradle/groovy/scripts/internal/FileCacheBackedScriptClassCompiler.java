@@ -19,9 +19,9 @@ import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.cache.PersistentCache;
-import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classanalysis.AsmConstants;
@@ -31,13 +31,17 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.classpath.transforms.ClassTransform;
+import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.hash.PrimitiveHasher;
-import org.gradle.internal.logging.progress.ProgressLogger;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork;
+import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork.BuildScriptCompileClasspath;
+import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork.BuildScriptProgramId;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
@@ -61,74 +65,101 @@ import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardT
  */
 public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, Closeable {
     private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
+    private static final String CLASSPATH_PROPERTY_NAME = "classpath";
+    private static final String DSL_ID_PROPERTY_NAME = "dslId";
+    private static final String SOURCE_HASH_PROPERTY_NAME = "sourceHash";
     private final ScriptCompilationHandler scriptCompilationHandler;
-    private final ProgressLoggerFactory progressLoggerFactory;
-    private final GlobalScopedCacheBuilderFactory cacheBuilderFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final CachedClasspathTransformer classpathTransformer;
+    private final ExecutionEngine executionEngine;
+    private final FileCollectionFactory fileCollectionFactory;
+    private final InputFingerprinter inputFingerprinter;
+    private final ImmutableWorkspaceProvider workspaceProvider;
 
     public FileCacheBackedScriptClassCompiler(
-            GlobalScopedCacheBuilderFactory cacheBuilderFactory, ScriptCompilationHandler scriptCompilationHandler,
-            ProgressLoggerFactory progressLoggerFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-            CachedClasspathTransformer classpathTransformer) {
-        this.cacheBuilderFactory = cacheBuilderFactory;
+        ScriptCompilationHandler scriptCompilationHandler,
+        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        CachedClasspathTransformer classpathTransformer,
+        ExecutionEngine executionEngine,
+        FileCollectionFactory fileCollectionFactory,
+        InputFingerprinter inputFingerprinter,
+        ImmutableWorkspaceProvider workspaceProvider
+    ) {
         this.scriptCompilationHandler = scriptCompilationHandler;
-        this.progressLoggerFactory = progressLoggerFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.classpathTransformer = classpathTransformer;
+        this.executionEngine = executionEngine;
+        this.fileCollectionFactory = fileCollectionFactory;
+        this.inputFingerprinter = inputFingerprinter;
+        this.workspaceProvider = workspaceProvider;
     }
 
     @Override
-    public <T extends Script, M> CompiledScript<T, M> compile(final ScriptSource source,
-                                                              final ClassLoaderScope targetScope,
-                                                              final CompileOperation<M> operation,
-                                                              final Class<T> scriptBaseClass,
-                                                              final Action<? super ClassNode> verifier) {
+    public <T extends Script, M> CompiledScript<T, M> compile(
+        final Object target,
+        final ScriptSource source,
+        final ClassLoaderScope targetScope,
+        final CompileOperation<M> operation,
+        final Class<T> scriptBaseClass,
+        final Action<? super ClassNode> verifier
+    ) {
         assert source.getResource().isContentCached();
         if (source.getResource().getHasEmptyContent()) {
-            return emptyCompiledScript(operation);
+            return new EmptyCompiledScript<>(operation);
         }
 
-        ClassLoader classLoader = targetScope.getExportClassLoader();
+        String dslId = operation.getId();
         HashCode sourceHashCode = source.getResource().getContentHash();
-        final String dslId = operation.getId();
-        HashCode classLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(classLoader);
-        if (classLoaderHash == null) {
-            throw new IllegalArgumentException("Unknown classloader: " + classLoader);
-        }
-        final RemappingScriptSource remapped = new RemappingScriptSource(source);
+        RemappingScriptSource remapped = new RemappingScriptSource(source);
+        ClassLoader classLoader = targetScope.getExportClassLoader();
+        File outputDir = doCompile(target, dslId, sourceHashCode, remapped, classLoader, operation, verifier, scriptBaseClass);
 
-        PrimitiveHasher hasher = Hashing.newPrimitiveHasher();
-        hasher.putString(dslId);
-        hasher.putHash(sourceHashCode);
-        hasher.putHash(classLoaderHash);
-        String key = hasher.hash().toCompactString();
-
-        // Caching involves 2 distinct caches, so that 2 scripts with the same (hash, classpath) do not get compiled twice
-        // 1. First, we look for a cache script which (path, hash) matches. This cache is invalidated when the compile classpath of the script changes
-        // 2. Then we look into the 2d cache for a "generic script" with the same hash, that will be remapped to the script class name
-        // Both caches can be closed directly after use because:
-        // For 1, if the script changes or its compile classpath changes, a different directory will be used
-        // For 2, if the script changes, a different cache is used. If the classpath changes, the cache is invalidated, but classes are remapped to 1. anyway so never directly used
-        final PersistentCache cache = cacheBuilderFactory.createCacheBuilder("scripts/" + key)
-            .withDisplayName(dslId + " generic class cache for " + source.getDisplayName())
-            .withInitializer(new ProgressReportingInitializer(
-                progressLoggerFactory,
-                new CompileToCrossBuildCacheAction(remapped, classLoader, operation, verifier, scriptBaseClass),
-                "Compiling " + source.getShortDisplayName()))
-            .open();
-        try {
-            File genericClassesDir = classesDir(cache, operation);
-            File metadataDir = metadataDir(cache);
-            ClassPath remappedClasses = remapClasses(genericClassesDir, remapped);
-            return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, remappedClasses, metadataDir, operation, scriptBaseClass);
-        } finally {
-            cache.close();
-        }
+        File genericClassesDir = classesDir(outputDir, operation);
+        File metadataDir = metadataDir(outputDir);
+        ClassPath remappedClasses = remapClasses(genericClassesDir, remapped);
+        return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, remappedClasses, metadataDir, operation, scriptBaseClass);
     }
 
-    private <T extends Script, M> CompiledScript<T, M> emptyCompiledScript(CompileOperation<M> operation) {
-        return new EmptyCompiledScript<>(operation);
+    private <T extends Script> File doCompile(
+        Object target,
+        String dslId,
+        HashCode sourceHashCode,
+        RemappingScriptSource source,
+        ClassLoader classLoader,
+        CompileOperation<?> operation,
+        Action<? super ClassNode> verifier,
+        Class<T> scriptBaseClass
+    ) {
+        String unitOfWorkDisplayName = getUnitOfWorkDisplayName(dslId);
+        BuildScriptProgramId programId = visitor -> {
+            visitor.visitInputProperty(DSL_ID_PROPERTY_NAME, () -> dslId);
+            visitor.visitInputProperty(SOURCE_HASH_PROPERTY_NAME, () -> sourceHashCode);
+        };
+        BuildScriptCompileClasspath compileClasspath = visitor -> visitor.visitInputProperty(CLASSPATH_PROPERTY_NAME, () -> classLoaderHierarchyHasher.getClassLoaderHash(classLoader));
+        UnitOfWork unitOfWork = new BuildScriptCompileUnitOfWork(
+            unitOfWorkDisplayName,
+            programId,
+            compileClasspath,
+            workspaceProvider,
+            fileCollectionFactory,
+            inputFingerprinter,
+            workspace -> scriptCompilationHandler.compileToDir(source, classLoader, classesDir(workspace, operation), metadataDir(workspace), operation, scriptBaseClass, verifier)
+        );
+        return getExecutionEngine(target).createRequest(unitOfWork)
+            .execute()
+            .getOutputAs(File.class)
+            .get();
+    }
+
+    private static String getUnitOfWorkDisplayName(String dslId) {
+        return "Groovy DSL script compilation (" + dslId + ")";
+    }
+
+    private ExecutionEngine getExecutionEngine(Object target) {
+        if (target instanceof ProjectInternal) {
+            return ((ProjectInternal) target).getServices().get(ExecutionEngine.class);
+        }
+        return executionEngine;
     }
 
     private ClassPath remapClasses(File genericClassesDir, RemappingScriptSource source) {
@@ -162,60 +193,12 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     public void close() {
     }
 
-    private File classesDir(PersistentCache cache, CompileOperation<?> operation) {
-        return new File(cache.getBaseDir(), operation.getId());
+    private File classesDir(File outputDir, CompileOperation<?> operation) {
+        return new File(outputDir, operation.getId());
     }
 
-    private File metadataDir(PersistentCache cache) {
-        return new File(cache.getBaseDir(), "metadata");
-    }
-
-    private class CompileToCrossBuildCacheAction implements Action<PersistentCache> {
-        private final Action<? super ClassNode> verifier;
-        private final Class<? extends Script> scriptBaseClass;
-        private final ClassLoader classLoader;
-        private final CompileOperation<?> operation;
-        private final ScriptSource source;
-
-        public <T extends Script> CompileToCrossBuildCacheAction(ScriptSource source, ClassLoader classLoader, CompileOperation<?> operation,
-                                                                 Action<? super ClassNode> verifier, Class<T> scriptBaseClass) {
-            this.source = source;
-            this.classLoader = classLoader;
-            this.operation = operation;
-            this.verifier = verifier;
-            this.scriptBaseClass = scriptBaseClass;
-        }
-
-        @Override
-        public void execute(PersistentCache cache) {
-            File classesDir = classesDir(cache, operation);
-            File metadataDir = metadataDir(cache);
-            scriptCompilationHandler.compileToDir(source, classLoader, classesDir, metadataDir, operation, scriptBaseClass, verifier);
-        }
-    }
-
-    static class ProgressReportingInitializer implements Action<PersistentCache> {
-        private final ProgressLoggerFactory progressLoggerFactory;
-        private final Action<? super PersistentCache> delegate;
-        private final String shortDescription;
-
-        public ProgressReportingInitializer(ProgressLoggerFactory progressLoggerFactory,
-                                            Action<PersistentCache> delegate,
-                                            String shortDescription) {
-            this.progressLoggerFactory = progressLoggerFactory;
-            this.delegate = delegate;
-            this.shortDescription = shortDescription;
-        }
-
-        @Override
-        public void execute(PersistentCache cache) {
-            ProgressLogger op = progressLoggerFactory.newOperation(FileCacheBackedScriptClassCompiler.class).start(shortDescription, shortDescription);
-            try {
-                delegate.execute(cache);
-            } finally {
-                op.completed();
-            }
-        }
+    private File metadataDir(File outputDir) {
+        return new File(outputDir, "metadata");
     }
 
     private static class EmptyCompiledScript<T extends Script, M> implements CompiledScript<T, M> {
