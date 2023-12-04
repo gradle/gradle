@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.cacheentry
+package org.gradle.tooling.provider.model.internal;
 
-import org.gradle.internal.hash.HashCode
-import org.gradle.util.Path
+import org.gradle.api.NonNullApi;
 
+/**
+ * Ensures that the value of the model builder parameter is of the expected type,
+ * and potentially adapts it for consumption by the builder.
+ */
+@NonNullApi
+public interface ToolingModelParameterAdapter {
 
-internal
-data class ModelKey(
-    val identityPath: Path?,
-    val modelName: String,
-    val parameterHash: HashCode?
-)
+    Object apply(Class<?> type, Object value);
+
+}

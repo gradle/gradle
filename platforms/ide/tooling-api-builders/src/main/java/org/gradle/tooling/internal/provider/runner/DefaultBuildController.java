@@ -22,6 +22,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildTreeModelController;
+import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.ViewBuilder;
@@ -35,14 +36,16 @@ import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.provider.model.UnknownModelException;
+import org.gradle.tooling.provider.model.internal.ToolingModelParameter;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 import java.util.function.Supplier;
+
+import static java.util.Objects.requireNonNull;
 
 @SuppressWarnings("deprecation")
 class DefaultBuildController implements org.gradle.tooling.internal.protocol.InternalBuildController, InternalBuildControllerVersion2, InternalActionAwareBuildController {
@@ -50,17 +53,20 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     private final BuildTreeModelController controller;
     private final BuildCancellationToken cancellationToken;
     private final BuildStateRegistry buildStateRegistry;
+    private final ValueSnapshotter valueSnapshotter;
 
     public DefaultBuildController(
         BuildTreeModelController controller,
         WorkerThreadRegistry workerThreadRegistry,
         BuildCancellationToken cancellationToken,
-        BuildStateRegistry buildStateRegistry
+        BuildStateRegistry buildStateRegistry,
+        ValueSnapshotter valueSnapshotter
     ) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.controller = controller;
         this.cancellationToken = cancellationToken;
         this.buildStateRegistry = buildStateRegistry;
+        this.valueSnapshotter = valueSnapshotter;
     }
 
     /**
@@ -99,7 +105,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
             if (parameter == null) {
                 model = scope.getModel(modelIdentifier.getName(), null);
             } else {
-                model = scope.getModel(modelIdentifier.getName(), parameterFactory(parameter));
+                model = scope.getModel(modelIdentifier.getName(), wrapParameter(parameter));
             }
         } catch (UnknownModelException e) {
             throw (InternalUnsupportedModelException) new InternalUnsupportedModelException().initCause(e);
@@ -119,12 +125,11 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         return controller.runQueryModelActions(actions);
     }
 
-    private Function<Class<?>, Object> parameterFactory(Object parameter)
-        throws InternalUnsupportedModelException {
-        return expectedParameterType -> {
+    private ToolingModelParameter wrapParameter(Object parameter) {
+        return new ToolingModelParameter(parameter, valueSnapshotter, (expectedParameterType, value) -> {
             ViewBuilder<?> viewBuilder = new ProtocolToModelAdapter().builder(expectedParameterType);
-            return viewBuilder.build(parameter);
-        };
+            return requireNonNull(viewBuilder.build(value));
+        });
     }
 
     private ToolingModelScope getTarget(@Nullable Object target, ModelIdentifier modelIdentifier, boolean parameter) {

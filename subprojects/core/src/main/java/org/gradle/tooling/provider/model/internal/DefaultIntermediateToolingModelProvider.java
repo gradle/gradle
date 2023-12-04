@@ -24,11 +24,11 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildToolingModelController;
 import org.gradle.internal.buildtree.IntermediateBuildActionRunner;
+import org.gradle.internal.snapshot.ValueSnapshotter;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.util.stream.Collectors.toList;
@@ -37,9 +37,11 @@ import static java.util.stream.Collectors.toList;
 public class DefaultIntermediateToolingModelProvider implements IntermediateToolingModelProvider {
 
     private final IntermediateBuildActionRunner actionRunner;
+    private final ValueSnapshotter valueSnapshotter;
 
-    public DefaultIntermediateToolingModelProvider(IntermediateBuildActionRunner actionRunner) {
+    public DefaultIntermediateToolingModelProvider(IntermediateBuildActionRunner actionRunner, ValueSnapshotter valueSnapshotter) {
         this.actionRunner = actionRunner;
+        this.valueSnapshotter = valueSnapshotter;
     }
 
     @Override
@@ -64,11 +66,11 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
 
     private List<Object> getModels(List<Project> targets, String modelName, @Nullable Object modelBuilderParameter) {
         BuildState buildState = extractSingleBuildState(targets);
-        Function<Class<?>, Object> parameterFactory = modelBuilderParameter == null ? null : createParameterFactory(modelBuilderParameter);
+        ToolingModelParameter parameterFactory = modelBuilderParameter == null ? null : wrapParameter(modelBuilderParameter);
         return buildState.withToolingModels(controller -> getModels(controller, targets, modelName, parameterFactory));
     }
 
-    private List<Object> getModels(BuildToolingModelController controller, List<Project> targets, String modelName, @Nullable Function<Class<?>, Object> parameterFactory) {
+    private List<Object> getModels(BuildToolingModelController controller, List<Project> targets, String modelName, @Nullable ToolingModelParameter parameterFactory) {
         List<Supplier<Object>> fetchActions = targets.stream()
             .map(targetProject -> (Supplier<Object>) () -> fetchModel(modelName, controller, (ProjectInternal) targetProject, parameterFactory))
             .collect(toList());
@@ -77,20 +79,20 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
     }
 
     @Nullable
-    private static Object fetchModel(String modelName, BuildToolingModelController controller, ProjectInternal targetProject, @Nullable Function<Class<?>, Object> parameterFactory) {
+    private static Object fetchModel(String modelName, BuildToolingModelController controller, ProjectInternal targetProject, @Nullable ToolingModelParameter parameterFactory) {
         ProjectState builderTarget = targetProject.getOwner();
         ToolingModelScope toolingModelScope = controller.locateBuilderForTarget(builderTarget, modelName, parameterFactory != null);
         return toolingModelScope.getModel(modelName, parameterFactory);
     }
 
-    private static Function<Class<?>, Object> createParameterFactory(Object modelBuilderParameter) {
-        return expectedParameterType -> {
-            if (expectedParameterType.isInstance(modelBuilderParameter)) {
-                return modelBuilderParameter;
+    private ToolingModelParameter wrapParameter(Object parameter) {
+        return new ToolingModelParameter(parameter, valueSnapshotter, (expectedParameterType, value) -> {
+            if (expectedParameterType.isInstance(value)) {
+                return value;
             } else {
-                throw new IllegalStateException(String.format("Expected model builder parameter type '%s', got '%s'", expectedParameterType.getName(), modelBuilderParameter.getClass().getName()));
+                throw new IllegalStateException(String.format("Expected model builder parameter type '%s', got '%s'", expectedParameterType.getName(), parameter.getClass().getName()));
             }
-        };
+        });
     }
 
     private static BuildState extractSingleBuildState(List<Project> targets) {

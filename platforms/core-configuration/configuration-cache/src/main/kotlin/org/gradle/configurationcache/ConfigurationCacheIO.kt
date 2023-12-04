@@ -42,6 +42,7 @@ import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
@@ -85,6 +86,7 @@ class ConfigurationCacheIO internal constructor(
             writeCollection(intermediateModels.entries) { entry ->
                 writeNullableString(entry.key.identityPath?.path)
                 writeString(entry.key.modelName)
+                writeNullableString(entry.key.parameterHash?.toString())
                 addressSerializer.write(this, entry.value)
             }
             writeCollection(projectMetadata.entries) { entry ->
@@ -106,8 +108,9 @@ class ConfigurationCacheIO internal constructor(
             readCollection {
                 val path = readNullableString()?.let { Path.path(it) }
                 val modelName = readString()
+                val parameterHash = readNullableString()?.let(HashCode::fromString)
                 val address = addressSerializer.read(this)
-                intermediateModels[ModelKey(path, modelName)] = address
+                intermediateModels[ModelKey(path, modelName, parameterHash)] = address
             }
             val metadata = mutableMapOf<Path, BlockAddress>()
             readCollection {

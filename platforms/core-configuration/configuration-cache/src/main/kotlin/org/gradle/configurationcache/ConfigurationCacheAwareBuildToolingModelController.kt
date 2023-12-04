@@ -19,8 +19,8 @@ package org.gradle.configurationcache
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.build.BuildToolingModelController
+import org.gradle.tooling.provider.model.internal.ToolingModelParameter
 import org.gradle.tooling.provider.model.internal.ToolingModelScope
-import java.util.function.Function
 
 
 internal
@@ -50,9 +50,9 @@ class ConfigurationCacheAwareBuildToolingModelController(
     ) : ToolingModelScope {
         override fun getTarget() = delegate.target
 
-        override fun getModel(modelName: String, parameterFactory: Function<Class<*>, Any>?): Any? {
-            return cache.loadOrCreateIntermediateModel(target?.identityPath, modelName) {
-                delegate.getModel(modelName, parameterFactory)
+        override fun getModel(modelName: String, parameter: ToolingModelParameter?): Any? {
+            return cache.loadOrCreateIntermediateModel(target?.identityPath, modelName, parameter) {
+                delegate.getModel(modelName, parameter)
             }
         }
     }

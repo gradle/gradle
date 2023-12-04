@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -26,7 +27,7 @@ import java.util.Map;
  *
  * <p>These proxies do not support any kind of nesting.
  */
-public class ToolingParameterProxy implements InvocationHandler {
+public class ToolingParameterProxy implements InvocationHandler, Serializable {
     private final Map<String, Object> properties = new HashMap<String, Object>();
 
     @Override
