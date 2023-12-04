@@ -472,7 +472,7 @@ public class Maven2Gradle {
         Plugin jarPlugin = plugin("maven-jar-plugin", project);
         if (pluginGoal("test-jar", jarPlugin) != null) {
             builder.taskRegistration(null, "testsJar", "Jar", task -> {
-                task.propertyAssignment(null, "archiveClassifier", "tests", false);
+                task.propertyAssignment(null, "archiveClassifier", "tests", true);
                 task.methodInvocation(null, "from", builder.propertyExpression(builder.containerElementExpression("sourceSets", "test"), "output"));
             });
             return true;
