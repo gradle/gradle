@@ -363,7 +363,7 @@ public class BuildScriptBuilder {
             t.block(null, "toolchain", t1 -> {
                 t1.propertyAssignment(null, "languageVersion",
                     new MethodInvocationExpression(null, "JavaLanguageVersion.of", singletonList(new LiteralValue(languageVersion.asInt()))),
-                false);
+                true);
             });
         });
     }
@@ -1036,13 +1036,13 @@ public class BuildScriptBuilder {
 
         final String propertyName;
         final ExpressionValue propertyValue;
-        final boolean legacyProperty;
+        final boolean assignOperator;
 
-        private PropertyAssignment(String comment, String propertyName, ExpressionValue propertyValue, boolean legacyProperty) {
+        private PropertyAssignment(String comment, String propertyName, ExpressionValue propertyValue, boolean assignOperator) {
             super(comment);
             this.propertyName = propertyName;
             this.propertyValue = propertyValue;
-            this.legacyProperty = legacyProperty;
+            this.assignOperator = assignOperator;
         }
 
         @Override
@@ -1558,8 +1558,8 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public void propertyAssignment(String comment, String propertyName, Object propertyValue, boolean legacyProperty) {
-            statements.add(new PropertyAssignment(comment, propertyName, expressionValue(propertyValue), legacyProperty));
+        public void propertyAssignment(String comment, String propertyName, Object propertyValue, boolean assignOperator) {
+            statements.add(new PropertyAssignment(comment, propertyName, expressionValue(propertyValue), assignOperator));
         }
 
         @Override
@@ -2095,12 +2095,11 @@ public class BuildScriptBuilder {
             return config + "(" + notation + ")";
         }
 
-
         @Override
         public String propertyAssignment(PropertyAssignment expression) {
             String propertyName = expression.propertyName;
             ExpressionValue propertyValue = expression.propertyValue;
-            if (expression.legacyProperty) {
+            if (expression.assignOperator) {
                 if (propertyValue.isBooleanType()) {
                     return booleanPropertyNameFor(propertyName) + " = " + propertyValue.with(this);
                 }

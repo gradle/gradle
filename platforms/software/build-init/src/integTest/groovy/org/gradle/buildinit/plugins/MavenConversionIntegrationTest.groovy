@@ -438,7 +438,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
             }
             '''.stripIndent().trim())) || rootBuildFile.text.contains(TextUtil.toPlatformLineSeparators('''
             val testsJar by tasks.registering(Jar::class) {
-                archiveClassifier.set("tests")
+                archiveClassifier = "tests"
                 from(sourceSets["test"].output)
             }
             '''.stripIndent().trim()))

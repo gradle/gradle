@@ -56,7 +56,7 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
                 if (!isSingleProject(settings)) {
                     mainClass = "app." + mainClass;
                 }
-                b.propertyAssignment("Define the main class for the application.", "mainClass", withPackage(settings, mainClass), false);
+                b.propertyAssignment("Define the main class for the application.", "mainClass", withPackage(settings, mainClass), true);
             });
         }
 
