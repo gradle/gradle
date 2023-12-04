@@ -16,9 +16,7 @@
 
 package org.gradle.kotlin.dsl.execution
 
-import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork.BuildScriptProgramId
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import java.lang.ref.WeakReference
 
@@ -30,26 +28,10 @@ class ProgramId(
     private val accessorsClassPathHash: HashCode? = null,
     private val classPathHash: HashCode? = null,
     val compilerOptions: KotlinCompilerOptions = KotlinCompilerOptions(),
-) : BuildScriptProgramId {
-
-    companion object {
-        const val JVM_TARGET = "jvmTarget"
-        const val ALL_WARNINGS_AS_ERRORS = "allWarningsAsErrors"
-        const val SKIP_METADATA_VERSION_CHECK = "skipMetadataVersionCheck"
-        const val TEMPLATE_ID = "templateId"
-        const val SOURCE_HASH = "sourceHash"
-    }
+) {
 
     private
     val parentClassLoader = WeakReference(parentClassLoader)
-
-    override fun visitIdentityInputs(visitor: UnitOfWork.InputVisitor) {
-        visitor.visitInputProperty(JVM_TARGET) { compilerOptions.jvmTarget.majorVersion }
-        visitor.visitInputProperty(ALL_WARNINGS_AS_ERRORS) { compilerOptions.allWarningsAsErrors }
-        visitor.visitInputProperty(SKIP_METADATA_VERSION_CHECK) { compilerOptions.skipMetadataVersionCheck }
-        visitor.visitInputProperty(TEMPLATE_ID) { templateId }
-        visitor.visitInputProperty(SOURCE_HASH) { sourceHash }
-    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) {

@@ -39,25 +39,22 @@ import static java.util.Objects.requireNonNull;
  */
 public class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWork {
     private final String displayName;
-    private final BuildScriptProgramId programId;
+    private final BuildScriptCompileInputs inputs;
     private final ImmutableWorkspaceProvider workspaceProvider;
     private final FileCollectionFactory fileCollectionFactory;
     private final InputFingerprinter inputFingerprinter;
-    private final BuildScriptCompileClasspath compileClasspath;
     private final Consumer<File> compileAction;
 
     public BuildScriptCompileUnitOfWork(
         String displayName,
-        BuildScriptProgramId programId,
-        BuildScriptCompileClasspath compileClasspath,
+        BuildScriptCompileInputs inputs,
         ImmutableWorkspaceProvider workspaceProvider,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
         Consumer<File> compileAction
     ) {
         this.displayName = displayName;
-        this.programId = programId;
-        this.compileClasspath = compileClasspath;
+        this.inputs = inputs;
         this.workspaceProvider = workspaceProvider;
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
@@ -71,8 +68,7 @@ public class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWork {
 
     @Override
     public void visitIdentityInputs(InputVisitor visitor) {
-        programId.visitIdentityInputs(visitor);
-        compileClasspath.visitIdentityInputs(visitor);
+        inputs.visitIdentityInputs(visitor);
     }
 
     @Override
@@ -128,11 +124,7 @@ public class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWork {
         return displayName;
     }
 
-    public interface BuildScriptProgramId {
-        void visitIdentityInputs(InputVisitor visitor);
-    }
-
-    public interface BuildScriptCompileClasspath {
+    public interface BuildScriptCompileInputs {
         void visitIdentityInputs(InputVisitor visitor);
     }
 }

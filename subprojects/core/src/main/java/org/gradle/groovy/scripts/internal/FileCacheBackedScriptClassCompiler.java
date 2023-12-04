@@ -40,8 +40,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork;
-import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork.BuildScriptCompileClasspath;
-import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork.BuildScriptProgramId;
+import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork.BuildScriptCompileInputs;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
@@ -131,21 +130,21 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         Class<T> scriptBaseClass
     ) {
         String unitOfWorkDisplayName = getUnitOfWorkDisplayName(dslId);
-        BuildScriptProgramId programId = visitor -> {
+        BuildScriptCompileInputs inputs = visitor -> {
             visitor.visitInputProperty(DSL_ID_PROPERTY_NAME, () -> dslId);
             visitor.visitInputProperty(SOURCE_HASH_PROPERTY_NAME, () -> sourceHashCode);
+            visitor.visitInputProperty(CLASSPATH_PROPERTY_NAME, () -> classLoaderHierarchyHasher.getClassLoaderHash(classLoader));
         };
-        BuildScriptCompileClasspath compileClasspath = visitor -> visitor.visitInputProperty(CLASSPATH_PROPERTY_NAME, () -> classLoaderHierarchyHasher.getClassLoaderHash(classLoader));
         UnitOfWork unitOfWork = new BuildScriptCompileUnitOfWork(
             unitOfWorkDisplayName,
-            programId,
-            compileClasspath,
+            inputs,
             workspaceProvider,
             fileCollectionFactory,
             inputFingerprinter,
             workspace -> scriptCompilationHandler.compileToDir(source, classLoader, classesDir(workspace, operation), metadataDir(workspace), operation, scriptBaseClass, verifier)
         );
-        return getExecutionEngine(target).createRequest(unitOfWork)
+        return getExecutionEngine(target)
+            .createRequest(unitOfWork)
             .execute()
             .getOutputAs(File.class)
             .get();

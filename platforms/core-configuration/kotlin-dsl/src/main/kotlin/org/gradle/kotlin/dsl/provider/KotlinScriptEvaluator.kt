@@ -42,7 +42,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork
-import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork.BuildScriptCompileClasspath
+import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork.BuildScriptCompileInputs
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
@@ -104,6 +104,11 @@ class StandardKotlinScriptEvaluator(
 ) : KotlinScriptEvaluator {
 
     companion object {
+        const val JVM_TARGET = "jvmTarget"
+        const val ALL_WARNINGS_AS_ERRORS = "allWarningsAsErrors"
+        const val SKIP_METADATA_VERSION_CHECK = "skipMetadataVersionCheck"
+        const val TEMPLATE_ID = "templateId"
+        const val SOURCE_HASH = "sourceHash"
         const val COMPILATION_CLASS_PATH = "compilationClassPath"
         const val ACCESSORS_CLASS_PATH = "accessorsClassPath"
     }
@@ -303,14 +308,18 @@ class StandardKotlinScriptEvaluator(
         initializer: (File) -> Unit
     ): BuildScriptCompileUnitOfWork {
         val displayName = "Kotlin DSL script compilation (${programId.templateId})"
-        val buildScriptCompileClasspath = BuildScriptCompileClasspath { visitor ->
+        val inputs = BuildScriptCompileInputs { visitor ->
+            visitor.visitInputProperty(JVM_TARGET) { programId.compilerOptions.jvmTarget.majorVersion }
+            visitor.visitInputProperty(ALL_WARNINGS_AS_ERRORS) { programId.compilerOptions.allWarningsAsErrors }
+            visitor.visitInputProperty(SKIP_METADATA_VERSION_CHECK) { programId.compilerOptions.skipMetadataVersionCheck }
+            visitor.visitInputProperty(TEMPLATE_ID) { programId.templateId }
+            visitor.visitInputProperty(SOURCE_HASH) { programId.sourceHash }
             visitor.visitInputProperty(COMPILATION_CLASS_PATH) { classpathHasher.hash(compilationClassPath) }
             visitor.visitInputProperty(ACCESSORS_CLASS_PATH) { classpathHasher.hash(accessorsClassPath) }
         }
         return BuildScriptCompileUnitOfWork(
             displayName,
-            programId,
-            buildScriptCompileClasspath,
+            inputs,
             workspaceProvider.scripts,
             fileCollectionFactory,
             inputFingerprinter
