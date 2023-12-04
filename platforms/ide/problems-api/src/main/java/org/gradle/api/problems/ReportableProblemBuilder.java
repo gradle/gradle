@@ -29,7 +29,7 @@ import org.gradle.api.Incubating;
  *          .label("test problem")
  *          .undocumented()
  *          .noLocation()
- *          .cotegory("problemCategory")
+ *          .category("problemCategory")
  *          .severity(Severity.ERROR)
  *          .details("this is a test")
  *  }</pre>
@@ -42,6 +42,7 @@ public interface ReportableProblemBuilder extends BasicProblemBuilder {
      * Creates the new problem. Calling {@link #build()} won't report the problem via build operations, it can be done separately by calling {@link ReportableProblem#report()}.
      *
      * @return the new problem
+     * @since 8.6
      */
     ReportableProblem build();
 }

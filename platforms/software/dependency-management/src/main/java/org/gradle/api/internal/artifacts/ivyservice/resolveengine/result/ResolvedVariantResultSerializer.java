@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -23,7 +23,9 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.internal.Describables;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -61,7 +63,7 @@ public class ResolvedVariantResultSerializer implements Serializer<ResolvedVaria
             ComponentIdentifier owner = componentIdentifierSerializer.read(decoder);
             String variantName = decoder.readString();
             AttributeContainer attributes = attributeContainerSerializer.read(decoder);
-            List<Capability> capabilities = readCapabilities(decoder);
+            ImmutableCapabilities capabilities = readCapabilities(decoder);
             read.add(null);
             ResolvedVariantResult externalVariant = read(decoder);
             DefaultResolvedVariantResult result = new DefaultResolvedVariantResult(owner, Describables.of(variantName), attributes, capabilities, externalVariant);
@@ -71,16 +73,16 @@ public class ResolvedVariantResultSerializer implements Serializer<ResolvedVaria
         return read.get(index);
     }
 
-    private List<Capability> readCapabilities(Decoder decoder) throws IOException {
+    private ImmutableCapabilities readCapabilities(Decoder decoder) throws IOException {
         int size = decoder.readSmallInt();
         if (size == 0) {
-            return ImmutableList.of();
+            return ImmutableCapabilities.EMPTY;
         }
-        ImmutableList.Builder<Capability> capabilities = ImmutableList.builderWithExpectedSize(size);
+        ImmutableSet.Builder<ImmutableCapability> capabilities = ImmutableSet.builderWithExpectedSize(size);
         for (int i = 0; i < size; i++) {
             capabilities.add(capabilitySerializer.read(decoder));
         }
-        return capabilities.build();
+        return new ImmutableCapabilities(capabilities.build());
     }
 
     @Override

@@ -113,7 +113,7 @@
   },
   {
     "name": "build-profile",
-    "path": "subprojects/build-profile",
+    "path": "platforms/core-runtime/build-profile",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -183,14 +183,14 @@
   },
   {
     "name": "distributions-basics",
-    "path": "subprojects/distributions-basics",
+    "path": "platforms/core-runtime/distributions-basics",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "distributions-core",
-    "path": "subprojects/distributions-core",
+    "path": "platforms/core-runtime/distributions-core",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -239,21 +239,21 @@
   },
   {
     "name": "docs",
-    "path": "subprojects/docs",
+    "path": "platforms/documentation/docs",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "docs-asciidoctor-extensions",
-    "path": "subprojects/docs-asciidoctor-extensions",
+    "path": "platforms/documentation/docs-asciidoctor-extensions",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "docs-asciidoctor-extensions-base",
-    "path": "subprojects/docs-asciidoctor-extensions-base",
+    "path": "platforms/documentation/docs-asciidoctor-extensions-base",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -379,7 +379,7 @@
   },
   {
     "name": "installation-beacon",
-    "path": "subprojects/installation-beacon",
+    "path": "platforms/core-runtime/installation-beacon",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -393,7 +393,7 @@
   },
   {
     "name": "instrumentation-declarations",
-    "path": "subprojects/instrumentation-declarations",
+    "path": "platforms/core-runtime/instrumentation-declarations",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -813,7 +813,7 @@
   },
   {
     "name": "samples",
-    "path": "subprojects/samples",
+    "path": "platforms/documentation/samples",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false

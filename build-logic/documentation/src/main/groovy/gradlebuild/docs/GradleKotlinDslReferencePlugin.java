@@ -34,7 +34,6 @@ import org.gradle.api.tasks.TaskProvider;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Path;
 
 public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
 
@@ -130,7 +129,7 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
 
     private static URI toUri(File projectRootDir, File file, String commitId) {
         try {
-            Path relativeLocation = projectRootDir.toPath().relativize(file.toPath());
+            URI relativeLocation = projectRootDir.toURI().relativize(file.toURI());
             return new URI("https://github.com/gradle/gradle/blob/" + commitId + "/" + relativeLocation);
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);

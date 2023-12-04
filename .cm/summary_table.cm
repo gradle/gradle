@@ -131,19 +131,14 @@ platforms:
     name: 'core_execution'
     subprojects:
       - 'platforms/core-runtime/'
-      - 'subprojects/build-profile/'
   - core_runtime:
     name: 'core_runtime'
     subprojects:
       - 'platforms/core-runtime/'
-      - 'subprojects/installation-beacon/'
   - documentation:
     name: 'documentation'
     subprojects:
-      - 'subprojects/docs/'
-      - 'subprojects/docs-asciidoctor-extensions/'
-      - 'subprojects/docs-asciidoctor-extensions-base/'
-      - 'subprojects/samples/'
+      - 'platforms/documentation/'
   - extensibility:
     name: 'extensibility'
     subprojects:
@@ -173,7 +168,7 @@ platforms:
       - 'platforms/core-configuration/kotlin-dsl-tooling-builders/'
       - 'platforms/core-configuration/kotlin-dsl-tooling-models/'
       - 'build-logic/kotlin-dsl/'
-      - 'subprojects/docs/src/snippets/kotlinDsl/'
+      - 'platforms/documentation/docs/src/snippets/kotlinDsl/'
   - release_coordination:
     name: 'release_coordination'
     subprojects:

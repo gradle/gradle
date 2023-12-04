@@ -28,6 +28,11 @@ import javax.annotation.Nullable;
 @Incubating
 public interface ExceptionContainer {
 
+    /**
+     * Exception that caused the problem.
+     *
+     * @since 8.6
+     */
     @Nullable
     RuntimeException getException();
 }

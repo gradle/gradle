@@ -306,7 +306,6 @@ Class <org.gradle.api.internal.cache.DefaultCleanup> is not annotated (directly 
 Class <org.gradle.api.internal.cache.DefaultDecompressionCacheFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultDecompressionCacheFactory.java:0)
 Class <org.gradle.api.internal.cache.NoMarkingStrategy> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (NoMarkingStrategy.java:0)
 Class <org.gradle.api.internal.cache.StringInterner> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (StringInterner.java:0)
-Class <org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CapabilitiesMetadataInternal.java:0)
 Class <org.gradle.api.internal.capabilities.CapabilityInternal> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CapabilityInternal.java:0)
 Class <org.gradle.api.internal.capabilities.ImmutableCapability> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ImmutableCapability.java:0)
 Class <org.gradle.api.internal.capabilities.ShadowedCapability> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ShadowedCapability.java:0)

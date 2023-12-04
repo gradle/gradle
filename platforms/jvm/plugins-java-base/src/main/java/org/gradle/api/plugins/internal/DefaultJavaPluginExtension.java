@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.internal;
 
-import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
@@ -52,6 +51,7 @@ import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.Collections;
 import java.util.regex.Pattern;
 
 import static org.gradle.api.attributes.DocsType.JAVADOC;
@@ -270,7 +270,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
                 main.getJavadocElementsConfigurationName(),
                 null,
                 JAVADOC,
-                ImmutableList.of(),
+                Collections.emptySet(),
                 main.getJavadocJarTaskName(),
                 project.getTasks().named(main.getJavadocTaskName()),
                 project
@@ -290,7 +290,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
                 main.getSourcesElementsConfigurationName(),
                 null,
                 SOURCES,
-                ImmutableList.of(),
+                Collections.emptySet(),
                 main.getSourcesJarTaskName(),
                 main.getAllSource(),
                 project

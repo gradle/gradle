@@ -34,6 +34,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.GradleVersion
 import org.gradle.util.Path
 import org.junit.Rule
 import spock.lang.Specification
@@ -222,7 +223,11 @@ empty=
         then:
         def ex = thrown(MissingLockStateException)
         1 * context.identityPath('conf') >> Path.path(':conf')
-        ex.message == 'Locking strict mode: Configuration \':conf\' is locked but does not have lock state. To create the lock state, run a task that will resolve that configuration and add --write-locks'
+        ex.message == 'Locking strict mode: Configuration \':conf\' is locked but does not have lock state.'
+        ex.resolutions == ["To create the lock state, run a task that will resolve that configuration and add '--write-locks' to the command line.",
+                            "For more information on generating lock state, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/dependency_locking.html#generating_and_updating_dependency_locks in the Gradle documentation."]
+
+        where:
 
         where:
         unique << [true, false]

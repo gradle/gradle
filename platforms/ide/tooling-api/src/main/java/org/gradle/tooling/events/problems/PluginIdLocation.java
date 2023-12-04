@@ -26,5 +26,10 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface PluginIdLocation extends Location {
 
+    /**
+     * The ID of the plugin to which the location belongs.
+     *
+     * @since 8.6
+     */
     String getPluginId();
 }

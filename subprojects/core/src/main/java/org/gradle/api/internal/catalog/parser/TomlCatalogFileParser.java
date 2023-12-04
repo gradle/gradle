@@ -41,6 +41,7 @@ import org.tomlj.TomlTable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -117,7 +118,7 @@ public class TomlCatalogFileParser {
 
     private void parse() throws IOException {
         StrictVersionParser strictVersionParser = new StrictVersionParser(Interners.newStrongInterner());
-        try (InputStream inputStream = Files.newInputStream(catalogFilePath)) {
+        try (InputStream inputStream = new BufferedInputStream(Files.newInputStream(catalogFilePath))) {
             TomlParseResult result = Toml.parse(inputStream);
             assertNoParseErrors(result, catalogFilePath, versionCatalogBuilder);
             TomlTable metadataTable = result.getTable(METADATA_KEY);

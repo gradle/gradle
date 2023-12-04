@@ -158,7 +158,7 @@ public abstract class CppLibraryPlugin implements Plugin<Project> {
                 }
                 return files.iterator().next();
             });
-            apiElements.getOutgoing().artifact(publicHeaders);
+            apiElements.getOutgoing().artifact(publicHeaders, it -> it.builtBy(library.getPublicHeaderDirs()));
 
             project.getPluginManager().withPlugin("maven-publish", appliedPlugin -> {
                 final TaskProvider<Zip> headersZip = tasks.register("cppHeaders", Zip.class, task -> {

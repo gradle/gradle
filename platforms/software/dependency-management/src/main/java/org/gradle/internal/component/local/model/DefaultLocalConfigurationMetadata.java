@@ -107,7 +107,7 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
 
             copiedVariants.add(new LocalVariantMetadata(
                 oldVariant.getName(), oldVariant.getIdentifier(), oldVariant.asDescribable(), oldVariant.getAttributes(),
-                ImmutableCapabilities.of(oldVariant.getCapabilities()), newArtifacts
+                oldVariant.getCapabilities(), newArtifacts
             ));
         }
 

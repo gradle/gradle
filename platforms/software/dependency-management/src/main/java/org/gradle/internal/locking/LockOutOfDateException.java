@@ -16,9 +16,7 @@
 
 package org.gradle.internal.locking;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphValidationException;
-import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.List;
 
@@ -28,25 +26,9 @@ public class LockOutOfDateException extends GraphValidationException {
 
     private final List<String> errors;
 
-    public static LockOutOfDateException createLockOutOfDateException(String configurationName, Iterable<String> errors) {
-        TreeFormatter treeFormatter = new TreeFormatter();
-        treeFormatter.node("Dependency lock state for configuration '" + configurationName + "' is out of date");
-        treeFormatter.startChildren();
-        for (String error : errors) {
-            treeFormatter.node(error);
-        }
-        treeFormatter.endChildren();
-        return new LockOutOfDateException(treeFormatter.toString(), ImmutableList.copyOf(errors));
-    }
-
     public LockOutOfDateException(String message) {
         super(message);
         this.errors = emptyList();
-    }
-
-    private LockOutOfDateException(String message, List<String> errors) {
-        super(message);
-        this.errors = errors;
     }
 
     public List<String> getErrors() {

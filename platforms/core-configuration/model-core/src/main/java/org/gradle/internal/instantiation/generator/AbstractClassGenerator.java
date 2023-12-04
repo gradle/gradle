@@ -106,7 +106,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     /**
      * Types that are allowed to be instantiated directly by Gradle when exposed as a getter on a type.
      *
-     * @implNote Keep in sync with subprojects/docs/src/docs/userguide/extending-gradle/custom_gradle_types.adoc
+     * @implNote Keep in sync with platforms/documentation/docs/src/docs/userguide/extending-gradle/custom_gradle_types.adoc
      * @see ManagedObjectFactory#newInstance
      */
     private static final ImmutableSet<Class<?>> MANAGED_PROPERTY_TYPES = ImmutableSet.of(

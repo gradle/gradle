@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution;
 
-import org.gradle.api.problems.Problems;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
@@ -52,7 +51,6 @@ import static org.gradle.internal.execution.steps.AfterExecutionOutputFilter.NO_
 public class TestExecutionEngineFactory {
     public static ExecutionEngine createExecutionEngine(
         UniqueId buildId,
-
         BuildCacheController buildCacheController,
         BuildOperationExecutor buildOperationExecutor,
         ClassLoaderHierarchyHasher classloaderHierarchyHasher,
@@ -61,12 +59,11 @@ public class TestExecutionEngineFactory {
         OutputChangeListener outputChangeListener,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
-        Problems problems,
         ValidateStep.ValidationWarningRecorder validationWarningReporter,
         VirtualFileSystem virtualFileSystem
     ) {
         // @formatter:off
-        return new DefaultExecutionEngine(problems,
+        return new DefaultExecutionEngine(
             new IdentifyStep<>(buildOperationExecutor,
             new IdentityCacheStep<>(
             new AssignMutableWorkspaceStep<>(

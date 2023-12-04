@@ -42,6 +42,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Resolved
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
@@ -1181,7 +1182,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     void forEachCapability(CapabilitiesConflictHandler capabilitiesConflictHandler, Action<? super Capability> action) {
-        List<? extends Capability> capabilities = metadata.getCapabilities().getCapabilities();
+        ImmutableSet<ImmutableCapability> capabilities = metadata.getCapabilities().asSet();
         // If there's more than one node selected for the same component, we need to add
         // the implicit capability to the list, in order to make sure we can discover conflicts
         // between variants of the same module.
@@ -1209,7 +1210,7 @@ public class NodeState implements DependencyGraphNode {
         if (onComponent != null) {
             return onComponent;
         }
-        List<? extends Capability> capabilities = metadata.getCapabilities().getCapabilities();
+        ImmutableSet<ImmutableCapability> capabilities = metadata.getCapabilities().asSet();
         if (!capabilities.isEmpty()) { // Not required, but Guava's performance bad for an empty immutable list
             for (Capability capability : capabilities) {
                 if (capability.getGroup().equals(group) && capability.getName().equals(name)) {
@@ -1230,7 +1231,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     boolean hasShadowedCapability() {
-        for (Capability capability : metadata.getCapabilities().getCapabilities()) {
+        for (Capability capability : metadata.getCapabilities().asSet()) {
             if (capability instanceof ShadowedCapability) {
                 return true;
             }

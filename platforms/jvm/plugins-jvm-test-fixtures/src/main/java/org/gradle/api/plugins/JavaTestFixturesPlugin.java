@@ -65,7 +65,7 @@ public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
         JvmFeatureInternal feature = new DefaultJvmFeature(
             TEST_FIXTURES_FEATURE_NAME,
             testFixturesSourceSet,
-            Collections.singletonList(new ProjectDerivedCapability(project, TEST_FIXTURES_FEATURE_NAME)),
+            Collections.singleton(new ProjectDerivedCapability(project, TEST_FIXTURES_FEATURE_NAME)),
             (ProjectInternal) project,
             true,
             false

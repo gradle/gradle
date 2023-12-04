@@ -18,7 +18,6 @@ package org.gradle.internal.execution.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext;
@@ -39,10 +38,8 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
     private final Set<Class<?>> types = new HashSet<>();
     private final ImmutableList.Builder<ReportableProblem> problems = builder();
     private final TypeOriginInspector typeOriginInspector;
-    private final Problems problemsService;
 
-    public DefaultWorkValidationContext(TypeOriginInspector typeOriginInspector, Problems problemsService) {
-        this.problemsService = problemsService;
+    public DefaultWorkValidationContext(TypeOriginInspector typeOriginInspector) {
         this.typeOriginInspector = typeOriginInspector;
     }
 
