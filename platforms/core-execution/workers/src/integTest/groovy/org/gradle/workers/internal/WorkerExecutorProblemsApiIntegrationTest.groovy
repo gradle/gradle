@@ -16,13 +16,19 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.workers.fixtures.WorkerExecutorFixture
-import spock.lang.Ignore
 
-@Ignore("https://github.com/gradle/gradle/issues/27213")
 class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
+
+    // Worker-written file containing the build operation id
+    // We will use this to verify if the problem was reported in the correct build operation
+    def buildOperationIdFile = file('build-operation-id.txt')
 
     def forkingOptions(Jvm javaVersion) {
         if (javaVersion == null) {
@@ -62,11 +68,15 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
         file('buildSrc/src/main/java/org/gradle/test/ProblemWorkerTask.java') << """
             package org.gradle.test;
 
+            import java.io.File;
+            import java.io.FileWriter;
             import org.gradle.api.problems.ProblemBuilder;
             import org.gradle.api.problems.ProblemBuilderDefiningLabel;
             import org.gradle.api.problems.ProblemBuilderSpec;
             import org.gradle.api.problems.Problems;
             import org.gradle.api.problems.ReportableProblem;
+            import org.gradle.internal.operations.CurrentBuildOperationRef;
+
             import org.gradle.workers.WorkAction;
 
             import javax.inject.Inject;
@@ -78,6 +88,8 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
                 @Override
                 public void execute() {
+                    // Create and report a problem
+                    // This needs to be Java 6 compatible, as we are in a worker
                     getProblems().create(
                         new ProblemBuilderSpec() {
                             @Override
@@ -90,6 +102,17 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
                             }
                         }
                     ).report();
+
+                    // Write the current build operation id to a file
+                    // This needs to be Java 6 compatible, as we are in a worker
+                    File buildOperationIdFile = new File("${buildOperationIdFile.absolutePath}");
+                    try {
+                        FileWriter writer = new FileWriter(buildOperationIdFile);
+                        writer.write(CurrentBuildOperationRef.instance().get().getId().toString());
+                        writer.close();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
         """
@@ -127,9 +150,9 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
         isolationMode << WorkerExecutorFixture.ISOLATION_MODES
     }
 
-    def "problems can be logged, when using process isolation with different Java versions"() {
-//        Assume.assumeNotNull(javaVersion)
-        setupBuild(null)
+    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
+    def "problems can be logged, when using process isolation with java #javaVersion.majorVersion"() {
+        setupBuild(javaVersion)
         enableProblemsApiCheck()
 
         given:
@@ -156,14 +179,14 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         collectedProblems.size() == 1
+        def problem = collectedProblems[0]
+        problem['buildOperationId']['id'] == Long.parseLong(buildOperationIdFile.text)
 
         where:
-        javaVersion << [
-            null
-//            AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_6),
-//            AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_7),
-//            AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8),
-        ]
+        javaVersion << AvailableJavaHomes.getJdks(
+            JavaVersion.VERSION_1_6,
+            JavaVersion.VERSION_1_7
+        )
     }
 
 }
