@@ -4900,8 +4900,6 @@ Class <org.gradle.process.internal.worker.DefaultWorkerLoggingProtocol> is not a
 Class <org.gradle.process.internal.worker.DefaultWorkerProcess$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultWorkerProcess.java:0)
 Class <org.gradle.process.internal.worker.DefaultWorkerProcess$2> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultWorkerProcess.java:0)
 Class <org.gradle.process.internal.worker.DefaultWorkerProcess> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultWorkerProcess.java:0)
-Class <org.gradle.process.internal.worker.DefaultWorkerProcessBuilder$1$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultWorkerProcessBuilder.java:0)
-Class <org.gradle.process.internal.worker.DefaultWorkerProcessBuilder$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultWorkerProcessBuilder.java:0)
 Class <org.gradle.process.internal.worker.DefaultWorkerProcessBuilder$MemoryRequestingWorkerProcess> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultWorkerProcessBuilder.java:0)
 Class <org.gradle.process.internal.worker.DefaultWorkerProcessBuilder$WorkerJvmMemoryStatus$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultWorkerProcessBuilder.java:0)
 Class <org.gradle.process.internal.worker.DefaultWorkerProcessBuilder$WorkerJvmMemoryStatus> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultWorkerProcessBuilder.java:0)
