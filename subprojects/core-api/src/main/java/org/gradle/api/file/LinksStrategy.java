@@ -38,7 +38,7 @@ public interface LinksStrategy extends Serializable {
      **/
     LinksStrategy FOLLOW = new LinksStrategy() {
         @Override
-        public boolean shouldBePreserved(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
+        public boolean shouldBePreserved(@Nullable SymbolicLinkDetails linkDetails) {
             return false;
         }
 
@@ -112,7 +112,7 @@ public interface LinksStrategy extends Serializable {
         return originalPath.equals("") ? "." : originalPath;
     }
 
-    default boolean shouldBePreserved(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
+    default boolean shouldBePreserved(@Nullable SymbolicLinkDetails linkDetails) {
         return linkDetails != null;
     }
 

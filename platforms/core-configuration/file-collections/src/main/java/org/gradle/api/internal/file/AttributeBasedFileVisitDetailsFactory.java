@@ -61,19 +61,24 @@ public class AttributeBasedFileVisitDetailsFactory {
         File file = path.toFile();
         if (attrs == null) {
             return new UnauthorizedFileVisitDetails(file, relativePath);
-        } else {
-            SymbolicLinkDetails linkDetails = null;
-            boolean preserveLink = false;
-            if (Files.isSymbolicLink(path)) {
-                linkDetails = new DefaultSymbolicLinkDetails(path, relativePath.getSegments().length);
-                preserveLink = linksStrategy.shouldBePreserved(linkDetails, relativePath.getPathString());
-            }
-            if (relativePath.getSegments().length == 0) {
-                if (preserveLink || attrs.isRegularFile()) {
+        } else if (!Files.isSymbolicLink(path)) {
+            if (attrs.isRegularFile()) {
+                if (relativePath.getSegments().length == 0) {
                     relativePath = new RelativePath(true, file.getName());
+                } else if (!relativePath.isFile()) {
+                    relativePath = new RelativePath(true, relativePath.getSegments());
                 }
-            } else if (!relativePath.isFile() && (preserveLink || attrs.isRegularFile())) {
-                relativePath = new RelativePath(true, relativePath.getSegments());
+            }
+            return createFileVisitDetails(file, relativePath, attrs, stopFlag, fileSystem, null, false);
+        } else {
+            SymbolicLinkDetails linkDetails = new DefaultSymbolicLinkDetails(path, relativePath.getSegments().length);
+            boolean preserveLink = linksStrategy.shouldBePreserved(linkDetails);
+            if (preserveLink || attrs.isRegularFile()) {
+                if (relativePath.getSegments().length == 0) {
+                    relativePath = new RelativePath(true, file.getName());
+                } else if (!relativePath.isFile()) {
+                    relativePath = new RelativePath(true, relativePath.getSegments());
+                }
             }
             return createFileVisitDetails(file, relativePath, attrs, stopFlag, fileSystem, linkDetails, preserveLink);
         }
@@ -123,15 +128,13 @@ public class AttributeBasedFileVisitDetailsFactory {
         if (attrs == null) {
             RelativePath relativePath = parentPath.append(false, file.getName());
             return new UnauthorizedFileVisitDetails(file, relativePath);
+        } else if (!Files.isSymbolicLink(path)) {
+            RelativePath relativePath = parentPath.append(attrs.isRegularFile(), file.getName());
+            return createFileVisitDetails(file, relativePath, attrs, stopFlag, fileSystem, null, false);
         } else {
-            SymbolicLinkDetails linkDetails = null;
-            boolean preserveLink = false;
-            if (Files.isSymbolicLink(path)) {
-                int relativePathDepth = parentPath.getSegments().length + 1;
-                linkDetails = new DefaultSymbolicLinkDetails(path, relativePathDepth);
-                String pathHint = relativePathDepth == 1 ? file.getName() : parentPath.getPathString() + '/' + file.getName();
-                preserveLink = linksStrategy.shouldBePreserved(linkDetails, pathHint);
-            }
+            int relativePathDepth = parentPath.getSegments().length + 1;
+            SymbolicLinkDetails linkDetails = new DefaultSymbolicLinkDetails(path, relativePathDepth);
+            boolean preserveLink = linksStrategy.shouldBePreserved(linkDetails);
             RelativePath relativePath = parentPath.append(attrs.isRegularFile() || preserveLink, file.getName());
             return createFileVisitDetails(file, relativePath, attrs, stopFlag, fileSystem, linkDetails, preserveLink);
         }

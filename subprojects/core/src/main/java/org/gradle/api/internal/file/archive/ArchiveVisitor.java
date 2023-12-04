@@ -148,7 +148,7 @@ public abstract class ArchiveVisitor<ENTRY> {
             }
         } else {
             ArchiveSymbolicLinkDetails<ENTRY> linkDetails = new ArchiveSymbolicLinkDetails<>(entry, this);
-            boolean preserveLink = linksStrategy.shouldBePreserved(linkDetails, targetPath);
+            boolean preserveLink = linksStrategy.shouldBePreserved(linkDetails);
             FileVisitDetails details = createDetails(entry, targetPath, linkDetails, preserveLink);
             if (details.isDirectory()) {
                 visitor.visitDir(details);
