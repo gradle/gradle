@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.jmh")
 }
 
 description = "Implementation of configuration model types and annotation metadata handling (Providers, software model, conventions)"
@@ -46,6 +47,8 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-native")) {
         because("ModelRuleCachingIntegrationTest requires a rules implementation")
     }
+
+    jmhImplementation(platform(project(":distributions-dependencies")))
 }
 
 strictCompile {
