@@ -17,19 +17,52 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableList;
+import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.gradle.api.GradleException;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class EvaluationContext {
+/**
+ * This class keeps track of all providers being evaluated at the moment.
+ * It helps to provide nicer error messages when the evaluation enters an endless cycle (A obtains a value of B which obtains a value of A).
+ * <p>
+ * Concurrent evaluation of same providers by multiple threads is still allowed.
+ * <p>
+ * This class is thread-safe, but the returned contexts must be closed by the same thread that opens them.
+ */
+public final class EvaluationContext {
+    /**
+     * An evaluation that runs with some provider being added to the evaluation context.
+     *
+     * @param <R> the return type
+     * @param <E> (optional) exception type being thrown by the evaluation
+     */
     @FunctionalInterface
     public interface ScopedEvaluation<R, E extends Exception> {
         R evaluate() throws E;
+    }
+
+    /**
+     * A scope context. One can obtain an instance by calling {@link #enter(ProviderInternal)}.
+     * Closing this context removes the provider from the evaluation context.
+     * The primary use case is to serve as an argument for the try-with-resources block.
+     * <p>
+     * It is not safe to call {@link #close()} multiple times.
+     * The instances of the class may not be unique for different providers being added.
+     * <p>
+     * Contexts must be closed in the order they are obtained.
+     * This context must be closed by the same thread that obtained it.
+     */
+    public interface ScopeContext extends AutoCloseable {
+        /**
+         * Removes the provider added to evaluation context when obtaining this class from the context.
+         */
+        @Override
+        void close();
     }
 
     private static final int EXPECTED_MAX_CONTEXT_SIZE = 64;
@@ -38,11 +71,24 @@ public class EvaluationContext {
 
     private final ThreadLocal<PerThreadContext> threadLocalContext = ThreadLocal.withInitial(() -> new PerThreadContext(null));
 
+    /**
+     * Returns the current instance of EvaluationContext for this thread.
+     *
+     * @return the evaluation context
+     */
     public static EvaluationContext current() {
         return INSTANCE;
     }
 
     private EvaluationContext() {}
+
+    /**
+     * Adds the provider to the set of "evaluating" providers and returns the context instance to remove it from there upon closing.
+     * This method is intended to be used in the try-with-resources block's initializer.
+     */
+    public ScopeContext enter(ProviderInternal<?> provider) {
+        return getContext().enter(provider);
+    }
 
     /**
      * Runs the {@code evaluation} with the {@code provider} being marked as "evaluating".
@@ -57,7 +103,7 @@ public class EvaluationContext {
      * @throws CircularEvaluationException if the provider is currently being evaluated in the outer scope
      */
     public <R, E extends Exception> R evaluate(ProviderInternal<?> provider, ScopedEvaluation<? extends R, E> evaluation) throws E {
-        try (ScopeContext ignored = getContext().enter(provider)) {
+        try (ScopeContext ignored = enter(provider)) {
             return evaluation.evaluate();
         }
     }
@@ -112,22 +158,13 @@ public class EvaluationContext {
         return newContext;
     }
 
-    public interface ScopeContext extends AutoCloseable {
-        @Override
-        void close();
-    }
-
-    public ScopeContext enter(ProviderInternal<?> provider) {
-        return getContext().enter(provider);
-    }
-
     private ScopeContext nested() {
         return setContext(new PerThreadContext(getContext()));
     }
 
     private final class PerThreadContext implements ScopeContext {
         private final Set<ProviderInternal<?>> providersInScope = new ReferenceOpenHashSet<>(EXPECTED_MAX_CONTEXT_SIZE);
-        private final List<ProviderInternal<?>> providersStack = new ArrayList<>(EXPECTED_MAX_CONTEXT_SIZE);
+        private final List<ProviderInternal<?>> providersStack = new ReferenceArrayList<>(EXPECTED_MAX_CONTEXT_SIZE);
         @Nullable
         private final PerThreadContext parent;
 
@@ -179,6 +216,9 @@ public class EvaluationContext {
         }
     }
 
+    /**
+     * An exception caused by the circular evaluation.
+     */
     public static class CircularEvaluationException extends GradleException {
         private final ImmutableList<ProviderInternal<?>> evaluationCycle;
 
@@ -191,6 +231,13 @@ public class EvaluationContext {
             return "Circular evaluation detected: " + formatEvaluationChain(evaluationCycle);
         }
 
+        /**
+         * Returns the evaluation cycle.
+         * The list represents a "stack" of providers currently being evaluated, and is at least two elements long.
+         * The first and last elements of the list are the same provider.
+         *
+         * @return the evaluation cycle as a list
+         */
         public List<ProviderInternal<?>> getEvaluationCycle() {
             return evaluationCycle;
         }
@@ -210,9 +257,11 @@ public class EvaluationContext {
             try {
                 return providerInternal.toString();
             } catch (Throwable e) {
-                // Calling e.getMessage() can cause infinite recursion. It happens if e is CircularEvaluationException itself, but
-                // can also happen for some other custom exception that happens to call this method.
-                // User code should not be able to trigger this kind of circularity.
+                // Calling e.getMessage() here can cause infinite recursion.
+                // It happens if e is CircularEvaluationException itself, because getMessage calls formatEvaluationChain.
+                // It can also happen for some other custom exceptions that wrap CircularEvaluationException and call its getMessage inside their.
+                // This is why we resort to losing the information and only providing exception class.
+                // A well-behaved toString should not throw anyway.
                 return providerInternal.getClass().getName() + " (toString failed with " + e.getClass() + ")";
             }
         }
