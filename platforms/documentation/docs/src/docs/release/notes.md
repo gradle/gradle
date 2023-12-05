@@ -89,6 +89,10 @@ Execution failed for task ':dependencies'.
 > Get more help at https://help.gradle.org.
 ```
 
+### Gradle init
+
+When using `gradle init` to generate projects with Kotlin DSL scripts they are now using [simple property assignment](/8.4/release-notes.html#assign-stable) syntax with `=` operator.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
