@@ -17,6 +17,7 @@
 package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
@@ -32,12 +33,12 @@ class JacocoConfigurationCacheIntegrationTest extends AbstractIntegrationSpec {
     @Issue('https://github.com/gradle/gradle/issues/26922')
     def 'can aggregate with `kotlin-dsl` subproject'() {
         given:
-        file('settings.gradle.kts') << '''
+        file('settings.gradle.kts') << """
             include(":plugin")
             dependencyResolutionManagement {
-                repositories { mavenCentral() }
+                ${mavenCentralRepository(GradleDsl.KOTLIN)}
             }
-        '''
+        """
         file('build.gradle.kts') << '''
             plugins { id("jacoco-report-aggregation") }
 
