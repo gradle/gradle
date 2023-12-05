@@ -62,7 +62,7 @@ public class CompilationClassBackupService {
 
     public void maybeBackupClassFile(String classFqName) {
         // Classes to compile are stashed before the compilation, so there is nothing to backup
-        if (shouldBackupFiles && !classesToCompile.contains(classFqName)) {
+        if (shouldBackupFiles) {
             String classFilePath = classFqName.replace(".", "/").concat(".class");
             maybeBackupFile(destinationDir, classFilePath);
             if (headerOutputDir != null) {

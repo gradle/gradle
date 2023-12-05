@@ -227,7 +227,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         spec.setSourceFiles(narrowDownSourcesToCompile(sourceTree, sourceToCompile));
         includePreviousCompilationOutputOnClasspath(spec);
         addClassesToProcess(spec, recompilationSpec);
-        spec.setClassesToCompile(recompilationSpec.getClassesToCompile());
+        spec.setClassesToCompile(Collections.emptySet());
         Map<GeneratedResource.Location, PatternSet> resourcesToDelete = prepareResourcePatterns(recompilationSpec.getResourcesToGenerate(), fileOperations);
         return new CompileTransaction(spec, classesToDelete, resourcesToDelete, fileOperations, deleter);
     }
