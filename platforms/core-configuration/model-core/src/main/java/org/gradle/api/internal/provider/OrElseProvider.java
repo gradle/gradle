@@ -28,7 +28,7 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
     }
 
     @Override
-    public String toString() {
+    protected String toStringNoReentrance() {
         return String.format("or(%s, %s)", left, right);
     }
 

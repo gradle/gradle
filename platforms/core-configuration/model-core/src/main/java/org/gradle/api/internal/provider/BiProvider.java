@@ -35,7 +35,7 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
     }
 
     @Override
-    public String toString() {
+    protected String toStringNoReentrance() {
         return String.format("and(%s, %s)", left, right);
     }
 

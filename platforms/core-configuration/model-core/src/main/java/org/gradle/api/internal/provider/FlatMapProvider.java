@@ -83,7 +83,7 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
     }
 
     @Override
-    public String toString() {
+    protected String toStringNoReentrance() {
         return "flatmap(" + provider + ")";
     }
 }

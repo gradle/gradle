@@ -168,7 +168,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     // This method is final - implement describeContents() instead
     @Override
-    public final String toString() {
+    protected final String toStringNoReentrance() {
         if (displayName != null) {
             return displayName.toString();
         } else {

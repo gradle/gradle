@@ -30,7 +30,7 @@ class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
     }
 
     @Override
-    public String toString() {
+    protected String toStringNoReentrance() {
         return String.format("or(%s, fixed(%s))", provider, fallbackValue);
     }
 

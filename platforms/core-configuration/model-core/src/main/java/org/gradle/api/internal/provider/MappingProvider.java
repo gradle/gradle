@@ -74,7 +74,7 @@ public class MappingProvider<OUT, IN> extends TransformBackedProvider<OUT, IN> {
     protected void beforeRead() {}
 
     @Override
-    public String toString() {
+    protected String toStringNoReentrance() {
         return "map(" + (type == null ? "" : type.getName() + " ") + provider + " " + transformer + ")";
     }
 }

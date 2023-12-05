@@ -169,10 +169,9 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
-    public String toString() {
-        // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
-        Class<?> type = getType();
-        return String.format("provider(%s)", type == null ? "?" : type.getName());
+    public final String toString() {
+        // Override #safeToString instead
+        return EvaluationContext.current().tryEvaluate(this, "<CIRCULAR REFERENCE>", this::toStringNoReentrance);
     }
 
     @Override
@@ -207,6 +206,17 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
             formatter.endChildren();
         }
         return formatter.toString();
+    }
+
+    /**
+     * An implementation for the toString method that is never called if the current provider is being evaluated.
+     *
+     * @return the string representation of the provider
+     */
+    protected String toStringNoReentrance() {
+        // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
+        Class<?> type = getType();
+        return String.format("provider(%s)", type == null ? "?" : type.getName());
     }
 
     /**

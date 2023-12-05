@@ -96,7 +96,7 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     }
 
     @Override
-    public String toString() {
+    protected String toStringNoReentrance() {
         return "map(" + (type == null ? "" : type.getName() + " ") + provider + ")";
     }
 }

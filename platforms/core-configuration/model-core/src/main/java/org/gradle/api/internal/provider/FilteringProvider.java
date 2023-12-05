@@ -95,7 +95,7 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
     }
 
     @Override
-    public String toString() {
+    protected String toStringNoReentrance() {
         return "filter(" + (getType() == null ? "" : getType().getName() + " ") + provider + ")";
     }
 }
