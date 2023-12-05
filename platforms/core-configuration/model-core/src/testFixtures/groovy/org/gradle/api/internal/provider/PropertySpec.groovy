@@ -1061,7 +1061,8 @@ The value of this provider is derived from:
 
         then:
         1 * function.call() >> {
-            property.get()
+            // Emulate concurrent get() in other thread
+            EvaluationContext.current().evaluateNested(property::get)
         }
         1 * function.call() >> someValue()
         0 * function._
@@ -1089,7 +1090,8 @@ The value of this provider is derived from:
         then:
         result == someValue()
         1 * function.call() >> {
-            property.get()
+            // Emulate concurrent get() in other thread
+            EvaluationContext.current().evaluateNested(property::get)
         }
         1 * function.call() >> someValue()
         0 * function._

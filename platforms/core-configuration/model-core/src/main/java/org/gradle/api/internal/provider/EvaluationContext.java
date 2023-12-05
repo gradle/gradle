@@ -85,6 +85,23 @@ public class EvaluationContext {
         return evaluate(provider, evaluation);
     }
 
+    /**
+     * Runs the {@code evaluation} in a nested evaluation context. A nested context allows to re-enter evaluation of the providers that are being evaluated in the enclosed context.
+     * <p>
+     * Use sparingly. In most cases, it is better to rework the call chain to avoid re-evaluating the provider.
+     *
+     * @param evaluation the evaluation
+     * @param <R> the type of the result
+     * @param <E> (optional) exception type being thrown by the evaluation
+     * @return the result of the evaluation
+     * @throws E exception from the {@code evaluation} is propagated
+     */
+    public <R, E extends Exception> R evaluateNested(ScopedEvaluation<? extends R, E> evaluation) throws E {
+        try (ScopeContext ignored = nested()) {
+            return evaluation.evaluate();
+        }
+    }
+
     private PerThreadContext getContext() {
         return threadLocalContext.get();
     }
