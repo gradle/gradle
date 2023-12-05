@@ -952,4 +952,52 @@ project.extensions.create("some", SomeExtension)
         then:
         outputContains("filter: null")
     }
+
+    def "circular evaluation of task property is detected"() {
+        buildFile """
+            abstract class MyTask extends DefaultTask {
+                @Input
+                abstract Property<String> getStringInput()
+
+                @TaskAction
+                def action() {
+                    println("stringInput = \${stringInput.get()}")
+                }
+            }
+
+            tasks.register("myTask", MyTask) {
+                stringInput.convention("defaultValue")
+                stringInput = $selfReference
+            }
+        """
+
+        when:
+        fails "myTask"
+
+        then:
+        failureCauseContains("Circular evaluation detected")
+
+        where:
+        selfReference                                 || _
+        "stringInput"                                 || _
+        "stringInput.map { it.capitalize() }"         || _
+        "provider { stringInput.get().capitalize() }" || _
+    }
+
+    def "circular evaluation of standalone property is detected"() {
+        buildFile """
+            def prop = objects.property(String)
+            prop.set(prop.map { "newValue" })
+
+            println("prop = \${prop.get()}")
+
+            tasks.register("myTask") {}
+        """
+
+        when:
+        fails "myTask"
+
+        then:
+        failureCauseContains("Circular evaluation detected")
+    }
 }

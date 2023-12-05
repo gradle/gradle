@@ -19,12 +19,12 @@ package org.gradle.api.internal.provider;
 import javax.annotation.Nullable;
 
 class OrElseProvider<T> extends AbstractMinimalProvider<T> {
-    private final ProviderInternal<T> left;
-    private final ProviderInternal<? extends T> right;
+    private final ProviderGuard<T> left;
+    private final ProviderGuard<? extends T> right;
 
     public OrElseProvider(ProviderInternal<T> left, ProviderInternal<? extends T> right) {
-        this.left = left;
-        this.right = right;
+        this.left = guardProvider(left);
+        this.right = guardProvider(right);
     }
 
     @Override

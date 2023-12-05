@@ -21,11 +21,11 @@ import org.gradle.internal.Cast;
 import javax.annotation.Nullable;
 
 class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
-    private final ProviderInternal<? extends T> provider;
+    private final ProviderGuard<? extends T> provider;
     private final T fallbackValue;
 
     public OrElseFixedValueProvider(ProviderInternal<? extends T> provider, T fallbackValue) {
-        this.provider = provider;
+        this.provider = guardProvider(provider);
         this.fallbackValue = fallbackValue;
     }
 

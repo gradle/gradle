@@ -24,14 +24,14 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
     private final Class<R> type;
     private final BiFunction<? super A, ? super B, ? extends R> combiner;
-    private final ProviderInternal<A> left;
-    private final ProviderInternal<B> right;
+    private final ProviderGuard<A> left;
+    private final ProviderGuard<B> right;
 
     public BiProvider(@Nullable Class<R> type, Provider<A> left, Provider<B> right, BiFunction<? super A, ? super B, ? extends R> combiner) {
         this.type = type;
         this.combiner = combiner;
-        this.left = Providers.internal(left);
-        this.right = Providers.internal(right);
+        this.left = guardProvider(Providers.internal(left));
+        this.right = guardProvider(Providers.internal(right));
     }
 
     @Override
@@ -55,7 +55,7 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
             : super.calculateExecutionTimeValue();
     }
 
-    private boolean isChangingValue(ProviderInternal<?> provider) {
+    private boolean isChangingValue(ProviderGuard<?> provider) {
         return provider.calculateExecutionTimeValue().isChangingValue();
     }
 
@@ -70,7 +70,7 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
             return rightValue.asType();
         }
 
-        R combinedUnpackedValue = combiner.apply(leftValue.getWithoutSideEffect(), rightValue.getWithoutSideEffect());
+        R combinedUnpackedValue = evaluate(() -> combiner.apply(leftValue.getWithoutSideEffect(), rightValue.getWithoutSideEffect()));
 
         return Value.ofNullable(combinedUnpackedValue)
             .withSideEffect(SideEffect.fixedFrom(leftValue))

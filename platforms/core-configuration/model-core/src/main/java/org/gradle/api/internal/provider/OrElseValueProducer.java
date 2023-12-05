@@ -18,18 +18,19 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.internal.provider.AbstractMinimalProvider.ProviderGuard;
 
 import javax.annotation.Nullable;
 
 class OrElseValueProducer implements ValueSupplier.ValueProducer {
 
-    private final ProviderInternal<?> left;
+    private final ProviderGuard<?> left;
     @Nullable
-    private final ProviderInternal<?> right;
+    private final ProviderGuard<?> right;
     private final ValueSupplier.ValueProducer leftProducer;
     private final ValueSupplier.ValueProducer rightProducer;
 
-    public OrElseValueProducer(ProviderInternal<?> left, @Nullable ProviderInternal<?> right, ValueSupplier.ValueProducer rightProducer) {
+    public OrElseValueProducer(ProviderGuard<?> left, @Nullable ProviderGuard<?> right, ValueSupplier.ValueProducer rightProducer) {
         this.left = left;
         this.right = right;
         this.leftProducer = left.getProducer();
@@ -55,7 +56,7 @@ class OrElseValueProducer implements ValueSupplier.ValueProducer {
         }
     }
 
-    private boolean isMissing(ProviderInternal<?> provider) {
+    private boolean isMissing(ProviderGuard<?> provider) {
         return provider.calculateExecutionTimeValue().isMissing();
     }
 }

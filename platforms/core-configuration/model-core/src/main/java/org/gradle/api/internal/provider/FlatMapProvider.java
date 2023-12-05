@@ -22,11 +22,11 @@ import org.gradle.api.provider.Provider;
 import javax.annotation.Nullable;
 
 public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
-    private final ProviderInternal<? extends T> provider;
+    private final ProviderGuard<? extends T> provider;
     private final Transformer<? extends Provider<? extends S>, ? super T> transformer;
 
     FlatMapProvider(ProviderInternal<? extends T> provider, Transformer<? extends Provider<? extends S>, ? super T> transformer) {
-        this.provider = provider;
+        this.provider = guardProvider(provider);
         this.transformer = transformer;
     }
 
@@ -50,24 +50,24 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
         return doMapValue(value).calculateValue(consumer);
     }
 
-    private ProviderInternal<? extends S> doMapValue(Value<? extends T> value) {
+    private ProviderGuard<? extends S> doMapValue(Value<? extends T> value) {
         T unpackedValue = value.getWithoutSideEffect();
-        Provider<? extends S> transformedProvider = transformer.transform(unpackedValue);
+        Provider<? extends S> transformedProvider = evaluate(() -> transformer.transform(unpackedValue));
         if (transformedProvider == null) {
-            return Providers.notDefined();
+            return guardProvider(Providers.notDefined());
         }
 
         // Note, that the potential side effect of the transformed provider
         // is going to be executed before this fixed side effect.
         // It is not possible to preserve linear execution order in the general case,
         // as the transformed provider can have side effects hidden under other wrapping providers.
-        return Providers.internal(transformedProvider).withSideEffect(SideEffect.fixedFrom(value));
+        return guardProvider(Providers.internal(transformedProvider).withSideEffect(SideEffect.fixedFrom(value)));
     }
 
-    private ProviderInternal<? extends S> backingProvider(ValueConsumer consumer) {
+    private ProviderGuard<? extends S> backingProvider(ValueConsumer consumer) {
         Value<? extends T> value = provider.calculateValue(consumer);
         if (value.isMissing()) {
-            return Providers.notDefined();
+            return guardProvider(Providers.notDefined());
         }
         return doMapValue(value);
     }

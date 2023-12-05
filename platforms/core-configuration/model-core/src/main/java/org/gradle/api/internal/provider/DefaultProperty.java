@@ -24,7 +24,7 @@ import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
-public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? extends T>> implements Property<T> {
+public class DefaultProperty<T> extends AbstractProperty<T, AbstractMinimalProvider.ProviderGuard<? extends T>> implements Property<T> {
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
 
@@ -32,7 +32,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
         super(propertyHost);
         this.type = type;
         this.sanitizer = ValueSanitizers.forType(type);
-        init(Providers.notDefined());
+        init(guardProvider(Providers.notDefined()));
     }
 
     @Override
@@ -69,7 +69,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
         if (value == null) {
             discardValue();
         } else {
-            setSupplier(Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer));
+            setSupplier(guardProvider(Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer)));
         }
     }
 
@@ -86,7 +86,9 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     }
 
     public ProviderInternal<? extends T> getProvider() {
-        return getSupplier();
+        // TODO(mlopatkin) while calling getProvider is not going to cause StackOverflowError by itself, the returned provider is typically used in some recursive call.
+        //  Without the safety net of the EvaluationContext, it can cause hard-to-debug exceptions.
+        return getSupplier().getUnsafe();
     }
 
     public DefaultProperty<T> provider(Provider<? extends T> provider) {
@@ -98,15 +100,15 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     public void set(Provider<? extends T> provider) {
         Preconditions.checkArgument(provider != null, "Cannot set the value of a property using a null provider.");
         ProviderInternal<? extends T> p = Providers.internal(provider);
-        setSupplier(p.asSupplier(getValidationDisplayName(), type, sanitizer));
+        setSupplier(guardProvider(p.asSupplier(getValidationDisplayName(), type, sanitizer)));
     }
 
     @Override
     public Property<T> convention(@Nullable T value) {
         if (value == null) {
-            setConvention(Providers.notDefined());
+            setConvention(guardProvider(Providers.notDefined()));
         } else {
-            setConvention(Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer));
+            setConvention(guardProvider(Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer)));
         }
         return this;
     }
@@ -114,24 +116,24 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     @Override
     public Property<T> convention(Provider<? extends T> provider) {
         Preconditions.checkArgument(provider != null, "Cannot set the convention of a property using a null provider.");
-        setConvention(Providers.internal(provider).asSupplier(getValidationDisplayName(), type, sanitizer));
+        setConvention(guardProvider(Providers.internal(provider).asSupplier(getValidationDisplayName(), type, sanitizer)));
         return this;
     }
 
     @Override
-    protected ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(ProviderInternal<? extends T> value) {
+    protected ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(ProviderGuard<? extends T> value) {
         // Discard this property from a provider chain, as it does not contribute anything to the calculation.
         return value.calculateExecutionTimeValue();
     }
 
     @Override
-    protected Value<? extends T> calculateValueFrom(ProviderInternal<? extends T> value, ValueConsumer consumer) {
+    protected Value<? extends T> calculateValueFrom(ProviderGuard<? extends T> value, ValueConsumer consumer) {
         return value.calculateValue(consumer);
     }
 
     @Override
-    protected ProviderInternal<? extends T> finalValue(ProviderInternal<? extends T> value, ValueConsumer consumer) {
-        return value.withFinalValue(consumer);
+    protected ProviderGuard<? extends T> finalValue(ProviderGuard<? extends T> value, ValueConsumer consumer) {
+        return guardProvider(value.withFinalValue(consumer));
     }
 
     @Override

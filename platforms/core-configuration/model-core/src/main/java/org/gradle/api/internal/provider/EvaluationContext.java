@@ -38,7 +38,6 @@ public class EvaluationContext {
 
     private final ThreadLocal<PerThreadContext> threadLocalContext = ThreadLocal.withInitial(() -> new PerThreadContext(null));
 
-    // TODO(mlopatkin) Replace with injection.
     public static EvaluationContext current() {
         return INSTANCE;
     }

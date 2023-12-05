@@ -34,7 +34,7 @@ import javax.annotation.Nullable;
 public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OUT> {
 
     protected final Class<OUT> type;
-    protected final ProviderInternal<? extends IN> provider;
+    protected final ProviderGuard<? extends IN> provider;
     protected final Transformer<? extends OUT, ? super IN> transformer;
 
     public TransformBackedProvider(
@@ -44,7 +44,7 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     ) {
         this.type = type;
         this.transformer = transformer;
-        this.provider = provider;
+        this.provider = guardProvider(provider);
     }
 
     @Nullable
@@ -82,7 +82,7 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
         if (value.isMissing()) {
             return value.asType();
         }
-        return value.transform(transformer);
+        return evaluate(() -> value.transform(transformer));
     }
 
     protected void beforeRead() {

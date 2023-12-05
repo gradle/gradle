@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
  **/
 public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
 
-    protected final ProviderInternal<T> provider;
+    protected final ProviderGuard<T> provider;
     protected final Spec<? super T> spec;
 
     public FilteringProvider(
@@ -35,7 +35,7 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
         Spec<? super T> spec
     ) {
         this.spec = spec;
-        this.provider = provider;
+        this.provider = guardProvider(provider);
     }
 
     @Nullable
@@ -77,7 +77,7 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
             return value.asType();
         }
         T unpackedValue = value.getWithoutSideEffect();
-        if (spec.isSatisfiedBy(unpackedValue)) {
+        if (evaluate(() -> spec.isSatisfiedBy(unpackedValue))) {
             return value;
         } else {
             return Value.missing();

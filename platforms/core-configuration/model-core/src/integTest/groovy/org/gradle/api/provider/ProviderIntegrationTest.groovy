@@ -355,4 +355,30 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         'provider { "baz" }.zip(task.flatMap { it.outDir }) { f, d -> d.file(f) }' | _
         'provider { "baz" }.zip(task.get().outDir) { f, d -> d.file(f) }'          | _
     }
+
+    def "circular evaluation of provider is detected"() {
+        buildFile """
+            abstract class MyTask extends DefaultTask {
+                @Input
+                abstract Property<String> getStringInput()
+
+                @TaskAction
+                def action() {
+                    println("stringInput = \${stringInput.get()}")
+                }
+            }
+
+            tasks.register("myTask", MyTask) {
+                def p = provider { "value" }
+                p = p.map { v -> v + p.get()}
+                stringInput = p
+            }
+        """
+
+        when:
+        fails "myTask"
+
+        then:
+        failureCauseContains("Circular evaluation detected")
+    }
 }

@@ -208,4 +208,97 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         }
         return formatter.toString();
     }
+
+    /**
+     * Runs the {@code evaluation} with this provider being marked as "evaluating".
+     * If the provider is already being evaluated, throws {@link EvaluationContext.CircularEvaluationException}.
+     *
+     * @param evaluation the evaluation
+     * @param <R> the type of the result
+     * @param <E> (optional) exception type being thrown by the evaluation
+     * @return the result of the evaluation
+     * @throws E exception from the {@code evaluation} is propagated
+     * @throws EvaluationContext.CircularEvaluationException if the provider is currently being evaluated in the outer scope
+     */
+    protected <R, E extends Exception> R evaluate(EvaluationContext.ScopedEvaluation<? extends R, E> evaluation) throws E {
+        return EvaluationContext.current().evaluate(this, evaluation);
+    }
+
+    /**
+     * Wraps the given provider in a {@link ProviderGuard} with this {@link AbstractMinimalProvider} as an owner.
+     * In general, providers should be stored wrapped with guards.
+     *
+     * @param provider the provider to wrap
+     * @return the provider guard
+     */
+    protected <V> ProviderGuard<V> guardProvider(ProviderInternal<V> provider) {
+        return new ProviderGuard<>(this, provider);
+    }
+
+    /**
+     * A wrapper for a {@link ProviderInternal} used to calculate the value of {@link AbstractMinimalProvider}, which acts as an owner.
+     * Calling a method that may cause recursive evaluation adds the owner to the evaluation context.
+     * <p>
+     * This class uses try-with-resources directly instead of {@link #evaluate(EvaluationContext.ScopedEvaluation)}
+     * to avoid extra allocations of lambda instances.
+     */
+    protected static final class ProviderGuard<V> implements ValueSupplier {
+        private final AbstractMinimalProvider<?> owner;
+        private final ProviderInternal<V> value;
+
+        public ProviderGuard(AbstractMinimalProvider<?> owner, ProviderInternal<V> value) {
+            this.owner = owner;
+            this.value = value;
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            try (EvaluationContext.ScopeContext ignore = openScope()) {
+                return value.getProducer();
+            }
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            try (EvaluationContext.ScopeContext ignore = openScope()) {
+                return value.calculatePresence(consumer);
+            }
+        }
+
+        public Value<? extends V> calculateValue(ValueConsumer consumer) {
+            try (EvaluationContext.ScopeContext ignore = openScope()) {
+                return value.calculateValue(consumer);
+            }
+        }
+
+        public ExecutionTimeValue<? extends V> calculateExecutionTimeValue() {
+            try (EvaluationContext.ScopeContext ignore = openScope()) {
+                return value.calculateExecutionTimeValue();
+            }
+        }
+
+        public ProviderInternal<V> getUnsafe() {
+            return value;
+        }
+
+        @Override
+        public String toString() {
+            return value.toString();
+        }
+
+        public ProviderInternal<? extends V> withFinalValue(ValueConsumer consumer) {
+            try (EvaluationContext.ScopeContext ignore = openScope()) {
+                return value.withFinalValue(consumer);
+            }
+        }
+
+        @Nullable
+        public Class<V> getType() {
+            return value.getType();
+        }
+
+        private EvaluationContext.ScopeContext openScope() {
+            return EvaluationContext.current().enter(owner);
+        }
+    }
 }
