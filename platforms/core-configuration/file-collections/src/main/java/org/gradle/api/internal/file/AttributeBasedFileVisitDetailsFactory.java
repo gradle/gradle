@@ -61,7 +61,7 @@ public class AttributeBasedFileVisitDetailsFactory {
         File file = path.toFile();
         if (attrs == null) {
             return new UnauthorizedFileVisitDetails(file, relativePath);
-        } else if (!Files.isSymbolicLink(path)) {
+        } else if (linksStrategy == LinksStrategy.FOLLOW || !Files.isSymbolicLink(path)) {
             if (attrs.isRegularFile()) {
                 if (relativePath.getSegments().length == 0) {
                     relativePath = new RelativePath(true, file.getName());
@@ -128,7 +128,7 @@ public class AttributeBasedFileVisitDetailsFactory {
         if (attrs == null) {
             RelativePath relativePath = parentPath.append(false, file.getName());
             return new UnauthorizedFileVisitDetails(file, relativePath);
-        } else if (!Files.isSymbolicLink(path)) {
+        } else if (linksStrategy == LinksStrategy.FOLLOW || !Files.isSymbolicLink(path)) {
             RelativePath relativePath = parentPath.append(attrs.isRegularFile(), file.getName());
             return createFileVisitDetails(file, relativePath, attrs, stopFlag, fileSystem, null, false);
         } else {

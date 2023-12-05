@@ -66,13 +66,13 @@ public class NormalizingCopyActionDecorator implements CopyAction {
 
         return delegate.execute(action -> {
             stream.process(details -> {
-                if (!details.getRelativePath().isFile()) {
-                    RelativePath path = details.getRelativePath();
+                RelativePath path = details.getRelativePath();
+                if (!path.isFile()) {
                     if (!visitedDirs.contains(path)) {
                         pendingDirs.put(path, details);
                     }
                 } else {
-                    maybeVisit(details.getRelativePath().getParent(), details.getSpecResolver(), action, visitedDirs, pendingDirs);
+                    maybeVisit(path.getParent(), details.getSpecResolver(), action, visitedDirs, pendingDirs);
                     action.processFile(details);
                 }
             });

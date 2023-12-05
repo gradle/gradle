@@ -47,7 +47,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * Note that this class is only used for internal file store {@link org.gradle.internal.resource.local.FileStore} and
  * in {@link org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory} related to it.
- * It doesn't make sense to fully support symlinks for them, so only partial support is provided.
+ * It doesn't make sense to fully support symlinks for them, so no support is provided.
  */
 public class SingleIncludePatternFileTree implements MinimalFileTree, LocalFileTree, DirectoryTree {
     private final File baseDir;
@@ -87,11 +87,13 @@ public class SingleIncludePatternFileTree implements MinimalFileTree, LocalFileT
 
     @Override
     public void visit(FileVisitor visitor) {
-        LinksStrategy linksStrategy = visitor.linksStrategy();
-        doVisit(visitor, baseDir, new ArrayDeque<>(), 0, new AtomicBoolean(), linksStrategy);
+        if (visitor.linksStrategy() != LinksStrategy.FOLLOW) {
+            throw new GradleException("Only LinksStrategy.FOLLOW is supported in SingleIncludePatternFileTree");
+        }
+        doVisit(visitor, baseDir, new ArrayDeque<>(), 0, new AtomicBoolean());
     }
 
-    private void doVisit(FileVisitor visitor, File file, Deque<String> pathSegments, int segmentIndex, AtomicBoolean stopFlag, LinksStrategy linksStrategy) {
+    private void doVisit(FileVisitor visitor, File file, Deque<String> pathSegments, int segmentIndex, AtomicBoolean stopFlag) {
         if (stopFlag.get()) {
             return;
         }
@@ -121,34 +123,34 @@ public class SingleIncludePatternFileTree implements MinimalFileTree, LocalFileT
                 String childName = child.getName();
                 if (step.matches(childName)) {
                     pathSegments.addLast(childName);
-                    doVisitDirOrFile(visitor, child, pathSegments, segmentIndex + 1, stopFlag, linksStrategy);
+                    doVisitDirOrFile(visitor, child, pathSegments, segmentIndex + 1, stopFlag);
                     pathSegments.removeLast();
                 }
             }
         } else {
             pathSegments.addLast(segment);
-            doVisitDirOrFile(visitor, new File(file, segment), pathSegments, segmentIndex + 1, stopFlag, linksStrategy);
+            doVisitDirOrFile(visitor, new File(file, segment), pathSegments, segmentIndex + 1, stopFlag);
             pathSegments.removeLast();
         }
     }
 
-    private void doVisitDirOrFile(FileVisitor visitor, File file, Deque<String> pathSegments, int segmentIndex, AtomicBoolean stopFlag, LinksStrategy linksStrategy) {
+    private void doVisitDirOrFile(FileVisitor visitor, File file, Deque<String> pathSegments, int segmentIndex, AtomicBoolean stopFlag) {
         if (file.isFile()) {
             if (segmentIndex == patternSegments.size()) {
                 RelativePath path = new RelativePath(true, pathSegments.toArray(new String[0]));
-                FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(file.toPath(), path, stopFlag, fileSystem, linksStrategy);
+                FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(file.toPath(), path, stopFlag, fileSystem, LinksStrategy.FOLLOW);
                 if (!excludeSpec.isSatisfiedBy(details)) {
                     visitor.visitFile(details);
                 }
             }
         } else if (file.isDirectory()) {
             RelativePath path = new RelativePath(false, pathSegments.toArray(new String[0]));
-            FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(file.toPath(), path, stopFlag, fileSystem, linksStrategy);
+            FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(file.toPath(), path, stopFlag, fileSystem, LinksStrategy.FOLLOW);
             if (!excludeSpec.isSatisfiedBy(details)) {
                 visitor.visitDir(details);
             }
             if (segmentIndex < patternSegments.size()) {
-                doVisit(visitor, file, pathSegments, segmentIndex, stopFlag, linksStrategy);
+                doVisit(visitor, file, pathSegments, segmentIndex, stopFlag);
             }
         }
     }

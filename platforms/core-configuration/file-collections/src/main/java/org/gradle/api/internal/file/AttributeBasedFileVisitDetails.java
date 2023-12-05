@@ -52,4 +52,11 @@ public class AttributeBasedFileVisitDetails extends DefaultFileVisitDetails {
     public long getLastModified() {
         return attributes.lastModifiedTime().toMillis();
     }
+
+    @Override
+    public boolean isSymbolicLink() {
+        // attributes.isSymbolicLink() will only return true if the file is a broken link
+        // need this check for LinksStrategy.FOLLOW
+        return attributes.isSymbolicLink() || super.isSymbolicLink();
+    }
 }

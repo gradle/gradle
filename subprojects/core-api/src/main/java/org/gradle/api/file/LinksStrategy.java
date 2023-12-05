@@ -20,7 +20,10 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * Strategy for handling symbolic links when copying files.
@@ -40,6 +43,19 @@ public interface LinksStrategy extends Serializable {
         @Override
         public boolean shouldBePreserved(@Nullable SymbolicLinkDetails linkDetails) {
             return false;
+        }
+
+        @Override
+        public void maybeThrowOnBrokenLink(FileVisitDetails fileDetails) {
+            if (fileDetails.isSymbolicLink()) { //since we follow all links, it can only be a broken link
+                Path linkPath;
+                try {
+                    linkPath = Files.readSymbolicLink(fileDetails.getFile().toPath());
+                } catch (IOException e) {
+                    throw new GradleException(String.format("Couldn't read symbolic link '%s'.", pathHint(fileDetails)));
+                }
+                throw new GradleException(String.format("Couldn't follow symbolic link '%s' pointing to '%s'.", pathHint(fileDetails), linkPath));
+            }
         }
 
         @Override

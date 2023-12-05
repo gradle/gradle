@@ -309,6 +309,7 @@ class SingleIncludePatternFileTreeSpec extends Specification {
         1 * visitor.visitDir({ it.file == tempDir.file("dir2") }) >> { FileVisitDetails details -> details.stopVisiting() }
         0 * visitor.visitDir({ it.path.startsWith("dir2") })
         0 * visitor.visitFile({ it.path.startsWith("dir2") })
+        1 * visitor.linksStrategy() >> LinksStrategy.FOLLOW
     }
 
     def "use exclude spec"() {
