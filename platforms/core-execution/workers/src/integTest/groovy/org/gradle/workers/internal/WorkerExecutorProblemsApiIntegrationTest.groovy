@@ -16,9 +16,8 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 
@@ -110,7 +109,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def "problems are logged worker lifecycle is logged in #isolationMode"() {
+    def "problems are emitted correctly from a worker when using #isolationMode"() {
         setupBuild(null)
         enableProblemsApiCheck()
 
@@ -138,49 +137,11 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         collectedProblems.size() == 1
-
-        where:
-        isolationMode << WorkerExecutorFixture.ISOLATION_MODES
-    }
-
-//    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
-    def "problems can be logged, when using process isolation with java #jvm.javaVersion"() {
-        setupBuild(jvm)
-        enableProblemsApiCheck()
-
-        given:
-        buildFile << """
-            import javax.inject.Inject
-            // Comes from the buildSrc project
-            import org.gradle.test.ProblemWorkerTask
-
-
-            abstract class ProblemTask extends DefaultTask {
-                @Inject
-                abstract WorkerExecutor getWorkerExecutor();
-
-                @TaskAction
-                void executeTask() {
-                    getWorkerExecutor().processIsolation().submit(ProblemWorkerTask.class) {}
-                }
-            }
-
-            tasks.register("reportProblem", ProblemTask)
-        """
-
-        when:
-        run("reportProblem")
-
-        then:
-        collectedProblems.size() == 1
         def problem = collectedProblems[0]
         problem['buildOperationId']['id'] == Long.parseLong(buildOperationIdFile.text)
 
         where:
-        jvm << AvailableJavaHomes.getJdks(
-            JavaVersion.VERSION_1_6,
-            JavaVersion.VERSION_1_7,
-        )
+        isolationMode << WorkerExecutorFixture.ISOLATION_MODES
     }
 
 }
