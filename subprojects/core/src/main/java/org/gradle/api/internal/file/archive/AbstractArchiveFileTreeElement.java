@@ -31,40 +31,38 @@ import static org.gradle.internal.file.PathTraversalChecker.safePathName;
  * An implementation of {@link org.gradle.api.file.FileTreeElement FileTreeElement} meant
  * for use with archive files when subclassing {@link org.gradle.api.internal.file.AbstractFileTree AbstractFileTree}.
  * <p>
- * This implementation extracts the files from the archive to the supplied expansion directory.
+ * This implementation can extract the files from the archive to the supplied expansion directory.
  */
 public abstract class AbstractArchiveFileTreeElement<ENTRY, METADATA extends ArchiveVisitor<ENTRY>> extends CopyableFileTreeElement implements FileVisitDetails {
 
     protected final METADATA archiveMetadata;
     protected final ENTRY entry;
-    protected final ENTRY resultEntry;
+    protected ENTRY resultEntry = null;
     private final String targetPath;
-    protected final ArchiveSymbolicLinkDetails<ENTRY> linkDetails;
-    protected final boolean preserveLink;
+    protected ArchiveSymbolicLinkDetails<ENTRY> linkDetails;
     private File file;
+    private Boolean isLink = null;
 
     protected AbstractArchiveFileTreeElement(
         METADATA archiveMetadata,
         ENTRY entry,
-        String targetPath,
-        @Nullable ArchiveSymbolicLinkDetails<ENTRY> linkDetails,
-        boolean preserveLink
+        String targetPath
     ) {
         super(archiveMetadata.chmod);
         this.entry = entry;
         this.archiveMetadata = archiveMetadata;
-        this.linkDetails = linkDetails;
-        this.preserveLink = preserveLink;
         this.targetPath = targetPath;
-        this.resultEntry = getResultEntry();
     }
 
     protected ENTRY getResultEntry() {
-        if (linkDetails != null && !preserveLink && linkDetails.targetExists()) {
-            return linkDetails.getTargetEntry();
-        } else {
-            return entry;
+        if (resultEntry == null) {
+            if (getSymbolicLinkDetails() != null && getSymbolicLinkDetails().targetExists()) {
+                resultEntry = linkDetails.getTargetEntry();
+            } else {
+                resultEntry = entry;
+            }
         }
+        return resultEntry;
     }
 
     @Override
@@ -85,17 +83,25 @@ public abstract class AbstractArchiveFileTreeElement<ENTRY, METADATA extends Arc
 
     @Override
     public boolean isSymbolicLink() {
-        return preserveLink && archiveMetadata.isSymlink(entry);
+        return archiveMetadata.preserveLinks && isLink();
+    }
+
+    protected boolean isLink() {
+        if (isLink == null) {
+            // caching this for performance reasons
+            isLink = archiveMetadata.isSymlink(entry);
+        }
+        return isLink;
     }
 
     @Override
     public boolean isDirectory() {
-        return archiveMetadata.isDirectory(resultEntry);
+        return archiveMetadata.isDirectory(entry) || (!archiveMetadata.preserveLinks && isLink() && archiveMetadata.isDirectory(getResultEntry()));
     }
 
     @Override
     public FilePermissions getPermissions() {
-        int unixMode = archiveMetadata.getUnixMode(resultEntry);
+        int unixMode = archiveMetadata.getUnixMode(getResultEntry());
         if (unixMode != 0) {
             return new DefaultFilePermissions(unixMode);
         }
@@ -105,17 +111,20 @@ public abstract class AbstractArchiveFileTreeElement<ENTRY, METADATA extends Arc
 
     @Override
     public long getLastModified() {
-        return archiveMetadata.getLastModifiedTime(resultEntry);
+        return archiveMetadata.getLastModifiedTime(getResultEntry());
     }
 
     @Override
     public long getSize() {
-        return archiveMetadata.getSize(resultEntry);
+        return archiveMetadata.getSize(getResultEntry());
     }
 
     @Nullable
     @Override
     public ArchiveSymbolicLinkDetails<ENTRY> getSymbolicLinkDetails() {
+        if (isLink() && linkDetails == null) {
+            linkDetails = new ArchiveSymbolicLinkDetails<>(entry, archiveMetadata);
+        }
         return linkDetails;
     }
 

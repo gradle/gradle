@@ -52,7 +52,7 @@ class ArchiveSymbolicLinkDetails<ENTRY> implements SymbolicLinkDetails {
         return targetExists;
     }
 
-    public ENTRY getTargetEntry() {
+    ENTRY getTargetEntry() {
         return targetEntry;
     }
 }

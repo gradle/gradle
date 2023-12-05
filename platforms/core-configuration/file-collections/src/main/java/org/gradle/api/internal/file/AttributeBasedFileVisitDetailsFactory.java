@@ -72,7 +72,7 @@ public class AttributeBasedFileVisitDetailsFactory {
             return createFileVisitDetails(file, relativePath, attrs, stopFlag, fileSystem, null, false);
         } else {
             SymbolicLinkDetails linkDetails = new DefaultSymbolicLinkDetails(path, relativePath.getSegments().length);
-            boolean preserveLink = linksStrategy.shouldBePreserved(linkDetails);
+            boolean preserveLink = linksStrategy.preserveLinks();
             if (preserveLink || attrs.isRegularFile()) {
                 if (relativePath.getSegments().length == 0) {
                     relativePath = new RelativePath(true, file.getName());
@@ -134,7 +134,7 @@ public class AttributeBasedFileVisitDetailsFactory {
         } else {
             int relativePathDepth = parentPath.getSegments().length + 1;
             SymbolicLinkDetails linkDetails = new DefaultSymbolicLinkDetails(path, relativePathDepth);
-            boolean preserveLink = linksStrategy.shouldBePreserved(linkDetails);
+            boolean preserveLink = linksStrategy.preserveLinks();
             RelativePath relativePath = parentPath.append(attrs.isRegularFile() || preserveLink, file.getName());
             return createFileVisitDetails(file, relativePath, attrs, stopFlag, fileSystem, linkDetails, preserveLink);
         }

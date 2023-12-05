@@ -181,11 +181,9 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         @Override
         DetailsImpl createDetails(
             ZipArchiveEntry zipArchiveEntry,
-            String targetPath,
-            @Nullable ArchiveSymbolicLinkDetails<ZipArchiveEntry> linkDetails,
-            boolean preserveLink
+            String targetPath
         ) {
-            return new DetailsImpl(this, zipArchiveEntry, targetPath, linkDetails, preserveLink);
+            return new DetailsImpl(this, zipArchiveEntry, targetPath);
         }
     }
 
@@ -194,11 +192,9 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         public DetailsImpl(
             ZipVisitor zipMetadata,
             ZipArchiveEntry entry,
-            String targetPath,
-            @Nullable ArchiveSymbolicLinkDetails<ZipArchiveEntry> linkDetails,
-            boolean preserveLink
+            String targetPath
         ) {
-            super(zipMetadata, entry, targetPath, linkDetails, preserveLink);
+            super(zipMetadata, entry, targetPath);
         }
 
         @Override
@@ -208,15 +204,15 @@ public class ZipFileTree extends AbstractArchiveFileTree {
 
         @Override
         public InputStream open() {
-            if (!entry.isUnixSymlink() || linkDetails.targetExists()) {
+            if (!isLink() || getSymbolicLinkDetails().targetExists()) {
                 try {
-                    return archiveMetadata.zip.getInputStream(resultEntry);
+                    return archiveMetadata.zip.getInputStream(getResultEntry());
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             }
 
-            throw new GradleException(String.format("Couldn't follow symbolic link '%s' pointing to '%s'.", getRelativePath(), linkDetails.getTarget()));
+            throw new GradleException(String.format("Couldn't follow symbolic link '%s' pointing to '%s'.", getRelativePath(), getSymbolicLinkDetails().getTarget()));
         }
     }
 }

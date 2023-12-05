@@ -19,7 +19,6 @@ package org.gradle.api.file;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
@@ -41,7 +40,7 @@ public interface LinksStrategy extends Serializable {
      **/
     LinksStrategy FOLLOW = new LinksStrategy() {
         @Override
-        public boolean shouldBePreserved(@Nullable SymbolicLinkDetails linkDetails) {
+        public boolean preserveLinks() {
             return false;
         }
 
@@ -128,8 +127,8 @@ public interface LinksStrategy extends Serializable {
         return originalPath.equals("") ? "." : originalPath;
     }
 
-    default boolean shouldBePreserved(@Nullable SymbolicLinkDetails linkDetails) {
-        return linkDetails != null;
+    default boolean preserveLinks() {
+        return true;
     }
 
     default void maybeThrowOnBrokenLink(FileVisitDetails fileDetails) {
