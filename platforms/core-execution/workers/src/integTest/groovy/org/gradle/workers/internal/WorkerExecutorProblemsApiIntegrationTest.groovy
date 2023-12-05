@@ -49,7 +49,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
             }
 
             tasks.withType(JavaCompile) {
-                ${if (javaVersion == null) '' else forkingOptions(javaVersion)}
+                ${javaVersion == null ? '' : forkingOptions(javaVersion)}
             }
         """
         file('buildSrc/src/main/java/org/gradle/test/ProblemsWorkerTaskParameter.java') << """
