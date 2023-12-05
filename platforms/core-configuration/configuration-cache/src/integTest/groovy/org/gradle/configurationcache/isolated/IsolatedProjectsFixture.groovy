@@ -16,6 +16,8 @@
 
 package org.gradle.configurationcache.isolated
 
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.FirstParam
 import org.gradle.configuration.ApplyScriptPluginBuildOperationType
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
 import org.gradle.configurationcache.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
@@ -182,18 +184,20 @@ class IsolatedProjectsFixture {
     }
 
     private void assertNoModelsQueried() {
-        def models = buildOperations.all(QueryToolingModelBuildOperationType)
+        def models = modelRequests()
         assert models.empty
     }
 
     private void assertModelsQueried(HasIntermediateDetails details) {
-        def models = buildOperations.all(QueryToolingModelBuildOperationType)
-        def expectedProjectModels = details.models.collect { [it.path] * it.count }.flatten()
-        assert models.size() == expectedProjectModels.size() + details.buildModelQueries
-        models.removeAll { it.details.projectPath == null }
-        def sortedProjectModels = models.collect { fullPath(it) }.sort()
-        def sortedExpectedProjectModels = expectedProjectModels.sort()
-        assert sortedProjectModels == sortedExpectedProjectModels
+        def models = modelRequests().toSorted { it.buildTreePath }
+        def (buildModels, projectModels) = models.split { it.buildScoped }
+        assert buildModels.size() == details.buildModelQueries
+
+        def projectModelsByPath = projectModels.groupBy { it.buildTreePath }
+        def expectedProjectModelsCountsByPath = remapValues(details.models.groupBy { it.path }) { it.count.sum() as int }
+
+        // Do not extract left side into a variable to get power assert insights
+        assert remapValues(projectModelsByPath) { it.size() } == expectedProjectModelsCountsByPath
     }
 
     private void assertHasWarningThatIncubatingFeatureUsed() {
@@ -201,7 +205,11 @@ class IsolatedProjectsFixture {
         spec.outputDoesNotContain(ConfigurationCacheFixture.CONFIGURE_ON_DEMAND_MESSAGE)
     }
 
-    private String fullPath(BuildOperationRecord operationRecord) {
+    private List<ModelRequest> modelRequests() {
+        buildOperations.all(QueryToolingModelBuildOperationType).collect { new ModelRequest(operationRecord: it) }
+    }
+
+    private static String fullPath(BuildOperationRecord operationRecord) {
         if (operationRecord.details.buildPath == ':') {
             return operationRecord.details.projectPath
         } else if (operationRecord.details.projectPath == ':') {
@@ -328,5 +336,26 @@ class IsolatedProjectsFixture {
             this.path = path
             this.count = count
         }
+    }
+
+    static class ModelRequest {
+        BuildOperationRecord operationRecord
+
+        String getBuildTreePath() {
+            fullPath(operationRecord)
+        }
+
+        boolean isBuildScoped() {
+            operationRecord.details.projectPath == null
+        }
+
+        @Override
+        String toString() {
+            return operationRecord.displayName
+        }
+    }
+
+    static <K, V, R> Map<K, R> remapValues(Map<K, V> self, @ClosureParams(FirstParam.SecondGenericType.class) Closure<R> transform) {
+        self.collectEntries { K key, V value -> [(key): transform(value)] }
     }
 }
