@@ -1,19 +1,161 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.file.ConfigurableFileCollection",
+            "member": "Class org.gradle.api.file.ConfigurableFileCollection",
+            "acceptation": "spike",
+            "changes": [
+                "org.gradle.api.file.ConfigurableFileCollectionConfigurer",
+                "org.gradle.api.provider.SupportsConvention",
+                "org.gradle.api.provider.Updatable"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.ConfigurableFileCollectionConfigurer",
+            "member": "Method org.gradle.api.file.ConfigurableFileCollectionConfigurer.from(java.lang.Object[])",
+            "acceptation": "spike",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.provider.CollectionPropertyConfigurer",
+            "member": "Method org.gradle.api.provider.CollectionPropertyConfigurer.add(java.lang.Object)",
+            "acceptation": "spike",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.provider.CollectionPropertyConfigurer",
+            "member": "Method org.gradle.api.provider.CollectionPropertyConfigurer.add(org.gradle.api.provider.Provider)",
+            "acceptation": "spike",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.provider.CollectionPropertyConfigurer",
+            "member": "Method org.gradle.api.provider.CollectionPropertyConfigurer.addAll(java.lang.Iterable)",
+            "acceptation": "spike",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.provider.CollectionPropertyConfigurer",
+            "member": "Method org.gradle.api.provider.CollectionPropertyConfigurer.addAll(java.lang.Object[])",
+            "acceptation": "spike",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.provider.CollectionPropertyConfigurer",
+            "member": "Method org.gradle.api.provider.CollectionPropertyConfigurer.addAll(org.gradle.api.provider.Provider)",
+            "acceptation": "spike",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.provider.CollectionPropertyConfigurer",
+            "member": "Method org.gradle.api.provider.CollectionPropertyConfigurer.exclude(java.lang.Object)",
+            "acceptation": "spike",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.provider.CollectionPropertyConfigurer",
+            "member": "Method org.gradle.api.provider.CollectionPropertyConfigurer.exclude(org.gradle.api.provider.Provider)",
+            "acceptation": "spike",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.provider.CollectionPropertyConfigurer",
+            "member": "Method org.gradle.api.provider.CollectionPropertyConfigurer.excludeAll(java.lang.Iterable)",
+            "acceptation": "spike",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.provider.CollectionPropertyConfigurer",
+            "member": "Method org.gradle.api.provider.CollectionPropertyConfigurer.excludeAll(java.lang.Object[])",
+            "acceptation": "spike",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.provider.CollectionPropertyConfigurer",
+            "member": "Method org.gradle.api.provider.CollectionPropertyConfigurer.excludeAll(org.gradle.api.provider.Provider)",
+            "acceptation": "spike",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.provider.CollectionPropertyConfigurer",
+            "member": "Method org.gradle.api.provider.CollectionPropertyConfigurer.excludeAll(org.gradle.api.specs.Spec)",
+            "acceptation": "spike",
+            "changes": []
+        },
+        {
             "type": "org.gradle.api.provider.HasMultipleValues",
             "member": "Class org.gradle.api.provider.HasMultipleValues",
-            "acceptation": "Incremental configuration of explicit/convention values for composite lazy properties",
+            "acceptation": "spike",
             "changes": [
-                "org.gradle.api.provider.CollectionPropertyConfigurer"
+                "org.gradle.api.provider.CollectionPropertyConfigurer",
+                "org.gradle.api.provider.SupportsConvention",
+                "org.gradle.api.provider.Updatable"
             ]
         },
         {
             "type": "org.gradle.api.provider.MapProperty",
             "member": "Class org.gradle.api.provider.MapProperty",
-            "acceptation": "Incremental configuration of explicit/convention values for composite lazy properties",
+            "acceptation": "spike",
             "changes": [
-                "org.gradle.api.provider.MapPropertyConfigurer"
+                "org.gradle.api.provider.MapPropertyConfigurer",
+                "org.gradle.api.provider.SupportsConvention",
+                "org.gradle.api.provider.Updatable"
+            ]
+        },
+        {
+            "type": "org.gradle.api.provider.MapPropertyConfigurer",
+            "member": "Method org.gradle.api.provider.MapPropertyConfigurer.exclude(java.lang.Object)",
+            "acceptation": "spike",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.provider.MapPropertyConfigurer",
+            "member": "Method org.gradle.api.provider.MapPropertyConfigurer.excludeAll(java.lang.Object[])",
+            "acceptation": "spike",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.provider.MapPropertyConfigurer",
+            "member": "Method org.gradle.api.provider.MapPropertyConfigurer.excludeAll(org.gradle.api.provider.Provider)",
+            "acceptation": "spike",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.provider.MapPropertyConfigurer",
+            "member": "Method org.gradle.api.provider.MapPropertyConfigurer.excludeAll(org.gradle.api.specs.Spec)",
+            "acceptation": "spike",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.provider.MapPropertyConfigurer",
+            "member": "Method org.gradle.api.provider.MapPropertyConfigurer.put(java.lang.Object,java.lang.Object)",
+            "acceptation": "spike",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.provider.MapPropertyConfigurer",
+            "member": "Method org.gradle.api.provider.MapPropertyConfigurer.put(java.lang.Object,org.gradle.api.provider.Provider)",
+            "acceptation": "spike",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.provider.MapPropertyConfigurer",
+            "member": "Method org.gradle.api.provider.MapPropertyConfigurer.putAll(java.util.Map)",
+            "acceptation": "spike",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.provider.MapPropertyConfigurer",
+            "member": "Method org.gradle.api.provider.MapPropertyConfigurer.putAll(org.gradle.api.provider.Provider)",
+            "acceptation": "spike",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.provider.Property",
+            "member": "Class org.gradle.api.provider.Property",
+            "acceptation": "spike",
+            "changes": [
+                "org.gradle.api.provider.SupportsConvention"
             ]
         }
     ]

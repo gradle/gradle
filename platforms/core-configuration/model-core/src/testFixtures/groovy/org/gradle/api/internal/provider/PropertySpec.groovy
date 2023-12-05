@@ -51,11 +51,11 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     protected void setToNull(def property) {
-        property.set(null)
+        property.unset()
     }
 
     protected void nullConvention(def property) {
-        property.convention(null)
+        property.unsetConvention()
     }
 
     def host = Mock(PropertyHost)

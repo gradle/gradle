@@ -64,6 +64,18 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     }
 
     @Override
+    public Property<T> unset() {
+        discardValue();
+        return this;
+    }
+
+    @Override
+    public Property<T> unsetConvention() {
+        discardConvention();
+        return this;
+    }
+
+    @Override
     public void set(@Nullable T value) {
         if (value == null) {
             discardValue();
@@ -103,9 +115,9 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     @Override
     public Property<T> convention(@Nullable T value) {
         if (value == null) {
-            setConvention(Providers.notDefined());
+            setConventionSupplier(Providers.notDefined());
         } else {
-            setConvention(Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer));
+            setConventionSupplier(Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer));
         }
         return this;
     }
@@ -113,7 +125,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     @Override
     public Property<T> convention(Provider<? extends T> provider) {
         Preconditions.checkArgument(provider != null, "Cannot set the convention of a property using a null provider.");
-        setConvention(Providers.internal(provider).asSupplier(getValidationDisplayName(), type, sanitizer));
+        setConventionSupplier(Providers.internal(provider).asSupplier(getValidationDisplayName(), type, sanitizer));
         return this;
     }
 
@@ -131,6 +143,11 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     @Override
     protected ProviderInternal<? extends T> finalValue(ProviderInternal<? extends T> value, ValueConsumer consumer) {
         return value.withFinalValue(consumer);
+    }
+
+    @Override
+    protected ProviderInternal<? extends T> getDefaultConvention() {
+        return Providers.notDefined();
     }
 
     @Override

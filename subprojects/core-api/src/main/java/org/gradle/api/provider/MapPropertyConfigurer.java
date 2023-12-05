@@ -30,7 +30,7 @@ import java.util.Map;
  * @since 8.6
  */
 @Incubating
-public interface MapPropertyConfigurer<K, V> {
+public interface MapPropertyConfigurer<K, V> extends Updatable.Configurer {
     /**
      * Adds a map entry to the property value.
      *
@@ -67,11 +67,15 @@ public interface MapPropertyConfigurer<K, V> {
      */
     void putAll(Provider<? extends Map<? extends K, ? extends V>> provider);
 
+    //TODO-RC remove
     void excludeAll(Spec<K> keyFilter);
 
+    //TODO-RC remove
     void exclude(K key);
 
+    //TODO-RC remove
     void excludeAll(K... key);
 
+    //TODO-RC remove
     void excludeAll(Provider<? extends Collection<? extends K>> provider);
 }

@@ -1,5 +1,5 @@
 abstract class Executer() : DefaultTask() {
-    @get:Internal
+    @get:Input
     abstract val options: ListProperty<String>
 
     init {

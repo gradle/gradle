@@ -85,6 +85,14 @@ public abstract class ValueState<S> {
         finalizeOnNextGet();
     }
 
+    public abstract boolean isExplicit();
+
+    public abstract S convention();
+
+    public abstract S setToConvention();
+
+    public abstract S setToConventionIfUnset(S value);
+
     private static class NonFinalizedValue<S> extends ValueState<S> {
         private final PropertyHost host;
         private boolean explicitValue;
@@ -159,6 +167,30 @@ public abstract class ValueState<S> {
         @Override
         public boolean isFinalizing() {
             return finalizeOnNextGet;
+        }
+
+        @Override
+        public boolean isExplicit() {
+            return explicitValue;
+        }
+
+        @Override
+        public S convention() {
+            return convention;
+        }
+
+        @Override
+        public S setToConvention() {
+            explicitValue = true;
+            return convention;
+        }
+
+        @Override
+        public S setToConventionIfUnset(S value) {
+            if (!explicitValue) {
+                return setToConvention();
+            }
+            return value;
         }
 
         @Override
@@ -275,6 +307,26 @@ public abstract class ValueState<S> {
         @Override
         public boolean isFinalizing() {
             return true;
+        }
+
+        @Override
+        public boolean isExplicit() {
+            return true;
+        }
+
+        @Override
+        public S convention() {
+            return null;
+        }
+
+        @Override
+        public S setToConvention() {
+            throw unexpected();
+        }
+
+        @Override
+        public S setToConventionIfUnset(S value) {
+            throw unexpected();
         }
 
         @Override

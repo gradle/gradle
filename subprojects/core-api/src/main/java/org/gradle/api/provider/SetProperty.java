@@ -16,6 +16,8 @@
 
 package org.gradle.api.provider;
 
+import org.gradle.api.Action;
+
 import javax.annotation.Nullable;
 import java.util.Set;
 
@@ -61,4 +63,7 @@ public interface SetProperty<T> extends Provider<Set<T>>, HasMultipleValues<T> {
      */
     @Override
     SetProperty<T> convention(Provider<? extends Iterable<? extends T>> provider);
+
+    @Override
+    SetProperty<T> configure(Action<CollectionPropertyConfigurer<T>> action);
 }

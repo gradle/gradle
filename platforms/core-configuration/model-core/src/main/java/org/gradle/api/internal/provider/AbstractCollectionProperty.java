@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
+import org.gradle.api.Action;
 import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
 import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollection;
@@ -38,6 +39,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
+
 public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProperty<C, CollectionSupplier<T, C>> implements CollectionPropertyInternal<T, C> {
     private final Class<? extends Collection> collectionType;
     private final Class<T> elementType;
@@ -54,6 +57,25 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         init(defaultValue, noValueSupplier());
     }
 
+    @Override
+    protected CollectionSupplier<T, C> getDefaultConvention() {
+        return noValueSupplier();
+    }
+
+    @Override
+    public HasMultipleValues<T> configure(Action<CollectionPropertyConfigurer<T>> action) {
+        action.execute(getActualValue());
+        return this;
+    }
+
+    private void configureExplicit(Action<CollectionPropertyConfigurer<T>> action) {
+        action.execute(getExplicitValue());
+    }
+
+    private void configureConvention(Action<CollectionPropertyConfigurer<T>> action) {
+        action.execute(getConventionValue());
+    }
+
     private CollectionSupplier<T, C> emptySupplier() {
         return new EmptySupplier(false);
     }
@@ -67,14 +89,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
      */
     protected abstract C emptyCollection();
 
-    @Override
-    public CollectionPropertyConfigurer<T> getConventionValue() {
+    protected CollectionPropertyConfigurer<T> getConventionValue() {
         assertCanMutate();
         return new ConventionConfigurer();
     }
 
-    @Override
-    public CollectionPropertyConfigurer<T> getExplicitValue() {
+    protected CollectionPropertyConfigurer<T> getExplicitValue() {
         assertCanMutate();
         return new ExplicitValueConfigurer();
     }
@@ -159,7 +179,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     private void addConventionCollector(Collector<T> collector) {
         assertCanMutate();
-        setConvention(getConventionSupplier().plus(collector));
+        setConventionSupplier(getConventionSupplier().plus(collector));
     }
 
     @Nullable
@@ -269,17 +289,37 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     public HasMultipleValues<T> convention(@Nullable Iterable<? extends T> elements) {
         if (elements == null) {
-            setConvention(noValueSupplier());
+            setConventionSupplier(getDefaultConvention());
         } else {
-            setConvention(new CollectingSupplier(new ElementsFromCollection<>(elements)));
+            setConventionSupplier(new CollectingSupplier(new ElementsFromCollection<>(elements)));
         }
         return this;
     }
 
     @Override
     public HasMultipleValues<T> convention(Provider<? extends Iterable<? extends T>> provider) {
-        setConvention(new CollectingSupplier(new ElementsFromCollectionProvider<>(Providers.internal(provider))));
+        setConventionSupplier(new CollectingSupplier(new ElementsFromCollectionProvider<>(Providers.internal(provider))));
         return this;
+    }
+
+    @Override
+    public HasMultipleValues<T> unsetConvention() {
+        return convention((Iterable<? extends T>) null);
+    }
+
+    @Override
+    public HasMultipleValues<T> unset() {
+        return value((Iterable<? extends T>) null);
+    }
+
+    @Override
+    public HasMultipleValues<T> setToConvention() {
+        return uncheckedNonnullCast(super.setToConvention());
+    }
+
+    @Override
+    public HasMultipleValues<T> setToConventionIfUnset() {
+        return uncheckedNonnullCast(super.setToConventionIfUnset());
     }
 
     @Override
@@ -399,7 +439,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public CollectionSupplier<T, C> pruned() {
-            return null;
+            return this;
         }
 
         @Override
@@ -525,7 +565,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                 sideEffectBuilder.add(SideEffect.fixedFrom(value));
             }
 
-            ExecutionTimeValue<C> mergedValue = ExecutionTimeValue.fixedValue(Cast.uncheckedNonnullCast(builder.build()));
+            ExecutionTimeValue<C> mergedValue = ExecutionTimeValue.fixedValue(uncheckedNonnullCast(builder.build()));
             if (changingContent) {
                 mergedValue = mergedValue.withChangingContent();
             }
@@ -577,7 +617,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                 sideEffectBuilder.add(SideEffect.fixedFrom(value));
             }
 
-            Value<? extends C> resultValue = Value.of(Cast.uncheckedNonnullCast(builder.build()));
+            Value<? extends C> resultValue = Value.of(uncheckedNonnullCast(builder.build()));
             return resultValue.withSideEffect(sideEffectBuilder.build());
         }
     }
@@ -591,7 +631,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         private void prune() {
             if (!pruned) {
                 pruned = true;
-                setConvention(getConventionSupplier().pruned());
+                setConventionSupplier(getConventionSupplier().pruned());
             }
         }
 
@@ -630,19 +670,19 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public void excludeAll(Spec<T> filter) {
             prune();
-            setConvention(getConventionSupplier().keep(Specs.negate(filter)));
+            setConventionSupplier(getConventionSupplier().keep(Specs.negate(filter)));
         }
 
         @Override
         public void excludeAll(Provider<? extends Iterable<? extends T>> provider) {
             prune();
-            setConvention(getConventionSupplier().minus(new ElementsFromCollectionProvider<>(Providers.internal(provider))));
+            setConventionSupplier(getConventionSupplier().minus(new ElementsFromCollectionProvider<>(Providers.internal(provider))));
         }
 
         @Override
         public void excludeAll(Iterable<? extends T> elements) {
             prune();
-            setConvention(getConventionSupplier().minus(new ElementsFromCollection<>(elements)));
+            setConventionSupplier(getConventionSupplier().minus(new ElementsFromCollection<>(elements)));
         }
 
         @Override
@@ -650,19 +690,19 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @SuppressWarnings("varargs")
         public final void excludeAll(T... elements) {
             prune();
-            setConvention(getConventionSupplier().minus(new ElementsFromArray<>(elements)));
+            setConventionSupplier(getConventionSupplier().minus(new ElementsFromArray<>(elements)));
         }
 
         @Override
         public void exclude(Provider<T> provider) {
             prune();
-            setConvention(getConventionSupplier().minus(new ElementFromProvider<>(Providers.internal(provider))));
+            setConventionSupplier(getConventionSupplier().minus(new ElementFromProvider<>(Providers.internal(provider))));
         }
 
         @Override
         public void exclude(T element) {
             prune();
-            setConvention(getConventionSupplier().minus(new SingleElement<>(element)));
+            setConventionSupplier(getConventionSupplier().minus(new SingleElement<>(element)));
         }
     }
 

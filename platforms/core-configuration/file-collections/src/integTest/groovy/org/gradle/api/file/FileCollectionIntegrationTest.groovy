@@ -38,6 +38,23 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         type << ["Object", "Object[]", "Set", "LinkedHashSet", "List", "LinkedList", "Collection", "FileCollection"]
     }
 
+    def "can set elements as convention of file collection"() {
+        buildFile """
+            def files = objects.fileCollection().unset().configure {
+                it.from('b')
+            }
+            def elements = files.elements
+
+            def name = 'a'
+            files.from { name }
+
+            assert elements.get().asFile == [file('b'), file('a')]
+        """
+
+        expect:
+        succeeds()
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/10322")
     def "can construct file collection from the elements of a source directory set"() {
         buildFile """

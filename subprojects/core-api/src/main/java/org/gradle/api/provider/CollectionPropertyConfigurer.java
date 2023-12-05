@@ -27,7 +27,7 @@ import org.gradle.api.specs.Spec;
  * @since 8.6
  */
 @Incubating
-public interface CollectionPropertyConfigurer<T> {
+public interface CollectionPropertyConfigurer<T> extends Updatable.Configurer {
     /**
      * Adds an element to the property value.
      *
@@ -74,16 +74,22 @@ public interface CollectionPropertyConfigurer<T> {
      */
     void addAll(Provider<? extends Iterable<? extends T>> provider);
 
+    //TODO-RC remove
     void excludeAll(Spec<T> filter);
 
+    //TODO-RC remove
     void exclude(T element);
 
+    //TODO-RC remove
     void exclude(Provider<T> provider);
 
+    //TODO-RC remove
     @SuppressWarnings("unchecked")
     void excludeAll(T... elements);
 
+    //TODO-RC remove
     void excludeAll(Iterable<? extends T> elements);
 
+    //TODO-RC remove
     void excludeAll(Provider<? extends Iterable<? extends T>> provider);
 }

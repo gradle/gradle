@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Action;
 import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.internal.provider.MapCollectors.PlusCollector;
@@ -56,7 +57,26 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         this.valueType = valueType;
         keyCollector = new ValidatingValueCollector<>(Set.class, keyType, ValueSanitizers.forType(keyType));
         entryCollector = new ValidatingMapEntryCollector<>(keyType, valueType, ValueSanitizers.forType(keyType), ValueSanitizers.forType(valueType));
-        init(defaultValue, noValueSupplier());
+        init(defaultValue, getDefaultConvention());
+    }
+
+    @Override
+    protected MapSupplier<K, V> getDefaultConvention() {
+        return noValueSupplier();
+    }
+
+    @Override
+    public MapProperty<K, V> configure(Action<MapPropertyConfigurer<K, V>> action) {
+        action.execute(getActualValue());
+        return this;
+    }
+
+    private void configureExplicit(Action<MapPropertyConfigurer<K, V>> action) {
+        action.execute(getExplicitValue());
+    }
+
+    private void configureConvention(Action<MapPropertyConfigurer<K, V>> action) {
+        action.execute(getConventionValue());
     }
 
     private MapSupplier<K, V> emptySupplier() {
@@ -185,7 +205,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     private void addConventionCollector(MapCollector<K, V> collector) {
         assertCanMutate();
-        setConvention(getConventionSupplier().plus(collector));
+        setConventionSupplier(getConventionSupplier().plus(collector));
     }
 
     @Override
@@ -210,13 +230,12 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         setSupplier(getSupplier().minus(new Collectors.SingleElement<>(key)));
     }
 
-    @Override
-    public MapPropertyConfigurer<K, V> getConventionValue() {
+    protected MapPropertyConfigurer<K, V> getConventionValue() {
         assertCanMutate();
         return new ConventionConfigurer();
     }
 
-    private MapPropertyConfigurer<K, V> getExplicitValue() {
+    protected MapPropertyConfigurer<K, V> getExplicitValue() {
         assertCanMutate();
         return new ExplicitConfigurer();
     }
@@ -254,17 +273,40 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     @Override
     public MapProperty<K, V> convention(@Nullable Map<? extends K, ? extends V> value) {
         if (value == null) {
-            setConvention(noValueSupplier());
+            discardConvention();
         } else {
-            setConvention(new CollectingSupplier(new MapCollectors.EntriesFromMap<>(value), false));
+            setConventionSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMap<>(value), false));
         }
         return this;
     }
 
     @Override
     public MapProperty<K, V> convention(Provider<? extends Map<? extends K, ? extends V>> valueProvider) {
-        setConvention(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(Providers.internal(valueProvider)), false));
+        setConventionSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(Providers.internal(valueProvider)), false));
         return this;
+    }
+
+
+    @Override
+    public MapProperty<K, V> unsetConvention() {
+        discardConvention();
+        return this;
+    }
+
+    @Override
+    public MapProperty<K, V> unset() {
+        discardValue();
+        return this;
+    }
+
+    @Override
+    public MapProperty<K, V> setToConvention() {
+        return uncheckedNonnullCast(super.setToConvention());
+    }
+
+    @Override
+    public MapProperty<K, V> setToConventionIfUnset() {
+        return uncheckedNonnullCast(super.setToConventionIfUnset());
     }
 
     public void fromState(ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value) {
@@ -678,7 +720,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         private void prune() {
             if (!pruned) {
                 pruned = true;
-                setConvention(getConventionSupplier().pruned());
+                setConventionSupplier(getConventionSupplier().pruned());
             }
         }
 
@@ -709,27 +751,28 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public void excludeAll(Spec<K> keyFilter) {
             prune();
-            setConvention(getConventionSupplier().keep(Specs.negate(keyFilter)));
+            setConventionSupplier(getConventionSupplier().keep(Specs.negate(keyFilter)));
         }
 
         @Override
         public void exclude(K key) {
             prune();
-            setConvention(getConventionSupplier().minus(new SingleElement<>(key)));
+            setConventionSupplier(getConventionSupplier().minus(new SingleElement<>(key)));
         }
 
         @Override
         @SuppressWarnings("unchecked")
         public void excludeAll(K... key) {
             prune();
-            setConvention(getConventionSupplier().minus(new ElementsFromArray<>(key)));
+            setConventionSupplier(getConventionSupplier().minus(new ElementsFromArray<>(key)));
         }
 
         @Override
         public void excludeAll(Provider<? extends Collection<? extends K>> provider) {
             prune();
-            setConvention(getConventionSupplier().minus(new Collectors.ElementsFromCollectionProvider<>(Providers.internal(provider))));
+            setConventionSupplier(getConventionSupplier().minus(new Collectors.ElementsFromCollectionProvider<>(Providers.internal(provider))));
         }
+
     }
 
     /**

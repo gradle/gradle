@@ -16,7 +16,6 @@
 
 package org.gradle.api.provider;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
 
 import javax.annotation.Nullable;
@@ -30,7 +29,7 @@ import javax.annotation.Nullable;
  * @since 4.5
  */
 @SupportsKotlinAssignmentOverloading
-public interface HasMultipleValues<T> extends HasConfigurableValue, CollectionPropertyConfigurer<T> {
+public interface HasMultipleValues<T> extends HasConfigurableValue, CollectionPropertyConfigurer<T>, Updatable<CollectionPropertyConfigurer<T>>, SupportsConvention {
     /**
      * Sets the value of the property to the elements of the given iterable, and replaces any existing value. This property will query the elements of the iterable each time the value of this property is queried.
      *
@@ -95,31 +94,6 @@ public interface HasMultipleValues<T> extends HasConfigurableValue, CollectionPr
      * @since 5.1
      */
     HasMultipleValues<T> convention(Provider<? extends Iterable<? extends T>> provider);
-
-    /**
-     * Returns the configurer for this property's convention value.
-     *
-     * @since 8.6
-     */
-    @Incubating
-    CollectionPropertyConfigurer<T> getConventionValue();
-
-    /**
-     * Returns the configurer for this property's explicit value.\
-     *
-     * @since 8.6
-     */
-    @Incubating
-    CollectionPropertyConfigurer<T> getExplicitValue();
-
-    /**
-     * Returns the value configurer for this property's explicit value,
-     * be it explicitly assigned or defined by convention.
-     *
-     * @since 8.6
-     */
-    @Incubating
-    CollectionPropertyConfigurer<T> getActualValue();
 
     /**
      * Disallows further changes to the value of this property. Calls to methods that change the value of this property, such as {@link #set(Iterable)} or {@link #add(Object)} will fail.

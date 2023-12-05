@@ -16,6 +16,7 @@
 
 package org.gradle.api.provider;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
 
@@ -37,7 +38,7 @@ import java.util.Set;
  * @since 5.1
  */
 @SupportsKotlinAssignmentOverloading
-public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableValue, MapPropertyConfigurer<K, V> {
+public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableValue, MapPropertyConfigurer<K, V>, Updatable<MapPropertyConfigurer<K, V>>, SupportsConvention {
 
     /**
      * Sets the value of this property to an empty map, and replaces any existing value.
@@ -155,19 +156,23 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
     void finalizeValue();
 
     /**
-     * Returns the configurer for this property's convention value.
-     *
-     * @since 8.6
+     * {@inheritDoc}
      */
     @Incubating
-    MapPropertyConfigurer<K, V> getConventionValue();
+    @Override
+    MapProperty<K, V> configure(Action<MapPropertyConfigurer<K, V>> action);
 
     /**
-     * Returns the value configurer for this property's current value,
-     * no matter whether it was explicitly set or defined via convention.
-     *
-     * @since 8.6
+     * {@inheritDoc}
      */
     @Incubating
-    MapPropertyConfigurer<K, V> getActualValue();
+    @Override
+    MapProperty<K, V> unset();
+    /**
+     * {@inheritDoc}
+     */
+
+    @Incubating
+    @Override
+    MapProperty<K, V> unsetConvention();
 }
