@@ -20,8 +20,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 
 class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
@@ -145,9 +143,9 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
         isolationMode << WorkerExecutorFixture.ISOLATION_MODES
     }
 
-    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
-    def "problems can be logged, when using process isolation with java #javaVersion.majorVersion"() {
-        setupBuild(javaVersion)
+//    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
+    def "problems can be logged, when using process isolation with java #jvm.javaVersion"() {
+        setupBuild(jvm)
         enableProblemsApiCheck()
 
         given:
@@ -179,9 +177,9 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
         problem['buildOperationId']['id'] == Long.parseLong(buildOperationIdFile.text)
 
         where:
-        javaVersion << AvailableJavaHomes.getJdks(
+        jvm << AvailableJavaHomes.getJdks(
             JavaVersion.VERSION_1_6,
-            JavaVersion.VERSION_1_7
+            JavaVersion.VERSION_1_7,
         )
     }
 
