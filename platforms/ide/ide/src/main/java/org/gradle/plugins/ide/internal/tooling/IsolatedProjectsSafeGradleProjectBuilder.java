@@ -50,7 +50,7 @@ public class IsolatedProjectsSafeGradleProjectBuilder implements ToolingModelBui
 
     @Override
     public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.GradleProject");
+        return modelName.equals(GradleProject.class.getName());
     }
 
     @Override
@@ -60,17 +60,19 @@ public class IsolatedProjectsSafeGradleProjectBuilder implements ToolingModelBui
 
     @Override
     public DefaultGradleProject buildForRoot(Project project) {
-        ProjectInternal rootProject = (ProjectInternal) project.getRootProject();
+        requireRootProject(project);
         IsolatedGradleProjectParameter parameter = createParameter(GradleProjectBuilderOptions.shouldRealizeTasks());
-
-        // We must request isolated root model instead of building it directly,
-        // because the target project given to the builder may not have been a root project
-        IsolatedGradleProjectInternal rootIsolatedModel = getRootIsolatedModel(rootProject, parameter);
-
-        return build(rootProject, rootIsolatedModel, parameter);
+        IsolatedGradleProjectInternal rootIsolatedModel = getRootIsolatedModel(project, parameter);
+        return build((ProjectInternal) project, rootIsolatedModel, parameter);
     }
 
-    private IsolatedGradleProjectInternal getRootIsolatedModel(ProjectInternal rootProject, IsolatedGradleProjectParameter parameter) {
+    private static void requireRootProject(Project project) {
+        if (project != project.getRootProject()) {
+            throw new IllegalArgumentException(String.format("%s can only be requested on the root project, got '%s'", GradleProject.class.getName(), project));
+        }
+    }
+
+    private IsolatedGradleProjectInternal getRootIsolatedModel(Project rootProject, IsolatedGradleProjectParameter parameter) {
         return getIsolatedModels(singletonList(rootProject), parameter).get(0);
     }
 
