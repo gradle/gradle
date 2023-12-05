@@ -31,16 +31,11 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
     def buildOperationIdFile = file('build-operation-id.txt')
 
     def forkingOptions(Jvm javaVersion) {
-        if (javaVersion == null) {
-            return ""
-        } else {
-            return """
-                options.fork = true
-                // We don't use toolchains here for consistency with the rest of the test suite
-                options.forkOptions.javaHome = file('${javaVersion.javaHome}')
-            """
-        }
-
+        return """
+            options.fork = true
+            // We don't use toolchains here for consistency with the rest of the test suite
+            options.forkOptions.javaHome = file('${javaVersion.javaHome}')
+        """
     }
 
     def setupBuild(Jvm javaVersion) {
@@ -54,7 +49,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
             }
 
             tasks.withType(JavaCompile) {
-                ${forkingOptions(javaVersion)}
+                ${if (javaVersion == null) '' else forkingOptions(javaVersion)}
             }
         """
         file('buildSrc/src/main/java/org/gradle/test/ProblemsWorkerTaskParameter.java') << """
@@ -64,7 +59,6 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
             public interface ProblemsWorkerTaskParameter extends WorkParameters { }
         """
-
         file('buildSrc/src/main/java/org/gradle/test/ProblemWorkerTask.java') << """
             package org.gradle.test;
 
@@ -119,6 +113,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "problems are logged worker lifecycle is logged in #isolationMode"() {
+        setupBuild(null)
         enableProblemsApiCheck()
 
         given:
@@ -158,6 +153,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             import javax.inject.Inject
+            // Comes from the buildSrc project
             import org.gradle.test.ProblemWorkerTask
 
 
