@@ -1025,7 +1025,6 @@ Class <org.gradle.api.plugins.internal.DefaultJavaPluginConvention> is not annot
 Class <org.gradle.api.plugins.internal.DefaultJavaPluginExtension$DefaultJavaResolutionConsistency> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultJavaPluginExtension.java:0)
 Class <org.gradle.api.plugins.internal.DefaultJavaPluginExtension> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultJavaPluginExtension.java:0)
 Class <org.gradle.api.plugins.internal.DefaultWarPluginConvention> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultWarPluginConvention.java:0)
-Class <org.gradle.api.plugins.internal.FeatureSpecInternal> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (FeatureSpecInternal.java:0)
 Class <org.gradle.api.plugins.internal.HelpBuiltInCommand> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (HelpBuiltInCommand.java:0)
 Class <org.gradle.api.plugins.internal.HelpTasksAutoApplyAction> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (HelpTasksAutoApplyAction.java:0)
 Class <org.gradle.api.plugins.internal.JavaConfigurationVariantMapping$UnpublishableArtifactTypeSpec> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JavaConfigurationVariantMapping.java:0)

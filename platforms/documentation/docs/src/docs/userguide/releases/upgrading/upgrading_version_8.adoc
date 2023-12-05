@@ -47,6 +47,99 @@ JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[
 
 === Deprecations
 
+[[register_feature_main_source_set]]
+==== Deprecated calling `registerFeature` using the `main` source set
+
+Calling `link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html#registerFeature-java.lang.String-org.gradle.api.Action-[registerFeature]` on the `link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html[java]` extension using the `main` source set is deprecated and will change behavior in Gradle 9.0.
+
+Currently, features created while calling `link:{javadocPath}/org/gradle/api/plugins/FeatureSpec.html#usingSourceSet-org.gradle.api.tasks.SourceSet-[usingSourceSet]` with the `main` source set are initialized differently than features created while calling `usingSourceSet` with any other source set.
+Previously, when using the `main` source set, new `implementation`, `compileOnly`, `runtimeOnly`, `api`, and `compileOnlyApi` configurations were created, and the compile and runtime classpaths of the `main` source set were configured to extend these configurations.
+
+Starting in Gradle 9.0, the `main` source set will be treated like any other source set.
+With the `java-library` plugin applied (or any other plugin that applies the `java` plugin), calling `usingSourceSet` with the `main` source set will throw an exception.
+This is because the `java` plugin already configures a main feature.
+Only if the `java` plugin is not applied will the `main` source set be permitted when calling `usingSourceSet`.
+
+Code that currently registers features with the main source set, like so:
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+}
+
+java {
+    registerFeature("feature") {
+        usingSourceSet(sourceSets["main"])
+    }
+}
+----
+======
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id("java-library")
+}
+
+java {
+    registerFeature("feature") {
+        usingSourceSet(sourceSets.main)
+    }
+}
+----
+======
+=====
+
+Should instead create a separate source set for the feature, and register the feature with that source set:
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+}
+
+sourceSets {
+    create("feature")
+}
+
+java {
+    registerFeature("feature") {
+        usingSourceSet(sourceSets["feature"])
+    }
+}
+----
+======
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id("java-library")
+}
+
+sourceSets {
+    feature
+}
+
+java {
+    registerFeature("feature") {
+        usingSourceSet(sourceSets.feature)
+    }
+}
+----
+======
+=====
+
 [[deprecated_artifact_identifier]]
 ==== Deprecated `ArtifactIdentifier`
 The `ArtifactIdentifier` class has been deprecated for removal in Gradle 9.0.
