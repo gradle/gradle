@@ -19,6 +19,7 @@ dependencies {
 
     implementation(libs.futureKotlin("stdlib"))
     implementation(libs.inject)
+    implementation(libs.fastutil)
     implementation(libs.groovy)
     implementation(libs.slf4jApi)
     implementation(libs.guava)
