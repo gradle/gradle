@@ -30,6 +30,7 @@ import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueSourceProvider
+import org.gradle.api.internal.provider.GuardedData
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
@@ -445,5 +446,22 @@ class MapPropertyCodec(
         return propertyFactory.mapProperty(keyType, valueType).apply {
             fromState(state)
         }
+    }
+}
+
+
+internal
+object GuardedDataCodec : Codec<GuardedData<*>> {
+    override suspend fun WriteContext.encode(value: GuardedData<*>) {
+        // GuardedData.owner is a back-reference to the provider being serialized up the stack.
+        // This provider should not be "expanded", but rather stored with preserved identity.
+        writeSmallInt(isolate.identities.getId(value.owner) ?: throw IllegalStateException("Cannot write provider guard before writing its owner"))
+        write(value.unsafeGet())
+    }
+
+    override suspend fun ReadContext.decode(): GuardedData<*> {
+        val owner = isolate.identities.getInstance(readSmallInt()) as ProviderInternal<*>
+        val value = readNonNull<Any>()
+        return GuardedData.of(owner, value)
     }
 }

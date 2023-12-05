@@ -242,13 +242,18 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
      * This class uses try-with-resources directly instead of {@link #evaluate(EvaluationContext.ScopedEvaluation)}
      * to avoid extra allocations of lambda instances.
      */
-    protected static final class ProviderGuard<V> implements ValueSupplier {
-        private final AbstractMinimalProvider<?> owner;
+    protected static final class ProviderGuard<V> implements ValueSupplier, GuardedData<ProviderInternal<V>> {
+        private final ProviderInternal<?> owner;
         private final ProviderInternal<V> value;
 
-        public ProviderGuard(AbstractMinimalProvider<?> owner, ProviderInternal<V> value) {
+        public ProviderGuard(ProviderInternal<?> owner, ProviderInternal<V> value) {
             this.owner = owner;
             this.value = value;
+        }
+
+        @Override
+        public ProviderInternal<?> getOwner() {
+            return owner;
         }
 
         @Override
@@ -277,7 +282,8 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
             }
         }
 
-        public ProviderInternal<V> getUnsafe() {
+        @Override
+        public ProviderInternal<V> unsafeGet() {
             return value;
         }
 

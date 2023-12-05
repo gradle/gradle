@@ -622,13 +622,23 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
         return new MapSupplierGuard<>(this, supplier);
     }
 
-    protected static final class MapSupplierGuard<K, V> implements MapSupplier<K, V> {
-        private final DefaultMapProperty<K, V> owner;
+    protected static final class MapSupplierGuard<K, V> implements MapSupplier<K, V>, GuardedData<MapSupplier<K, V>> {
+        private final ProviderInternal<?> owner;
         private final MapSupplier<K, V> supplier;
 
-        public MapSupplierGuard(DefaultMapProperty<K, V> owner, MapSupplier<K, V> supplier) {
+        public MapSupplierGuard(ProviderInternal<?> owner, MapSupplier<K, V> supplier) {
             this.owner = owner;
             this.supplier = supplier;
+        }
+
+        @Override
+        public ProviderInternal<?> getOwner() {
+            return owner;
+        }
+
+        @Override
+        public MapSupplier<K, V> unsafeGet() {
+            return supplier;
         }
 
         @Override

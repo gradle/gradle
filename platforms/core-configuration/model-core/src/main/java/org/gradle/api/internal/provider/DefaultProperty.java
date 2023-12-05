@@ -88,7 +88,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, AbstractMinimalProvi
     public ProviderInternal<? extends T> getProvider() {
         // TODO(mlopatkin) while calling getProvider is not going to cause StackOverflowError by itself, the returned provider is typically used in some recursive call.
         //  Without the safety net of the EvaluationContext, it can cause hard-to-debug exceptions.
-        return getSupplier().getUnsafe();
+        return getSupplier().unsafeGet();
     }
 
     public DefaultProperty<T> provider(Provider<? extends T> provider) {
