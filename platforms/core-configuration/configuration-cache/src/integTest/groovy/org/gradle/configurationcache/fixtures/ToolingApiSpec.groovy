@@ -23,9 +23,12 @@ import org.gradle.api.Project
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.provider.Property
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.internal.Pair
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionExecuter
 import org.gradle.tooling.BuildException
@@ -40,6 +43,22 @@ import javax.inject.Inject
 trait ToolingApiSpec {
     ToolingApiBackedGradleExecuter getToolingApiExecutor() {
         return (ToolingApiBackedGradleExecuter) getExecuter()
+    }
+
+    TestFile getProjectDir() {
+        temporaryFolder.testDirectory
+    }
+
+    BuildTestFile singleProjectBuildInRootDir(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        new BuildTestFixture(projectDir).withBuildInRootDir().singleProjectBuild(projectName, cl)
+    }
+
+    BuildTestFile singleProjectBuildInSubDir(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        new BuildTestFixture(projectDir).withBuildInSubDir().singleProjectBuild(projectName, cl)
+    }
+
+    BuildTestFile multiProjectBuildInSubDir(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        new BuildTestFixture(projectDir).withBuildInSubDir().multiProjectBuildWithIsolatedProjects(projectName, subprojects, cl)
     }
 
     void withSomeToolingModelBuilderPluginInBuildSrc(String builderContent = "") {
