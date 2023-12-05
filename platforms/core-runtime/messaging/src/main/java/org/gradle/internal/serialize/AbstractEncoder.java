@@ -73,12 +73,12 @@ public abstract class AbstractEncoder implements Encoder {
     }
 
     @Override
-    public void writeNullableString(@Nullable CharSequence value) throws IOException {
+    public void writeNullableString(@Nullable String value) throws IOException {
         if (value == null) {
             writeBoolean(false);
         } else {
             writeBoolean(true);
-            writeString(value.toString());
+            writeString(value);
         }
     }
 

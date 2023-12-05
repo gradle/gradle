@@ -106,7 +106,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val junit5JupiterApi = "org.junit.jupiter:junit-jupiter-api"
     val junitPlatform = "org.junit.platform:junit-platform-launcher"
     val jzlib = "com.jcraft:jzlib"
-    val kryo = "com.esotericsoftware.kryo:kryo"
+    val kryo = "com.esotericsoftware:kryo"
     val log4jToSlf4j = "org.slf4j:log4j-over-slf4j"
     val maven3BuilderSupport = "org.apache.maven:maven-builder-support"
     val maven3Model = "org.apache.maven:maven-model"

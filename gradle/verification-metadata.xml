@@ -512,6 +512,11 @@
             <sha256 value="be46341a814e786c14c5d0e6cf5d470e55fff468b99509437c4014d8b2a20ce4" reason="Artifact is not signed"/>
          </artifact>
       </component>
+      <component group="com.esotericsoftware" name="kryo" version="5.5.0">
+         <artifact name="kryo-5.5.0.jar">
+            <pgp value="928A3A346452BF70204F31E31BC12D45B7A71DF3"/>
+         </artifact>
+      </component>
       <component group="com.github.bbottema" name="java-socks-proxy-server" version="2.0.0">
          <artifact name="java-socks-proxy-server-2.0.0.jar">
             <pgp value="D40633BFD9FDB773C896E9025DFB46C505B694FE"/>

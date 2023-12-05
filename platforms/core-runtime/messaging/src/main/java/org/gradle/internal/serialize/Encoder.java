@@ -97,12 +97,12 @@ public interface Encoder {
     /**
      * Writes a non-null string value.
      */
-    void writeString(CharSequence value) throws IOException;
+    void writeString(String value) throws IOException;
 
     /**
      * Writes a nullable string value.
      */
-    void writeNullableString(@Nullable CharSequence value) throws IOException;
+    void writeNullableString(@Nullable String value) throws IOException;
 
     interface EncodeAction<T> {
         void write(T target) throws Exception;

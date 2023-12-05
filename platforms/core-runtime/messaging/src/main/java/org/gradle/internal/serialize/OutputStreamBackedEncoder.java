@@ -44,11 +44,11 @@ public class OutputStreamBackedEncoder extends AbstractEncoder implements Closea
     }
 
     @Override
-    public void writeString(CharSequence value) throws IOException {
+    public void writeString(String value) throws IOException {
         if (value == null) {
             throw new IllegalArgumentException("Cannot encode a null string.");
         }
-        outputStream.writeUTF(value.toString());
+        outputStream.writeUTF(value);
     }
 
     @Override

@@ -75,7 +75,7 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
     }
 
     @Override
-    public void writeString(CharSequence value) {
+    public void writeString(String value) {
         if (value == null) {
             throw new IllegalArgumentException("Cannot encode a null string.");
         }
@@ -83,7 +83,7 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
     }
 
     @Override
-    public void writeNullableString(@Nullable CharSequence value) {
+    public void writeNullableString(@Nullable String value) {
         if (value == null) {
             output.writeInt(-1);
             return;

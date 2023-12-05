@@ -74,7 +74,7 @@ public class KryoBackedEncoder extends AbstractEncoder implements FlushableEncod
     }
 
     @Override
-    public void writeString(CharSequence value) {
+    public void writeString(String value) {
         if (value == null) {
             throw new IllegalArgumentException("Cannot encode a null string.");
         }
@@ -82,7 +82,7 @@ public class KryoBackedEncoder extends AbstractEncoder implements FlushableEncod
     }
 
     @Override
-    public void writeNullableString(@Nullable CharSequence value) {
+    public void writeNullableString(@Nullable String value) {
         output.writeString(value);
     }
 

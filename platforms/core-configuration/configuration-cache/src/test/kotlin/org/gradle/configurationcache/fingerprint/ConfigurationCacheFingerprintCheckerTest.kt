@@ -325,7 +325,7 @@ class ConfigurationCacheFingerprintCheckerTest {
         override suspend fun forIncompatibleType(path: String, action: suspend () -> Unit) =
             undefined()
 
-        override fun writeNullableString(value: CharSequence?): Unit =
+        override fun writeNullableString(value: String?): Unit =
             undefined()
 
         override fun writeNullableSmallInt(value: Int?): Unit =
@@ -334,7 +334,7 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun writeLong(value: Long): Unit =
             undefined()
 
-        override fun writeString(value: CharSequence?): Unit =
+        override fun writeString(value: String?): Unit =
             undefined()
 
         override fun writeBytes(bytes: ByteArray?): Unit =

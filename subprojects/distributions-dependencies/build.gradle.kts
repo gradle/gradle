@@ -126,7 +126,7 @@ dependencies {
         api(libs.junit5Vintage)         { version { strictly(junit5Version) }}
         api(libs.junitPlatform)         { version { strictly("1.8.2") }}
         api(libs.jzlib)                 { version { strictly("1.1.3") }}
-        api(libs.kryo)                  { version { strictly("2.24.0") }}
+        api(libs.kryo)                  { version { strictly("5.5.0") }}
         api(libs.log4jToSlf4j)          { version { strictly(slf4jVersion) }}
         api(libs.maven3BuilderSupport)  { version { strictly(mavenVersion); because("required to load/build poms and repository settings") }}
         api(libs.maven3Model)           { version { strictly(mavenVersion); because("required to load/build poms and repository settings") }}
