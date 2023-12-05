@@ -19,6 +19,7 @@ package org.gradle.api.internal.file.collections;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileCollectionConfigurer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -612,6 +613,16 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         public void clear() {
             assertMutable();
             setExplicitValue(EMPTY_COLLECTOR);
+        }
+    }
+
+    class Configurer implements ConfigurableFileCollectionConfigurer {
+
+
+
+        @Override
+        public ConfigurableFileCollectionConfigurer from(Object... paths) {
+            return null;
         }
     }
 }

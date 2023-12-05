@@ -18,6 +18,7 @@ package org.gradle.api.file;
 import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Configurable;
 import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.api.provider.SupportsConvention;
 
@@ -31,7 +32,8 @@ import java.util.Set;
  * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.</p>
  */
 @SupportsKotlinAssignmentOverloading
-public interface ConfigurableFileCollection extends FileCollection, HasConfigurableValue, SupportsConvention {
+public interface ConfigurableFileCollection extends FileCollection, HasConfigurableValue, SupportsConvention, Configurable<ConfigurableFileCollectionConfigurer>, ConfigurableFileCollectionConfigurer {
+
     /**
      * Returns the set of source paths for this collection. The paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      *
@@ -99,6 +101,7 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      * @param paths The files to add.
      * @return this
      */
+    @Override
     ConfigurableFileCollection from(Object... paths);
 
     /**
