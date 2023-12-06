@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.isolated
 
+import org.gradle.plugins.ide.internal.tooling.model.IsolatedGradleProjectInternal
 import org.gradle.tooling.model.GradleProject
 
 import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.checkGradleProject
@@ -49,8 +50,8 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
 
         then:
         fixture.assertStateStored {
-            modelsCreated(":", 2) // GradleProject, intermediate IsolatedGradleProjectInternal
-            modelsCreated(":lib1", ":lib1:lib11") // intermediate IsolatedGradleProjectInternal
+            modelsCreated(":", GradleProject, IsolatedGradleProjectInternal)
+            modelsCreated(IsolatedGradleProjectInternal, ":lib1", ":lib1:lib11")
         }
 
         checkGradleProject(projectModel, expectedProjectModel)
@@ -96,8 +97,8 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
 
         then: "fetching with Isolated Projects"
         fixture.assertStateStored {
-            modelsCreated(":", 2) // `GradleProject` and intermediate `IsolatedGradleProjectInternal`
-            modelsCreated(":lib1")
+            modelsCreated(":", GradleProject, IsolatedGradleProjectInternal)
+            modelsCreated(":lib1", IsolatedGradleProjectInternal)
         }
 
         checkGradleProject(projectModel, expectedProjectModel)
@@ -142,8 +143,8 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         then:
         fixture.assertStateStored {
             buildModelCreated()
-            modelsCreated(":included1", 2) // GradleProject, intermediate IsolatedGradleProjectInternal
-            modelsCreated(":included1:lib2") // intermediate IsolatedGradleProjectInternal
+            modelsCreated(":included1", GradleProject, IsolatedGradleProjectInternal)
+            modelsCreated(":included1:lib2", IsolatedGradleProjectInternal)
         }
 
         checkGradleProject(projectModel, expectedProjectModel)
