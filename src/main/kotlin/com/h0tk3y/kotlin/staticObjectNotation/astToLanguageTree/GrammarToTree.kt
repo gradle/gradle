@@ -9,78 +9,72 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
     /**
      * script : -shebangLine? -fileAnnotation* -packageHeader importList (statement semi)* EOF
      */
-    fun script(ast: Ast): SyntacticResult<List<ElementResult<*>>> {
-        ast.expectKind(script)
-        val result = syntacticOrFailure {
-            collectingFailure(ast.findChild(shebangLine)?.unsupported(UnsupportedShebangInScript))
-            collectingFailure(
-                ast.findChild(packageHeader)?.takeIf { it.childrenOrEmpty.isNotEmpty() }?.unsupported(PackageHeader)
-            )
-            val imports = importList(ast.child(importList))
-            val statements = ast.children(statement).map { statement(it) }
-
-            syntacticAfterBarrier {
-                Syntactic(failures + imports + statements)
+    fun script(ast: Ast): Syntactic<List<ElementResult<*>>> =
+        FailureCollectorContext().run {
+            ast.expectKind(script)
+            collectingFailure(ast, shebangLine) { it?.unsupported(UnsupportedShebangInScript) }
+            collectingFailure(ast, packageHeader) {
+                it?.takeIf { it.childrenOrEmpty.isNotEmpty() }?.unsupported(PackageHeader)
             }
-        }
-        return result
-    }
 
-    fun importList(ast: Ast): List<ElementResult<Import>> {
+            val imports = importList(ast.child(importList))
+
+            val statementAsts = ast.children(statement)
+            val statements = statementAsts.map { statement(it) }
+
+            Syntactic(failures + imports + statements)
+        }
+
+    private fun importList(ast: Ast): List<ElementResult<Import>> {
         ast.expectKind(importList)
         return ast.children(importHeader).map { importHeader(it) }
     }
 
-    fun importHeader(ast: Ast): ElementResult<Import> = elementOrFailure {
-        ast.expectKind(importHeader)
+    private fun importHeader(ast: Ast): ElementResult<Import> =
+        elementOrFailure {
+            ast.expectKind(importHeader)
 
-        collectingFailure(ast.findChild(asterisk)?.unsupported(StarImport))
-        collectingFailure(ast.findChild(importAlias)?.unsupported(RenamingImport))
+            collectingFailure(ast, asterisk) { it?.unsupported(StarImport) }
+            collectingFailure(ast, importAlias) { it?.unsupported(RenamingImport) }
 
-        elementAfterBarrier {
-            val ident = ast.child(identifier)
-            val names = ident.children(simpleIdentifier).map { simpleIdentifier(it).value }
-            Element(Import(AccessChain(names, ident.data), ast.data))
+            val identifierAst = ast.child(identifier)
+
+            val names = identifierAst.children(simpleIdentifier).map { checkForFailure(simpleIdentifier(it)) }
+
+            elementIfNoFailures {
+                Element(Import(AccessChain(checked(names), identifierAst.data), ast.data))
+            }
         }
-    }
-
-    fun statements(ast: Ast): SyntacticResult<List<DataStatement>> = syntacticOrFailure {
-        ast.expectKind(statements)
-        val statements = ast.children(statement)
-        val statementResult = statements.map { collectingFailure(statement(it)) }
-        syntacticAfterBarrier {
-            Syntactic(statementResult.map { checked(it) })
-        }
-    }
 
     /**
      * statement : (-label | -annotation)* ([declaration] | [assignment] | -loopStatement | [expression])
      */
-    fun statement(ast: Ast): ElementResult<DataStatement> = elementOrFailure {
-        ast.expectKind(statement)
+    private fun statement(ast: Ast): ElementResult<DataStatement> =
+        elementOrFailure {
+            ast.expectKind(statement)
 
-        collectingFailure(ast.findChild(label)?.let { ast.unsupportedBecause(it, LabelledStatement) })
-        collectingFailure(ast.findChild(annotation)?.let { ast.unsupportedBecause(it, AnnotationUsage) })
+            collectingFailure(ast, label) { it?.let { ast.unsupportedBecause(it, LabelledStatement) } }
+            collectingFailure(ast, annotation) { it?.let { ast.unsupportedBecause(it, AnnotationUsage) } }
 
-        val singleChild =
-            ast.childrenOrEmpty.singleOrNull { it.kind != label && it.kind != annotation && it.kind != whitespace }
-                ?: error("expected a single child")
+            val singleChild =
+                ast.childrenOrEmpty.singleOrNull { it.kind != label && it.kind != annotation && it.kind != whitespace }
+                    ?: error("expected a single child")
 
-        elementAfterBarrier {
-            when (singleChild.kind) {
-                loopStatement -> failNow(singleChild.unsupported(LoopStatement))
-                declaration -> declaration(singleChild)
-                assignment -> assignment(singleChild)
-                expression -> expression(singleChild)
-                else -> error("unexpected child kind")
+            elementIfNoFailures {
+                when (singleChild.kind) {
+                    loopStatement -> singleChild.unsupported(LoopStatement)
+                    declaration -> declaration(singleChild)
+                    assignment -> assignment(singleChild)
+                    expression -> expression(singleChild)
+                    else -> error("unexpected child kind")
+                }
             }
         }
-    }
 
     /**
      * declaration : -classDeclaration | -objectDeclaration | [functionDeclaration] | [propertyDeclaration] | -typeAlias
      */
-    fun declaration(ast: Ast): ElementResult<DataStatement> {
+    private fun declaration(ast: Ast): ElementResult<DataStatement> {
         ast.expectKind(declaration)
 
         val singleChild = ast.singleChild()
@@ -100,27 +94,28 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
      *     (('=' expression) | -propertyDelegate)? ';'?
      *     ((getter? (semi? setter)?) | (setter? (semi? getter)?))
      */
-    fun propertyDeclaration(ast: Ast): ElementResult<LocalValue> = elementOrFailure {
-        ast.expectKind(propertyDeclaration)
+    private fun propertyDeclaration(ast: Ast): ElementResult<LocalValue> =
+        elementOrFailure {
+            ast.expectKind(propertyDeclaration)
 
-        collectingFailure(ast.findChild(modifiers)?.let { ast.unsupportedBecause(it, ValModifierNotSupported) })
-        collectingFailure(ast.findChild(varKeyword)?.let { ast.unsupportedBecause(it, LocalVarNotSupported) })
-        collectingFailure(ast.findChild(receiverType)?.let { ast.unsupportedBecause(it, ExtensionProperty) })
-        collectingFailure(ast.findChild(multiVariableDeclaration)?.let { ast.unsupportedBecause(it, MultiVariable) })
-        collectingFailure(ast.findChild(typeConstraints)?.let { ast.unsupportedBecause(it, GenericDeclaration) })
-        collectingFailure(ast.findChild(propertyDelegate)?.let { ast.unsupportedBecause(it, DelegatedProperty) })
-        collectingFailure(ast.findChild(getter)?.let { ast.unsupportedBecause(it, CustomAccessor) })
-        collectingFailure(ast.findChild(setter)?.let { ast.unsupportedBecause(it, CustomAccessor) })
+            collectingFailure(ast, modifiers) { it?.let { ast.unsupportedBecause(it, ValModifierNotSupported) } }
+            collectingFailure(ast, varKeyword) { it?.let { ast.unsupportedBecause(it, LocalVarNotSupported) } }
+            collectingFailure(ast, receiverType) { it?.let { ast.unsupportedBecause(it, ExtensionProperty) } }
+            collectingFailure(ast, multiVariableDeclaration) { it?.let { ast.unsupportedBecause(it, MultiVariable) } }
+            collectingFailure(ast, typeConstraints) { it?.let { ast.unsupportedBecause(it, GenericDeclaration) } }
+            collectingFailure(ast, propertyDelegate) { it?.let { ast.unsupportedBecause(it, DelegatedProperty) } }
+            collectingFailure(ast, getter) { it?.let { ast.unsupportedBecause(it, CustomAccessor) } }
+            collectingFailure(ast, setter) { it?.let { ast.unsupportedBecause(it, CustomAccessor) } }
 
-        val name = collectingFailure(variableDeclaration(ast.child(variableDeclaration)))
-        val expr = collectingFailure(
-            ast.findChild(expression)?.let(::expression) ?: ast.unsupported(UninitializedProperty)
-        )
+            val name = checkForFailure(variableDeclaration(ast.child(variableDeclaration)))
+            val expr = checkForFailure(
+                ast.findChild(expression)?.let(::expression) ?: ast.unsupported(UninitializedProperty)
+            )
 
-        elementAfterBarrier {
-            Element(LocalValue(checked(name), checked(expr), ast.data))
+            elementIfNoFailures {
+                Element(LocalValue(checked(name), checked(expr), ast.data))
+            }
         }
-    }
 
     /**
      * functionDeclaration (used by declaration)
@@ -131,7 +126,7 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
      *     functionBody?
      *   ;
      */
-    fun functionDeclaration(ast: Ast): FailingResult {
+    private fun functionDeclaration(ast: Ast): FailingResult {
         ast.expectKind(functionDeclaration)
 
         // TODO: at some point, data functions should be supported
@@ -141,18 +136,21 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
     /**
      * assignment : (([directlyAssignableExpression] '=') | -(assignableExpression assignmentAndOperator)) [expression]
      */
-    fun assignment(ast: Ast): ElementResult<Assignment> = elementOrFailure {
-        check(ast.kind == assignment)
-        collectingFailure(
-            ast.findChild(assignmentAndOperator)?.let { ast.unsupportedBecause(it, AugmentingAssignment) })
+    private fun assignment(ast: Ast): ElementResult<Assignment> =
+        elementOrFailure {
+            ast.expectKind(assignment)
 
-        val lhs = collectingFailure(directlyAssignableExpression(ast.child(directlyAssignableExpression)))
-        val expr = collectingFailure(expression(ast.child(expression)))
+            collectingFailure(ast, assignmentAndOperator) {
+                it?.let { ast.unsupportedBecause(it, AugmentingAssignment) }
+            }
 
-        elementAfterBarrier {
-            Element(Assignment(checked(lhs), checked(expr), ast.data))
+            val lhs = checkForFailure(directlyAssignableExpression(ast.child(directlyAssignableExpression)))
+            val expr = checkForFailure(expression(ast.child(expression)))
+
+            elementIfNoFailures {
+                Element(Assignment(checked(lhs), checked(expr), ast.data))
+            }
         }
-    }
 
     /**
      * directlyAssignableExpression (used by assignment, parenthesizedDirectlyAssignableExpression)
@@ -161,66 +159,68 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
      *   | parenthesizedDirectlyAssignableExpression (== '(' [directlyAssignableExpression] ')')
      *   ;
      */
-    fun directlyAssignableExpression(ast: Ast): ElementResult<PropertyAccess> {
-        ast.expectKind(directlyAssignableExpression)
+    private fun directlyAssignableExpression(ast: Ast): ElementResult<PropertyAccess> =
+        elementOrFailure {
+            ast.expectKind(directlyAssignableExpression)
 
-        ast.findSingleChild(simpleIdentifier)?.let {
-            val name = simpleIdentifier(it)
-            return Element(PropertyAccess(null, name.value, ast.data))
-        }
+            ast.findSingleChild(simpleIdentifier)?.let {
+                val name = checkForFailure(simpleIdentifier(it))
+                return@elementOrFailure elementIfNoFailures {
+                    Element(PropertyAccess(null, checked(name), ast.data))
+                }
+            }
 
-        ast.findSingleChild(parenthesizedDirectlyAssignableExpression)?.let {
-            val child = ast.child(directlyAssignableExpression)
-            return directlyAssignableExpression(child)
-        }
+            ast.findSingleChild(parenthesizedDirectlyAssignableExpression)?.let {
+                val child = ast.child(directlyAssignableExpression)
+                return@elementOrFailure directlyAssignableExpression(child)
+            }
 
-        return elementOrFailure {
             val left = ast.child(postfixUnaryExpression)
-            val postfixUnary = collectingFailure(postfixUnaryExpression(left))
-            val suffixAsName = collectingFailure(assignableSuffix(ast.child(assignableSuffix)))
-            elementAfterBarrier {
+            val postfixUnary = checkForFailure(postfixUnaryExpression(left))
+            val suffixAsName = checkForFailure(assignableSuffix(ast.child(assignableSuffix)))
+            elementIfNoFailures {
                 Element(PropertyAccess(checked(postfixUnary), checked(suffixAsName), ast.data))
             }
         }
-    }
 
     /**
      * postfixUnaryExpression
      *   : [primaryExpression] [postfixUnarySuffix]*
      */
-    fun postfixUnaryExpression(ast: Ast): ElementResult<Expr> = elementOrFailure {
-        ast.expectKind(postfixUnaryExpression)
+    private fun postfixUnaryExpression(ast: Ast): ElementResult<Expr> =
+        elementOrFailure {
+            ast.expectKind(postfixUnaryExpression)
 
-        val primary = collectingFailure(primaryExpression(ast.child(primaryExpression)))
-        val suffixes = ast.children(postfixUnarySuffix).map { collectingFailure(postfixUnarySuffix(it)) }
+            val primary = checkForFailure(primaryExpression(ast.child(primaryExpression)))
+            val suffixes = ast.children(postfixUnarySuffix).map { checkForFailure(postfixUnarySuffix(it)) }
 
-        elementAfterBarrier {
-            suffixes.fold(primary.value) { acc, it ->
-                acc.flatMap { accExpr ->
-                    when (val suffix = checked(it)) {
-                        is UnarySuffix.CallSuffix -> {
-                            if (accExpr !is PropertyAccess) {
-                                return@flatMap failNow(
-                                    UnsupportedConstruct(
-                                        ast.data,
-                                        ast.data /* TODO */,
-                                        InvokeOperator
+            elementIfNoFailures {
+                suffixes.fold(primary.value) { acc, it ->
+                    acc.flatMap { accExpr ->
+                        when (val suffix = checked(it)) {
+                            is UnarySuffix.CallSuffix -> {
+                                if (accExpr !is PropertyAccess) {
+                                    return@flatMap failNow(
+                                        UnsupportedConstruct(
+                                            ast.data,
+                                            ast.data /* TODO */,
+                                            InvokeOperator
+                                        )
                                     )
-                                )
+                                }
+                                val receiver = accExpr.receiver
+                                val name = accExpr.name
+                                Element(FunctionCall(receiver, name, suffix.arguments, suffix.ast.data))
                             }
-                            val receiver = accExpr.receiver
-                            val name = accExpr.name
-                            Element(FunctionCall(receiver, name, suffix.arguments, suffix.ast.data))
-                        }
 
-                        is UnarySuffix.NavSuffix -> {
-                            Element(PropertyAccess(accExpr, suffix.name, suffix.ast.data))
+                            is UnarySuffix.NavSuffix -> {
+                                Element(PropertyAccess(accExpr, suffix.name, suffix.ast.data))
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
     /**
      * postfixUnarySuffix
@@ -231,7 +231,7 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
      *   | navigationSuffix
      */
 
-    fun postfixUnarySuffix(ast: Ast): SyntacticResult<UnarySuffix> {
+    private fun postfixUnarySuffix(ast: Ast): SyntacticResult<UnarySuffix> {
         ast.expectKind(postfixUnarySuffix)
 
         // TODO: support postfix double bang operator?
@@ -250,22 +250,23 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
      * callSuffix
      *   : -typeArguments? ((valueArguments? annotatedLambda) | valueArguments)
      */
-    fun callSuffix(ast: Ast): SyntacticResult<UnarySuffix> = syntacticOrFailure {
-        ast.expectKind(callSuffix)
+    private fun callSuffix(ast: Ast): SyntacticResult<UnarySuffix> =
+        syntacticOrFailure {
+            ast.expectKind(callSuffix)
 
-        collectingFailure(ast.findChild(typeArguments)?.unsupportedIn(ast, GenericExpression))
-        val valueArguments = ast.findChild(valueArguments)?.let {
-            collectingFailure(valueArguments(it))
+            collectingFailure(ast, typeArguments) { it?.unsupportedIn(ast, GenericExpression) }
+            val valueArguments = ast.findChild(valueArguments)?.let {
+                checkForFailure(valueArguments(it))
+            }
+            val finalLambda = ast.findChild(annotatedLambda)?.let {
+                checkForFailure(annotatedLambda(it))
+            }
+            syntacticIfNoFailures {
+                val valueArgs = valueArguments?.let(::checked).orEmpty()
+                val lambda = finalLambda?.let(::checked)
+                Syntactic(UnarySuffix.CallSuffix(valueArgs, lambda, ast))
+            }
         }
-        val finalLambda = ast.findChild(annotatedLambda)?.let {
-            collectingFailure(annotatedLambda(it))
-        }
-        syntacticAfterBarrier {
-            val valueArgs = valueArguments?.let(::checked).orEmpty()
-            val lambda = finalLambda?.let(::checked)
-            Syntactic(UnarySuffix.CallSuffix(valueArgs, lambda, ast))
-        }
-    }
 
     /**
      * annotatedLambda (used by callSuffix)
@@ -275,59 +276,72 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
      *   : '{' (-lambdaParameters? '->')? statements '}'
      *
      */
-    fun annotatedLambda(ast: Ast): ElementResult<FunctionArgument.Lambda> = elementOrFailure {
-        ast.expectKind(annotatedLambda)
+    private fun annotatedLambda(ast: Ast): ElementResult<FunctionArgument.Lambda> =
+        elementOrFailure {
+            ast.expectKind(annotatedLambda)
 
-        collectingFailure(ast.findChild(annotation)?.unsupportedIn(ast, AnnotationUsage))
-        collectingFailure(ast.findChild(label)?.unsupportedIn(ast, ControlFlow))
-        val literal = ast.child(lambdaLiteral)
-        collectingFailure(literal.findChild(lambdaParameter)?.unsupportedIn(literal, LambdaWithParameters))
-        val statements = collectingFailure(statements(literal.child(statements)))
-        elementAfterBarrier {
-            Element(FunctionArgument.Lambda(Block(checked(statements), ast.data), ast.data))
+            collectingFailure(ast, annotation) { it?.unsupportedIn(ast, AnnotationUsage) }
+            collectingFailure(ast, label) { it?.unsupportedIn(ast, ControlFlow) }
+            val literal = ast.child(lambdaLiteral)
+            collectingFailure(literal, lambdaParameter) { it?.unsupportedIn(literal, LambdaWithParameters) }
+            val statements = checkForFailure(statements(literal.child(statements)))
+            elementIfNoFailures {
+                Element(FunctionArgument.Lambda(Block(checked(statements), ast.data), ast.data))
+            }
         }
-    }
+
+    private fun statements(ast: Ast): SyntacticResult<List<DataStatement>> =
+        syntacticOrFailure() {
+            ast.expectKind(statements)
+            val statements = ast.children(statement)
+            val statementResult = statements.map { checkForFailure(statement(it)) }
+            syntacticIfNoFailures {
+                Syntactic(statementResult.map { checked(it) })
+            }
+        }
 
     /**
      * ueArguments
      *   : '(' (valueArgument (',' valueArgument)* ','?)? ')'
      */
-    fun valueArguments(ast: Ast): SyntacticResult<List<FunctionArgument.ValueArgument>> = syntacticOrFailure {
-        ast.expectKind(valueArguments)
+    private fun valueArguments(ast: Ast): SyntacticResult<List<FunctionArgument.ValueArgument>> =
+        syntacticOrFailure {
+            ast.expectKind(valueArguments)
 
-        val args = ast.children(valueArgument).map { collectingFailure(valueArgument(it)) }
-        syntacticAfterBarrier {
-            Syntactic(args.map(::checked))
+            val args = ast.children(valueArgument).map { checkForFailure(valueArgument(it)) }
+            syntacticIfNoFailures {
+                Syntactic(args.map(::checked))
+            }
         }
-    }
 
     /**
      * valueArgument
      *    : annotation? (simpleIdentifier '=')? '*'? expression
      */
-    fun valueArgument(ast: Ast): SyntacticResult<FunctionArgument.ValueArgument> = syntacticOrFailure {
-        ast.expectKind(valueArgument)
+    private fun valueArgument(ast: Ast): SyntacticResult<FunctionArgument.ValueArgument> =
+        syntacticOrFailure {
+            ast.expectKind(valueArgument)
 
-        collectingFailure(ast.findChild(annotation)?.unsupportedIn(ast, AnnotationUsage))
-        collectingFailure(ast.findChild(asterisk)?.unsupportedIn(ast, UnsupportedOperator))
-        val name = ast.findChild(simpleIdentifier)?.let { simpleIdentifier(it).value }
-        val expr = collectingFailure(expression(ast.child(expression)))
-        syntacticAfterBarrier {
-            val checkedExpr = checked(expr)
-            Syntactic(
-                if (name != null)
-                    FunctionArgument.Named(name, checkedExpr, ast.data)
-                else FunctionArgument.Positional(checkedExpr, ast.data)
-            )
+            collectingFailure(ast, annotation) { it?.unsupportedIn(ast, AnnotationUsage) }
+            collectingFailure(ast, asterisk) { it?.unsupportedIn(ast, UnsupportedOperator) }
+            val name = checkNullableForFailure(ast.findChild(simpleIdentifier)?.let { simpleIdentifier(it) })
+            val expr = checkForFailure(expression(ast.child(expression)))
+            syntacticIfNoFailures {
+                val checkedExpr = checked(expr)
+                Syntactic(
+                    if (name != null)
+                        FunctionArgument.Named(checked(name), checkedExpr, ast.data)
+                    else FunctionArgument.Positional(checkedExpr, ast.data)
+                )
+            }
         }
-    }
 
     sealed interface UnarySuffix {
         val ast: Ast
 
         class CallSuffix(
-            val valueArguments: List<FunctionArgument.ValueArgument>,
-            val lambda: FunctionArgument.Lambda?,
+            private val valueArguments: List<FunctionArgument.ValueArgument>,
+            private val lambda: FunctionArgument.Lambda?,
             override val ast: Ast
         ) : UnarySuffix {
             val arguments: List<FunctionArgument> get() = valueArguments + listOfNotNull(lambda)
@@ -354,25 +368,33 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
      *   | -jumpExpression
      *   ;
      */
-    fun primaryExpression(ast: Ast): ElementResult<Expr> {
-        ast.expectKind(primaryExpression)
+    private fun primaryExpression(ast: Ast): ElementResult<Expr> {
+        return elementOrFailure() {
+            ast.expectKind(primaryExpression)
 
-        val singleChild = ast.childrenOrEmpty.singleOrNull() ?: error("expected a single child")
+            val singleChild = ast.childrenOrEmpty.singleOrNull() ?: error("expected a single child")
 
-        return when (singleChild.kind) {
-            parenthesizedExpression -> expression(singleChild.child(expression))
-            simpleIdentifier -> Element(PropertyAccess(null, simpleIdentifier(singleChild).value, ast.data))
-            literalConstant -> literalConstant(singleChild)
-            stringLiteral -> stringLiteral(singleChild)
-            thisExpression -> Element(This(singleChild.data))
-            callableReference -> ast.unsupported(CallableReference)
-            functionLiteral -> ast.unsupported(FunctionDeclaration)
-            objectLiteral -> ast.unsupported(TypeDeclaration)
-            collectionLiteral -> ast.unsupported(CollectionLiteral)
-            superExpression -> ast.unsupported(SupertypeUsage)
-            ifExpression, whenExpression -> ast.unsupported(ConditionalExpression)
-            tryExpression, jumpExpression -> ast.unsupported(ControlFlow)
-            else -> error("unexpected child kind ${singleChild.kind}")
+            when (singleChild.kind) {
+                parenthesizedExpression -> expression(singleChild.child(expression))
+                simpleIdentifier -> {
+                    val simpleIdentifier = checkForFailure(simpleIdentifier(singleChild))
+                    elementIfNoFailures {
+                        Element(PropertyAccess(null, checked(simpleIdentifier), ast.data))
+                    }
+                }
+
+                literalConstant -> literalConstant(singleChild)
+                stringLiteral -> stringLiteral(singleChild)
+                thisExpression -> Element(This(singleChild.data))
+                callableReference -> ast.unsupported(CallableReference)
+                functionLiteral -> ast.unsupported(FunctionDeclaration)
+                objectLiteral -> ast.unsupported(TypeDeclaration)
+                collectionLiteral -> ast.unsupported(CollectionLiteral)
+                superExpression -> ast.unsupported(SupertypeUsage)
+                ifExpression, whenExpression -> ast.unsupported(ConditionalExpression)
+                tryExpression, jumpExpression -> ast.unsupported(ControlFlow)
+                else -> error("unexpected child kind ${singleChild.kind}")
+            }
         }
     }
 
@@ -389,62 +411,78 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
      *   | UnsignedLiteral
      *   ;
      */
-    fun literalConstant(ast: Ast): ElementResult<Expr> {
-        ast.expectKind(literalConstant)
-        val singleChild = ast.singleChild()
-        return when (singleChild.kind) {
-            booleanLiteral -> Element(Literal.BooleanLiteral(singleChild.text.toBooleanStrict(), singleChild.data))
-            integerLiteral -> Element(Literal.IntLiteral(singleChild.text.toInt(), singleChild.data))
-            longLiteral -> Element(
-                Literal.LongLiteral(singleChild.text.removeSuffix("l").removeSuffix("L").toLong(), singleChild.data)
-            )
+    private fun literalConstant(ast: Ast): ElementResult<Expr> {
+        return elementOrFailure() {
+            ast.expectKind(literalConstant)
+            val singleChild = ast.singleChild()
+            elementIfNoFailures {
+                when (singleChild.kind) {
+                    booleanLiteral -> Element(
+                        Literal.BooleanLiteral(
+                            singleChild.text.toBooleanStrict(),
+                            singleChild.data
+                        )
+                    )
 
-            unsignedLiteral -> ast.unsupported(TodoNotCoveredYet)
-            binLiteral, hexLiteral, characterLiteral, realLiteral -> ast.unsupported(UnsupportedLiteral)
-            else -> error("unexpected child kind")
+                    integerLiteral -> Element(Literal.IntLiteral(singleChild.text.toInt(), singleChild.data))
+                    longLiteral -> Element(
+                        Literal.LongLiteral(singleChild.text.removeSuffix("l").removeSuffix("L").toLong(), singleChild.data)
+                    )
+
+                    unsignedLiteral -> ast.unsupported(TodoNotCoveredYet)
+                    binLiteral, hexLiteral, characterLiteral, realLiteral -> ast.unsupported(UnsupportedLiteral)
+                    else -> error("unexpected child kind")
+                }
+            }
         }
+
     }
 
-    fun stringLiteral(ast: Ast): ElementResult<Expr> {
+    private fun stringLiteral(ast: Ast): Element<Expr> {
         // TODO: support or properly reject string interpolation!
-        return workaround("String literals are simple to parse right away", run {
-            val text = ast.findSingleDescendant { it.kind == lineStringText || it.kind == multiLineStringText }?.text
-                ?: ""
-            Element(Literal.StringLiteral(text, ast.data))
-        })
+        return workaround(
+            "String literals are simple to parse right away",
+            run {
+                val text = ast.findSingleDescendant { it.kind == lineStringText || it.kind == multiLineStringText }?.text ?: ""
+                Element(Literal.StringLiteral(text, ast.data))
+            })
     }
 
     /**
      * assignableSuffix : -typeArguments | -indexingSuffix | navigationSuffix
      */
-    fun assignableSuffix(ast: Ast): SyntacticResult<String> {
-        ast.expectKind(assignableSuffix)
-        val child = ast.singleChild()
-        return when (child.kind) {
-            typeArguments -> ast.unsupportedBecause(child, GenericExpression)
-            indexingSuffix -> ast.unsupportedBecause(child, Indexing)
-            navigationSuffix -> navigationSuffix(child)
-            else -> error("unexpected child kind")
+    private fun assignableSuffix(ast: Ast): SyntacticResult<String> =
+        syntacticOrFailure {
+            ast.expectKind(assignableSuffix)
+            val child = ast.singleChild()
+            syntacticIfNoFailures {
+                when (child.kind) {
+                    typeArguments -> ast.unsupportedBecause(child, GenericExpression)
+                    indexingSuffix -> ast.unsupportedBecause(child, Indexing)
+                    navigationSuffix -> navigationSuffix(child)
+                    else -> error("unexpected child kind")
+                }
+            }
         }
-    }
 
     /**
      * navigationSuffix : memberAccessOperator (simpleIdentifier | -parenthesizedExpression | -'class')
      */
-    fun navigationSuffix(ast: Ast): SyntacticResult<String> = syntacticOrFailure {
-        // TODO: support safe access
-        // TODO: support class references
-        collectingFailure(ast.findChild(parenthesizedExpression)?.unsupportedIn(ast, InvalidLanguageConstruct))
-        collectingFailure(ast.findChild(classKeyword)?.unsupportedIn(ast, Reflection))
-        collectingFailure(memberAccessOperatorAsDot(ast.child(memberAccessOperator)))
+    private fun navigationSuffix(ast: Ast): SyntacticResult<String> =
+        syntacticOrFailure {
+            // TODO: support safe access
+            // TODO: support class references
+            collectingFailure(ast, parenthesizedExpression) { it?.unsupportedIn(ast, InvalidLanguageConstruct) }
+            collectingFailure(ast, classKeyword) { it?.unsupportedIn(ast, Reflection) }
+            checkForFailure(memberAccessOperatorAsDot(ast.child(memberAccessOperator)))
 
-        syntacticAfterBarrier { simpleIdentifier(ast.child(simpleIdentifier)) }
-    }
+            syntacticIfNoFailures { simpleIdentifier(ast.child(simpleIdentifier)) }
+        }
 
     /**
      * memberAccessOperator : '.' | -safeNav | -'::'
      */
-    fun memberAccessOperatorAsDot(ast: Ast): SyntacticResult<Unit> {
+    private fun memberAccessOperatorAsDot(ast: Ast): SyntacticResult<Unit> {
         ast.expectKind(memberAccessOperator)
         return when (ast.singleChild().kind) {
             dot -> Syntactic(Unit)
@@ -457,19 +495,20 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
     /**
      * variableDeclaration : -annotation* simpleIdentifier (':' -type)?
      */
-    fun variableDeclaration(ast: Ast): SyntacticResult<String> = syntacticOrFailure {
-        ast.expectKind(variableDeclaration)
+    private fun variableDeclaration(ast: Ast): SyntacticResult<String> =
+        syntacticOrFailure {
+            ast.expectKind(variableDeclaration)
 
-        collectingFailure(ast.findChild(annotation)?.let { ast.unsupportedBecause(it, AnnotationUsage) })
-        // TODO: support explicit variable types
-        collectingFailure(ast.findChild(type)?.let { ast.unsupportedBecause(it, ExplicitVariableType) })
+            collectingFailure(ast, annotation) { it?.let { ast.unsupportedBecause(it, AnnotationUsage) } }
+            // TODO: support explicit variable types
+            collectingFailure(ast, type) { it?.let { ast.unsupportedBecause(it, ExplicitVariableType) } }
 
-        syntacticAfterBarrier {
-            simpleIdentifier(ast.child(simpleIdentifier))
+            syntacticIfNoFailures {
+                simpleIdentifier(ast.child(simpleIdentifier))
+            }
         }
-    }
 
-    fun simpleIdentifier(ast: Ast): Syntactic<String> {
+    private fun simpleIdentifier(ast: Ast): Syntactic<String> {
         ast.expectKind(simpleIdentifier)
         return Syntactic(workaround("a lot of branching for soft keywords", ast.text))
     }
@@ -478,72 +517,76 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
      * expression : disjunction
      * disjunction
      */
-    fun expression(ast: Ast): ElementResult<Expr> {
+    private fun expression(ast: Ast): ElementResult<Expr> = elementOrFailure {
         ast.expectKind(expression)
 
         val disjunction = ast.child(disjunction)
         if (disjunction.children(conjunction).size > 1) {
             // TODO: support binary operators?
-            return disjunction.unsupported(UnsupportedOperator)
+            return@elementOrFailure disjunction.unsupported(UnsupportedOperator)
         }
         val conjunction = disjunction.child(conjunction)
         if (conjunction.children(equality).size > 1) {
             // TODO: support binary operators?
-            return conjunction.unsupported(UnsupportedOperator)
+            return@elementOrFailure conjunction.unsupported(UnsupportedOperator)
         }
         val equality = conjunction.child(equality)
         if (equality.children(comparison).size > 1) {
             // TODO: support binary operators?
-            return equality.unsupported(UnsupportedOperator)
+            return@elementOrFailure equality.unsupported(UnsupportedOperator)
         }
         val comparison = equality.child(comparison)
         if (comparison.children(genericCallLikeComparison).size > 1) {
             // TODO: support binary operators?
-            return comparison.unsupported(UnsupportedOperator)
+            return@elementOrFailure comparison.unsupported(UnsupportedOperator)
         }
 
         val genericCallLikeComparison = comparison.child(genericCallLikeComparison)
         if (genericCallLikeComparison.hasChild(callSuffix)) {
-            return genericCallLikeComparison.unsupported(TodoNotCoveredYet)
+            return@elementOrFailure genericCallLikeComparison.unsupported(TodoNotCoveredYet)
         }
 
         val infixOperation = genericCallLikeComparison.child(infixOperation)
 
         if (infixOperation.hasChild(inOperator) || infixOperation.hasChild(isOperator)) {
-            return infixOperation.unsupported(UnsupportedOperator)
+            return@elementOrFailure infixOperation.unsupported(UnsupportedOperator)
         }
 
         val elvisExpression = infixOperation.child(elvisExpression)
         if (elvisExpression.children(infixFunctionCall).size > 1) {
-            return elvisExpression.unsupported(UnsupportedOperator)
+            return@elementOrFailure elvisExpression.unsupported(UnsupportedOperator)
         }
 
         val infixFunctionCall = elvisExpression.child(infixFunctionCall)
 
-        return if (infixFunctionCall.hasChild(simpleIdentifier)) {
-            elementOrFailure {
-                val children = infixFunctionCall.children(rangeExpression)
-                val leftExpr = collectingFailure(workaroundPostfixUnaryExpression(children[0]))
-                val rightExprs = children.drop(1).map {
-                    collectingFailure(workaroundPostfixUnaryExpression(it))
+        elementIfNoFailures {
+            if (infixFunctionCall.hasChild(simpleIdentifier)) {
+                elementOrFailure {
+                    val children = infixFunctionCall.children(rangeExpression)
+                    val leftExpr =
+                        checkForFailure(workaroundPostfixUnaryExpression(children[0]))
+                    val rightExprs = children.drop(1).map {
+                        checkForFailure(workaroundPostfixUnaryExpression(it))
+                    }
+                    val names =
+                        infixFunctionCall.children(simpleIdentifier).map { checkForFailure(simpleIdentifier(it)) }
+                    elementIfNoFailures {
+                        Element(
+                            rightExprs.zip(names).fold(checked(leftExpr)) { acc, (rExp, name) ->
+                                val arg = checked(rExp)
+                                FunctionCall(
+                                    acc,
+                                    checked(name),
+                                    listOf(FunctionArgument.Positional(arg, infixFunctionCall.data)),
+                                    infixOperation.data
+                                )
+                            }
+                        )
+                    }
                 }
-                val names = infixFunctionCall.children(simpleIdentifier).map { simpleIdentifier(it).value }
-                elementAfterBarrier {
-                    Element(
-                        rightExprs.zip(names).fold(checked(leftExpr)) { acc, (rExp, name) ->
-                            val arg = checked(rExp)
-                            FunctionCall(
-                                acc,
-                                name,
-                                listOf(FunctionArgument.Positional(arg, infixFunctionCall.data)),
-                                infixOperation.data
-                            )
-                        }
-                    )
-                }
+            } else {
+                workaroundPostfixUnaryExpression(infixFunctionCall)
             }
-        } else {
-            workaroundPostfixUnaryExpression(infixFunctionCall)
         }
     }
 
@@ -557,12 +600,16 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
 
     private fun <T : Any?> workaround(@Suppress("UNUSED_PARAMETER") reason: String, value: T): T = value
 
-    private fun <T : LanguageTreeElement> elementOrFailure(evaluate: FailureCollectorContext.() -> ElementResult<T>): ElementResult<T> {
+    private fun <T : LanguageTreeElement> elementOrFailure(
+        evaluate: FailureCollectorContext.() -> ElementResult<T>
+    ): ElementResult<T> {
         val context = FailureCollectorContext()
         return evaluate(context)
     }
 
-    private fun <T> syntacticOrFailure(evaluate: FailureCollectorContext.() -> SyntacticResult<T>): SyntacticResult<T> {
+    private fun <T> syntacticOrFailure(
+        evaluate: FailureCollectorContext.() -> SyntacticResult<T>
+    ): SyntacticResult<T> {
         val context = FailureCollectorContext()
         return evaluate(context)
     }
@@ -577,20 +624,24 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
         val failures: List<FailingResult> get() = currentFailures
 
         // TODO: introduce a type for a result with definitely collected failure?
-        fun <T> collectingFailure(result: SyntacticResult<T>): CheckedResult<SyntacticResult<T>> =
-            CheckedResult(checkForFailure(result))
+        fun <T> checkForFailure(result: SyntacticResult<T>): CheckedResult<SyntacticResult<T>> =
+            CheckedResult(collectingFailure(result))
 
-        fun <T : LanguageTreeElement> collectingFailure(result: ElementResult<T>): CheckedResult<ElementResult<T>> =
-            CheckedResult(checkForFailure(result))
+        fun <T> checkNullableForFailure(result: SyntacticResult<T>?): CheckedResult<SyntacticResult<T>>? =
+            if (result == null) null else CheckedResult(collectingFailure(result))
 
-        fun failNow(): FailingResult {
-            check(currentFailures.isNotEmpty())
-            return syntacticAfterBarrier<Nothing> { error("expected a failure") } as FailingResult
-        }
+        fun <T : LanguageTreeElement> checkForFailure(result: ElementResult<T>): CheckedResult<ElementResult<T>> =
+            CheckedResult(collectingFailure(result))
 
         fun failNow(failingResult: FailingResult): FailingResult {
             collectingFailure(failingResult)
-            return syntacticAfterBarrier<Nothing> { error("expected a failure") } as FailingResult
+            return syntacticIfNoFailures<Nothing> { error("expected a failure") } as FailingResult
+        }
+
+        fun collectingFailure(ast: Ast, astKind: AstKind, failureTest: (Ast?) -> FailingResult?) {
+            val child = ast.findChild(astKind)
+            val maybeFailure = child.run(failureTest)
+            collectingFailure(maybeFailure)
         }
 
         fun collectingFailure(maybeFailure: FailingResult?) {
@@ -599,7 +650,7 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
             }
         }
 
-        fun <T> checkForFailure(result: T): T {
+        fun <T> collectingFailure(result: T): T {
             when (result) {
                 is FailingResult -> currentFailures.add(result)
             }
@@ -618,16 +669,23 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
                 check(value is Syntactic)
                 return value.value
             }
+
+            fun <T> checked(results: List<CheckedResult<SyntacticResult<T>>>): List<T> =
+                results.map {
+                    val syntacticResult = it.value
+                    check(syntacticResult is Syntactic)
+                    syntacticResult.value
+                }.toList()
         }
 
-        fun <T : LanguageTreeElement> elementAfterBarrier(evaluate: CheckBarrierContext.() -> ElementResult<T>): ElementResult<T> =
+        fun <T : LanguageTreeElement> elementIfNoFailures(evaluate: CheckBarrierContext.() -> ElementResult<T>): ElementResult<T> =
             when (currentFailures.size) {
                 0 -> evaluate(object : CheckBarrierContext {})
                 1 -> currentFailures.single()
                 else -> MultipleFailuresResult(currentFailures)
             }
 
-        fun <T> syntacticAfterBarrier(evaluate: CheckBarrierContext.() -> SyntacticResult<T>): SyntacticResult<T> =
+        fun <T> syntacticIfNoFailures(evaluate: CheckBarrierContext.() -> SyntacticResult<T>): SyntacticResult<T> =
             when (currentFailures.size) {
                 0 -> evaluate(object : CheckBarrierContext {})
                 1 -> currentFailures.single()
@@ -639,16 +697,16 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
 
     private val Ast.data get() = sourceData(sourceIdentifier)
 
-    internal fun Ast.unsupported(
+    private fun Ast.unsupported(
         feature: UnsupportedLanguageFeature
     ) = UnsupportedConstruct(this.data, this.data, feature)
 
-    internal fun Ast.unsupportedIn(
+    private fun Ast.unsupportedIn(
         outer: Ast,
         feature: UnsupportedLanguageFeature
     ) = UnsupportedConstruct(outer.data, this.data, feature)
 
-    internal fun Ast.unsupportedBecause(
+    private fun Ast.unsupportedBecause(
         erroneousAst: Ast,
         feature: UnsupportedLanguageFeature
     ) = UnsupportedConstruct(this.data, erroneousAst.data, feature)
