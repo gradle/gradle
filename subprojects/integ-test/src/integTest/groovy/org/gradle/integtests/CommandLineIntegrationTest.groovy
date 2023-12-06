@@ -85,11 +85,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     void failsWhenJavaHomeDoesNotPointToAJavaInstallation() {
         def failure = executer.withJavaHome(testDirectory).withTasks('checkJavaHome').runWithFailure()
-        if (OperatingSystem.current().isWindows()) {
-            assert failure.output.contains('ERROR: JAVA_HOME is set to an invalid directory')
-        } else {
-            assert failure.error.contains('ERROR: JAVA_HOME is set to an invalid directory')
-        }
+        assert failure.error.contains('ERROR: JAVA_HOME is set to an invalid directory')
     }
 
     @Test
