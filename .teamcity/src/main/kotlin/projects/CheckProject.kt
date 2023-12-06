@@ -5,8 +5,8 @@ import common.hiddenArtifactDestination
 import common.isSecurityFork
 import configurations.PerformanceTestsPass
 import configurations.StagePasses
-import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
-import jetbrains.buildServer.configs.kotlin.v2019_2.Project
+import jetbrains.buildServer.configs.kotlin.ParameterDisplay
+import jetbrains.buildServer.configs.kotlin.Project
 import model.CIBuildModel
 import model.FunctionalTestBucketProvider
 import model.Stage

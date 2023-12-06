@@ -2,7 +2,7 @@ package util
 
 import common.Arch
 import common.Os
-import jetbrains.buildServer.configs.kotlin.v2019_2.Project
+import jetbrains.buildServer.configs.kotlin.Project
 
 object UtilProject : Project({
     id("Util")
