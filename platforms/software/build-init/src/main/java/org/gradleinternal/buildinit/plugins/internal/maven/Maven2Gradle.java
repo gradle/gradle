@@ -36,6 +36,7 @@ import org.gradle.buildinit.plugins.internal.BuildScriptBuilder;
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory;
 import org.gradle.buildinit.plugins.internal.DependenciesBuilder;
 import org.gradle.buildinit.plugins.internal.BuildInitDependency;
+import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.ScriptBlockBuilder;
 import org.gradle.buildinit.plugins.internal.VersionCatalogDependencyRegistry;
 import org.gradle.buildinit.plugins.internal.VersionCatalogGenerator;
@@ -88,12 +89,7 @@ public class Maven2Gradle {
         boolean multimodule = !rootProject.getModules().isEmpty();
 
         if (multimodule) {
-            String groupId = rootProject.getGroupId();
-
-            String buildLocation = "buildSrc";
-            if (useIncubatingAPIs) {
-                buildLocation = "build-logic";
-            }
+            String buildLocation = useIncubatingAPIs ? "build-logic" : "buildSrc";
 
             BuildScriptBuilder buildSrcSettingsScriptBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, buildContentGenerationContext, buildLocation + "/settings", useIncubatingAPIs, insecureProtocolOption);
             buildSrcSettingsScriptBuilder.useVersionCatalogFromOuterBuild("Reuse version catalog from the main build.");
@@ -102,7 +98,9 @@ public class Maven2Gradle {
             buildSrcScriptBuilder.conventionPluginSupport("Support convention plugins written in " + dsl.toString() + ". Convention plugins are build scripts in 'src/main' that automatically become available as plugins in the main build.");
             buildSrcScriptBuilder.create(workingDir).generate();
 
-            BuildScriptBuilder conventionPluginBuilder = scriptBuilderFactory.scriptForMavenConversionWithoutVersionCatalog(dsl, buildContentGenerationContext, buildLocation + "/src/main/" + dsl.name().toLowerCase() + "/" + groupId + ".java-conventions", useIncubatingAPIs, insecureProtocolOption);
+            String conventionPluginId = InitSettings.CONVENTION_PLUGIN_NAME_PREFIX + ".java-conventions";
+            String conventionPluginFileWithoutExt = buildLocation + "/src/main/" + dsl.name().toLowerCase() + "/" + conventionPluginId;
+            BuildScriptBuilder conventionPluginBuilder = scriptBuilderFactory.scriptForMavenConversionWithoutVersionCatalog(dsl, buildContentGenerationContext, conventionPluginFileWithoutExt, useIncubatingAPIs, insecureProtocolOption);
 
             generateSettings(rootProject.getArtifactId(), allProjects, buildContentGenerationContext);
 
@@ -132,7 +130,7 @@ public class Maven2Gradle {
                 boolean warPack = module.getPackaging().equals("war");
                 BuildScriptBuilder moduleScriptBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, buildContentGenerationContext, RelativePathUtil.relativePath(workingDir.getAsFile(), projectDir(module)) + "/build", useIncubatingAPIs, insecureProtocolOption);
 
-                moduleScriptBuilder.plugin(null, groupId + ".java-conventions");
+                moduleScriptBuilder.plugin(null, conventionPluginId);
 
                 if (!module.getGroupId().equals(rootProject.getGroupId())) {
                     moduleScriptBuilder.propertyAssignment(null, "group", module.getGroupId());

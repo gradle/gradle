@@ -157,12 +157,6 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // Enter a package name
         ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains("Source package (default: some.thing)")
-        }
-        handle.stdinPipe.write(("org.gradle.test" + TextUtil.platformLineSeparator).bytes)
-
-        // Enter a package name
-        ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains("Enter target version of Java (min. 7) (default: ${Jvm.current().javaVersion.majorVersion})")
         }
         handle.stdinPipe.write(("15" + TextUtil.platformLineSeparator).bytes)
