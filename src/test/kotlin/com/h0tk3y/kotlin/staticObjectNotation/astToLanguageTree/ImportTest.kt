@@ -5,8 +5,8 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.ErrorReason
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionError
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
 import com.h0tk3y.kotlin.staticObjectNotation.language.AccessChain
-import com.h0tk3y.kotlin.staticObjectNotation.language.AstSourceIdentifier
 import com.h0tk3y.kotlin.staticObjectNotation.language.Import
+import com.h0tk3y.kotlin.staticObjectNotation.language.SourceIdentifier
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.kotlinFunctionAsConfigureLambda
 import kotlinx.ast.common.ast.Ast
 import org.junit.jupiter.api.Test
@@ -98,5 +98,5 @@ class ImportTest {
         override val description: String = "test"
     }
 
-    private val sourceIdentifier = AstSourceIdentifier(ast, "test")
+    private val sourceIdentifier = SourceIdentifier("test")
 }

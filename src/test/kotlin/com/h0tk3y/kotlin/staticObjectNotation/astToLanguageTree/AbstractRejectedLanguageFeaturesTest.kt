@@ -6,7 +6,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import kotlin.test.assertTrue
 
-class RejectedLanguageFeaturesTest {
+abstract class AbstractRejectedLanguageFeaturesTest {
+
+    abstract fun parse(@Language("kts") code: String): List<ElementResult<*>>
 
     @Test
     fun `rejects explicit package declaration`() {

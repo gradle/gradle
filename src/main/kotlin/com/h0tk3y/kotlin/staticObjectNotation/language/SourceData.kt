@@ -30,14 +30,7 @@ interface SourceData {
     fun text(): String
 }
 
-interface SourceIdentifier {
-    val fileIdentifier: String
-}
-
-class AstSourceIdentifier(
-    val rootAst: Ast,
-    override val fileIdentifier: String
-) : SourceIdentifier
+data class SourceIdentifier(val fileIdentifier: String)
 
 class AstSourceData(
     override val sourceIdentifier: SourceIdentifier,

@@ -2,7 +2,7 @@ package com.h0tk3y.kotlin.staticObjectNotation.demo
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.*
-import com.h0tk3y.kotlin.staticObjectNotation.language.AstSourceIdentifier
+import com.h0tk3y.kotlin.staticObjectNotation.language.SourceIdentifier
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.*
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver.AssignmentAdditionResult.AssignmentAdded
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver.AssignmentResolutionResult.Assigned
@@ -14,10 +14,10 @@ val boolean = DataType.BooleanDataType.ref
 fun AnalysisSchema.resolve(
     code: String
 ): ResolutionResult {
-    val ast = parseToAst(code).single()
+    val ast = parseToAst(code)
 
     val languageBuilder = LanguageTreeBuilderWithTopLevelBlock(DefaultLanguageTreeBuilder())
-    val tree = languageBuilder.build(ast, AstSourceIdentifier(ast, "demo"))
+    val tree = languageBuilder.build(ast, SourceIdentifier("demo"))
     val resolver: Resolver = defaultCodeResolver()
     val languageElements = tree.results.filterIsInstance<Element<*>>().map { it.element }
 

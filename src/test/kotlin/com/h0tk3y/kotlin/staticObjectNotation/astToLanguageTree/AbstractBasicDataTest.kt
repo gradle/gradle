@@ -1,6 +1,7 @@
 package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
 import com.h0tk3y.kotlin.staticObjectNotation.language.*
+import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import kotlin.test.assertEquals
@@ -8,7 +9,10 @@ import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-class BasicDataTest {
+abstract class AbstractBasicDataTest {
+
+    abstract fun parse(@Language("kts") code: String): List<ElementResult<*>>
+
     @Test
     fun `parses literals`() {
         val results = parse(

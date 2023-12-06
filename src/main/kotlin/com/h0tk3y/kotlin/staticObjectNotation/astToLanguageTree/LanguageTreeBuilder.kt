@@ -2,20 +2,26 @@ package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
 import com.h0tk3y.kotlin.staticObjectNotation.language.Block
 import com.h0tk3y.kotlin.staticObjectNotation.language.DataStatement
+import com.h0tk3y.kotlin.staticObjectNotation.language.SourceData
 import com.h0tk3y.kotlin.staticObjectNotation.language.SourceIdentifier
 import kotlinx.ast.common.ast.Ast
 
 interface LanguageTreeBuilder {
     fun build(ast: Ast, sourceIdentifier: SourceIdentifier): LanguageTreeResult
+
+    fun build(tree: LightTree, sourceIdentifier: SourceIdentifier): LanguageTreeResult
 }
 
-class LanguageTreeBuilderWithTopLevelBlock(
-    private val delegate: LanguageTreeBuilder
-) : LanguageTreeBuilder {
-    override fun build(ast: Ast, sourceIdentifier: SourceIdentifier): LanguageTreeResult {
-        val result = delegate.build(ast, sourceIdentifier)
+class LanguageTreeBuilderWithTopLevelBlock(private val delegate: LanguageTreeBuilder) : LanguageTreeBuilder {
+    override fun build(ast: Ast, sourceIdentifier: SourceIdentifier): LanguageTreeResult =
+        build(delegate.build(ast, sourceIdentifier), ast.sourceData(sourceIdentifier))
+
+    override fun build(tree: LightTree, sourceIdentifier: SourceIdentifier): LanguageTreeResult =
+        build(delegate.build(tree, sourceIdentifier), tree.sourceData(sourceIdentifier))
+
+    private fun build(result: LanguageTreeResult, sourceData: SourceData): LanguageTreeResult {
         val (topLevelStatements, others) = result.results.partition { it is Element && it.element is DataStatement }
-        val topLevelBlock = Block(topLevelStatements.map { (it as Element).element as DataStatement }, ast.sourceData(sourceIdentifier))
+        val topLevelBlock = Block(topLevelStatements.map { (it as Element).element as DataStatement }, sourceData)
         return LanguageTreeResult(others + Element(topLevelBlock))
     }
 }
@@ -26,4 +32,11 @@ class DefaultLanguageTreeBuilder : LanguageTreeBuilder {
             is FailingResult -> LanguageTreeResult(results.failures())
             is Syntactic -> LanguageTreeResult(results.value)
         }
+
+    override fun build(tree: LightTree, sourceIdentifier: SourceIdentifier): LanguageTreeResult =
+        when (val results = GrammarToLightTree(sourceIdentifier).script(tree)) {
+            is FailingResult -> LanguageTreeResult(results.failures())
+            is Syntactic -> LanguageTreeResult(results.value)
+        }
+
 }

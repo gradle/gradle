@@ -20,6 +20,8 @@ dependencies {
     
     api("kotlinx.ast:parser-antlr-kotlin:0.1.0")
     implementation("kotlinx.ast:grammar-kotlin-parser-antlr-kotlin:0.1.0")
+
+    implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.9.21")
     
     testImplementation(kotlin("test-junit5"))
     testImplementation("org.jetbrains:annotations:24.0.1")
