@@ -27,16 +27,14 @@ class LanguageTreeBuilderWithTopLevelBlock(private val delegate: LanguageTreeBui
 }
 
 class DefaultLanguageTreeBuilder : LanguageTreeBuilder {
-    override fun build(ast: Ast, sourceIdentifier: SourceIdentifier): LanguageTreeResult =
-        when (val results = GrammarToTree(sourceIdentifier).script(ast)) {
-            is FailingResult -> LanguageTreeResult(results.failures())
-            is Syntactic -> LanguageTreeResult(results.value)
-        }
+    override fun build(ast: Ast, sourceIdentifier: SourceIdentifier): LanguageTreeResult {
+        val results = GrammarToTree(sourceIdentifier).script(ast)
+        return LanguageTreeResult(results.value)
+    }
 
-    override fun build(tree: LightTree, sourceIdentifier: SourceIdentifier): LanguageTreeResult =
-        when (val results = GrammarToLightTree(sourceIdentifier).script(tree)) {
-            is FailingResult -> LanguageTreeResult(results.failures())
-            is Syntactic -> LanguageTreeResult(results.value)
-        }
+    override fun build(tree: LightTree, sourceIdentifier: SourceIdentifier): LanguageTreeResult {
+        val results = GrammarToLightTree(sourceIdentifier).script(tree)
+        return LanguageTreeResult(results.value)
+    }
 
 }
