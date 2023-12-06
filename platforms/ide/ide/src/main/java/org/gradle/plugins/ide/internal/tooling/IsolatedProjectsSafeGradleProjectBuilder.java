@@ -68,7 +68,7 @@ public class IsolatedProjectsSafeGradleProjectBuilder implements ToolingModelBui
 
     private static void requireRootProject(Project project) {
         if (project != project.getRootProject()) {
-            throw new IllegalArgumentException(String.format("%s can only be requested on the root project, got '%s'", GradleProject.class.getName(), project));
+            throw new IllegalArgumentException(String.format("%s can only be requested on the root project, got %s", GradleProject.class.getName(), project));
         }
     }
 
