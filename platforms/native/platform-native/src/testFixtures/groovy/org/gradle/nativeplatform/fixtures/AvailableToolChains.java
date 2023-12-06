@@ -137,15 +137,18 @@ public class AvailableToolChains {
 
         // On macOS, we assume co-located Xcode is installed into /opt/xcode and default location at /Applications/Xcode.app
         //   We need to search for Clang differently on macOS because we need to know the Xcode version for x86 support.
+        System.out.println("finding clang");
         if (OperatingSystem.current().isMacOsX()) {
             toolChains.addAll(findXcodes().stream().map(InstalledXcode::getClang).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList()));
         } else {
             GccMetadataProvider versionDeterminer = GccMetadataProvider.forClang(TestFiles.execActionFactory());
             Set<File> clangCandidates = ImmutableSet.copyOf(OperatingSystem.current().findAllInPath("clang"));
+            System.out.println("clang candidate: " + clangCandidates);
             if (!clangCandidates.isEmpty()) {
                 File firstInPath = clangCandidates.iterator().next();
                 for (File candidate : clangCandidates) {
                     SearchResult<GccMetadata> version = versionDeterminer.getCompilerMetaData(Collections.emptyList(), spec -> spec.executable(candidate));
+                    System.out.println("clang version: " + candidate.getName() + ", " + version + ", " + version.isAvailable());
                     if (version.isAvailable()) {
                         InstalledClang clang = new InstalledClang(version.getComponent().getVersion());
                         if (!candidate.equals(firstInPath)) {
