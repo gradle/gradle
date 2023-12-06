@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
@@ -152,19 +151,13 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
             configContainer = (RoleBasedConfigurationContainerInternal) dependencyResolutionServices.getConfigurationContainer();
         }
         if (dependencyHandler == null) {
-            dependencyHandler = getAndConfigureDependencyHandler(dependencyResolutionServices);
+            dependencyHandler = dependencyResolutionServices.getDependencyHandler();
+            buildLogicBuilder.prepareDependencyHandler(dependencyHandler);
         }
         if (classpathConfiguration == null) {
             classpathConfiguration = configContainer.migratingUnlocked(CLASSPATH_CONFIGURATION, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE);
             buildLogicBuilder.prepareClassPath(classpathConfiguration, dependencyHandler);
         }
-    }
-
-    private static DependencyHandler getAndConfigureDependencyHandler(DependencyResolutionServices dependencyResolutionServices) {
-        // TODO: JavaEcosystemSupport.configureSchema is called in the constructor, should we move it here?
-        DependencyHandler dependencyHandler = dependencyResolutionServices.getDependencyHandler();
-        dependencyHandler.getArtifactTypes().create(ArtifactTypeDefinition.JAR_TYPE);
-        return dependencyHandler;
     }
 
     @Override

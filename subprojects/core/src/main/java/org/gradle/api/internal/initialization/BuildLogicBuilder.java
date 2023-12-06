@@ -25,6 +25,8 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scopes.Build.class)
 public interface BuildLogicBuilder {
 
+    void prepareDependencyHandler(DependencyHandler dependencyHandler);
+
     void prepareClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler);
 
     ClassPath resolveClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler, RoleBasedConfigurationContainerInternal configContainer);

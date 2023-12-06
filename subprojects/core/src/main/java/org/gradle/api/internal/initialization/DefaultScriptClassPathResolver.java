@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Bundling;
@@ -49,8 +50,6 @@ import org.gradle.util.GradleVersion;
 
 import java.util.EnumSet;
 import java.util.Set;
-
-import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.JAR_TYPE;
 
 public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
@@ -79,23 +78,9 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     }
 
     @Override
-    public void prepareClassPath(Configuration configuration, DependencyHandler dependencyHandler) {
-        // should ideally reuse the `JvmPluginServices` but this code is too low level
-        // and this service is therefore not available!
-        AttributeContainer attributes = configuration.getAttributes();
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, instantiator.named(Usage.class, Usage.JAVA_RUNTIME));
-        attributes.attribute(Category.CATEGORY_ATTRIBUTE, instantiator.named(Category.class, Category.LIBRARY));
-        attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, instantiator.named(LibraryElements.class, LibraryElements.JAR));
-        attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, instantiator.named(Bundling.class, Bundling.EXTERNAL));
-        attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.parseInt(JavaVersion.current().getMajorVersion()));
-        attributes.attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, instantiator.named(GradlePluginApiVersion.class, GradleVersion.current().getVersion()));
-
-        configuration.getDependencyConstraints().add(dependencyHandler.getConstraints().create(Log4jBannedVersion.LOG4J2_CORE_COORDINATES, constraint -> constraint.version(version -> {
-            version.require(Log4jBannedVersion.LOG4J2_CORE_REQUIRED_VERSION);
-            version.reject(Log4jBannedVersion.LOG4J2_CORE_VULNERABLE_VERSION_RANGE);
-        })));
-
-        dependencyHandler.getArtifactTypes().getByName(JAR_TYPE).getAttributes()
+    public void prepareDependencyHandler(DependencyHandler dependencyHandler) {
+        // We use `maybeCreate`, since buildSrc already has JAR_TYPE defined from the JavaBase plugin
+        dependencyHandler.getArtifactTypes().maybeCreate(ArtifactTypeDefinition.JAR_TYPE).getAttributes()
             .attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED_ATTRIBUTE)
             .attribute(HIERARCHY_COLLECTED_ATTRIBUTE, false);
 
@@ -117,6 +102,24 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
                 });
             }
         );
+    }
+
+    @Override
+    public void prepareClassPath(Configuration configuration, DependencyHandler dependencyHandler) {
+        // should ideally reuse the `JvmPluginServices` but this code is too low level
+        // and this service is therefore not available!
+        AttributeContainer attributes = configuration.getAttributes();
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, instantiator.named(Usage.class, Usage.JAVA_RUNTIME));
+        attributes.attribute(Category.CATEGORY_ATTRIBUTE, instantiator.named(Category.class, Category.LIBRARY));
+        attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, instantiator.named(LibraryElements.class, LibraryElements.JAR));
+        attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, instantiator.named(Bundling.class, Bundling.EXTERNAL));
+        attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.parseInt(JavaVersion.current().getMajorVersion()));
+        attributes.attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, instantiator.named(GradlePluginApiVersion.class, GradleVersion.current().getVersion()));
+
+        configuration.getDependencyConstraints().add(dependencyHandler.getConstraints().create(Log4jBannedVersion.LOG4J2_CORE_COORDINATES, constraint -> constraint.version(version -> {
+            version.require(Log4jBannedVersion.LOG4J2_CORE_REQUIRED_VERSION);
+            version.reject(Log4jBannedVersion.LOG4J2_CORE_VULNERABLE_VERSION_RANGE);
+        })));
     }
 
     @Override

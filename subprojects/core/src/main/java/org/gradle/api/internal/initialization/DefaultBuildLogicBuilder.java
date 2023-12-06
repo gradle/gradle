@@ -47,6 +47,11 @@ public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
     }
 
     @Override
+    public void prepareDependencyHandler(DependencyHandler dependencyHandler) {
+        scriptClassPathResolver.prepareDependencyHandler(dependencyHandler);
+    }
+
+    @Override
     public void prepareClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler) {
         scriptClassPathResolver.prepareClassPath(classpathConfiguration, dependencyHandler);
     }

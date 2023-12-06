@@ -28,6 +28,12 @@ import org.gradle.internal.service.scopes.ServiceScope;
  */
 @ServiceScope(Scopes.Build.class)
 public interface ScriptClassPathResolver {
+
+    /**
+     * Prepares the given dependencyHandler for script classpath resolution and instrumentation.
+     */
+    void prepareDependencyHandler(DependencyHandler dependencyHandler);
+
     /**
      * Prepares the given configuration for script classpath resolution, setting the relevant attributes and other metadata.
      */
