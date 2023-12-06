@@ -317,7 +317,7 @@ public class TransformedClassPath implements ClassPath {
                 checkArgument(i + 2 < inputFiles.size(), "Missing the instrumented or original JAR for classpath %s", inputFiles);
                 File instrumentedJar = inputFiles.get(i + 1);
                 File originalJar = inputFiles.get(i + 2);
-                checkArgument(areInstrumentedAndOriginalJarValid(instrumentedJar, originalJar), "Instrumented JAR doesn't match original JAR %s", originalJar.getName());
+                checkArgument(areInstrumentedAndOriginalJarValid(instrumentedJar, originalJar), "Instrumented JAR %s doesn't match original JAR %s", instrumentedJar.getAbsolutePath(), originalJar.getAbsolutePath());
                 result.add(originalJar, instrumentedJar);
                 i += 2;
             } else {

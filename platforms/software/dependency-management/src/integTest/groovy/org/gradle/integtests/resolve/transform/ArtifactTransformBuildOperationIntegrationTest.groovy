@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.internal.initialization.transform.ProjectDependencyInstrumentingArtifactTransform
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
@@ -1365,7 +1366,12 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         getPlannedNodes(0)
         getExecutePlannedStepOperations(1)
 
+        // We have 4 artifact transforms: 2 MakeColor transforms and 2 from Gradle instrumentation
         buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 4
+        Map<String, List<String>> artifactTransforms = groupArtifactTransformByArtifactName()
+        artifactTransforms["buildSrc.jar"] == [ProjectDependencyInstrumentingArtifactTransform.class.name]
+        artifactTransforms["nested-producer.jar"] ==~ ["MakeColor", ProjectDependencyInstrumentingArtifactTransform.class.name]
+        artifactTransforms["nested-producer.jar.red"] == ["MakeColor"]
         buildOperations.all(ExecuteWorkBuildOperationType).size() == 4
         buildOperations.all(SnapshotTransformInputsBuildOperationType).size() == 4
         buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 4
@@ -1389,10 +1395,21 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         getPlannedNodes(0)
         getExecutePlannedStepOperations(4)
 
+        // We have 4 artifact transforms: 2 MakeColor transforms and 2 from Gradle instrumentation
         buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 4
+        Map<String, List<String>> artifactTransforms = groupArtifactTransformByArtifactName()
+        artifactTransforms["buildSrc.jar"] == [ProjectDependencyInstrumentingArtifactTransform.class.name]
+        artifactTransforms["nested-producer.jar"] ==~ ["MakeColor", ProjectDependencyInstrumentingArtifactTransform.class.name]
+        artifactTransforms["nested-producer.jar.red"] == ["MakeColor"]
         buildOperations.all(ExecuteWorkBuildOperationType).size() == 4
         buildOperations.all(SnapshotTransformInputsBuildOperationType).size() == 4
         buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 4
+    }
+
+    private Map<String, List<String>> groupArtifactTransformByArtifactName() {
+        return buildOperations.progress(IdentifyTransformExecutionProgressDetails)
+            .groupBy { it.details["artifactName"] as String }
+            .collectEntries { [(it.key): it.value.collect { it.details["transformActionClass"] }] }
     }
 
     private void setupProjectTransformInBuildScriptBlock(boolean inExternalScript) {

@@ -30,9 +30,12 @@ import java.nio.file.StandardCopyOption;
 
 /**
  * Default implementation of {@link ClasspathBuilder} that is registered also as a service.
- *
+ * <p>
  * This implementation first writes Jar file to a temp file and then moves the result to the destination file.
- * You can use @{@link InPlaceClasspathBuilder} if you want to avoid this indirection and write directly to the destination file.
+ * You can use {@link InPlaceClasspathBuilder} if you want to avoid this indirection and write directly to the destination file.
+ * <p>
+ * If you execute work where output integrity and atomicity is enforced (e.g. with execution engine) you should prefer {@link InPlaceClasspathBuilder},
+ * otherwise this implementation can help you to avoid having partially written files.
  */
 @NonNullApi
 @ServiceScope(Scopes.UserHome.class)

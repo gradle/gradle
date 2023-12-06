@@ -242,12 +242,12 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         succeeds("showBuildscript")
 
         then:
-        def jar = inJar9Cache("proj.jar").assertExists()
+        def jar = inJarCache("proj.jar").assertExists()
         journal.assertExists()
 
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
-        jars9GcFile.lastModified = daysAgo(2)
+        jarsGcFile.lastModified = daysAgo(2)
         writeLastFileAccessTimeToJournal(jar.parentFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
 
         and:
@@ -275,7 +275,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
             userHomeCacheDir.createDir("${DefaultClasspathTransformerCacheFactory.CACHE_NAME}-1"),
             userHomeCacheDir.createDir("${DefaultClasspathTransformerCacheFactory.CACHE_NAME}-2")
         ]
-        jars9GcFile.createFile().lastModified = daysAgo(2)
+        jarsGcFile.createFile().lastModified = daysAgo(2)
 
         when:
         succeeds("help")
@@ -513,13 +513,13 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         getArtifactTransformJarsByName("instrumented/testClasses.jar").size() == 1
     }
 
-    void notInJar9Cache(String filename) {
-        inJar9Cache(filename, false)
+    void notInJarCache(String filename) {
+        inJarCache(filename, false)
     }
 
-    TestFile inJar9Cache(String filename, boolean shouldBeFound = true) {
+    TestFile inJarCache(String filename, boolean shouldBeFound = true) {
         String fullpath = result.output.readLines().find { it.matches(">>>file:.*${filename}") }.replace(">>>", "")
-        assert fullpath.startsWith(jars9CacheDir.toURI().toString()) == shouldBeFound
+        assert fullpath.startsWith(jarsCacheDir.toURI().toString()) == shouldBeFound
         return new TestFile(new File(URI.create(fullpath)))
     }
 
@@ -534,11 +534,11 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
     }
 
 
-    TestFile getJars9GcFile() {
-        return jars9CacheDir.file("gc.properties")
+    TestFile getJarsGcFile() {
+        return jarsCacheDir.file("gc.properties")
     }
 
-    TestFile getJars9CacheDir() {
+    TestFile getJarsCacheDir() {
         return userHomeCacheDir.file(DefaultClasspathTransformerCacheFactory.CACHE_KEY)
     }
 
@@ -552,7 +552,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
      * @return the list of transformed JARs in the cache
      */
     List<File> getArtifactTransformJarsByName(String jarName) {
-        return Files.find(artifactTransformCacheDir.toPath(), 4, (path, attributes) -> normaliseFileSeparators(path.toString()).endsWith(jarName))
+        return Files.find(artifactTransformCacheDir.toPath(), Integer.MAX_VALUE, (path, attributes) -> normaliseFileSeparators(path.toString()).endsWith(jarName))
             .map { new TestFile(it.toFile()) }
             .collect(Collectors.toList())
     }

@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.initialization;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.attributes.Attribute;
@@ -54,10 +54,10 @@ import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.JAR_TYPE;
 
 public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
-    private static final Set<DependencyFactoryInternal.ClassPathNotation> NO_GRADLE_API = EnumSet.copyOf(ImmutableSet.of(
+    private static final Set<DependencyFactoryInternal.ClassPathNotation> GRADLE_API_NOTATIONS = EnumSet.of(
         DependencyFactoryInternal.ClassPathNotation.GRADLE_API,
         DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY
-    ));
+    );
 
     private static final Attribute<Boolean> HIERARCHY_COLLECTED_ATTRIBUTE = Attribute.of("org.gradle.internal.hierarchy-collected", Boolean.class);
     private static final Attribute<String> INSTRUMENTED_ATTRIBUTE = Attribute.of("org.gradle.internal.instrumented", String.class);
@@ -129,20 +129,26 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     private static FileCollection getInstrumentedExternalDependencies(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
             config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, INSTRUMENTED_EXTERNAL_DEPENDENCY_ATTRIBUTE));
-            config.componentFilter(componentId -> {
-                if (componentId instanceof OpaqueComponentIdentifier) {
-                    DependencyFactoryInternal.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
-                    return !DefaultScriptClassPathResolver.NO_GRADLE_API.contains(classPathNotation);
-                }
-                return !(componentId instanceof ProjectComponentIdentifier);
-            });
+            config.componentFilter(componentId -> !isGradleApi(componentId) && !isProject(componentId));
         }).getFiles();
+    }
+
+    private static boolean isGradleApi(ComponentIdentifier componentId) {
+        if (componentId instanceof OpaqueComponentIdentifier) {
+            DependencyFactoryInternal.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
+            return DefaultScriptClassPathResolver.GRADLE_API_NOTATIONS.contains(classPathNotation);
+        }
+        return false;
+    }
+
+    private static boolean isProject(ComponentIdentifier componentId) {
+        return componentId instanceof ProjectComponentIdentifier;
     }
 
     private static FileCollection getInstrumentedProjectDependencies(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
             config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, INSTRUMENTED_PROJECT_DEPENDENCY_ATTRIBUTE));
-            config.componentFilter(componentId -> componentId instanceof ProjectComponentIdentifier);
+            config.componentFilter(DefaultScriptClassPathResolver::isProject);
         }).getFiles();
     }
 }
