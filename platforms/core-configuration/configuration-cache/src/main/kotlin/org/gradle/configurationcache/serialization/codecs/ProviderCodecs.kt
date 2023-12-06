@@ -452,15 +452,25 @@ class MapPropertyCodec(
 
 internal
 object GuardedDataCodec : Codec<GuardedData<*>> {
+    private
+    const val NO_OWNER = -1
+
     override suspend fun WriteContext.encode(value: GuardedData<*>) {
         // GuardedData.owner is a back-reference to the provider being serialized up the stack.
         // This provider should not be "expanded", but rather stored with preserved identity.
-        writeSmallInt(isolate.identities.getId(value.owner) ?: throw IllegalStateException("Cannot write provider guard before writing its owner"))
+        val ownerId = when (val owner = value.owner) {
+            null -> NO_OWNER
+            else -> isolate.identities.getId(owner) ?: throw IllegalStateException("Cannot write guarded data before writing its owner")
+        }
+        writeSmallInt(ownerId)
         write(value.unsafeGet())
     }
 
     override suspend fun ReadContext.decode(): GuardedData<*> {
-        val owner = isolate.identities.getInstance(readSmallInt()) as ProviderInternal<*>
+        val owner = when (val ownerId = readSmallInt()) {
+            NO_OWNER -> null
+            else -> isolate.identities.getInstance(ownerId) as ProviderInternal<*>
+        }
         val value = readNonNull<Any>()
         return GuardedData.of(owner, value)
     }

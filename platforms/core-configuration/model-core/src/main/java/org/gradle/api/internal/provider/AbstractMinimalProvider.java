@@ -209,6 +209,15 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     /**
+     * Marks this provider as being evaluated until the returned scope is closed.
+     *
+     * @return the scope
+     */
+    protected EvaluationContext.ScopeContext openScope() {
+        return EvaluationContext.current().enter(this);
+    }
+
+    /**
      * An implementation for the toString method that is never called if the current provider is being evaluated.
      *
      * @return the string representation of the provider
@@ -220,18 +229,41 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     /**
-     * Runs the {@code evaluation} with this provider being marked as "evaluating".
-     * If the provider is already being evaluated, throws {@link EvaluationContext.CircularEvaluationException}.
+     * Wraps the given data in a {@link DataGuard}.
      *
-     * @param evaluation the evaluation
-     * @param <R> the type of the result
-     * @param <E> (optional) exception type being thrown by the evaluation
-     * @return the result of the evaluation
-     * @throws E exception from the {@code evaluation} is propagated
-     * @throws EvaluationContext.CircularEvaluationException if the provider is currently being evaluated in the outer scope
+     * @param data the data to wrap
+     * @return the data guard
      */
-    protected <R, E extends Exception> R evaluate(EvaluationContext.ScopedEvaluation<? extends R, E> evaluation) throws E {
-        return EvaluationContext.current().evaluate(this, evaluation);
+    protected <V> DataGuard<V> guardData(V data) {
+        return new DataGuard<>(data);
+    }
+
+    /**
+     * A wrapper for data used to calculate the value of {@link AbstractMinimalProvider}.
+     * The data should only be obtained inside the evaluation scope.
+     */
+    protected static final class DataGuard<V> implements GuardedData<V> {
+        private final V data;
+
+        public DataGuard(V data) {
+            this.data = data;
+        }
+
+        @Override
+        @Nullable
+        public ProviderInternal<?> getOwner() {
+            return null;
+        }
+
+        @Override
+        public V unsafeGet() {
+            return data;
+        }
+
+        @Override
+        public String toString() {
+            return data.toString();
+        }
     }
 
     /**
@@ -249,7 +281,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
      * A wrapper for a {@link ProviderInternal} used to calculate the value of {@link AbstractMinimalProvider}, which acts as an owner.
      * Calling a method that may cause recursive evaluation adds the owner to the evaluation context.
      * <p>
-     * This class uses try-with-resources directly instead of {@link #evaluate(EvaluationContext.ScopedEvaluation)}
+     * This class uses try-with-resources directly instead of {@link EvaluationContext#evaluate(ProviderInternal, EvaluationContext.ScopedEvaluation)}
      * to avoid extra allocations of lambda instances.
      */
     protected static final class ProviderGuard<V> implements ValueSupplier, GuardedData<ProviderInternal<V>> {

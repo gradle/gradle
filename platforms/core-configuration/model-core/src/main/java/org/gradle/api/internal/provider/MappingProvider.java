@@ -51,18 +51,20 @@ public class MappingProvider<OUT, IN> extends TransformBackedProvider<OUT, IN> {
 
     @Override
     public ExecutionTimeValue<? extends OUT> calculateExecutionTimeValue() {
-        ExecutionTimeValue<? extends IN> value = provider.calculateExecutionTimeValue();
-        if (value.isChangingValue()) {
-            return ExecutionTimeValue.changingValue(new MappingProvider<OUT, IN>(type, value.getChangingValue(), transformer));
-        }
+        try (EvaluationContext.ScopeContext context = openScope()) {
+            ExecutionTimeValue<? extends IN> value = provider.get(context).calculateExecutionTimeValue();
+            if (value.isChangingValue()) {
+                return ExecutionTimeValue.changingValue(new MappingProvider<OUT, IN>(type, value.getChangingValue(), transformer.get(context)));
+            }
 
-        return ExecutionTimeValue.value(mapValue(value.toValue()));
+            return ExecutionTimeValue.value(mapValue(context, value.toValue()));
+        }
     }
 
     @Nonnull
     @Override
-    protected Value<OUT> mapValue(Value<? extends IN> value) {
-        Value<OUT> transformedValue = super.mapValue(value);
+    protected Value<OUT> mapValue(EvaluationContext.ScopeContext context, Value<? extends IN> value) {
+        Value<OUT> transformedValue = super.mapValue(context, value);
         // Check MappingProvider contract with regard to the transform
         if (!value.isMissing() && transformedValue.isMissing()) {
             throw new IllegalStateException("The transformer in MappingProvider must always return a value");
@@ -71,7 +73,7 @@ public class MappingProvider<OUT, IN> extends TransformBackedProvider<OUT, IN> {
     }
 
     @Override
-    protected void beforeRead() {}
+    protected void beforeRead(EvaluationContext.ScopeContext context) {}
 
     @Override
     protected String toStringNoReentrance() {

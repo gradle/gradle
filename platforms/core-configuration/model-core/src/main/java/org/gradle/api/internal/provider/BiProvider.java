@@ -23,13 +23,13 @@ import java.util.function.BiFunction;
 public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
     private final Class<R> type;
-    private final BiFunction<? super A, ? super B, ? extends R> combiner;
+    private final DataGuard<BiFunction<? super A, ? super B, ? extends R>> combiner;
     private final ProviderGuard<A> left;
     private final ProviderGuard<B> right;
 
     public BiProvider(@Nullable Class<R> type, Provider<A> left, Provider<B> right, BiFunction<? super A, ? super B, ? extends R> combiner) {
         this.type = type;
-        this.combiner = combiner;
+        this.combiner = guardData(combiner);
         this.left = guardProvider(Providers.internal(left));
         this.right = guardProvider(Providers.internal(right));
     }
@@ -61,20 +61,22 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
     @Override
     protected Value<? extends R> calculateOwnValue(ValueConsumer consumer) {
-        Value<? extends A> leftValue = left.calculateValue(consumer);
-        if (leftValue.isMissing()) {
-            return leftValue.asType();
-        }
-        Value<? extends B> rightValue = right.calculateValue(consumer);
-        if (rightValue.isMissing()) {
-            return rightValue.asType();
-        }
+        try (EvaluationContext.ScopeContext context = openScope()) {
+            Value<? extends A> leftValue = left.get(context).calculateValue(consumer);
+            if (leftValue.isMissing()) {
+                return leftValue.asType();
+            }
+            Value<? extends B> rightValue = right.get(context).calculateValue(consumer);
+            if (rightValue.isMissing()) {
+                return rightValue.asType();
+            }
 
-        R combinedUnpackedValue = evaluate(() -> combiner.apply(leftValue.getWithoutSideEffect(), rightValue.getWithoutSideEffect()));
+            R combinedUnpackedValue = combiner.get(context).apply(leftValue.getWithoutSideEffect(), rightValue.getWithoutSideEffect());
 
-        return Value.ofNullable(combinedUnpackedValue)
-            .withSideEffect(SideEffect.fixedFrom(leftValue))
-            .withSideEffect(SideEffect.fixedFrom(rightValue));
+            return Value.ofNullable(combinedUnpackedValue)
+                .withSideEffect(SideEffect.fixedFrom(leftValue))
+                .withSideEffect(SideEffect.fixedFrom(rightValue));
+        }
     }
 
     @Nullable

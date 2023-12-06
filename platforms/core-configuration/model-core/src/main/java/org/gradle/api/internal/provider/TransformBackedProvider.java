@@ -35,7 +35,7 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
 
     protected final Class<OUT> type;
     protected final ProviderGuard<? extends IN> provider;
-    protected final Transformer<? extends OUT, ? super IN> transformer;
+    protected final DataGuard<Transformer<? extends OUT, ? super IN>> transformer;
 
     public TransformBackedProvider(
         @Nullable Class<OUT> type,
@@ -43,7 +43,7 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
         Transformer<? extends OUT, ? super IN> transformer
     ) {
         this.type = type;
-        this.transformer = transformer;
+        this.transformer = guardData(transformer);
         this.provider = guardProvider(provider);
     }
 
@@ -60,33 +60,37 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
 
     @Override
     public ExecutionTimeValue<? extends OUT> calculateExecutionTimeValue() {
-        ExecutionTimeValue<? extends IN> value = provider.calculateExecutionTimeValue();
-        if (value.hasChangingContent()) {
-            // Need the value contents in order to transform it to produce the value of this provider,
-            // so if the value or its contents are built by tasks, the value of this provider is also built by tasks
-            return ExecutionTimeValue.changingValue(new TransformBackedProvider<OUT, IN>(type, value.toProvider(), transformer));
-        }
+        try (EvaluationContext.ScopeContext context = openScope()) {
+            ExecutionTimeValue<? extends IN> value = provider.get(context).calculateExecutionTimeValue();
+            if (value.hasChangingContent()) {
+                // Need the value contents in order to transform it to produce the value of this provider,
+                // so if the value or its contents are built by tasks, the value of this provider is also built by tasks
+                return ExecutionTimeValue.changingValue(new TransformBackedProvider<OUT, IN>(type, value.toProvider(), transformer.get(context)));
+            }
 
-        return ExecutionTimeValue.value(mapValue(value.toValue()));
+            return ExecutionTimeValue.value(mapValue(context, value.toValue()));
+        }
     }
 
     @Override
     protected Value<? extends OUT> calculateOwnValue(ValueConsumer consumer) {
-        beforeRead();
-        Value<? extends IN> value = provider.calculateValue(consumer);
-        return mapValue(value);
+        try (EvaluationContext.ScopeContext context = openScope()) {
+            beforeRead(context);
+            Value<? extends IN> value = provider.get(context).calculateValue(consumer);
+            return mapValue(context, value);
+        }
     }
 
     @Nonnull
-    protected Value<OUT> mapValue(Value<? extends IN> value) {
+    protected Value<OUT> mapValue(EvaluationContext.ScopeContext context, Value<? extends IN> value) {
         if (value.isMissing()) {
             return value.asType();
         }
-        return evaluate(() -> value.transform(transformer));
+        return value.transform(transformer.get(context));
     }
 
-    protected void beforeRead() {
-        provider.getProducer().visitContentProducerTasks(producer -> {
+    protected void beforeRead(EvaluationContext.ScopeContext context) {
+        provider.get(context).getProducer().visitContentProducerTasks(producer -> {
             if (!producer.getState().getExecuted()) {
                 throw new InvalidUserCodeException(
                     String.format("Querying the mapped value of %s before %s has completed is not supported", provider, producer)

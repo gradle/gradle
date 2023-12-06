@@ -18,6 +18,8 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.internal.Cast;
 
+import javax.annotation.Nullable;
+
 /**
  * Base interface for the nested data which may cause circular evaluation errors upon accessing.
  * For example, if a provider depends on some other provider to compute its value, by applying a transformation to it, then
@@ -38,8 +40,9 @@ public interface GuardedData<T> {
     /**
      * Returns the owner of the data: the provider which is marked as evaluating while the data is accessed.
      *
-     * @return the owner of the data
+     * @return the owner of the data or null if the evaluation scope must be explicitly opened to use this data
      */
+    @Nullable
     ProviderInternal<?> getOwner();
 
     /**
@@ -50,15 +53,28 @@ public interface GuardedData<T> {
     T unsafeGet();
 
     /**
+     * Returns the data. This method is intended for obtaining the value inside the existing evaluation scope.
+     *
+     * @param context the evaluation scope context
+     * @return the data
+     */
+    default T get(@SuppressWarnings("unused") EvaluationContext.ScopeContext context) {
+        // the context acts as a token signalling that getting the value is in fact safe.
+        return unsafeGet();
+    }
+
+    /**
      * Restores GuardedData from parts. All interface implementation must be supported by this method.
      *
-     * @param owner the owner
+     * @param owner the owner (can be null if the data provides no convenience accessors)
      * @param data the data
      * @param <T> the type of the data
      * @return GuardedData of the appropriate type to represent the data
      */
-    static <T> GuardedData<T> of(ProviderInternal<?> owner, T data) {
-        if (data instanceof ProviderInternal<?>) {
+    static <T> GuardedData<T> of(@Nullable ProviderInternal<?> owner, T data) {
+        if (owner == null) {
+            return Cast.uncheckedCast(new AbstractMinimalProvider.DataGuard<>(Cast.uncheckedCast(data)));
+        } else if (data instanceof ProviderInternal<?>) {
             return Cast.uncheckedCast(new AbstractMinimalProvider.ProviderGuard<>(owner, Cast.uncheckedCast(data)));
         } else if (data instanceof CollectionSupplier<?, ?>) {
             return Cast.uncheckedCast(new AbstractCollectionProperty.CollectionSupplierGuard<>(owner, Cast.uncheckedCast(data)));
