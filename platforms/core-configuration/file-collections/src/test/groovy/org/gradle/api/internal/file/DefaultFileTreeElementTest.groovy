@@ -28,7 +28,7 @@ class DefaultFileTreeElementTest extends Specification {
     def "permissions on file can be read"() {
         def stat = Mock(Stat)
         def f = tmpDir.createFile("f")
-        FileTreeElement e = new DefaultFileTreeElement(f, null, Stub(Chmod), stat, null)
+        FileTreeElement e = new DefaultFileTreeElement(f, null, Stub(Chmod), stat, false)
 
         given:
         stat.getUnixMode(f, true) >> 0644

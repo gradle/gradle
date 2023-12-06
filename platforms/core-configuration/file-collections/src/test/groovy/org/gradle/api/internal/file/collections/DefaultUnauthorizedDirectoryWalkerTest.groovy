@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.collections
 
 import com.google.common.base.Throwables
 import org.gradle.api.file.FileVisitor
+import org.gradle.api.file.LinksStrategy
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -62,10 +63,12 @@ class DefaultUnauthorizedDirectoryWalkerTest extends Specification {
     }
 
     def "throw exception when unauthorized"() {
-        when:
+        given:
         def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), TestFiles.fileSystem(), false)
         def fileVisitor = Mock(FileVisitor)
+        fileVisitor.linksStrategy() >> LinksStrategy.FOLLOW
 
+        when:
         fileTree.visit(fileVisitor)
 
         then:

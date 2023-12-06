@@ -22,29 +22,31 @@ import org.gradle.internal.file.Chmod;
 import org.gradle.internal.file.Stat;
 import org.gradle.util.internal.GFileUtils;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Files;
 
 public class DefaultFileTreeElement extends AbstractFileTreeElement {
     private final File file;
     private final RelativePath relativePath;
     private final Stat stat;
 
-    private final SymbolicLinkDetails linkDetails;
+    private final boolean preserveLink;
+    private Boolean isLink;
+    private SymbolicLinkDetails linkDetails;
 
     public DefaultFileTreeElement(
         File file,
         RelativePath relativePath,
         Chmod chmod,
         Stat stat,
-        @Nullable SymbolicLinkDetails linkDetails
+        boolean preserveLink
     ) {
         super(chmod);
         this.file = file;
         this.relativePath = relativePath;
         this.stat = stat;
-        this.linkDetails = linkDetails;
+        this.preserveLink = preserveLink;
     }
 
     @Deprecated
@@ -55,7 +57,7 @@ public class DefaultFileTreeElement extends AbstractFileTreeElement {
         Chmod chmod,
         Stat stat
     ) {
-        this(file, relativePath, chmod, stat, null);
+        this(file, relativePath, chmod, stat, false);
     }
 
     @Override
@@ -100,7 +102,23 @@ public class DefaultFileTreeElement extends AbstractFileTreeElement {
     }
 
     @Override
+    public boolean isSymbolicLink() {
+        return preserveLink && isLink();
+    }
+
+    private boolean isLink() {
+        if (isLink == null) {
+            // caching this for performance reasons
+            isLink = Files.isSymbolicLink(file.toPath());
+        }
+        return isLink;
+    }
+
+    @Override
     public SymbolicLinkDetails getSymbolicLinkDetails() {
+        if (isLink() && linkDetails == null) {
+            linkDetails = new DefaultSymbolicLinkDetails(file.toPath(), relativePath.getSegments().length);
+        }
         return linkDetails;
     }
 }

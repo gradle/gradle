@@ -17,11 +17,9 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.file.SymbolicLinkDetails;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.file.Stat;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -36,10 +34,9 @@ public class AttributeBasedFileVisitDetails extends DefaultFileVisitDetails {
         Chmod chmod,
         Stat stat,
         BasicFileAttributes attributes,
-        @Nullable SymbolicLinkDetails linkDetails,
         boolean preserveLink
     ) {
-        super(file, relativePath, stop, chmod, stat, linkDetails, preserveLink);
+        super(file, relativePath, stop, chmod, stat, preserveLink);
         this.attributes = attributes;
     }
 
@@ -51,12 +48,5 @@ public class AttributeBasedFileVisitDetails extends DefaultFileVisitDetails {
     @Override
     public long getLastModified() {
         return attributes.lastModifiedTime().toMillis();
-    }
-
-    @Override
-    public boolean isSymbolicLink() {
-        // attributes.isSymbolicLink() will only return true if the file is a broken link
-        // need this check for LinksStrategy.FOLLOW
-        return attributes.isSymbolicLink() || super.isSymbolicLink();
     }
 }

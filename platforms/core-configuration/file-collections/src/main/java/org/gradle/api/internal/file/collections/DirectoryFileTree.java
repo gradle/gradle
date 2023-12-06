@@ -126,9 +126,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
         if (Files.exists(fileOrDirectoryPath, LinkOption.NOFOLLOW_LINKS)) {
             LinksStrategy linksStrategy = visitor.linksStrategy();
             FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(fileOrDirectoryPath, path, stopFlag, fileSystem, linksStrategy);
-            if (details.isSymbolicLink()) {
-                processSingleFile(fileOrDirectoryPath, details, linksStrategy, visitor, spec);
-            } else if (details.isDirectory()) {
+            if (details.isDirectory()) {
                 walkDir(fileOrDirectoryPath, path, visitor, spec, stopFlag);
             } else {
                 processSingleFile(fileOrDirectoryPath, details, linksStrategy, visitor, spec);

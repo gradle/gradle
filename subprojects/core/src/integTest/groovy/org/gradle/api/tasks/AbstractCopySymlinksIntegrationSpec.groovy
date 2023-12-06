@@ -783,13 +783,13 @@ abstract class AbstractFileSystemCopySymlinksIntegrationSpec extends AbstractCop
                 isCopy(output.file("root.txt"), rootFile)
                 break
             case "treated as error":
-                assert failure.assertHasCause("Links strategy is set to ${linksStrategy}, but a symlink was visited: '${link.name}' pointing to '$rootLinkTarget'")
+                assert failure.assertHasCause("Links strategy is set to ${linksStrategy}, but a symlink was visited: '.' pointing to '$rootLinkTarget'")
                 break
             case "treated as broken link error":
                 assert failure.assertHasCause("Couldn't follow symbolic link '.' pointing to '${rootLinkTarget}'")
                 break
             case "treated as relativeness error":
-                assert failure.assertHasCause("Links strategy is set to ${linksStrategy}, but a symlink pointing outside was visited: '${link.name}' pointing to '$rootLinkTarget'")
+                assert failure.assertHasCause("Links strategy is set to ${linksStrategy}, but a symlink pointing outside was visited: '.' pointing to '$rootLinkTarget'")
                 break
             case "ignored":
                 assert !output.exists()

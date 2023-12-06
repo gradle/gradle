@@ -18,17 +18,14 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.file.SymbolicLinkDetails;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.file.Stat;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultFileVisitDetails extends DefaultFileTreeElement implements FileVisitDetails {
     private final AtomicBoolean stop;
-    private final boolean preserveLink;
 
     public DefaultFileVisitDetails(
         File file,
@@ -36,21 +33,14 @@ public class DefaultFileVisitDetails extends DefaultFileTreeElement implements F
         AtomicBoolean stop,
         Chmod chmod,
         Stat stat,
-        @Nullable SymbolicLinkDetails linkDetails,
         boolean preserveLink
     ) {
-        super(file, relativePath, chmod, stat, linkDetails);
+        super(file, relativePath, chmod, stat, preserveLink);
         this.stop = stop;
-        this.preserveLink = preserveLink;
     }
 
     @Override
     public void stopVisiting() {
         stop.set(true);
-    }
-
-    @Override
-    public boolean isSymbolicLink() {
-        return preserveLink && super.isSymbolicLink();
     }
 }

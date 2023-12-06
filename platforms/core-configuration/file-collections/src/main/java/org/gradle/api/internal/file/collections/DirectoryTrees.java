@@ -35,7 +35,7 @@ public abstract class DirectoryTrees {
 
         RelativePath path = RelativePath.parse(true, file.getAbsolutePath().substring(prefix.length()));
         // NOTE: usually only the path is considered in FileTree specs and it's already checked by caller that it's a file, so it's ok to omit link details here.
-        return tree.getPatterns().getAsSpec().isSatisfiedBy(new DefaultFileTreeElement(file, path, fileSystem, fileSystem, null));
+        return tree.getPatterns().getAsSpec().isSatisfiedBy(new DefaultFileTreeElement(file, path, fileSystem, fileSystem, false));
     }
 
 }
