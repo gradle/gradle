@@ -24,8 +24,8 @@ import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLI
 @LeaksFileHandles
 class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
-    public static final String SAMPLE_APP_CLASS = "some/thing/App.kt"
-    public static final String SAMPLE_APP_TEST_CLASS = "some/thing/AppTest.kt"
+    public static final String SAMPLE_APP_CLASS = "org/example/App.kt"
+    public static final String SAMPLE_APP_TEST_CLASS = "org/example/AppTest.kt"
 
     @Override
     String subprojectName() { 'app' }
@@ -53,7 +53,7 @@ class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
         run("build")
 
         then:
-        assertTestPassed("some.thing.AppTest", "appHasAGreeting")
+        assertTestPassed("org.example.AppTest", "appHasAGreeting")
 
         when:
         run("run")
@@ -83,7 +83,7 @@ class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
         run("build")
 
         then:
-        assertTestPassed("some.thing.AppTest", "appHasAGreeting")
+        assertTestPassed("org.example.AppTest", "appHasAGreeting")
 
         when:
         run("run")
@@ -106,7 +106,7 @@ class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
         run("build")
 
         then:
-        assertTestPassed("some.thing.AppTest", "appHasAGreeting")
+        assertTestPassed("org.example.AppTest", "appHasAGreeting")
 
         when:
         run("run")

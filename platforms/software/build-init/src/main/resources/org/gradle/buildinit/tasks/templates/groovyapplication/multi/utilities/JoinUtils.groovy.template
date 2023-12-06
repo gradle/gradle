@@ -3,7 +3,7 @@
  */
 ${packageDecl.statement}
 import groovy.transform.PackageScope
-import ${basePackageName.raw}.list.LinkedList
+import ${basePackagePrefix.raw}list.LinkedList
 
 @PackageScope
 class JoinUtils {

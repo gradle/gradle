@@ -39,7 +39,6 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugin.use.PluginDependency;
 import org.gradle.util.internal.TextUtil;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.IOException;
@@ -51,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.VERSION_CATALOG_PROBLEMS;
@@ -158,7 +158,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         writeLn();
         addImports();
         writeLn();
-        String description = TextUtil.normaliseLineSeparators(config.getDescription());
+        String description = requireNonNull(TextUtil.normaliseLineSeparators(config.getDescription()));
         writeLn("/**");
         for (String descLine : Splitter.on('\n').split(description)) {
             writeLn(" * " + descLine);
@@ -253,7 +253,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     private void writeBundleAccessorClass(ClassNode classNode, boolean deprecated) throws IOException {
         if (deprecated) {
             writeLn("/**");
-            writeDeprecationJavadocTag(true);
+            writeDeprecationJavadocTag(true, false);
             writeLn(" */");
             writeDeprecationAnnotation(true);
         }
@@ -423,7 +423,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     private void writeLibraryAccessorClass(ClassNode classNode, boolean deprecated) throws IOException {
         if (deprecated) {
             writeLn("/**");
-            writeDeprecationJavadocTag(true);
+            writeDeprecationJavadocTag(true, false);
             writeLn(" */");
             writeDeprecationAnnotation(true);
         }
@@ -477,7 +477,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
                 if (!classNode.hasChild(childName)) {
                     VersionModel vm = config.getVersion(alias);
                     String context = vm.getContext();
-                    indent(() -> writeSingleVersionAccessor(alias, context, vm.getVersion().getDisplayName(), false));
+                    writeSingleVersionAccessor(alias, context, vm.getVersion().getDisplayName(), false);
                 }
             }
             for (ClassNode child : classNode.getChildren()) {
@@ -490,10 +490,12 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private void writeSingleVersionAccessor(String versionAlias, @Nullable String context, String version, boolean asProvider) throws IOException {
         writeLn("/**");
-        writeLn(" * Returns the version associated to this alias: " + versionAlias + " (" + version + ")");
-        writeLn(" * If the version is a rich version and that its not expressible as a");
-        writeLn(" * single version string, then an empty string is returned.");
+        writeLn(" * Version alias <b>" + versionAlias + "</b> with value <b>" + version + "</b>");
+        writeLn(" * <p>");
+        writeLn(" * If the version is a rich version and cannot be represented as a");
+        writeLn(" * single version string, an empty string is returned.");
         if (context != null) {
+            writeLn(" * <p>");
             writeLn(" * This version was declared in " + sanitizeUnicodeEscapes(context));
         }
         writeLn(" */");
@@ -521,7 +523,6 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         throw throwErrorWithNewProblemsApi(ERROR_HEADER, ImmutableList.of(problem));
     }
 
-    @Nonnull
     private static ProblemBuilder configureVersionCatalogError(ProblemBuilderDefiningLabel builder, String message, VersionCatalogProblemId catalogProblemId) {
         return builder
             .label(message)
@@ -548,7 +549,6 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         maybeThrowError(ERROR_HEADER, errors);
     }
 
-    @Nonnull
     private String getProblemPrefix() {
         return getProblemInVersionCatalog(config.getName()) + ", ";
     }
@@ -559,33 +559,34 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private void writeDependencyAccessor(String alias, DependencyModel dependency, boolean asProvider, boolean deprecated) throws IOException {
         String name = leafNodeForAlias(alias);
-        writeLn("    /**");
-        writeLn("     * Creates a dependency provider for " + name + " (" + coordinatesDescriptorFor(dependency) + ")");
+        writeLn("/**");
+        writeLn(" * Dependency provider for <b>" + name + "</b> with <b>" + coordinatesDescriptorFor(dependency) + "</b> coordinates and");
         writeVersionInformation(dependency.getVersionRef(), dependency.getVersion());
         String context = dependency.getContext();
         if (context != null) {
-            writeLn("     * This dependency was declared in " + sanitizeUnicodeEscapes(context));
+            writeLn(" * <p>");
+            writeLn(" * This dependency was declared in " + sanitizeUnicodeEscapes(context));
         }
-        writeDeprecationJavadocTag(deprecated);
-        writeLn("     */");
+        writeDeprecationJavadocTag(deprecated, true);
+        writeLn(" */");
         writeDeprecationAnnotation(deprecated);
         String methodName = asProvider ? "asProvider" : "get" + toJavaName(name);
-        writeLn("    public Provider<MinimalExternalModuleDependency> " + methodName + "() {");
+        writeLn("public Provider<MinimalExternalModuleDependency> " + methodName + "() {");
         writeDeprecationLog(deprecated);
-        writeLn("        return create(\"" + alias + "\");");
+        writeLn("    return create(\"" + alias + "\");");
         writeLn("}");
         writeLn();
     }
 
     private void writeVersionInformation(@Nullable String versionRef, ImmutableVersionConstraint version) throws IOException {
         if (versionRef != null) {
-            writeLn(" * with versionRef '" + versionRef + "'.");
+            writeLn(" * with version reference <b>" + versionRef + "</b>");
         } else {
             String versionDisplay = version.getDisplayName();
             if (versionDisplay.isEmpty()) {
-                writeLn(" * with no version specified");
+                writeLn(" * with <b>no version specified</b>");
             } else {
-                writeLn(" * with version '" + versionDisplay + "'.");
+                writeLn(" * with version <b>" + versionDisplay + "</b>");
             }
         }
     }
@@ -603,8 +604,8 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         String className = getClassName(classNode);
         String getter = classNode.name;
         writeLn("/**");
-        writeLn(" * Returns the group of " + kind.getDescription() + " at " + classNode.getPath());
-        writeDeprecationJavadocTag(deprecated);
+        writeLn(" * Group of " + kind.getDescription() + " at <b>" + classNode.getPath() + "</b>");
+        writeDeprecationJavadocTag(deprecated, true);
         writeLn(" */");
         writeDeprecationAnnotation(deprecated);
         writeLn("public " + className + " get" + toJavaName(getter) + "() {");
@@ -615,31 +616,37 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private void writeBundle(String alias, List<String> coordinates, @Nullable String context, boolean asProvider, boolean deprecated) throws IOException {
-        indent(() -> {
-            writeLn("/**");
-            writeLn(" * Creates a dependency bundle provider for " + alias + " which is an aggregate for the following dependencies:");
+        writeLn("/**");
+        if (coordinates.isEmpty()) {
+            writeLn(" * Dependency bundle provider for <b>" + alias + "</b> which contains no dependencies");
+        } else {
+            writeLn(" * Dependency bundle provider for <b>" + alias + "</b> which contains the following dependencies:");
             writeLn(" * <ul>");
             for (String coordinate : coordinates) {
                 writeLn(" *    <li>" + coordinate + "</li>");
             }
             writeLn(" * </ul>");
-            if (context != null) {
-                writeLn(" * This bundle was declared in " + sanitizeUnicodeEscapes(context));
-            }
-            writeDeprecationJavadocTag(deprecated);
-            writeLn(" */");
-            writeDeprecationAnnotation(deprecated);
-            String methodName = asProvider ? "asProvider" : "get" + toJavaName(leafNodeForAlias(alias));
-            writeLn("public Provider<ExternalModuleDependencyBundle> " + methodName + "() {");
-            writeDeprecationLog(deprecated);
-            writeLn("    return createBundle(\"" + alias + "\");");
-            writeLn("}");
-        });
+        }
+        if (context != null) {
+            writeLn(" * <p>");
+            writeLn(" * This bundle was declared in " + sanitizeUnicodeEscapes(context));
+        }
+        writeDeprecationJavadocTag(deprecated, true);
+        writeLn(" */");
+        writeDeprecationAnnotation(deprecated);
+        String methodName = asProvider ? "asProvider" : "get" + toJavaName(leafNodeForAlias(alias));
+        writeLn("public Provider<ExternalModuleDependencyBundle> " + methodName + "() {");
+        writeDeprecationLog(deprecated);
+        writeLn("    return createBundle(\"" + alias + "\");");
+        writeLn("}");
         writeLn();
     }
 
-    private void writeDeprecationJavadocTag(boolean deprecated) throws IOException {
+    private void writeDeprecationJavadocTag(boolean deprecated, boolean separate) throws IOException {
         if (deprecated) {
+            if (separate) {
+                writeLn(" *");
+            }
             writeLn(" * @deprecated Will be removed in Gradle 9.0.");
         }
     }
@@ -664,18 +671,17 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private void writePlugin(String alias, PluginModel plugin, boolean asProvider) throws IOException {
-        indent(() -> {
-            writeLn("/**");
-            writeLn(" * Creates a plugin provider for " + alias + " to the plugin id '" + plugin.getId() + "'");
-            writeVersionInformation(plugin.getVersionRef(), plugin.getVersion());
-            String context = plugin.getContext();
-            if (context != null) {
-                writeLn(" * This plugin was declared in " + sanitizeUnicodeEscapes(context));
-            }
-            writeLn(" */");
-            String methodName = asProvider ? "asProvider" : "get" + toJavaName(leafNodeForAlias(alias));
-            writeLn("public Provider<PluginDependency> " + methodName + "() { return createPlugin(\"" + alias + "\"); }");
-        });
+        writeLn("/**");
+        writeLn(" * Plugin provider for <b>" + alias + "</b> with plugin id <b>" + plugin.getId() + "</b> and");
+        writeVersionInformation(plugin.getVersionRef(), plugin.getVersion());
+        String context = plugin.getContext();
+        if (context != null) {
+            writeLn(" * <p>");
+            writeLn(" * This plugin was declared in " + sanitizeUnicodeEscapes(context));
+        }
+        writeLn(" */");
+        String methodName = asProvider ? "asProvider" : "get" + toJavaName(leafNodeForAlias(alias));
+        writeLn("public Provider<PluginDependency> " + methodName + "() { return createPlugin(\"" + alias + "\"); }");
         writeLn();
     }
 

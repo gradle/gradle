@@ -24,8 +24,8 @@ import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLI
 @LeaksFileHandles
 class KotlinLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
-    public static final String SAMPLE_LIBRARY_CLASS = "some/thing/Library.kt"
-    public static final String SAMPLE_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.kt"
+    public static final String SAMPLE_LIBRARY_CLASS = "org/example/Library.kt"
+    public static final String SAMPLE_LIBRARY_TEST_CLASS = "org/example/LibraryTest.kt"
 
     def "defaults to kotlin build scripts"() {
         when:
@@ -53,7 +53,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
         run("build")
 
         then:
-        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -76,7 +76,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
         when:
         run('test')
         then:
-        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -93,7 +93,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
         succeeds('test')
 
         then:
-        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
