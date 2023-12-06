@@ -157,4 +157,24 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         fixture.assertStateLoaded()
     }
 
+    // TODO: do we have a test that checks what CC does on failing model builder?
+    def "cannot fetch GradleProject model for non-root project"() {
+        settingsFile << """
+            rootProject.name = 'root'
+            include(":lib1")
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        runBuildActionFails(new FetchGradleProjectForTarget(":lib1"))
+
+        then:
+        // TODO: is it actually stored? Because the BuildOp does not seem to be there
+        fixture.assertStateStored {
+            buildModelCreated()
+            modelsCreated(":")
+        }
+        failureCauseContains("org.gradle.tooling.model.GradleProject can only be requested on the root project, got project ':lib1'")
+    }
+
 }
