@@ -89,6 +89,17 @@ Execution failed for task ':dependencies'.
 > Get more help at https://help.gradle.org.
 ```
 
+<a name="other-improvements"></a>
+
+### Other improvements
+
+#### Gradle encryption key via an environment variable
+
+You may now provide Gradle with the key used to encrypt cached configuration data via the `GRADLE_ENCRYPTION_KEY` environment variable. By default, Gradle creates and manages the key automatically, storing it into a keystore under the Gradle User Home, which may be inappropriate in some environments.
+
+More details can be found in the dedicated section of the [configuration cache](userguide/configuration_cache.html#config_cache:secrets:configuring_encryption_key) user manual chapter.
+
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
