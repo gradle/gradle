@@ -32,13 +32,13 @@ class IsolatedProjectsToolingApiParametrizedModelQueryIntegrationTest extends Ab
 
         when:
         executer.withArguments(ENABLE_CLI)
-        def models = runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1", "fetch2"]))
+        def models = runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1", "fetch2", "fetch1", "fetch2"]))
 
         then:
         fixture.assertStateStored {
             projectConfigured(":buildSrc")
             buildModelCreated()
-            modelsCreated(":", 2)
+            modelsCreated(":", 2) // only 2 intermediate models are created for 2 unique parameters
         }
         outputContains("configuring build")
         outputContains("creating model with parameter='fetch1' for root project 'root'")
@@ -46,14 +46,16 @@ class IsolatedProjectsToolingApiParametrizedModelQueryIntegrationTest extends Ab
 
         and:
         models.keySet() ==~ [":"]
-        models.values().every { it.size() == 2 }
+        models.values().every { it.size() == 4 }
 
         models[":"][0].message == "fetch1 It works from project :"
         models[":"][1].message == "fetch2 It works from project :"
+        models[":"][2].message == "fetch1 It works from project :"
+        models[":"][3].message == "fetch2 It works from project :"
 
         when:
         executer.withArguments(ENABLE_CLI)
-        runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1", "fetch2"]))
+        runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1", "fetch2", "fetch1", "fetch2"]))
 
         then:
         fixture.assertStateLoaded()
