@@ -39,11 +39,9 @@ import org.gradle.api.internal.initialization.transform.ExternalDependencyInstru
 import org.gradle.api.internal.initialization.transform.ProjectDependencyInstrumentingArtifactTransform;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.agents.AgentStatus;
-import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
-import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.util.GradleVersion;
@@ -65,16 +63,13 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     private static final String INSTRUMENTED_PROJECT_DEPENDENCY_ATTRIBUTE = "instrumented-project-dependency";
     private final NamedObjectInstantiator instantiator;
     private final AgentStatus agentStatus;
-    private final GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry;
 
     public DefaultScriptClassPathResolver(
         NamedObjectInstantiator instantiator,
-        AgentStatus agentStatus,
-        GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry
+        AgentStatus agentStatus
     ) {
         this.instantiator = instantiator;
         this.agentStatus = agentStatus;
-        this.gradleCoreInstrumentingTypeRegistry = gradleCoreInstrumentingTypeRegistry;
     }
 
     @Override
@@ -95,11 +90,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             spec -> {
                 spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED_ATTRIBUTE);
                 spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, instrumentedAttribute);
-                spec.parameters(parameters -> {
-                    parameters.getAgentSupported().set(agentStatus.isAgentInstrumentationEnabled());
-                    parameters.getMaxSupportedJavaVersion().set(AsmConstants.MAX_SUPPORTED_JAVA_VERSION);
-                    parameters.getUpgradedPropertiesHash().set(gradleCoreInstrumentingTypeRegistry.getUpgradedPropertiesHash().map(Object::toString).orElse(null));
-                });
+                spec.parameters(parameters -> parameters.getAgentSupported().set(agentStatus.isAgentInstrumentationEnabled()));
             }
         );
     }

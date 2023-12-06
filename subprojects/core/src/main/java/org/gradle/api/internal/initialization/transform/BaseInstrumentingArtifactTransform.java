@@ -25,7 +25,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.cache.GlobalCacheLocations;
@@ -60,13 +59,6 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
     public interface InstrumentArtifactTransformParameters extends TransformParameters {
         @Input
         Property<Boolean> getAgentSupported();
-
-        @Input
-        Property<Integer> getMaxSupportedJavaVersion();
-
-        @Input
-        @Optional
-        Property<String> getUpgradedPropertiesHash();
     }
 
     @Inject

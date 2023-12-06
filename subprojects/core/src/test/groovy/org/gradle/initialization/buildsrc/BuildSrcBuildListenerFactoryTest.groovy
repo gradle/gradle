@@ -23,7 +23,6 @@ import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.agents.AgentStatus
-import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -47,8 +46,7 @@ class BuildSrcBuildListenerFactoryTest extends Specification {
         def action = Mock(Action)
         def listener = new BuildSrcBuildListenerFactory(action, new DefaultScriptClassPathResolver(
             TestUtil.objectInstantiator(),
-            Stub(AgentStatus),
-            Stub(GradleCoreInstrumentingTypeRegistry)
+            Stub(AgentStatus)
         )).create()
 
         when:
