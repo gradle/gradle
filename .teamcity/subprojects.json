@@ -736,7 +736,7 @@
   },
   {
     "name": "precondition-tester",
-    "path": "subprojects/precondition-tester",
+    "path": "platforms/build-infrastructure/precondition-tester",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
