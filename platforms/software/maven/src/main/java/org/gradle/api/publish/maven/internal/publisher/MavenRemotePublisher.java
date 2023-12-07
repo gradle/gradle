@@ -109,13 +109,15 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
     private int getNextBuildNumber(ExternalResourceRepository repository, ExternalResourceName metadataResource) {
         ExternalResourceReadResult<Metadata> existing = readExistingMetadata(repository, metadataResource);
 
-        Metadata recessive = existing.getResult();
-        if (recessive != null) {
-            Versioning versioning = recessive.getVersioning();
-            if (versioning != null) {
-                Snapshot snapshot = versioning.getSnapshot();
-                if (snapshot != null && snapshot.getBuildNumber() > 0) {
-                    return snapshot.getBuildNumber() + 1;
+        if (existing != null) {
+            Metadata recessive = existing.getResult();
+            if (recessive != null) {
+                Versioning versioning = recessive.getVersioning();
+                if (versioning != null) {
+                    Snapshot snapshot = versioning.getSnapshot();
+                    if (snapshot != null && snapshot.getBuildNumber() > 0) {
+                        return snapshot.getBuildNumber() + 1;
+                    }
                 }
             }
         }

@@ -40,14 +40,12 @@ import org.gradle.internal.xml.XmlTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
@@ -120,9 +118,11 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
     private Versioning getExistingVersioning(ExternalResourceRepository repository, ExternalResourceName metadataResource) {
         ExternalResourceReadResult<Metadata> existing = readExistingMetadata(repository, metadataResource);
 
-        Metadata recessive = existing.getResult();
-        if (recessive != null && recessive.getVersioning() != null) {
-            return recessive.getVersioning();
+        if (existing != null) {
+            Metadata recessive = existing.getResult();
+            if (recessive != null && recessive.getVersioning() != null) {
+                return recessive.getVersioning();
+            }
         }
 
         return new Versioning();
@@ -152,18 +152,19 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         return false;
     }
 
-    @Nonnull
+    @Nullable
     ExternalResourceReadResult<Metadata> readExistingMetadata(ExternalResourceRepository repository, ExternalResourceName metadataResource) {
         return metadataRetryCaller.withBackoffAndRetry(new Callable<ExternalResourceReadResult<Metadata>>() {
             @Override
+            @Nullable
             public ExternalResourceReadResult<Metadata> call() {
-                return Objects.requireNonNull(repository.resource(metadataResource).withContentIfPresent(inputStream -> {
+                return repository.resource(metadataResource).withContentIfPresent(inputStream -> {
                     try {
                         return new MetadataXpp3Reader().read(inputStream, false);
                     } catch (Exception e) {
                         throw UncheckedException.throwAsUncheckedException(e);
                     }
-                }));
+                });
             }
 
             @Override
