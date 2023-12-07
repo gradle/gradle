@@ -305,6 +305,31 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         super.visitDependencies(context);
     }
 
+    /**
+     * Creates a shallow copy of this file collection. Further changes to this file collection (via {@link #from(Object...)}, {@link #setFrom(Object...)}, or {@link #builtBy(Object...)}) do not
+     * change the copy. However, the copy still reflects changes to the underlying file collections that constitute this one. Consider the following snippet:
+     * <pre>
+     *     def innerCollection = files("foo.txt")
+     *     def collection = files().from(innerCollection)
+     *     def copy = collection.shallowCopy()
+     *     collection.from("bar.txt")  // does not affect contents of the copy
+     *     innerCollection.from("qux.txt")  // does affect the content of the copy
+     *
+     *     println(copy.files)  // prints foo.txt, qux.txt
+     * </pre>
+     * <p>
+     * The copy inherits the current set of tasks that build this collection.
+     *
+     * @return the shallow copy of this collection
+     */
+    public FileCollectionInternal shallowCopy() {
+        DefaultConfigurableFileCollection result = new DefaultConfigurableFileCollection(null, resolver, taskDependencyFactory, patternSetFactory, host);
+        result.buildDependency.setValues(buildDependency.getMutableValues());
+        // getFrom returns a live view of the current structure, but here we need a snapshot.
+        result.setFrom(new ArrayList<>(getFrom()));
+        return result;
+    }
+
     private interface ValueCollector {
         void collectSource(Collection<Object> dest);
 

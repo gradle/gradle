@@ -1589,4 +1589,90 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         'setFrom([])'  | { it.setFrom([]) }
         'setFrom(*[])' | { it.setFrom(*[]) }
     }
+
+    def "can obtain shallow copy of #description collection"() {
+        given:
+        configuration.setDelegate(this)
+        configuration.setResolveStrategy(Closure.DELEGATE_ONLY)
+        configuration(collection)
+
+        when:
+        def copy = collection.shallowCopy()
+
+        then:
+        copy.files == collection.files
+
+        where:
+        description      | configuration
+        "empty"          | {}
+        "single element" | { it.setFrom(containing(new File("file"))) }
+        "multi-element"  | { it.setFrom(containing(new File("file1"))); it.from(containing(new File("file2"))) }
+        "finalized"      | { it.setFrom(containing(new File("file"))); it.finalizeValue() }
+    }
+
+    def "shallow copy of #description collection does not follow changes to original"() {
+        given:
+        configuration.setDelegate(this)
+        configuration.setResolveStrategy(Closure.DELEGATE_ONLY)
+        configuration(collection)
+
+        when:
+        def copy = collection.shallowCopy()
+        collection.setFrom(containing(new File("other")))
+
+        then:
+        copy.files != collection.files
+        copy.files == expectedCopyContents as Set<File>
+
+        where:
+        description      | expectedCopyContents                             | configuration
+        "empty"          | [] as File[]                                     | {}
+        "single element" | [new File("file")] as File[]                     | { it.setFrom(containing(expectedCopyContents)) }
+        "multi-element"  | [new File("file1"), new File("file2")] as File[] | { it.setFrom(containing(expectedCopyContents[0])); it.from(containing(expectedCopyContents[1])) }
+    }
+
+    def "shallow copy inherits dependencies of the original"() {
+        given:
+        def task = Mock(Task)
+        collection.builtBy("a")
+
+        when:
+        def copyDeps = collection.shallowCopy().buildDependencies.getDependencies(null)
+
+        then:
+        copyDeps == [task] as Set<Task>
+
+        _ * taskResolver.resolveTask("a") >> task
+    }
+
+    def "shallow copy does not follow changes to dependencies of the original"() {
+        given:
+        def task = Mock(Task)
+        collection.builtBy("a")
+
+        when:
+        def copy = collection.shallowCopy()
+        collection.builtBy("b")
+
+        def copyDeps = copy.buildDependencies.getDependencies(null)
+
+        then:
+        copyDeps == [task] as Set<Task>
+
+        _ * taskResolver.resolveTask("a") >> task
+    }
+
+    def "shallow copy reflects changes to inner collection"() {
+        given:
+        def inner = new DefaultConfigurableFileCollection("<display>", fileResolver, taskDependencyFactory, patternSetFactory, host).from(containing(new File("a")))
+        collection.from(inner)
+
+        when:
+        def copy = collection.shallowCopy()
+        inner.from(containing(new File("b")))
+        collection.from(containing(new File("c")))
+
+        then:
+        copy.files == [new File("a"), new File("b")] as Set<File>
+    }
 }
