@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.support.delegates
 import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.AntBuilder
+import org.gradle.api.ImmutableProject
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.PathValidation
@@ -158,6 +159,9 @@ abstract class ProjectDelegate : Project {
 
     override fun getProject(): Project =
         delegate.project
+
+    override fun getAsImmutableProject(): ImmutableProject =
+        delegate.asImmutableProject
 
     override fun dependencies(configureClosure: Closure<*>) =
         delegate.dependencies(configureClosure)

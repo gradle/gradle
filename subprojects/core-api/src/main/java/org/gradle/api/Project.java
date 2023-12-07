@@ -53,6 +53,7 @@ import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -426,6 +427,14 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return This project. Never returns null.
      */
     Project getProject();
+
+    /**
+     * <p>Returns an immutable view of this project, safe for use with isolated projects.</p>
+     *
+     * @return This project as an {@link ImmutableProject}. Never returns null.
+     */
+    @NotNull
+    ImmutableProject getAsImmutableProject();
 
     /**
      * <p>Returns the set containing this project and its subprojects.</p>
