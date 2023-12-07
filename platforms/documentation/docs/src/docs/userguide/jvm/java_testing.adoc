@@ -365,7 +365,8 @@ link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLoggingContainer.htm
 
 JUnit, JUnit Platform and TestNG allow sophisticated groupings of test methods.
 
-NOTE: This section applies to grouping individual test classes or methods within a collection of tests that serve the same testing purpose (unit tests, integration tests, acceptance tests, etc.).  For dividing test classes based upon their purpose, see the incubating <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>> plugin.
+NOTE: This section applies to grouping individual test classes or methods within a collection of tests that serve the same testing purpose (unit tests, integration tests, acceptance tests, etc.).
+For dividing test classes based upon their purpose, see the incubating <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>> plugin.
 
 JUnit 4.8 introduced the concept of categories for grouping JUnit 4 tests classes and methods.footnote:[The JUnit wiki contains a detailed description on how to work with JUnit categories: https://github.com/junit-team/junit/wiki/Categories[].] link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:useJUnit(org.gradle.api.Action)[Test.useJUnit(org.gradle.api.Action)] allows you to specify the JUnit categories you want to include and exclude. For example, the following configuration includes tests in `CategoryA` and excludes those in `CategoryB` for the `test` task:
 
@@ -565,11 +566,15 @@ This means, all dependencies, including Jars with module information, are put on
 The advantage is that all internal classes of your (or other) modules are then accessible directly in tests.
 This may be a totally valid setup for unit testing, where we do not care about the larger module structure, but only about testing single functions.
 
-NOTE: If you are using Eclipse: By default, Eclipse also runs unit tests as modules using module patching (see <<#sec:java_testing_modular_patching,below>>).
+[NOTE]
+====
+If you are using Eclipse: By default, Eclipse also runs unit tests as modules using module patching (see <<#sec:java_testing_modular_patching,below>>).
 In an imported Gradle project, unit testing a module with the Eclipse test runner might fail.
 You then need to manually adjust the classpath/module path in the test run configuration or delegate test execution to Gradle.
+
 This only concerns the test execution.
 Unit test compilation and development works fine in Eclipse.
+====
 
 === Blackbox integration testing
 

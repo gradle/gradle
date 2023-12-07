@@ -274,7 +274,6 @@ Combining these two ways you can enable globally and disable for certain run con
 [TIP]
 ====
 You can use the link:https://github.com/JetBrains/gradle-idea-ext-plugin[gradle-idea-ext-plugin] to configure IntelliJ run configurations from your build.
-
 This is a good way to enable the configuration cache only for the IDE.
 ====
 
@@ -663,7 +662,6 @@ If problems with the configuration cache are found then Gradle will fail the bui
 [TIP]
 ====
 A good testing strategy for a Gradle plugin is to run its whole test suite with the configuration cache enabled.
-
 This requires testing the plugin with a supported Gradle version.
 
 If the plugin already supports a range of Gradle versions it might already have tests for multiple Gradle versions.

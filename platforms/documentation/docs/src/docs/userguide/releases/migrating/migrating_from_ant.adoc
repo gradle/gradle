@@ -250,9 +250,12 @@ include::sample[dir="snippets/antMigration/fileDeps/groovy",files="build.gradle[
 
 The above sample will add `our-custom.jar`, `awesome-framework-2.0.jar` and `utility-library-1.0.jar` to the `implementation` configuration, which is used to compile the project's code.
 
-NOTE: You can also specify a group in these module dependencies, even though they don't actually have a group.
-That's because the flat-directory repository simply ignores this information. +
+[NOTE]
+====
+You can also specify a group in these module dependencies, even though they don't actually have a group.
+That's because the flat-directory repository simply ignores this information.
 Then, if you add a normal Maven or Ivy-compatible repository at a later date, Gradle will download the module dependencies that are declared with a group from that repository rather than the flat-directory one.
+====
 
 [[migant:ivy_deps]]
 === Migrating Ivy dependencies

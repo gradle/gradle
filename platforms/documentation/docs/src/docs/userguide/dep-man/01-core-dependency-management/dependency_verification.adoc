@@ -323,10 +323,13 @@ Signatures are used to assess the _provenance_ of a dependency (it tells who sig
 
 As enabling signature verification usually means a higher level of security, you might want to replace checksum verification with signature verification.
 
-WARNING: Signatures _can_ also be used to assess the integrity of a dependency similarly to checksums.
+[WARNING]
+====
+Signatures _can_ also be used to assess the integrity of a dependency similarly to checksums.
 Signatures are signatures of the _hash_ of artifacts, not artifacts themselves.
 This means that if the signature is done on an _unsafe hash_ (even SHA1), then you're not correctly assessing the _integrity_ of a file.
 For this reason, if you care about both, you need to add both signatures _and_ checksums to your verification metadata.
+====
 
 However:
 
@@ -411,9 +414,12 @@ Without this, the build would fail with this error:
     - On artifact javaparser-core-3.6.11.jar (com.github.javaparser:javaparser-core:3.6.11) in repository 'MavenRepo': Artifact was signed with key '8756c4f765c9ac3cb6b85d62379ce192d401ab61' (Bintray (by JFrog) <****>) and passed verification but the key isn't in your trusted keys list.
 ----
 
-NOTE: The key IDs that Gradle shows in error messages are the key IDs found in the signature file it tries to verify.
+[NOTE]
+====
+The key IDs that Gradle shows in error messages are the key IDs found in the signature file it tries to verify.
 It doesn't mean that it's necessarily the keys that you should trust.
 In particular, if the signature is correct but done by a malicious entity, Gradle wouldn't tell you.
+====
 
 [[sec:trusting-keys-globally]]
 === Trusting keys globally
@@ -1050,9 +1056,12 @@ This will ensure, for example, that you trust all the plugins you use.
 However, the plugins themselves may need to resolve additional dependencies that it doesn't make sense to ask the user to accept.
 For this purpose, Gradle provides an API which allows _disabling dependency verification on some specific configurations_.
 
-WARNING: Disabling dependency verification, if you care about security, is not a good idea.
+[WARNING]
+====
+Disabling dependency verification, if you care about security, is not a good idea.
 This API mostly exist for cases where it doesn't make sense to check dependencies.
 However, in order to be on the safe side, Gradle will systematically print a warning whenever verification has been disabled for a specific configuration.
+====
 
 As an example, a plugin may want to check if there are _newer_ versions of a library available and list those versions.
 It doesn't make sense, in this context, to ask the user to put the checksums of the POM files of the newer releases because by definition, they don't know about them.

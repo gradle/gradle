@@ -104,8 +104,11 @@ include::sample[dir="snippets/testing/jacoco-quickstart/kotlin",files="build.gra
 include::sample[dir="snippets/testing/jacoco-quickstart/groovy",files="build.gradle[tags=testtask-configuration]"]
 ====
 
-NOTE: Tasks configured for running with the JaCoCo agent delete the destination file for the execution data when the task starts executing.
+[NOTE]
+====
+Tasks configured for running with the JaCoCo agent delete the destination file for the execution data when the task starts executing.
 This ensures that no stale coverage data is present in the execution data.
+====
 
 === Default values of the JaCoCo Task extension
 

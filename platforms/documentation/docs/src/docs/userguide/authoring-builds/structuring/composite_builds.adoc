@@ -108,7 +108,6 @@ include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/include-pl
 [NOTE]
 ====
 You may also use the `includeBuild` mechanism outside `pluginManagement` to include plugin builds.
-
 However, this does not support all use cases and including plugin builds like that might be deprecated in a future Gradle version.
 ====
 
@@ -127,7 +126,6 @@ Every included build:
 [NOTE]
 ====
 When a composite build is included into another composite build, then both included builds would have the same parent.
-
 In other words, nested composite build structure is flattened.
 ====
 

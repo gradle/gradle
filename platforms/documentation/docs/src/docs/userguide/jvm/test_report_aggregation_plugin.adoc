@@ -70,7 +70,12 @@ More information about the variants produced by test execution are available in 
 
 == Reports
 
-IMPORTANT: By default, Gradle stops executing tasks when any task fails -- including test failures. To ensure that your builds always generate aggregation reports, specify the `--continue` option in your Gradle command. For more information, see <<command_line_interface.adoc#sec:continue_build_on_failure, continuing the build when a failure occurs>>.
+[IMPORTANT]
+====
+By default, Gradle stops executing tasks when any task fails -- including test failures.
+To ensure that your builds always generate aggregation reports, specify the `--continue` option in your Gradle command.
+For more information, see <<command_line_interface.adoc#sec:continue_build_on_failure, continuing the build when a failure occurs>>.
+====
 
 === Automatic report creation
 

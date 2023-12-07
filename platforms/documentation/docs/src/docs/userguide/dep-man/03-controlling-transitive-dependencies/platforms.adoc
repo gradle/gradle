@@ -215,9 +215,12 @@ include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",fil
 include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="settings.gradle[tags=extra_catalog]"]
 ====
 
-NOTE: Each catalog will generate an extension applied to all projects for accessing its content.
+[NOTE]
+====
+Each catalog will generate an extension applied to all projects for accessing its content.
 As such it makes sense to reduce the chance of collisions by picking a name that reduces the potential conflicts.
 As an example, one option is to pick a name that ends with `Libs`.
+====
 
 [[sub:conventional-dependencies-toml]]
 === The libs.versions.toml file
@@ -489,10 +492,13 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-enforcedConstraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
 ====
 
-WARNING: Using `enforcedPlatform` needs to be considered with care if your software component can be consumed by others.
+[WARNING]
+====
+Using `enforcedPlatform` needs to be considered with care if your software component can be consumed by others.
 This declaration is effectively transitive and so will apply to the dependency graph of your consumers.
 Unfortunately they will have to use `exclude` if they happen to disagree with one of the forced versions.
 Instead, if your reusable software component has a strong opinion on some third party dependency versions, consider using a <<rich_versions.adoc#sec:strict-version,rich version declaration>> with a `strictly`.
+====
 
 [[sub:platforms-vs-catalog]]
 == Should I use a platform or a catalog?

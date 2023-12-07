@@ -38,9 +38,12 @@ It will cause Gradle to verify that resolution results do not change, resulting 
 Modifications to your build that would impact the resolved set of dependencies will cause it to fail.
 This makes sure that changes, either in published dependencies or build definitions, do not alter resolution without adapting the lock state.
 
-NOTE: Dependency locking makes sense only with <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic versions>>.
+[NOTE]
+====
+Dependency locking makes sense only with <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic versions>>.
 It will have no impact on <<dynamic_versions.adoc#sub:declaring_dependency_with_changing_version,changing versions>> (like `-SNAPSHOT`) whose coordinates remain the same, though the content may change.
 Gradle will even emit a warning when persisting lock state and changing dependencies are present in the resolution result.
+====
 
 == Enabling locking on configurations
 

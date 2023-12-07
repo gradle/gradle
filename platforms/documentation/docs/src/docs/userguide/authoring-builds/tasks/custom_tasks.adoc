@@ -483,7 +483,12 @@ If any failures occur while executing the asynchronous work, the task will fail 
 
 In some cases, however, it might be desirable to wait for work to complete before exiting the task action. This is possible using the link:{javadocPath}/org/gradle/workers/WorkQueue.html#await--[WorkQueue.await()] method. As in the case of allowing the work to complete asynchronously, any failures that occur while executing an item of work will be surfaced as a link:{javadocPath}/org/gradle/workers/WorkerExecutionException.html[WorkerExecutionException] thrown from the link:{javadocPath}/org/gradle/workers/WorkQueue.html#await--[WorkQueue.await()] method.
 
-NOTE: Note that Gradle will only begin running other independent tasks in parallel when a task has exited a task action and returned control of execution to Gradle. When link:{javadocPath}/org/gradle/workers/WorkQueue.html#await--[WorkQueue.await()] is used, execution does not leave the task action. This means that Gradle will not allow other tasks to begin executing and will wait for the task action to complete before doing so.
+[NOTE]
+====
+Note that Gradle will only begin running other independent tasks in parallel when a task has exited a task action and returned control of execution to Gradle.
+When link:{javadocPath}/org/gradle/workers/WorkQueue.html#await--[WorkQueue.await()] is used, execution does not leave the task action.
+This means that Gradle will not allow other tasks to begin executing and will wait for the task action to complete before doing so.
+====
 
 .Waiting for asynchronous work to complete
 ====

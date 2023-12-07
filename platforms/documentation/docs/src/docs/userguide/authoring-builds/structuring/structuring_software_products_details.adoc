@@ -74,7 +74,6 @@ It might also speed up the IDE performance in the case of a very large code base
 [NOTE]
 ====
 If all components live in the same repository, you should only have one <<gradle_wrapper.adoc#sec:adding_wrapper,Gradle wrapper>> in the root of the repository.
-
 If you have an umbrella build there, you can use that to manage the wrapper.
 ====
 

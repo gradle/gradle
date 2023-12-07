@@ -301,7 +301,6 @@ Working with containers in the Gradle Kotlin DSL is <<kotlin_dsl.adoc#kotdsl:con
 .Knowing the type of a task
 --
 If you don't know what type a task has, then you can find that information out via the built-in `help` task.
-
 Simply pass it the name of the task you're interested in using the `--task` option, like so:
 
 [source]

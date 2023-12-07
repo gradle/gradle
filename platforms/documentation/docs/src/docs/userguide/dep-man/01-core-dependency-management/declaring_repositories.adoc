@@ -86,9 +86,12 @@ include::sample[dir="snippets/dependencyManagement/declaringRepositories-multipl
 include::sample[dir="snippets/dependencyManagement/declaringRepositories-multipleRepositories/groovy",files="build.gradle[tags=multiple-repositories]"]
 ====
 
-NOTE: The order of declaration determines how Gradle will check for dependencies at runtime.
+[NOTE]
+====
+The order of declaration determines how Gradle will check for dependencies at runtime.
 If Gradle finds a module descriptor in a particular repository, it will attempt to download all of the artifacts for that module from _the same repository_.
 You can learn more about the inner workings of <<dependency_resolution.adoc#sec:how-gradle-downloads-deps, dependency downloads>>.
+====
 
 === Strict limitation to declared repositories
 
@@ -132,7 +135,8 @@ Instead, Gradle will dynamically generate a module descriptor (without any depen
 ====
 As Gradle prefers to use modules whose descriptor has been created from real meta-data rather than being generated, flat directory repositories cannot be used to override artifacts with real meta-data from other repositories declared in the build.
 
-For example, if Gradle finds only `jmxri-1.2.1.jar` in a flat directory repository, but `jmxri-1.2.1.pom` in another repository that supports meta-data, it will use the second repository to provide the module. +
+For example, if Gradle finds only `jmxri-1.2.1.jar` in a flat directory repository, but `jmxri-1.2.1.pom` in another repository that supports meta-data, it will use the second repository to provide the module.
+
 For the use case of overriding remote artifacts with local ones consider using an Ivy or Maven repository instead whose URL points to a local directory.
 ====
 
@@ -440,17 +444,14 @@ Before 6.0, `artifact()` was included in the defaults.
 Leading to some inefficiency when modules are missing completely.
 
 To restore this behavior, for example, for Maven central you can use:
-
 ```
 mavenCentral { metadataSources { mavenPom(); artifact() } }
 ```
 
 In a similar way, you can opt into the new behavior in older Gradle versions using:
-
 ```
 mavenCentral { metadataSources { mavenPom() } }
 ```
-
 --
 
 Since Gradle 5.3, when parsing a metadata file, be it Ivy or Maven, Gradle will look for a marker indicating that a matching Gradle Module Metadata files exists.
@@ -587,7 +588,8 @@ Maven and Ivy repositories support the use of various transport protocols. At th
 | <<#sec:gcs-repositories,Documentation>>
 |===
 
-NOTE: Username and password should never be checked in plain text into version control as part of your build file. You can store the credentials in a local `gradle.properties` file and use one of the open source Gradle plugins for encrypting and consuming credentials e.g. the link:https://plugins.gradle.org/plugin/nu.studer.credentials[credentials plugin].
+NOTE: Username and password should never be checked in plain text into version control as part of your build file.
+You can store the credentials in a local `gradle.properties` file and use one of the open source Gradle plugins for encrypting and consuming credentials e.g. the link:https://plugins.gradle.org/plugin/nu.studer.credentials[credentials plugin].
 
 The transport protocol is part of the URL definition for a repository.
 The following build script demonstrates how to create HTTP-based Maven and Ivy repositories:

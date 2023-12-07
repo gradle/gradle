@@ -68,7 +68,6 @@ Each init script also implements the link:{groovyDslPath}/org.gradle.api.Script.
 [NOTE]
 ====
 When writing init scripts, pay attention to the scope of the reference you are trying to access.
-
 For example, properties loaded from `gradle.properties` are available on `Settings` or `Project` instances but not on the `Gradle` one.
 ====
 

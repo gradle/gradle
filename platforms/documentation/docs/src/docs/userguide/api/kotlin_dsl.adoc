@@ -220,9 +220,12 @@ The Kotlin DSL currently supports type-safe model accessors for any of the follo
 * Elements in <<kotdsl:containers,project-extension containers>> (for example the source sets contributed by the Java Plugin that are added to the `sourceSets` container)
 * Extensions on each of the above
 
-IMPORTANT: Only the main project build scripts and precompiled project script plugins have type-safe model accessors.
+[IMPORTANT]
+====
+Only the main project build scripts and precompiled project script plugins have type-safe model accessors.
 Initialization scripts, settings scripts, script plugins do not.
 These limitations will be removed in a future Gradle release.
+====
 
 The set of type-safe model accessors available is calculated right before evaluating the script body, immediately after the `plugins {}` block.
 Any model elements contributed after that point do not work with type-safe model accessors.
@@ -568,7 +571,11 @@ include::sample[dir="snippets/kotlinDsl/containers-delegated-properties/kotlin",
 <1> Uses the reference to the `myTask1` task rather than a task path
 
 
-NOTE: The above rely on configuration avoidance APIs. If you need to eagerly configure or register container elements simply replace link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/existing.html[`existing()`] with link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/getting.html[`getting()`] and link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/registering.html[`registering()`] with link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/creating.html[`creating()`].
+[NOTE]
+====
+The above rely on configuration avoidance APIs.
+If you need to eagerly configure or register container elements simply replace link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/existing.html[`existing()`] with link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/getting.html[`getting()`] and link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/registering.html[`registering()`] with link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/creating.html[`creating()`].
+====
 
 === Configuring multiple container elements together
 

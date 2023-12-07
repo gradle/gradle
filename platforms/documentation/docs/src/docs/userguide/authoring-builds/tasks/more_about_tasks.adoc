@@ -78,9 +78,13 @@ include::sample[dir="snippets/tasks/defineAsKotlinDelegatedProperty/kotlin",file
 include::sample[dir="snippets/tasks/defineAsKotlinDelegatedProperty/groovy",files="build.gradle[]"]
 ====
 
-WARNING: If you look at the API of the _tasks_ container you may notice that there are additional methods to _create_ tasks.
-The use of these methods is discouraged and will be deprecated in future versions.
+[WARNING]
+====
+If you look at the API of the _tasks_ container you may notice that there are additional methods to _create_ tasks.
+*The use of these methods is discouraged* and will be deprecated in future versions.
+
 These methods only exist for backward compatibility as they were introduced before <<task_configuration_avoidance#task_configuration_avoidance,task configuration avoidance>> was added to Gradle.
+====
 
 [[sec:locating_tasks]]
 == Locating tasks
@@ -166,7 +170,6 @@ Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskCo
 [TIP]
 ====
 If you use the _Kotlin DSL_ and the task you want to configure was added by a plugin, you can use a convenient accessor for the task.
-
 That is, instead of `tasks.named("test")` you can just write `tasks.test`.
 ====
 

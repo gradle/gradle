@@ -199,9 +199,12 @@ Given a required dependency, with a version, Gradle attempts to resolve the depe
 * All of the artifacts for the module are then requested from the _same repository_ that was chosen in the process above.
 * All of that data, including the repository source and potential misses are then stored in the <<#sec:dependency_cache>>.
 
-NOTE: The penultimate point above is what can make the integration with <<declaring_repositories.adoc#sec:case-for-maven-local,Maven Local>> problematic.
+[NOTE]
+====
+The penultimate point above is what can make the integration with <<declaring_repositories.adoc#sec:case-for-maven-local,Maven Local>> problematic.
 As it is a cache for Maven, it will sometimes miss some artifacts of a given module.
 If Gradle is sourcing such a module from Maven Local, it will consider the missing artifacts to be missing altogether.
+====
 
 === Repository disabling
 

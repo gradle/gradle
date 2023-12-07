@@ -66,9 +66,12 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-resolut
 include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/groovy",files="build.gradle[tags=denying_version]"]
 ====
 
-NOTE: There's a difference with using the _reject_ directive of <<rich_versions.adoc#rich-version-constraints,rich version constraints>>: rich versions will cause the build to fail if a rejected version is found in the graph, or select a non rejected version when using dynamic dependencies.
+[NOTE]
+====
+There's a difference with using the _reject_ directive of <<rich_versions.adoc#rich-version-constraints,rich version constraints>>: rich versions will cause the build to fail if a rejected version is found in the graph, or select a non rejected version when using dynamic dependencies.
 Here, we _manipulate the requested versions_ in order to select a different version when we find a rejected one.
 In other words, this is a _solution_ to rejected versions, while rich version constraints allow declaring the _intent_ (you should not use this version).
+====
 
 [[sec:module_replacement]]
 == Using module replacement rules
@@ -258,8 +261,6 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-capabil
 Capabilities which are declared in a substitution rule on the requested dependency constitute part of the dependency match specification, and therefore dependencies which do _not_ require the capabilities will not be matched.
 
 Please refer to the link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitutions.html#variant-org.gradle.api.artifacts.component.ComponentSelector-org.gradle.api.Action-[Substitution DSL API docs] for a complete reference of the variant substitution API.
-
-WARNING: In <<composite_builds.adoc#composite_build_intro,composite builds>>, the rule that you have to match the exact requested dependency capabilities is not applied: when using composites, Gradle will automatically match the requested capabilities. In other words, it is implicit that if you include another build, you are substituting _all variants_ of the substituted module with an equivalent variant in the included build.
 
 [[sec:substitution_with_classifier]]
 === Substituting a dependency with a classifier or artifact

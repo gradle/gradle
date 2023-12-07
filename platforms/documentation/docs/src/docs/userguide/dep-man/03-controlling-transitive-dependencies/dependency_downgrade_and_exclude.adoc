@@ -21,9 +21,12 @@
 Gradle resolves any dependency version conflicts by selecting the latest version found in the dependency graph.
 Some projects might need to divert from the default behavior and enforce an earlier version of a dependency e.g. if the source code of the project depends on an older API of a dependency than some of the external libraries.
 
-WARNING: Forcing a version of a dependency requires a conscious decision.
+[WARNING]
+====
+Forcing a version of a dependency requires a conscious decision.
 Changing the version of a transitive dependency might lead to runtime errors if external libraries do not properly function without them.
 Consider upgrading your source code to use a newer version of the library as an alternative approach.
+====
 
 In general, forcing dependencies is done to downgrade a dependency.
 There might be different use cases for downgrading:
@@ -91,9 +94,12 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 
 While the previous section showed how you can enforce a certain version of a transitive dependency, this section covers _excludes_ as a way to remove a transitive dependency completely.
 
-WARNING: Similar to forcing a version of a dependency, excluding a dependency completely requires a conscious decision.
+[WARNING]
+====
+Similar to forcing a version of a dependency, excluding a dependency completely requires a conscious decision.
 Excluding a transitive dependency might lead to runtime errors if external libraries do not properly function without them.
 If you use excludes, make sure that you do not utilise any code path requiring the excluded dependency by sufficient test coverage.
+====
 
 Transitive dependencies can be excluded on the level of a declared dependency.
 Exclusions are spelled out as a key/value pair via the attributes `group` and/or `module` as shown in the example below.

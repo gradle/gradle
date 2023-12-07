@@ -173,8 +173,11 @@ include::sample[dir="snippets/files/archives/groovy",files="build.gradle[tags=un
 <2> Remaps the path of the extracting files into the destination directory by dropping the `libs` segment from the file path
 <3> Ignores the empty directories resulting from the remapping, see Caution note below
 
-CAUTION: You can not change the destination path of empty directories with this technique.
+[CAUTION]
+====
+You can not change the destination path of empty directories with this technique.
 You can learn more in https://github.com/gradle/gradle/issues/2940[this issue].
+====
 
 If you're a Java developer and are wondering why there is no `jarTree()` method, that's because `zipTree()` works perfectly well for JARs, WARs and EARs.
 
@@ -302,7 +305,12 @@ In addition, this example could be improved further by relying on the Java plugi
 Gradle provides the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method for specifying the location of a single file or directory.
 Relative paths are resolved relative to the project directory, while absolute paths remain unchanged.
 
-CAUTION: Never use `new File(relative path)` unless passed to `file()` or `files()` or `from()` or other methods being defined in terms of `file()` or `files()`. Otherwise this creates a path relative to the current working directory (CWD). Gradle can make no guarantees about the location of the CWD, which means builds that rely on it may break at any time.
+[CAUTION]
+====
+Never use `new File(relative path)` unless passed to `file()` or `files()` or `from()` or other methods being defined in terms of `file()` or `files()`.
+Otherwise this creates a path relative to the current working directory (CWD).
+Gradle can make no guarantees about the location of the CWD, which means builds that rely on it may break at any time.
+====
 
 Here are some examples of using the `file()` method with different types of argument:
 
@@ -708,7 +716,12 @@ Notice how the `src/dist` configuration has a nested inclusion specification: th
 
 The above example also demonstrates how you can copy files into a subdirectory of the destination either by using a child `into()` on a `from()` or a child `from()` on an `into()`. Both approaches are acceptable, but you may want to create and follow a convention to ensure consistency across your build files.
 
-NOTE: Don't get your `into()` specifications mixed up! For a normal copy — one to the filesystem rather than an archive — there should always be _one_ "root" `into()` that simply specifies the overall destination directory of the copy. Any other `into()` should have a child spec attached and its path will be relative to the root `into()`.
+[NOTE]
+====
+Don't get your `into()` specifications mixed up! ]
+For a normal copy — one to the filesystem rather than an archive — there should always be _one_ "root" `into()` that simply specifies the overall destination directory of the copy.
+Any other `into()` should have a child spec attached and its path will be relative to the root `into()`.
+====
 
 One final thing to be aware of is that a child copy spec inherits its destination path, include patterns, exclude patterns, copy actions, name mappings and filters from its parent. So be careful where you place your configuration.
 

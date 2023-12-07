@@ -46,9 +46,13 @@ Executing the build (e.g. using `gradle check`) will now handle several things f
 3. Gradle chooses a toolchain matching the requirements (any Java 17 toolchain for the example above).
 4. If no matching toolchain is found, Gradle can automatically download a matching one based on the configured <<#sub:download_repositories,toolchain download repositories>>.
 
-NOTE: Toolchain support is available in the Java plugins and for the tasks they define.
+[NOTE]
+====
+Toolchain support is available in the Java plugins and for the tasks they define.
+
 For the Groovy plugin, compilation is supported but not yet Groovydoc generation.
 For the Scala plugin, compilation and Scaladoc generation are supported.
+====
 
 [[sec:vendors]]
 === Selecting toolchains by vendor
@@ -169,7 +173,7 @@ include::sample[dir="snippets/java/toolchain-config-task/kotlin/",files="build.g
 include::sample[dir="snippets/java/toolchain-config-task/groovy/",files="build.gradle[tags=java-compiler]"]
 ====
 
-WARNING: The examples above use tasks with `RegularFileProperty` and `DirectoryProperty` properties which allow lazy configuration. +
+WARNING: The examples above use tasks with `RegularFileProperty` and `DirectoryProperty` properties which allow lazy configuration.
 Doing respectively `launcher.get().executablePath`, `launcher.get().metadata.installationPath` or `compiler.get().executablePath` instead will give you the full path for the given toolchain but note that this may realize (and provision) a toolchain eagerly.
 
 [[sec:auto_detection]]
@@ -329,9 +333,12 @@ Gradle will treat these directories as possible installations but will not desce
 org.gradle.java.installations.paths=/custom/path/jdk1.8,/shared/jre11
 ----
 
-NOTE: Gradle does not prioritize custom toolchains over <<sec:auto_detection,auto-detected>> toolchains.
+[NOTE]
+====
+Gradle does not prioritize custom toolchains over <<sec:auto_detection,auto-detected>> toolchains.
 If you enable auto-detection in your build, custom toolchains extend the set of toolchain locations.
 Gradle picks a toolchain according to the <<sec:precedence,precedence rules>>.
+====
 
 [[sec:precedence]]
 == Toolchain installations precedence

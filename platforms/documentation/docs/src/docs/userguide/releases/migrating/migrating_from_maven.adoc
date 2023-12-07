@@ -607,7 +607,6 @@ To learn more, see <<ant#ant,Using Ant from Gradle>>.
 [TIP]
 ====
 It may be simpler and cleaner to just <<custom_tasks#custom_tasks,create custom task types>> to replace the work that Ant is doing for you.
-
 You can then more readily benefit from <<incremental_build.adoc#incremental_build,incremental build>> and other useful Gradle features.
 ====
 

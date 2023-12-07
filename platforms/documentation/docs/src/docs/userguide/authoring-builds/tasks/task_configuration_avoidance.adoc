@@ -63,7 +63,12 @@ In the event you still need to get access to a Task instance, you can use link:{
 [[sec:how_do_i_order_tasks]]
 === How do I order tasks with configuration avoidance in mind?
 
-NOTE: Calling ordering methods will not cause task creation by itself. All these methods do is declare relationships. However, it's important to note, that the existence of these relationships might indirectly cause task creation in later stages of the build process.
+[NOTE]
+====
+Calling ordering methods will not cause task creation by itself.
+All these methods do is declare relationships.
+However, it's important to note, that the existence of these relationships might indirectly cause task creation in later stages of the build process.
+====
 
 When task relationships need to be established (i.e. `dependsOn`, `finalizedBy`, `mustRunAfter`, `shouldRunAfter`), a distinction can be made between soft, and strong relationships, as their effects on task creation in configuration time differ:
 

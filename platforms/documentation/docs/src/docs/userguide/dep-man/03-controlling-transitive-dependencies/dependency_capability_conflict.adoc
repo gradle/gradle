@@ -54,10 +54,13 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 
 Now the build is going to _fail_ whenever the two components are found in the same dependency graph.
 
-NOTE: At this stage, Gradle will _only_ make more builds fail.
+[NOTE]
+====
+At this stage, Gradle will _only_ make more builds fail.
 It will **not** automatically fix the problem for you, but it helps you realize that you have a problem.
 It is recommended to write such rules in _plugins_ which are then applied to your builds.
 Then, users _have to_ express their preferences, if possible, or fix the problem of having incompatible things on the classpath, as explained in the following section.
+====
 
 [[sub:selecting-between-candidates]]
 == Selecting between candidates

@@ -20,9 +20,12 @@ Gradle uses a convention-over-configuration approach to building JVM-based proje
 We will look at Java projects in detail in this chapter, but most of the topics apply to other supported JVM languages as well, such as link:https://kotlinlang.org/docs/reference/using-gradle.html#targeting-the-jvm[Kotlin], <<groovy_plugin.adoc#groovy_plugin,Groovy>> and <<scala_plugin.adoc#scala_plugin,Scala>>.
 If you don't have much experience with building JVM-based projects with Gradle, take a look at the link:../samples/index.html#java[Java samples] for step-by-step instructions on how to build various types of basic Java projects.
 
-NOTE: The example in this section use the Java Library Plugin.
+[NOTE]
+====
+The example in this section use the Java Library Plugin.
 However the described features are shared by all JVM plugins.
 Specifics of the different plugins are available in their dedicated documentation.
+====
 
 TIP: There are a number of hands-on samples that you can explore for link:../samples/index.html#java[Java], link:../samples/index.html#groovy[Groovy], link:../samples/index.html#scala[Scala] and link:../samples/index.html#kotlin[Kotlin].
 
@@ -46,10 +49,13 @@ By applying the Java Library Plugin, you get a whole host of features:
 
 This isn't sufficient to build any non-trivial Java project — at the very least, you'll probably have some file dependencies. But it means that your build script only needs the information that is specific to _your_ project.
 
-NOTE: Although the properties in the example are optional, we recommend that you specify them in your projects.
+[NOTE]
+====
+Although the properties in the example are optional, we recommend that you specify them in your projects.
 Configuring the toolchain protects against problems with the project being built with different Java versions.
 The version string is important for tracking the progression of the project.
 The project version is also used in archive names by default.
+====
 
 The Java Library Plugin also integrates the above tasks into the standard <<base_plugin.adoc#sec:base_tasks,Base Plugin lifecycle tasks>>:
 
@@ -611,7 +617,8 @@ NOTE: This plugin is the exception as it does not apply the Java Plugin.
 [[sec:feature_preview]]
 == Enabling Java preview features
 
-WARNING: Using a Java preview feature is very likely to make your code incompatible with that compiled without a feature preview. As a consequence, we strongly recommend you not to publish libraries compiled with preview features and restrict the use of feature previews to toy projects.
+WARNING: Using a Java preview feature is very likely to make your code incompatible with that compiled without a feature preview.
+As a consequence, we strongly recommend you not to publish libraries compiled with preview features and restrict the use of feature previews to toy projects.
 
 To enable Java link:https://openjdk.java.net/jeps/12[preview features] for compilation, test execution and runtime, you can use the following DSL snippet:
 

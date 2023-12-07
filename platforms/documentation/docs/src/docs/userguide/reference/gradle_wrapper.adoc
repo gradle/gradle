@@ -59,7 +59,6 @@ include::{snippetsPath}/wrapper/simple/tests/wrapperCommandLine.out[]
 To make the Wrapper files available to other developers and execution environments, you need to check them into version control.
 Wrapper files, including the JAR file, are small.
 Adding the JAR file to version control is expected.
-
 Some organizations do not allow projects to submit binary files to version control, and there is no workaround available.
 ====
 
@@ -281,7 +280,6 @@ Credentials in system properties take precedence over the ones embedded in `dist
 [TIP]
 ====
 HTTP Basic Authentication should only be used with `HTTPS` URLs and not plain `HTTP` ones.
-
 With Basic Authentication, the user credentials are sent in clear text.
 ====
 
