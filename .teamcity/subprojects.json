@@ -407,14 +407,14 @@
   },
   {
     "name": "internal-architecture-testing",
-    "path": "subprojects/internal-architecture-testing",
+    "path": "platforms/build-infrastructure/internal-architecture-testing",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "internal-build-reports",
-    "path": "subprojects/internal-build-reports",
+    "path": "platforms/build-infrastructure/internal-build-reports",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -435,14 +435,14 @@
   },
   {
     "name": "internal-integ-testing",
-    "path": "subprojects/internal-integ-testing",
+    "path": "platforms/build-infrastructure/internal-integ-testing",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "internal-performance-testing",
-    "path": "subprojects/internal-performance-testing",
+    "path": "platforms/build-infrastructure/internal-performance-testing",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

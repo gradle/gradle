@@ -219,6 +219,10 @@ platform("enterprise") {
 }
 
 platform("build-infrastructure") {
+    subproject("internal-architecture-testing")
+    subproject("internal-build-reports")
+    subproject("internal-integ-testing")
+    subproject("internal-performance-testing")
     subproject("precondition-tester")
 }
 
@@ -226,10 +230,6 @@ platform("build-infrastructure") {
 unassigned {
     subproject("architecture-test")
     subproject("internal-testing")
-    subproject("internal-integ-testing")
-    subproject("internal-performance-testing")
-    subproject("internal-architecture-testing")
-    subproject("internal-build-reports")
     subproject("integ-test")
     subproject("distributions-integ-tests")
     subproject("soak")
