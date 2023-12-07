@@ -72,7 +72,9 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
     public void transform(TransformOutputs outputs) {
         File input = getInput().get().getAsFile();
         if (!input.exists()) {
-            // Don't instrument files that don't exist, these could be files added to classpath via files()
+            // Files can be passed to the artifact transform even if they don't exist,
+            // in the case when user adds a file classpath via files("path/to/jar").
+            // Unfortunately we don't filter them out before the artifact transform is run.
             return;
         }
 
@@ -81,17 +83,20 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         createNewFile(outputs.file(INSTRUMENTED_MARKER_FILE_NAME));
 
         // Instrument jars
-        InstrumentationServices instrumentationServices = getObjects().newInstance(InstrumentationServices.class);
+        InjectedInstrumentationServices injectedServices = getObjects().newInstance(InjectedInstrumentationServices.class);
         File outputFile = outputs.file(INSTRUMENTED_JAR_DIR_NAME + "/" + input.getName());
-        ClasspathElementTransformFactory transformFactory = instrumentationServices.getTransformFactory(getParameters().getAgentSupported().get());
+        ClasspathElementTransformFactory transformFactory = injectedServices.getTransformFactory(getParameters().getAgentSupported().get());
         ClasspathElementTransform transform = transformFactory.createTransformer(input, new InstrumentingClassTransform(), InstrumentingTypeRegistry.EMPTY);
         transform.transform(outputFile);
 
         // Copy original jars after in case they are not in global cache
-        if (instrumentationServices.getGlobalCacheLocations().isInsideGlobalCache(input.getAbsolutePath())) {
-            // The global caches are additive only, so we can use it directly since it shouldn't be deleted or changed during the build.
+        if (injectedServices.getGlobalCacheLocations().isInsideGlobalCache(input.getAbsolutePath())) {
+            // Jars that are already in the global cache don't need to be copied, since
+            // the global caches are additive only and jars shouldn't be deleted or changed during the build.
             outputs.file(getInput());
         } else {
+            // Jars that are in some mutable location (e.g. build/ directory) need to be copied to the global cache,
+            // since daemon keeps them locked when loading them to a classloader, which prevents e.g. deleting the build directory on windows
             File copyOfOriginalFile = outputs.file(ORIGINAL_JAR_DIR_NAME + "/" + input.getName());
             GFileUtils.copyFile(input, copyOfOriginalFile);
         }
@@ -106,14 +111,14 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
     }
 
 
-    static class InstrumentationServices {
+    static class InjectedInstrumentationServices {
 
         private final ClasspathElementTransformFactoryForAgent transformFactory;
         private final ClasspathElementTransformFactoryForLegacy legacyTransformFactory;
         private final GlobalCacheLocations globalCacheLocations;
 
         @Inject
-        public InstrumentationServices(Stat stat, GlobalCacheLocations globalCacheLocations) {
+        public InjectedInstrumentationServices(Stat stat, GlobalCacheLocations globalCacheLocations) {
             this.transformFactory = new ClasspathElementTransformFactoryForAgent(new InPlaceClasspathBuilder(), new ClasspathWalker(stat));
             this.legacyTransformFactory = new ClasspathElementTransformFactoryForLegacy(new InPlaceClasspathBuilder(), new ClasspathWalker(stat));
             this.globalCacheLocations = globalCacheLocations;

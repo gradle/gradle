@@ -229,7 +229,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         outputContains("hello again")
     }
 
-    def "cleans up unused cached JARs in Jar9"() {
+    def "cleans up unused cached JARs in the Jars cache"() {
         given:
         executer.requireIsolatedDaemons() // needs to stop daemon
         requireOwnGradleUserHomeDir() // needs its own journal
@@ -247,7 +247,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
 
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
-        jarsGcFile.lastModified = daysAgo(2)
+        jarsCacheGcFile.lastModified = daysAgo(2)
         writeLastFileAccessTimeToJournal(jar.parentFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
 
         and:
@@ -275,7 +275,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
             userHomeCacheDir.createDir("${DefaultClasspathTransformerCacheFactory.CACHE_NAME}-1"),
             userHomeCacheDir.createDir("${DefaultClasspathTransformerCacheFactory.CACHE_NAME}-2")
         ]
-        jarsGcFile.createFile().lastModified = daysAgo(2)
+        jarsCacheGcFile.createFile().lastModified = daysAgo(2)
 
         when:
         succeeds("help")
@@ -534,7 +534,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
     }
 
 
-    TestFile getJarsGcFile() {
+    TestFile getJarsCacheGcFile() {
         return jarsCacheDir.file("gc.properties")
     }
 
