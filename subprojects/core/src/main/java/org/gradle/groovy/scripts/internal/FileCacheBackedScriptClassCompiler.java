@@ -40,8 +40,6 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork;
-import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork.BuildScriptCompileInputs;
-import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork.BuildScriptLanguage;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
@@ -57,6 +55,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.function.Consumer;
 
 import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic;
 
@@ -130,16 +129,11 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         Action<? super ClassNode> verifier,
         Class<T> scriptBaseClass
     ) {
-        String unitOfWorkDisplayName = getUnitOfWorkDisplayName(dslId);
-        BuildScriptCompileInputs inputs = visitor -> {
-            visitor.visitInputProperty(DSL_ID_PROPERTY_NAME, () -> dslId);
-            visitor.visitInputProperty(SOURCE_HASH_PROPERTY_NAME, () -> sourceHashCode);
-            visitor.visitInputProperty(CLASSPATH_PROPERTY_NAME, () -> classLoaderHierarchyHasher.getClassLoaderHash(classLoader));
-        };
-        UnitOfWork unitOfWork = new BuildScriptCompileUnitOfWork(
-            BuildScriptLanguage.GROOVY,
-            unitOfWorkDisplayName,
-            inputs,
+        UnitOfWork unitOfWork = new GroovyScriptCompileUnitOfWork(
+            dslId,
+            sourceHashCode,
+            classLoader,
+            classLoaderHierarchyHasher,
             workspaceProvider,
             fileCollectionFactory,
             inputFingerprinter,
@@ -150,10 +144,6 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             .execute()
             .getOutputAs(File.class)
             .get();
-    }
-
-    private static String getUnitOfWorkDisplayName(String dslId) {
-        return "Groovy DSL script compilation (" + dslId + ")";
     }
 
     private ExecutionEngine getExecutionEngine(Object target) {
@@ -200,6 +190,50 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
 
     private File metadataDir(File outputDir) {
         return new File(outputDir, "metadata");
+    }
+
+    private static class GroovyScriptCompileUnitOfWork extends BuildScriptCompileUnitOfWork {
+
+        private final String dslId;
+        private final Consumer<File> compileAction;
+        private final HashCode sourceHashCode;
+        private final ClassLoader classLoader;
+        private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
+
+        public GroovyScriptCompileUnitOfWork(
+            String dslId,
+            HashCode sourceHashCode,
+            ClassLoader classLoader,
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            ImmutableWorkspaceProvider workspaceProvider,
+            FileCollectionFactory fileCollectionFactory,
+            InputFingerprinter inputFingerprinter,
+            Consumer<File> compileAction
+        ) {
+            super(workspaceProvider, fileCollectionFactory, inputFingerprinter);
+            this.dslId = dslId;
+            this.sourceHashCode = sourceHashCode;
+            this.classLoader = classLoader;
+            this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
+            this.compileAction = compileAction;
+        }
+
+        @Override
+        public void visitIdentityInputs(InputVisitor visitor) {
+            visitor.visitInputProperty(DSL_ID_PROPERTY_NAME, () -> dslId);
+            visitor.visitInputProperty(SOURCE_HASH_PROPERTY_NAME, () -> sourceHashCode);
+            visitor.visitInputProperty(CLASSPATH_PROPERTY_NAME, () -> classLoaderHierarchyHasher.getClassLoaderHash(classLoader));
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "Groovy DSL script compilation (" + dslId + ")";
+        }
+
+        @Override
+        public void compileTo(File classesDir) {
+            compileAction.accept(classesDir);
+        }
     }
 
     private static class EmptyCompiledScript<T extends Script, M> implements CompiledScript<T, M> {

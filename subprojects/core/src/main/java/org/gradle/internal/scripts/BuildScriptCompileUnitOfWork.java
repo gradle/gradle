@@ -37,7 +37,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * A base class that represents a work for compilation for Kotlin and Groovy scripts.
  */
-public class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWork {
+public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWork {
 
     public enum BuildScriptLanguage {
         GROOVY,
@@ -46,41 +46,31 @@ public class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWork {
 
     private static final String BUILD_SCRIPT_LANGUAGE = "buildScriptLanguage";
 
-    private final BuildScriptLanguage language;
-    private final String displayName;
-    private final BuildScriptCompileInputs inputs;
     private final ImmutableWorkspaceProvider workspaceProvider;
     private final FileCollectionFactory fileCollectionFactory;
     private final InputFingerprinter inputFingerprinter;
-    private final Consumer<File> compileAction;
 
     public BuildScriptCompileUnitOfWork(
-        BuildScriptLanguage language,
-        String displayName,
-        BuildScriptCompileInputs inputs,
         ImmutableWorkspaceProvider workspaceProvider,
         FileCollectionFactory fileCollectionFactory,
-        InputFingerprinter inputFingerprinter,
-        Consumer<File> compileAction
+        InputFingerprinter inputFingerprinter
     ) {
-        this.language = language;
-        this.displayName = displayName;
-        this.inputs = inputs;
         this.workspaceProvider = workspaceProvider;
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
-        this.compileAction = compileAction;
     }
+
+    @Override
+    public abstract void visitIdentityInputs(InputVisitor visitor);
+
+    @Override
+    public abstract String getDisplayName();
+
+    public abstract void compileTo(File classesDir);
 
     @Override
     public ImmutableWorkspaceProvider getWorkspaceProvider() {
         return workspaceProvider;
-    }
-
-    @Override
-    public void visitIdentityInputs(InputVisitor visitor) {
-        visitor.visitInputProperty(BUILD_SCRIPT_LANGUAGE, language::name);
-        inputs.visitIdentityInputs(visitor);
     }
 
     @Override
@@ -94,7 +84,7 @@ public class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWork {
     @Override
     public WorkOutput execute(ExecutionRequest executionRequest) {
         File workspace = executionRequest.getWorkspace();
-        compileAction.accept(classesDir(workspace));
+        compileTo(classesDir(workspace));
         return new UnitOfWork.WorkOutput() {
             @Override
             public WorkResult getDidWork() {
@@ -129,14 +119,5 @@ public class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWork {
 
     private static File classesDir(File workspace) {
         return new File(workspace, "classes");
-    }
-
-    @Override
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public interface BuildScriptCompileInputs {
-        void visitIdentityInputs(InputVisitor visitor);
     }
 }
