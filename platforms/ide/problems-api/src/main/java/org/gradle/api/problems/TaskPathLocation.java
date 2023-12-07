@@ -19,25 +19,18 @@ package org.gradle.api.problems;
 import org.gradle.api.Incubating;
 
 /**
- * Describes a transformation that can be applied to a problem.
- * <p>
- * These transformers could be added to the {@link Problems} service to transform problems before they are reported.
+ * Task path location.
  *
- * @since 8.5
+ * @since 8.6
  */
 @Incubating
-public interface ProblemTransformer {
+public interface TaskPathLocation extends ProblemLocation {
 
     /**
-     * Transforms the given problem. The returned problem will be reported instead of the original problem.
-     * <p>
-     * Transformations do not need to create a new problem, they can also modify the given problem.
+     * Returns the absolute build tree path of the task reporting the problem.
      *
-     * @param problem the problem to transform
-     * @return the transformed problem
-     *
-     * @since 8.5
+     * @return the build tree path
+     * @since 8.6
      */
-    Problem transform(Problem problem);
-
+    String getBuildTreePath();
 }

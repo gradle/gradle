@@ -14,24 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems;
+package org.gradle.api.problems.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.problems.PluginIdLocation;
 
 /**
- * {@link Problem} instance builder requiring the specification of the problem description.
- *
- * @since 8.4
+ * Represents an applied plugin ID.
  */
-@Incubating
-public interface ProblemBuilderDefiningLabel {
+public class DefaultPluginIdLocation implements PluginIdLocation {
 
-    /**
-     * Declares a short message for this problem.
-     * @param label the short message
-     * @param args the arguments for formatting the label with {@link String#format(String, Object...)}
-     *
-     * @return the builder for the next required property
-     */
-    ProblemBuilderDefiningDocumentation label(String label, Object... args);
+    private final String pluginId;
+
+    public DefaultPluginIdLocation(String pluginId) {
+        this.pluginId = pluginId;
+    }
+
+    @Override
+    public String getType() {
+        return "pluginId";
+    }
+
+    @Override
+    public String getPluginId() {
+        return pluginId;
+    }
 }

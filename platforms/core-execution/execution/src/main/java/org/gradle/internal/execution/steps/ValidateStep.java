@@ -19,8 +19,10 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.DefaultProblemCategory;
+import org.gradle.api.problems.internal.InternalProblemReporter;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
@@ -48,7 +50,6 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.api.problems.Severity.WARNING;
-import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public class ValidateStep<C extends BeforeExecutionContext, R extends Result> implements Step<C, R> {
@@ -75,18 +76,20 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         context.getBeforeExecutionState()
             .ifPresent(beforeExecutionState -> validateImplementations(work, beforeExecutionState, validationContext));
 
-        List<ReportableProblem> problems = validationContext.getProblems();
-        for (ReportableProblem problem : problems) {
-            problem.report();
+        InternalProblems problemsService = validationContext.getProblemsService();
+        InternalProblemReporter reporter = problemsService.getInternalReporter();
+        List<Problem> problems = validationContext.getProblems();
+        for (Problem problem : problems) {
+            reporter.report(problem);
         }
 
-        Map<Severity, ImmutableList<ReportableProblem>> problemsMap = problems.stream()
+        Map<Severity, ImmutableList<Problem>> problemsMap = problems.stream()
 
             .collect(
                 groupingBy(Problem::getSeverity,
                     mapping(identity(), toImmutableList())));
-        ImmutableList<ReportableProblem> warnings = problemsMap.getOrDefault(WARNING, of());
-        ImmutableList<ReportableProblem> errors = problemsMap.getOrDefault(ERROR, of());
+        ImmutableList<Problem> warnings = problemsMap.getOrDefault(WARNING, of());
+        ImmutableList<Problem> errors = problemsMap.getOrDefault(ERROR, of());
 
         if (!warnings.isEmpty()) {
             warningReporter.recordValidationWarnings(work, warnings);
@@ -140,8 +143,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
                 .typeIsIrrelevantInErrorMessage()
                 .label(unknownImplSnapshot.getProblemDescription())
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
-                .noLocation()
-                .category(VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(UNKNOWN_IMPLEMENTATION))
+                .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(UNKNOWN_IMPLEMENTATION))
                 .details(unknownImplSnapshot.getReasonDescription())
                 .solution(unknownImplSnapshot.getSolutionDescription())
                 .severity(ERROR)
@@ -156,8 +158,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
                 .typeIsIrrelevantInErrorMessage()
                 .label(descriptionPrefix + work + " " + unknownImplSnapshot.getProblemDescription())
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
-                .noLocation()
-                .category(VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(UNKNOWN_IMPLEMENTATION))
+                .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(UNKNOWN_IMPLEMENTATION))
                 .details(unknownImplSnapshot.getReasonDescription())
                 .solution(unknownImplSnapshot.getSolutionDescription())
                 .severity(ERROR)

@@ -18,24 +18,48 @@ package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
+
 /**
- * Problem that can be submitted for external consumption (e.g. to expose via the Tooling API).
+ * A basic problem location pointing to a specific part of a file.
  *
- * @since 8.4
+ * @since 8.6
  */
 @Incubating
-public interface ReportableProblem extends Problem {
+public interface FileLocation extends ProblemLocation {
 
     /**
-     * Report this problem.
-     */
-    void report();
-
-    /**
-     * Creates a problem builder with values initialized from this instance.
+     * The path to the file.
      *
-     * @return a builder
+     * @return the file path
      * @since 8.6
      */
-    UnboundReportableProblemBuilder toBuilder();
+    String getPath();
+
+    /**
+     * The line number within the file.
+     *
+     * @return the line number
+     * @since 8.6
+     */
+    @Nullable
+    Integer getLine();
+
+    /**
+     * The offset on the selected line.
+     *
+     * @return the column
+     * @since 8.6
+     */
+    @Nullable
+    Integer getColumn();
+
+    /**
+     * The content of the content starting from {@link #getColumn()}.
+     *
+     * @return the length
+     * @since 8.6
+     */
+    @Nullable
+    Integer getLength();
 }

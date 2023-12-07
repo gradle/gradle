@@ -14,95 +14,94 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems;
+package org.gradle.api.problems.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemSpec;
+import org.gradle.api.problems.Severity;
 
 import javax.annotation.Nullable;
 
-/**
- * Problem builder creating basic, non-reportable problems without enforcing any particular invocation order.
- *
- * @since 8.6
- */
-@Incubating
-public interface UnboundBasicProblemBuilder extends UnboundProblemBuilder, BasicProblemBuilder {
+
+public interface ProblemBuilder extends ProblemSpec {
+
     /**
-     * {@inheritDoc}
+     * Creates the new problem. Calling this method won't report the problem via build operations, it can be done separately by calling {@link org.gradle.api.problems.internal.InternalProblemReporter#report(Problem)}.
+     *
+     * @return the new problem
      */
-    @Override
-    UnboundBasicProblemBuilder documentedAt(DocLink doc);
+    Problem build();
 
     /**
      * {@inheritDoc}
      */
     @Override
-    UnboundBasicProblemBuilder undocumented();
+    ProblemBuilder label(String label, Object... args);
 
     /**
      * {@inheritDoc}
      */
     @Override
-    UnboundBasicProblemBuilder fileLocation(String path, @Nullable Integer line, @Nullable Integer column, @Nullable Integer length);
+    ProblemBuilder category(String category, String... details);
 
     /**
      * {@inheritDoc}
      */
     @Override
-    UnboundBasicProblemBuilder pluginLocation(String pluginId);
+    ProblemBuilder documentedAt(DocLink doc);
 
     /**
      * {@inheritDoc}
      */
     @Override
-    UnboundBasicProblemBuilder stackLocation();
+    ProblemBuilder documentedAt(String url);
 
     /**
      * {@inheritDoc}
      */
     @Override
-    UnboundBasicProblemBuilder noLocation();
+    ProblemBuilder fileLocation(String path, @Nullable Integer line, @Nullable Integer column, @Nullable Integer length);
 
     /**
      * {@inheritDoc}
      */
     @Override
-    UnboundBasicProblemBuilder label(String label, Object... args);
+    ProblemBuilder pluginLocation(String pluginId);
 
     /**
      * {@inheritDoc}
      */
     @Override
-    UnboundBasicProblemBuilder category(String category, String... details);
+    ProblemBuilder stackLocation();
 
     /**
      * {@inheritDoc}
      */
     @Override
-    UnboundBasicProblemBuilder details(String details);
+    ProblemBuilder details(String details);
 
     /**
      * {@inheritDoc}
      */
     @Override
-    UnboundBasicProblemBuilder solution(String solution);
+    ProblemBuilder solution(String solution);
 
     /**
      * {@inheritDoc}
      */
     @Override
-    UnboundBasicProblemBuilder additionalData(String key, Object value);
+    ProblemBuilder additionalData(String key, Object value);
 
     /**
      * {@inheritDoc}
      */
     @Override
-    UnboundBasicProblemBuilder withException(RuntimeException e);
+    ProblemBuilder withException(RuntimeException e);
 
     /**
      * {@inheritDoc}
      */
-
     @Override
-    UnboundBasicProblemBuilder severity(Severity severity);
+    ProblemBuilder severity(Severity severity);
 }

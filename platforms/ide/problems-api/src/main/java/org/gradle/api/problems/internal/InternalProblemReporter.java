@@ -14,29 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems;
+package org.gradle.api.problems.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.Action;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemSpec;
+import org.gradle.api.problems.ProblemReporter;
 
-/**
- * {@link Problem} instance builder requiring the specification of documentation.
- *
- * @since 8.4
- */
-@Incubating
-public interface ProblemBuilderDefiningDocumentation {
+public interface InternalProblemReporter extends ProblemReporter {
 
     /**
-     * Declares the documentation for this problem.
+     * Creates a new problem without reporting it immediately.
+     * The created problem can be later reported with {@link #report(Problem)}.
      *
-     * @return the builder for the next required property
+     * @param action The problem configuration.
+     * @return The new problem.
      */
-    ProblemBuilderDefiningLocation documentedAt(DocLink doc);
+    Problem create(Action<ProblemSpec> action);
 
     /**
-     * Marks this problem as undocumented
+     * Reports the target problem.
      *
-     * @return the builder for the next required property
+     * @param problem The problem to report.
      */
-    ProblemBuilderDefiningLocation undocumented();
+    void report(Problem problem);
 }

@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.operations.problem;
+package org.gradle.api.problems.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.Problem;
 
-/**
- * Represents a reported problem in the build.
- *
- * @since 8.4
- */
-@Incubating
-@NonNullApi
-public interface ProblemProgressDetails {
+public interface InternalProblem extends Problem {
+
+    /**
+     * Returns a problem builder with fields initialized with values from this instance.
+     *
+     */
+    InternalProblemBuilder toBuilder();
 }
