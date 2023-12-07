@@ -31,6 +31,8 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 /**
  * A special ClassPath that keeps track of the transformed "doubles" of the original classpath entries (JARs and class directories).
  * An entry can only appear once in the class path, regardless of having a transformed "double".
@@ -42,6 +44,14 @@ import java.util.Set;
  * The class loaders constructed from this classpath can replace classes from the original classpath entries with transformed ones (from "double") when loading.
  */
 public class TransformedClassPath implements ClassPath {
+
+    /**
+     * A marker file put next to the instrumented jar to indicate that the jar is instrumented.
+     */
+    public static final String INSTRUMENTED_MARKER_FILE_NAME = ".gradle-instrumented.marker";
+    public static final String INSTRUMENTED_JAR_DIR_NAME = "instrumented";
+    public static final String ORIGINAL_JAR_DIR_NAME = "original";
+
     private final ClassPath originalClassPath;
     // mapping of original -> "double"
     private final ImmutableMap<File, File> transforms;
@@ -237,6 +247,99 @@ public class TransformedClassPath implements ClassPath {
     }
 
     /**
+     * Constructs a TransformedClassPath out of the ordinary JAR/directory list, potentially produced by the instrumenting ArtifactTransform.
+     * The list is interpreted as follows:
+     * <ul>
+     *     <li>An entry after {@link TransformedClassPath#INSTRUMENTED_MARKER_FILE_NAME} is considered an instrumented JAR and the following entry is considered the original of this instrumented JAR.</li>
+     *     <li>A "jar" or directory entry not preceded by {@link TransformedClassPath#INSTRUMENTED_MARKER_FILE_NAME} is considered non-transformed original JAR and is appended to the resulting classpath as is.</li>
+     *     <li>The order of entries is kept intact.</li>
+     * </ul>
+     * <p>
+     * In most cases, it is better to use {@link Builder}.
+     *
+     * @param classPath the classpath to transform
+     * @return the transformed classpath built from the input
+     * @throws IllegalArgumentException if the {@code classPath} is already a {@link TransformedClassPath} or if it doesn't conform to the spec.
+     */
+    public static TransformedClassPath fromInstrumentingArtifactTransformOutput(ClassPath classPath) {
+        checkArgument(!(classPath instanceof TransformedClassPath), "Cannot build the TransformedClassPath out of TransformedClassPath %s", classPath);
+        return fromInstrumentingArtifactTransformOutputWithExpectedSize(classPath, computeResultSizeOfInstrumentingArtifactTransformOutput(classPath));
+    }
+
+    /**
+     * Handle a classpath that can potentially be the output of the instrumenting artifact transform. The rules for conversion are:
+     * <ol>
+     *     <li>The {@link TransformedClassPath} is returned as is, because it already bears the instrumentation mappings.</li>
+     *     <li>The classpath that only contains original JARs is returned as is, because there's no instrumentation mappings to apply.</li>
+     *     <li>The classpath that conforms to {@link #fromInstrumentingArtifactTransformOutput(ClassPath)} requirements is converted to {@link TransformedClassPath} accordingly.</li>
+     * </ol>
+     *
+     * @param classPath the classpath to process
+     * @return the classpath that carries the instrumentation mappings if needed
+     */
+    public static ClassPath handleInstrumentingArtifactTransform(ClassPath classPath) {
+        if (classPath.isEmpty() || classPath instanceof TransformedClassPath) {
+            return classPath;
+        }
+
+        int resultSize = computeResultSizeOfInstrumentingArtifactTransformOutput(classPath);
+        if (resultSize == classPath.getAsFiles().size()) {
+            // There is no instrumented JARs in the list, so the classpath can be used without transformation.
+            return classPath;
+        }
+
+        return fromInstrumentingArtifactTransformOutputWithExpectedSize(classPath, resultSize);
+    }
+
+    /**
+     * Each instrumented JAR has a corresponding original entry, but not necessarily vice versa, so the number of originals is the size of the result.
+     */
+    private static int computeResultSizeOfInstrumentingArtifactTransformOutput(ClassPath classPath) {
+        int resultSize = 0;
+        for (int i = 0; i < classPath.getAsFiles().size(); ++i) {
+            File inputFile = classPath.getAsFiles().get(i);
+            if (isInstrumentedMarkerFile(inputFile)) {
+                // Marker file will be followed by instrumented jar and original jar.
+                i += 2;
+            }
+            ++resultSize;
+        }
+        return resultSize;
+    }
+
+    private static TransformedClassPath fromInstrumentingArtifactTransformOutputWithExpectedSize(ClassPath classPath, int resultSize) {
+        List<File> inputFiles = classPath.getAsFiles();
+
+        Builder result = builderWithExactSize(resultSize);
+        for (int i = 0; i < inputFiles.size(); ++i) {
+            File inputFile = inputFiles.get(i);
+            if (isInstrumentedMarkerFile(inputFile)) {
+                checkArgument(i + 2 < inputFiles.size(), "Missing the instrumented or original JAR for classpath %s", inputFiles);
+                File instrumentedJar = inputFiles.get(i + 1);
+                File originalJar = inputFiles.get(i + 2);
+                checkArgument(areInstrumentedAndOriginalJarValid(instrumentedJar, originalJar), "Instrumented JAR %s doesn't match original JAR %s", instrumentedJar.getAbsolutePath(), originalJar.getAbsolutePath());
+                result.add(originalJar, instrumentedJar);
+                i += 2;
+            } else {
+                result.addUntransformed(inputFile);
+            }
+        }
+
+        return result.build();
+    }
+
+    private static boolean areInstrumentedAndOriginalJarValid(File instrumentedJar, File originalJar) {
+        return instrumentedJar.getParentFile() != null
+            && instrumentedJar.getParentFile().getName().equals(INSTRUMENTED_JAR_DIR_NAME)
+            && !originalJar.equals(instrumentedJar)
+            && instrumentedJar.getName().equals(originalJar.getName());
+    }
+
+    private static boolean isInstrumentedMarkerFile(File classPathEntry) {
+        return classPathEntry.getName().equals(INSTRUMENTED_MARKER_FILE_NAME);
+    }
+
+    /**
      * Creates a builder for the classpath with {@code size} original entries.
      *
      * @param size the number of the original entries in the classpath
@@ -270,6 +373,18 @@ public class TransformedClassPath implements ClassPath {
             if (!original.equals(transformed)) {
                 transforms.put(original, transformed);
             }
+            return this;
+        }
+
+        /**
+         * Adds the classpath entry without the transformed JAR.
+         * This entry will be used for classloading directly.
+         *
+         * @param original the original JAR or classes directory
+         * @return this builder
+         */
+        public Builder addUntransformed(File original) {
+            originals.add(original);
             return this;
         }
 

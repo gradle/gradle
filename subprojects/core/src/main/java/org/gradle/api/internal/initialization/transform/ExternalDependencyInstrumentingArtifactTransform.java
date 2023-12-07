@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.agents;
+package org.gradle.api.internal.initialization.transform;
 
-import org.gradle.internal.lazy.Lazy;
+import org.gradle.work.DisableCachingByDefault;
 
-class DefaultAgentStatus implements AgentStatus {
-
-    private static final Lazy<Boolean> IS_AGENT_INSTRUMENTATION_ENABLED = Lazy.locking().of(AgentControl::isInstrumentationAgentApplied);
-
-    @Override
-    public boolean isAgentInstrumentationEnabled() {
-        return IS_AGENT_INSTRUMENTATION_ENABLED.get();
-    }
+/**
+ * Artifact transform that instruments external plugins with Gradle instrumentation.
+ */
+@DisableCachingByDefault(because = "Instrumented jars are too big to cache")
+public abstract class ExternalDependencyInstrumentingArtifactTransform extends BaseInstrumentingArtifactTransform {
 }
