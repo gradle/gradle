@@ -121,7 +121,16 @@ public class ToolingParameterProxy implements InvocationHandler {
         throw new IllegalArgumentException(String.format("%s is not a valid parameter type. %s", clazz.getName(), cause));
     }
 
+    /**
+     * Collects properties exposed by the interface the {@code parameter} implements.
+     * <p>
+     * This method assumes that the interface follows the contract validated by {@link #validateParameter(Class)}.
+     */
     public static Map<String, Object> unpackProperties(Object parameter) {
+        if (parameter == null) {
+            throw new IllegalArgumentException("Cannot unpack properties from null");
+        }
+
         Class<?> parameterInterface = getConsumerParameterInterface(parameter);
 
         // Intentionally including methods from the potential super-interfaces,
@@ -136,7 +145,7 @@ public class ToolingParameterProxy implements InvocationHandler {
                     Object propertyValue = method.invoke(parameter);
                     properties.put(propertyName, propertyValue);
                 } catch (IllegalAccessException | InvocationTargetException e) {
-                    throw new RuntimeException(e);
+                    throw new RuntimeException("Failed to unpack value for property '" + propertyName + "'", e);
                 }
             }
         }
