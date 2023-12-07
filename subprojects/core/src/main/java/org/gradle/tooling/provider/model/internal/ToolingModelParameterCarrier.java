@@ -18,28 +18,27 @@ package org.gradle.tooling.provider.model.internal;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-/**
- * Container of the parameter value for a model builder.
- */
 @NonNullApi
-public class ToolingModelParameterCarrier {
+public interface ToolingModelParameterCarrier {
 
-    private final Object parameter;
-    private final ToolingModelParameterHasher hasher;
-    private final ToolingModelParameterAdapter adapter;
+    /**
+     * Returns a view of the original parameter object,
+     * allowing access to its properties via methods available on the {@code viewType}.
+     */
+    Object getView(Class<?> viewType);
 
-    public ToolingModelParameterCarrier(Object parameter, ToolingModelParameterHasher hasher, ToolingModelParameterAdapter adapter) {
-        this.parameter = parameter;
-        this.hasher = hasher;
-        this.adapter = adapter;
-    }
+    /**
+     * Returns a hash of the original parameter object.
+     */
+    HashCode getHash();
 
-    public Object getValue(Class<?> expectedParameterType) {
-        return adapter.apply(expectedParameterType, parameter);
-    }
+    @ServiceScope(Scopes.BuildTree.class)
+    interface Factory {
 
-    public HashCode getHash() {
-        return hasher.hash(parameter);
+        ToolingModelParameterCarrier createCarrier(Object parameter);
+
     }
 }

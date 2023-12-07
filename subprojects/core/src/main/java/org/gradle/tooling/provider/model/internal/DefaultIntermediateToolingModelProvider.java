@@ -36,11 +36,11 @@ import static java.util.stream.Collectors.toList;
 public class DefaultIntermediateToolingModelProvider implements IntermediateToolingModelProvider {
 
     private final IntermediateBuildActionRunner actionRunner;
-    private final ToolingModelParameterHasher parameterHasher;
+    private final ToolingModelParameterCarrier.Factory parameterCarrierFactory;
 
-    public DefaultIntermediateToolingModelProvider(IntermediateBuildActionRunner actionRunner, ToolingModelParameterHasher parameterHasher) {
+    public DefaultIntermediateToolingModelProvider(IntermediateBuildActionRunner actionRunner, ToolingModelParameterCarrier.Factory parameterCarrierFactory) {
         this.actionRunner = actionRunner;
-        this.parameterHasher = parameterHasher;
+        this.parameterCarrierFactory = parameterCarrierFactory;
     }
 
     @Override
@@ -65,7 +65,7 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
 
     private List<Object> getModels(List<Project> targets, String modelName, @Nullable Object parameter) {
         BuildState buildState = extractSingleBuildState(targets);
-        ToolingModelParameterCarrier carrier = parameter == null ? null : wrapParameter(parameter);
+        ToolingModelParameterCarrier carrier = parameter == null ? null : parameterCarrierFactory.createCarrier(parameter);
         return buildState.withToolingModels(controller -> getModels(controller, targets, modelName, carrier));
     }
 
@@ -82,16 +82,6 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         ProjectState builderTarget = targetProject.getOwner();
         ToolingModelScope toolingModelScope = controller.locateBuilderForTarget(builderTarget, modelName, parameter != null);
         return toolingModelScope.getModel(modelName, parameter);
-    }
-
-    private ToolingModelParameterCarrier wrapParameter(Object parameter) {
-        return new ToolingModelParameterCarrier(parameter, parameterHasher, (expectedParameterType, value) -> {
-            if (expectedParameterType.isInstance(value)) {
-                return value;
-            } else {
-                throw new IllegalStateException(String.format("Expected model builder parameter type '%s', got '%s'", expectedParameterType.getName(), parameter.getClass().getName()));
-            }
-        });
     }
 
     private static BuildState extractSingleBuildState(List<Project> targets) {

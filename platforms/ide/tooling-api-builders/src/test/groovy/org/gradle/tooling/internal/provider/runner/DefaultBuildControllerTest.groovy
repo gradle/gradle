@@ -30,7 +30,6 @@ import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelIdentifier
 import org.gradle.tooling.provider.model.UnknownModelException
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
-import org.gradle.tooling.provider.model.internal.ToolingModelParameterHasher
 import org.gradle.tooling.provider.model.internal.ToolingModelScope
 import org.gradle.util.Path
 import spock.lang.Specification
@@ -47,8 +46,8 @@ class DefaultBuildControllerTest extends Specification {
     def buildStateRegistry = Mock(BuildStateRegistry)
     def modelController = Mock(BuildTreeModelController)
     def workerThreadRegistry = Mock(WorkerThreadRegistry)
-    def parameterHasher = Mock(ToolingModelParameterHasher)
-    def controller = new DefaultBuildController(modelController, workerThreadRegistry, cancellationToken, buildStateRegistry, parameterHasher)
+    def parameterCarrierFactory = Mock(ToolingModelParameterCarrier.Factory)
+    def controller = new DefaultBuildController(modelController, workerThreadRegistry, cancellationToken, buildStateRegistry, parameterCarrierFactory)
 
     def "cannot get build model from unmanaged thread"() {
         given:
@@ -197,10 +196,12 @@ class DefaultBuildControllerTest extends Specification {
         given:
         _ * workerThreadRegistry.workerThread >> true
         _ * modelController.locateBuilderForDefaultTarget("some.model", true) >> modelScope
+        _ * parameterCarrierFactory.createCarrier(_) >> { Object param ->
+            Mock(ToolingModelParameterCarrier)
+        }
         _ * modelScope.getParameterType() >> parameterType
-        _ * modelScope.getModel("some.model", _) >> { String name, ToolingModelParameterCarrier param ->
-            assert param != null
-            assert param.getValue(CustomParameter.class) == parameter
+        _ * modelScope.getModel("some.model", _) >> { String name, ToolingModelParameterCarrier carrier ->
+            assert carrier != null
             return model
         }
 

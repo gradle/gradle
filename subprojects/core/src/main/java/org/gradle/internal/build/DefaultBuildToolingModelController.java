@@ -83,7 +83,7 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
                 return builder.build(null);
             } else {
                 Class<?> expectedParameterType = Objects.requireNonNull(builder.getParameterType(), "Expected builder with parameter support");
-                Object parameterValue = parameter.getValue(expectedParameterType);
+                Object parameterValue = parameter.getView(expectedParameterType);
                 return builder.build(parameterValue);
             }
         }

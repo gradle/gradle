@@ -29,7 +29,7 @@ import org.gradle.configurationcache.initialization.ConfigurationCacheStartParam
 import org.gradle.configurationcache.initialization.DefaultConfigurationCacheProblemsListener
 import org.gradle.configurationcache.initialization.InstrumentedExecutionAccessListenerRegistry
 import org.gradle.configurationcache.initialization.VintageInjectedClasspathInstrumentationStrategy
-import org.gradle.configurationcache.models.DefaultToolingModelParameterHasher
+import org.gradle.configurationcache.models.DefaultToolingModelParameterCarrierFactory
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.problems.DefaultProblemFactory
 import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
@@ -55,7 +55,7 @@ import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.tooling.provider.model.internal.DefaultIntermediateToolingModelProvider
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
-import org.gradle.tooling.provider.model.internal.ToolingModelParameterHasher
+import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.internal.IncubationLogger
 
 
@@ -171,17 +171,17 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
     private
     class SharedBuildTreeScopedServices {
 
-        fun createToolingModelParameterHasher(valueSnapshotter: ValueSnapshotter): ToolingModelParameterHasher {
-            return DefaultToolingModelParameterHasher(valueSnapshotter)
+        fun createToolingModelParameterCarrierFactory(valueSnapshotter: ValueSnapshotter): ToolingModelParameterCarrier.Factory {
+            return DefaultToolingModelParameterCarrierFactory(valueSnapshotter)
         }
 
         fun createIntermediateToolingModelProvider(
             buildOperationExecutor: BuildOperationExecutor,
             buildModelParameters: BuildModelParameters,
-            parameterHasher: ToolingModelParameterHasher
+            parameterCarrierFactory: ToolingModelParameterCarrier.Factory
         ): IntermediateToolingModelProvider {
             val runner = IntermediateBuildActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API intermediate model")
-            return DefaultIntermediateToolingModelProvider(runner, parameterHasher)
+            return DefaultIntermediateToolingModelProvider(runner, parameterCarrierFactory)
         }
     }
 
