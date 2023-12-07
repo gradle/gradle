@@ -24,6 +24,7 @@ import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.connection.ToolingParameterProxy
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 
+
 class DefaultToolingModelParameterCarrierFactory(
     private val valueSnapshotter: ValueSnapshotter
 ) : ToolingModelParameterCarrier.Factory {
@@ -32,7 +33,8 @@ class DefaultToolingModelParameterCarrierFactory(
         return Carrier(parameter, valueSnapshotter)
     }
 
-    private class Carrier(
+    private
+    class Carrier(
         private val parameter: Any,
         private val valueSnapshotter: ValueSnapshotter
     ) : ToolingModelParameterCarrier {
