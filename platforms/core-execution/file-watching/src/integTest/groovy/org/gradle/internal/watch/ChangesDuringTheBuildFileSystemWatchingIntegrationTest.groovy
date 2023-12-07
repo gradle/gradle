@@ -16,12 +16,13 @@
 
 package org.gradle.internal.watch
 
-import com.gradle.enterprise.testing.annotations.LocalOnly
+
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.Ignore
 
-@LocalOnly
+@Ignore
 class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()

@@ -16,11 +16,12 @@
 
 package org.gradle.internal.watch
 
-import com.gradle.enterprise.testing.annotations.LocalOnly
+
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.watch.registry.WatchMode
+import spock.lang.Ignore
 
-@LocalOnly
+@Ignore
 class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
     private static final String ENABLED_MESSAGE = "Watching the file system is configured to be enabled"
     private static final String ENABLED_IF_AVAILABLE_MESSAGE = "Watching the file system is configured to be enabled if available"

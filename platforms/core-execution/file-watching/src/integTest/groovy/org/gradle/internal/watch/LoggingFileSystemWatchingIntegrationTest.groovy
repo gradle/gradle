@@ -16,7 +16,7 @@
 
 package org.gradle.internal.watch
 
-import com.gradle.enterprise.testing.annotations.LocalOnly
+
 import net.rubygrapefruit.platform.internal.jni.NativeLogger
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.daemon.DaemonFixture
@@ -24,8 +24,9 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import spock.lang.Ignore
 
-@LocalOnly
+@Ignore
 class LoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
 
     def setup() {

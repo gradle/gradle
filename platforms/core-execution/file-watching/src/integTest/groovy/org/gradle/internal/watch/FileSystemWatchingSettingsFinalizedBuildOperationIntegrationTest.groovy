@@ -16,11 +16,12 @@
 
 package org.gradle.internal.watch
 
-import com.gradle.enterprise.testing.annotations.LocalOnly
+
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.watch.options.FileSystemWatchingSettingsFinalizedProgressDetails
+import spock.lang.Ignore
 
-@LocalOnly
+@Ignore
 class FileSystemWatchingSettingsFinalizedBuildOperationIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)

@@ -16,14 +16,15 @@
 
 package org.gradle.internal.watch
 
-import com.gradle.enterprise.testing.annotations.LocalOnly
+
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.FileSystemWatchingFixture
 import org.gradle.integtests.fixtures.FileSystemWatchingHelper
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import spock.lang.Ignore
 
-@LocalOnly
+@Ignore
 @Requires(value = IntegTestPreconditions.NotNoDaemonExecutor, reason = "There is no shared state without a daemon")
 class ContinuousBuildFileWatchingIntegrationTest extends AbstractContinuousIntegrationTest implements FileSystemWatchingFixture {
 

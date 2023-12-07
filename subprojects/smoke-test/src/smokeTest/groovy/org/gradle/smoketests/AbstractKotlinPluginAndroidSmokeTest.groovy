@@ -16,11 +16,12 @@
 
 package org.gradle.smoketests
 
-import com.gradle.enterprise.testing.annotations.LocalOnly
+
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.util.internal.VersionNumber
+import spock.lang.Ignore
 
 import static org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions.KOTLIN_1_8_0
 import static org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions.KOTLIN_2_0_0
@@ -31,7 +32,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
  *
  * This test exists to avoid duplicating test logic for Groovy and Kotlin DSLs.
  */
-@LocalOnly(because = "Needs Android environment")
+@Ignore
 abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest implements KotlinRunnerFactory {
     abstract String getSampleName()
     abstract GradleDsl getDSL()

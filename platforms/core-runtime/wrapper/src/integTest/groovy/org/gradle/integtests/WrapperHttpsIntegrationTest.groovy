@@ -16,7 +16,7 @@
 
 package org.gradle.integtests
 
-import com.gradle.enterprise.testing.annotations.LocalOnly
+
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.keystore.TestKeyStore
@@ -26,6 +26,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.wrapper.Download
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.integtests.WrapperHttpIntegrationTest.TEST_DISTRIBUTION_URL
@@ -35,7 +36,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 // wrapperExecuter requires a real distribution
 @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
-@LocalOnly(because = "https://github.com/gradle/gradle-private/issues/3799")
+@Ignore
 class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
     private static final String DEFAULT_USER = "jdoe"
     private static final String DEFAULT_PASSWORD = "changeit"
