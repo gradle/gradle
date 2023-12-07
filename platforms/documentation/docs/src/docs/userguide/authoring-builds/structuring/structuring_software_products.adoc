@@ -15,13 +15,15 @@
 [[structure_large_projects]]
 = Structuring Large Projects
 
-As software projects grow, it is common to organize large systems into components that are connected following a certain software architecture.
-Usually, it makes sense to also organize the artifacts (source code etc.) that make up the software in repositories and folder structures that reflect component boundaries and architecture.
-If Gradle is used to build such a software system, it can help you to perform this organisation and enforce boundaries between components.
+As software projects grow, it is common to organize large systems into components that are connected.
+Typically, artifacts (such as source code) are organized in repositories and folder structures that reflect component boundaries and architecture.
+
+Gradle can help organize and enforce boundaries between components.
 
 You can look at Gradle as a modelling tool for your software:
-It allows you to describe the coarse grained structure and architecture of your software in a model written in Gradle's DSLs.
-The build tool Gradle can then interpret this model to build the software.
+
+1. It allows you to describe the coarse grained structure and architecture of your software in a model written in Gradle's DSLs.
+2. The build tool Gradle can then interpret this model to build the software.
 
 == An example
 
