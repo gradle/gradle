@@ -21,17 +21,9 @@ import org.gradle.api.Incubating;
 import javax.annotation.Nullable;
 
 /**
- * {@link Problem} instance builder that is not capable of creating a new instances.
+ * Configures a {@link Problem}.
  *
- * An example of how to use the builder:
- * <pre>{@code
- *  <problemReporter>.report(configurator -> configurator
- *          .label("test problem")
- *          .category("category", "subcategory")
- *          .severity(Severity.ERROR)
- *          .details("this is a test")
- *  }</pre>
- *
+ * @see ProblemReporter
  * @since 8.6
  */
 @Incubating
@@ -41,8 +33,7 @@ public interface ProblemSpec {
      * Declares a short message for this problem.
      *
      * @param label the short message
-     * @param args the arguments for formatting the label with {@link String#format(String, Object...)}
-     * @return the builder for the next required property
+     * @return this
      * @since 8.6
      */
     ProblemSpec label(String label, Object... args);
@@ -52,7 +43,7 @@ public interface ProblemSpec {
      *
      * @param category the type name
      * @param details the type details
-     * @return the builder for the next required property
+     * @return this
      * @see ProblemCategory
      * @since 8.6
      */
@@ -61,7 +52,7 @@ public interface ProblemSpec {
     /**
      * Declares the documentation for this problem.
      *
-     * @return the builder for the next required property
+     * @return this
      * @since 8.6
      */
     ProblemSpec documentedAt(DocLink doc);
@@ -69,7 +60,7 @@ public interface ProblemSpec {
     /**
      * Declares the documentation for this problem.
      *
-     * @return the builder for the next required property
+     * @return this
      * @since 8.6
      */
     ProblemSpec documentedAt(String url);
@@ -81,7 +72,7 @@ public interface ProblemSpec {
      * @param line the line number
      * @param column the column number
      * @param length the length of the text
-     * @return the builder for the next required property
+     * @return this
      * @since 8.6
      */
     ProblemSpec fileLocation(String path, @Nullable Integer line, @Nullable Integer column, @Nullable Integer length);
@@ -90,7 +81,7 @@ public interface ProblemSpec {
      * Declares that this problem is emitted while applying a plugin.
      *
      * @param pluginId the ID of the applied plugin
-     * @return the builder for the next required property
+     * @return this
      * @since 8.6
      */
     ProblemSpec pluginLocation(String pluginId);
@@ -98,7 +89,7 @@ public interface ProblemSpec {
     /**
      * Declares that this problem should automatically collect the location information based on the current stack trace.
      *
-     * @return the builder for the next required property
+     * @return this
      * @since 8.6
      */
     ProblemSpec stackLocation();
