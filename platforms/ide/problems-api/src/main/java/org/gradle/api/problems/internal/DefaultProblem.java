@@ -20,11 +20,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemCategory;
+import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.UnboundBasicProblemBuilder;
-import org.gradle.api.problems.locations.ProblemLocation;
 import org.gradle.internal.operations.OperationIdentifier;
 
 import javax.annotation.Nullable;
@@ -34,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 @NonNullApi
-public class DefaultProblem implements Problem, Serializable {
+public class DefaultProblem implements InternalProblem, Serializable {
     private final String label;
     private Severity severity;
     private final List<ProblemLocation> locations;
@@ -42,7 +40,7 @@ public class DefaultProblem implements Problem, Serializable {
     private final String description;
     private final List<String> solutions;
     private final RuntimeException cause;
-    private final String problemCategory;
+    private final ProblemCategory problemCategory;
     private final Map<String, Object> additionalData;
 
     @Nullable
@@ -56,7 +54,7 @@ public class DefaultProblem implements Problem, Serializable {
         @Nullable String description,
         @Nullable List<String> solutions,
         @Nullable RuntimeException cause,
-        String problemCategory,
+        ProblemCategory problemCategory,
         Map<String, Object> additionalData,
         @Nullable OperationIdentifier buildOperationId
     ) {
@@ -104,22 +102,18 @@ public class DefaultProblem implements Problem, Serializable {
     }
 
     @Override
-    public RuntimeException getException() { // TODO (donat) Investigate why this is represented as List<StackTraceElement> on DefaultDeprecatedUsageProgressDetails.
+    public RuntimeException getException() {
         return cause;
     }
 
     @Override
     public ProblemCategory getProblemCategory() {
-        return new DefaultProblemCategory(problemCategory);
+        return problemCategory;
     }
 
     @Override
     public Map<String, Object> getAdditionalData() {
         return additionalData;
-    }
-
-    public void setBuildOperationRef(@Nullable OperationIdentifier buildOperationId) {
-        this.buildOperationId = buildOperationId;
     }
 
     @Nullable
@@ -132,8 +126,8 @@ public class DefaultProblem implements Problem, Serializable {
     }
 
     @Override
-    public UnboundBasicProblemBuilder toBuilder() {
-        return new DefaultBasicProblemBuilder(this);
+    public InternalProblemBuilder toBuilder() {
+        return new DefaultProblemBuilder(this);
     }
 
     private static boolean equals(@Nullable Object a, @Nullable Object b) {

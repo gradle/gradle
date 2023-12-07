@@ -38,7 +38,7 @@ class TaskValidationReportFixture {
             .join(PROBLEM_SEPARATOR)
             .replaceAll("\n+", "\n")
         def reportText =
-            ValidationProblemSerialization.parseMessageList(reportFile.text, null)
+            ValidationProblemSerialization.parseMessageList(reportFile.text)
                 .collect { it.severity.toString() + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(it) }
                 .sort()
                 .join(PROBLEM_SEPARATOR)

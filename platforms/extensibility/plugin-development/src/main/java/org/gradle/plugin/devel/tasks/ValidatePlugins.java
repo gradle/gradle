@@ -21,8 +21,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.ReportableProblem;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
@@ -107,8 +107,9 @@ public abstract class ValidatePlugins extends DefaultTask {
             });
         getWorkerExecutor().await();
 
-        Problems problems = getServices().get(Problems.class);
-        List<? extends ReportableProblem> problemMessages = ValidationProblemSerialization.parseMessageList(new String(Files.readAllBytes(getOutputFile().get().getAsFile().toPath())), (InternalProblems) problems);
+        InternalProblems problems = getServices().get(InternalProblems.class);
+        InternalProblemReporter reporter = problems.getInternalReporter();
+        List<? extends Problem> problemMessages = ValidationProblemSerialization.parseMessageList(new String(Files.readAllBytes(getOutputFile().get().getAsFile().toPath())));
 
         Stream<String> messages = ValidationProblemSerialization.toPlainMessage(problemMessages).sorted();
         if (problemMessages.isEmpty()) {
@@ -120,8 +121,9 @@ public abstract class ValidatePlugins extends DefaultTask {
                         annotateTaskPropertiesDoc(),
                         messages.collect(joining()));
                 } else {
-                    for (ReportableProblem problem : problemMessages) {
-                        problem.report();
+
+                    for (Problem problem : problemMessages) {
+                        reporter.report(problem);
                     }
                     throw WorkValidationException.forProblems(messages.collect(toImmutableList()))
                         .withSummaryForPlugin()

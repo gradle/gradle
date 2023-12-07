@@ -31,5 +31,5 @@ public interface TaskPathLocation extends Location {
      *
      * @since 8.6
      */
-    String getIdentityPath();
+    String getBuildTreePath();
 }

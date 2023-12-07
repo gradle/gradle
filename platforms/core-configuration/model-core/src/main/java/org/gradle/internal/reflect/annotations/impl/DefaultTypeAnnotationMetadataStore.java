@@ -27,6 +27,7 @@ import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.Action;
+import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.PropertyAccessorType;
@@ -60,7 +61,6 @@ import java.util.stream.Stream;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
 import static org.gradle.api.problems.Severity.ERROR;
-import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
 import static org.gradle.internal.reflect.annotations.AnnotationCategory.TYPE;
@@ -284,8 +284,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                             previouslySeenBuilder.getter.getName(),
                             metadataBuilder.getter.getName())
                         .documentedAt(userManual("validation_problems", REDUNDANT_GETTERS.toLowerCase()))
-                        .noLocation()
-                        .category(VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(REDUNDANT_GETTERS))
+                        .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(REDUNDANT_GETTERS))
                         .severity(ERROR)
                         .details("Boolean property '" + propertyName + "' has both an `is` and a `get` getter")
                         .solution("Remove one of the getters")
@@ -345,8 +344,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                             .withAnnotationType(type)
                             .label("field '%s' without corresponding getter has been annotated with %s", fieldName, simpleAnnotationNames(fieldAnnotations.keySet().stream()))
                             .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_FIELD.toLowerCase()))
-                            .noLocation()
-                            .category(VALIDATION, "type", TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_FIELD))
+                            .category(DefaultProblemCategory.VALIDATION, "type", TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_FIELD))
                             .severity(ERROR)
                             .details("Annotations on fields are only used if there's a corresponding getter for the field")
                             .solution("Add a getter for field '" + fieldName + "'")
@@ -433,8 +431,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     .forProperty(propertyName)
                     .label("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream()))
                     .documentedAt(userManual("validation_problems", PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED.toLowerCase()))
-                    .noLocation()
-                    .category(VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED))
+                    .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED))
                     .severity(ERROR)
                     .details("Annotations on private getters are ignored")
                     .solution("Make the getter public")
@@ -457,8 +454,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     .forProperty(propertyName)
                     .label("of mutable type '%s' is writable", setterType.getName())
                     .documentedAt(userManual("validation_problems", MUTABLE_TYPE_WITH_SETTER.toLowerCase()))
-                    .noLocation()
-                    .category(VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(MUTABLE_TYPE_WITH_SETTER))
+                    .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(MUTABLE_TYPE_WITH_SETTER))
                     .severity(ERROR)
                     .details("Properties of type '" + setterType.getName() + "' are already mutable")
                     .solution("Remove the '" + setterMethod.getName() + "' method")
@@ -495,8 +491,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         methodKind.getDisplayName(), method.getName(), simpleAnnotationNames(annotationTypes.stream())
                     )
                     .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_METHOD.toLowerCase()))
-                    .noLocation()
-                    .category(VALIDATION, "type", TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_METHOD))
+                    .category(DefaultProblemCategory.VALIDATION, "type", TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_METHOD))
                     .severity(ERROR)
                     .details("Input/Output annotations are ignored if they are placed on something else than a getter")
                     .solution("Remove the annotations")
@@ -599,8 +594,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                                         .<Class<? extends Annotation>>map(Annotation::annotationType)
                                         .filter(annotationType -> !annotationType.equals(ignoredMethodAnnotation))))
                                 .documentedAt(userManual("validation_problems", IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED.toLowerCase()))
-                                .noLocation()
-                                .category(VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED))
+                                .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED))
                                 .severity(ERROR)
                                 .details("A property is ignored but also has input annotations")
                                 .solution("Remove the input annotations")
@@ -656,8 +650,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                                 .map(Annotation::annotationType))
                         )
                         .documentedAt(userManual("validation_problems", CONFLICTING_ANNOTATIONS.toLowerCase()))
-                        .noLocation()
-                        .category(VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(CONFLICTING_ANNOTATIONS))
+                        .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(CONFLICTING_ANNOTATIONS))
                         .severity(ERROR)
                         .details("The different annotations have different semantics and Gradle cannot determine which one to pick")
                         .solution("Choose between one of the conflicting annotations")
