@@ -36,6 +36,7 @@ class IsolationSchemeTest extends Specification {
         scheme.parameterTypeFor(ParameterizedType) == CustomParams
         scheme.parameterTypeFor(ComplexParameterizedType) == CustomParamsWithType
         scheme.parameterTypeFor(InheritedParameterizedType) == ExtendedCustomParams
+        scheme.parameterTypeFor(FirstLevelInheritedParameterizedType) == ExtendedCustomParams
 
         scheme.parameterTypeFor(NoParams) == null
         scheme.parameterTypeFor(SomeAction) == null
@@ -202,11 +203,20 @@ class BaseParams implements SomeAction<SomeParams> {
 class RawActionType implements SomeAction {
 }
 
-class ParameterizedType<T extends CustomParams> implements SomeAction<T> {
-}
-
 class ComplexParameterizedType<A extends CustomParamsWithType<?>, B extends A, C extends B> implements SomeAction<C> {
 }
 
+class ParameterizedType<T extends CustomParams> implements SomeAction<T> {
+}
+
 class InheritedParameterizedType extends ParameterizedType<ExtendedCustomParams> {
+}
+
+class ThirdLevelInheritedParameterizedType<B extends SomeParams> implements SomeAction<B> {
+}
+
+class SecondLevelInheritedParameterizedType<A extends CustomParams> extends ThirdLevelInheritedParameterizedType<A> {
+}
+
+class FirstLevelInheritedParameterizedType extends SecondLevelInheritedParameterizedType<ExtendedCustomParams> {
 }
