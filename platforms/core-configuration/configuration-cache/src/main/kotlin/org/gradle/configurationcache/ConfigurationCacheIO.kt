@@ -130,8 +130,7 @@ class ConfigurationCacheIO internal constructor(
         val path = readNullableString()?.let { Path.path(it) }
         val modelName = readString()
         val parameterHash = readNullableString()?.let(HashCode::fromString)
-        val modelKey = ModelKey(path, modelName, parameterHash)
-        return modelKey
+        return ModelKey(path, modelName, parameterHash)
     }
 
     private
