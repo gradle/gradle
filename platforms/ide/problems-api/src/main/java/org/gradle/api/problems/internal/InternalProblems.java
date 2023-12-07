@@ -16,24 +16,14 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.BasicProblemBuilder;
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.ReportableProblem;
 
 public interface InternalProblems extends Problems {
 
     /**
-     * Returns a new problem builder which can configure and create Problem instances.
+     * Returns a reporter then provides additional problem service functionality specific for Gradle internals.
      * <p>
-     * The builder uses a stepwise builder pattern forcing the clients to define all mandatory fields in a specific order.
-     * <p>
-     * Once all mandatory fields are set, the returned type will allow clients to call {@link BasicProblemBuilder#build()} to create a new Problem instance.
-     * The {@link BasicProblemBuilder#build()} method doesn't have any side effects, it just creates a new instance. Problems should be reported separately with {@link ReportableProblem#report()}.
-     *
-     * @return a new problem builder
+     * @return The reporter.
      */
-    ProblemBuilderDefiningLabel createProblemBuilder();
-    void report(Problem problem);
+    InternalProblemReporter getInternalReporter();
 }

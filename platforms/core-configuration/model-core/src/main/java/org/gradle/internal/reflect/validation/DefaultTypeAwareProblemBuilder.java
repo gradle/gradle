@@ -17,14 +17,14 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.ProblemBuilderDefiningLabel;
+import org.gradle.api.problems.internal.ProblemBuilder;
 
 import javax.annotation.Nullable;
 
 import static java.lang.Boolean.TRUE;
 
 @NonNullApi
-public class DefaultTypeAwareProblemBuilder extends DelegatingReportableProblemBuilder implements TypeAwareProblemBuilder {
+public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder implements TypeAwareProblemBuilder {
 
     public static final String TYPE_NAME = "typeName";
     public static final String PLUGIN_ID = "pluginId";
@@ -32,7 +32,7 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingReportableProblemB
     public static final String PROPERTY_NAME = "propertyName";
     public static final String TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE = "typeIsIrrelevantInErrorMessage";
 
-    public DefaultTypeAwareProblemBuilder(ProblemBuilderDefiningLabel problemBuilder) {
+    public DefaultTypeAwareProblemBuilder(ProblemBuilder problemBuilder) {
         super(problemBuilder);
     }
 

@@ -17,7 +17,6 @@
 package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.problems.locations.ProblemLocation;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -26,7 +25,7 @@ import java.util.Map;
 /**
  * Interface for describing structured information about a problem.
  *
- * @since 8.4
+ * @since 8.6
  */
 @Incubating
 public interface Problem {
@@ -35,7 +34,7 @@ public interface Problem {
      *
      * @return the problem category.
      *
-     * @since 8.5
+     * @since 8.6
      */
     ProblemCategory getProblemCategory();
 
@@ -43,6 +42,8 @@ public interface Problem {
      * The label of the problem.
      * <p>
      * Labels should be short and concise, so they fit approximately in a single line.
+     *
+     * @since 8.6
      */
     String getLabel();
 
@@ -51,6 +52,8 @@ public interface Problem {
      * <p>
      * Details can elaborate on the problem, and provide more information about the problem.
      * They can be multiple lines long, but should not detail solutions; for that, use {@link #getSolutions()}.
+     *
+     * @since 8.6
      */
     @Nullable
     String getDetails();
@@ -60,31 +63,37 @@ public interface Problem {
      * <p>
      * The severity of a problem is a hint to the user about how important the problem is.
      * ERROR will fail the build, WARNING will not.
+     *
+     * @since 8.6
      */
     Severity getSeverity();
 
     /**
      * Return the location data associated available for this problem.
      *
-     * @since 8.5
+     * @since 8.6
      */
     List<ProblemLocation> getLocations();
 
     /**
      * A link to the documentation for this problem.
+     *
+     * @since 8.6
      */
     @Nullable
     DocLink getDocumentationLink();
 
     /**
      * A list of possible solutions the user can try to fix the problem.
+     *
+     * @since 8.6
      */
     List<String> getSolutions();
 
     /**
      * The exception that caused the problem.
      *
-     * @since 8.5
+     * @since 8.6
      */
     @Nullable
     RuntimeException getException();
@@ -94,15 +103,7 @@ public interface Problem {
      * <p>
      * The only supported value type is {@link String}.
      *
-     * @since 8.5
-     */
-    Map<String, Object> getAdditionalData();
-
-    /**
-     * Returns a problem builder with fields initialized with values from this instance.
-     *
      * @since 8.6
      */
-    @Incubating
-    UnboundBasicProblemBuilder toBuilder();
+    Map<String, Object> getAdditionalData();
 }

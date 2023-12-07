@@ -100,10 +100,7 @@ It also breaks the cacheability of certain tasks in the build, and for the same 
 This can be fixed by simply disabling Crashlytics in “debug” builds.
 You may find instructions for that in the https://docs.fabric.io/android/crashlytics/build-tools.html[Crashlytics documentation].
 
-[NOTE]
-====
-The fix described in the referenced documentation does not work directly if you are using the Kotlin DSL; see below for the workaround.
-====
+NOTE: The fix described in the referenced documentation does not work directly if you are using the Kotlin DSL; see below for the workaround.
 
 === Kotlin DSL
 
