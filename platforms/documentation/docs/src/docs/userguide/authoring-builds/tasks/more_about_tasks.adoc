@@ -81,7 +81,7 @@ include::sample[dir="snippets/tasks/defineAsKotlinDelegatedProperty/groovy",file
 [WARNING]
 ====
 If you look at the API of the _tasks_ container you may notice that there are additional methods to _create_ tasks.
-*The use of these methods is discouraged* and will be deprecated in future versions.
+The use of these methods is discouraged and will be deprecated in future versions.
 
 These methods only exist for backward compatibility as they were introduced before <<task_configuration_avoidance#task_configuration_avoidance,task configuration avoidance>> was added to Gradle.
 ====
