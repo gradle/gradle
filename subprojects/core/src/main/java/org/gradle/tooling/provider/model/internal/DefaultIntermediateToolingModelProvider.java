@@ -24,7 +24,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildToolingModelController;
 import org.gradle.internal.buildtree.IntermediateBuildActionRunner;
-import org.gradle.internal.snapshot.ValueSnapshotter;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -37,11 +36,11 @@ import static java.util.stream.Collectors.toList;
 public class DefaultIntermediateToolingModelProvider implements IntermediateToolingModelProvider {
 
     private final IntermediateBuildActionRunner actionRunner;
-    private final ValueSnapshotter valueSnapshotter;
+    private final ToolingModelParameterHasher parameterHasher;
 
-    public DefaultIntermediateToolingModelProvider(IntermediateBuildActionRunner actionRunner, ValueSnapshotter valueSnapshotter) {
+    public DefaultIntermediateToolingModelProvider(IntermediateBuildActionRunner actionRunner, ToolingModelParameterHasher parameterHasher) {
         this.actionRunner = actionRunner;
-        this.valueSnapshotter = valueSnapshotter;
+        this.parameterHasher = parameterHasher;
     }
 
     @Override
@@ -64,29 +63,29 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         return ensureModelTypes(modelType, rawModels);
     }
 
-    private List<Object> getModels(List<Project> targets, String modelName, @Nullable Object modelBuilderParameter) {
+    private List<Object> getModels(List<Project> targets, String modelName, @Nullable Object parameter) {
         BuildState buildState = extractSingleBuildState(targets);
-        ToolingModelParameter parameterFactory = modelBuilderParameter == null ? null : wrapParameter(modelBuilderParameter);
-        return buildState.withToolingModels(controller -> getModels(controller, targets, modelName, parameterFactory));
+        ToolingModelParameterCarrier carrier = parameter == null ? null : wrapParameter(parameter);
+        return buildState.withToolingModels(controller -> getModels(controller, targets, modelName, carrier));
     }
 
-    private List<Object> getModels(BuildToolingModelController controller, List<Project> targets, String modelName, @Nullable ToolingModelParameter parameterFactory) {
+    private List<Object> getModels(BuildToolingModelController controller, List<Project> targets, String modelName, @Nullable ToolingModelParameterCarrier parameter) {
         List<Supplier<Object>> fetchActions = targets.stream()
-            .map(targetProject -> (Supplier<Object>) () -> fetchModel(modelName, controller, (ProjectInternal) targetProject, parameterFactory))
+            .map(targetProject -> (Supplier<Object>) () -> fetchModel(modelName, controller, (ProjectInternal) targetProject, parameter))
             .collect(toList());
 
         return runFetchActions(fetchActions);
     }
 
     @Nullable
-    private static Object fetchModel(String modelName, BuildToolingModelController controller, ProjectInternal targetProject, @Nullable ToolingModelParameter parameterFactory) {
+    private static Object fetchModel(String modelName, BuildToolingModelController controller, ProjectInternal targetProject, @Nullable ToolingModelParameterCarrier parameter) {
         ProjectState builderTarget = targetProject.getOwner();
-        ToolingModelScope toolingModelScope = controller.locateBuilderForTarget(builderTarget, modelName, parameterFactory != null);
-        return toolingModelScope.getModel(modelName, parameterFactory);
+        ToolingModelScope toolingModelScope = controller.locateBuilderForTarget(builderTarget, modelName, parameter != null);
+        return toolingModelScope.getModel(modelName, parameter);
     }
 
-    private ToolingModelParameter wrapParameter(Object parameter) {
-        return new ToolingModelParameter(parameter, valueSnapshotter, (expectedParameterType, value) -> {
+    private ToolingModelParameterCarrier wrapParameter(Object parameter) {
+        return new ToolingModelParameterCarrier(parameter, parameterHasher, (expectedParameterType, value) -> {
             if (expectedParameterType.isInstance(value)) {
                 return value;
             } else {

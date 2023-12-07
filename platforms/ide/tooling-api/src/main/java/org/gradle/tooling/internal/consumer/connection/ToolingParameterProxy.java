@@ -16,9 +16,13 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import com.google.common.collect.ImmutableMap;
+
 import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -116,5 +120,37 @@ public class ToolingParameterProxy implements InvocationHandler, Serializable {
 
     private static void throwParameterValidationError(Class<?> clazz, String cause) {
         throw new IllegalArgumentException(String.format("%s is not a valid parameter type. %s", clazz.getName(), cause));
+    }
+
+    public static Map<String, Object> unpackProperties(Object parameter) {
+        Class<?> parameterInterface = getConsumerParameterInterface(parameter);
+
+        // Intentionally including methods from the potential super-interfaces,
+        // even though they are not checked during parameter type validation
+        Method[] methods = parameterInterface.getMethods();
+
+        ImmutableMap.Builder<String, Object> properties = ImmutableMap.builder();
+        for (Method method : methods) {
+            if (isGetter(method)) {
+                String propertyName = getPropertyName(method.getName());
+                try {
+                    Object propertyValue = method.invoke(parameter);
+                    properties.put(propertyName, propertyValue);
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        return properties.build();
+    }
+
+    private static Class<?> getConsumerParameterInterface(Object parameter) {
+        Class<?>[] interfaces = parameter.getClass().getInterfaces();
+        if (interfaces.length != 1) {
+            throw new IllegalArgumentException("Tooling model parameter must implement a single interface, got: " + Arrays.toString(interfaces));
+        }
+
+        return interfaces[0];
     }
 }

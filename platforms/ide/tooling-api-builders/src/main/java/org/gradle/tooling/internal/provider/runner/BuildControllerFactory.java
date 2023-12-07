@@ -21,29 +21,29 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.work.WorkerThreadRegistry;
+import org.gradle.tooling.provider.model.internal.ToolingModelParameterHasher;
 
 @ServiceScope(Scopes.BuildTree.class)
 public class BuildControllerFactory {
     private final WorkerThreadRegistry workerThreadRegistry;
     private final BuildCancellationToken buildCancellationToken;
     private final BuildStateRegistry buildStateRegistry;
-    private final ValueSnapshotter valueSnapshotter;
+    private final ToolingModelParameterHasher parameterHasher;
 
     public BuildControllerFactory(
         WorkerThreadRegistry workerThreadRegistry,
         BuildCancellationToken buildCancellationToken,
         BuildStateRegistry buildStateRegistry,
-        ValueSnapshotter valueSnapshotter
+        ToolingModelParameterHasher parameterHasher
     ) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.buildCancellationToken = buildCancellationToken;
         this.buildStateRegistry = buildStateRegistry;
-        this.valueSnapshotter = valueSnapshotter;
+        this.parameterHasher = parameterHasher;
     }
 
     public DefaultBuildController controllerFor(BuildTreeModelController controller) {
-        return new DefaultBuildController(controller, workerThreadRegistry, buildCancellationToken, buildStateRegistry, valueSnapshotter);
+        return new DefaultBuildController(controller, workerThreadRegistry, buildCancellationToken, buildStateRegistry, parameterHasher);
     }
 }

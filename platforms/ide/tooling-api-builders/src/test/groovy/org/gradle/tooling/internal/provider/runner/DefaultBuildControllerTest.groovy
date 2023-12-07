@@ -23,14 +23,14 @@ import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildTreeModelController
-import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelIdentifier
 import org.gradle.tooling.provider.model.UnknownModelException
-import org.gradle.tooling.provider.model.internal.ToolingModelParameter
+import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
+import org.gradle.tooling.provider.model.internal.ToolingModelParameterHasher
 import org.gradle.tooling.provider.model.internal.ToolingModelScope
 import org.gradle.util.Path
 import spock.lang.Specification
@@ -47,8 +47,8 @@ class DefaultBuildControllerTest extends Specification {
     def buildStateRegistry = Mock(BuildStateRegistry)
     def modelController = Mock(BuildTreeModelController)
     def workerThreadRegistry = Mock(WorkerThreadRegistry)
-    def valueSnapshotter = Mock(ValueSnapshotter)
-    def controller = new DefaultBuildController(modelController, workerThreadRegistry, cancellationToken, buildStateRegistry, valueSnapshotter)
+    def parameterHasher = Mock(ToolingModelParameterHasher)
+    def controller = new DefaultBuildController(modelController, workerThreadRegistry, cancellationToken, buildStateRegistry, parameterHasher)
 
     def "cannot get build model from unmanaged thread"() {
         given:
@@ -198,7 +198,7 @@ class DefaultBuildControllerTest extends Specification {
         _ * workerThreadRegistry.workerThread >> true
         _ * modelController.locateBuilderForDefaultTarget("some.model", true) >> modelScope
         _ * modelScope.getParameterType() >> parameterType
-        _ * modelScope.getModel("some.model", _) >> { String name, ToolingModelParameter param ->
+        _ * modelScope.getModel("some.model", _) >> { String name, ToolingModelParameterCarrier param ->
             assert param != null
             assert param.getValue(CustomParameter.class) == parameter
             return model

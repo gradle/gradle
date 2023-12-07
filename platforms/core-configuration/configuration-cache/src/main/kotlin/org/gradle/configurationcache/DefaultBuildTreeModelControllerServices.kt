@@ -29,6 +29,7 @@ import org.gradle.configurationcache.initialization.ConfigurationCacheStartParam
 import org.gradle.configurationcache.initialization.DefaultConfigurationCacheProblemsListener
 import org.gradle.configurationcache.initialization.InstrumentedExecutionAccessListenerRegistry
 import org.gradle.configurationcache.initialization.VintageInjectedClasspathInstrumentationStrategy
+import org.gradle.configurationcache.models.DefaultToolingModelParameterHasher
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.problems.DefaultProblemFactory
 import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
@@ -54,6 +55,7 @@ import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.tooling.provider.model.internal.DefaultIntermediateToolingModelProvider
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
+import org.gradle.tooling.provider.model.internal.ToolingModelParameterHasher
 import org.gradle.util.internal.IncubationLogger
 
 
@@ -168,13 +170,18 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
     private
     class SharedBuildTreeScopedServices {
+
+        fun createToolingModelParameterHasher(valueSnapshotter: ValueSnapshotter): ToolingModelParameterHasher {
+            return DefaultToolingModelParameterHasher(valueSnapshotter)
+        }
+
         fun createIntermediateToolingModelProvider(
             buildOperationExecutor: BuildOperationExecutor,
             buildModelParameters: BuildModelParameters,
-            valueSnapshotter: ValueSnapshotter
+            parameterHasher: ToolingModelParameterHasher
         ): IntermediateToolingModelProvider {
             val runner = IntermediateBuildActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API intermediate model")
-            return DefaultIntermediateToolingModelProvider(runner, valueSnapshotter)
+            return DefaultIntermediateToolingModelProvider(runner, parameterHasher)
         }
     }
 

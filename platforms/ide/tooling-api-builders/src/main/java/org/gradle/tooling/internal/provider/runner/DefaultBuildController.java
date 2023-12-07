@@ -22,7 +22,6 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildTreeModelController;
-import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.ViewBuilder;
@@ -36,7 +35,8 @@ import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.provider.model.UnknownModelException;
-import org.gradle.tooling.provider.model.internal.ToolingModelParameter;
+import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier;
+import org.gradle.tooling.provider.model.internal.ToolingModelParameterHasher;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 import org.gradle.util.Path;
 
@@ -53,20 +53,20 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     private final BuildTreeModelController controller;
     private final BuildCancellationToken cancellationToken;
     private final BuildStateRegistry buildStateRegistry;
-    private final ValueSnapshotter valueSnapshotter;
+    private final ToolingModelParameterHasher parameterHasher;
 
     public DefaultBuildController(
         BuildTreeModelController controller,
         WorkerThreadRegistry workerThreadRegistry,
         BuildCancellationToken cancellationToken,
         BuildStateRegistry buildStateRegistry,
-        ValueSnapshotter valueSnapshotter
+        ToolingModelParameterHasher toolingModelParameterHasher
     ) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.controller = controller;
         this.cancellationToken = cancellationToken;
         this.buildStateRegistry = buildStateRegistry;
-        this.valueSnapshotter = valueSnapshotter;
+        this.parameterHasher = toolingModelParameterHasher;
     }
 
     /**
@@ -125,8 +125,8 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         return controller.runQueryModelActions(actions);
     }
 
-    private ToolingModelParameter wrapParameter(Object parameter) {
-        return new ToolingModelParameter(parameter, valueSnapshotter, (expectedParameterType, value) -> {
+    private ToolingModelParameterCarrier wrapParameter(Object parameter) {
+        return new ToolingModelParameterCarrier(parameter, parameterHasher, (expectedParameterType, value) -> {
             ViewBuilder<?> viewBuilder = new ProtocolToModelAdapter().builder(expectedParameterType);
             return requireNonNull(viewBuilder.build(value));
         });

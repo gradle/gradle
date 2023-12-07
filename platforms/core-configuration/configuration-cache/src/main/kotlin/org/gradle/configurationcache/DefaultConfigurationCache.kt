@@ -47,7 +47,7 @@ import org.gradle.internal.configuration.inputs.InstrumentedInputs
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
-import org.gradle.tooling.provider.model.internal.ToolingModelParameter
+import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.Path
 import java.io.File
 import java.io.OutputStream
@@ -176,7 +176,7 @@ class DefaultConfigurationCache internal constructor(
         }
     }
 
-    override fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, parameter: ToolingModelParameter?, creator: () -> T?): T? {
+    override fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T?): T? {
         return intermediateModels.value.loadOrCreateIntermediateModel(identityPath, modelName, parameter, creator)
     }
 

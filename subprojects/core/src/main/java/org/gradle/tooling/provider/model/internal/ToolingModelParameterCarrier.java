@@ -18,33 +18,28 @@ package org.gradle.tooling.provider.model.internal;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.snapshot.ValueSnapshotter;
 
 /**
  * Container of the parameter value for a model builder.
  */
 @NonNullApi
-public class ToolingModelParameter {
+public class ToolingModelParameterCarrier {
 
-    private final Object value;
-    private final ValueSnapshotter valueSnapshotter;
+    private final Object parameter;
+    private final ToolingModelParameterHasher hasher;
     private final ToolingModelParameterAdapter adapter;
 
-    public ToolingModelParameter(Object value, ValueSnapshotter valueSnapshotter, ToolingModelParameterAdapter adapter) {
-        this.value = value;
-        this.valueSnapshotter = valueSnapshotter;
+    public ToolingModelParameterCarrier(Object parameter, ToolingModelParameterHasher hasher, ToolingModelParameterAdapter adapter) {
+        this.parameter = parameter;
+        this.hasher = hasher;
         this.adapter = adapter;
     }
 
     public Object getValue(Class<?> expectedParameterType) {
-        return adapter.apply(expectedParameterType, value);
+        return adapter.apply(expectedParameterType, parameter);
     }
 
     public HashCode getHash() {
-        Hasher hasher = Hashing.newHasher();
-        hasher.put(valueSnapshotter.snapshot(value));
-        return hasher.hash();
+        return hasher.hash(parameter);
     }
 }

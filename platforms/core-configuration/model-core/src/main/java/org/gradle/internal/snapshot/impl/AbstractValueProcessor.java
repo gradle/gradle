@@ -34,8 +34,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Array;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -146,10 +144,6 @@ abstract class AbstractValueProcessor {
         if (value instanceof ImplementationValue) {
             ImplementationValue implementationValue = (ImplementationValue) value;
             return visitor.implementationValue(implementationValue.getImplementationClassIdentifier(), implementationValue.getValue());
-        }
-        if (value instanceof Proxy) {
-            InvocationHandler invocationHandler = Proxy.getInvocationHandler(value);
-            return processValue(invocationHandler, visitor);
         }
 
         // Pluggable serialization

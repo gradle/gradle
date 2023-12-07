@@ -22,7 +22,7 @@ import org.gradle.tooling.provider.model.UnknownModelException;
 import javax.annotation.Nullable;
 
 /**
- * A scope that allows {@link #getModel(String, ToolingModelParameter) building models}
+ * A scope that allows {@link #getModel(String, ToolingModelParameterCarrier) building models}
  * for a given {@link #getTarget() target}.
  */
 public interface ToolingModelScope {
@@ -39,5 +39,5 @@ public interface ToolingModelScope {
      * Can configure the target project to locate the corresponding model builder.
      */
     @Nullable
-    Object getModel(String modelName, @Nullable ToolingModelParameter parameter) throws UnknownModelException;
+    Object getModel(String modelName, @Nullable ToolingModelParameterCarrier parameter) throws UnknownModelException;
 }
