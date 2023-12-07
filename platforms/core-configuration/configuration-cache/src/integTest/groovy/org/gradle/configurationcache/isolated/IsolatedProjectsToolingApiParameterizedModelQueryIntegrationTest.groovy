@@ -16,14 +16,15 @@
 
 package org.gradle.configurationcache.isolated
 
-class IsolatedProjectsToolingApiParametrizedModelQueryIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
+class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
+
     def setup() {
         settingsFile << """
             rootProject.name = 'root'
         """
     }
 
-    def "can query and cache parametrized models in the same build action"() {
+    def "can query and cache parameterized models in the same build action"() {
         withParameterizedSomeToolingModelBuilderPluginInChildBuild("buildSrc")
         buildFile << """
             plugins.apply(my.MyPlugin)
