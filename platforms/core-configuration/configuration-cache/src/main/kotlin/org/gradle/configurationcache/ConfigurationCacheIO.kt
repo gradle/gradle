@@ -84,9 +84,7 @@ class ConfigurationCacheIO internal constructor(
             writeCollection(rootDirs) { writeFile(it) }
             val addressSerializer = BlockAddressSerializer()
             writeCollection(intermediateModels.entries) { entry ->
-                writeNullableString(entry.key.identityPath?.path)
-                writeString(entry.key.modelName)
-                writeNullableString(entry.key.parameterHash?.toString())
+                writeModelKey(entry.key)
                 addressSerializer.write(this, entry.value)
             }
             writeCollection(projectMetadata.entries) { entry ->
@@ -94,6 +92,13 @@ class ConfigurationCacheIO internal constructor(
                 addressSerializer.write(this, entry.value)
             }
         }
+    }
+
+    private
+    fun DefaultWriteContext.writeModelKey(key: ModelKey) {
+        writeNullableString(key.identityPath?.path)
+        writeString(key.modelName)
+        writeNullableString(key.parameterHash?.toString())
     }
 
     internal
@@ -106,11 +111,9 @@ class ConfigurationCacheIO internal constructor(
             val addressSerializer = BlockAddressSerializer()
             val intermediateModels = mutableMapOf<ModelKey, BlockAddress>()
             readCollection {
-                val path = readNullableString()?.let { Path.path(it) }
-                val modelName = readString()
-                val parameterHash = readNullableString()?.let(HashCode::fromString)
+                val modelKey = readModelKey()
                 val address = addressSerializer.read(this)
-                intermediateModels[ModelKey(path, modelName, parameterHash)] = address
+                intermediateModels[modelKey] = address
             }
             val metadata = mutableMapOf<Path, BlockAddress>()
             readCollection {
@@ -120,6 +123,15 @@ class ConfigurationCacheIO internal constructor(
             }
             EntryDetails(rootDirs, intermediateModels, metadata)
         }
+    }
+
+    private
+    fun DefaultReadContext.readModelKey(): ModelKey {
+        val path = readNullableString()?.let { Path.path(it) }
+        val modelName = readString()
+        val parameterHash = readNullableString()?.let(HashCode::fromString)
+        val modelKey = ModelKey(path, modelName, parameterHash)
+        return modelKey
     }
 
     private
