@@ -32,7 +32,6 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     implementation(project(":base-annotations"))
     implementation(project(":base-services"))
-    implementation(project(":enterprise-operations"))
 
     implementation(libs.guava)
     implementation(libs.inject)

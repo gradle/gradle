@@ -18,9 +18,9 @@ package org.gradle.internal.execution.model.annotations;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.api.problems.ProblemBuilder;
-import org.gradle.api.problems.internal.DefaultProblemCategory;
+import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
@@ -65,11 +65,10 @@ abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAn
     ) {
         if (valueTypes.stream().anyMatch(unsupportedType::isAssignableFrom)) {
             validationContext.visitPropertyProblem(problem -> {
-                    ProblemBuilder describedProblem = problem
+                    ProblemSpec describedProblem = problem
                         .forProperty(propertyMetadata.getPropertyName())
                         .label("has @%s annotation used on property of type '%s'", annotationType.getSimpleName(), TypeOf.typeOf(propertyMetadata.getDeclaredType().getType()).getSimpleName())
                         .documentedAt(userManual("validation_problems", UNSUPPORTED_VALUE_TYPE.toLowerCase()))
-                        .noLocation()
                         .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(UNSUPPORTED_VALUE_TYPE))
                         .severity(Severity.ERROR)
                         .details(String.format("%s is not supported on task properties annotated with @%s", unsupportedType.getSimpleName(), annotationType.getSimpleName()));

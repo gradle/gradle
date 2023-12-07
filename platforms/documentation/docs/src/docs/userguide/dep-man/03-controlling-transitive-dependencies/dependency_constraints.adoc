@@ -53,10 +53,7 @@ The version definition for `commons-codec:1.11` is only taken into account if `c
 Otherwise, the constraint has no effect.
 Dependency constraints can also define a <<rich_versions.adoc#rich-version-constraints,rich version constraint>> and support <<rich_versions.adoc#sec:strict-version,strict versions>> to enforce a version even if it contradicts with the version defined by a transitive dependency (e.g. if the version needs to be downgraded).
 
-[NOTE]
-====
-Dependency constraints are only published when using <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>>.
+NOTE: Dependency constraints are only published when using <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>>.
 This means that currently they are only fully supported if Gradle is used for publishing and consuming (i.e. they are 'lost' when consuming modules with Maven or Ivy).
-====
 
 Dependency constraints themselves can also be added transitively.

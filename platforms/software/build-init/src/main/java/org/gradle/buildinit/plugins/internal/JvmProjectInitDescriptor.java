@@ -46,16 +46,16 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
         return settings.getModularizationOption() == ModularizationOption.SINGLE_PROJECT;
     }
 
-    protected String applicationConventionPlugin(InitSettings settings) {
-        return settings.getPackageName() + "." + getLanguage().getName() + "-application-conventions";
+    protected String applicationConventionPlugin() {
+        return InitSettings.CONVENTION_PLUGIN_NAME_PREFIX + "." + getLanguage().getName() + "-application-conventions";
     }
 
-    protected String libraryConventionPlugin(InitSettings settings) {
-        return settings.getPackageName() + "." + getLanguage().getName() + "-library-conventions";
+    protected String libraryConventionPlugin() {
+        return InitSettings.CONVENTION_PLUGIN_NAME_PREFIX + "." + getLanguage().getName() + "-library-conventions";
     }
 
-    private String commonConventionPlugin(InitSettings settings) {
-        return settings.getPackageName() + "." + getLanguage().getName() + "-common-conventions";
+    private String commonConventionPlugin() {
+        return InitSettings.CONVENTION_PLUGIN_NAME_PREFIX + "." + getLanguage().getName() + "-common-conventions";
     }
 
     @Override
@@ -148,7 +148,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                 buildScriptBuilder.javaToolchainFor(languageVersion);
             });
         } else {
-            buildScriptBuilder.plugin("Apply the common convention plugin for shared build configuration between library and application projects.", commonConventionPlugin(settings));
+            buildScriptBuilder.plugin("Apply the common convention plugin for shared build configuration between library and application projects.", commonConventionPlugin());
             if ("library".equals(conventionPluginName)) {
                 applyLibraryPlugin(buildScriptBuilder);
             } else if ("application".equals(conventionPluginName)) {

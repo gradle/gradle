@@ -81,18 +81,11 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
                 public void execute() {
                     // Create and report a problem
                     // This needs to be Java 6 compatible, as we are in a worker
-                    getProblems().create(
-                        new ProblemBuilderSpec() {
-                            @Override
-                            public ProblemBuilder apply(ProblemBuilderDefiningLabel builder) {
-                                return builder
-                                    .label("label")
-                                    .undocumented()
-                                    .stackLocation()
-                                    .category("type");
-                            }
-                        }
-                    ).report();
+                     getProblems().forNamespace("org.example.plugin").reporting(problem -> problem
+                            .label("label")
+                            .stackLocation()
+                            .category("type")
+                    );
 
                     // Write the current build operation id to a file
                     // This needs to be Java 6 compatible, as we are in a worker

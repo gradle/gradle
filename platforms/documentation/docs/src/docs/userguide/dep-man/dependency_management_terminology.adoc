@@ -55,10 +55,7 @@ A configuration is a named set of <<#sub:terminology_dependency,dependencies>> g
 Configurations provide access to the underlying, resolved <<#sub:terminology_module,modules>> and their artifacts.
 For more information, see the sections on <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,dependency configurations>> as well as <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,resolvable and consumable configurations>>.
 
-[NOTE]
-====
-The word "configuration" is an overloaded term and has a different meaning outside of the context of dependency management.
-====
+NOTE: The word "configuration" is an overloaded term and has a different meaning outside of the context of dependency management.
 
 [[sub:terminology_dependency]]
 == Dependency
@@ -123,10 +120,7 @@ A platform is a set of modules aimed to be used together. There are different ca
 
 In addition Gradle defines <<dependency_version_alignment.adoc#sec:virtual_platform,virtual platforms>>.
 
-[NOTE]
-====
-Maven's BOM (bill-of-material) is a popular kind of platform that <<platforms.adoc#sub:bom_import, Gradle supports>>.
-====
+NOTE: Maven's BOM (bill-of-material) is a popular kind of platform that <<platforms.adoc#sub:bom_import, Gradle supports>>.
 
 [[sub:terminology_publication]]
 == Publication

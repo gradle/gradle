@@ -16,7 +16,6 @@
 
 package org.gradle.api.problems
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
@@ -41,15 +40,14 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.create {
+                    problems.forNamespace("org.example.plugin").reporting {
                         it.label("label")
-                        .undocumented()
                         .stackLocation()
                         .category("type")
-                        }.report()
+                    }
                 }
             }
-            """
+        """
 
         when:
         run("reportProblem")
@@ -62,18 +60,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         problems[0]["locations"][0] == [type:"file", length:null, column:null, line:14, path: "build file '$buildFile.absolutePath'"]
         problems[0]["locations"][1] == [
             type:"task",
-            identityPath:
-                [absolute:true,
-                 path:":reportProblem",
-                 name:"reportProblem",
-                 parent:
-                     [absolute:true,
-                      path:":",
-                      name:null,
-                      parent:null
-                     ]
-                ]
-            ]
+            buildTreePath: ":reportProblem"
+        ]
     }
 
     def "can emit a problem with user-manual documentation"() {
@@ -89,12 +77,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.create {
+                    problems.forNamespace("org.example.plugin").reporting {
                         it.label("label")
                         .documentedAt(Documentation.userManual("test-id", "test-section"))
-                        .noLocation()
                         .category("type")
-                        }.report()
+                    }
                 }
             }
             """
@@ -125,12 +112,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.create {
+                    problems.forNamespace("org.example.plugin").reporting {
                         it.label("label")
                         .documentedAt(Documentation.upgradeGuide(8, "test-section"))
-                        .noLocation()
                         .category("type")
-                        }.report()
+                        }
                 }
             }
             """
@@ -151,6 +137,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile """
             import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.internal.InternalProblems
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
@@ -160,14 +147,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.create {
+                    problems.forNamespace("org.example.plugin").reporting {
                         it.label("label")
-                        .documentedAt(
-                            Documentation.dslReference(Problem.class, "label")
-                        )
-                        .noLocation()
+                        .documentedAt(Documentation.dslReference(Problem.class, "label"))
                         .category("type")
-                        }.report()
+                    }
                 }
             }
             """
@@ -195,12 +179,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.create {
+                    problems.forNamespace("org.example.plugin").reporting {
                         it.label("label")
-                        .undocumented()
                         .fileLocation("test-location", null, null, null)
                         .category("type")
-                        }.report()
+                    }
                 }
             }
             """
@@ -232,12 +215,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.create {
+                    problems.forNamespace("org.example.plugin").reporting {
                         it.label("label")
-                        .undocumented()
                         .fileLocation("test-location", 1, 2, 3)
                         .category("type")
-                        }.report()
+                    }
                 }
             }
             """
@@ -259,8 +241,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         def taskPath = problems[0]["locations"][1]
         taskPath["type"] == "task"
-        taskPath["identityPath"]["absolute"] == true
-        taskPath["identityPath"]["path"] == ":reportProblem"
+        taskPath["buildTreePath"] == ":reportProblem"
     }
 
     def "can emit a problem with plugin location specified"() {
@@ -276,12 +257,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.create {
+                    problems.forNamespace("org.example.plugin").reporting {
                         it.label("label")
-                        .undocumented()
                         .pluginLocation("org.example.pluginid")
                         .category("type")
-                        }.report()
+                    }
                 }
             }
             """
@@ -311,14 +291,12 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.create {
+                    problems.forNamespace("org.example.plugin").reporting {
                         it.label("label")
-                        .undocumented()
-                        .noLocation()
                         .category("type")
                         .solution("solution")
                         .severity(Severity.${severity.name()})
-                        }.report()
+                    }
                 }
             }
             """
@@ -338,6 +316,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile """
             import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.ProblemReporter
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
@@ -347,13 +326,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.create {
+                    problems.forNamespace("org.example.plugin").reporting {
                         it.label("label")
-                        .undocumented()
-                        .noLocation()
                         .category("type")
                         .solution("solution")
-                        }.report()
+                    }
                 }
             }
             """
@@ -372,6 +349,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile """
             import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.ProblemReporter
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
@@ -381,13 +359,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.create {
+                    problems.forNamespace("org.example.plugin").reporting {
                         it.label("label")
-                        .undocumented()
-                        .noLocation()
                         .category("type")
                         .withException(new RuntimeException("test"))
-                        }.report()
+                    }
                 }
             }
             """
@@ -405,6 +381,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile """
             import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.ProblemReporter
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
@@ -414,13 +391,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.create {
+                    problems.forNamespace("org.example.plugin").reporting {
                         it.label("label")
-                        .undocumented()
-                        .noLocation()
                         .category("type")
                         .additionalData("key", "value")
-                        }.report()
+                    }
                 }
             }
             """
@@ -441,6 +416,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile """
             import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.ProblemReporter
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
@@ -450,13 +426,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.create {
+                    problems.forNamespace("org.example.plugin").reporting {
                         it.label("label")
-                        .undocumented()
-                        .noLocation()
                         .category("type")
                         .additionalData("key", ["collections", "are", "not", "supported", "yet"])
-                    }.report()
+                    }
                 }
             }
             """
@@ -477,11 +451,9 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.throwing {
+                    problems.forNamespace("org.example.plugin").throwing {
                         spec -> spec
                             .label("label")
-                            .undocumented()
-                            .noLocation()
                             .category("type")
                             .withException(new RuntimeException("test"))
                     }
@@ -508,10 +480,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 @TaskAction
                 void run() {
                     def exception = new RuntimeException("test")
-                    problems.rethrowing(exception) { it
+                    problems.forNamespace("org.example.plugin").rethrowing(exception) { it
                         .label("label")
-                        .undocumented()
-                        .noLocation()
                         .category("type")
                     }
                 }
@@ -537,18 +507,14 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 void run() {
                     try {
                         def exception = new RuntimeException("test")
-                        problems.throwing { spec -> spec
+                        problems.forNamespace("org.example.plugin").throwing { spec -> spec
                             .label("inner")
-                            .undocumented()
-                            .noLocation()
                             .category("type")
                             .withException(exception)
                         }
                     } catch (RuntimeException ex) {
-                        problems.rethrowing(ex) { spec -> spec
+                        problems.forNamespace("org.example.plugin").rethrowing(ex) { spec -> spec
                             .label("outer")
-                            .undocumented()
-                            .noLocation()
                             .category("type")
                         }
                     }

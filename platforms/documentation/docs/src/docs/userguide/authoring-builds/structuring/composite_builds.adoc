@@ -155,10 +155,7 @@ $ ./gradlew :i-b:sA:cJ
 
 To <<command_line_interface.adoc#sec:excluding_tasks_from_the_command_line,exclude a task from the command line>>, you also need to provide the fully qualified path to the task.
 
-[NOTE]
-====
-Included build tasks are automatically executed in order to generate required dependency artifacts, or the <<#included_build_task_dependencies,including build can declare a dependency on a task from an included build>>.
-====
+NOTE: Included build tasks are automatically executed in order to generate required dependency artifacts, or the <<#included_build_task_dependencies,including build can declare a dependency on a task from an included build>>.
 
 [[composite_build_ide_integration]]
 === Importing into the IDE
@@ -176,8 +173,12 @@ Source dependencies are configured, providing cross-build navigation and refacto
 By default, Gradle will configure each included build in order to determine the dependencies it can provide.
 The algorithm for doing this is very simple: Gradle will inspect the group and name for the projects in the included build, and substitute project dependencies for any external dependency matching `${project.group}:${project.name}`.
 
-NOTE: By default, substitutions are not registered for the _main_ build.
+[NOTE]
+====
+By default, substitutions are not registered for the _main_ build.
+
 To make the (sub)projects of the main build addressable by `${project.group}:${project.name}`, you can tell Gradle to treat the main build like an included build by self-including it: `includeBuild(".")`.
+====
 
 There are cases when the default substitutions determined by Gradle are not sufficient, or they are not correct for a particular composite.
 For these cases it is possible to explicitly declare the substitutions for an included build.
