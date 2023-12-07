@@ -111,6 +111,5 @@ public interface ProblemDescriptor extends OperationDescriptor {
      * @return the exception
      * @since 8.6
      */
-    @Incubating
     ExceptionContainer getException();
 }
