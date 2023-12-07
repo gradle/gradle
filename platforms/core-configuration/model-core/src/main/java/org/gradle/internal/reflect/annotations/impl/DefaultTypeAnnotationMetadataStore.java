@@ -280,9 +280,13 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 previouslySeenBuilder.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyName)
-                        .label("has redundant getters: '%s()' and '%s()'",
-                            previouslySeenBuilder.getter.getName(),
-                            metadataBuilder.getter.getName())
+                        .label(
+                            String.format(
+                                "has redundant getters: '%s()' and '%s()'",
+                                previouslySeenBuilder.getter.getName(),
+                                metadataBuilder.getter.getName()
+                            )
+                        )
                         .documentedAt(userManual("validation_problems", REDUNDANT_GETTERS.toLowerCase()))
                         .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(REDUNDANT_GETTERS))
                         .severity(ERROR)
@@ -342,7 +346,13 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     validationContext.visitTypeProblem(problem ->
                         problem
                             .withAnnotationType(type)
-                            .label("field '%s' without corresponding getter has been annotated with %s", fieldName, simpleAnnotationNames(fieldAnnotations.keySet().stream()))
+                            .label(
+                                String.format(
+                                    "field '%s' without corresponding getter has been annotated with %s",
+                                    fieldName,
+                                    simpleAnnotationNames(fieldAnnotations.keySet().stream())
+                                )
+                            )
                             .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_FIELD.toLowerCase()))
                             .category(DefaultProblemCategory.VALIDATION, "type", TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_FIELD))
                             .severity(ERROR)
@@ -429,7 +439,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             metadataBuilder.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)
-                    .label("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream()))
+                    .label(String.format("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream())))
                     .documentedAt(userManual("validation_problems", PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED.toLowerCase()))
                     .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED))
                     .severity(ERROR)
@@ -452,7 +462,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)
-                    .label("of mutable type '%s' is writable", setterType.getName())
+                    .label(String.format("of mutable type '%s' is writable", setterType.getName()))
                     .documentedAt(userManual("validation_problems", MUTABLE_TYPE_WITH_SETTER.toLowerCase()))
                     .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(MUTABLE_TYPE_WITH_SETTER))
                     .severity(ERROR)
@@ -487,8 +497,12 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         if (!annotationTypes.isEmpty()) {
             validationContext.visitTypeProblem(problem ->
                 problem.withAnnotationType(method.getDeclaringClass())
-                    .label("%s '%s()' should not be annotated with: %s",
-                        methodKind.getDisplayName(), method.getName(), simpleAnnotationNames(annotationTypes.stream())
+                    .label(
+                        String.format(
+                            "%s '%s()' should not be annotated with: %s",
+                            methodKind.getDisplayName(), method.getName(),
+                            simpleAnnotationNames(annotationTypes.stream())
+                        )
                     )
                     .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_METHOD.toLowerCase()))
                     .category(DefaultProblemCategory.VALIDATION, "type", TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_METHOD))
@@ -588,11 +602,15 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         visitPropertyProblem(problem ->
                             problem
                                 .forProperty(propertyName)
-                                .label("annotated with @%s should not be also annotated with %s",
-                                    ignoredMethodAnnotation.getSimpleName(),
-                                    simpleAnnotationNames(declaredAnnotations.values().stream()
-                                        .<Class<? extends Annotation>>map(Annotation::annotationType)
-                                        .filter(annotationType -> !annotationType.equals(ignoredMethodAnnotation))))
+                                .label(
+                                    String.format(
+                                        "annotated with @%s should not be also annotated with %s",
+                                        ignoredMethodAnnotation.getSimpleName(),
+                                        simpleAnnotationNames(declaredAnnotations.values().stream()
+                                            .<Class<? extends Annotation>>map(Annotation::annotationType)
+                                            .filter(annotationType -> !annotationType.equals(ignoredMethodAnnotation)))
+                                    )
+                                )
                                 .documentedAt(userManual("validation_problems", IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED.toLowerCase()))
                                 .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED))
                                 .severity(ERROR)
@@ -643,11 +661,13 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyName)
-                        .label("has conflicting %s annotations %s: %s",
-                            category.getDisplayName(),
-                            source,
-                            simpleAnnotationNames(annotationsForCategory.stream()
-                                .map(Annotation::annotationType))
+                        .label(
+                            String.format(
+                                "has conflicting %s annotations %s: %s",
+                                category.getDisplayName(),
+                                source,
+                                simpleAnnotationNames(annotationsForCategory.stream().map(Annotation::annotationType))
+                            )
                         )
                         .documentedAt(userManual("validation_problems", CONFLICTING_ANNOTATIONS.toLowerCase()))
                         .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(CONFLICTING_ANNOTATIONS))

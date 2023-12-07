@@ -26,7 +26,7 @@ public interface InternalProblemBuilder extends ProblemBuilder {
     InternalProblemBuilder taskPathLocation(String buildTreePath);
 
     @Override
-    InternalProblemBuilder label(String label, Object... args);
+    InternalProblemBuilder label(String label);
 
     @Override
     InternalProblemBuilder category(String category, String... details);

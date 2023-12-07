@@ -126,7 +126,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 validationContext.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyAnnotationMetadata.getPropertyName())
-                        .label("is annotated with invalid property type @%s", propertyType.getSimpleName())
+                        .label(String.format("is annotated with invalid property type @%s", propertyType.getSimpleName()))
                         .documentedAt(userManual("validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase()))
                         .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT))
                         .severity(ERROR)
@@ -158,7 +158,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyAnnotationMetadata.getPropertyName())
-                            .label("is annotated with invalid modifier @%s", annotationType.getSimpleName())
+                            .label(String.format("is annotated with invalid modifier @%s", annotationType.getSimpleName()))
                             .documentedAt(userManual("validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase()))
                             .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT))
                             .severity(ERROR)

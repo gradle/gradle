@@ -126,8 +126,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder label(String label, Object... args) {
-        this.label = String.format(label, args);
+    public InternalProblemBuilder label(String label) {
+        this.label = label;
         return this;
     }
 

@@ -36,7 +36,7 @@ public interface ProblemSpec {
      * @return this
      * @since 8.6
      */
-    ProblemSpec label(String label, Object... args);
+    ProblemSpec label(String label);
 
     /**
      * Declares the problem category.

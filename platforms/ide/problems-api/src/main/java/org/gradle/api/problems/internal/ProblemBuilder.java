@@ -37,7 +37,7 @@ public interface ProblemBuilder extends ProblemSpec {
      * {@inheritDoc}
      */
     @Override
-    ProblemBuilder label(String label, Object... args);
+    ProblemBuilder label(String label);
 
     /**
      * {@inheritDoc}

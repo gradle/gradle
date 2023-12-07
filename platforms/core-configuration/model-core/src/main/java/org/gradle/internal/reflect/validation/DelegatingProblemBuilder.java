@@ -39,8 +39,8 @@ class DelegatingProblemBuilder implements ProblemBuilder {
     }
 
     @Override
-    public ProblemBuilder label(String label, Object... args) {
-        return validateDelegate(delegate).label(label, args);
+    public ProblemBuilder label(String label) {
+        return validateDelegate(delegate).label(label);
     }
 
     @Override
