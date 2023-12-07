@@ -40,6 +40,7 @@ public class DefaultFileLocation implements InternalFileLocation, Serializable {
     public String getPath() {
         return path;
     }
+
     @Override
     @Nullable
     public Integer getLine() {

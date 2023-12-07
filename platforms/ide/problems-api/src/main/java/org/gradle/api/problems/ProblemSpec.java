@@ -39,9 +39,9 @@ public interface ProblemSpec {
 
     /**
      * Declares a short message for this problem.
+     *
      * @param label the short message
      * @param args the arguments for formatting the label with {@link String#format(String, Object...)}
-     *
      * @return the builder for the next required property
      * @since 8.6
      */
@@ -53,8 +53,8 @@ public interface ProblemSpec {
      * @param category the type name
      * @param details the type details
      * @return the builder for the next required property
-     * @since 8.6
      * @see ProblemCategory
+     * @since 8.6
      */
     ProblemSpec category(String category, String... details);
 

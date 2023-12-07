@@ -52,7 +52,7 @@ public interface InternalProblemBuilder extends ProblemBuilder {
     @Override
     InternalProblemBuilder solution(String solution);
 
-   @Override
+    @Override
     InternalProblemBuilder additionalData(String key, Object value);
 
     @Override

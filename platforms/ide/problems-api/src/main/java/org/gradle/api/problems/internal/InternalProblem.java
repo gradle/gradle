@@ -22,7 +22,6 @@ public interface InternalProblem extends Problem {
 
     /**
      * Returns a problem builder with fields initialized with values from this instance.
-     *
      */
     InternalProblemBuilder toBuilder();
 }

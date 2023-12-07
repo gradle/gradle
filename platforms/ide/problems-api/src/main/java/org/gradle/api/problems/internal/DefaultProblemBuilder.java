@@ -44,7 +44,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private RuntimeException exception;
     private final Map<String, Object> additionalData;
     private boolean collectLocation = false;
-    @Nullable private OperationIdentifier currentOperationId = null;
+    @Nullable
+    private OperationIdentifier currentOperationId = null;
 
     public DefaultProblemBuilder(Problem problem) {
         this.label = problem.getLabel();

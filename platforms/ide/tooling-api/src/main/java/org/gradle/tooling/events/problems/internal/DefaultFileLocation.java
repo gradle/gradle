@@ -37,6 +37,7 @@ public class DefaultFileLocation implements FileLocation {
     public String getPath() {
         return path;
     }
+
     @Override
     @Nullable
     public Integer getLine() {

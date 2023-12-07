@@ -33,7 +33,6 @@ public interface Problem {
      * Returns the problem category.
      *
      * @return the problem category.
-     *
      * @since 8.6
      */
     ProblemCategory getProblemCategory();
