@@ -52,10 +52,7 @@ If you’re implementing a custom task as a class, then it takes just two steps 
 . Create typed properties (via getter methods) for each of your task inputs and outputs
 . Add the appropriate annotation to each of those properties
 
-[NOTE]
-====
-Annotations must be placed on getters or on Groovy properties. Annotations placed on setters, or on a Java field without a corresponding annotated getter, are ignored.
-====
+NOTE: Annotations must be placed on getters or on Groovy properties. Annotations placed on setters, or on a Java field without a corresponding annotated getter, are ignored.
 
 Gradle supports four main categories of inputs and outputs:
 
@@ -182,10 +179,7 @@ The following kinds of changes to the classpath will be ignored:
 * Changes to debug information, for example when a change to a comment affects the line numbers in class debug information.
 * Changes to directories, including directory entries in Jars.
 
-[NOTE]
-====
-The `@CompileClasspath` annotation was introduced in Gradle 3.4. To stay compatible with Gradle 3.3 and 3.2, compile classpath properties should also be annotated with `@Classpath`. For compatibility with Gradle versions before 3.2 the property should also be annotated with `@InputFiles`.
-====
+*NOTE* - The `@CompileClasspath` annotation was introduced in Gradle 3.4. To stay compatible with Gradle 3.3 and 3.2, compile classpath properties should also be annotated with `@Classpath`. For compatibility with Gradle versions before 3.2 the property should also be annotated with `@InputFiles`.
 
 | `@link:{javadocPath}/org/gradle/api/tasks/OutputFile.html[OutputFile]`
 | `File`*
@@ -258,12 +252,10 @@ Implies `<<#incremental,@Incremental>>`.
 
 [NOTE]
 ====
-[horizontal]
-*::
-In fact, `File` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] and `Iterable&lt;File&gt;` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)].
+`File` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] and `Iterable&lt;File&gt;` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)].
 This includes instances of `Callable`, such as closures, allowing for lazy evaluation of the property values.
 Be aware that the types `FileCollection` and `FileTree` are ``Iterable&lt;File&gt;``s.
-**::
+
 Similar to the above, `File` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)]. The `Map` itself can be wrapped in ``Callable``s, such as closures.
 ====
 
@@ -516,10 +508,7 @@ include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",fil
 
 Using the runtime API like this is a little like using `doLast()` and `doFirst()` to attach extra actions to a task, except in this case we’re attaching information about inputs and outputs.
 
-[WARNING]
-====
-If the task type is already using the incremental build annotations, registering inputs or outputs with the same property names will result in an error.
-====
+WARNING: If the task type is already using the incremental build annotations, registering inputs or outputs with the same property names will result in an error.
 
 [[sec:task_input_output_side_effects]]
 == Benefits of declaring task inputs and outputs
@@ -620,8 +609,7 @@ Note also that changing the availability of an unavailable file (e.g. modifying 
 
 The inputs for the task are also used to calculate the <<build_cache.adoc#build_cache,build cache>> key used to load task outputs when enabled. For more details see <<build_cache.adoc#sec:task_output_caching,Task output caching>>.
 
-[NOTE]
-====
+--
 For tracking the implementation of tasks, task actions and nested inputs, Gradle uses the class name and an identifier for the classpath which contains the implementation.
 There are some situations when Gradle is not able to track the implementation precisely:
 
@@ -634,7 +622,7 @@ Therefore, the class name does not identify the implementation of the lambda and
 
 When the implementation of a task, task action or a nested input cannot be tracked precisely, Gradle disables any caching for the task.
 That means that the task will never be up-to-date or loaded from the <<build_cache.adoc#sec:task_output_caching,build cache>>.
-====
+--
 
 [[sec:advanced_inc_build]]
 == Advanced techniques
@@ -934,7 +922,4 @@ For example, in cases where you want to skip a task when a particular property i
 
 When the Gradle version changes, Gradle detects that outputs from tasks that ran with older versions of Gradle need to be removed to ensure that the newest version of the tasks are starting from a known clean state.
 
-[NOTE]
-====
-Automatic clean-up of stale output directories has only been implemented for the output of source sets (Java/Groovy/Scala compilation).
-====
+NOTE: Automatic clean-up of stale output directories has only been implemented for the output of source sets (Java/Groovy/Scala compilation).
