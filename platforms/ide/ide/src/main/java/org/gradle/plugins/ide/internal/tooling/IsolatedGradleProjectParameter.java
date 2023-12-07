@@ -18,10 +18,8 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.NonNullApi;
 
-import java.io.Serializable;
-
 @NonNullApi
-public interface IsolatedGradleProjectParameter extends Serializable {
+public interface IsolatedGradleProjectParameter {
 
     boolean getRealizeTasks();
 
