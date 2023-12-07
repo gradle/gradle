@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -32,15 +33,25 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
     private static final Logger LOGGER = LoggerFactory.getLogger(OpFiringRemoteBuildCacheServiceHandle.class);
 
     protected enum Operation {
-        LOAD("load", "from"),
-        STORE("store", "in");
+        LOAD("Load", "from"),
+        STORE("Store", "in");
 
         private final String verb;
+        private final String capitalizedVerb;
         private final String preposition;
 
-        Operation(String verb, String preposition) {
-            this.verb = verb;
+        Operation(String capitalizedVerb, String preposition) {
+            this.capitalizedVerb = capitalizedVerb;
+            this.verb = capitalizedVerb.toLowerCase(Locale.ROOT);
             this.preposition = preposition;
+        }
+
+        public String describe(BuildCacheKey key, BuildCacheServiceRole role) {
+            return capitalizedVerb + " entry " + key.getDisplayName() + " " + preposition + " " + role.getDisplayName() + " build cache";
+        }
+
+        public String describeFailure(BuildCacheKey key, BuildCacheServiceRole role) {
+            return "Could not " + verb + " entry " + key.getDisplayName() + " " + preposition + " " + role.getDisplayName() + " build cache";
         }
     }
 
@@ -83,7 +94,7 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
         if (!canLoad()) {
             return Optional.empty();
         }
-        String description = "Load entry " + key.getDisplayName() + " from " + role.getDisplayName() + " build cache";
+        String description = Operation.LOAD.describe(key, role);
         LOGGER.debug(description);
         LoadTarget loadTarget = new LoadTarget(loadTargetFile);
         try {
@@ -119,7 +130,7 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
         if (!canStore()) {
             return false;
         }
-        String description = "Store entry " + key.getDisplayName() + " in " + role.getDisplayName() + " build cache";
+        String description = Operation.STORE.describe(key, role);
         LOGGER.debug(description);
         try {
             storeInner(description, key, new StoreTarget(file));
@@ -134,23 +145,23 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
         service.store(key, storeTarget);
     }
 
-    private void failure(Operation operation, BuildCacheKey key, Throwable e) {
+    private void failure(Operation operation, BuildCacheKey key, Throwable failure) {
         if (disableOnError) {
             disabled = true;
-            onCacheDisabled(key, operation, e);
+            onCacheDisabled(key, operation, failure);
         }
 
-        String description = "Could not " + operation.verb + " entry " + key.getDisplayName() + " " + operation.preposition + " " + role.getDisplayName() + " build cache";
+        String description = operation.describeFailure(key, role);
         if (LOGGER.isWarnEnabled()) {
             if (logStackTraces) {
-                LOGGER.warn(description, e);
+                LOGGER.warn(description, failure);
             } else {
-                LOGGER.warn(description + ": " + e.getMessage());
+                LOGGER.warn(description + ": " + failure.getMessage());
             }
         }
     }
 
-    protected void onCacheDisabled(BuildCacheKey key, Operation operation, Throwable e) {
+    protected void onCacheDisabled(BuildCacheKey key, Operation operation, Throwable failure) {
     }
 
     @Override
