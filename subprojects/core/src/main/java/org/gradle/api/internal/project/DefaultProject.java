@@ -21,6 +21,7 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.CircularReferenceException;
+import org.gradle.api.ImmutableProject;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -131,6 +132,7 @@ import org.gradle.util.Configurable;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -773,11 +775,17 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     /**
-     * This method is used when scripts access the project via project.x
+     * This method is used when scripts access the project via project.
      */
     @Override
     public ProjectInternal getProject() {
         return this;
+    }
+
+    @NotNull
+    @Override
+    public ImmutableProject getAsImmutableProject() {
+        return new DefaultImmutableProject(name, getPath(), projectDir, getRootDir());
     }
 
     @Override

@@ -100,6 +100,20 @@ class DefaultProjectSpec extends Specification {
         1 * project.artifacts.add('foo', 'bar')
     }
 
+    def "can view as an ImmutableProject"() {
+        given:
+        def project = project('root', null, Stub(GradleInternal))
+
+        when:
+        def immutableProject = project.asImmutableProject
+
+        then:
+        immutableProject.name == 'root'
+        immutableProject.path == ':'
+        immutableProject.projectDirectory == new File('project')
+        immutableProject.rootDirectory == new File('project')
+    }
+
     def "has useful toString and displayName and paths"() {
         def rootBuild = Stub(GradleInternal)
         rootBuild.isRootBuild() >> true
