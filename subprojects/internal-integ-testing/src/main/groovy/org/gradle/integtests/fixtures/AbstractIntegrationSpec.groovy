@@ -442,6 +442,11 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         executer.withArguments(args)
     }
 
+    protected AbstractIntegrationSpec withInfoLogging() {
+        executer.withArgument("-i")
+        return this
+    }
+
     protected GradleExecuter withDebugLogging() {
         executer.withArgument("-d")
     }

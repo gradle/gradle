@@ -134,16 +134,17 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         addMustRunAfter('first', 'second')
 
         when:
-        withBuildCache().run(first, second)
+        withBuildCacheAndInfoLogging().run(first, second)
         then:
         firstOutput.assertExists()
         secondOutput.assertExists()
         // Only the first task can be cached since the second detects the overlap
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(first)
+        assertTaskOutputNotCached(second)
 
         when:
         cleanBuildDir()
-        withBuildCache().run(first, second)
+        withBuildCacheAndInfoLogging().run(first, second)
         then:
         // Output should match the first execution
         firstOutput.assertExists()
@@ -159,16 +160,17 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
              String second, TestFile secondOutput) = useOverlappingOutputDirectories()
 
         when:
-        withBuildCache().run(first, second)
+        withBuildCacheAndInfoLogging().run(first, second)
         then:
         firstOutput.assertExists()
         secondOutput.assertExists()
         // Only the first task can be cached since the second detects the overlap
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(first)
+        assertTaskOutputNotCached(second)
 
         when:
         cleanBuildDir()
-        withBuildCache().run(second, first)
+        withBuildCacheAndInfoLogging().run(second, first)
         then:
         // Output should match the first execution
         firstOutput.assertExists()
@@ -183,16 +185,17 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
              String second, TestFile secondOutput) = useOverlappingOutputDirectories()
 
         when:
-        withBuildCache().run(first, second)
+        withBuildCacheAndInfoLogging().run(first, second)
         then:
         firstOutput.assertExists()
         secondOutput.assertExists()
         // Only the first task can be cached since the second detects the overlap
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(first)
+        assertTaskOutputNotCached(second)
 
         when:
         cleanBuildDir()
-        withBuildCache().run(second)
+        withBuildCacheAndInfoLogging().run(second)
         then:
         firstOutput.assertDoesNotExist()
         secondOutput.assertExists()
@@ -209,15 +212,16 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         def cleanSecond = ":cleanSecond"
 
         when:
-        withBuildCache().run(first, cleanSecond, second)
+        withBuildCacheAndInfoLogging().run(first, cleanSecond, second)
         then:
         // Both tasks can be cached because clean removes the output from first
         // before second executes.
-        listCacheFiles().size() == 2
+        assertTaskOutputCached(first)
+        assertTaskOutputCached(second)
 
         when:
         cleanBuildDir()
-        withBuildCache().run(first, second)
+        withBuildCacheAndInfoLogging().run(first, second)
         then:
         firstOutput.assertExists()
         secondOutput.assertExists()
@@ -244,16 +248,17 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
              String dirTask, TestFile dirTaskOutput) = useOverlappingOutputFileAndDirectory()
 
         when:
-        withBuildCache().run(fileTask, dirTask)
+        withBuildCacheAndInfoLogging().run(fileTask, dirTask)
         then:
         fileTaskOutput.assertExists()
         dirTaskOutput.assertExists()
         // Only one task can be cached
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(fileTask)
+        assertTaskOutputNotCached(dirTask)
 
         when:
         cleanBuildDir()
-        withBuildCache().run(fileTask, dirTask)
+        withBuildCacheAndInfoLogging().run(fileTask, dirTask)
         then:
         fileTaskOutput.assertExists()
         dirTaskOutput.assertExists()
@@ -267,16 +272,17 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
              String dirTask, TestFile dirTaskOutput) = useOverlappingOutputFileAndDirectory()
 
         when:
-        withBuildCache().run(fileTask, dirTask)
+        withBuildCacheAndInfoLogging().run(fileTask, dirTask)
         then:
         fileTaskOutput.assertExists()
         dirTaskOutput.assertExists()
         // Only one task can be cached
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(fileTask)
+        assertTaskOutputNotCached(dirTask)
 
         when:
         cleanBuildDir()
-        withBuildCache().run(dirTask, fileTask)
+        withBuildCacheAndInfoLogging().run(dirTask, fileTask)
         then:
         // Outcome should look the same as if the build was run in the opposite order (fileTask then dirTask)
         fileTaskOutput.assertExists()
@@ -285,11 +291,11 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         result.assertTaskSkipped(fileTask)
         result.assertTaskNotSkipped(dirTask)
         // Now the dirTask can be cached (since it executed first)
-        listCacheFiles().size() == 2
+        assertTaskOutputCached(dirTask)
 
         when:
         cleanBuildDir()
-        withBuildCache().run(dirTask, fileTask)
+        withBuildCacheAndInfoLogging().run(dirTask, fileTask)
         then:
         // Outcome should look the same again
         fileTaskOutput.assertExists()
@@ -303,16 +309,17 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
              String dirTask, TestFile dirTaskOutput) = useOverlappingOutputFileAndDirectory()
 
         when:
-        withBuildCache().run(fileTask, dirTask)
+        withBuildCacheAndInfoLogging().run(fileTask, dirTask)
         then:
         fileTaskOutput.assertExists()
         dirTaskOutput.assertExists()
         // Only one task can be cached
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(fileTask)
+        assertTaskOutputCached(fileTask)
 
         when:
         cleanBuildDir()
-        withBuildCache().run(dirTask)
+        withBuildCacheAndInfoLogging().run(dirTask)
         then:
         // fileTask's outputs shouldn't exist since it didn't execute
         fileTaskOutput.assertDoesNotExist()
@@ -320,7 +327,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         // dirTask will not be from the cache due to a cache miss
         result.assertTasksNotSkipped(dirTask)
         // dirTask is cached now (since fileTask didn't overlap this time)
-        listCacheFiles().size() == 2
+        assertTaskOutputCached(dirTask)
     }
 
     def "overlapping output with dirTask, fileTask then fileTask then dirTask"() {
@@ -328,16 +335,17 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
              String dirTask, TestFile dirTaskOutput) = useOverlappingOutputFileAndDirectory()
 
         when:
-        withBuildCache().run(dirTask, fileTask)
+        withBuildCacheAndInfoLogging().run(dirTask, fileTask)
         then:
         fileTaskOutput.assertExists()
         dirTaskOutput.assertExists()
         // Both tasks can be cached because the dirTask doesn't use the same output file as fileTask
-        listCacheFiles().size() == 2
+        assertTaskOutputCached(fileTask)
+        assertTaskOutputCached(fileTask)
 
         when:
         cleanBuildDir()
-        withBuildCache().run(fileTask)
+        withBuildCacheAndInfoLogging().run(fileTask)
         then:
         fileTaskOutput.assertExists()
         // dirTask didn't execute
@@ -346,7 +354,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         result.assertTaskSkipped(fileTask)
 
         when:
-        withBuildCache().run(dirTask)
+        withBuildCacheAndInfoLogging().run(dirTask)
         then:
         fileTaskOutput.assertExists()
         dirTaskOutput.assertExists()
@@ -362,17 +370,18 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         def (fileTask, fileTaskOutput,
              dirTask, dirTaskOutput) = useOverlappingOutputFileAndDirectory()
         when:
-        withBuildCache().run(fileTask, cleanDirTask, dirTask)
+        withBuildCacheAndInfoLogging().run(fileTask, cleanDirTask, dirTask)
         then:
         // TODO fileTaskOutput should exist
         fileTaskOutput.assertDoesNotExist()
         dirTaskOutput.assertExists()
         // Both tasks can be cached since fileTask's outputs are removed before dirTask executes
-        listCacheFiles().size() == 2
+        assertTaskOutputCached(fileTask)
+        assertTaskOutputCached(fileTask)
 
         when:
         cleanBuildDir()
-        withBuildCache().run(fileTask, dirTask)
+        withBuildCacheAndInfoLogging().run(fileTask, dirTask)
         then:
         fileTaskOutput.assertExists()
         dirTaskOutput.assertExists()
@@ -404,15 +413,16 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         addMustRunAfter('first', 'second')
 
         when:
-        withBuildCache().run(first, second)
+        withBuildCacheAndInfoLogging().run(first, second)
         then:
         sharedOutput.text == "Generated by task ${second}"
         // Only first can be cached because second detects the overlap
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(first)
+        assertTaskOutputNotCached(second)
 
         when:
         cleanBuildDir()
-        withBuildCache().run(first, second)
+        withBuildCacheAndInfoLogging().run(first, second)
         then:
         sharedOutput.text == "Generated by task ${second}"
         // first can be loaded from the cache
@@ -421,7 +431,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         result.assertTaskNotSkipped(second)
 
         when:
-        withBuildCache().run(first)
+        withBuildCacheAndInfoLogging().run(first)
         then:
         // first overwrites second's output if executed on its own
         sharedOutput.text == "Generated by ${first}"
@@ -433,15 +443,16 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         def (String first, String second, TestFile sharedOutput) = useOverlappingOutputFiles()
 
         when:
-        withBuildCache().run(first, second)
+        withBuildCacheAndInfoLogging().run(first, second)
         then:
         sharedOutput.text == "Generated by task ${second}"
         // Only first can be cached because second detects the overlap
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(first)
+        assertTaskOutputNotCached(second)
 
         when:
         cleanBuildDir()
-        withBuildCache().run(second, first)
+        withBuildCacheAndInfoLogging().run(second, first)
         then:
         sharedOutput.text == "Generated by ${first}"
         // second will not be loaded from the cache due to a cache miss
@@ -454,21 +465,22 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         def (String first, String second, TestFile sharedOutput) = useOverlappingOutputFiles()
 
         when:
-        withBuildCache().run(first, second)
+        withBuildCacheAndInfoLogging().run(first, second)
         then:
         sharedOutput.text == "Generated by task ${second}"
         // Only first can be cached because second detects the overlap
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(first)
+        assertTaskOutputNotCached(second)
 
         when:
         cleanBuildDir()
-        withBuildCache().run(second)
+        withBuildCacheAndInfoLogging().run(second)
         then:
         sharedOutput.text == "Generated by task ${second}"
         // second cannot be loaded from the cache due to cache miss
         result.assertTasksNotSkipped(second)
         // second can be cached now because first did not execute
-        listCacheFiles().size() == 2
+        assertTaskOutputCached(second)
     }
 
     def "overlapping output files with first, cleanSecond, second then first, second"() {
@@ -476,16 +488,17 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         def cleanSecond = ":cleanSecond"
 
         when:
-        withBuildCache().run(first, cleanSecond, second)
+        withBuildCacheAndInfoLogging().run(first, cleanSecond, second)
         then:
         sharedOutput.text == "Generated by task ${second}"
         // Both tasks can be cached because cleanSecond removes the outputs of first
         // before executing second
-        listCacheFiles().size() == 2
+        assertTaskOutputCached(first)
+        assertTaskOutputCached(second)
 
         when:
         cleanBuildDir()
-        withBuildCache().run(first, second)
+        withBuildCacheAndInfoLogging().run(first, second)
         then:
         sharedOutput.text == "Generated by task ${second}"
         // first can be loaded from the cache and second can't be loaded because of overlap
@@ -507,17 +520,18 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
              String dirTask, TestFile dirTaskOutput) = useOverlappingLocalStateFileAndOutputDirectory()
 
         when:
-        withBuildCache().run(localStateFileTask, dirTask)
+        withBuildCacheAndInfoLogging().run(localStateFileTask, dirTask)
         then:
         localStateFileTaskOutput.assertExists()
         localStateFileTaskState.assertExists()
         dirTaskOutput.assertExists()
         // Only one task can be cached
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(localStateFileTask)
+        assertTaskOutputNotCached(dirTask)
 
         when:
         cleanBuildDir()
-        withBuildCache().run(localStateFileTask, dirTask)
+        withBuildCacheAndInfoLogging().run(localStateFileTask, dirTask)
         then:
         localStateFileTaskOutput.assertExists()
         // Task was loaded from cache, so local state was removed
@@ -533,17 +547,18 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
              String dirTask, TestFile dirTaskOutput) = useOverlappingLocalStateFileAndOutputDirectory()
 
         when:
-        withBuildCache().run(localStateFileTask, dirTask)
+        withBuildCacheAndInfoLogging().run(localStateFileTask, dirTask)
         then:
         localStateFileTaskOutput.assertExists()
         localStateFileTaskState.assertExists()
         dirTaskOutput.assertExists()
         // Only one task can be cached
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(localStateFileTask)
+        assertTaskOutputNotCached(dirTask)
 
         when:
         cleanBuildDir()
-        withBuildCache().run(dirTask, localStateFileTask)
+        withBuildCacheAndInfoLogging().run(dirTask, localStateFileTask)
         then:
         localStateFileTaskOutput.assertExists()
         // Task was loaded from cache, so local state was removed
@@ -553,11 +568,11 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         result.assertTaskSkipped(localStateFileTask)
         result.assertTaskNotSkipped(dirTask)
         // Now the dirTask can be cached (since it executed first)
-        listCacheFiles().size() == 2
+        assertTaskOutputCached(dirTask)
 
         when:
         cleanBuildDir()
-        withBuildCache().run(dirTask, localStateFileTask)
+        withBuildCacheAndInfoLogging().run(dirTask, localStateFileTask)
         then:
         // Outcome should look the same again
         localStateFileTaskOutput.assertExists()
@@ -584,19 +599,21 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         addMustRunAfter('localStateDirTask', 'fileTask')
 
         when:
-        withBuildCache().run(localStateDirTask, fileTask)
+        withBuildCacheAndInfoLogging().run(localStateDirTask, fileTask)
         then:
         localStateDirTaskOutput.assertExists()
         localStateDirTaskState.assertExists()
         fileTaskOutput.assertExists()
         // Only one task can be cached
-        // listCacheFiles().size() == 1
+        // assertTaskOutputCached(localStateDirTask)
+        // assertTaskOutputNotCached(fileTask)
         // FIXME Overlap not yet detected
-        listCacheFiles().size() == 2
+        assertTaskOutputCached(localStateDirTask)
+        assertTaskOutputCached(fileTask)
 
         when:
         cleanBuildDir()
-        withBuildCache().run(localStateDirTask, fileTask)
+        withBuildCacheAndInfoLogging().run(localStateDirTask, fileTask)
         then:
         localStateDirTaskOutput.assertExists()
         // Task was loaded from cache, so local state was removed
@@ -614,19 +631,21 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
              String fileTask, TestFile fileTaskOutput) = useOverlappingLocalStateDirectoryAndOutputFile()
 
         when:
-        withBuildCache().run(localStateDirTask, fileTask)
+        withBuildCacheAndInfoLogging().run(localStateDirTask, fileTask)
         then:
         localStateDirTaskOutput.assertExists()
         localStateDirTaskState.assertExists()
         fileTaskOutput.assertExists()
         // Only one task can be cached
-        // listCacheFiles().size() == 1
+        // assertTaskOutputCached(localStateDirTask)
+        // assertTaskOutputNotCached(fileTask)
         // FIXME Overlap not yet detected
-        listCacheFiles().size() == 2
+        assertTaskOutputCached(localStateDirTask)
+        assertTaskOutputCached(fileTask)
 
         when:
         cleanBuildDir()
-        withBuildCache().run(fileTask, localStateDirTask)
+        withBuildCacheAndInfoLogging().run(fileTask, localStateDirTask)
         then:
         // FIXME Loading from cache destroys the overlap directory, but the task should not be loaded from cache
         fileTaskOutput.assertDoesNotExist()
@@ -639,14 +658,16 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         // result.assertTaskNotSkipped(fileTask)
         skipped fileTask
         // Now the localStateDirTask can be cached (since it executed first)
-        listCacheFiles().size() == 2
+        // FIXME
+        // assertTaskOutputCached(localStateDirTask)
+        // assertTaskOutputNotCached(fileTask)
 
         when:
         cleanBuildDir()
         // When configuration cache is enabled, the task graph for this build will be loaded from the cache and tasks will run in parallel and start in an arbitrary order
         // Use max-workers=1 to force non-parallel execution and the tasks to run in the specified order (--no-parallel doesn't have an effect with CC)
         executer.withArgument("--max-workers=1")
-        withBuildCache().run(fileTask, localStateDirTask)
+        withBuildCacheAndInfoLogging().run(fileTask, localStateDirTask)
         then:
         // Outcome should look the same again
         localStateDirTaskOutput.assertExists()
@@ -673,17 +694,17 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         def someTaskOutput = file("build/overlap/someTask.txt")
         externalFile.text = "Created by something else"
         when:
-        withBuildCache().run(someTask)
+        withBuildCacheAndInfoLogging().run(someTask)
         then:
         // someTask cannot be cached.
-        listCacheFiles().size() == 0
+        assertTaskOutputNotCached(someTask)
         externalFile.assertExists()
         someTaskOutput.assertExists()
 
         when:
         externalFile.text = "changed"
         someTaskOutput.delete()
-        withBuildCache().run(someTask)
+        withBuildCacheAndInfoLogging().run(someTask)
         then:
         result.assertTaskNotSkipped(someTask)
         externalFile.text == "changed"
@@ -691,13 +712,13 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
 
         when:
         cleanBuildDir()
-        withBuildCache().run(someTask)
+        withBuildCacheAndInfoLogging().run(someTask)
         then:
         result.assertTaskNotSkipped(someTask)
         externalFile.assertDoesNotExist()
         someTaskOutput.assertExists()
         // someTask can be cached now
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(someTask)
     }
 
     def "overlapping file with external process and a pre-existing file"() {
@@ -709,10 +730,10 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         someTaskOutput.text = "Created by something else"
 
         when:
-        withBuildCache().run(someTask)
+        withBuildCacheAndInfoLogging().run(someTask)
         then:
         // someTask cannot be cached because its outputs were created by something else
-        listCacheFiles().size() == 0
+        assertTaskOutputNotCached(someTask)
         someTaskOutput.text == "Generated by ${someTask}"
     }
 
@@ -724,15 +745,15 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         def someTaskOutput = file("build/overlap/someTask.txt")
 
         when:
-        withBuildCache().run(someTask)
+        withBuildCacheAndInfoLogging().run(someTask)
         then:
         // A can be cached.
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(someTask)
         someTaskOutput.assertExists()
 
         when:
         someTaskOutput.text = "changed"
-        withBuildCache().run(someTask)
+        withBuildCacheAndInfoLogging().run(someTask)
         then:
         result.assertTaskNotSkipped(someTask)
         someTaskOutput.text == "Generated by ${someTask}"
@@ -740,7 +761,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         when:
         // Looks the same as clean
         someTaskOutput.delete()
-        withBuildCache().run(someTask)
+        withBuildCacheAndInfoLogging().run(someTask)
         then:
         result.assertTaskSkipped(someTask)
         someTaskOutput.text == "Generated by ${someTask}"
@@ -757,18 +778,34 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         def someTaskOutput = file("build/overlap/someTask.txt")
 
         when:
-        withBuildCache().run(someTask)
+        withBuildCacheAndInfoLogging().run(someTask)
         then:
         // A can be cached.
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(someTask)
         someTaskOutput.assertExists()
 
         when:
         cleanBuildDir()
         file("build/overlap/emptyDir").createDir()
-        withBuildCache().run(someTask)
+        withBuildCacheAndInfoLogging().run(someTask)
         then:
         result.assertTaskNotSkipped(someTask)
         someTaskOutput.assertExists()
+    }
+
+    private AbstractIntegrationSpec withBuildCacheAndInfoLogging() {
+        return withInfoLogging().withBuildCache()
+    }
+
+    private void assertTaskOutputCached(String taskName) {
+        outputContains(taskCacheEntryStoredMessage(taskName))
+    }
+
+    private void assertTaskOutputNotCached(String taskName) {
+        outputDoesNotContain(taskCacheEntryStoredMessage(taskName))
+    }
+
+    private static String taskCacheEntryStoredMessage(String taskName) {
+        return "Stored cache entry for task '$taskName' with cache key"
     }
 }
