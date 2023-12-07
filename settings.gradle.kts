@@ -218,6 +218,10 @@ platform("enterprise") {
     subproject("enterprise-workers")
 }
 
+platform("build-infrastructure") {
+    subproject("precondition-tester")
+}
+
 // Internal utility and verification projects
 unassigned {
     subproject("architecture-test")
@@ -231,7 +235,6 @@ unassigned {
     subproject("soak")
     subproject("smoke-test")
     subproject("performance")
-    subproject("precondition-tester")
 }
 
 rootProject.name = "gradle"
