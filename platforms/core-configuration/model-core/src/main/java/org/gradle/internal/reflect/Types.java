@@ -55,16 +55,7 @@ public class Types {
                 continue;
             }
 
-            TypeVisitResult result = visitor.visitType(type);
-
-            switch (result) {
-                case CONTINUE:
-                    break;
-                case TERMINATE:
-                    return;
-                default:
-                    throw new AssertionError("Unexpected result: " + result);
-            }
+            visitor.visitType(type);
 
             Class<? super T> superclass = type.getSuperclass();
             if (superclass != null) {
@@ -80,18 +71,6 @@ public class Types {
 
     @FunctionalInterface
     public interface TypeVisitor<T> {
-        TypeVisitResult visitType(Class<? super T> type);
-    }
-
-    public static enum TypeVisitResult {
-        /**
-         * Continue visiting.
-         */
-        CONTINUE,
-
-        /**
-         * Terminate visiting immediately.
-         */
-        TERMINATE
+        void visitType(Class<? super T> type);
     }
 }

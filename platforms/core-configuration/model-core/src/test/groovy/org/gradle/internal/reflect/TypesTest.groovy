@@ -47,20 +47,10 @@ class TypesTest extends Specification {
         when:
         Types.walkTypeHierarchy(Child, [Object, GroovyObject], visitor)
 
-        then: 1 * visitor.visitType(Child) >> Types.TypeVisitResult.CONTINUE
-        then: 1 * visitor.visitType(Base) >> Types.TypeVisitResult.CONTINUE
-        then: 1 * visitor.visitType(Serializable) >> Types.TypeVisitResult.CONTINUE
-        then: 1 * visitor.visitType(Iface) >> Types.TypeVisitResult.CONTINUE
-        then: 0 * _
-    }
-
-    def "can terminate type hierarchy walk"() {
-        def visitor = Mock(Types.TypeVisitor)
-        when:
-        Types.walkTypeHierarchy(Child, [Object, GroovyObject], visitor)
-
-        then: 1 * visitor.visitType(Child) >> Types.TypeVisitResult.CONTINUE
-        then: 1 * visitor.visitType(Base) >> Types.TypeVisitResult.TERMINATE
+        then: 1 * visitor.visitType(Child)
+        then: 1 * visitor.visitType(Base)
+        then: 1 * visitor.visitType(Serializable)
+        then: 1 * visitor.visitType(Iface)
         then: 0 * _
     }
 }
