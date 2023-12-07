@@ -28,7 +28,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
         withParameterizedSomeToolingModelBuilderPluginInChildBuild("buildSrc")
         buildFile << """
             plugins.apply(my.MyPlugin)
-            println("configuring build")
+            println("configuring root")
         """
 
         when:
@@ -41,7 +41,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
             buildModelCreated()
             modelsCreated(":", 2) // only 2 intermediate models are created for 2 unique parameters
         }
-        outputContains("configuring build")
+        outputContains("configuring root")
         outputContains("creating model with parameter='fetch1' for root project 'root'")
         outputContains("creating model with parameter='fetch2' for root project 'root'")
 
@@ -60,8 +60,57 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
 
         then:
         fixture.assertStateLoaded()
-        outputDoesNotContain("configuring build")
+        outputDoesNotContain("configuring root")
         outputDoesNotContain("creating model")
+    }
+
+    def "settings change invalidates intermediate model cache"() {
+        withParameterizedSomeToolingModelBuilderPluginInChildBuild("buildSrc")
+        buildFile << """
+            plugins.apply(my.MyPlugin)
+            println("configuring root")
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def models = runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1"]))
+
+        then:
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            buildModelCreated()
+            modelsCreated(":", 1)
+        }
+        outputContains("configuring root")
+        outputContains("creating model with parameter='fetch1' for root project 'root'")
+
+        and:
+        models.keySet() ==~ [":"]
+        models.values().every { it.size() == 1 }
+        models[":"][0].message == "fetch1 It works from project :"
+
+        when:
+        settingsFile << """
+            println("configuring changed settings")
+        """
+
+        executer.withArguments(ENABLE_CLI)
+        runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1"]))
+
+        then:
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            buildModelCreated()
+            modelsCreated(":", 1)
+        }
+        outputContains("configuring changed settings")
+        outputContains("configuring root")
+        outputContains("creating model with parameter='fetch1' for root project 'root'")
+
+        and:
+        models.keySet() ==~ [":"]
+        models.values().every { it.size() == 1 }
+        models[":"][0].message == "fetch1 It works from project :"
     }
 
 }
