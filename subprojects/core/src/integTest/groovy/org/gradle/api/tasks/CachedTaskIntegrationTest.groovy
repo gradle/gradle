@@ -17,11 +17,14 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildCacheOperationFixtures
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.archive.TarTestFixture
 
 class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
+
+    def buildCacheOperations = new BuildCacheOperationFixtures(executer, temporaryFolder)
 
     def "displays info about local build cache configuration"() {
         buildFile << defineCacheableTask()
@@ -37,9 +40,10 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         when:
         withBuildCache().run("cacheable")
         then:
-        def cacheFiles = listCacheFiles()
-        cacheFiles.size() == 1
-        def cacheEntry = new TarTestFixture(cacheFiles[0])
+        def cacheKey = buildCacheOperations.getTaskCacheKey(":cacheable")
+        def cacheFile = listCacheFiles().find { it.name == cacheKey }
+        cacheFile.exists()
+        def cacheEntry = new TarTestFixture(cacheFile)
         cacheEntry.assertContainsFile("tree-outputDir/output")
         def metadata = cacheEntry.content("METADATA")
         metadata.contains("type=")
@@ -64,18 +68,19 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
                 }
             }
         """
+        def taskPath = ":cacheable"
 
         when:
-        withBuildCache().run("cacheable")
+        withBuildCache().run(taskPath)
 
         then:
-        listCacheFiles().empty
+        buildCacheOperations.getTaskCacheKeyOrNull(taskPath) == null
 
         when:
         withBuildCache().run("clean", "cacheable", "-PstoreInCache")
 
         then:
-        listCacheFiles().size() == 1
+        listCacheFiles().any { it.name == buildCacheOperations.getTaskCacheKey(taskPath) }
 
         when:
         withBuildCache().run("clean", "cacheable")
