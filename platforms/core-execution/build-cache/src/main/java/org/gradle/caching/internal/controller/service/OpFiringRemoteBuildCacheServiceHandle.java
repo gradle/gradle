@@ -97,7 +97,7 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
     }
 
     @Override
-    protected void onCacheDisabled(BuildCacheKey key, Operation operation, Throwable failure) {
+    protected void onCacheDisabledDueToFailure(BuildCacheKey key, Operation operation, Throwable failure) {
         BuildCacheRemoteDisabledProgressDetails.BuildCacheOperationType operationType = convertToBuildOperationType(operation);
         buildOperationProgressEventEmitter.emitNowIfCurrent(new RemoteDisabledProgressDetails(key, failure, operationType));
     }

@@ -148,7 +148,7 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
     private void failure(Operation operation, BuildCacheKey key, Throwable failure) {
         if (disableOnError) {
             disabled = true;
-            onCacheDisabled(key, operation, failure);
+            onCacheDisabledDueToFailure(key, operation, failure);
         }
 
         String description = operation.describeFailure(key, role);
@@ -161,7 +161,7 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
         }
     }
 
-    protected void onCacheDisabled(BuildCacheKey key, Operation operation, Throwable failure) {
+    protected void onCacheDisabledDueToFailure(BuildCacheKey key, Operation operation, Throwable failure) {
     }
 
     @Override
