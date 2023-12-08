@@ -23,28 +23,39 @@ import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.RunTasksRequirements;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.session.BuildSessionActionExecutor;
 import org.gradle.internal.session.BuildSessionContext;
+import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.tooling.internal.provider.action.BuildModelAction;
 import org.gradle.tooling.internal.provider.action.ClientProvidedBuildAction;
 import org.gradle.tooling.internal.provider.action.ClientProvidedPhasedAction;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+
+import java.util.function.Supplier;
 
 /**
  * A {@link BuildActionExecuter} responsible for establishing the build tree for a single invocation of a {@link BuildAction}.
  */
 public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionActionExecutor {
+
     private final BuildTreeModelControllerServices buildTreeModelControllerServices;
     private final BuildLayoutValidator buildLayoutValidator;
+    private final ValueSnapshotter valueSnapshotter;
 
     public BuildTreeLifecycleBuildActionExecutor(
         BuildTreeModelControllerServices buildTreeModelControllerServices,
-        BuildLayoutValidator buildLayoutValidator
+        BuildLayoutValidator buildLayoutValidator,
+        ValueSnapshotter valueSnapshotter
     ) {
         this.buildTreeModelControllerServices = buildTreeModelControllerServices;
         this.buildLayoutValidator = buildLayoutValidator;
+        this.valueSnapshotter = valueSnapshotter;
     }
 
     @Override
@@ -78,16 +89,28 @@ public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionAction
         return result;
     }
 
-    private static BuildActionModelRequirements buildActionModelRequirementsFor(BuildAction action) {
+    private BuildActionModelRequirements buildActionModelRequirementsFor(BuildAction action) {
         if (action instanceof BuildModelAction && action.isCreateModel()) {
             BuildModelAction buildModelAction = (BuildModelAction) action;
-            return new QueryModelRequirements(action.getStartParameter(), action.isRunTasks(), buildModelAction.getModelName());
+            Object payload = buildModelAction.getModelName();
+            return new QueryModelRequirements(action.getStartParameter(), action.isRunTasks(), payloadHashProvider(payload));
         } else if (action instanceof ClientProvidedBuildAction) {
-            return new RunActionRequirements(action.getStartParameter(), action.isRunTasks());
+            SerializedPayload payload = ((ClientProvidedBuildAction) action).getAction();
+            return new RunActionRequirements(action.getStartParameter(), action.isRunTasks(), payloadHashProvider(payload));
         } else if (action instanceof ClientProvidedPhasedAction) {
-            return new RunPhasedActionRequirements(action.getStartParameter(), action.isRunTasks());
+            SerializedPayload payload = ((ClientProvidedPhasedAction) action).getPhasedAction();
+            return new RunPhasedActionRequirements(action.getStartParameter(), action.isRunTasks(), payloadHashProvider(payload));
         } else {
             return new RunTasksRequirements(action.getStartParameter());
         }
+    }
+
+    private Supplier<HashCode> payloadHashProvider(Object payload) {
+        ValueSnapshotter valueSnapshotter = this.valueSnapshotter;
+        return () -> {
+            Hasher hasher = Hashing.newHasher();
+            hasher.put(valueSnapshotter.snapshot(payload));
+            return hasher.hash();
+        };
     }
 }
