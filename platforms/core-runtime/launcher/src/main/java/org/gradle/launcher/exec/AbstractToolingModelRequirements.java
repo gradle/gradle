@@ -21,6 +21,7 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.buildtree.BuildActionModelRequirements;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
 
 import java.util.function.Supplier;
 
@@ -65,7 +66,14 @@ public abstract class AbstractToolingModelRequirements implements BuildActionMod
         return Describables.of("the requested model");
     }
 
-    protected HashCode getPayloadHash() {
-        return payloadHashProvider.get();
+    @Override
+    public void appendKeyTo(Hasher hasher) {
+        hasher.putByte(getActionTypeId());
+        hasher.putHash(payloadHashProvider.get());
     }
+
+    /**
+     * Each inheriting action must provide a unique value.
+     */
+    protected abstract byte getActionTypeId();
 }
