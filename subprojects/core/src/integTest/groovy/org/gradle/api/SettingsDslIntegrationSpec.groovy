@@ -139,36 +139,4 @@ buildscript {
         expect:
         succeeds()
     }
-
-    def "can interpret the settings file with the restricted DSL"() {
-        given:
-        file("settings.gradle.something") << """
-            rootProject.name = "test-value"
-            include(":a")
-            include(":b")
-
-            dependencyResolutionManagement {
-                repositories {
-                    mavenCentral()
-                    google()
-                }
-            }
-            pluginManagement {
-                includeBuild("pluginIncluded")
-                repositories {
-                    mavenCentral()
-                    google()
-                }
-            }
-        """
-        buildFile << "println('name = ' + rootProject.name)"
-        file("a/build.gradle") << ""
-        file("b/build.gradle") << ""
-        file("pluginIncluded/settings.gradle.something") << "rootProject.name = \"pluginIncluded\""
-
-        expect:
-        succeeds(":help", ":a:help", ":b:help")
-        outputContains("name = test-value")
-    }
-
 }

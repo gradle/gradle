@@ -56,7 +56,8 @@ fun interpret(program: Program.Plugins, restrictedDslMode: RestrictedDslPluginsB
         val pluginsTopLevelReceiver = RuntimeTopLevelPluginsReceiver()
         val isEvaluated = defaultRestrictedKotlinScriptEvaluator.evaluate(
             pluginsTopLevelReceiver,
-            TextResourceScriptSource(StringTextResource("plugins block", program.fragment.identifierString))
+            TextResourceScriptSource(StringTextResource("plugins block", program.fragment.identifierString)),
+            RestrictedKotlinScriptEvaluator.EvaluationContext.PluginsDslEvaluationContext
         )
         if (isEvaluated is RestrictedKotlinScriptEvaluator.EvaluationResult.Evaluated) {
             return PluginsBlockInterpretation.Static(pluginsTopLevelReceiver.plugins.specs.map { it.toRequestSpec() })

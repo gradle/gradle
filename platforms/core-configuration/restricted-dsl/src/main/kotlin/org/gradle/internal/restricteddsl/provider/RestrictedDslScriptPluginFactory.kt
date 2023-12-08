@@ -23,6 +23,7 @@ import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.restricteddsl.evaluator.RestrictedDslNotEvaluatedException
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator
+import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationContext.ScriptPluginEvaluationContext
 import javax.inject.Inject
 
 /*
@@ -55,12 +56,10 @@ class RestrictedDslScriptPluginFactory @Inject constructor(
         topLevelScript: Boolean
     ): ScriptPlugin =
         RestrictedDslPlugin(scriptSource) { target ->
-            when (val result = restrictedKotlinScriptEvaluator.evaluate(target, scriptSource)) {
-                is RestrictedKotlinScriptEvaluator.EvaluationResult.Evaluated -> {
-                    // We need to lock the scope here: we don't really need it now, but downstream scopes will rely on us locking it
-                    // TODO: when the scope is used, this call should be removed
-                    targetScope.lock()
-                }
+            targetScope.lock()
+
+            when (val result = restrictedKotlinScriptEvaluator.evaluate(target, scriptSource, ScriptPluginEvaluationContext(targetScope))) {
+                is RestrictedKotlinScriptEvaluator.EvaluationResult.Evaluated -> Unit
                 is RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated ->
                     throw RestrictedDslNotEvaluatedException(scriptSource, result.stageFailures)
             }

@@ -27,21 +27,27 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement
+import org.gradle.internal.restricteddsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.restricteddsl.plugins.PluginDependencySpecWithProperties
 import org.gradle.internal.restricteddsl.plugins.PluginsTopLevelReceiver
 import org.gradle.internal.restricteddsl.plugins.RestrictedPluginDependenciesSpecScope
+import org.gradle.internal.restricteddsl.project.projectEvaluationSchema
 import org.gradle.plugin.management.PluginManagementSpec
 
 
 internal
-class DefaultRestrictedScriptSchemaBuilder : RestrictedScriptSchemaBuilder {
-    override fun getAnalysisSchemaForScript(
+class DefaultEvaluationSchemaBuilder : EvaluationSchemaBuilder {
+    override fun getEvaluationSchemaForScript(
         targetInstance: Any,
-        scriptContext: RestrictedScriptContext
+        scriptContext: RestrictedScriptContext,
     ): ScriptSchemaBuildingResult =
         when (scriptContext) {
-            is RestrictedScriptContext.SettingsScript -> ScriptSchemaBuildingResult.SchemaAvailable(schemaForSettingsScript)
-            RestrictedScriptContext.PluginsBlock -> ScriptSchemaBuildingResult.SchemaAvailable(schemaForPluginsBlock)
+            is RestrictedScriptContext.SettingsScript -> ScriptSchemaBuildingResult.SchemaAvailable(EvaluationSchema(schemaForSettingsScript))
+            is RestrictedScriptContext.ProjectScript -> {
+                // TODO: consider some caching of the project schemas?
+                ScriptSchemaBuildingResult.SchemaAvailable(projectEvaluationSchema(scriptContext.targetScope, scriptContext.scriptSource))
+            }
+            RestrictedScriptContext.PluginsBlock -> ScriptSchemaBuildingResult.SchemaAvailable(EvaluationSchema(schemaForPluginsBlock))
             is RestrictedScriptContext.UnknownScript -> ScriptSchemaBuildingResult.SchemaNotBuilt
         }
 
