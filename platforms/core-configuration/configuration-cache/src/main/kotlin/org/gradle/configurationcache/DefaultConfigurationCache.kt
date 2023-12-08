@@ -203,6 +203,7 @@ class DefaultConfigurationCache internal constructor(
             // Can reuse the cache entry for the rest of this build invocation
             cacheAction = ConfigurationCacheAction.LOAD
         }
+        scopeRegistryListener.dispose()
     }
 
     private
@@ -362,7 +363,7 @@ class DefaultConfigurationCache internal constructor(
                     throw error
                 } finally {
                     if (disposeResources) {
-                        scopeRegistryListener.dispose()
+//                        scopeRegistryListener.dispose()
                     }
                 }
             }
