@@ -13,15 +13,11 @@
 // limitations under the License.
 
 [[tweaking_structure]]
-= Tweaking Project Structure
+= Multi-project Build Considerations
 
-This chapter covers more details on selected topics related to <<structuring_software_products.adoc#structure_large_projects,structuring and building a software product with Gradle>>.
+There are more considerations when structuring and building a software product with Gradle such as umbrella builds, components isolation, multi- and mono-repo setups, and re-using build login in convention plugins.
 
-== Working with the software project
-
-You have several options to interact with a build that is a composition of multiple builds.
-
-=== Umbrella builds
+== Umbrella builds
 
 If all your builds are located in one folder structure, an *umbrella build* in the root folder can include all builds.
 You can then <<composite_builds.adoc#composite_build_executing_tasks,call tasks from the root project by addressing one of the builds>>.
@@ -49,7 +45,7 @@ include::sample[dir="samples/build-organization/structuring-software-projects/gr
 
 In your IDE, you can import the umbrella build and the component builds will be visible in the workspace.
 
-=== Component isolation
+== Component isolation
 
 Independent of an umbrella build, you can work with each component independently.
 That is, you can pick any component build and build it individually.
@@ -78,7 +74,6 @@ It might also speed up the IDE performance in the case of a very large code base
 ====
 If all components live in the same repository, you should only have one <<gradle_wrapper.adoc#sec:adding_wrapper,Gradle wrapper>> in the root of the repository.
 If you have an umbrella build there, you can use that to manage the wrapper.
-====
 
 However, if you import an individual component in an IDE, it might have issues finding the wrapper and you might need to configure a Gradle installation manually.
 

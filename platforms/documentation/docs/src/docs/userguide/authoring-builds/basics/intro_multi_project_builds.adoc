@@ -63,7 +63,92 @@ The Gradle community has two standards for multi-project build structures:
 
 image::multi-project-standards.png[]
 
-See how to declare <<declaring_dependencies_between_subprojects#declaring_dependencies_between_subprojects, dependencies between subprojects>> using `include` and how to <<composite_builds#defining_composite_builds,create composite builds>> with `includeBuild`.
+=== Multi-Project Builds using `buildSrc`
+
+Multi-project builds are great for organizing projects with many modules such as `mobile-app`, `web-app`, `api`, `lib`, and `documentation`:
+
+[source]
+----
+.
+├── gradle
+├── gradlew
+├── settings.gradle.kts
+├── buildSrc
+│   ├── build.gradle.kts
+│   └── src/main/kotlin/shared-build-conventions.gradle.kts
+├── mobile-app
+│   └── build.gradle.kts
+├── web-app
+│   └── build.gradle.kts
+├── api
+│   └── build.gradle.kts
+├── lib
+│   └── build.gradle.kts
+└── documentation
+    └── build.gradle.kts
+----
+
+These modules will have dependencies between them such as `web-app` and `mobile-app` depending on `lib`.
+This means that in order for Gradle to build `web-app` or `mobile-app`, it must build `lib` first.
+The root settings file will look as follows:
+
+.settings.gradle.kts
+[source]
+----
+include("mobile-app", "web-app", "api", "lib", "documentation")
+----
+
+The `buildSrc` directory is automatically recognized and compiled by Gradle.
+It is a good place to define and maintain shared configuration or imperative build logic, such as custom tasks or plugins.
+
+The compiled code from the `buildSrc` is put in the classpath of the root build script, making it available to any subproject (`web-app`, `mobile-app, `lib`, etc...) in the build.
+
+The `buildSrc` directory is treated as a subproject and follows the same structure including a build script and common logic written in Groovy or Kotlin.
+
+=== Composite Builds
+
+Composite Builds, also referred to as _include builds_, are best for sharing logic between projects (_not subprojects_) or isolating access to shared build logic (i.e., convention plugins).
+
+Let's take the previous example.
+The `shared-build-conventions` plugin is now its own project because the owner has decided to publish it to the Gradle Plugin Portal and wants to be able to work on it independently.
+
+The plugin has now become its own project AND it is used as shared build logic:
+
+[source]
+----
+.
+├── gradle
+├── gradlew
+├── settings.gradle.kts
+├── build-logic
+│   ├── settings.gradle.kts
+│   └── conventions
+│       ├── build.gradle.kts
+│       └── src/main/kotlin/shared-build-conventions.gradle.kts
+├── mobile-app
+│   └── build.gradle.kts
+├── web-app
+│   └── build.gradle.kts
+├── api
+│   └── build.gradle.kts
+├── lib
+│   └── build.gradle.kts
+└── documentation
+    └── build.gradle.kts
+----
+
+The root settings file now includes the separate build called `build-logic`:
+
+.settings.gradle.kts
+[source]
+----
+pluginManagement {
+    includeBuild("build-logic")
+}
+include("mobile-app", "web-app", "api", "lib", "documentation")
+----
+
+See how to declare <<multi_project_builds.adoc#sec:multibuild_buildSrc, dependencies between subprojects>> using `include` and how to <<composite_builds#defining_composite_builds,create composite builds>> with `includeBuild`.
 
 [[sec:project_path]]
 == Multi-Project path

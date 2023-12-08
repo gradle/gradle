@@ -34,11 +34,11 @@ The project tree is created in the `settings.gradle(.kts)` file.
 The location of the settings file is also the location of the root project.
 
 [[sec:creating_multi_project_builds]]
-== A simple multi-project build
+== A simple build
 
-A _basic_ multi-project build contains a root project and a single subproject.
+Let's look at a _basic_ multi-project build example which contains a root project and a single subproject.
 
-This is an example of the structure for a multi-project build that contains a single subproject called `app`:
+The single subproject is called `app`:
 
 [.multi-language-sample]
 =====
@@ -110,7 +110,7 @@ include::sample[dir="snippets/multiproject/standardLayouts/groovy",files="settin
 
 The `include` method takes <<intro_multi_project_builds#sec:project_path,project paths>> as arguments.
 The project path is assumed to be equal to the relative physical file system path.
-For example, a path `services:api` is mapped by default to a folder `./services/api` (relative to the project root -> `.`).
+For example, a path `services:api` is mapped by default to a folder `./services/api` (relative to the project root `.`).
 
 You only need to specify the leaves of the tree.
 This means that including the path `services:hotels:api` will create 3 projects: `services`, `services:hotels`, and `services:hotels:api`.
@@ -160,7 +160,7 @@ Gradle will then look for the build file of the new `lib` subproject in the `./l
 =====
 
 [[sub:modifying_element_of_the_project_tree]]
-== Modifying elements of the project tree
+== Modifying elements
 
 The multi-project tree created in the settings file is made up of _project descriptors_.
 
@@ -201,3 +201,70 @@ Gradle supports <<command_line_interface.adoc#sec:name_abbreviation,name abbrevi
 The `rootProject.name` effectively assigns a name to the build, which is used in reports like build scans.
 If the root project name is not set, the name will be the container directory name, which can be unstable (i.e., you can check out your project in any directory).
 The name will be generated randomly if the root project name is not set and checked out to a file system's root (e.g., `/` or `C:\`).
+
+[[sec:multibuild_buildSrc]]
+== Adding `buildSrc`
+
+`buildSrc` is a Gradle recognized and protected directory for managing shared configuration among subprojects.
+
+The `buildSrc` directory is located in the project root and contains custom plugins, shared dependencies and build logic.
+
+It's ideal for keeping build scripts clean and keeping implementation separate from declaration.
+It also allows users to reuse tasks among subprojects
+
+Let's add `buildSrc` to the previously created project and create common configuration under `buildSrc/src/main/kotlin` or `buildSrc/src/main/groovy`:
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+.
+├── app
+│   ...
+│   └── build.gradle.kts
+├── lib
+│   ...
+│   └── build.gradle.kts
+├── build-logic
+│   ├── build.gradle.kts
+│   └── src/main/kotlin/shared-build-configurations.gradle.kts
+└── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── app
+│   ...
+│   └── build.gradle
+├── lib
+│   ...
+│   └── build.gradle
+├── build-logic
+│   ├── build.gradle
+│   └── src/main/groovy/shared-build-configurations.gradle
+└── settings.gradle
+----
+=====
+
+`buildSrc` is added to the classpath of `buildscript` so its contents are available in subproject build files in the same way as classpath dependencies: `buildscript { dependencies { classpath ... } }`
+
+For example:
+
+.build-logic/src/main/groovy/shared-build-configurations.gradle.kts
+[source]
+----
+object Conventions {
+    const val kotlinStdLib = "org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.21"
+}
+----
+
+.app/build.gradle.kts
+[source]
+----
+dependencies {
+    implementation(Conventions.kotlinStdLib)
+}
+----
