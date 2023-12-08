@@ -24,6 +24,7 @@ import org.gradle.caching.internal.operations.BuildCacheRemoteStoreBuildOperatio
 import org.gradle.caching.local.internal.DefaultBuildCacheTempFileStore
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildCacheOperationFixtures
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.internal.io.NullOutputStream
@@ -38,6 +39,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
     String remoteCacheClass = "RemoteBuildCache"
 
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
+    def buildCacheOperations = new BuildCacheOperationFixtures(operations)
 
     void local(String loadBody, String storeBody) {
         register(localCacheClass, loadBody, storeBody, true)
@@ -142,7 +144,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         then:
         operations.none(BuildCacheRemoteLoadBuildOperationType)
         operations.none(BuildCacheRemoteStoreBuildOperationType)
-        def packOp = operations.only(BuildCacheArchivePackBuildOperationType)
+        def packOp = buildCacheOperations.getOnlyPackOperation(":t")
 
         packOp.details.cacheKey != null
         packOp.result.archiveSize == localCache.cacheArtifact(packOp.details.cacheKey.toString()).length()
@@ -153,7 +155,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         operations.none(BuildCacheRemoteStoreBuildOperationType)
-        def unpackOp = operations.only(BuildCacheArchiveUnpackBuildOperationType)
+        def unpackOp = buildCacheOperations.getOnlyUnpackOperations(":t")
         unpackOp.details.cacheKey == packOp.details.cacheKey
 
         // Not all of the tar.gz bytes need to be read in order to unpack the archive.

@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.caching.internal.controller.operations.PackOperationDetails
+import org.gradle.caching.internal.controller.operations.UnpackOperationDetails
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -38,13 +39,30 @@ class BuildCacheOperationFixtures {
         return buildOperations.first(ExecuteTaskBuildOperationType) { it.details["taskPath"] == taskPath }
     }
 
-    private List<BuildOperationRecord> getPackOperation(String taskPath) {
+    List<BuildOperationRecord> getPackOperations(String taskPath) {
         def parent = getTaskCacheExecutionBuildOperationRecord(taskPath)
         return parent == null ? [] : buildOperations.search(parent) { it.hasDetailsOfType(PackOperationDetails) }
     }
 
+    BuildOperationRecord getOnlyPackOperation(String taskPath) {
+        def ops = getPackOperations(taskPath)
+        assert ops.size() == 1
+        return ops.first()
+    }
+
+    List<BuildOperationRecord> getUnpackOperations(String taskPath) {
+        def parent = getTaskCacheExecutionBuildOperationRecord(taskPath)
+        return parent == null ? [] : buildOperations.search(parent) { it.hasDetailsOfType(UnpackOperationDetails) }
+    }
+
+    BuildOperationRecord getOnlyUnpackOperations(String taskPath) {
+        def ops = getUnpackOperations(taskPath)
+        assert ops.size() == 1
+        return ops.first()
+    }
+
     String getTaskCacheKeyOrNull(String taskPath) {
-        def packOperations = getPackOperation(taskPath)
+        def packOperations = getPackOperations(taskPath)
         return packOperations.empty ? null : packOperations[0].details["cacheKey"]
     }
 
