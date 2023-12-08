@@ -46,7 +46,8 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.restricteddsl.evaluationSchema.EvaluationSchema
+import org.gradle.internal.restricteddsl.evaluationSchema.InterpretationSequence
+import org.gradle.internal.restricteddsl.evaluationSchema.InterpretationSequenceStep
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationContext.ScriptPluginEvaluationContext
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.FailuresInLanguageTree
@@ -92,13 +93,13 @@ interface RestrictedKotlinScriptEvaluator {
  * TODO: The consumers should get an instance properly injected instead.
  */
 val defaultRestrictedKotlinScriptEvaluator: RestrictedKotlinScriptEvaluator by lazy {
-    DefaultRestrictedKotlinScriptEvaluator(DefaultEvaluationSchemaBuilder())
+    DefaultRestrictedKotlinScriptEvaluator(DefaultInterpretationSchemaBuilder())
 }
 
 
 internal
 class DefaultRestrictedKotlinScriptEvaluator(
-    private val schemaBuilder: EvaluationSchemaBuilder
+    private val schemaBuilder: InterpretationSchemaBuilder
 ) : RestrictedKotlinScriptEvaluator {
     override fun evaluate(
         target: Any,
@@ -106,20 +107,35 @@ class DefaultRestrictedKotlinScriptEvaluator(
         evaluationContext: RestrictedKotlinScriptEvaluator.EvaluationContext
     ): RestrictedKotlinScriptEvaluator.EvaluationResult {
         return when (val built = schemaBuilder.getEvaluationSchemaForScript(target, scriptContextFor(target, scriptSource, evaluationContext))) {
-            ScriptSchemaBuildingResult.SchemaNotBuilt -> NotEvaluated(listOf(NoSchemaAvailable(target)))
-            is ScriptSchemaBuildingResult.SchemaAvailable -> evaluateWithSchema(built.schema, scriptSource, target)
+            InterpretationSchemaBuildingResult.SchemaNotBuilt -> NotEvaluated(listOf(NoSchemaAvailable(target)))
+            is InterpretationSchemaBuildingResult.InterpretationSequenceAvailable -> runInterpretationSequence(scriptSource, built.sequence)
         }
     }
 
     private
-    fun evaluateWithSchema(
-        evaluationSchema: EvaluationSchema,
+    fun runInterpretationSequence(
         scriptSource: ScriptSource,
-        target: Any
+        sequence: InterpretationSequence
+    ): RestrictedKotlinScriptEvaluator.EvaluationResult {
+        sequence.steps.forEach { step ->
+            val result = runInterpretationSequenceStep(scriptSource, step)
+            if (result is NotEvaluated) {
+                return result
+            }
+        }
+        return RestrictedKotlinScriptEvaluator.EvaluationResult.Evaluated
+    }
+
+    private
+    fun <R : Any> runInterpretationSequenceStep(
+        scriptSource: ScriptSource,
+        step: InterpretationSequenceStep<R>
     ): RestrictedKotlinScriptEvaluator.EvaluationResult {
         val failureReasons = mutableListOf<NotEvaluated.StageFailure>()
 
-        val resolver = defaultCodeResolver()
+        val evaluationSchema = step.evaluationSchemaForStep()
+
+        val resolver = defaultCodeResolver(evaluationSchema.analysisStatementFilter)
         val ast = astFromScript(scriptSource).singleOrNull()
             ?: run {
                 failureReasons += (NoParseResult)
@@ -145,16 +161,17 @@ class DefaultRestrictedKotlinScriptEvaluator(
             return NotEvaluated(failureReasons)
         }
         val context = ReflectionContext(SchemaTypeRefContext(evaluationSchema.analysisSchema), resolution, trace)
-        val topLevel = reflect(resolution.topLevelReceiver, context)
+        val topLevelObjectReflection = reflect(resolution.topLevelReceiver, context)
 
         val propertyResolver = CompositePropertyResolver(listOf(ReflectionRuntimePropertyResolver) + evaluationSchema.additionalPropertyResolvers)
         val configureLambdas = treatInterfaceAsConfigureLambda(Action::class).plus(evaluationSchema.configureLambdas)
         val functionResolver = CompositeFunctionResolver(listOf(MemberFunctionResolver(configureLambdas)) + evaluationSchema.additionalFunctionResolvers)
 
-        val converter = RestrictedReflectionToObjectConverter(emptyMap(), target, functionResolver, propertyResolver)
-        evaluationSchema.evaluationSteps.forEach { step ->
-            step.apply(target, topLevel, converter)
-        }
+        val topLevelReceiver = step.topLevelReceiver()
+        val converter = RestrictedReflectionToObjectConverter(emptyMap(), topLevelReceiver, functionResolver, propertyResolver)
+        converter.apply(topLevelObjectReflection)
+
+        step.whenEvaluated(topLevelReceiver)
 
         return RestrictedKotlinScriptEvaluator.EvaluationResult.Evaluated
     }

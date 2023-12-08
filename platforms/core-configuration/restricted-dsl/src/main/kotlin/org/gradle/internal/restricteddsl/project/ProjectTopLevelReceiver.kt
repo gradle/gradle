@@ -21,16 +21,10 @@ import com.h0tk3y.kotlin.staticObjectNotation.Configuring
 import com.h0tk3y.kotlin.staticObjectNotation.Restricted
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.internal.restricteddsl.plugins.RestrictedPluginDependenciesSpecScope
+
 
 internal
 interface ProjectTopLevelReceiver {
-    @Restricted
-    val pluginsDsl: RestrictedPluginDependenciesSpecScope
-
-    @Configuring(propertyName = "pluginsDsl")
-    fun plugins(configure: Action<in RestrictedPluginDependenciesSpecScope>)
-
     @Restricted
     val dependencies: RestrictedDependenciesHandler
 
@@ -40,6 +34,7 @@ interface ProjectTopLevelReceiver {
     @Restricted
     fun project(path: String): ProjectDependency
 }
+
 
 interface RestrictedDependenciesHandler {
     @Adding

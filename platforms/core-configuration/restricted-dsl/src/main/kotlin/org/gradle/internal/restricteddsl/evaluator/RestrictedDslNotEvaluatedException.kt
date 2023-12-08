@@ -111,6 +111,7 @@ class RestrictedDslNotEvaluatedException(
         is ErrorReason.UnresolvedFunctionCallArguments -> "unresolved function call arguments for '${errorReason.functionCall.name}'"
         is ErrorReason.UnresolvedFunctionCallReceiver -> "unresolved function call receiver for '${errorReason.functionCall.name}'"
         is ErrorReason.UnresolvedFunctionCallSignature -> "unresolved function call signature for '${errorReason.functionCall.name}'"
+        ErrorReason.AccessOnCurrentReceiverOnlyViolation -> "this member can only be accessed on a current receiver"
     }
 
     private

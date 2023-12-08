@@ -18,22 +18,22 @@ package org.gradle.internal.restricteddsl.evaluator
 
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.restricteddsl.evaluationSchema.EvaluationSchema
+import org.gradle.internal.restricteddsl.evaluationSchema.InterpretationSequence
 
 
 internal
-interface EvaluationSchemaBuilder {
+interface InterpretationSchemaBuilder {
     fun getEvaluationSchemaForScript(
         targetInstance: Any,
         scriptContext: RestrictedScriptContext,
-    ): ScriptSchemaBuildingResult
+    ): InterpretationSchemaBuildingResult
 }
 
 
 internal
-sealed interface ScriptSchemaBuildingResult {
-    class SchemaAvailable(val schema: EvaluationSchema) : ScriptSchemaBuildingResult
-    object SchemaNotBuilt : ScriptSchemaBuildingResult
+sealed interface InterpretationSchemaBuildingResult {
+    class InterpretationSequenceAvailable(val sequence: InterpretationSequence) : InterpretationSchemaBuildingResult
+    object SchemaNotBuilt : InterpretationSchemaBuildingResult
 }
 
 

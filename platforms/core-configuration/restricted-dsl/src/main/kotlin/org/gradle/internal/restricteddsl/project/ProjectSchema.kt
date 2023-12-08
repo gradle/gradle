@@ -18,16 +18,19 @@ package org.gradle.internal.restricteddsl.project
 
 import com.h0tk3y.kotlin.staticObjectNotation.Adding
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisStatementFilter
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataParameter
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataTypeRef
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.FqName
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.ObjectOrigin
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterValueBinding
-import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RestrictedReflectionToObjectConverter
+import com.h0tk3y.kotlin.staticObjectNotation.language.DataStatement
+import com.h0tk3y.kotlin.staticObjectNotation.language.FunctionArgument
+import com.h0tk3y.kotlin.staticObjectNotation.language.FunctionCall
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RestrictedRuntimeFunction
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RestrictedRuntimeProperty
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RuntimeFunctionResolver
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RuntimePropertyResolver
-import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.ObjectReflection
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.CollectedPropertyInformation
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.CompositeDataClassSchemaProducer
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.DataClassSchemaProducer
@@ -45,12 +48,14 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.restricteddsl.evaluationSchema.EvaluationSchema
-import org.gradle.internal.restricteddsl.evaluationSchema.EvaluationStep
-import org.gradle.internal.restricteddsl.plugins.PluginDependencySpecWithProperties
-import org.gradle.internal.restricteddsl.plugins.PluginsCollectingPluginsBlock
-import org.gradle.internal.restricteddsl.plugins.RestrictedPluginDependenciesSpecScope
+import org.gradle.internal.restricteddsl.evaluationSchema.InterpretationSequence
+import org.gradle.internal.restricteddsl.evaluationSchema.InterpretationSequenceStep
+import org.gradle.internal.restricteddsl.plugins.RuntimeTopLevelPluginsReceiver
+import org.gradle.internal.restricteddsl.plugins.schemaForPluginsBlock
 import org.gradle.plugin.management.internal.DefaultPluginRequest
+import org.gradle.plugin.management.internal.PluginRequestInternal
 import org.gradle.plugin.management.internal.PluginRequests
+import org.gradle.plugin.use.internal.DefaultPluginId
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createType
@@ -59,12 +64,76 @@ import kotlin.reflect.full.isSubclassOf
 
 
 internal
-fun projectEvaluationSchema(targetScope: ClassLoaderScope, scriptSource: ScriptSource) = EvaluationSchema(
-    createAnalysisSchemaForProject(targetScope),
-    additionalPropertyResolvers = listOf(hardcodeProjectExtensionsProperties),
-    additionalFunctionResolvers = listOf(hardcodeDependencyExtensionFunctions),
-    evaluationSteps = listOf(applyPluginsOnlyEvaluationStep(targetScope, scriptSource), applyEverythingExceptForPluginsEvaluationStep)
+fun projectInterpretationSequence(
+    target: ProjectInternal,
+    targetScope: ClassLoaderScope,
+    scriptSource: ScriptSource
+) = InterpretationSequence(
+    listOf(
+        step1Plugins(target, targetScope, scriptSource),
+        step2Project(target, targetScope)
+    )
 )
+
+
+private
+fun step1Plugins(target: ProjectInternal, targetScope: ClassLoaderScope, scriptSource: ScriptSource) =
+    object : InterpretationSequenceStep<RuntimeTopLevelPluginsReceiver> {
+        override fun evaluationSchemaForStep(): EvaluationSchema =
+            EvaluationSchema(
+                schemaForPluginsBlock,
+                analysisStatementFilter = analyzeTopLevelPluginsBlockOnly
+            )
+
+        override fun topLevelReceiver() = RuntimeTopLevelPluginsReceiver()
+
+        override fun whenEvaluated(resultReceiver: RuntimeTopLevelPluginsReceiver) {
+            val pluginRequests = resultReceiver.plugins.specs.map {
+                DefaultPluginRequest(DefaultPluginId.unvalidated(it.id), it.apply, PluginRequestInternal.Origin.OTHER, scriptSource.displayName, null, it.version, null, null, null) }
+            val scriptHandler = target.services.get(ScriptHandlerFactory::class.java).create(scriptSource, targetScope)
+            target.services.get(PluginRequestApplicator::class.java)
+                .applyPlugins(PluginRequests.of(pluginRequests), PluginRequests.of(emptyList()), scriptHandler, target.pluginManager, targetScope)
+
+            targetScope.lock()
+        }
+    }
+
+
+private
+fun step2Project(target: ProjectInternal, targetScope: ClassLoaderScope) = object : InterpretationSequenceStep<ProjectInternal> {
+    override fun evaluationSchemaForStep(): EvaluationSchema =
+        EvaluationSchema(
+            createAnalysisSchemaForProject(targetScope),
+            analysisStatementFilter = analyzeEverythingExceptPluginsBlock,
+            additionalPropertyResolvers = listOf(hardcodeProjectExtensionsProperties),
+            additionalFunctionResolvers = listOf(hardcodeDependencyExtensionFunctions),
+        )
+
+    override fun topLevelReceiver(): ProjectInternal = target
+
+    override fun whenEvaluated(resultReceiver: ProjectInternal) = Unit
+}
+
+
+private
+val analyzeTopLevelPluginsBlockOnly = AnalysisStatementFilter { statement, scopes ->
+    if (scopes.last().receiver is ObjectOrigin.TopLevelReceiver) {
+        isPluginsCall(statement)
+    } else true
+}
+
+
+private
+val analyzeEverythingExceptPluginsBlock = AnalysisStatementFilter { statement, scopes ->
+    if (scopes.last().receiver is ObjectOrigin.TopLevelReceiver) {
+        !isPluginsCall(statement)
+    } else true
+}
+
+
+private
+fun isPluginsCall(statement: DataStatement) =
+    statement is FunctionCall && statement.name == "plugins" && statement.args.size == 1 && statement.args.single() is FunctionArgument.Lambda
 
 
 private
@@ -75,9 +144,7 @@ fun createAnalysisSchemaForProject(targetScope: ClassLoaderScope): AnalysisSchem
         ProjectTopLevelReceiver::class,
         listOf(
             ProjectTopLevelReceiver::class,
-            // Plugins:
-            RestrictedPluginDependenciesSpecScope::class,
-            PluginDependencySpecWithProperties::class,
+
             // Dependencies:
             RestrictedDependenciesHandler::class,
             ProjectDependency::class
@@ -108,7 +175,9 @@ fun projectAccessorsSupport(targetScope: ClassLoaderScope): ProjectAccessorsSupp
         projectAccessorsClass.createType(),
         returnType = DataTypeRef.Name(FqName.parse(projectAccessorsClass.qualifiedName!!)),
         isReadOnly = true,
-        hasDefaultValue = true
+        hasDefaultValue = true,
+        isHiddenInRestrictedDsl = false,
+        isDirectAccessOnly = false
     )
 
     val producer = ExtensionPropertiesProducer(mapOf(ProjectTopLevelReceiver::class to listOf(projectAccessorsExtension)))
@@ -129,19 +198,6 @@ val hardcodeProjectExtensionsProperties = object : RuntimePropertyResolver {
                 override fun setValue(receiver: Any, value: Any?): Unit = throw UnsupportedOperationException()
             })
         }
-        val pluginsDslExtensionName = ProjectTopLevelReceiver::pluginsDsl.name
-        if (receiverClass.isSubclassOf(Project::class) && name == pluginsDslExtensionName) {
-            return RuntimePropertyResolver.Resolution.Resolved(object : RestrictedRuntimeProperty {
-                override fun getValue(receiver: Any): Any {
-                    receiver as Project
-                    if (receiver.extensions.findByName(projectPluginsDslExtensionKey) == null)
-                        receiver.extensions.add(projectPluginsDslExtensionKey, PluginsCollectingPluginsBlock())
-                    return receiver.extensions.getByName(projectPluginsDslExtensionKey)
-                }
-
-                override fun setValue(receiver: Any, value: Any?) = throw UnsupportedOperationException()
-            })
-        }
         return RuntimePropertyResolver.Resolution.Unresolved
     }
 
@@ -151,7 +207,7 @@ val hardcodeProjectExtensionsProperties = object : RuntimePropertyResolver {
 
 private
 val hardcodeDependencyExtensionFunctions = object : RuntimeFunctionResolver {
-    val names = RestrictedDependenciesHandler::class.declaredMemberFunctions.filter { it.annotations.any { it is Adding } }.map { it.name }
+    val names = RestrictedDependenciesHandler::class.declaredMemberFunctions.filter { fn -> fn.annotations.any { it is Adding } }.map { it.name }
 
     override fun resolve(receiverClass: KClass<*>, name: String, parameterValueBinding: ParameterValueBinding): RuntimeFunctionResolver.Resolution {
         if (receiverClass.isSubclassOf(DependencyHandler::class) && name in names && parameterValueBinding.bindingMap.size == 1) {
@@ -165,49 +221,3 @@ val hardcodeDependencyExtensionFunctions = object : RuntimeFunctionResolver {
         return RuntimeFunctionResolver.Resolution.Unresolved
     }
 }
-
-
-private
-fun applyPluginsOnlyEvaluationStep(targetScope: ClassLoaderScope, scriptSource: ScriptSource) = object : EvaluationStep {
-    override fun apply(target: Any, topLevelObjectReflection: ObjectReflection, converter: RestrictedReflectionToObjectConverter) {
-        converter.apply(topLevelObjectReflection, topLevelPluginsConversionFilter(isPlugins = true))
-
-        applyPluginsToProject(target as ProjectInternal)
-    }
-
-    private
-    fun applyPluginsToProject(target: ProjectInternal) {
-        val plugins = target.extensions.findByName(projectPluginsDslExtensionKey) as? PluginsCollectingPluginsBlock
-        if (plugins != null) {
-            val pluginRequests = plugins.specs.map { DefaultPluginRequest(it.id, it.version, it.apply, 0, scriptSource.displayName) }
-            val scriptHandler = target.services.get(ScriptHandlerFactory::class.java).create(scriptSource, targetScope)
-            target.services.get(PluginRequestApplicator::class.java)
-                .applyPlugins(PluginRequests.of(pluginRequests), scriptHandler, target.pluginManager, targetScope)
-        }
-    }
-}
-
-
-private
-val applyEverythingExceptForPluginsEvaluationStep = object : EvaluationStep {
-    override fun apply(target: Any, topLevelObjectReflection: ObjectReflection, converter: RestrictedReflectionToObjectConverter) {
-        converter.apply(topLevelObjectReflection, topLevelPluginsConversionFilter(isPlugins = false))
-    }
-}
-
-
-private
-val projectPluginsDslExtensionName = ProjectTopLevelReceiver::pluginsDsl.name
-
-
-private
-val projectPluginsDslExtensionKey = "__$projectPluginsDslExtensionName"
-
-
-private
-fun topLevelPluginsConversionFilter(isPlugins: Boolean) =
-    RestrictedReflectionToObjectConverter.ConversionFilter { obj ->
-        if ((obj.type.kClass == ProjectTopLevelReceiver::class)) {
-            obj.properties.keys.filter { (it.name == projectPluginsDslExtensionName) == isPlugins }
-        } else obj.properties.keys
-    }

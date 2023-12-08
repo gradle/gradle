@@ -27,28 +27,33 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.restricteddsl.evaluationSchema.EvaluationSchema
-import org.gradle.internal.restricteddsl.plugins.PluginDependencySpecWithProperties
-import org.gradle.internal.restricteddsl.plugins.PluginsTopLevelReceiver
-import org.gradle.internal.restricteddsl.plugins.RestrictedPluginDependenciesSpecScope
-import org.gradle.internal.restricteddsl.project.projectEvaluationSchema
+import org.gradle.internal.restricteddsl.evaluationSchema.simpleInterpretationWith
+import org.gradle.internal.restricteddsl.evaluator.InterpretationSchemaBuildingResult.InterpretationSequenceAvailable
+import org.gradle.internal.restricteddsl.plugins.schemaForPluginsBlock
+import org.gradle.internal.restricteddsl.project.projectInterpretationSequence
 import org.gradle.plugin.management.PluginManagementSpec
 
 
 internal
-class DefaultEvaluationSchemaBuilder : EvaluationSchemaBuilder {
+class DefaultInterpretationSchemaBuilder : InterpretationSchemaBuilder {
     override fun getEvaluationSchemaForScript(
         targetInstance: Any,
         scriptContext: RestrictedScriptContext,
-    ): ScriptSchemaBuildingResult =
+    ): InterpretationSchemaBuildingResult =
         when (scriptContext) {
-            is RestrictedScriptContext.SettingsScript -> ScriptSchemaBuildingResult.SchemaAvailable(EvaluationSchema(schemaForSettingsScript))
-            is RestrictedScriptContext.ProjectScript -> {
-                // TODO: consider some caching of the project schemas?
-                ScriptSchemaBuildingResult.SchemaAvailable(projectEvaluationSchema(scriptContext.targetScope, scriptContext.scriptSource))
-            }
-            RestrictedScriptContext.PluginsBlock -> ScriptSchemaBuildingResult.SchemaAvailable(EvaluationSchema(schemaForPluginsBlock))
-            is RestrictedScriptContext.UnknownScript -> ScriptSchemaBuildingResult.SchemaNotBuilt
+            is RestrictedScriptContext.SettingsScript ->
+                InterpretationSequenceAvailable(simpleInterpretationWith(EvaluationSchema(schemaForSettingsScript), targetInstance))
+
+            is RestrictedScriptContext.ProjectScript ->
+                InterpretationSequenceAvailable(projectInterpretationSequence(targetInstance as ProjectInternal, scriptContext.targetScope, scriptContext.scriptSource))
+
+            RestrictedScriptContext.PluginsBlock ->
+                InterpretationSequenceAvailable(simpleInterpretationWith(EvaluationSchema(schemaForPluginsBlock), targetInstance))
+
+            is RestrictedScriptContext.UnknownScript ->
+                InterpretationSchemaBuildingResult.SchemaNotBuilt
         }
 
     private
@@ -66,14 +71,6 @@ class DefaultEvaluationSchemaBuilder : EvaluationSchemaBuilder {
                 ArtifactRepository::class
             ),
             configureLambdas = treatInterfaceAsConfigureLambda(Action::class).plus(kotlinFunctionAsConfigureLambda)
-        )
-    }
-
-    private
-    val schemaForPluginsBlock by lazy {
-        schemaFromTypes(
-            PluginsTopLevelReceiver::class,
-            listOf(PluginsTopLevelReceiver::class, RestrictedPluginDependenciesSpecScope::class, PluginDependencySpecWithProperties::class)
         )
     }
 }
