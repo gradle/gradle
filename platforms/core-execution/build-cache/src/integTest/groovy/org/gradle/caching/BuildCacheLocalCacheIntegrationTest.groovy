@@ -17,6 +17,7 @@
 package org.gradle.caching
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildCacheOperationFixtures
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 
@@ -24,6 +25,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
 
     def localCache = new TestBuildCache(file("local-cache"))
     def remoteCache = new TestBuildCache(file("remote-cache"))
+    def buildCacheOperations = new BuildCacheOperationFixtures(executer, temporaryFolder)
 
     void cached() {
         skipped(":t")
@@ -78,7 +80,8 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
         then:
         executed()
         localCache.empty
-        remoteCache.listCacheFiles().size() == 1
+        def cacheKey = buildCacheOperations.getTaskCacheKey(":t")
+        remoteCache.hasCacheFile(cacheKey)
 
         when:
         settingsFile << """
@@ -88,7 +91,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         cached()
-        localCache.listCacheFiles().size() == 1
+        localCache.hasCacheFile(cacheKey)
 
         when:
         settingsFile << """
@@ -113,7 +116,8 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
         then:
         executed()
         localCache.empty
-        remoteCache.listCacheFiles().size() == 1
+        def cacheKey = buildCacheOperations.getTaskCacheKey(":t")
+        remoteCache.hasCacheFile(cacheKey)
 
         when:
         settingsFile << """

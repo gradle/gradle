@@ -18,11 +18,17 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.caching.internal.controller.operations.PackOperationDetails
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.operations.trace.BuildOperationRecord
+import org.gradle.test.fixtures.file.TestDirectoryProvider
 
 class BuildCacheOperationFixtures {
 
     BuildOperationsFixture buildOperations
+
+    BuildCacheOperationFixtures(GradleExecuter executer, TestDirectoryProvider projectDir) {
+        this.buildOperations = new BuildOperationsFixture(executer, projectDir)
+    }
 
     BuildCacheOperationFixtures(BuildOperationsFixture buildOperations) {
         this.buildOperations = buildOperations
