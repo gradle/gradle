@@ -25,7 +25,7 @@ import common.gradleWrapper
 import common.individualPerformanceTestArtifactRules
 import common.killProcessStep
 import common.skipConditionally
-import jetbrains.buildServer.configs.kotlin.BuildSteps
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import model.CIBuildModel
 import model.Stage
 

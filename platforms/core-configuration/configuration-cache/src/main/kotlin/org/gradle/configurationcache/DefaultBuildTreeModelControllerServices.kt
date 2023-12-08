@@ -29,7 +29,6 @@ import org.gradle.configurationcache.initialization.ConfigurationCacheStartParam
 import org.gradle.configurationcache.initialization.DefaultConfigurationCacheProblemsListener
 import org.gradle.configurationcache.initialization.InstrumentedExecutionAccessListenerRegistry
 import org.gradle.configurationcache.initialization.VintageInjectedClasspathInstrumentationStrategy
-import org.gradle.configurationcache.models.DefaultToolingModelParameterCarrierFactory
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.problems.DefaultProblemFactory
 import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
@@ -47,15 +46,9 @@ import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices
 import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
-import org.gradle.internal.buildtree.IntermediateBuildActionRunner
 import org.gradle.internal.buildtree.RunTasksRequirements
-import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.service.ServiceRegistration
-import org.gradle.internal.snapshot.ValueSnapshotter
-import org.gradle.tooling.provider.model.internal.DefaultIntermediateToolingModelProvider
-import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
-import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.internal.IncubationLogger
 
 
@@ -137,7 +130,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         registration.add(BuildModelParameters::class.java, modelParameters)
         registration.add(BuildFeatures::class.java, buildFeatures)
         registration.add(BuildActionModelRequirements::class.java, requirements)
-        registration.addProvider(SharedBuildTreeScopedServices())
         if (modelParameters.isConfigurationCache) {
             registration.add(ConfigurationCacheBuildTreeLifecycleControllerFactory::class.java)
             registration.add(ConfigurationCacheStartParameter::class.java)
@@ -165,23 +157,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.addProvider(ConfigurationCacheModelProvider())
         } else {
             registration.addProvider(VintageModelProvider())
-        }
-    }
-
-    private
-    class SharedBuildTreeScopedServices {
-
-        fun createToolingModelParameterCarrierFactory(valueSnapshotter: ValueSnapshotter): ToolingModelParameterCarrier.Factory {
-            return DefaultToolingModelParameterCarrierFactory(valueSnapshotter)
-        }
-
-        fun createIntermediateToolingModelProvider(
-            buildOperationExecutor: BuildOperationExecutor,
-            buildModelParameters: BuildModelParameters,
-            parameterCarrierFactory: ToolingModelParameterCarrier.Factory
-        ): IntermediateToolingModelProvider {
-            val runner = IntermediateBuildActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API intermediate model")
-            return DefaultIntermediateToolingModelProvider(runner, parameterCarrierFactory)
         }
     }
 

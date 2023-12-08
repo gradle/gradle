@@ -19,9 +19,9 @@ import common.VersionedSettingsBranch
 import common.pluginPortalUrlOverride
 import configurations.BaseGradleBuildType
 import configurations.PerformanceTest
-import jetbrains.buildServer.configs.kotlin.BuildStep
-import jetbrains.buildServer.configs.kotlin.DslContext
-import jetbrains.buildServer.configs.kotlin.buildSteps.GradleBuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import model.CIBuildModel
 import model.JsonBasedGradleSubprojectProvider
 import model.PerformanceTestCoverage

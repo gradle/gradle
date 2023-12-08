@@ -98,8 +98,11 @@ You can learn more about the inner workings of <<dependency_resolution.adoc#sec:
 Maven POM metadata can reference additional repositories.
 These will be _ignored_ by Gradle, which will only use the repositories declared in the build itself.
 
-NOTE: This is a reproducibility safe-guard but also a security protection.
+[NOTE]
+====
+This is a reproducibility safe-guard but also a security protection.
 Without it, an updated version of a dependency could pull artifacts from anywhere into your build.
+====
 
 [[sec:repository-types]]
 == Supported repository types
@@ -197,10 +200,16 @@ See <<#sec:supported_transport_protocols>> for authentication options.
 Gradle can consume dependencies available in the link:https://maven.apache.org/guides/introduction/introduction-to-repositories.html[local Maven repository].
 Declaring this repository is beneficial for teams that publish to the local Maven repository with one project and consume the artifacts by Gradle in another project.
 
-NOTE: Gradle stores resolved dependencies in <<dependency_resolution.adoc#sec:dependency_cache,its own cache>>.
+[NOTE]
+====
+Gradle stores resolved dependencies in <<dependency_resolution.adoc#sec:dependency_cache,its own cache>>.
 A build does not need to declare the local Maven repository even if you resolve dependencies from a Maven-based, remote repository.
+====
 
-WARNING: Before adding Maven local as a repository, you should <<#sec:case-for-maven-local, make sure this is really required>>.
+[WARNING]
+====
+Before adding Maven local as a repository, you should <<#sec:case-for-maven-local, make sure this is really required>>.
+====
 
 To declare the local Maven cache as a repository add this to your build script:
 
@@ -438,21 +447,13 @@ The following metadata sources are supported:
 | yes
 |===
 
---
-The defaults for Ivy and Maven repositories change with Gradle 6.0.
-Before 6.0, `artifact()` was included in the defaults.
+[NOTE]
+====
+The defaults for Ivy and Maven repositories change with Gradle 6.0. Before 6.0, `artifact()` was included in the defaults.
 Leading to some inefficiency when modules are missing completely.
-
-To restore this behavior, for example, for Maven central you can use:
-```
-mavenCentral { metadataSources { mavenPom(); artifact() } }
-```
-
-In a similar way, you can opt into the new behavior in older Gradle versions using:
-```
-mavenCentral { metadataSources { mavenPom() } }
-```
---
+To restore this behavior, for example, for Maven central you can use `mavenCentral { metadataSources { mavenPom(); artifact() } }`.
+In a similar way, you can opt into the new behavior in older Gradle versions using `mavenCentral { metadataSources { mavenPom() } }`
+====
 
 Since Gradle 5.3, when parsing a metadata file, be it Ivy or Maven, Gradle will look for a marker indicating that a matching Gradle Module Metadata files exists.
 If it is found, it will be used instead of the Ivy or Maven file.
@@ -588,8 +589,10 @@ Maven and Ivy repositories support the use of various transport protocols. At th
 | <<#sec:gcs-repositories,Documentation>>
 |===
 
-NOTE: Username and password should never be checked in plain text into version control as part of your build file.
-You can store the credentials in a local `gradle.properties` file and use one of the open source Gradle plugins for encrypting and consuming credentials e.g. the link:https://plugins.gradle.org/plugin/nu.studer.credentials[credentials plugin].
+[NOTE]
+====
+Username and password should never be checked in plain text into version control as part of your build file. You can store the credentials in a local `gradle.properties` file and use one of the open source Gradle plugins for encrypting and consuming credentials e.g. the link:https://plugins.gradle.org/plugin/nu.studer.credentials[credentials plugin].
+====
 
 The transport protocol is part of the URL definition for a repository.
 The following build script demonstrates how to create HTTP-based Maven and Ivy repositories:
@@ -755,20 +758,19 @@ Some of the AWS S3 regions (eu-central-1 - Frankfurt) require that all HTTP requ
 s3://somebucket.s3.eu-central-1.amazonaws.com/maven/release
 ----
 
---
+[NOTE]
+====
 When a region-specific endpoint is not specified for buckets requiring V4 Signatures, Gradle will use the default AWS region (us-east-1) and the
 following warning will appear on the console:
 
-```
-Attempting to re-send the request to .... with AWS V4 authentication. To avoid this warning in the future, use region-specific endpoint to access buckets located in regions that require V4 signing.
-```
+> Attempting to re-send the request to .... with AWS V4 authentication. To avoid this warning in the future, use region-specific endpoint to access buckets located in regions that require V4 signing.
 
 Failing to specify the region-specific endpoint for buckets requiring V4 signatures means:
 
 * 3 round-trips to AWS, as opposed to one, for every file upload and download.
 * Depending on location - increased network latencies and slower builds.
 * Increased likelihood of transmission failures.
---
+====
 
 [[sub:s3_cross_account]]
 ==== AWS S3 Cross Account Access

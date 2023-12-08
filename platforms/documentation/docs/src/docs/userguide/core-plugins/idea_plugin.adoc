@@ -21,8 +21,7 @@ The IDEA plugin generates files that are used by http://www.jetbrains.com/idea/[
 
 [NOTE]
 ====
-If you simply want to load a Gradle project into IntelliJ IDEA, then use the IDE's https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import facility].
-You do not need to apply this plugin to import your project into IDEA, although if you do, the import will take account of any extra IDEA configuration you have that doesn't directly modify the generated files — see the <<#sec:idea_configuration,Configuration>> section for more details.
+If you simply want to load a Gradle project into IntelliJ IDEA, then use the IDE's https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import facility]. You do not need to apply this plugin to import your project into IDEA, although if you do, the import will take account of any extra IDEA configuration you have that doesn't directly modify the generated files — see the <<#sec:idea_configuration,Configuration>> section for more details.
 ====
 
 What exactly the IDEA plugin generates depends on which other plugins are used:
@@ -224,7 +223,10 @@ include::sample[dir="snippets/ide/ideaAdditionalTestSources/kotlin",files="build
 include::sample[dir="snippets/ide/ideaAdditionalTestSources/groovy",files="build.gradle[tags=mark-additional-sourcesets-as-test]"]
 ====
 
-NOTE: When working with the <<jvm_test_suite_plugin#jvm_test_suite_plugin,JVM Test Suite Plugin>>, test sources will automatically identified correctly.
+[NOTE]
+====
+When working with the <<jvm_test_suite_plugin#jvm_test_suite_plugin,JVM Test Suite Plugin>>, test sources will automatically identified correctly.
+====
 
 [[sec:further_things_to_consider]]
 == Further things to consider

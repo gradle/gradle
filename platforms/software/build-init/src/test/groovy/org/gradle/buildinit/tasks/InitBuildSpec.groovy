@@ -17,11 +17,13 @@
 package org.gradle.buildinit.tasks
 
 import org.gradle.api.GradleException
+import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler
 import org.gradle.api.internal.tasks.userinput.UserInputHandler
 import org.gradle.buildinit.InsecureProtocolOption
 import org.gradle.buildinit.plugins.internal.BuildConverter
 import org.gradle.buildinit.plugins.internal.BuildInitializer
 import org.gradle.buildinit.plugins.internal.InitSettings
+import org.gradle.buildinit.plugins.internal.PackageNameBuilder
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType
 import org.gradle.buildinit.plugins.internal.modifiers.Language
@@ -82,7 +84,7 @@ class InitBuildSpec extends Specification {
         init.setupProjectLayout()
 
         then:
-        1 * projectSetupDescriptor.generate({ it.dsl == KOTLIN && it.testFramework == NONE })
+        1 * projectSetupDescriptor.generate({it.dsl == KOTLIN && it.testFramework == NONE})
     }
 
     def "creates project with specified type and dsl and test framework"() {
@@ -101,7 +103,7 @@ class InitBuildSpec extends Specification {
         init.setupProjectLayout()
 
         then:
-        1 * projectSetupDescriptor.generate({ it.dsl == KOTLIN && it.testFramework == SPOCK })
+        1 * projectSetupDescriptor.generate({it.dsl == KOTLIN && it.testFramework == SPOCK})
     }
 
     def "should throw exception if requested test framework is not supported for the specified type"() {
@@ -147,7 +149,7 @@ class InitBuildSpec extends Specification {
         init.projectName = "other"
 
         when:
-        def projectName = init.getEffectiveProjectName(Mock(UserInputHandler), projectSetupDescriptor)
+        def projectName = init.getProjectName(Mock(UserInputHandler), projectSetupDescriptor)
 
         then:
         projectName == "other"
@@ -161,7 +163,7 @@ class InitBuildSpec extends Specification {
 
 
         when:
-        def projectName = init.getEffectiveProjectName(userInputHandler, projectSetupDescriptor)
+        def projectName = init.getProjectName(userInputHandler, projectSetupDescriptor)
 
         then:
         projectName == "newProjectName"
@@ -174,7 +176,7 @@ class InitBuildSpec extends Specification {
         init.projectName = "invalidProjectName"
 
         when:
-        init.getEffectiveProjectName(Mock(UserInputHandler), projectSetupDescriptor)
+        init.getProjectName(Mock(UserInputHandler), projectSetupDescriptor)
 
         then:
         GradleException e = thrown()
@@ -187,23 +189,26 @@ class InitBuildSpec extends Specification {
         init.packageName = "other"
 
         when:
-        init.getEffectivePackageName(projectSetupDescriptor)
+        init.getPackageName(Mock(UserInputHandler), projectSetupDescriptor, "myProjectName")
 
         then:
         GradleException e = thrown()
         e.message == "Package name is not supported for 'some-type' build type."
     }
 
-    def "should use default package name if not specified"() {
+    def "should use package name from user input"() {
         given:
         projectSetupDescriptor.id >> "some-type"
         projectSetupDescriptor.supportsPackage() >> true
+        def userInputHandler = new NonInteractiveUserInputHandler()
+        def myProjectName = "myProjectName"
+        def packageNameFromProject = PackageNameBuilder.toPackageName(myProjectName).toLowerCase(Locale.US)
 
         when:
-        def packageName = init.getEffectivePackageName(projectSetupDescriptor)
+        def packageName = init.getPackageName(userInputHandler, projectSetupDescriptor, myProjectName)
 
         then:
-        packageName == "org.example"
+        packageName == packageNameFromProject
     }
 
     def "should use package name as specified"() {
@@ -212,7 +217,7 @@ class InitBuildSpec extends Specification {
         projectSetupDescriptor.supportsPackage() >> true
         init.packageName = "myPackageName"
         when:
-        def packageName = init.getEffectivePackageName(projectSetupDescriptor)
+        def packageName = init.getPackageName(Mock(UserInputHandler), projectSetupDescriptor, "myProjectName")
 
         then:
         packageName == "myPackageName"
@@ -335,7 +340,7 @@ class InitBuildSpec extends Specification {
         init.setupProjectLayout()
 
         then:
-        1 * projectSetupDescriptor.generate({ it.dsl == GROOVY && it.testFramework == SPOCK })
+        1 * projectSetupDescriptor.generate({it.dsl == GROOVY && it.testFramework == SPOCK})
 
         where:
         validPackageName << [

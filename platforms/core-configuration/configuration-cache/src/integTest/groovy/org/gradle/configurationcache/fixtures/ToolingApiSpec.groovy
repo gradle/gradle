@@ -30,7 +30,6 @@ import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionExecuter
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 
@@ -48,7 +47,6 @@ trait ToolingApiSpec {
 
     void withSomeToolingModelBuilderPluginInChildBuild(String childBuildName, String builderContent = "") {
         addPluginBuildScript(childBuildName)
-        addExtensionDeclaration(childBuildName)
         addModelImplementation(childBuildName)
 
         addModelBuilderImplementation(childBuildName, """
@@ -57,25 +55,15 @@ trait ToolingApiSpec {
             return new MyModel(message)
         """)
 
-        addBuilderRegisteringPluginImplementation(childBuildName, "MyModelBuilder", """
-            def model = project.extensions.create("myExtension", MyExtension)
-            model.message = "It works from project \${project.identityPath}"
-        """)
-    }
+        file("$childBuildName/src/main/groovy/my/MyExtension.groovy") << """
+            import ${Property.name}
 
-    void withParameterizedSomeToolingModelBuilderPluginInChildBuild(String childBuildName, String builderContent = "") {
-        addPluginBuildScript(childBuildName)
-        addExtensionDeclaration(childBuildName)
-        addModelImplementation(childBuildName)
-        addModelParameterInterface(childBuildName)
+            interface MyExtension {
+                Property<String> getMessage()
+            }
+        """
 
-        addParameterizedModelBuilderImplementation(childBuildName, """
-            $builderContent
-            def message = project.myExtension.message.get()
-            return new MyModel("\$messagePrefix \$message")
-        """)
-
-        addBuilderRegisteringPluginImplementation(childBuildName, "MyParameterizedModelBuilder", """
+        addPluginImplementation(childBuildName, """
             def model = project.extensions.create("myExtension", MyExtension)
             model.message = "It works from project \${project.identityPath}"
         """)
@@ -90,7 +78,7 @@ trait ToolingApiSpec {
             return new MyModel(message)
         """)
 
-        addBuilderRegisteringPluginImplementation("buildSrc", "MyModelBuilder", """
+        addPluginImplementation("buildSrc", """
             def implementation = project.configurations.create("implementation")
             implementation.attributes.attribute(${Attribute.name}.of("thing", String), "custom")
             def artifact = project.layout.buildDirectory.file("out.txt")
@@ -105,17 +93,7 @@ trait ToolingApiSpec {
             return null
         """)
 
-        addBuilderRegisteringPluginImplementation("buildSrc", "MyModelBuilder")
-    }
-
-    private void addExtensionDeclaration(String childBuildName) {
-        file("$childBuildName/src/main/groovy/my/MyExtension.groovy") << """
-            import ${Property.name}
-
-            interface MyExtension {
-                Property<String> getMessage()
-            }
-        """
+        addPluginImplementation("buildSrc")
     }
 
     private void addModelImplementation(String targetBuildName) {
@@ -127,16 +105,6 @@ trait ToolingApiSpec {
                 MyModel(String message) { this.message = message }
                 String getMessage() { message }
                 String toString() { message }
-            }
-        """.stripIndent()
-    }
-
-    private void addModelParameterInterface(String targetBuildName) {
-        file("$targetBuildName/src/main/groovy/my/MyModelParameter.groovy") << """
-            package my
-
-            interface MyModelParameter {
-                String getMessagePrefix()
             }
         """.stripIndent()
     }
@@ -160,33 +128,7 @@ trait ToolingApiSpec {
         """.stripIndent()
     }
 
-    private void addParameterizedModelBuilderImplementation(String targetBuildName, String content) {
-        file("$targetBuildName/src/main/groovy/my/MyParameterizedModelBuilder.groovy") << """
-            package my
-
-            import $ParameterizedToolingModelBuilder.name
-            import $Project.name
-
-            class MyParameterizedModelBuilder implements ParameterizedToolingModelBuilder<MyModelParameter> {
-                Class<MyModelParameter> getParameterType() {
-                    return MyModelParameter
-                }
-                boolean canBuild(String modelName) {
-                    return modelName == "$SomeToolingModel.class.name"
-                }
-                Object buildAll(String modelName, Project project) {
-                    return buildAll(modelName, null, project)
-                }
-                Object buildAll(String modelName, MyModelParameter parameter, Project project) {
-                    def messagePrefix = parameter == null ? '' : parameter.messagePrefix
-                    println("creating model with parameter='\$messagePrefix' for \$project")
-                    $content
-                }
-            }
-        """.stripIndent()
-    }
-
-    private void addBuilderRegisteringPluginImplementation(String targetBuildName, String builderClassName, String content = "") {
+    private void addPluginImplementation(String targetBuildName, String content = "") {
         file("$targetBuildName/src/main/groovy/my/MyPlugin.groovy") << """
             package my
 
@@ -198,7 +140,7 @@ trait ToolingApiSpec {
             abstract class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {
                     $content
-                    registry.register(new my.$builderClassName())
+                    registry.register(new my.MyModelBuilder())
                 }
 
                 @Inject

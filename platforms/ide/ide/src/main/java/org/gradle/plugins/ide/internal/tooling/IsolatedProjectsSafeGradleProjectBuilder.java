@@ -25,6 +25,7 @@ import org.gradle.plugins.ide.internal.tooling.model.IsolatedGradleProjectIntern
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleProjectTask;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
 
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProj
  * Builds the {@link GradleProject} model that contains the project hierarchy and task information.
  */
 @NonNullApi
-public class IsolatedProjectsSafeGradleProjectBuilder implements GradleProjectBuilderInternal {
+public class IsolatedProjectsSafeGradleProjectBuilder implements ToolingModelBuilder, GradleProjectBuilderInternal {
 
     private final IntermediateToolingModelProvider intermediateToolingModelProvider;
 

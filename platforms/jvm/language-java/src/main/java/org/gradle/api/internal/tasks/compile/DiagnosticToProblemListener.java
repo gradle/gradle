@@ -16,11 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.InternalProblemReporter;
-import org.gradle.api.problems.internal.InternalProblems;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
@@ -34,10 +31,10 @@ import java.util.Locale;
  */
 public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileObject> {
 
-    private final InternalProblemReporter problemReporter;
+    private final Problems problems;
 
-    public DiagnosticToProblemListener(Problems problemReporter) {
-        this.problemReporter = ((InternalProblems) problemReporter).getInternalReporter();
+    public DiagnosticToProblemListener(Problems problems) {
+        this.problems = problems;
     }
 
     @Override
@@ -50,14 +47,14 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         Integer length = Math.toIntExact(diagnostic.getEndPosition() - diagnostic.getStartPosition());
         Severity severity = mapKindToSeverity(diagnostic.getKind());
 
-        Problem problem = problemReporter.create(p -> p
+        problems.create(problem -> problem
             .label(label)
+            .undocumented()
             .fileLocation(resourceName, line, column, length)
-            .category("compiler", "java")
+            .category("compiler", "java") 
             .severity(severity)
             .details(message)
-        );
-        problemReporter.report(problem);
+        ).report();
 
         // We need to print the message to stderr as well, as it was the default behavior of the compiler
         System.err.println(message);

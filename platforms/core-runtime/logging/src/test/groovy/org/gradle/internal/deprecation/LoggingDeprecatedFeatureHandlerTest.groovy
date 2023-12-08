@@ -18,7 +18,7 @@ package org.gradle.internal.deprecation
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
-import org.gradle.api.problems.internal.ProblemEmitter
+import org.gradle.api.problems.ProblemEmitter
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.internal.Describables
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails

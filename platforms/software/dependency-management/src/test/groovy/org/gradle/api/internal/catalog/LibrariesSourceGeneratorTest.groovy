@@ -34,9 +34,9 @@ import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.problems.internal.ProblemEmitter
+import org.gradle.api.problems.ProblemEmitter
+import org.gradle.api.problems.Problems
 import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.DefaultListenerManager
@@ -166,14 +166,14 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest implements
         }
 
         then:
-        sources.hasDependencyAlias('foo', 'getFoo', "with version <b>1.0</b>")
-        sources.hasDependencyAlias('fooBaz', 'getFooBaz', "with version <b>{strictly [1.0, 2.0[; prefer 1.2}</b>")
-        sources.hasDependencyAlias('bar', 'getBar', "with version reference <b>barVersion</b>")
-        sources.hasDependencyAlias('boo', 'getBoo', "with <b>no version specified</b>")
+        sources.hasDependencyAlias('foo', 'getFoo', "with version '1.0'")
+        sources.hasDependencyAlias('fooBaz', 'getFooBaz', "with version '{strictly [1.0, 2.0[; prefer 1.2}'")
+        sources.hasDependencyAlias('bar', 'getBar', "with versionRef 'barVersion'")
+        sources.hasDependencyAlias('boo', 'getBoo', "with no version specified")
 
-        sources.hasPlugin('fooPlugin', 'getFooPlugin', "with version <b>1.0</b>")
-        sources.hasPlugin('barPlugin', 'getBarPlugin', "with version reference <b>barVersion</b>")
-        sources.hasPlugin('bazPlugin', 'getBazPlugin', "with <b>no version specified</b>")
+        sources.hasPlugin('fooPlugin', 'getFooPlugin', "with version '1.0'")
+        sources.hasPlugin('barPlugin', 'getBarPlugin', "with versionRef 'barVersion'")
+        sources.hasPlugin('bazPlugin', 'getBazPlugin', "with no version specified")
     }
 
     @VersionCatalogProblemTestFor(
@@ -392,10 +392,10 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
             Interners.newStrongInterner(),
             TestUtil.objectFactory(),
             Stub(Supplier)) {
-                @Override
-                protected InternalProblems getProblemsService() {
-                    problems
-                }
+            @Override
+            protected Problems getProblemService() {
+                problems
+            }
         }
         spec.delegate = builder
         spec.resolveStrategy = Closure.DELEGATE_FIRST

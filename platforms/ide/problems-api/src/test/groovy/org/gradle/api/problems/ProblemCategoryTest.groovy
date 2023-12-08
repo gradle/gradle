@@ -21,20 +21,25 @@ import spock.lang.Specification
 
 class ProblemCategoryTest extends Specification {
 
-    def 'can be created with #namespace:#category'() {
-        given:
-        ProblemCategory pc = DefaultProblemCategory.create(namespace, category, subcategory as String[])
-
+    def 'can be created with #path'() {
         expect:
-        pc.namespace == namespace
-        pc.category == category
-        pc.subCategories == subcategory
-        pc.toString() == expectedToString
+        new DefaultProblemCategory(path).segmentCount() > 0
 
         where:
-        namespace                 | category        | subcategory       | expectedToString
-        'org.gradle'              | 'deprecation'   | []                | 'org.gradle:deprecation'
-        'gradle.plugin'           | 'deprecation'   | ['sub']           | 'gradle.plugin:deprecation:sub'
-        'org.gradle'              | 'some-category' | ['sub', 'subsub'] | 'org.gradle:some-category:sub:subsub'
+        path << ['gradle:deprecation',
+                 'gradle-plugin:plugin-id:deprecation',
+                 'gradle:some-category']
+    }
+
+    def 'hasPluginId true'() {
+        expect:
+        def category = new DefaultProblemCategory('gradle-plugin:plugin-id:deprecation')
+        category.hasPluginId()
+    }
+
+    def 'hasPluginId false'() {
+        expect:
+        def category = new DefaultProblemCategory('gradle:deprecation')
+        !category.hasPluginId()
     }
 }

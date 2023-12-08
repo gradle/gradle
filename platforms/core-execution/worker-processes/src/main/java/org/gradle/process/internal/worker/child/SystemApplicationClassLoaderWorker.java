@@ -19,7 +19,7 @@ package org.gradle.process.internal.worker.child;
 import org.gradle.api.Action;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.DefaultProblems;
-import org.gradle.api.problems.internal.NoOpProblemEmitter;
+import org.gradle.api.problems.internal.emitters.NoOpProblemEmitter;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;

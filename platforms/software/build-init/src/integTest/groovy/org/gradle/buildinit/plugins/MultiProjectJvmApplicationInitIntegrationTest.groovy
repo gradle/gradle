@@ -20,20 +20,16 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.Language
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.internal.jvm.Jvm
-import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.JAVA
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.KOTLIN
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.SCALA
-import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.containsText
-import static org.hamcrest.core.AllOf.allOf
 
 abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
-
     abstract BuildInitDsl getBuildDsl()
-
     abstract Language getJvmLanguage()
 
     @Override
@@ -41,7 +37,8 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         return null
     }
 
-    def "creates multi-project application sample when incubating flag = #incubating"() {
+    @Unroll("creates multi-project application sample when incubating flag = #incubating")
+    def "creates multi-project application sample"() {
         given:
         def dsl = buildDsl
         def language = jvmLanguage.name
@@ -57,20 +54,55 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         targetDir.file(settingsFile).exists()
         !targetDir.file(buildFile).exists()
 
-        def buildLogicDir = targetDir.file(incubating ? "build-logic" : "buildSrc")
-        assertBuildLogicSources(dsl, language, buildLogicDir, settingsFile, buildFile)
 
-        assertApplicationProjectsSources(buildFile, language, "org.example.", ext)
+        def buildLogicFolder = targetDir.file(incubating ? "build-logic" : "buildSrc")
+
+        def commonConventionsPath = "src/main/${dsl.id}/some.thing.${dsl.fileNameFor("${language}-common-conventions")}"
+        buildLogicFolder.assertHasDescendants(
+            settingsFile,
+            buildFile,
+            commonConventionsPath,
+            "src/main/${dsl.id}/some.thing.${dsl.fileNameFor("${language}-application-conventions")}",
+            "src/main/${dsl.id}/some.thing.${dsl.fileNameFor("${language}-library-conventions")}",
+        )
+        buildLogicFolder.file(commonConventionsPath).assertContents(
+            containsText("JavaLanguageVersion.of(" + Jvm.current().javaVersion.majorVersion + ")")
+        )
+
+        def appFiles = [buildFile,
+                        "src/main/${language}/some/thing/app/App.${ext}",
+                        "src/main/${language}/some/thing/app/MessageUtils.${ext}",
+                        "src/test/${language}/some/thing/app/MessageUtilsTest.${ext}",
+                        "src/main/resources",
+                        "src/test/resources"]
+        targetDir.file("app").assertHasDescendants(appFiles*.toString())
+
+        def listFiles = [buildFile,
+                         "src/main/${language}/some/thing/list/LinkedList.${ext}",
+                         "src/test/${language}/some/thing/list/LinkedListTest.${ext}",
+                         "src/main/resources",
+                         "src/test/resources"]
+        targetDir.file("list").assertHasDescendants(listFiles*.toString())
+
+        def utilFiles = [
+            buildFile,
+            "src/main/${language}/some/thing/utilities/JoinUtils.${ext}",
+            "src/main/${language}/some/thing/utilities/SplitUtils.${ext}",
+            "src/main/${language}/some/thing/utilities/StringUtils.${ext}",
+            "src/main/resources",
+            "src/test/resources"
+        ]*.toString()
+        targetDir.file("utilities").assertHasDescendants(utilFiles)
 
         when:
         succeeds "build"
 
         then:
-        assertTestPassed("app", "org.example.app.MessageUtilsTest", "testGetMessage")
-        assertTestPassed("list", "org.example.list.LinkedListTest", "testConstructor")
-        assertTestPassed("list", "org.example.list.LinkedListTest", "testAdd")
-        assertTestPassed("list", "org.example.list.LinkedListTest", "testRemove")
-        assertTestPassed("list", "org.example.list.LinkedListTest", "testRemoveMissing")
+        assertTestPassed("app", "some.thing.app.MessageUtilsTest", "testGetMessage")
+        assertTestPassed("list", "some.thing.list.LinkedListTest", "testConstructor")
+        assertTestPassed("list", "some.thing.list.LinkedListTest", "testAdd")
+        assertTestPassed("list", "some.thing.list.LinkedListTest", "testRemove")
+        assertTestPassed("list", "some.thing.list.LinkedListTest", "testRemoveMissing")
 
         when:
         succeeds "run"
@@ -82,109 +114,11 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         incubating << [true, false]
     }
 
-    def "creates multi-project application with source package #description"() {
-        def expectedPackagePrefix = expectedPackage.isEmpty() ? "" : "$expectedPackage."
-
-        given:
-        def dsl = buildDsl
-        def language = jvmLanguage.name
-        def ext = jvmLanguage.extension
-        def settingsFile = dsl.fileNameFor('settings')
-        def buildFile = dsl.fileNameFor('build')
-
-        def sourcePackageOption = optionPackage == null ? [] : ['--package', optionPackage]
-        def sourcePackageProperty = propertyPackage == null ? [] : ['-Porg.gradle.buildinit.source.package=' + propertyPackage]
-
-        when:
-        def tasks = ['init', '--type', "${language}-application".toString(), '--split-project', '--dsl', dsl.id] + sourcePackageProperty + sourcePackageOption
-        run(tasks)
-
-        then:
-        targetDir.file(settingsFile).exists()
-        !targetDir.file(buildFile).exists()
-
-        def buildLogicDir = targetDir.file("buildSrc")
-        assertBuildLogicSources(dsl, language, buildLogicDir, settingsFile, buildFile)
-
-        assertApplicationProjectsSources(buildFile, language, expectedPackagePrefix, ext)
-
-        expect:
-        succeeds "build"
-
-        when:
-        succeeds "run"
-
-        then:
-        outputContains("Hello World!")
-
-        where:
-        description                             | optionPackage      | propertyPackage    | expectedPackage
-        "default value"                         | null               | null               | "org.example"
-        "from option"                           | "my.sourcepackage" | null               | "my.sourcepackage"
-        "from property"                         | null               | "my.sourcepackage" | "my.sourcepackage"
-        "from option when property is also set" | "my.sourcepackage" | "my.overridden"    | "my.sourcepackage"
-        "from property with empty value"        | null               | ""                 | ""
-    }
-
-    void assertBuildLogicSources(BuildInitDsl dsl, String language, TestFile buildLogicDir, String settingsFile, String buildFile) {
-        def commonConventionsPath = "src/main/${dsl.id}/buildlogic.${dsl.fileNameFor("${language}-common-conventions")}"
-
-        buildLogicDir.assertHasDescendants(
-            settingsFile,
-            buildFile,
-            commonConventionsPath,
-            "src/main/${dsl.id}/buildlogic.${dsl.fileNameFor("${language}-application-conventions")}",
-            "src/main/${dsl.id}/buildlogic.${dsl.fileNameFor("${language}-library-conventions")}",
-        )
-
-        buildLogicDir.file(commonConventionsPath).assertContents(
-            containsText("JavaLanguageVersion.of(" + Jvm.current().javaVersion.majorVersion + ")")
-        )
-    }
-
-    void assertApplicationProjectsSources(String buildFile, String language, String expectedPackagePrefix, String ext) {
-        def expectedPackageDirPrefix = packageToDir(expectedPackagePrefix)
-        def appFiles = [buildFile,
-                        "src/main/${language}/${expectedPackageDirPrefix}app/App.${ext}",
-                        "src/main/${language}/${expectedPackageDirPrefix}app/MessageUtils.${ext}",
-                        "src/test/${language}/${expectedPackageDirPrefix}app/MessageUtilsTest.${ext}",
-                        "src/main/resources",
-                        "src/test/resources"]
-        targetDir.file("app").assertHasDescendants(appFiles*.toString())
-
-        targetDir.file("app/$buildFile").assertContents(
-            containsLine(allOf( // Ignore quote variations, `=` vs `set` and AppKt
-                containsText("mainClass"),
-                containsText("${expectedPackagePrefix}app.App")
-            ))
-        )
-
-        def listFiles = [buildFile,
-                         "src/main/${language}/${expectedPackageDirPrefix}list/LinkedList.${ext}",
-                         "src/test/${language}/${expectedPackageDirPrefix}list/LinkedListTest.${ext}",
-                         "src/main/resources",
-                         "src/test/resources"]
-        targetDir.file("list").assertHasDescendants(listFiles*.toString())
-
-        def utilFiles = [
-            buildFile,
-            "src/main/${language}/${expectedPackageDirPrefix}utilities/JoinUtils.${ext}",
-            "src/main/${language}/${expectedPackageDirPrefix}utilities/SplitUtils.${ext}",
-            "src/main/${language}/${expectedPackageDirPrefix}utilities/StringUtils.${ext}",
-            "src/main/resources",
-            "src/test/resources"
-        ]*.toString()
-        targetDir.file("utilities").assertHasDescendants(utilFiles)
-    }
 
     void assertTestPassed(String subprojectName, String className, String name) {
         def result = new DefaultTestExecutionResult(targetDir.file(subprojectName))
         result.assertTestClassesExecuted(className)
         result.testClass(className).assertTestPassed(name)
-    }
-
-    String packageToDir(String packageName) {
-        packageName.replace('.', '/')
     }
 }
 

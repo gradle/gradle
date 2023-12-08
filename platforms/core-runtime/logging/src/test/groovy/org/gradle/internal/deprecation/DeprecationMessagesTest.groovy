@@ -18,7 +18,7 @@ package org.gradle.internal.deprecation
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.configuration.WarningMode
-import org.gradle.api.problems.internal.ProblemEmitter
+import org.gradle.api.problems.ProblemEmitter
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory

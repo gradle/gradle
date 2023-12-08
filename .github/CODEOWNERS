@@ -27,9 +27,7 @@ subprojects/internal-build-reports/         @gradle/bt-developer-productivity
 subprojects/internal-integ-testing/         @gradle/bt-developer-productivity
 subprojects/internal-performance-testing/   @gradle/bt-developer-productivity
 subprojects/internal-testing/               @gradle/bt-developer-productivity
-
-# Architecture Decision Records
-architecture-standards/                     @gradle/bt-architecture-council
+subprojects/precondition-tester/            @gradle/bt-developer-productivity
 
 # Core automation platform (core/configuration)
 platforms/core-configuration/               @gradle/bt-configuration
@@ -105,9 +103,6 @@ subprojects/distributions-full/         @gradle/bt-support
 subprojects/performance/                @gradle/bt-support
 subprojects/smoke-test/                 @gradle/bt-support
 subprojects/soak/                       @gradle/bt-support
-
-# Build infrastructure
-subprojects/precondition-tester/            @gradle/bt-developer-productivity
 
 # Documentation
 platforms/documentation/docs/src/docs/                                                        @gradle/bt-devrel-education

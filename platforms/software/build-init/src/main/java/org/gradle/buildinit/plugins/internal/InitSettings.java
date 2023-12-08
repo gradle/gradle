@@ -32,9 +32,6 @@ import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 
 public class InitSettings {
-
-    public static final String CONVENTION_PLUGIN_NAME_PREFIX = "buildlogic";
-
     private final BuildInitDsl dsl;
     private final boolean useIncubatingAPIs;
     private final String packageName;

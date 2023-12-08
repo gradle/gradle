@@ -26,22 +26,21 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemCategory;
-import org.gradle.api.problems.ProblemLocation;
-import org.gradle.api.problems.internal.DefaultFileLocation;
-import org.gradle.api.problems.internal.DefaultPluginIdLocation;
-import org.gradle.api.problems.internal.DefaultProblem;
-import org.gradle.api.problems.internal.DefaultProblemCategory;
-import org.gradle.api.problems.internal.DefaultTaskPathLocation;
+import org.gradle.api.problems.ReportableProblem;
+import org.gradle.api.problems.internal.DefaultReportableProblem;
+import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.locations.FileLocation;
+import org.gradle.api.problems.locations.PluginIdLocation;
+import org.gradle.api.problems.locations.ProblemLocation;
+import org.gradle.api.problems.locations.TaskPathLocation;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
+import org.gradle.util.Path;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -50,10 +49,12 @@ import java.util.stream.Stream;
 public class ValidationProblemSerialization {
     private static final GsonBuilder GSON_BUILDER = createGsonBuilder();
 
-    public static List<? extends Problem> parseMessageList(String lines) {
+    public static List<? extends ReportableProblem> parseMessageList(String lines, InternalProblems problemService) {
         Gson gson = GSON_BUILDER.create();
-        Type type = new TypeToken<List<DefaultProblem>>() {}.getType();
-        return gson.<List<DefaultProblem>>fromJson(lines, type);
+        Type type = new TypeToken<List<DefaultReportableProblem>>() {}.getType();
+        List<DefaultReportableProblem> reportableProblems = gson.fromJson(lines, type);
+        reportableProblems.forEach(problem -> problem.setProblemService(problemService));
+        return reportableProblems;
     }
 
     public static GsonBuilder createGsonBuilder() {
@@ -61,13 +62,12 @@ public class ValidationProblemSerialization {
 
         gsonBuilder.registerTypeHierarchyAdapter(DocLink.class, new DocLinkAdapter());
         gsonBuilder.registerTypeHierarchyAdapter(ProblemLocation.class, new LocationAdapter());
-        gsonBuilder.registerTypeHierarchyAdapter(ProblemCategory.class, new ProblemCategoryAdapter());
         gsonBuilder.registerTypeAdapterFactory(new ThrowableAdapterFactory());
 
         return gsonBuilder;
     }
 
-    public static Stream<String> toPlainMessage(List<? extends Problem> problems) {
+    public static Stream<String> toPlainMessage(List<? extends ReportableProblem> problems) {
         return problems.stream()
             .map(problem -> problem.getSeverity() + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
     }
@@ -195,10 +195,10 @@ public class ValidationProblemSerialization {
 
     }
 
-    public static class FileLocationAdapter extends TypeAdapter<DefaultFileLocation> {
+    public static class FileLocationAdapter extends TypeAdapter<FileLocation> {
 
         @Override
-        public void write(JsonWriter out, @Nullable DefaultFileLocation value) throws IOException {
+        public void write(JsonWriter out, @Nullable FileLocation value) throws IOException {
             if (value == null) {
                 out.nullValue();
                 return;
@@ -214,9 +214,9 @@ public class ValidationProblemSerialization {
         }
 
         @Override
-        public DefaultFileLocation read(JsonReader in) throws IOException {
+        public FileLocation read(JsonReader in) throws IOException {
             in.beginObject();
-            DefaultFileLocation fileLocation = readObject(in);
+            FileLocation fileLocation = readObject(in);
             in.endObject();
 
             Objects.requireNonNull(fileLocation, "path must not be null");
@@ -224,7 +224,7 @@ public class ValidationProblemSerialization {
         }
 
         @Nonnull
-        private static DefaultFileLocation readObject(JsonReader in) throws IOException {
+        private static FileLocation readObject(JsonReader in) throws IOException {
             String path = null;
             Integer line = null;
             Integer column = null;
@@ -252,14 +252,14 @@ public class ValidationProblemSerialization {
                         in.skipValue();
                 }
             }
-            return new DefaultFileLocation(path, line, column, length);
+            return new FileLocation(path, line, column, length);
         }
     }
 
-    public static class PluginIdLocationAdapter extends TypeAdapter<DefaultPluginIdLocation> {
+    public static class PluginIdLocationAdapter extends TypeAdapter<PluginIdLocation> {
 
         @Override
-        public void write(JsonWriter out, @Nullable DefaultPluginIdLocation value) throws IOException {
+        public void write(JsonWriter out, @Nullable PluginIdLocation value) throws IOException {
             if (value == null) {
                 out.nullValue();
                 return;
@@ -272,16 +272,16 @@ public class ValidationProblemSerialization {
         }
 
         @Override
-        public DefaultPluginIdLocation read(JsonReader in) throws IOException {
+        public PluginIdLocation read(JsonReader in) throws IOException {
             in.beginObject();
-            DefaultPluginIdLocation problemLocation = readObject(in);
+            PluginIdLocation problemLocation = readObject(in);
             in.endObject();
 
             Objects.requireNonNull(problemLocation, "pluginId must not be null");
             return problemLocation;
         }
 
-        private static DefaultPluginIdLocation readObject(JsonReader in) throws IOException {
+        private static PluginIdLocation readObject(JsonReader in) throws IOException {
             String pluginId = null;
             while (in.hasNext()) {
                 String name = in.nextName();
@@ -291,14 +291,14 @@ public class ValidationProblemSerialization {
                     in.skipValue();
                 }
             }
-            return new DefaultPluginIdLocation(pluginId);
+            return new PluginIdLocation(pluginId);
         }
     }
 
-    public static class TaskLocationAdapter extends TypeAdapter<DefaultTaskPathLocation> {
+    public static class TaskLocationAdapter extends TypeAdapter<TaskPathLocation> {
 
         @Override
-        public void write(JsonWriter out, @Nullable DefaultTaskPathLocation value) throws IOException {
+        public void write(JsonWriter out, @Nullable TaskPathLocation value) throws IOException {
             if (value == null) {
                 out.nullValue();
                 return;
@@ -306,32 +306,32 @@ public class ValidationProblemSerialization {
 
             out.beginArray();
             out.name("type").value(value.getType());
-            out.name("buildTreePath").value(value.getBuildTreePath());
+            out.name("identityPath").value(value.getIdentityPath().getPath());
             out.endObject();
         }
 
         @Override
-        public DefaultTaskPathLocation read(JsonReader in) throws IOException {
+        public TaskPathLocation read(JsonReader in) throws IOException {
             in.beginObject();
-            DefaultTaskPathLocation buildTreePath = readObject(in);
+            TaskPathLocation identityPath = readObject(in);
             in.endObject();
 
-            Objects.requireNonNull(buildTreePath, "buildTreePath must not be null");
-            return buildTreePath;
+            Objects.requireNonNull(identityPath, "identityPath must not be null");
+            return identityPath;
         }
 
         @Nonnull
-        private static DefaultTaskPathLocation readObject(JsonReader in) throws IOException {
-            String buildTreePath = null;
+        private static TaskPathLocation readObject(JsonReader in) throws IOException {
+            String identityPath = null;
             while (in.hasNext()) {
                 String name = in.nextName();
-                if (name.equals("buildTreePath")) {
-                    buildTreePath = in.nextString();
+                if (name.equals("identityPath")) {
+                    identityPath = in.nextString();
                 } else {
                     in.skipValue();
                 }
             }
-            return new DefaultTaskPathLocation(buildTreePath);
+            return new TaskPathLocation(Path.path(identityPath));
         }
     }
 
@@ -388,61 +388,6 @@ public class ValidationProblemSerialization {
         }
     }
 
-    public static class ProblemCategoryAdapter extends TypeAdapter<ProblemCategory> {
-
-        @Override
-        public void write(JsonWriter out, @Nullable ProblemCategory value) throws IOException {
-            if (value == null) {
-                out.nullValue();
-                return;
-            }
-
-            out.beginObject();
-            out.name("namespace").value(value.getNamespace());
-            out.name("category").value(value.getCategory());
-            out.name("subcategories").beginArray();
-            for (String sc : value.getSubCategories()) {
-                out.value(sc);
-            }
-            out.endArray();
-            out.endObject();
-        }
-
-        @Override
-        public ProblemCategory read(JsonReader in) throws IOException {
-            in.beginObject();
-            String namespace = null;
-            String category = null;
-            List<String> subcategories = new ArrayList<>();
-            String name;
-            while (in.hasNext()) {
-                name = in.nextName();
-                switch (name) {
-                    case "namespace": {
-                        namespace = in.nextString();
-                        break;
-                    }
-                    case "category": {
-                        category = in.nextString();
-                        break;
-                    }
-                    case "subcategories": {
-                        in.beginArray();
-                        while (in.hasNext()) {
-                            subcategories.add(in.nextString());
-                        }
-                        in.endArray();
-                        break;
-                    }
-                    default:
-                        in.skipValue();
-                }
-            }
-            in.endObject();
-            return DefaultProblemCategory.create(namespace, category, subcategories.toArray(new String[0]));
-        }
-    }
-
     private static class LocationAdapter extends TypeAdapter<ProblemLocation> {
         @Override
         public void write(JsonWriter out, ProblemLocation value) throws IOException {
@@ -451,16 +396,16 @@ public class ValidationProblemSerialization {
                 return;
             }
 
-            if (value instanceof DefaultFileLocation) {
-                new FileLocationAdapter().write(out, (DefaultFileLocation) value);
+            if (value instanceof FileLocation) {
+                new FileLocationAdapter().write(out, (FileLocation) value);
                 return;
             }
-            if (value instanceof DefaultPluginIdLocation) {
-                new PluginIdLocationAdapter().write(out, (DefaultPluginIdLocation) value);
+            if (value instanceof PluginIdLocation) {
+                new PluginIdLocationAdapter().write(out, (PluginIdLocation) value);
                 return;
             }
-            if (value instanceof DefaultTaskPathLocation) {
-                new TaskLocationAdapter().write(out, (DefaultTaskPathLocation) value);
+            if (value instanceof TaskPathLocation) {
+                new TaskLocationAdapter().write(out, (TaskPathLocation) value);
             }
         }
 

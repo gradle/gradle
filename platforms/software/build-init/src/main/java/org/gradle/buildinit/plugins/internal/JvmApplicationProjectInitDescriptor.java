@@ -66,11 +66,11 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
                 BuildInitDependency.of("com.google.guava:guava", libraryVersionProvider.getVersion("guava")));
         } else {
             if ("app".equals(projectName)) {
-                buildScriptBuilder.plugin(null, applicationConventionPlugin());
+                buildScriptBuilder.plugin(null, applicationConventionPlugin(settings));
                 buildScriptBuilder.dependencies().dependency("implementation", null, BuildInitDependency.of("org.apache.commons:commons-text"));
                 buildScriptBuilder.dependencies().projectDependency("implementation", null, ":utilities");
             } else {
-                buildScriptBuilder.plugin(null, libraryConventionPlugin());
+                buildScriptBuilder.plugin(null, libraryConventionPlugin(settings));
                 if ("utilities".equals(projectName)) {
                     buildScriptBuilder.dependencies().projectDependency("api", null, ":list");
                 }

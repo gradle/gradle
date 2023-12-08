@@ -41,9 +41,7 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
                         parameters.targetColor.set('green')
                     }
                 }
-                configurations.classpath.incoming.artifactView {
-                    attributes.attribute(artifactType, 'green')
-                }.files.files
+                configurations.classpath.attributes.attribute(artifactType, 'green')
             }
         """
         file("included/b/build.gradle") << """

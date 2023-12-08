@@ -42,7 +42,6 @@ import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
-import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
@@ -84,7 +83,8 @@ class ConfigurationCacheIO internal constructor(
             writeCollection(rootDirs) { writeFile(it) }
             val addressSerializer = BlockAddressSerializer()
             writeCollection(intermediateModels.entries) { entry ->
-                writeModelKey(entry.key)
+                writeNullableString(entry.key.identityPath?.path)
+                writeString(entry.key.modelName)
                 addressSerializer.write(this, entry.value)
             }
             writeCollection(projectMetadata.entries) { entry ->
@@ -92,13 +92,6 @@ class ConfigurationCacheIO internal constructor(
                 addressSerializer.write(this, entry.value)
             }
         }
-    }
-
-    private
-    fun DefaultWriteContext.writeModelKey(key: ModelKey) {
-        writeNullableString(key.identityPath?.path)
-        writeString(key.modelName)
-        writeNullableString(key.parameterHash?.toString())
     }
 
     internal
@@ -111,9 +104,10 @@ class ConfigurationCacheIO internal constructor(
             val addressSerializer = BlockAddressSerializer()
             val intermediateModels = mutableMapOf<ModelKey, BlockAddress>()
             readCollection {
-                val modelKey = readModelKey()
+                val path = readNullableString()?.let { Path.path(it) }
+                val modelName = readString()
                 val address = addressSerializer.read(this)
-                intermediateModels[modelKey] = address
+                intermediateModels[ModelKey(path, modelName)] = address
             }
             val metadata = mutableMapOf<Path, BlockAddress>()
             readCollection {
@@ -123,14 +117,6 @@ class ConfigurationCacheIO internal constructor(
             }
             EntryDetails(rootDirs, intermediateModels, metadata)
         }
-    }
-
-    private
-    fun DefaultReadContext.readModelKey(): ModelKey {
-        val path = readNullableString()?.let { Path.path(it) }
-        val modelName = readString()
-        val parameterHash = readNullableString()?.let(HashCode::fromString)
-        return ModelKey(path, modelName, parameterHash)
     }
 
     private

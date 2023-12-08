@@ -18,24 +18,27 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.FileLocation;
-import org.gradle.api.problems.PluginIdLocation;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemCategory;
-import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.TaskPathLocation;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
+import org.gradle.api.problems.locations.FileLocation;
+import org.gradle.api.problems.locations.PluginIdLocation;
+import org.gradle.api.problems.locations.ProblemLocation;
+import org.gradle.api.problems.locations.TaskPathLocation;
 import org.gradle.internal.build.event.types.DefaultAdditionalData;
 import org.gradle.internal.build.event.types.DefaultDetails;
 import org.gradle.internal.build.event.types.DefaultDocumentationLink;
+import org.gradle.internal.build.event.types.DefaultFileLocation;
 import org.gradle.internal.build.event.types.DefaultLabel;
+import org.gradle.internal.build.event.types.DefaultPluginIdLocation;
 import org.gradle.internal.build.event.types.DefaultProblemCategory;
 import org.gradle.internal.build.event.types.DefaultProblemDescriptor;
 import org.gradle.internal.build.event.types.DefaultProblemDetails;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
 import org.gradle.internal.build.event.types.DefaultSeverity;
 import org.gradle.internal.build.event.types.DefaultSolution;
+import org.gradle.internal.build.event.types.DefaultTaskPathLocation;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -124,13 +127,13 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         return locations.stream().map((Function<ProblemLocation, InternalLocation>) location -> {
             if (location instanceof FileLocation) {
                 FileLocation fileLocation = (FileLocation) location;
-                return new org.gradle.internal.build.event.types.DefaultFileLocation(fileLocation.getPath(), fileLocation.getLine(), fileLocation.getColumn(), fileLocation.getLength());
+                return new DefaultFileLocation(fileLocation.getPath(), fileLocation.getLine(), fileLocation.getColumn(), fileLocation.getLength());
             } else if (location instanceof PluginIdLocation) {
                 PluginIdLocation pluginLocation = (PluginIdLocation) location;
-                return new org.gradle.internal.build.event.types.DefaultPluginIdLocation(pluginLocation.getPluginId());
+                return new DefaultPluginIdLocation(pluginLocation.getPluginId());
             } else if (location instanceof TaskPathLocation) {
                 TaskPathLocation taskLocation = (TaskPathLocation) location;
-                return new org.gradle.internal.build.event.types.DefaultTaskPathLocation(taskLocation.getBuildTreePath().toString());
+                return new DefaultTaskPathLocation(taskLocation.getIdentityPath().toString());
             } else {
                 throw new RuntimeException("No mapping defined for " + location.getClass().getName());
             }

@@ -610,6 +610,7 @@ It may be simpler and cleaner to just <<custom_tasks#custom_tasks,create custom 
 You can then more readily benefit from <<incremental_build.adoc#incremental_build,incremental build>> and other useful Gradle features.
 ====
 
+
 [[migmvn:unnecessary_plugins]]
 == Understanding which plugins you don't need
 

@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemCategory;
+import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
@@ -29,6 +30,8 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
+import static org.gradle.api.problems.internal.DefaultProblemCategory.SEPARATOR;
+import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
 
 public class DefaultTypeValidationContext extends ProblemRecordingTypeValidationContext {
 
@@ -49,19 +52,15 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
         this.reportCacheabilityProblems = reportCacheabilityProblems;
     }
 
-    public static final String[] MISSING_NORMALIZATION_CATEGORY_DETAILS = new String[]
-        {"property", "missing-normalization-annotation"};
-    public static final DefaultProblemCategory MISSING_NORMALIZATION_CATEGORY = DefaultProblemCategory.create(DefaultProblemCategory.GRADLE_CORE_NAMESPACE, DefaultProblemCategory.VALIDATION, MISSING_NORMALIZATION_CATEGORY_DETAILS);
+    public static final String MISSING_NORMALIZATION_CATEGORY_DETAILS = "property" + SEPARATOR + "missing-normalization-annotation";
+    public static final DefaultProblemCategory MISSING_NORMALIZATION_CATEGORY = new DefaultProblemCategory(VALIDATION + SEPARATOR  + MISSING_NORMALIZATION_CATEGORY_DETAILS);
 
     public static boolean onlyAffectsCacheableWork(ProblemCategory problemCategory) {
         return MISSING_NORMALIZATION_CATEGORY.equals(problemCategory);
     }
 
-
-
-
     @Override
-    protected void recordProblem(Problem problem) {
+    protected void recordProblem(ReportableProblem problem) {
         if (onlyAffectsCacheableWork(problem.getProblemCategory()) && !reportCacheabilityProblems) { // TODO (donat) is is already fixed on master
             return;
         }

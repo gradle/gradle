@@ -66,7 +66,6 @@ Gradle defines a list of standard attributes used by Gradle's core plugins.
 |===
 
 [[sec:verification_category]]
-
 [WARNING]
 ====
 When the `Category` attribute is present with the incubating value `org.gradle.category=verification` on a variant, that variant is considered to be a verification-time only variant.

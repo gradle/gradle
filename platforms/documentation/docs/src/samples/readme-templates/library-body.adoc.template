@@ -33,8 +33,11 @@ ${subprojectName.raw}/Library.class
 
 You should see the required manifest file —`MANIFEST.MF`— and the compiled `Library` class.
 
-NOTE: All of this happens without any additional configuration in the build script because Gradle's `java-library` plugin assumes your project sources are arranged in a link:{userManualPath}/java_plugin.html#sec:java_project_layout[conventional project layout].
+[NOTE]
+====
+All of this happens without any additional configuration in the build script because Gradle's `java-library` plugin assumes your project sources are arranged in a link:{userManualPath}/java_plugin.html#sec:java_project_layout[conventional project layout].
 You can customize the project layout if you wish link:{userManualPath}/java_plugin.html#sec:changing_java_project_layout[as described in the user manual].
+====
 
 Congratulations, you have just completed the first step of creating a ${language.raw} ${componentType.raw}!
 You can now customize this to your own project needs.

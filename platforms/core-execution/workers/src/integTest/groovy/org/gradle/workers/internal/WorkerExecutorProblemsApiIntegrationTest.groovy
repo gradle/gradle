@@ -56,11 +56,12 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
                 @Override
                 public void execute() {
-                    getProblems().forNamespace("org.example.plugin").reporting(problem -> problem
+                    getProblems().create(problem -> problem
                             .label("label")
+                            .undocumented()
                             .stackLocation()
                             .category("type")
-                    );
+                    ).report();
                 }
             }
         """

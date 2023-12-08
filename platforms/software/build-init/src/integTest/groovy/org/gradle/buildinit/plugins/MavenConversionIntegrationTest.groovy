@@ -60,7 +60,7 @@ abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpe
 
     def "multiModule init with incubating"() {
         def dsl = dslFixtureFor(scriptDsl)
-        def conventionPluginScript = targetDir.file("build-logic/src/main/${scriptDsl.name().toLowerCase()}/${scriptDsl.fileNameFor("buildlogic.java-conventions")}")
+        def conventionPluginScript = targetDir.file("build-logic/src/main/${scriptDsl.name().toLowerCase()}/${scriptDsl.fileNameFor("com.example.webinar.java-conventions")}")
         def conventionPluginBuildFile = targetDir.file("build-logic/" + dsl.buildFileName)
         def warSubprojectBuildFile = targetDir.file("webinar-war/" + dsl.buildFileName)
         def implSubprojectBuildFile = targetDir.file("webinar-impl/" + dsl.buildFileName)
@@ -97,7 +97,7 @@ abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpe
         def dsl = dslFixtureFor(scriptDsl)
         def warSubprojectBuildFile = targetDir.file("webinar-war/" + dsl.buildFileName)
         def implSubprojectBuildFile = targetDir.file("webinar-impl/" + dsl.buildFileName)
-        def conventionPluginScript = targetDir.file("buildSrc/src/main/${scriptDsl.name().toLowerCase()}/${scriptDsl.fileNameFor("buildlogic.java-conventions")}")
+        def conventionPluginScript = targetDir.file("buildSrc/src/main/${scriptDsl.name().toLowerCase()}/${scriptDsl.fileNameFor("com.example.webinar.java-conventions")}")
 
         when:
         run 'init', '--dsl', scriptDsl.id as String
@@ -107,7 +107,7 @@ abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpe
         !targetDir.file(dsl.buildFileName).exists() // no root build file
         warSubprojectBuildFile.exists()
 
-        warSubprojectBuildFile.text.contains("id 'buildlogic.java-conventions'") || warSubprojectBuildFile.text.contains('id("buildlogic.java-conventions")')
+        warSubprojectBuildFile.text.contains("id 'com.example.webinar.java-conventions'") || warSubprojectBuildFile.text.contains('id("com.example.webinar.java-conventions")')
         !warSubprojectBuildFile.text.contains("options.encoding")
 
         assertContainsPublishingConfig(conventionPluginScript, scriptDsl)
@@ -152,7 +152,7 @@ Root project 'webinar-parent'
         def dsl = dslFixtureFor(scriptDsl)
         def warSubprojectBuildFile = targetDir.file("webinar-war/" + dsl.buildFileName)
         def implSubprojectBuildFile = targetDir.file("webinar-impl/" + dsl.buildFileName)
-        def conventionPluginScript = targetDir.file("buildSrc/src/main/${scriptDsl.name().toLowerCase()}/${scriptDsl.fileNameFor("buildlogic.java-conventions")}")
+        def conventionPluginScript = targetDir.file("buildSrc/src/main/${scriptDsl.name().toLowerCase()}/${scriptDsl.fileNameFor("com.example.webinar.java-conventions")}")
 
         when:
         run 'init', '--dsl', scriptDsl.id as String
@@ -162,7 +162,7 @@ Root project 'webinar-parent'
         !targetDir.file(dsl.buildFileName).exists() // no root build file
         warSubprojectBuildFile.exists()
 
-        warSubprojectBuildFile.text.contains("id 'buildlogic.java-conventions'") || warSubprojectBuildFile.text.contains('id("buildlogic.java-conventions")')
+        warSubprojectBuildFile.text.contains("id 'com.example.webinar.java-conventions'") || warSubprojectBuildFile.text.contains('id("com.example.webinar.java-conventions")')
         !warSubprojectBuildFile.text.contains("options.encoding")
 
         assertContainsPublishingConfig(conventionPluginScript, scriptDsl)
@@ -393,6 +393,8 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
 
         when:
         fails 'clean', 'build', '--continue'
+
+        then:
 
         then:
         targetDir.file("build/libs/util-2.5.jar").exists()

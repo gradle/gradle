@@ -258,8 +258,7 @@ class ConfigurationCacheFixture {
         if (details.runsTasks) {
             spec.outputContains("Calculating task graph as no cached configuration is available for tasks:")
         } else {
-            assert spec.getOutput().contains("Creating tooling model as no cached configuration is available for the requested model") ||
-                spec.getOutput().contains("Creating tooling model as configuration cache cannot be reused because")
+            spec.outputContains("Creating tooling model as no cached configuration is available for the requested model")
         }
     }
 

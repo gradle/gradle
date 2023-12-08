@@ -165,7 +165,7 @@ public abstract class Wrapper extends DefaultTask {
         if (!isCurrentVersion() &&
             distributionSha256Sum == null &&
             checksumProperty != null) {
-            throw new GradleException("gradle-wrapper.properties contains distributionSha256Sum property, but the wrapper configuration does not have one. Specify one in the wrapper task configuration or with the --gradle-distribution-sha256-sum task option");
+            throw new GradleException("gradle-wrapper.properties contains distributionSha256Sum property, but the wrapper configuration does not have one. Specify one in the wrapped task configuration or with the --gradle-distribution-sha256-sum task option");
         }
     }
 

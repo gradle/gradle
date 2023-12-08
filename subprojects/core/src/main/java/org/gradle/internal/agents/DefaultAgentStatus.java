@@ -16,14 +16,9 @@
 
 package org.gradle.internal.agents;
 
-import org.gradle.internal.lazy.Lazy;
-
 class DefaultAgentStatus implements AgentStatus {
-
-    private static final Lazy<Boolean> IS_AGENT_INSTRUMENTATION_ENABLED = Lazy.locking().of(AgentControl::isInstrumentationAgentApplied);
-
     @Override
     public boolean isAgentInstrumentationEnabled() {
-        return IS_AGENT_INSTRUMENTATION_ENABLED.get();
+        return AgentControl.isInstrumentationAgentApplied();
     }
 }

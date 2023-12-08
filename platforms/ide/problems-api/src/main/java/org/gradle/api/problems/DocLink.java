@@ -27,15 +27,13 @@ import java.io.Serializable;
  * <p>
  * Subtypes can represent different parts of the gradle documentation, e.g. the DSL reference, the user guide, etc.
  *
- * @since 8.6
+ * @since 8.4
  */
 @Incubating
 public interface DocLink extends Serializable {
 
     /**
      * The URL to the documentation page.
-     *
-     * @since 8.6
      */
     @Nullable
     String getUrl();
@@ -43,8 +41,6 @@ public interface DocLink extends Serializable {
     /**
      * A message that tells the user to consult the documentation.
      * There are currently 2 different messages used for this, hence this method.
-     *
-     * @since 8.6
      */
     @Nullable
     String getConsultDocumentationMessage();

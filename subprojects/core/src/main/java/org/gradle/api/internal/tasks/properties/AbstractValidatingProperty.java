@@ -17,9 +17,8 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.base.Suppliers;
-import org.gradle.api.problems.ProblemSpec;
+import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.properties.PropertyValue;
@@ -30,6 +29,7 @@ import org.gradle.util.internal.TextUtil;
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
+import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public abstract class AbstractValidatingProperty implements ValidatingProperty {
@@ -49,18 +49,19 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
 
     public static void reportValueNotSet(String propertyName, TypeValidationContext context, boolean hasConfigurableValue) {
         context.visitPropertyProblem(problem -> {
-            ProblemSpec problemSpec = problem.forProperty(propertyName)
+            ProblemBuilder problemBuilder = problem.forProperty(propertyName)
                 .label("doesn't have a configured value")
                 .documentedAt(userManual("validation_problems", VALUE_NOT_SET.toLowerCase()))
-                .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(VALUE_NOT_SET))
+                .noLocation()
+                .category(VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(VALUE_NOT_SET))
                 .severity(Severity.ERROR)
                 .details("This property isn't marked as optional and no value has been configured");
             if (hasConfigurableValue) {
-                problemSpec.solution("Assign a value to '" + propertyName + "'");
+                problemBuilder.solution("Assign a value to '" + propertyName + "'");
             } else {
-                problemSpec.solution("The value of '" + propertyName + "' is calculated, make sure a valid value can be calculated");
+                problemBuilder.solution("The value of '" + propertyName + "' is calculated, make sure a valid value can be calculated");
             }
-            problemSpec.solution("Mark property '" + propertyName + "' as optional");
+            problemBuilder.solution("Mark property '" + propertyName + "' as optional");
         });
     }
 

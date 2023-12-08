@@ -773,7 +773,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                 result.add(new DefaultPluginIdLocation(pluginLocation.getPluginId()));
             } else if (location instanceof InternalTaskPathLocation) {
                 InternalTaskPathLocation taskLocation = (InternalTaskPathLocation) location;
-                result.add(new DefaultTaskPathLocation(taskLocation.getBuildTreePath()));
+                result.add(new DefaultTaskPathLocation(taskLocation.getIdentityPath()));
             }
         }
         return result;

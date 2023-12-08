@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.internal.ProblemEmitter;
+import org.gradle.api.problems.ProblemEmitter;
 import org.gradle.api.problems.internal.DefaultProblem;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;

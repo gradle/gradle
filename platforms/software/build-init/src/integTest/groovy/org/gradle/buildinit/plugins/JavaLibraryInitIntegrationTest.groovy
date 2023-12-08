@@ -27,9 +27,9 @@ import static org.hamcrest.CoreMatchers.allOf
 
 class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
-    public static final String SAMPLE_LIBRARY_CLASS = "org/example/Library.java"
-    public static final String SAMPLE_LIBRARY_TEST_CLASS = "org/example/LibraryTest.java"
-    public static final String SAMPLE_SPOCK_LIBRARY_TEST_CLASS = "org/example/LibraryTest.groovy"
+    public static final String SAMPLE_LIBRARY_CLASS = "some/thing/Library.java"
+    public static final String SAMPLE_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.java"
+    public static final String SAMPLE_SPOCK_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.groovy"
 
     def "defaults to Kotlin build scripts"() {
         when:
@@ -57,7 +57,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         run("build")
 
         then:
-        assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -80,7 +80,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         when:
         run('test')
         then:
-        assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -97,7 +97,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         succeeds('test')
 
         then:
-        assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -121,7 +121,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         run("build")
 
         then:
-        assertTestPassed("org.example.LibraryTest", "someLibraryMethod returns true")
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethod returns true")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -144,7 +144,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         run("build")
 
         then:
-        assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -167,7 +167,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         run("build")
 
         then:
-        assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

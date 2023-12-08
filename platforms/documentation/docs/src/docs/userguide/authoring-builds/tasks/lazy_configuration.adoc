@@ -66,9 +66,11 @@ The `Greeting` task has a property of type `Property<String>` to represent the c
 
 [NOTE]
 ====
+
 Note that Gradle Groovy DSL generates setter methods for each `Property`-typed property in a task implementation. These setter methods allow you to configure the property using the assignment (`=`) operator as a convenience.
 
 In Kotlin DSL, the `set()` method on the property needs to be used instead of `=`.
+
 ====
 
 [[creating_property_provider]]
@@ -83,9 +85,11 @@ A `Provider` can also be created by the factory method link:{groovyDslPath}/org.
 
 [NOTE]
 ====
+
 There are no specific methods create a provider using a `groovy.lang.Closure`. When writing a plugin or build script with Groovy, you can use the `map(Transformer)` method with a closure and Groovy will take care of converting the closure to a `Transformer`. You can see this in action in the previous example.
 
 Similarly, when writing a plugin or build script with Kotlin, the Kotlin compiler will take care of converting a Kotlin function into a `Transformer`.
+
 ====
 
 [[connecting_properties_together]]

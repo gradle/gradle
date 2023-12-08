@@ -31,7 +31,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemSpec;
+import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
@@ -116,20 +116,20 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
         storeResults(taskValidationProblems, params.getOutputFile());
     }
 
-    private static void collectValidationProblems(Problems problemsService, Class<?> topLevelBean, List<Problem> problems, boolean enableStricterValidation) {
-        DefaultTypeValidationContext validationContext = createTypeValidationContext(problemsService, topLevelBean, enableStricterValidation);
+    private static void collectValidationProblems(Problems problemService, Class<?> topLevelBean, List<Problem> problems, boolean enableStricterValidation) {
+        DefaultTypeValidationContext validationContext = createTypeValidationContext(problemService, topLevelBean, enableStricterValidation);
         PropertyValidationAccess.collectValidationProblems(topLevelBean, validationContext);
 
         problems.addAll(validationContext.getProblems());
     }
 
     @Nonnull
-    private static DefaultTypeValidationContext createTypeValidationContext(Problems problemsService, Class<?> topLevelBean, boolean enableStricterValidation) {
+    private static DefaultTypeValidationContext createTypeValidationContext(Problems problemService, Class<?> topLevelBean, boolean enableStricterValidation) {
         if (Task.class.isAssignableFrom(topLevelBean)) {
-            return createValidationContextAndValidateCacheableAnnotations(problemsService, topLevelBean, CacheableTask.class, enableStricterValidation);
+            return createValidationContextAndValidateCacheableAnnotations(problemService, topLevelBean, CacheableTask.class, enableStricterValidation);
         }
         if (TransformAction.class.isAssignableFrom(topLevelBean)) {
-            return createValidationContextAndValidateCacheableAnnotations(problemsService, topLevelBean, CacheableTransform.class, enableStricterValidation);
+            return createValidationContextAndValidateCacheableAnnotations(problemService, topLevelBean, CacheableTransform.class, enableStricterValidation);
         }
         return createValidationContext(topLevelBean, enableStricterValidation);
     }
@@ -162,10 +162,11 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
             String untrackedTaskAnnotation = "@" + UntrackedTask.class.getSimpleName();
             String workType = isTask ? "task" : "transform action";
             validationContext.visitTypeProblem(problem -> {
-                    ProblemSpec builder = problem
+                    ProblemBuilder builder = problem
                         .withAnnotationType(topLevelBean)
                         .label("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
                         .documentedAt(userManual("validation_problems", "disable_caching_by_default"))
+                        .noLocation()
                         .category("validation", "type", TextUtil.screamingSnakeToKebabCase(ValidationTypes.NOT_CACHEABLE_WITHOUT_REASON))
                         .severity(WARNING)
                         .details("The " + workType + " author should make clear why a " + workType + " is not cacheable")

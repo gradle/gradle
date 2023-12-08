@@ -134,7 +134,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     }
 
     @Inject
-    protected Problems getProblemsService() {
+    protected Problems getProblemService() {
         throw new UnsupportedOperationException("not implemented");
     }
 
@@ -415,8 +415,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         @Override
         protected List<ClassSource> getClassSources() {
             return Arrays.asList(
-                new DependenciesAccessorClassSource(model.getName(), model, getProblemsService()),
-                new PluginsBlockDependenciesAccessorClassSource(model.getName(), model, getProblemsService())
+                new DependenciesAccessorClassSource(model.getName(), model, getProblemService()),
+                new PluginsBlockDependenciesAccessorClassSource(model.getName(), model, getProblemService())
             );
         }
 
@@ -494,12 +494,12 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         private final String name;
         private final DefaultVersionCatalog model;
-        private final Problems problemsService;
+        private final Problems problemService;
 
-        private DependenciesAccessorClassSource(String name, DefaultVersionCatalog model, Problems problemsService) {
+        private DependenciesAccessorClassSource(String name, DefaultVersionCatalog model, Problems problemService) {
             this.name = name;
             this.model = model;
-            this.problemsService = problemsService;
+            this.problemService = problemService;
         }
 
         @Override
@@ -515,7 +515,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         @Override
         public String getSource() {
             StringWriter writer = new StringWriter();
-            LibrariesSourceGenerator.generateSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName(), problemsService);
+            LibrariesSourceGenerator.generateSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName(), problemService);
             return writer.toString();
         }
     }
@@ -523,12 +523,12 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private static class PluginsBlockDependenciesAccessorClassSource implements ClassSource {
         private final String name;
         private final DefaultVersionCatalog model;
-        private final Problems problemsService;
+        private final Problems problemService;
 
-        private PluginsBlockDependenciesAccessorClassSource(String name, DefaultVersionCatalog model, Problems problemsService) {
+        private PluginsBlockDependenciesAccessorClassSource(String name, DefaultVersionCatalog model, Problems problemService) {
             this.name = name;
             this.model = model;
-            this.problemsService = problemsService;
+            this.problemService = problemService;
         }
 
         @Override
@@ -544,7 +544,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         @Override
         public String getSource() {
             StringWriter writer = new StringWriter();
-            LibrariesSourceGenerator.generatePluginsBlockSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName(), problemsService);
+            LibrariesSourceGenerator.generatePluginsBlockSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName(), problemService);
             return writer.toString();
         }
     }

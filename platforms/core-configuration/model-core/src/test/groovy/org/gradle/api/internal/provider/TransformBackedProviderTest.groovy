@@ -19,7 +19,7 @@ package org.gradle.api.internal.provider
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Task
 import org.gradle.api.logging.configuration.WarningMode
-import org.gradle.api.problems.internal.ProblemEmitter
+import org.gradle.api.problems.ProblemEmitter
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskState

@@ -16,7 +16,7 @@
 
 package org.gradle.problems.internal.services;
 
-import org.gradle.api.problems.internal.ProblemTransformer;
+import org.gradle.api.problems.ProblemTransformer;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.problems.internal.OperationListener;

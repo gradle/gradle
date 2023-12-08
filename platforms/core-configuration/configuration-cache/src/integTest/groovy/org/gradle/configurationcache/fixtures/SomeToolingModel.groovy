@@ -23,11 +23,6 @@ interface SomeToolingModel {
     String getMessage()
 }
 
-interface SomeToolingModelParameter {
-    String getMessagePrefix()
-    void setMessagePrefix(String value)
-}
-
 class SomeToolingModelBuildAction implements BuildAction<SomeToolingModel> {
     @Override
     SomeToolingModel execute(BuildController controller) {

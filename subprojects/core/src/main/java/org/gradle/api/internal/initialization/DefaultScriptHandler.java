@@ -99,7 +99,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     public ClassPath getInstrumentedScriptClassPath() {
         if (resolvedClasspath == null) {
             if (classpathConfiguration != null) {
-                resolvedClasspath = buildLogicBuilder.resolveClassPath(classpathConfiguration, dependencyHandler, configContainer);
+                resolvedClasspath = buildLogicBuilder.resolveClassPath(classpathConfiguration);
                 if (!getBoolean(DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY)) {
                     ((ResettableConfiguration) classpathConfiguration).resetResolutionState();
                 }
@@ -152,7 +152,6 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         }
         if (dependencyHandler == null) {
             dependencyHandler = dependencyResolutionServices.getDependencyHandler();
-            buildLogicBuilder.prepareDependencyHandler(dependencyHandler);
         }
         if (classpathConfiguration == null) {
             classpathConfiguration = configContainer.migratingUnlocked(CLASSPATH_CONFIGURATION, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE);

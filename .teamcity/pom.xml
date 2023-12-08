@@ -152,7 +152,7 @@
         </dependency>
         <dependency>
             <groupId>org.jetbrains.teamcity</groupId>
-            <artifactId>configs-dsl-kotlin-latest</artifactId>
+            <artifactId>configs-dsl-kotlin</artifactId>
             <version>${teamcity.dsl.version}</version>
             <scope>compile</scope>
             <exclusions>
@@ -165,7 +165,7 @@
         </dependency>
         <dependency>
             <groupId>org.jetbrains.teamcity</groupId>
-            <artifactId>configs-dsl-kotlin-plugins-latest</artifactId>
+            <artifactId>configs-dsl-kotlin-plugins</artifactId>
             <version>1.0-SNAPSHOT</version>
             <type>pom</type>
             <scope>compile</scope>

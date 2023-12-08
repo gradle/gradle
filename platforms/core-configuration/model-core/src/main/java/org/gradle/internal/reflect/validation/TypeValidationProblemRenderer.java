@@ -50,7 +50,7 @@ public class TypeValidationProblemRenderer {
             formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDetails())));
         });
         if (renderSolutions) {
-            renderSolutions(formatter, problem.getSolutions());
+            renderSolutionsWithNewProblemsApi(formatter, problem.getSolutions());
         }
         if (renderDocLink) {
             ofNullable(problem.getDocumentationLink()).ifPresent(docLink -> {
@@ -61,7 +61,7 @@ public class TypeValidationProblemRenderer {
         return formatter.toString();
     }
 
-    public static void renderSolutions(TreeFormatter formatter, List<String> possibleSolutions) {
+    public static void renderSolutionsWithNewProblemsApi(TreeFormatter formatter, List<String> possibleSolutions) {
         int solutionCount = possibleSolutions.size();
         if (solutionCount > 0) {
             formatter.blankLine();

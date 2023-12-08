@@ -30,7 +30,7 @@ import java.util.List;
  * from <b>multiple projects of the same build</b>.
  */
 @NonNullApi
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scopes.Build.class)
 public interface IntermediateToolingModelProvider {
 
     /**

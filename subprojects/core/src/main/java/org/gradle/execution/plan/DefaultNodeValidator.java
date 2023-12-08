@@ -19,7 +19,6 @@ package org.gradle.execution.plan;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.Severity;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
@@ -59,7 +58,7 @@ public class DefaultNodeValidator implements NodeValidator {
 
     private void logWarnings(List<? extends Problem> problems) {
         problems.stream()
-            .filter(DefaultNodeValidator::isWarning)
+            .filter(problem -> problem.getSeverity().isWarning())
             .forEach(problem -> {
                 // Because our deprecation warning system doesn't support multiline strings (bummer!) both in rendering
                 // **and** testing (no way to capture multiline deprecation warnings), we have to resort to removing details
@@ -83,12 +82,8 @@ public class DefaultNodeValidator implements NodeValidator {
 
     private static Set<String> getUniqueErrors(List<? extends Problem> problems) {
         return problems.stream()
-            .filter(problem -> !isWarning(problem))
+            .filter(problem -> !problem.getSeverity().isWarning())
             .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
             .collect(toImmutableSet());
-    }
-
-    private static boolean isWarning(Problem problem) {
-        return problem.getSeverity().equals(Severity.WARNING);
     }
 }

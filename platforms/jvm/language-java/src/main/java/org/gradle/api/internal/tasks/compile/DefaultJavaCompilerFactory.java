@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.daemon.ProcessIsolatedCompilerWorkerExecutor;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.Problems;
 import org.gradle.internal.Factory;
 import org.gradle.jvm.toolchain.internal.JavaCompilerFactory;
 import org.gradle.language.base.internal.compile.CompileSpec;
@@ -40,7 +40,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final ClassPathRegistry classPathRegistry;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
     private Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
-    private final InternalProblems problems;
+    private final Problems problems;
 
     public DefaultJavaCompilerFactory(
         WorkerDirectoryProvider workingDirProvider,
@@ -50,7 +50,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         AnnotationProcessorDetector processorDetector,
         ClassPathRegistry classPathRegistry,
         ActionExecutionSpecFactory actionExecutionSpecFactory,
-        InternalProblems problems
+        Problems problems
     ) {
         this.workingDirProvider = workingDirProvider;
         this.workerDaemonFactory = workerDaemonFactory;

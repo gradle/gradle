@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileSystemLocation
-import org.gradle.api.internal.initialization.transform.ProjectDependencyInstrumentingArtifactTransform
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
@@ -1351,7 +1350,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         }
     }
 
-    def "planned transform steps from script plugin buildscript block are captured"() {
+    def "planned transform steps from script plugin buildscript block are ignored"() {
         setupProjectTransformInBuildScriptBlock(true)
 
         when:
@@ -1364,17 +1363,12 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         outputContains("Task-only execution plan: [PlannedTask('Task :consumer:hello', deps=[])]")
 
         getPlannedNodes(0)
-        getExecutePlannedStepOperations(1)
+        getExecutePlannedStepOperations(0).empty
 
-        // We have 4 artifact transforms: 2 MakeColor transforms and 2 from Gradle instrumentation
-        buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 4
-        Map<String, List<String>> artifactTransforms = groupArtifactTransformByArtifactName()
-        artifactTransforms["buildSrc.jar"] == [ProjectDependencyInstrumentingArtifactTransform.class.name]
-        artifactTransforms["nested-producer.jar"] ==~ ["MakeColor", ProjectDependencyInstrumentingArtifactTransform.class.name]
-        artifactTransforms["nested-producer.jar.red"] == ["MakeColor"]
-        buildOperations.all(ExecuteWorkBuildOperationType).size() == 4
-        buildOperations.all(SnapshotTransformInputsBuildOperationType).size() == 4
-        buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 4
+        buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 2
+        buildOperations.all(ExecuteWorkBuildOperationType).size() == 2
+        buildOperations.all(SnapshotTransformInputsBuildOperationType).size() == 2
+        buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 2
     }
 
     def "planned transform steps from project buildscript context are captured"() {
@@ -1393,23 +1387,12 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         outputContains("Task-only execution plan: [PlannedTask('Task :consumer:hello', deps=[])]")
 
         getPlannedNodes(0)
-        getExecutePlannedStepOperations(4)
+        getExecutePlannedStepOperations(2)
 
-        // We have 4 artifact transforms: 2 MakeColor transforms and 2 from Gradle instrumentation
-        buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 4
-        Map<String, List<String>> artifactTransforms = groupArtifactTransformByArtifactName()
-        artifactTransforms["buildSrc.jar"] == [ProjectDependencyInstrumentingArtifactTransform.class.name]
-        artifactTransforms["nested-producer.jar"] ==~ ["MakeColor", ProjectDependencyInstrumentingArtifactTransform.class.name]
-        artifactTransforms["nested-producer.jar.red"] == ["MakeColor"]
-        buildOperations.all(ExecuteWorkBuildOperationType).size() == 4
-        buildOperations.all(SnapshotTransformInputsBuildOperationType).size() == 4
-        buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 4
-    }
-
-    private Map<String, List<String>> groupArtifactTransformByArtifactName() {
-        return buildOperations.progress(IdentifyTransformExecutionProgressDetails)
-            .groupBy { it.details["artifactName"] as String }
-            .collectEntries { [(it.key): it.value.collect { it.details["transformActionClass"] }] }
+        buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 2
+        buildOperations.all(ExecuteWorkBuildOperationType).size() == 2
+        buildOperations.all(SnapshotTransformInputsBuildOperationType).size() == 2
+        buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 2
     }
 
     private void setupProjectTransformInBuildScriptBlock(boolean inExternalScript) {
@@ -1475,6 +1458,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             : consumerBuildFile
         buildscriptDestination << """
             buildscript {
+                // Can't use color, since we need to use the configuration directly and
+                // can't go via an artifact view
                 def artifactType = Attribute.of('artifactType', String)
                 dependencies {
                     classpath("test:test:1.0")
@@ -1490,9 +1475,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                         parameters.targetColor.set('green')
                     }
                 }
-                configurations.classpath.incoming.artifactView {
-                    attributes.attribute(artifactType, 'green')
-                }.files.files
+                configurations.classpath.attributes.attribute(artifactType, 'green')
             }
         """
         if (inExternalScript) {

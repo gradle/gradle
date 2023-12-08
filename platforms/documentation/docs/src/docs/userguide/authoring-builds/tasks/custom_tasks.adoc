@@ -181,7 +181,10 @@ In this case, Gradle automatically removes the previous outputs, so the incremen
 
 For a simple transformer task like the above example, the task action simply needs to generate output files for any out-of-date inputs and delete output files for any removed inputs.
 
-IMPORTANT: A task may only contain a single incremental task action.
+[IMPORTANT]
+====
+A task may only contain a single incremental task action.
+====
 
 [[sec:which_inputs_are_considered_out_of_date]]
 === Which inputs are considered out of date?
@@ -406,7 +409,10 @@ Describes an option with a file system element. Passing the option on the comman
 
 In theory, an option for a property type `String` or `List<String>` can accept any arbitrary value. Expected values for such an option can be documented programmatically with the help of the annotation link:{javadocPath}/org/gradle/api/tasks/options/OptionValues.html[OptionValues]. This annotation may be assigned to any method that returns a `List` of one of the supported data types. In addition, you have to provide the option identifier to indicate the relationship between option and available values.
 
-NOTE: Passing a value on the command line that is not supported by the option does not fail the build or throw an exception. You'll have to implement custom logic for such behavior in the task action.
+[NOTE]
+====
+Passing a value on the command line that is not supported by the option does not fail the build or throw an exception. You'll have to implement custom logic for such behavior in the task action.
+====
 
 This example demonstrates the use of multiple options for a single task. The task implementation provides a list of available values for the option `output-type`.
 
@@ -450,7 +456,10 @@ The Worker API provides a mechanism for doing exactly this. It allows for safe, 
 [[using-the-worker-api]]
 === Using the Worker API
 
-NOTE: A step-by-step description of converting a normal task action to use the worker API can be found in the section on <<worker_api.adoc#tasks_parallel_worker,developing parallel tasks>>.
+[NOTE]
+====
+A step-by-step description of converting a normal task action to use the worker API can be found in the section on <<worker_api.adoc#tasks_parallel_worker,developing parallel tasks>>.
+====
 
 In order to submit work to the Worker API, two things must be provided: an implementation of the unit of work, and the parameters for the unit of work.
 
@@ -485,9 +494,9 @@ In some cases, however, it might be desirable to wait for work to complete befor
 
 [NOTE]
 ====
-Note that Gradle will only begin running other independent tasks in parallel when a task has exited a task action and returned control of execution to Gradle.
-When link:{javadocPath}/org/gradle/workers/WorkQueue.html#await--[WorkQueue.await()] is used, execution does not leave the task action.
-This means that Gradle will not allow other tasks to begin executing and will wait for the task action to complete before doing so.
+
+Note that Gradle will only begin running other independent tasks in parallel when a task has exited a task action and returned control of execution to Gradle. When link:{javadocPath}/org/gradle/workers/WorkQueue.html#await--[WorkQueue.await()] is used, execution does not leave the task action. This means that Gradle will not allow other tasks to begin executing and will wait for the task action to complete before doing so.
+
 ====
 
 .Waiting for asynchronous work to complete

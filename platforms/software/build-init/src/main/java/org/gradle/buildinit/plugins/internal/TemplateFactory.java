@@ -49,7 +49,6 @@ public class TemplateFactory {
             return mainFiles.isEmpty() || testFiles.isEmpty();
         }, operations);
     }
-
     public TemplateOperation fromSourceTemplate(String clazzTemplate, String sourceSetName) {
         return fromSourceTemplate(clazzTemplate, sourceSetName, initSettings.getSubprojects().get(0), language);
     }
@@ -75,14 +74,14 @@ public class TemplateFactory {
         String basePackageName = "";
         String packageDecl = "";
         String className = details.className == null ? "" : details.className;
-        if (initSettings != null) {
+        if (initSettings != null && !initSettings.getPackageName().isEmpty()) {
             basePackageName = initSettings.getPackageName();
             String packageName = basePackageName;
             if (initSettings.getModularizationOption() == ModularizationOption.WITH_LIBRARY_PROJECTS) {
-                packageName = joinIfNotEmpty(packageName, ".") + details.subproject;
+                packageName = packageName + "." + details.subproject;
             }
-            packageDecl = joinIfNotEmpty("package ", packageName);
-            targetFileName = joinIfNotEmpty(packageName.replace(".", "/"), "/") + details.getTargetFileName();
+            packageDecl = "package " + packageName;
+            targetFileName = packageName.replace(".", "/") + "/" + details.getTargetFileName();
         } else {
             targetFileName = details.getTargetFileName();
         }
@@ -90,17 +89,13 @@ public class TemplateFactory {
         TemplateOperationFactory.TemplateOperationBuilder operationBuilder = templateOperationFactory.newTemplateOperation()
             .withTemplate(sourceTemplate)
             .withTarget(initSettings.getTarget().file(details.subproject + "/src/" + details.sourceSet + "/" + details.language.getName() + "/" + targetFileName).getAsFile())
-            .withBinding("basePackagePrefix", joinIfNotEmpty(basePackageName, "."))
+            .withBinding("basePackageName", basePackageName)
             .withBinding("packageDecl", packageDecl)
             .withBinding("className", className);
         for (Map.Entry<String, String> entry : details.bindings.entrySet()) {
             operationBuilder.withBinding(entry.getKey(), entry.getValue());
         }
         return operationBuilder.create();
-    }
-
-    private static String joinIfNotEmpty(String left, String right) {
-        return left.isEmpty() || right.isEmpty() ? "" : (left + right);
     }
 
     private static class TemplateDetails implements SourceFileTemplate {

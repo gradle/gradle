@@ -28,12 +28,13 @@ Gradle's newer Kotlin DSL provides a pleasant editing experience in supported ID
 image::intellij-idea-android-studio.png[IntelliJ IDEA and Android Studio]
 
 [TIP]
-====
+--
 Please also read the <<kotlin_dsl.adoc#kotlin_dsl,Gradle Kotlin DSL Primer>> to learn the specificities, limitations and usage of the Gradle Kotlin DSL.
 
 The rest of the user manual contain build script excerpts that demonstrate both the Groovy DSL and the Kotlin DSL.
 This is the best place where to find how to do this and what with each DSL ; and it covers all Gradle features from <<plugins.adoc#plugins,using plugins>> to <<dependency_constraints.adoc#dependency-constraints,customizing the dependency resolution behavior>>.
-====
+--
+
 
 == Before you start migrating
 
@@ -150,8 +151,12 @@ You can find an example in the <<writing_build_scripts#sec:extra_properties,user
 
 == Script file naming
 
-NOTE: Groovy DSL script files use the `.gradle` file name extension.
+[NOTE]
+--
+Groovy DSL script files use the `.gradle` file name extension.
+
 Kotlin DSL script files use the `.gradle.kts` file name extension.
+--
 
 To use the Kotlin DSL, simply name your files `build.gradle.kts` instead of `build.gradle`.
 
@@ -194,12 +199,14 @@ include::sample[dir="snippets/kotlinDsl/applying-plugins-imperative/groovy",file
 ====
 
 [NOTE]
-====
+--
 **We strongly recommend that you use the `plugins {}` block in preference to the `apply()` function.**
 
-The declarative nature of the `plugins {}` block enables the Kotlin DSL to provide type-safe accessors to the extensions, configurations and other features contributed by the applied plugins, which makes it easy for IDEs to discover the details of the plugins' models and makes them easy to configure. +
+The declarative nature of the `plugins {}` block enables the Kotlin DSL to provide type-safe accessors to the extensions, configurations and other features contributed by the applied plugins, which makes it easy for IDEs to discover the details of the plugins' models and makes them easy to configure.
+
 See the <<plugins.adoc#sec:plugins_block,`plugins {}` block documentation>> in the Gradle user manual for more information.
-====
+--
+
 
 [[configuring-plugins]]
 == Configuring plugins
@@ -222,6 +229,7 @@ include::sample[dir="snippets/kotlinDsl/configuring-plugins-imperatively-applied
 
 Again, we strongly recommend that you apply plugins declaratively via the `plugins {}` block.
 
+[TIP]
 .Knowing what plugin-provided extensions are available
 --
 Because your IDE knows about the configuration elements that a plugin provides, it will include those elements when you ask your IDE for suggestions.
@@ -237,6 +245,7 @@ See the <<kotlin_dsl.adoc#sec:interoperability,interoperability section of the G
 Plugins also contribute tasks that you may want to configure directly.
 This topic is covered in the <<configuring-tasks>> section below.
 
+[IMPORTANT]
 .Keeping build scripts declarative
 --
 To get the most benefits of the Gradle Kotlin DSL you should strive to keep your build scripts declarative.
@@ -248,6 +257,7 @@ If your build is a multi-project build, like mostly all *Android* builds for exa
 
 Finally, there are strategies to <<kotlin_dsl.adoc#sec:plugins_resolution_strategy,use the `plugins {}` block with plugins that aren't published with the correct metadata>>, such as the *Android* Gradle Plugin.
 --
+
 
 [[configuration-avoidance]]
 == Configuration avoidance
@@ -298,6 +308,7 @@ include::sample[dir="snippets/kotlinDsl/configuring-tasks-basics/groovy",files="
 
 Working with containers in the Gradle Kotlin DSL is <<kotlin_dsl.adoc#kotdsl:containers,documented in detail here>>.
 
+[TIP]
 .Knowing the type of a task
 --
 If you don't know what type a task has, then you can find that information out via the built-in `help` task.
@@ -409,6 +420,7 @@ include::sample[dir="snippets/kotlinDsl/configurations-and-dependencies-declarat
 
 Each configuration contributed by an applied plugin is also available as a member of the `configurations` container, so you can reference it just like any other configuration.
 
+[TIP]
 .Knowing what configurations are available
 --
 The easiest way to find out what configurations are available is by asking your IDE for suggestions within the `configurations` container.
@@ -506,8 +518,10 @@ The same mostly applies to interoperability with Groovy code.
 In addition, the Kotlin DSL provides several ways to opt into Groovy semantics.
 
 .On the Gradle Kotlin DSL and interoperability
+[TIP]
 --
 Please find detailed documentation in the <<kotlin_dsl.adoc#sec:interoperability,interoperability section of the Gradle Kotlin DSL Primer>>.
 --
+
 
 

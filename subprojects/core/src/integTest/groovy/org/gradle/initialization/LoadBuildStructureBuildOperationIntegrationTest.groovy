@@ -147,14 +147,14 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
         verifyProject(project(":b", nestedRootProject), 'b', ':nested:b', [], testDirectory.file('nested/b'))
     }
 
-    private void verifyProject(def project, String name, String buildTreePath = null, List<String> children = [], File projectDir = testDirectory.file(name), String buildFileName = 'build.gradle') {
+    private void verifyProject(def project, String name, String identityPath = null, List<String> children = [], File projectDir = testDirectory.file(name), String buildFileName = 'build.gradle') {
         assert project.name == name
-        assert project.getBuildTreePath == buildTreePath ?: project.path
-        assert project.buildTreePath == buildTreePath ?: project.path
+        assert project.identityPath == identityPath ?: project.path
+        assert project.buildTreePath == identityPath ?: project.path
         assert project.projectDir == projectDir.absolutePath
         assert project.buildFile == new File(projectDir, buildFileName).absolutePath
         assert project.children*.path == children
-        assert project.buildTreePath == buildTreePath ?: project.path
+        assert project.buildTreePath == identityPath ?: project.path
     }
 
     Map project(String path, Map rootProject, Map parent = null) {

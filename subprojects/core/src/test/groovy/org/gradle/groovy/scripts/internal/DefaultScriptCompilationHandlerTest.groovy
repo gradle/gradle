@@ -32,7 +32,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.RootClassLoaderScope
 import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
-import org.gradle.api.problems.internal.ProblemEmitter
+import org.gradle.api.problems.ProblemEmitter
 import org.gradle.api.problems.Problems
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.configuration.ImportsReader
@@ -106,7 +106,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
             importsReader
         ) {
             @Override
-            protected Problems getProblemsService() {
+            protected Problems getProblemService() {
                 return problems
             }
         }

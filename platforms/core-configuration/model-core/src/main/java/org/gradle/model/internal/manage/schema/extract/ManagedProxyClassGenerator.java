@@ -30,7 +30,6 @@ import groovy.lang.MissingPropertyException;
 import groovy.lang.ReadOnlyPropertyException;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Cast;
-import org.gradle.internal.reflect.Types.TypeVisitResult;
 import org.gradle.internal.reflect.Types.TypeVisitor;
 import org.gradle.internal.reflect.UnsupportedPropertyValueException;
 import org.gradle.internal.typeconversion.TypeConversionException;
@@ -228,12 +227,11 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         if (delegateSchema != null) {
             walkTypeHierarchy(delegateSchema.getType().getConcreteClass(), IGNORED_OBJECT_TYPES, new TypeVisitor<D>() {
                 @Override
-                public TypeVisitResult visitType(Class<? super D> type) {
+                public void visitType(Class<? super D> type) {
                     if (type.isInterface()) {
                         typesToDelegate.add(ModelType.of(type));
                         interfacesToImplement.add(Type.getInternalName(type));
                     }
-                    return TypeVisitResult.CONTINUE;
                 }
             });
         }

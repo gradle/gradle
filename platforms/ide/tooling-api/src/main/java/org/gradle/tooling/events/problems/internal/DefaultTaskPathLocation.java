@@ -20,14 +20,14 @@ import org.gradle.tooling.events.problems.TaskPathLocation;
 
 public class DefaultTaskPathLocation implements TaskPathLocation {
 
-    private final String buildTreePath;
+    private final String identityPath;
 
-    public DefaultTaskPathLocation(String buildTreePath) {
-        this.buildTreePath = buildTreePath;
+    public DefaultTaskPathLocation(String identityPath) {
+        this.identityPath = identityPath;
     }
 
     @Override
-    public String getBuildTreePath() {
-        return buildTreePath;
+    public String getIdentityPath() {
+        return identityPath;
     }
 }

@@ -1,6 +1,6 @@
 package util
 
-import jetbrains.buildServer.configs.kotlin.Project
+import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 
 object UtilPerformanceProject : Project({
     id("Util_Performance")

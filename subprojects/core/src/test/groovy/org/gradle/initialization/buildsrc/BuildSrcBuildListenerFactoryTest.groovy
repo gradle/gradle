@@ -22,7 +22,7 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
-import org.gradle.internal.agents.AgentStatus
+import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -44,10 +44,7 @@ class BuildSrcBuildListenerFactoryTest extends Specification {
 
     def "executes buildSrc configuration action after projects are loaded"() {
         def action = Mock(Action)
-        def listener = new BuildSrcBuildListenerFactory(action, new DefaultScriptClassPathResolver(
-            TestUtil.objectInstantiator(),
-            Stub(AgentStatus)
-        )).create()
+        def listener = new BuildSrcBuildListenerFactory(action, new DefaultScriptClassPathResolver(TestUtil.objectInstantiator(), Stub(CachedClasspathTransformer))).create()
 
         when:
         listener.projectsLoaded(gradle)

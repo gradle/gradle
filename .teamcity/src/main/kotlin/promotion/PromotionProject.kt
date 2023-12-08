@@ -5,7 +5,7 @@ import common.Os
 import common.VersionedSettingsBranch
 import common.cleanupRule
 import common.javaHome
-import jetbrains.buildServer.configs.kotlin.Project
+import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 
 class PromotionProject(branch: VersionedSettingsBranch) : Project({
     id("Promotion")

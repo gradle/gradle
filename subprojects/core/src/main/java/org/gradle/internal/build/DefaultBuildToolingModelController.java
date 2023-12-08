@@ -20,11 +20,10 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
-import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 
 import javax.annotation.Nullable;
-import java.util.Objects;
+import java.util.function.Function;
 
 public class DefaultBuildToolingModelController implements BuildToolingModelController {
     private final BuildLifecycleController buildController;
@@ -77,14 +76,13 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         abstract ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException;
 
         @Override
-        public Object getModel(String modelName, @Nullable ToolingModelParameterCarrier parameter) {
+        public Object getModel(String modelName, @Nullable Function<Class<?>, Object> parameterFactory) {
             ToolingModelBuilderLookup.Builder builder = locateBuilder();
-            if (parameter == null) {
+            if (parameterFactory == null) {
                 return builder.build(null);
             } else {
-                Class<?> expectedParameterType = Objects.requireNonNull(builder.getParameterType(), "Expected builder with parameter support");
-                Object parameterValue = parameter.getView(expectedParameterType);
-                return builder.build(parameterValue);
+                Object parameter = parameterFactory.apply(builder.getParameterType());
+                return builder.build(parameter);
             }
         }
     }

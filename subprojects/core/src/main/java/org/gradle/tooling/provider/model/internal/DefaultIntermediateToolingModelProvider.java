@@ -28,6 +28,7 @@ import org.gradle.internal.buildtree.IntermediateBuildActionRunner;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.util.stream.Collectors.toList;
@@ -36,11 +37,9 @@ import static java.util.stream.Collectors.toList;
 public class DefaultIntermediateToolingModelProvider implements IntermediateToolingModelProvider {
 
     private final IntermediateBuildActionRunner actionRunner;
-    private final ToolingModelParameterCarrier.Factory parameterCarrierFactory;
 
-    public DefaultIntermediateToolingModelProvider(IntermediateBuildActionRunner actionRunner, ToolingModelParameterCarrier.Factory parameterCarrierFactory) {
+    public DefaultIntermediateToolingModelProvider(IntermediateBuildActionRunner actionRunner) {
         this.actionRunner = actionRunner;
-        this.parameterCarrierFactory = parameterCarrierFactory;
     }
 
     @Override
@@ -63,25 +62,35 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         return ensureModelTypes(modelType, rawModels);
     }
 
-    private List<Object> getModels(List<Project> targets, String modelName, @Nullable Object parameter) {
+    private List<Object> getModels(List<Project> targets, String modelName, @Nullable Object modelBuilderParameter) {
         BuildState buildState = extractSingleBuildState(targets);
-        ToolingModelParameterCarrier carrier = parameter == null ? null : parameterCarrierFactory.createCarrier(parameter);
-        return buildState.withToolingModels(controller -> getModels(controller, targets, modelName, carrier));
+        Function<Class<?>, Object> parameterFactory = modelBuilderParameter == null ? null : createParameterFactory(modelBuilderParameter);
+        return buildState.withToolingModels(controller -> getModels(controller, targets, modelName, parameterFactory));
     }
 
-    private List<Object> getModels(BuildToolingModelController controller, List<Project> targets, String modelName, @Nullable ToolingModelParameterCarrier parameter) {
+    private List<Object> getModels(BuildToolingModelController controller, List<Project> targets, String modelName, @Nullable Function<Class<?>, Object> parameterFactory) {
         List<Supplier<Object>> fetchActions = targets.stream()
-            .map(targetProject -> (Supplier<Object>) () -> fetchModel(modelName, controller, (ProjectInternal) targetProject, parameter))
+            .map(targetProject -> (Supplier<Object>) () -> fetchModel(modelName, controller, (ProjectInternal) targetProject, parameterFactory))
             .collect(toList());
 
         return runFetchActions(fetchActions);
     }
 
     @Nullable
-    private static Object fetchModel(String modelName, BuildToolingModelController controller, ProjectInternal targetProject, @Nullable ToolingModelParameterCarrier parameter) {
+    private static Object fetchModel(String modelName, BuildToolingModelController controller, ProjectInternal targetProject, @Nullable Function<Class<?>, Object> parameterFactory) {
         ProjectState builderTarget = targetProject.getOwner();
-        ToolingModelScope toolingModelScope = controller.locateBuilderForTarget(builderTarget, modelName, parameter != null);
-        return toolingModelScope.getModel(modelName, parameter);
+        ToolingModelScope toolingModelScope = controller.locateBuilderForTarget(builderTarget, modelName, parameterFactory != null);
+        return toolingModelScope.getModel(modelName, parameterFactory);
+    }
+
+    private static Function<Class<?>, Object> createParameterFactory(Object modelBuilderParameter) {
+        return expectedParameterType -> {
+            if (expectedParameterType.isInstance(modelBuilderParameter)) {
+                return modelBuilderParameter;
+            } else {
+                throw new IllegalStateException(String.format("Expected model builder parameter type '%s', got '%s'", expectedParameterType.getName(), modelBuilderParameter.getClass().getName()));
+            }
+        };
     }
 
     private static BuildState extractSingleBuildState(List<Project> targets) {

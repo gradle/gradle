@@ -3,7 +3,7 @@ package configurations
 import common.JvmCategory
 import common.requiresNotEc2Agent
 import common.toCapitalized
-import jetbrains.buildServer.configs.kotlin.buildFeatures.parallelTests
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.parallelTests
 import model.CIBuildModel
 import model.Stage
 
