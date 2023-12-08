@@ -29,12 +29,12 @@ import org.gradle.tooling.internal.gradle.GradleProjectIdentity
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelIdentifier
 import org.gradle.tooling.provider.model.UnknownModelException
+import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.tooling.provider.model.internal.ToolingModelScope
 import org.gradle.util.Path
 import spock.lang.Specification
 
 import java.util.function.Consumer
-import java.util.function.Function
 import java.util.function.Supplier
 
 class DefaultBuildControllerTest extends Specification {
@@ -46,7 +46,8 @@ class DefaultBuildControllerTest extends Specification {
     def buildStateRegistry = Mock(BuildStateRegistry)
     def modelController = Mock(BuildTreeModelController)
     def workerThreadRegistry = Mock(WorkerThreadRegistry)
-    def controller = new DefaultBuildController(modelController, workerThreadRegistry, cancellationToken, buildStateRegistry)
+    def parameterCarrierFactory = Mock(ToolingModelParameterCarrier.Factory)
+    def controller = new DefaultBuildController(modelController, workerThreadRegistry, cancellationToken, buildStateRegistry, parameterCarrierFactory)
 
     def "cannot get build model from unmanaged thread"() {
         given:
@@ -195,10 +196,12 @@ class DefaultBuildControllerTest extends Specification {
         given:
         _ * workerThreadRegistry.workerThread >> true
         _ * modelController.locateBuilderForDefaultTarget("some.model", true) >> modelScope
+        _ * parameterCarrierFactory.createCarrier(_) >> { Object param ->
+            Mock(ToolingModelParameterCarrier)
+        }
         _ * modelScope.getParameterType() >> parameterType
-        _ * modelScope.getModel("some.model", _) >> { String name, Function param ->
-            assert param != null
-            assert param.apply(CustomParameter.class) == parameter
+        _ * modelScope.getModel("some.model", _) >> { String name, ToolingModelParameterCarrier carrier ->
+            assert carrier != null
             return model
         }
 

@@ -21,16 +21,13 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.buildtree.IntermediateBuildActionRunner;
 import org.gradle.internal.buildtree.BuildModelParameters;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.plugins.ide.internal.configurer.DefaultUniqueProjectNameProvider;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
-import org.gradle.tooling.provider.model.internal.DefaultIntermediateToolingModelProvider;
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
 
 public class ToolingModelServices extends AbstractPluginServiceRegistry {
@@ -78,14 +75,6 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
                     return isolatedProjects ? new IsolatedProjectsSafeGradleProjectBuilder(intermediateToolingModelProvider) : new GradleProjectBuilder();
                 }
             };
-        }
-
-        protected IntermediateToolingModelProvider createIntermediateToolingProvider(
-            BuildOperationExecutor buildOperationExecutor,
-            BuildModelParameters buildModelParameters
-        ) {
-            IntermediateBuildActionRunner runner = new IntermediateBuildActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API intermediate model");
-            return new DefaultIntermediateToolingModelProvider(runner);
         }
     }
 }
