@@ -32,9 +32,11 @@ package org.gradle.internal.restricteddsl.plugins
  * limitations under the License.
  */
 
+import com.h0tk3y.kotlin.staticObjectNotation.AccessFromCurrentReceiverOnly
 import com.h0tk3y.kotlin.staticObjectNotation.Adding
 import com.h0tk3y.kotlin.staticObjectNotation.Builder
 import com.h0tk3y.kotlin.staticObjectNotation.Configuring
+import com.h0tk3y.kotlin.staticObjectNotation.HiddenInRestrictedDsl
 import com.h0tk3y.kotlin.staticObjectNotation.Restricted
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
@@ -43,9 +45,11 @@ import org.gradle.plugin.use.PluginDependencySpec
 internal
 abstract class PluginsTopLevelReceiver {
     @Restricted
+    @HiddenInRestrictedDsl
     abstract val plugins: RestrictedPluginDependenciesSpecScope
 
     @Configuring
+    @AccessFromCurrentReceiverOnly
     fun plugins(configure: RestrictedPluginDependenciesSpecScope.() -> Unit) {
         plugins.configure()
     }

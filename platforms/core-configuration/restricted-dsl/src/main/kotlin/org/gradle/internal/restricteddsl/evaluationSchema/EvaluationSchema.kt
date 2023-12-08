@@ -17,6 +17,8 @@
 package org.gradle.internal.restricteddsl.evaluationSchema
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisStatementFilter
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.analyzeEverything
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RuntimeFunctionResolver
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RuntimePropertyResolver
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.ConfigureLambdaHandler
@@ -25,11 +27,11 @@ import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.plus
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.treatInterfaceAsConfigureLambda
 import org.gradle.api.Action
 
+
 class EvaluationSchema(
     val analysisSchema: AnalysisSchema,
+    val analysisStatementFilter: AnalysisStatementFilter = analyzeEverything,
     val configureLambdas: ConfigureLambdaHandler = kotlinFunctionAsConfigureLambda.plus(treatInterfaceAsConfigureLambda(Action::class)),
     val additionalPropertyResolvers: List<RuntimePropertyResolver> = emptyList(),
     val additionalFunctionResolvers: List<RuntimeFunctionResolver> = emptyList(),
-    val evaluationSteps: List<EvaluationStep> = listOf(EvaluationStep.applyTopLevelObjectToTarget)
-) {
-}
+)

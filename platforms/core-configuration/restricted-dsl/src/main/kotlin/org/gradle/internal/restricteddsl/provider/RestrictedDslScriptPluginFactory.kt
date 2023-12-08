@@ -56,12 +56,12 @@ class RestrictedDslScriptPluginFactory @Inject constructor(
         topLevelScript: Boolean
     ): ScriptPlugin =
         RestrictedDslPlugin(scriptSource) { target ->
-            targetScope.lock()
-
             when (val result = restrictedKotlinScriptEvaluator.evaluate(target, scriptSource, ScriptPluginEvaluationContext(targetScope))) {
                 is RestrictedKotlinScriptEvaluator.EvaluationResult.Evaluated -> Unit
                 is RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated ->
                     throw RestrictedDslNotEvaluatedException(scriptSource, result.stageFailures)
             }
+
+            targetScope.lock()
         }
 }
