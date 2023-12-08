@@ -18,12 +18,14 @@ package org.gradle.api.tasks
 
 import org.gradle.api.internal.tasks.execution.TaskExecution
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildCacheOperationFixtures
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.util.GradleVersion
 
 class CacheTaskOutputIntegrationTest extends AbstractIntegrationSpec {
 
     def localCache = new TestBuildCache(file("local-cache"))
+    def buildCacheOperations = new BuildCacheOperationFixtures(executer, temporaryFolder)
 
     def setup() {
         executer.beforeExecute { withBuildCacheEnabled() }
@@ -64,9 +66,9 @@ class CacheTaskOutputIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private Properties readMetadata() {
-        def cacheFiles = localCache.listCacheFiles()
-        assert cacheFiles.size() == 1
-        def cacheEntry = cacheFiles[0]
+        def cacheKey = buildCacheOperations.getTaskCacheKey(":compileJava")
+        assert localCache.hasCacheFile(cacheKey)
+        def cacheEntry = localCache.getCacheFile(cacheKey)
 
         // Must rename to "*.tgz" for unpacking to work
         def tgzCacheEntry = temporaryFolder.file("cache.tgz")
