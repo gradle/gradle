@@ -235,4 +235,6 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         outputDoesNotContain("creating model")
         result.ignoreBuildSrc.assertTasksExecuted(":a:thing")
     }
+
+    // TODO: add test for caching
 }

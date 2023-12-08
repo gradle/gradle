@@ -487,4 +487,69 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateLoaded()
     }
 
+    def "caches execution of different BuildAction types"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        buildFile << """
+            plugins.apply(my.MyPlugin)
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            buildModelCreated()
+            modelsCreated(":")
+        }
+        outputContains("creating model for root project 'root'")
+
+        and:
+        model.size() == 1
+        model[0].message == "It works from project :"
+
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model2 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
+
+        then:
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            buildModelCreated()
+            modelsCreated(":")
+        }
+        outputContains("creating model for root project 'root'")
+
+        and:
+        model2.size() == 2
+        model2[0].message == "It works from project :"
+
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model3 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        fixture.assertStateLoaded()
+
+        and:
+        model3.size() == 1
+        model3[0].message == "It works from project :"
+
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model4 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
+
+        then:
+        fixture.assertStateLoaded()
+
+        and:
+        model4.size() == 2
+        model4[0].message == "It works from project :"
+    }
+
 }

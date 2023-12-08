@@ -65,6 +65,70 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
         outputDoesNotContain("creating model")
     }
 
+    def "parameterized models not reused if build action changes"() {
+        settingsFile << """
+            include("a")
+        """
+        file("a/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+            println("configuring \$project")
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model1 = runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1", "fetch2"]))
+
+        then:
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            buildModelCreated()
+            modelsCreated(":", 2)
+            modelsCreated(":a", 2)
+        }
+        outputContains("configuring root")
+        outputContains("creating model with parameter='fetch1' for root project 'root'")
+        outputContains("creating model with parameter='fetch2' for root project 'root'")
+        outputContains("configuring project ':a'")
+        outputContains("creating model with parameter='fetch1' for project ':a'")
+        outputContains("creating model with parameter='fetch2' for project ':a'")
+
+        and:
+        model1.keySet() ==~ [":", ":a"]
+        model1.values().every { it.size() == 2 }
+
+        model1[":"][0].message == "fetch1 It works from project :"
+        model1[":"][1].message == "fetch2 It works from project :"
+        model1[":a"][0].message == "fetch1 It works from project :a"
+        model1[":a"][1].message == "fetch2 It works from project :a"
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model2 = runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch2", "fetch1"]))
+
+        then:
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            buildModelCreated()
+            modelsCreated(":", 2)
+            modelsCreated(":a", 2)
+        }
+        outputContains("configuring root")
+        outputContains("creating model with parameter='fetch1' for root project 'root'")
+        outputContains("creating model with parameter='fetch2' for root project 'root'")
+        outputContains("configuring project ':a'")
+        outputContains("creating model with parameter='fetch1' for project ':a'")
+        outputContains("creating model with parameter='fetch2' for project ':a'")
+
+        and:
+        model2.keySet() ==~ [":", ":a"]
+        model2.values().every { it.size() == 2 }
+
+        model2[":"][0].message == "fetch2 It works from project :"
+        model2[":"][1].message == "fetch1 It works from project :"
+        model2[":a"][0].message == "fetch2 It works from project :a"
+        model2[":a"][1].message == "fetch1 It works from project :a"
+    }
+
     def "no parameterized models are reused when settings change"() {
         when:
         executer.withArguments(ENABLE_CLI)
