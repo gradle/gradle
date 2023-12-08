@@ -163,9 +163,13 @@ sealed interface FunctionSemantics {
 sealed interface ConfigureAccessor {
     val objectType: DataTypeRef
 
+    fun access(objectOrigin: ObjectOrigin): ObjectOrigin
+
     data class Property(val receiver: DataTypeRef, val dataProperty: DataProperty) : ConfigureAccessor {
         override val objectType: DataTypeRef
             get() = dataProperty.type
+
+        override fun access(objectOrigin: ObjectOrigin): ObjectOrigin = ObjectOrigin.PropertyReference(objectOrigin, dataProperty, objectOrigin.originElement)
     }
 
     // TODO: configure all elements by addition key?

@@ -60,8 +60,7 @@ class RestrictedReflectionToObjectConverter(
             is ObjectOrigin.External -> {
                 externalObjectsMap[objectOrigin.key] ?: error("No external object provided for external object key of ${objectOrigin.key}")
             }
-
-            is ObjectOrigin.ConfigureReceiver -> getObjectByResolvedOrigin(objectOrigin.receiver)
+            is ObjectOrigin.ConfigureReceiver -> getObjectByResolvedOrigin(objectOrigin.accessor.access(objectOrigin.receiver))
             is ObjectOrigin.BuilderReturnedReceiver -> getObjectByResolvedOrigin(objectOrigin.receiver)
             is ObjectOrigin.NewObjectFromMemberFunction -> objectByIdentity(objectOrigin.invocationId) {
                 objectFromMemberFunction(objectOrigin)

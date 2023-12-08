@@ -1,7 +1,6 @@
 package com.h0tk3y.kotlin.staticObjectNotation.objectGraph
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AssignmentMethod
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.ConfigureAccessor
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ObjectOrigin
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.PropertyReferenceResolution
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver.ExpressionResolutionProgress.Ok
@@ -98,9 +97,7 @@ class AssignmentResolver {
 
     fun resolveToObjectOrPropertyReference(objectOrigin: ObjectOrigin): ExpressionResolutionProgress =
         when (objectOrigin) {
-            is ObjectOrigin.ConfigureReceiver -> resolveToObjectOrPropertyReference(
-                resolveConfigureReceiver(objectOrigin)
-            )
+            is ObjectOrigin.ConfigureReceiver -> resolveToObjectOrPropertyReference(objectOrigin.accessor.access(objectOrigin.receiver))
             is ObjectOrigin.FromLocalValue -> resolveToObjectOrPropertyReference(objectOrigin.assigned)
             is ObjectOrigin.BuilderReturnedReceiver -> resolveToObjectOrPropertyReference(objectOrigin.receiver)
 
@@ -147,17 +144,6 @@ class AssignmentResolver {
             is ObjectOrigin.PropertyDefaultValue, // TODO: is it so?
             is ObjectOrigin.TopLevelReceiver -> Ok(objectOrigin)
         }
-
-    private fun resolveConfigureReceiver(objectOrigin: ObjectOrigin.ConfigureReceiver) =
-        when (val accessor = objectOrigin.accessor) {
-            is ConfigureAccessor.Property -> toPropertyReference(objectOrigin, accessor)
-        }
-
-    private fun toPropertyReference(
-        objectOrigin: ObjectOrigin.ConfigureReceiver, accessor: ConfigureAccessor.Property
-    ) = ObjectOrigin.PropertyReference(
-        objectOrigin.receiver, accessor.dataProperty, objectOrigin.originElement
-    )
 
     sealed interface ResolutionNode {
         data class Property(val propertyReferenceResolution: PropertyReferenceResolution) : ResolutionNode
