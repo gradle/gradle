@@ -17,7 +17,6 @@
 package org.gradle.configurationcache.models
 
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
@@ -46,9 +45,7 @@ class DefaultToolingModelParameterCarrierFactory(
 
         override fun getHash(): HashCode {
             val unpacked = ToolingParameterProxy.unpackProperties(parameter)
-            val hasher: Hasher = Hashing.newHasher()
-            hasher.put(valueSnapshotter.snapshot(unpacked))
-            return hasher.hash()
+            return Hashing.hashHashable(valueSnapshotter.snapshot(unpacked))
         }
     }
 }

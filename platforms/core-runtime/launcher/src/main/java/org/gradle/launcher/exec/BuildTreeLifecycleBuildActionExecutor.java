@@ -24,7 +24,6 @@ import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.RunTasksRequirements;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.invocation.BuildAction;
@@ -107,10 +106,6 @@ public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionAction
 
     private Supplier<HashCode> payloadHashProvider(Object payload) {
         ValueSnapshotter valueSnapshotter = this.valueSnapshotter;
-        return () -> {
-            Hasher hasher = Hashing.newHasher();
-            hasher.put(valueSnapshotter.snapshot(payload));
-            return hasher.hash();
-        };
+        return () -> Hashing.hashHashable(valueSnapshotter.snapshot(payload));
     }
 }
