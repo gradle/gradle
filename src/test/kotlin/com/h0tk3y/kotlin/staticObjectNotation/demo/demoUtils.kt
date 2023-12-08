@@ -12,13 +12,13 @@ val string = DataType.StringDataType.ref
 val boolean = DataType.BooleanDataType.ref
 
 fun AnalysisSchema.resolve(
-    code: String
+    code: String,
+    resolver: Resolver = defaultCodeResolver()
 ): ResolutionResult {
     val ast = parseToAst(code).single()
 
     val languageBuilder = LanguageTreeBuilderWithTopLevelBlock(DefaultLanguageTreeBuilder())
     val tree = languageBuilder.build(ast, AstSourceIdentifier(ast, "demo"))
-    val resolver: Resolver = defaultCodeResolver()
     val languageElements = tree.results.filterIsInstance<Element<*>>().map { it.element }
 
     val failures = tree.results.filterIsInstance<FailingResult>()

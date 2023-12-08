@@ -29,8 +29,9 @@ sealed interface ErrorReason {
     data class ValReassignment(val localVal: LocalValue) : ErrorReason
     data class ExternalReassignment(val external: ObjectOrigin.External) : ErrorReason
     data class AssignmentTypeMismatch(val expected: DataType, val actual: DataType) : ErrorReason
-
     data object UnusedConfigureLambda : ErrorReason
+
+    data object AccessOnCurrentReceiverOnlyViolation : ErrorReason
     data object MissingConfigureLambda : ErrorReason
     data class DuplicateLocalValue(val name: String) : ErrorReason
     data object UnresolvedAssignmentLhs : ErrorReason // TODO: report candidate with rejection reasons

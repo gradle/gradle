@@ -16,6 +16,7 @@
 
 package com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder
 
+import com.h0tk3y.kotlin.staticObjectNotation.AccessFromCurrentReceiverOnly
 import com.h0tk3y.kotlin.staticObjectNotation.Adding
 import com.h0tk3y.kotlin.staticObjectNotation.Builder
 import com.h0tk3y.kotlin.staticObjectNotation.Configuring
@@ -109,7 +110,13 @@ class DataSchemaBuilder(private val dataClassSchemaProducer: DataClassSchemaProd
             allTypesToVisit.forEach { type ->
                 addType(type)
                 val properties = dataClassSchemaProducer.extractPropertiesOf(type)
-                properties.forEach { addProperty(type, DataProperty(it.name, it.returnType, it.isReadOnly, it.hasDefaultValue), it.originalReturnType) }
+                properties.forEach {
+                    addProperty(
+                        type,
+                        DataProperty(it.name, it.returnType, it.isReadOnly, it.hasDefaultValue, it.isHiddenInRestrictedDsl, it.isDirectAccessOnly),
+                        it.originalReturnType
+                    )
+                }
             }
         }
     }
@@ -152,7 +159,7 @@ class DataSchemaBuilder(private val dataClassSchemaProducer: DataClassSchemaProd
         val semanticsFromSignature = FunctionSemantics.Pure(returnTypeClassifier.toDataTypeRefOrError())
 
         val fnParams = function.parameters
-        val params = fnParams.filterIndexed { index, it ->
+        val params = fnParams.filterIndexed { index, _ ->
             index != fnParams.lastIndex || !configureLambdas.isConfigureLambda(returnTypeClassifier)
         }.map { dataParameter(function, it, function.returnType.toKClass(), semanticsFromSignature, preIndex) }
 
@@ -240,17 +247,21 @@ class DataSchemaBuilder(private val dataClassSchemaProducer: DataClassSchemaProd
             }
             .map { fnParam -> dataParameter(function, fnParam, returnClass, semanticsFromSignature, preIndex) }
 
+        val isDirectAccessOnly = function.annotations.any { it is AccessFromCurrentReceiverOnly }
+
         return if (semanticsFromSignature is FunctionSemantics.Builder) {
             DataBuilderFunction(
                 thisTypeRef,
                 function.name,
-                params.single()
+                isDirectAccessOnly,
+                params.single(),
             )
         } else {
             DataMemberFunction(
                 thisTypeRef,
                 function.name,
                 params,
+                isDirectAccessOnly,
                 semanticsFromSignature
             )
         }

@@ -16,6 +16,7 @@
 
 package com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder
 
+import com.h0tk3y.kotlin.staticObjectNotation.HiddenInRestrictedDsl
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataTypeRef
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -35,7 +36,9 @@ data class CollectedPropertyInformation(
     val originalReturnType: KType,
     val returnType: DataTypeRef,
     val isReadOnly: Boolean,
-    val hasDefaultValue: Boolean
+    val hasDefaultValue: Boolean,
+    val isHiddenInRestrictedDsl: Boolean,
+    val isDirectAccessOnly: Boolean
 )
 
 fun DataClassSchemaProducer.plus(other: DataClassSchemaProducer) = CompositeDataClassSchemaProducer(

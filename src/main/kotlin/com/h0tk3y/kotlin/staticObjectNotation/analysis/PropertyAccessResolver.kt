@@ -2,6 +2,7 @@ package com.h0tk3y.kotlin.staticObjectNotation.analysis
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.PropertyAccessResolverImpl.AssignmentResolution.*
 import com.h0tk3y.kotlin.staticObjectNotation.language.AccessChain
+import com.h0tk3y.kotlin.staticObjectNotation.language.LanguageTreeElement
 import com.h0tk3y.kotlin.staticObjectNotation.language.LocalValue
 import com.h0tk3y.kotlin.staticObjectNotation.language.PropertyAccess
 import com.h0tk3y.kotlin.staticObjectNotation.language.asChainOrNull
@@ -58,6 +59,8 @@ class PropertyAccessResolverImpl(
             }
 
             is AssignProperty -> firstMatch.propertyReference
+        }?.also {
+            checkPropertyAccessOnCurrentReceiver(it.property, it.receiverObject, propertyAccess)
         }
     }
 
@@ -75,7 +78,25 @@ class PropertyAccessResolverImpl(
         return candidates.firstOrNull().also {
             if (it == null) {
                 errorCollector(ResolutionError(propertyAccess, ErrorReason.UnresolvedReference(propertyAccess)))
+            } else {
+                if (it is ObjectOrigin.PropertyReference) {
+                    ifPropertyCheckAccessOnCurrentReceiver(it)
+                }
             }
+        }
+    }
+
+    private fun AnalysisContext.ifPropertyCheckAccessOnCurrentReceiver(
+        it: ObjectOrigin?
+    ) {
+        if (it is ObjectOrigin.PropertyReference) {
+            checkPropertyAccessOnCurrentReceiver(it.property, it.receiver, it.originElement)
+        }
+    }
+
+    private fun AnalysisContext.checkPropertyAccessOnCurrentReceiver(property: DataProperty, receiver: ObjectOrigin, access: LanguageTreeElement) {
+        if (property.isDirectAccessOnly) {
+            checkAccessOnCurrentReceiver(receiver, access)
         }
     }
 
@@ -115,7 +136,7 @@ class PropertyAccessResolverImpl(
                 onProperty(ObjectOrigin.PropertyReference(receiverOrigin, property, propertyAccess))
             }
         }
-        
+
         propertyAccess.asChainOrNull()?.let { chain ->
             schema.externalObjectsByFqName[chain.asFqName()]?.let { externalObject ->
                 onExternalObject(ObjectOrigin.External(externalObject, propertyAccess))
@@ -134,7 +155,7 @@ class PropertyAccessResolverImpl(
         lookupNamedValueInScopes(propertyAccess, onLocalValue, onProperty)
 
         if (propertyAccess.name in imports) {
-            schema.externalObjectsByFqName[imports[propertyAccess.name]]?.let { external -> 
+            schema.externalObjectsByFqName[imports[propertyAccess.name]]?.let { external ->
                 onExternal(ObjectOrigin.External(external, propertyAccess))
             }
         }
@@ -149,7 +170,7 @@ class PropertyAccessResolverImpl(
             scope.findLocalAsObjectOrigin(propertyAccess.name)
                 ?.let(onLocalValue)
 
-            findDataProperty(getDataType(scope.receiver), propertyAccess.name)?.let {property ->
+            findDataProperty(getDataType(scope.receiver), propertyAccess.name)?.let { property ->
                 onProperty(ObjectOrigin.PropertyReference(scope.receiver, property, propertyAccess))
             }
         }
@@ -164,7 +185,7 @@ class PropertyAccessResolverImpl(
     private fun findDataProperty(
         receiverType: DataType, name: String
     ): DataProperty? =
-        if (receiverType is DataType.DataClass<*>) receiverType.properties.find { it.name == name } else null
+        if (receiverType is DataType.DataClass<*>) receiverType.properties.find { !it.isHiddenInDsl && it.name == name } else null
 
     sealed interface AssignmentResolution {
         data class AssignProperty(val propertyReference: PropertyReferenceResolution) : AssignmentResolution

@@ -52,7 +52,9 @@ data class DataProperty(
     val name: String,
     val type: DataTypeRef,
     val isReadOnly: Boolean,
-    val hasDefaultValue: Boolean
+    val hasDefaultValue: Boolean,
+    val isHiddenInDsl: Boolean = false,
+    val isDirectAccessOnly: Boolean = false
 )
 
 sealed interface SchemaFunction {
@@ -65,11 +67,13 @@ sealed interface SchemaFunction {
 sealed interface SchemaMemberFunction : SchemaFunction {
     override val simpleName: String
     val receiver: DataTypeRef
+    val isDirectAccessOnly: Boolean
 }
 
 data class DataBuilderFunction(
     override val receiver: DataTypeRef,
     override val simpleName: String,
+    override val isDirectAccessOnly: Boolean,
     val dataParameter: DataParameter,
 ) : SchemaMemberFunction {
     override val semantics: FunctionSemantics.Builder = FunctionSemantics.Builder(receiver)
@@ -88,7 +92,8 @@ data class DataMemberFunction(
     override val receiver: DataTypeRef,
     override val simpleName: String,
     override val parameters: List<DataParameter>,
-    override val semantics: FunctionSemantics
+    override val isDirectAccessOnly: Boolean,
+    override val semantics: FunctionSemantics,
 ) : SchemaMemberFunction {
     init {
         if (semantics is FunctionSemantics.AccessAndConfigure) {

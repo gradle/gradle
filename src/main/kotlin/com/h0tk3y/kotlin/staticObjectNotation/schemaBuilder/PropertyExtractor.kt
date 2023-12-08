@@ -16,10 +16,12 @@
 
 package com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder
 
+import com.h0tk3y.kotlin.staticObjectNotation.AccessFromCurrentReceiverOnly
 import com.h0tk3y.kotlin.staticObjectNotation.Adding
 import com.h0tk3y.kotlin.staticObjectNotation.Builder
 import com.h0tk3y.kotlin.staticObjectNotation.Configuring
 import com.h0tk3y.kotlin.staticObjectNotation.HasDefaultValue
+import com.h0tk3y.kotlin.staticObjectNotation.HiddenInRestrictedDsl
 import com.h0tk3y.kotlin.staticObjectNotation.Restricted
 import java.util.Locale
 import kotlin.reflect.KCallable
@@ -48,7 +50,9 @@ class PropertyExtractor(private val includeMemberFilter: MemberFilter) {
             val propertyName = nameAfterGet.replaceFirstChar { it.lowercase(Locale.getDefault()) }
             val type = getter.returnType.toDataTypeRefOrError()
             val hasSetter = functionsByName["set$nameAfterGet"].orEmpty().any { fn -> fn.parameters.singleOrNull { it != fn.instanceParameter }?.type == getter.returnType }
-            CollectedPropertyInformation(propertyName, getter.returnType, type, !hasSetter, true)
+            val isHidden = getter.annotations.any { it is HiddenInRestrictedDsl }
+            val isDirectAccessOnly = getter.annotations.any { it is AccessFromCurrentReceiverOnly }
+            CollectedPropertyInformation(propertyName, getter.returnType, type, !hasSetter, true, isHidden, isDirectAccessOnly)
         }
     }
 
@@ -61,6 +65,8 @@ class PropertyExtractor(private val includeMemberFilter: MemberFilter) {
 
     private fun kPropertyInformation(property: KProperty<*>): CollectedPropertyInformation {
         val isReadOnly = property !is KMutableProperty<*>
+        val isHidden = property.annotationsWithGetters.any { it is HiddenInRestrictedDsl }
+        val isDirectAccessOnly = property.annotationsWithGetters.any { it is AccessFromCurrentReceiverOnly }
         return CollectedPropertyInformation(
             property.name,
             property.returnType,
@@ -68,7 +74,9 @@ class PropertyExtractor(private val includeMemberFilter: MemberFilter) {
             isReadOnly,
             hasDefaultValue = run {
                 isReadOnly || property.annotationsWithGetters.any { it is HasDefaultValue }
-            }
+            },
+            isHiddenInRestrictedDsl = isHidden,
+            isDirectAccessOnly = isDirectAccessOnly
         )
     }
 }

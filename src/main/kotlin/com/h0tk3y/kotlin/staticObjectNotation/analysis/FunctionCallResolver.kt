@@ -54,7 +54,13 @@ class FunctionCallResolverImpl(
 
         val overloads: List<FunctionResolutionAndBinding> = lookupFunctions(functionCall, argResolutions, context)
 
-        return invokeIfSingleOverload(overloads, functionCall, argResolutions)
+        return invokeIfSingleOverload(overloads, functionCall, argResolutions)?.also {
+            val function = it.function
+            val receiver = it.receiver
+            if (function is DataMemberFunction && function.isDirectAccessOnly && receiver != null) {
+                checkAccessOnCurrentReceiver(receiver, functionCall)
+            }
+        }
     }
 
     private fun AnalysisContext.invokeIfSingleOverload(
@@ -165,7 +171,7 @@ class FunctionCallResolverImpl(
                     is FunctionSemantics.AddAndConfigure -> result
                 }
                 withScope(AnalysisScope(currentScopes.last(), configureReceiver, lambda)) {
-                    codeAnalyzer.analyzeCodeInProgramOrder(this, lambda.block.statements)
+                    codeAnalyzer.analyzeStatementsInProgramOrder(this, lambda.block.statements)
                 }
             } else {
                 errorCollector(ResolutionError(call, ErrorReason.MissingConfigureLambda))

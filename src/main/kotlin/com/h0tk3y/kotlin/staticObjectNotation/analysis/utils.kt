@@ -1,5 +1,6 @@
 package com.h0tk3y.kotlin.staticObjectNotation.analysis
 
+import com.h0tk3y.kotlin.staticObjectNotation.language.LanguageTreeElement
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -25,7 +26,7 @@ internal fun checkIsAssignable(valueType: DataType, isAssignableTo: DataType): B
     DataType.UnitType -> valueType == DataType.UnitType
 }
 
-fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataType = when (objectOrigin) {
+internal fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataType = when (objectOrigin) {
     is ObjectOrigin.ConstantOrigin -> objectOrigin.literal.type
     is ObjectOrigin.External -> resolveRef(objectOrigin.key.type)
     is ObjectOrigin.NewObjectFromMemberFunction -> resolveRef(objectOrigin.function.returnValueType)
@@ -38,3 +39,14 @@ fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataType = when (obj
     is ObjectOrigin.ConfigureReceiver -> resolveRef(objectOrigin.accessor.objectType)
     is ObjectOrigin.BuilderReturnedReceiver -> getDataType(objectOrigin.receiver)
 }
+
+internal fun AnalysisContext.checkAccessOnCurrentReceiver(
+    receiver: ObjectOrigin,
+    access: LanguageTreeElement
+) {
+    if (!isCurrentReceiver(this, receiver)) {
+        errorCollector(ResolutionError(access, ErrorReason.AccessOnCurrentReceiverOnlyViolation))
+    }
+}
+
+fun isCurrentReceiver(context: AnalysisContext, objectOrigin: ObjectOrigin) = context.currentScopes.last().receiver == objectOrigin

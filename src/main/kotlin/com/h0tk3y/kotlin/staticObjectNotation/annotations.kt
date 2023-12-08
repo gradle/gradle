@@ -5,3 +5,6 @@ annotation class Restricted
 annotation class Configuring(val propertyName: String = "")
 annotation class HasDefaultValue
 annotation class Builder
+
+annotation class AccessFromCurrentReceiverOnly
+annotation class HiddenInRestrictedDsl

@@ -3,39 +3,41 @@ package com.h0tk3y.kotlin.staticObjectNotation.analysis
 import com.h0tk3y.kotlin.staticObjectNotation.language.*
 
 interface CodeAnalyzer {
-    fun analyzeCodeInProgramOrder(context: AnalysisContext, elements: List<LanguageTreeElement>)
+    fun analyzeStatementsInProgramOrder(context: AnalysisContext, elements: List<DataStatement>)
 }
 
 class CodeAnalyzerImpl(
+    private val analysisStatementFilter: AnalysisStatementFilter,
     private val expressionResolver: ExpressionResolver,
     private val propertyAccessResolver: PropertyAccessResolver,
     // TODO: get rid of this in favor of just expressionResolver?
     private val functionCallResolver: FunctionCallResolver
 ) : CodeAnalyzer {
 
-    override fun analyzeCodeInProgramOrder(
+    override fun analyzeStatementsInProgramOrder(
         context: AnalysisContext,
-        elements: List<LanguageTreeElement>
+        elements: List<DataStatement>
     ) = with(context) {
         for (element in elements) {
+            if (!analysisStatementFilter.shouldAnalyzeStatement(element, currentScopes)) {
+                continue
+            }
+
             when (element) {
                 is Assignment -> doAnalyzeAssignment(element)
-                is FunctionCall -> functionCallResolver.doResolveFunctionCall(context, element).also { result ->
-                    if (result != null && isDanglingPureExpression(result))
-                        errorCollector(ResolutionError(element, ErrorReason.DanglingPureExpression))
+                is FunctionCall -> {
+                    functionCallResolver.doResolveFunctionCall(context, element).also { result ->
+                        if (result != null && isDanglingPureExpression(result))
+                            errorCollector(ResolutionError(element, ErrorReason.DanglingPureExpression))
+                    }
                 }
 
                 is LocalValue -> doAnalyzeLocal(element)
-                is PropertyAccess, is Literal<*>, is Block -> errorCollector(
-                    ResolutionError(element, ErrorReason.DanglingPureExpression)
-                )
 
                 is Expr -> {
                     errorCollector(ResolutionError(element, ErrorReason.DanglingPureExpression))
+                    expressionResolver.doResolveExpression(context, element)
                 }
-
-                is Import -> error("unexpected import in program code")
-                is FunctionArgument -> error("function arguments should not appear in top-level trees")
             }
         }
     }
