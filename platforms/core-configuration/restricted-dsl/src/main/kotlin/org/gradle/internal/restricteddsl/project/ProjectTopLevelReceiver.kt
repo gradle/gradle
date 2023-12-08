@@ -41,8 +41,14 @@ interface RestrictedDependenciesHandler {
     fun api(dependency: ProjectDependency)
 
     @Adding
+    fun compileOnly(dependency: ProjectDependency)
+
+    @Adding
     fun implementation(dependency: ProjectDependency)
 
     @Adding
     fun testImplementation(dependency: ProjectDependency)
+
+    @Adding
+    fun androidTestImplementation(dependency: ProjectDependency)
 }
