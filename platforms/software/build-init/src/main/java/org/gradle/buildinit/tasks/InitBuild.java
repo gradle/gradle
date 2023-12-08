@@ -21,6 +21,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
+import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
@@ -65,6 +66,7 @@ public abstract class InitBuild extends DefaultTask {
     private static final int MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API = 7;
 
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
+    private final Property<Boolean> noDialog = getProject().getObjects().property(Boolean.class);
     private String type;
     private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);
     private String dsl;
@@ -76,6 +78,19 @@ public abstract class InitBuild extends DefaultTask {
     private final Property<String> javaVersion = getProject().getObjects().property(String.class);
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
+
+    /**
+     * Disables interactive dialog, ensuring no user input is required to complete the command.
+     *
+     * @since 8.6
+     */
+    @Incubating
+    @Input
+    @Optional
+    @Option(option = "no-dialog", description = "Disable interactive dialog, use default values when none explicitly specified")
+    public Property<Boolean> getNoDialog() {
+        return noDialog;
+    }
 
     /**
      * The desired type of project to generate, defaults to 'pom' if a 'pom.xml' is found in the project root and if no 'pom.xml' is found, it defaults to 'basic'.
@@ -210,7 +225,7 @@ public abstract class InitBuild extends DefaultTask {
 
     @TaskAction
     public void setupProjectLayout() {
-        UserInputHandler inputHandler = getServices().get(UserInputHandler.class);
+        UserInputHandler inputHandler = getEffectiveInputHandler();
         ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
 
         BuildInitializer initDescriptor = getBuildInitializer(inputHandler, projectLayoutRegistry);
@@ -247,6 +262,14 @@ public abstract class InitBuild extends DefaultTask {
 
         initDescriptor.getFurtherReading(settings)
             .ifPresent(link -> getLogger().lifecycle(link));
+    }
+
+    private UserInputHandler getEffectiveInputHandler() {
+        if (noDialog.isPresent() && noDialog.get()) {
+            return new NonInteractiveUserInputHandler();
+        }
+
+        return getUserInputHandler();
     }
 
     private static void validatePackageName(String packageName) {
@@ -476,4 +499,7 @@ public abstract class InitBuild extends DefaultTask {
 
     @Inject
     protected abstract ProviderFactory getProviderFactory();
+
+    @Inject
+    protected abstract UserInputHandler getUserInputHandler();
 }

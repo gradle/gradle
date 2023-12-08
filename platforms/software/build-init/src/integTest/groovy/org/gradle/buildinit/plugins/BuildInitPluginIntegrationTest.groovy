@@ -293,6 +293,10 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         outputContains("""Options
+     --dialog     Opposite option of --no-dialog.
+
+     --no-dialog     Disable interactive dialog, use default values when none explicitly specified
+
      --dsl     Set the build script DSL to be used in generated scripts.
                Available values are:
                     groovy
