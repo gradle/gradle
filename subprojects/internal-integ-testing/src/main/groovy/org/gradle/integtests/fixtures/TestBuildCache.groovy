@@ -70,6 +70,17 @@ class TestBuildCache {
         cacheDir.listFiles().findAll { it.name ==~ /\p{XDigit}{${Hashing.defaultFunction().hexDigits}}/ }.sort()
     }
 
+    TestFile getCacheFile(String cacheKey) {
+        cacheDir.listFiles().find { it.name == cacheKey }
+    }
+
+    /**
+     * TODO: Use local build cache operations to check if the cache file was stored, once they are implemented
+     */
+    boolean hasCacheFile(String cacheKey) {
+        cacheDir.listFiles().any { it.name == cacheKey }
+    }
+
     boolean isEmpty() {
         listCacheFiles().empty
     }

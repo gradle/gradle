@@ -17,6 +17,8 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildCacheOperationFixtures
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -34,6 +36,9 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
     def localCache = new TestBuildCache(file("local-cache"))
     def remoteCache = new TestBuildCache(file("remote-cache"))
+
+    def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+    def buildCacheOperations = new BuildCacheOperationFixtures(buildOperations)
 
     def setup() {
         executer.beforeExecute { withBuildCacheEnabled() }
@@ -63,7 +68,8 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         failureHasCause(~/Failed to store cache entry $CACHE_KEY_PATTERN for task ':customTask': Could not pack tree 'output': Expected '${escapeString(file('build/output'))}' to be a file/)
         errorOutput =~ /Could not pack tree 'output'/
-        localCache.empty
+        def cacheKey = buildCacheOperations.getTaskCacheKey(":customTask")
+        !localCache.hasCacheFile(cacheKey)
         localCache.listCacheTempFiles().empty
     }
 
@@ -115,18 +121,19 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         succeeds("customTask")
 
         then:
-        remoteCache.listCacheFiles().size() == 1
+        def cacheKey = buildCacheOperations.getTaskCacheKey(":customTask")
+        remoteCache.hasCacheFile(cacheKey)
 
         when:
-        remoteCache.listCacheFiles().first().text = "corrupt"
-        localCache.listCacheFiles()*.delete()
+        remoteCache.getCacheFile(cacheKey).text = "corrupt"
+        localCache.getCacheFile(cacheKey).delete()
 
         then:
         fails("clean", "customTask")
         failureHasCause(~/Failed to load cache entry $CACHE_KEY_PATTERN for task ':customTask': Could not load from remote cache: Not in GZIP format/)
 
         and:
-        localCache.listCacheFiles().empty
+        !localCache.hasCacheFile(cacheKey)
     }
 
     def "corrupt archive loaded from local cache is purged"() {
@@ -151,10 +158,12 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         succeeds("customTask")
 
         then:
-        localCache.listCacheFiles().size() == 1
+        def cacheKey = buildCacheOperations.getTaskCacheKey(":customTask")
+        localCache.hasCacheFile(cacheKey)
 
         when:
-        localCache.listCacheFiles().first().bytes = localCache.listCacheFiles().first().bytes[0..-100]
+        def addedCacheFile = localCache.getCacheFile(cacheKey)
+        addedCacheFile.bytes = addedCacheFile.bytes[0..-100]
 
         then:
         fails("clean", "customTask")
@@ -163,7 +172,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         localCache.listCacheFailedFiles().size() == 1
 
         and:
-        localCache.listCacheFiles().empty
+        !addedCacheFile.exists()
 
         when:
         file("build").deleteDir()
@@ -189,7 +198,8 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         succeeds("cacheable")
 
         then:
-        localCache.listCacheFiles().size() == 1
+        def cacheKey = buildCacheOperations.getTaskCacheKey(":cacheable")
+        localCache.hasCacheFile(cacheKey)
 
         when:
         executer.withStacktraceEnabled()
