@@ -370,67 +370,78 @@ public class Hashing {
         }
 
         @Override
-        public void putByte(byte value) {
+        public Hasher putByte(byte value) {
             hasher.putInt(1);
             hasher.putByte(value);
+            return this;
         }
 
         @Override
-        public void putBytes(byte[] bytes) {
+        public Hasher putBytes(byte[] bytes) {
             hasher.putInt(bytes.length);
             hasher.putBytes(bytes);
+            return this;
         }
 
         @Override
-        public void putBytes(byte[] bytes, int off, int len) {
+        public Hasher putBytes(byte[] bytes, int off, int len) {
             hasher.putInt(len);
             hasher.putBytes(bytes, off, len);
+            return this;
         }
 
         @Override
-        public void putHash(HashCode hashCode) {
+        public Hasher putHash(HashCode hashCode) {
             hasher.putInt(hashCode.length());
             hasher.putHash(hashCode);
+            return this;
         }
 
         @Override
-        public void putInt(int value) {
+        public Hasher putInt(int value) {
             hasher.putInt(4);
             hasher.putInt(value);
+            return this;
         }
 
         @Override
-        public void putLong(long value) {
+        public Hasher putLong(long value) {
             hasher.putInt(8);
             hasher.putLong(value);
+            return this;
         }
 
         @Override
-        public void putDouble(double value) {
+        public Hasher putDouble(double value) {
             hasher.putInt(8);
             hasher.putDouble(value);
+            return this;
         }
 
         @Override
-        public void putBoolean(boolean value) {
+        public Hasher putBoolean(boolean value) {
             hasher.putInt(1);
             hasher.putBoolean(value);
+            return this;
         }
 
         @Override
-        public void putString(CharSequence value) {
+        public Hasher putString(CharSequence value) {
             hasher.putInt(value.length());
             hasher.putString(value);
+            return this;
         }
 
         @Override
-        public void put(Hashable hashable) {
+        public Hasher put(Hashable hashable) {
             hashable.appendToHasher(this);
+            return this;
         }
 
         @Override
-        public void putNull() {
+        public Hasher putNull() {
             this.putInt(0);
+            return this;
         }
 
         @Override
