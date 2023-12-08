@@ -16,28 +16,41 @@
 
 package org.gradle.internal.restricteddsl.evaluator
 
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
+import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.restricteddsl.evaluationSchema.EvaluationSchema
 
 
 internal
-interface RestrictedScriptSchemaBuilder {
-    fun getAnalysisSchemaForScript(
+interface EvaluationSchemaBuilder {
+    fun getEvaluationSchemaForScript(
         targetInstance: Any,
-        scriptContext: RestrictedScriptContext
+        scriptContext: RestrictedScriptContext,
     ): ScriptSchemaBuildingResult
 }
 
 
 internal
 sealed interface ScriptSchemaBuildingResult {
-    class SchemaAvailable(val schema: AnalysisSchema) : ScriptSchemaBuildingResult
+    class SchemaAvailable(val schema: EvaluationSchema) : ScriptSchemaBuildingResult
     object SchemaNotBuilt : ScriptSchemaBuildingResult
 }
 
 
 internal
 sealed interface RestrictedScriptContext {
+    sealed interface ScriptDependentContext : RestrictedScriptContext {
+        val targetScope: ClassLoaderScope
+        val scriptSource: ScriptSource
+    }
+
     object SettingsScript : RestrictedScriptContext
     object PluginsBlock : RestrictedScriptContext
+
+    class ProjectScript(
+        override val targetScope: ClassLoaderScope,
+        override val scriptSource: ScriptSource
+    ) : ScriptDependentContext
+
     object UnknownScript : RestrictedScriptContext
 }

@@ -815,7 +815,7 @@
     "name": "restricted-dsl",
     "path": "platforms/core-configuration/restricted-dsl",
     "unitTests": false,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {

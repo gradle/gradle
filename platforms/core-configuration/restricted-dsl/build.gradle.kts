@@ -24,8 +24,13 @@ dependencies {
 
     implementation(project(":core"))
     implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":resources"))
     implementation(project(":base-services"))
     implementation(libs.inject)
     implementation(libs.restrictedKotlin)
+
+    integTestImplementation(project(":internal-testing"))
+    integTestImplementation(project(":logging"))
+    integTestDistributionRuntimeOnly(project(":distributions-full"))
 }

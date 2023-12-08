@@ -16,7 +16,6 @@
 
 package org.gradle.internal.restricteddsl.evaluator
 
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionError
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionResult
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.SchemaTypeRefContext
@@ -28,30 +27,41 @@ import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeBuil
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeResult
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.parseToAst
 import com.h0tk3y.kotlin.staticObjectNotation.language.AstSourceIdentifier
+import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.CompositeFunctionResolver
+import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.CompositePropertyResolver
+import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.MemberFunctionResolver
+import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.ReflectionRuntimePropertyResolver
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RestrictedReflectionToObjectConverter
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTraceElement
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTracer
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.ReflectionContext
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.reflect
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.kotlinFunctionAsConfigureLambda
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.plus
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.treatInterfaceAsConfigureLambda
 import kotlinx.ast.common.ast.Ast
 import org.antlr.v4.kotlinruntime.misc.ParseCancellationException
+import org.gradle.api.Action
+import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.restricteddsl.plugins.RuntimeTopLevelPluginsReceiver
+import org.gradle.internal.restricteddsl.evaluationSchema.EvaluationSchema
+import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationContext.ScriptPluginEvaluationContext
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.FailuresInLanguageTree
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.FailuresInResolution
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.NoParseResult
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.NoSchemaAvailable
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.UnassignedValuesUsed
+import org.gradle.internal.restricteddsl.plugins.RuntimeTopLevelPluginsReceiver
 
 
 interface RestrictedKotlinScriptEvaluator {
     fun evaluate(
         target: Any,
         scriptSource: ScriptSource,
+        evaluationContext: EvaluationContext,
     ): EvaluationResult
 
     sealed interface EvaluationResult {
@@ -66,6 +76,14 @@ interface RestrictedKotlinScriptEvaluator {
             }
         } // TODO: make reason more structured
     }
+
+    sealed interface EvaluationContext {
+        class ScriptPluginEvaluationContext(
+            val targetScope: ClassLoaderScope
+        ) : EvaluationContext
+
+        object PluginsDslEvaluationContext : EvaluationContext
+    }
 }
 
 
@@ -74,26 +92,31 @@ interface RestrictedKotlinScriptEvaluator {
  * TODO: The consumers should get an instance properly injected instead.
  */
 val defaultRestrictedKotlinScriptEvaluator: RestrictedKotlinScriptEvaluator by lazy {
-    DefaultRestrictedKotlinScriptEvaluator(DefaultRestrictedScriptSchemaBuilder())
+    DefaultRestrictedKotlinScriptEvaluator(DefaultEvaluationSchemaBuilder())
 }
 
 
 internal
 class DefaultRestrictedKotlinScriptEvaluator(
-    private val schemaBuilder: RestrictedScriptSchemaBuilder
+    private val schemaBuilder: EvaluationSchemaBuilder
 ) : RestrictedKotlinScriptEvaluator {
-    override fun evaluate(target: Any, scriptSource: ScriptSource): RestrictedKotlinScriptEvaluator.EvaluationResult {
-        return when (val schema = schemaBuilder.getAnalysisSchemaForScript(target, scriptContextFor(target))) {
+    override fun evaluate(
+        target: Any,
+        scriptSource: ScriptSource,
+        evaluationContext: RestrictedKotlinScriptEvaluator.EvaluationContext
+    ): RestrictedKotlinScriptEvaluator.EvaluationResult {
+        return when (val built = schemaBuilder.getEvaluationSchemaForScript(target, scriptContextFor(target, scriptSource, evaluationContext))) {
             ScriptSchemaBuildingResult.SchemaNotBuilt -> NotEvaluated(listOf(NoSchemaAvailable(target)))
-
-            is ScriptSchemaBuildingResult.SchemaAvailable -> {
-                evaluateWithSchema(schema.schema, scriptSource, target)
-            }
+            is ScriptSchemaBuildingResult.SchemaAvailable -> evaluateWithSchema(built.schema, scriptSource, target)
         }
     }
 
     private
-    fun evaluateWithSchema(schema: AnalysisSchema, scriptSource: ScriptSource, target: Any): RestrictedKotlinScriptEvaluator.EvaluationResult {
+    fun evaluateWithSchema(
+        evaluationSchema: EvaluationSchema,
+        scriptSource: ScriptSource,
+        target: Any
+    ): RestrictedKotlinScriptEvaluator.EvaluationResult {
         val failureReasons = mutableListOf<NotEvaluated.StageFailure>()
 
         val resolver = defaultCodeResolver()
@@ -108,7 +131,7 @@ class DefaultRestrictedKotlinScriptEvaluator(
             failureReasons += FailuresInLanguageTree(failures)
         }
         val elements = languageModel.results.filterIsInstance<Element<*>>().map { it.element }
-        val resolution = resolver.resolve(schema, elements)
+        val resolution = resolver.resolve(evaluationSchema.analysisSchema, elements)
         if (resolution.errors.isNotEmpty()) {
             failureReasons += FailuresInResolution(resolution.errors)
         }
@@ -121,10 +144,18 @@ class DefaultRestrictedKotlinScriptEvaluator(
         if (failureReasons.isNotEmpty()) {
             return NotEvaluated(failureReasons)
         }
-        val context = ReflectionContext(SchemaTypeRefContext(schema), resolution, trace)
+        val context = ReflectionContext(SchemaTypeRefContext(evaluationSchema.analysisSchema), resolution, trace)
         val topLevel = reflect(resolution.topLevelReceiver, context)
 
-        RestrictedReflectionToObjectConverter(emptyMap(), target, kotlinFunctionAsConfigureLambda).apply(topLevel)
+        val propertyResolver = CompositePropertyResolver(listOf(ReflectionRuntimePropertyResolver) + evaluationSchema.additionalPropertyResolvers)
+        val configureLambdas = treatInterfaceAsConfigureLambda(Action::class).plus(evaluationSchema.configureLambdas)
+        val functionResolver = CompositeFunctionResolver(listOf(MemberFunctionResolver(configureLambdas)) + evaluationSchema.additionalFunctionResolvers)
+
+        val converter = RestrictedReflectionToObjectConverter(emptyMap(), target, functionResolver, propertyResolver)
+        evaluationSchema.evaluationSteps.forEach { step ->
+            step.apply(target, topLevel, converter)
+        }
+
         return RestrictedKotlinScriptEvaluator.EvaluationResult.Evaluated
     }
 
@@ -148,8 +179,16 @@ class DefaultRestrictedKotlinScriptEvaluator(
     val languageTreeBuilder = LanguageTreeBuilderWithTopLevelBlock(DefaultLanguageTreeBuilder())
 
     private
-    fun scriptContextFor(target: Any) = when (target) {
+    fun scriptContextFor(
+        target: Any,
+        scriptSource: ScriptSource,
+        evaluationContext: RestrictedKotlinScriptEvaluator.EvaluationContext
+    ) = when (target) {
         is Settings -> RestrictedScriptContext.SettingsScript
+        is Project -> {
+            require(evaluationContext is ScriptPluginEvaluationContext) { "restricted DSL for projects is only supported in script plugins" }
+            RestrictedScriptContext.ProjectScript(evaluationContext.targetScope, scriptSource)
+        }
         is RuntimeTopLevelPluginsReceiver -> RestrictedScriptContext.PluginsBlock
         else -> RestrictedScriptContext.UnknownScript
     }
