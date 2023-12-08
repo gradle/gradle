@@ -513,16 +513,16 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
     }
 
     protected static final class CollectionSupplierGuard<T, C extends Collection<T>> implements CollectionSupplier<T, C>, GuardedData<CollectionSupplier<T, C>> {
-        private final ProviderInternal<?> owner;
+        private final EvaluationContext.EvaluationOwner owner;
         private final CollectionSupplier<T, C> supplier;
 
-        public CollectionSupplierGuard(ProviderInternal<?> owner, CollectionSupplier<T, C> supplier) {
+        public CollectionSupplierGuard(EvaluationContext.EvaluationOwner owner, CollectionSupplier<T, C> supplier) {
             this.owner = owner;
             this.supplier = supplier;
         }
 
         @Override
-        public ProviderInternal<?> getOwner() {
+        public EvaluationContext.EvaluationOwner getOwner() {
             return owner;
         }
 
@@ -533,7 +533,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
 
         @Override
         public Value<? extends C> calculateValue(ValueConsumer consumer) {
-            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().enter(owner)) {
+            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().open(owner)) {
                 return supplier.calculateValue(consumer);
             }
         }
@@ -545,21 +545,21 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
 
         @Override
         public ExecutionTimeValue<? extends C> calculateExecutionTimeValue() {
-            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().enter(owner)) {
+            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().open(owner)) {
                 return supplier.calculateExecutionTimeValue();
             }
         }
 
         @Override
         public ValueProducer getProducer() {
-            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().enter(owner)) {
+            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().open(owner)) {
                 return supplier.getProducer();
             }
         }
 
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
-            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().enter(owner)) {
+            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().open(owner)) {
                 return supplier.calculatePresence(consumer);
             }
         }

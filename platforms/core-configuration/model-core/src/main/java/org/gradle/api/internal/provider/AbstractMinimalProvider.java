@@ -214,7 +214,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
      * @return the scope
      */
     protected EvaluationContext.ScopeContext openScope() {
-        return EvaluationContext.current().enter(this);
+        return EvaluationContext.current().open(this);
     }
 
     /**
@@ -281,20 +281,20 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
      * A wrapper for a {@link ProviderInternal} used to calculate the value of {@link AbstractMinimalProvider}, which acts as an owner.
      * Calling a method that may cause recursive evaluation adds the owner to the evaluation context.
      * <p>
-     * This class uses try-with-resources directly instead of {@link EvaluationContext#evaluate(ProviderInternal, EvaluationContext.ScopedEvaluation)}
+     * This class uses try-with-resources directly instead of {@link EvaluationContext#evaluate(EvaluationContext.EvaluationOwner, EvaluationContext.ScopedEvaluation)}
      * to avoid extra allocations of lambda instances.
      */
     protected static final class ProviderGuard<V> implements ValueSupplier, GuardedData<ProviderInternal<V>> {
-        private final ProviderInternal<?> owner;
+        private final EvaluationContext.EvaluationOwner owner;
         private final ProviderInternal<V> value;
 
-        public ProviderGuard(ProviderInternal<?> owner, ProviderInternal<V> value) {
+        public ProviderGuard(EvaluationContext.EvaluationOwner owner, ProviderInternal<V> value) {
             this.owner = owner;
             this.value = value;
         }
 
         @Override
-        public ProviderInternal<?> getOwner() {
+        public EvaluationContext.EvaluationOwner getOwner() {
             return owner;
         }
 
@@ -346,7 +346,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         }
 
         private EvaluationContext.ScopeContext openScope() {
-            return EvaluationContext.current().enter(owner);
+            return EvaluationContext.current().open(owner);
         }
     }
 }

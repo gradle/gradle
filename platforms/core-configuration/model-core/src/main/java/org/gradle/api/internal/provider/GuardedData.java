@@ -29,7 +29,7 @@ import javax.annotation.Nullable;
  * Typical implementation provides additional convenience methods that add the owner to the evaluation context and call
  * some methods of the data.
  * <p>
- * Implementors <b>must</b> update {@link #of(ProviderInternal, Object)} method to recognize the new implementation.
+ * Implementors <b>must</b> update {@link #of(EvaluationContext.EvaluationOwner, Object)} method to recognize the new implementation.
  * This interface would be a sealed interface if the feature was available in the current language level.
  * <p>
  * Configuration cache serialization provides custom protocol for this interface.
@@ -38,12 +38,12 @@ import javax.annotation.Nullable;
  */
 public interface GuardedData<T> {
     /**
-     * Returns the owner of the data: the provider which is marked as evaluating while the data is accessed.
+     * Returns the owner of the data: the object which is marked as evaluating while the data is accessed.
      *
      * @return the owner of the data or null if the evaluation scope must be explicitly opened to use this data
      */
     @Nullable
-    ProviderInternal<?> getOwner();
+    EvaluationContext.EvaluationOwner getOwner();
 
     /**
      * Returns the data without marking the owner as evaluating. Can be sparingly used to forward the data outside the owner's evaluation.
@@ -71,7 +71,7 @@ public interface GuardedData<T> {
      * @param <T> the type of the data
      * @return GuardedData of the appropriate type to represent the data
      */
-    static <T> GuardedData<T> of(@Nullable ProviderInternal<?> owner, T data) {
+    static <T> GuardedData<T> of(@Nullable EvaluationContext.EvaluationOwner owner, T data) {
         if (owner == null) {
             return Cast.uncheckedCast(new AbstractMinimalProvider.DataGuard<>(Cast.uncheckedCast(data)));
         } else if (data instanceof ProviderInternal<?>) {

@@ -21,14 +21,14 @@ import spock.lang.Specification
 import java.util.function.BiFunction
 
 class EvaluationContextTest extends Specification {
-    def provider = createProvider()
+    def owner = createOwner()
 
     def "can run evaluation of #evaluator in scope"() {
         given:
         def evaluation = Mock(TestEvaluation)
 
         when:
-        def result = evaluator.apply(provider, evaluation)
+        def result = evaluator.apply(owner, evaluation)
 
         then:
         1 * evaluation.evaluate() >> "result"
@@ -43,8 +43,8 @@ class EvaluationContextTest extends Specification {
         def evaluation = Mock(TestEvaluation)
 
         when:
-        def result1 = evaluator.apply(provider, evaluation)
-        def result2 = evaluator.apply(provider, evaluation)
+        def result1 = evaluator.apply(owner, evaluation)
+        def result2 = evaluator.apply(owner, evaluation)
 
         then:
         2 * evaluation.evaluate() >>> ["result1", "result2"]
@@ -58,11 +58,11 @@ class EvaluationContextTest extends Specification {
     def "can run evaluation of #evaluator inside other evaluation"() {
         given:
         def evaluation = Mock(TestEvaluation)
-        def otherProvider = createProvider()
+        def otherOwner = createOwner()
 
         when:
-        def result = evaluator.apply(provider) {
-            evaluator.apply(otherProvider, evaluation)
+        def result = evaluator.apply(owner) {
+            evaluator.apply(otherOwner, evaluation)
         }
 
         then:
@@ -78,7 +78,7 @@ class EvaluationContextTest extends Specification {
         def evaluation = Mock(TestEvaluation)
 
         when:
-        def result = context().tryEvaluate(provider, "fallback", evaluation)
+        def result = context().tryEvaluate(owner, "fallback", evaluation)
 
         then:
         1 * evaluation.evaluate() >> "result"
@@ -90,8 +90,8 @@ class EvaluationContextTest extends Specification {
         def evaluation = Mock(TestEvaluation)
 
         when:
-        def result = context().evaluate(provider) {
-            context().tryEvaluate(provider, "fallback", evaluation)
+        def result = context().evaluate(owner) {
+            context().tryEvaluate(this.owner, "fallback", evaluation)
         }
 
         then:
@@ -111,29 +111,29 @@ class EvaluationContextTest extends Specification {
         result == "result"
     }
 
-    def "re-evaluating the provider in #evaluator throws exception"() {
+    def "re-evaluating the owner in #evaluator throws exception"() {
         when:
-        evaluator.apply(provider) {
-            evaluator.apply(provider) {}
+        evaluator.apply(owner) {
+            evaluator.apply(this.owner) {}
         }
 
         then:
         EvaluationContext.CircularEvaluationException ex = thrown()
-        ex.evaluationCycle == [provider, provider]
+        ex.evaluationCycle == [owner, owner]
 
         where:
         evaluator << [evaluateInLambda(), evaluateInBlock()]
     }
 
-    def "re-evaluating the provider in #evaluator1 then #evaluator2 throws exception"() {
+    def "re-evaluating the owner in #evaluator1 then #evaluator2 throws exception"() {
         when:
-        evaluator1.apply(provider) {
-            evaluator2.apply(provider) {}
+        evaluator1.apply(owner) {
+            evaluator2.apply(this.owner) {}
         }
 
         then:
         EvaluationContext.CircularEvaluationException ex = thrown()
-        ex.evaluationCycle == [provider, provider]
+        ex.evaluationCycle == [owner, owner]
 
         where:
         evaluator1         | evaluator2
@@ -141,49 +141,49 @@ class EvaluationContextTest extends Specification {
         evaluateInLambda() | evaluateInBlock()
     }
 
-    def "re-evaluating the provider in #evaluator throws exception when intermediate provider is involved"() {
-        def otherProvider = createProvider()
+    def "re-evaluating the owner in #evaluator throws exception when intermediate owner is involved"() {
+        def otherOwner = createOwner()
 
         when:
-        evaluator.apply(provider) {
-            evaluator.apply(otherProvider) {
-                evaluator.apply(provider) {}
+        evaluator.apply(owner) {
+            evaluator.apply(otherOwner) {
+                evaluator.apply(this.owner) {}
             }
         }
 
         then:
         EvaluationContext.CircularEvaluationException ex = thrown()
-        ex.evaluationCycle == [provider, otherProvider, provider]
+        ex.evaluationCycle == [owner, otherOwner, owner]
 
         where:
         evaluator << [evaluateInLambda(), evaluateInBlock()]
     }
 
     def "only circular part of the chain is reported when evaluating in #evaluator"() {
-        def otherProvider = createProvider()
+        def otherOwner = createOwner()
 
         when:
-        evaluator.apply(otherProvider) {
-            evaluator.apply(provider) {
-                evaluator.apply(provider) {}
+        evaluator.apply(otherOwner) {
+            evaluator.apply(this.owner) {
+                evaluator.apply(this.owner) {}
             }
         }
 
         then:
         EvaluationContext.CircularEvaluationException ex = thrown()
-        ex.evaluationCycle == [provider, provider]
+        ex.evaluationCycle == [owner, owner]
 
         where:
         evaluator << [evaluateInLambda(), evaluateInBlock()]
     }
 
-    def "can evaluate provider evaluating with #evaluator again in nested block"() {
+    def "can evaluate owner evaluating with #evaluator again in nested block"() {
         given:
         def evaluation = Mock(TestEvaluation)
         when:
-        def result = evaluator.apply(provider) {
+        def result = evaluator.apply(owner) {
             context().evaluateNested {
-                evaluator.apply(provider, evaluation)
+                evaluator.apply(this.owner, evaluation)
             }
         }
 
@@ -197,59 +197,59 @@ class EvaluationContextTest extends Specification {
 
     def "throws exception when re-evaluating in #evaluator after nested block"() {
         when:
-        evaluator.apply(provider) {
+        evaluator.apply(owner) {
             context().evaluateNested {}
 
-            // The context is restored, and re-evaluating the provider is now an error again
-            evaluator.apply(provider) {}
+            // The context is restored, and re-evaluating the owner is now an error again
+            evaluator.apply(this.owner) {}
         }
 
         then:
         EvaluationContext.CircularEvaluationException ex = thrown()
-        ex.evaluationCycle == [provider, provider]
+        ex.evaluationCycle == [owner, owner]
 
         where:
         evaluator << [evaluateInLambda(), evaluateInBlock()]
     }
 
-    def "can handle provider with broken equals in #evaluator"() {
+    def "can handle owner with broken equals in #evaluator"() {
         given:
-        provider.equals(_) >> { false }
+        owner.equals(_) >> { false }
 
         when:
-        evaluator.apply(provider) {
-            evaluator.apply(provider) {}
+        evaluator.apply(owner) {
+            evaluator.apply(this.owner) {}
         }
 
         then:
         EvaluationContext.CircularEvaluationException ex = thrown()
         ex.evaluationCycle.size() == 2
-        // Have to use reference check because provider's equals is broken
-        ex.evaluationCycle[0] === provider
-        ex.evaluationCycle[1] === provider
+        // Have to use reference check because owner's equals is broken
+        ex.evaluationCycle[0] === owner
+        ex.evaluationCycle[1] === owner
 
         where:
         evaluator << [evaluateInLambda(), evaluateInBlock()]
     }
 
-    def "can handle provider with broken equals in tryEvaluate"() {
+    def "can handle owner with broken equals in tryEvaluate"() {
         given:
-        provider.equals(_) >> { false }
+        owner.equals(_) >> { false }
 
         when:
-        def result = context().evaluate(provider) {
-            context().tryEvaluate(provider, "fallback") { "result" }
+        def result = context().evaluate(owner) {
+            context().tryEvaluate(this.owner, "fallback") { "result" }
         }
 
         then:
         result == "fallback"
     }
 
-    BiFunction<ProviderInternal<?>, TestEvaluation, String> evaluateInLambda() {
-        return new BiFunction<ProviderInternal<?>, TestEvaluation, String>() {
+    BiFunction<EvaluationContext.EvaluationOwner, TestEvaluation, String> evaluateInLambda() {
+        return new BiFunction<EvaluationContext.EvaluationOwner, TestEvaluation, String>() {
             @Override
-            String apply(ProviderInternal<?> provider, TestEvaluation evaluation) {
-                context().evaluate(provider, evaluation)
+            String apply(EvaluationContext.EvaluationOwner owner, TestEvaluation evaluation) {
+                context().evaluate(owner, evaluation)
             }
 
             @Override
@@ -259,12 +259,12 @@ class EvaluationContextTest extends Specification {
         }
     }
 
-    BiFunction<ProviderInternal<?>, TestEvaluation, String> evaluateInBlock() {
-        return new BiFunction<ProviderInternal<?>, TestEvaluation, String>() {
+    BiFunction<EvaluationContext.EvaluationOwner, TestEvaluation, String> evaluateInBlock() {
+        return new BiFunction<EvaluationContext.EvaluationOwner, TestEvaluation, String>() {
             @Override
             @SuppressWarnings('GroovyUnusedAssignment')
-            String apply(ProviderInternal<?> provider, TestEvaluation evaluation) {
-                try (def scope = context().enter(provider)) {
+            String apply(EvaluationContext.EvaluationOwner owner, TestEvaluation evaluation) {
+                try (def scope = context().open(owner)) {
                     return evaluation.evaluate()
                 }
             }
@@ -280,8 +280,8 @@ class EvaluationContextTest extends Specification {
         return EvaluationContext.current()
     }
 
-    ProviderInternal<?> createProvider() {
-        return Mock(ProviderInternal)
+    EvaluationContext.EvaluationOwner createOwner() {
+        return Mock(EvaluationContext.EvaluationOwner)
     }
 
     static interface TestEvaluation extends EvaluationContext.ScopedEvaluation<String, RuntimeException> {}

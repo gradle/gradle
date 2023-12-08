@@ -623,16 +623,16 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
     }
 
     protected static final class MapSupplierGuard<K, V> implements MapSupplier<K, V>, GuardedData<MapSupplier<K, V>> {
-        private final ProviderInternal<?> owner;
+        private final EvaluationContext.EvaluationOwner owner;
         private final MapSupplier<K, V> supplier;
 
-        public MapSupplierGuard(ProviderInternal<?> owner, MapSupplier<K, V> supplier) {
+        public MapSupplierGuard(EvaluationContext.EvaluationOwner owner, MapSupplier<K, V> supplier) {
             this.owner = owner;
             this.supplier = supplier;
         }
 
         @Override
-        public ProviderInternal<?> getOwner() {
+        public EvaluationContext.EvaluationOwner getOwner() {
             return owner;
         }
 
@@ -643,14 +643,14 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
 
         @Override
         public Value<? extends Map<K, V>> calculateValue(ValueConsumer consumer) {
-            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().enter(owner)) {
+            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().open(owner)) {
                 return supplier.calculateValue(consumer);
             }
         }
 
         @Override
         public Value<? extends Set<K>> calculateKeys(ValueConsumer consumer) {
-            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().enter(owner)) {
+            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().open(owner)) {
                 return supplier.calculateKeys(consumer);
             }
         }
@@ -662,21 +662,21 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
 
         @Override
         public ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue() {
-            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().enter(owner)) {
+            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().open(owner)) {
                 return supplier.calculateOwnExecutionTimeValue();
             }
         }
 
         @Override
         public ValueProducer getProducer() {
-            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().enter(owner)) {
+            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().open(owner)) {
                 return supplier.getProducer();
             }
         }
 
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
-            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().enter(owner)) {
+            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().open(owner)) {
                 return supplier.calculatePresence(consumer);
             }
         }
