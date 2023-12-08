@@ -146,11 +146,13 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
         collectingFailure(
             ast.findChild(assignmentAndOperator)?.let { ast.unsupportedBecause(it, AugmentingAssignment) })
 
-        val lhs = collectingFailure(directlyAssignableExpression(ast.child(directlyAssignableExpression)))
         val expr = collectingFailure(expression(ast.child(expression)))
-
         elementAfterBarrier {
-            Element(Assignment(checked(lhs), checked(expr), ast.data))
+            val lhs = collectingFailure(directlyAssignableExpression(ast.child(directlyAssignableExpression)))
+
+            elementAfterBarrier {
+                Element(Assignment(checked(lhs), checked(expr), ast.data))
+            }
         }
     }
 

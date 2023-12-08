@@ -25,11 +25,11 @@ class RejectedLanguageFeaturesTest {
             { rejects("import a.A.Companion.*") },
         )
     }
-    
+
     @Test
     fun `rejects renaming imports`() {
         fun rejects(@Language("kts") code: String) = rejectsAndReportsFeature(RenamingImport, code)
-        
+
         assertAll(
             { rejects("import a as b") },
             { rejects("import a.A as B") },
@@ -94,7 +94,7 @@ class RejectedLanguageFeaturesTest {
             { assertTrue { parse("typealias A = Unit").single().isUnsupported<TypeDeclaration>() } },
         )
     }
-    
+
     @Test
     fun `rejects function declarations until they are supported`() { // TODO remove this
         fun rejects(@Language("kts") code: String) = rejectsAndReportsFeature(FunctionDeclaration, code)
@@ -104,7 +104,16 @@ class RejectedLanguageFeaturesTest {
             { rejects("abstract fun f() { }") },
         )
     }
-    
+
+    @Test
+    fun `rejects augmenting assignments`() {
+        fun rejects(@Language("kts") code: String) = rejectsAndReportsFeature(AugmentingAssignment, code)
+        assertAll(
+            { rejects("a += b") },
+            { rejects("a.x -= b") },
+        )
+    }
+
     @Test
     fun `rejects annotation usages`() {
         fun rejects(@Language("kts") code: String) = rejectsAndReportsFeature(AnnotationUsage, code)
