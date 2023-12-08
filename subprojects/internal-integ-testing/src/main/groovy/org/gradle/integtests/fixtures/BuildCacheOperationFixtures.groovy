@@ -19,6 +19,7 @@ package org.gradle.integtests.fixtures
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.caching.internal.controller.operations.PackOperationDetails
 import org.gradle.caching.internal.controller.operations.UnpackOperationDetails
+import org.gradle.caching.internal.operations.BuildCacheRemoteStoreBuildOperationType
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -70,5 +71,31 @@ class BuildCacheOperationFixtures {
         def cacheKey = getTaskCacheKeyOrNull(taskPath)
         assert cacheKey != null
         return cacheKey
+    }
+
+    /**
+     * TODO: Use store operations once operations are implemented
+     */
+    void assertStoredToLocalCache(String taskPath) {
+        throw new UnsupportedOperationException("Not implemented yet")
+    }
+
+    /**
+     * TODO: Use store operations once operations are implemented
+     */
+    void assertNotStoredToLocalCache(String taskPath) {
+        throw new UnsupportedOperationException("Not implemented yet")
+    }
+
+    void assertStoredToRemoteCache(String taskPath) {
+        def parent = getTaskCacheExecutionBuildOperationRecord(taskPath)
+        def buildOperations = buildOperations.all(BuildCacheRemoteStoreBuildOperationType) { it.parentId == parent.id}
+        assert !buildOperations.empty && buildOperations[0].result["stored"] == true
+    }
+
+    void assertNotStoredToRemoteCache(String taskPath) {
+        def parent = getTaskCacheExecutionBuildOperationRecord(taskPath)
+        def buildOperations = buildOperations.all(BuildCacheRemoteStoreBuildOperationType) { it.parentId == parent.id}
+        assert buildOperations.empty
     }
 }

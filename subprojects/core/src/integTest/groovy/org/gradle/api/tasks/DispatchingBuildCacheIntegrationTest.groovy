@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildCacheOperationFixtures
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.test.fixtures.file.TestFile
 
@@ -28,12 +29,13 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
     private TestFile cacheOriginInputFile = file('cache-origin.txt')
     private TestFile outputFile = file('build/output.txt')
     private String cacheableTask = ':cacheableTask'
+    private BuildCacheOperationFixtures buildCacheOperations = new BuildCacheOperationFixtures(executer, temporaryFolder)
 
     def setup() {
         inputFile.text = 'This is the input'
         cacheOriginInputFile.text = 'And this is not'
 
-        buildScript """           
+        buildScript """
             apply plugin: 'base'
 
             import org.gradle.api.*
@@ -44,12 +46,12 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
                 outputFile = file('build/output.txt')
                 cacheOrigin = file('cache-origin.txt')
             }
-            
+
             @CacheableTask
             class MyTask extends DefaultTask {
 
                 @OutputFile File outputFile
-                
+
                 @InputFile
                 @PathSensitive(PathSensitivity.NONE)
                 File inputFile
@@ -71,7 +73,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(cacheableTask)
-        populatedCache(localCache)
+        populatedLocalCache(cacheableTask)
         remoteCache.empty
 
         when:
@@ -80,7 +82,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         skipped(cacheableTask)
-        populatedCache(localCache)
+        buildCacheOperations.getPackOperations(cacheableTask).empty
         remoteCache.empty
 
     }
@@ -93,8 +95,8 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(cacheableTask)
-        populatedCache(remoteCache)
-        localCache.empty
+        buildCacheOperations.assertStoredToRemoteCache(cacheableTask)
+        !populatedLocalCache(cacheableTask)
 
         when:
         pullOnly()
@@ -102,8 +104,8 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         skipped(cacheableTask)
-        populatedCache(remoteCache)
-        localCache.empty
+        buildCacheOperations.assertNotStoredToRemoteCache(cacheableTask)
+        !populatedLocalCache(cacheableTask)
 
     }
 
@@ -116,7 +118,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(cacheableTask)
-        populatedCache(remoteCache)
+        buildCacheOperations.assertStoredToRemoteCache(cacheableTask)
         localCache.empty
 
         when:
@@ -126,8 +128,8 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(cacheableTask)
-        populatedCache(localCache)
-        populatedCache(remoteCache)
+        populatedLocalCache(cacheableTask)
+        buildCacheOperations.assertNotStoredToRemoteCache(cacheableTask)
 
         when:
         pullOnly()
@@ -135,28 +137,28 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         withBuildCache().run 'clean', cacheableTask
 
         then:
-        populatedCache(localCache)
-        populatedCache(remoteCache)
+        !populatedLocalCache(cacheableTask)
+        buildCacheOperations.assertNotStoredToRemoteCache(cacheableTask)
         outputFile.text == inputFile.text + 'local'
     }
 
     def 'push to the local cache by default'() {
         settingsFile.text = """
-            buildCache {        
+            buildCache {
                 local {
-                    directory = '${localCache.cacheDir.toURI()}'                    
+                    directory = '${localCache.cacheDir.toURI()}'
                 }
                 remote(DirectoryBuildCache) {
                     directory = '${remoteCache.cacheDir.toURI()}'
                 }
-            }            
+            }
         """.stripIndent()
 
         when:
         withBuildCache().run cacheableTask
 
         then:
-        populatedCache(localCache)
+        populatedLocalCache(cacheableTask)
         remoteCache.empty
     }
 
@@ -167,21 +169,23 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         withBuildCache().run cacheableTask
 
         then:
-        populatedCache(localCache)
-        populatedCache(remoteCache)
+        populatedLocalCache(cacheableTask)
+        buildCacheOperations.assertStoredToRemoteCache(cacheableTask)
         def localCacheFile = localCache.listCacheFiles().first()
         def remoteCacheFile = remoteCache.listCacheFiles().first()
         localCacheFile.md5Hash == remoteCacheFile.md5Hash
         localCacheFile.name == remoteCacheFile.name
     }
 
-    void pulledFrom(TestBuildCache cache) {
-        skipped(cacheableTask)
-        assert cache.listCacheFiles().size() == 1
-    }
-
-    private static boolean populatedCache(TestBuildCache cache) {
-        cache.listCacheFiles().size() == 1
+    /**
+     * TODO: Replace with buildCacheOperations.assertStoredToLocalCache(taskPath) once operations are implemented
+     */
+    private boolean populatedLocalCache(String taskPath) {
+        def cacheKey = buildCacheOperations.getTaskCacheKeyOrNull(taskPath)
+        if (cacheKey == null) {
+            return false
+        }
+        localCache.hasCacheFile(cacheKey)
     }
 
     void pushToRemote() {
