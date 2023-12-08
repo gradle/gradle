@@ -20,8 +20,8 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 
 class ScalaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
-    public static final String SAMPLE_APP_CLASS = "some/thing/App.scala"
-    public static final String SAMPLE_APP_TEST_CLASS = "some/thing/AppSuite.scala"
+    public static final String SAMPLE_APP_CLASS = "org/example/App.scala"
+    public static final String SAMPLE_APP_TEST_CLASS = "org/example/AppSuite.scala"
 
     @Override
     String subprojectName() { 'app' }
@@ -41,7 +41,7 @@ class ScalaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrat
         run("build")
 
         then:
-        assertTestPassed("some.thing.AppSuite", "App has a greeting")
+        assertTestPassed("org.example.AppSuite", "App has a greeting")
 
         when:
         run("run")
@@ -69,7 +69,7 @@ class ScalaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrat
         run("build")
 
         then:
-        assertTestPassed("some.thing.AppSuite", "App has a greeting")
+        assertTestPassed("org.example.AppSuite", "App has a greeting")
 
         when:
         run("run")
@@ -92,7 +92,7 @@ class ScalaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrat
         run("build")
 
         then:
-        assertTestPassed("some.thing.AppSuite", "App has a greeting")
+        assertTestPassed("org.example.AppSuite", "App has a greeting")
 
         when:
         run("run")

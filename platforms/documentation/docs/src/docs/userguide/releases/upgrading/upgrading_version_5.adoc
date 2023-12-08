@@ -624,7 +624,7 @@ The built-in <<play_plugin.adoc#play_plugin, Play plugin>> has been deprecated a
 
 The _build comparison_ plugin has been deprecated and will be removed in the next major version of Gradle.
 
-link:https://gradle.com/build-scans[Build scans] show much deeper insights into your build and you can use link:https://gradle.com/[Develocity] to directly compare two build's build-scans.
+link:https://gradle.com/build-scans[Build scans] show much deeper insights into your build and you can use link:https://gradle.com/develocity[Develocity] to directly compare two build's build-scans.
 
 === Potential breaking changes
 

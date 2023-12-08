@@ -19,13 +19,13 @@ Build engineers that are ready to configure custom build logic and write their o
 
 To get started engineering Gradle builds:
 
-1. Read the <<gradle_author_intro,core concepts chapters>>.
+1. Read the <<gradle_author_intro,build basics chapters>>.
 2. Follow the <<author_tutorial,tutorial>> for a hands-on approach.
 
 [[gradle_author_intro]]
-== 1. Authoring Gradle Builds Core Concepts
+== 1. Authoring Gradle Builds Basics
 
-The core concepts section goes through some Gradle authoring basics so that you can quickly understand how to configure builds, create tasks, and write plugins.
+The basics section goes through some Gradle authoring basics so that you can quickly understand how to configure builds, create tasks, and write plugins.
 
 [sidebar]
 _Training level_: **Intermediate** +

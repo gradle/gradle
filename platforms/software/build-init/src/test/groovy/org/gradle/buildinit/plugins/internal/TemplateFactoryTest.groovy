@@ -50,7 +50,7 @@ class TemplateFactoryTest extends Specification {
         1 * templateOperationFactory.newTemplateOperation() >> templateOperationBuilder
         1 * templateOperationBuilder.withTemplate("someTemplate/SomeClazz.somelang.template") >> templateOperationBuilder
         1 * templateOperationBuilder.withTarget(targetAsFile) >> templateOperationBuilder
-        1 * templateOperationBuilder.withBinding("basePackageName", "") >> templateOperationBuilder
+        1 * templateOperationBuilder.withBinding("basePackagePrefix", "") >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("packageDecl", "") >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("className", "") >> templateOperationBuilder
         1 * templateOperationBuilder.create() >> Mock(TemplateOperation)
@@ -77,7 +77,7 @@ class TemplateFactoryTest extends Specification {
         1 * templateOperationFactory.newTemplateOperation() >> templateOperationBuilder
         1 * templateOperationBuilder.withTemplate("someTemplate/SomeClazz.somelang.template") >> templateOperationBuilder
         1 * templateOperationBuilder.withTarget(targetAsFile) >> templateOperationBuilder
-        1 * templateOperationBuilder.withBinding("basePackageName", "my.lib") >> templateOperationBuilder
+        1 * templateOperationBuilder.withBinding("basePackagePrefix", "my.lib.") >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("packageDecl", "package my.lib") >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("className", "") >> templateOperationBuilder
         1 * templateOperationBuilder.create() >> Mock(TemplateOperation)
@@ -107,7 +107,7 @@ class TemplateFactoryTest extends Specification {
         1 * templateOperationFactory.newTemplateOperation() >> templateOperationBuilder
         1 * templateOperationBuilder.withTemplate("someTemplate/SomeClazz.somelang.template") >> templateOperationBuilder
         1 * templateOperationBuilder.withTarget(targetAsFile) >> templateOperationBuilder
-        1 * templateOperationBuilder.withBinding("basePackageName", _) >> templateOperationBuilder
+        1 * templateOperationBuilder.withBinding("basePackagePrefix", _) >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("packageDecl", _) >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("className", className) >> templateOperationBuilder
         1 * templateOperationBuilder.create() >> Mock(TemplateOperation)

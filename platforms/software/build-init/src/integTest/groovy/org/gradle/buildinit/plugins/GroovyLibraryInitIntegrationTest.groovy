@@ -20,8 +20,8 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 
 class GroovyLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
-    public static final String SAMPLE_LIBRARY_CLASS = "some/thing/Library.groovy"
-    public static final String SAMPLE_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.groovy"
+    public static final String SAMPLE_LIBRARY_CLASS = "org/example/Library.groovy"
+    public static final String SAMPLE_LIBRARY_TEST_CLASS = "org/example/LibraryTest.groovy"
 
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
@@ -38,7 +38,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
         run("build")
 
         then:
-        assertTestPassed("some.thing.LibraryTest", "someLibraryMethod returns true")
+        assertTestPassed("org.example.LibraryTest", "someLibraryMethod returns true")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -59,7 +59,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
         run("build")
 
         then:
-        assertTestPassed("some.thing.LibraryTest", "someLibraryMethod returns true")
+        assertTestPassed("org.example.LibraryTest", "someLibraryMethod returns true")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

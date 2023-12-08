@@ -16,12 +16,14 @@
 
 package org.gradle.buildinit.tasks;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -44,21 +46,24 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import javax.lang.model.SourceVersion;
 import java.util.List;
-import java.util.Locale;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackageName;
 
 /**
  * Generates a Gradle project structure.
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class InitBuild extends DefaultTask {
+
+    private static final String SOURCE_PACKAGE_DEFAULT = "org.example";
+    private static final String SOURCE_PACKAGE_PROPERTY = "org.gradle.buildinit.source.package";
     private static final int MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API = 7;
+
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
     private String type;
     private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);
@@ -136,7 +141,6 @@ public abstract class InitBuild extends DefaultTask {
      * it is a valid and supported major version.
      *
      * @return the java version number supplied by the user
-     *
      * @since 8.5
      */
     @Input
@@ -146,8 +150,6 @@ public abstract class InitBuild extends DefaultTask {
     public Property<String> getJavaVersion() {
         return javaVersion;
     }
-
-
 
     /**
      * The name of the generated project, defaults to the name of the directory the project is generated in.
@@ -219,9 +221,9 @@ public abstract class InitBuild extends DefaultTask {
 
         BuildInitTestFramework testFramework = getBuildInitTestFramework(inputHandler, initDescriptor, modularizationOption);
 
-        String projectName = getProjectName(inputHandler, initDescriptor);
+        String projectName = getEffectiveProjectName(inputHandler, initDescriptor);
 
-        String packageName = getPackageName(inputHandler, initDescriptor, projectName);
+        String packageName = getEffectivePackageName(initDescriptor);
 
         validatePackageName(packageName);
 
@@ -339,7 +341,8 @@ public abstract class InitBuild extends DefaultTask {
         return new GradleException(formatter.toString());
     }
 
-    String getProjectName(UserInputHandler inputHandler, BuildInitializer initDescriptor) {
+    @VisibleForTesting
+    String getEffectiveProjectName(UserInputHandler inputHandler, BuildInitializer initDescriptor) {
         String projectName = this.projectName;
         if (initDescriptor.supportsProjectName()) {
             if (isNullOrEmpty(projectName)) {
@@ -351,11 +354,12 @@ public abstract class InitBuild extends DefaultTask {
         return projectName;
     }
 
-    String getPackageName(UserInputHandler inputHandler, BuildInitializer initDescriptor, String projectName) {
+    @VisibleForTesting
+    String getEffectivePackageName(BuildInitializer initDescriptor) {
         String packageName = this.packageName;
         if (initDescriptor.supportsPackage()) {
-            if (isNullOrEmpty(packageName)) {
-                return inputHandler.askQuestion("Source package", toPackageName(projectName).toLowerCase(Locale.US));
+            if (packageName == null) {
+                return getProviderFactory().gradleProperty(SOURCE_PACKAGE_PROPERTY).getOrElse(SOURCE_PACKAGE_DEFAULT);
             }
         } else if (!isNullOrEmpty(packageName)) {
             throw new GradleException("Package name is not supported for '" + initDescriptor.getId() + "' build type.");
@@ -469,4 +473,7 @@ public abstract class InitBuild extends DefaultTask {
         }
         return projectLayoutRegistry.getDefault().getId();
     }
+
+    @Inject
+    protected abstract ProviderFactory getProviderFactory();
 }

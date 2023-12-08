@@ -39,6 +39,7 @@ import org.gradle.api.Named;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.PropertyAccessorType;
+import org.gradle.internal.reflect.Types.TypeVisitResult;
 import org.gradle.internal.reflect.Types.TypeVisitor;
 import org.gradle.model.Managed;
 import org.gradle.model.Unmanaged;
@@ -69,7 +70,13 @@ import java.util.concurrent.ExecutionException;
 
 import static org.gradle.internal.reflect.Methods.DESCRIPTOR_EQUIVALENCE;
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
-import static org.gradle.internal.reflect.PropertyAccessorType.*;
+import static org.gradle.internal.reflect.PropertyAccessorType.GET_GETTER;
+import static org.gradle.internal.reflect.PropertyAccessorType.IS_GETTER;
+import static org.gradle.internal.reflect.PropertyAccessorType.SETTER;
+import static org.gradle.internal.reflect.PropertyAccessorType.hasGetter;
+import static org.gradle.internal.reflect.PropertyAccessorType.hasSetter;
+import static org.gradle.internal.reflect.PropertyAccessorType.hasVoidReturnType;
+import static org.gradle.internal.reflect.PropertyAccessorType.takesSingleParameter;
 import static org.gradle.internal.reflect.Types.walkTypeHierarchy;
 
 public class DefaultStructBindingsStore implements StructBindingsStore {
@@ -142,11 +149,12 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
     private static <T> void validateTypeHierarchy(final StructBindingValidationProblemCollector problems, ModelType<T> type) {
         walkTypeHierarchy(type.getConcreteClass(), new TypeVisitor<T>() {
             @Override
-            public void visitType(Class<? super T> type) {
+            public TypeVisitResult visitType(Class<? super T> type) {
                 if (type.isAnnotationPresent(Managed.class)) {
                     validateManagedType(problems, type);
                 }
                 validateType(problems, type);
+                return TypeVisitResult.CONTINUE;
             }
         });
     }
@@ -322,10 +330,11 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         if (delegateType != null) {
             walkTypeHierarchy(delegateType.getConcreteClass(), new TypeVisitor<D>() {
                 @Override
-                public void visitType(Class<? super D> type) {
+                public TypeVisitResult visitType(Class<? super D> type) {
                     if (type.isInterface()) {
                         viewsToImplement.add(ModelType.of(type));
                     }
+                    return TypeVisitResult.CONTINUE;
                 }
             });
         }

@@ -3,8 +3,8 @@ package configurations
 import com.alibaba.fastjson.JSONObject
 import com.alibaba.fastjson.annotation.JSONField
 import common.functionalTestExtraParameters
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.parallelTests
+import jetbrains.buildServer.configs.kotlin.BuildSteps
+import jetbrains.buildServer.configs.kotlin.buildFeatures.parallelTests
 import model.CIBuildModel
 import model.Stage
 import model.StageName

@@ -111,7 +111,7 @@ Expected checksum: 'bad'
 
         then:
         result.assertHasErrorOutput("gradle-wrapper.properties contains distributionSha256Sum property, but the wrapper configuration does not have one. " +
-            "Specify one in the wrapped task configuration or with the --gradle-distribution-sha256-sum task option")
+            "Specify one in the wrapper task configuration or with the --gradle-distribution-sha256-sum task option")
     }
 
     private writeValidDistributionHash() {

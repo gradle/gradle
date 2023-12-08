@@ -55,7 +55,7 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
 
     def cacheDir = testDir.createDir("cached")
     def classpathWalker = new ClasspathWalker(TestFiles.fileSystem())
-    def classpathBuilder = new ClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(testDirectoryProvider.createDir("tmp")))
+    def classpathBuilder = new DefaultClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(testDirectoryProvider.createDir("tmp")))
     def fileLockManager = Stub(FileLockManager)
     def fileSystemAccess = TestFiles.fileSystemAccess()
     def gradleCoreInstrumentingRegistry = Stub(GradleCoreInstrumentingTypeRegistry) {

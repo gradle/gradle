@@ -11,8 +11,8 @@ import common.functionalTestExtraParameters
 import common.functionalTestParameters
 import common.gradleWrapper
 import common.killProcessStep
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.BuildStep
+import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import model.CIBuildModel
 import model.Stage
 import model.StageName

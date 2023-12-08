@@ -108,6 +108,19 @@ Names of the generated convention plugins now start with `buildlogic` instead of
 
 Projects generated with Kotlin DSL scripts now use [simple property assignment](/8.4/release-notes.html#assign-stable) syntax with the `=` operator.
 
+<a name="other-improvements"></a>
+
+### Other improvements
+
+#### Gradle encryption key via an environment variable
+
+You may now provide Gradle with the key used to encrypt cached configuration data via the `GRADLE_ENCRYPTION_KEY` environment variable.
+By default, Gradle creates and manages the key automatically, storing it in a keystore under the Gradle User Home.
+This may be inappropriate in some environments.
+
+More details can be found in the dedicated section of the [configuration cache](userguide/configuration_cache.html#config_cache:secrets:configuring_encryption_key) user manual chapter.
+
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================

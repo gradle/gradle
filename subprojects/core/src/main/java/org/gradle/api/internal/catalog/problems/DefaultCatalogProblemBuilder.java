@@ -20,14 +20,14 @@ import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ReportableProblem;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
-import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderSolutionsWithNewProblemsApi;
+import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderSolutions;
 import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
 public class DefaultCatalogProblemBuilder {
@@ -35,19 +35,19 @@ public class DefaultCatalogProblemBuilder {
     private final static DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     public static final String VERSION_CATALOG_PROBLEMS = "version_catalog_problems";
 
-    public static void maybeThrowError(String error, Collection<ReportableProblem> problems) {
+    public static void maybeThrowError(InternalProblems problemsService, String error, Collection<Problem> problems) {
         if (!problems.isEmpty()) {
-            throw throwErrorWithNewProblemsApi(error, problems);
+            throw throwErrorWithNewProblemsApi(problemsService, error, problems);
         }
     }
 
-    public static RuntimeException throwErrorWithNewProblemsApi(String error, Collection<ReportableProblem> problems) {
+    public static RuntimeException throwErrorWithNewProblemsApi(InternalProblems problemsService, String error, Collection<Problem> problems) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node(error);
         formatter.startChildren();
-        for (ReportableProblem problem : problems) {
+        for (Problem problem : problems) {
             reportInto(formatter, problem);
-            problem.report();
+            problemsService.getInternalReporter().report(problem);
         }
         formatter.endChildren();
         throw new InvalidUserDataException(formatter.toString());
@@ -61,7 +61,7 @@ public class DefaultCatalogProblemBuilder {
             formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDetails())));
         }
 
-        renderSolutionsWithNewProblemsApi(formatter, problem.getSolutions());
+        renderSolutions(formatter, problem.getSolutions());
         DocLink documentationLink = problem.getDocumentationLink();
         if (documentationLink != null) {
             formatter.blankLine();

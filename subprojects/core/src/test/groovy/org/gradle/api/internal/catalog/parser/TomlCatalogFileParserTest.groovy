@@ -30,9 +30,9 @@ import org.gradle.api.internal.catalog.PluginModel
 import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
-import org.gradle.api.problems.ProblemEmitter
-import org.gradle.api.problems.Problems
+import org.gradle.api.problems.internal.ProblemEmitter
 import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -54,7 +54,7 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
             TestUtil.objectFactory(),
             supplier) {
             @Override
-            protected Problems getProblemService() {
+            protected InternalProblems getProblemsService() {
                 return problems
             }
         }
