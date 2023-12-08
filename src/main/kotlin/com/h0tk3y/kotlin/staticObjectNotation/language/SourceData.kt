@@ -16,10 +16,6 @@
 
 package com.h0tk3y.kotlin.staticObjectNotation.language
 
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.text
-import kotlinx.ast.common.ast.Ast
-import kotlinx.ast.common.ast.astInfoOrNull
-
 interface SourceData {
     val sourceIdentifier: SourceIdentifier
     val indexRange: IntRange
@@ -31,19 +27,3 @@ interface SourceData {
 }
 
 data class SourceIdentifier(val fileIdentifier: String)
-
-class AstSourceData(
-    override val sourceIdentifier: SourceIdentifier,
-    val currentAst: Ast
-) : SourceData {
-    override val indexRange: IntRange
-        get() = currentAst.astInfoOrNull?.let { it.start.index..it.stop.index } ?: -1..-1
-    override val lineRange: IntRange
-        get() = currentAst.astInfoOrNull?.let { it.start.line..it.stop.line } ?: -1..-1
-    override val startColumn: Int
-        get() = currentAst.astInfoOrNull?.start?.row ?: -1
-    override val endColumn: Int
-        get() = currentAst.astInfoOrNull?.stop?.row ?: -1
-
-    override fun text(): String = currentAst.text
-}

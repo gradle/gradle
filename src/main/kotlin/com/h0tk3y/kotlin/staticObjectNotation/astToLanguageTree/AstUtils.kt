@@ -1,12 +1,11 @@
 package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
-import com.h0tk3y.kotlin.staticObjectNotation.language.AstSourceData
+import com.h0tk3y.kotlin.staticObjectNotation.language.SourceData
 import com.h0tk3y.kotlin.staticObjectNotation.language.SourceIdentifier
 import kotlinx.ast.common.ast.Ast
 import kotlinx.ast.common.ast.AstNode
 import kotlinx.ast.common.ast.AstTerminal
-
-fun Ast.flatten(): Ast = traverse().firstOrNull { it is AstTerminal || it is AstNode && it.children.size > 1 } ?: this
+import kotlinx.ast.common.ast.astInfoOrNull
 
 fun Ast.findChild(predicate: (Ast) -> Boolean): Ast? = childrenOrEmpty.find { it != this && predicate(it) }
 fun Ast.findChild(kind: AstKind): Ast? = findChild { it.kind == kind }
@@ -66,6 +65,22 @@ val Ast.text: String
     }
 
 fun Ast.sourceData(sourceIdentifier: SourceIdentifier) = AstSourceData(sourceIdentifier, this)
+
+class AstSourceData(
+    override val sourceIdentifier: SourceIdentifier,
+    val currentAst: Ast
+) : SourceData {
+    override val indexRange: IntRange
+        get() = currentAst.astInfoOrNull?.let { it.start.index..it.stop.index } ?: -1..-1
+    override val lineRange: IntRange
+        get() = currentAst.astInfoOrNull?.let { it.start.line..it.stop.line } ?: -1..-1
+    override val startColumn: Int
+        get() = currentAst.astInfoOrNull?.start?.row ?: -1
+    override val endColumn: Int
+        get() = currentAst.astInfoOrNull?.stop?.row ?: -1
+
+    override fun text(): String = currentAst.text
+}
 
 @Suppress("EnumEntryName")
 enum class AstKind(astDescription: String? = null) {

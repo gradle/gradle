@@ -27,10 +27,13 @@ fun AnalysisSchema.resolve(
         println("Failures:")
         fun printFailures(failure: FailingResult) {
             when (failure) {
+                is ParsingError -> println(
+                    "Parsing error: " + failure.message
+                )
                 is UnsupportedConstruct -> println(
                     failure.languageFeature.toString() + " in " + ast.toString().take(100)
                 )
-                is MultipleFailuresResult -> printFailures(failure)
+                is MultipleFailuresResult -> failure.failures.forEach { printFailures(it)}
             }
         }
         failures.forEach { printFailures(it) }

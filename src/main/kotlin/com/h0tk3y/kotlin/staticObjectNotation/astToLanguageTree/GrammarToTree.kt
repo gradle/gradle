@@ -600,13 +600,6 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
 
     private fun <T : Any?> workaround(@Suppress("UNUSED_PARAMETER") reason: String, value: T): T = value
 
-    private fun <T : LanguageTreeElement> elementOrFailure(
-        evaluate: FailureCollectorContext.() -> ElementResult<T>
-    ): ElementResult<T> {
-        val context = FailureCollectorContext()
-        return evaluate(context)
-    }
-
     private fun <T> syntacticOrFailure(
         evaluate: FailureCollectorContext.() -> SyntacticResult<T>
     ): SyntacticResult<T> {
@@ -618,81 +611,10 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
         check(kind == expected) { "invoked an AST-visiting function on an unexpected AST kind: $kind instead of $expected" }
     }
 
-    private class FailureCollectorContext {
-        private val currentFailures: MutableList<FailingResult> = mutableListOf()
-
-        val failures: List<FailingResult> get() = currentFailures
-
-        // TODO: introduce a type for a result with definitely collected failure?
-        fun <T> checkForFailure(result: SyntacticResult<T>): CheckedResult<SyntacticResult<T>> =
-            CheckedResult(collectingFailure(result))
-
-        fun <T> checkNullableForFailure(result: SyntacticResult<T>?): CheckedResult<SyntacticResult<T>>? =
-            if (result == null) null else CheckedResult(collectingFailure(result))
-
-        fun <T : LanguageTreeElement> checkForFailure(result: ElementResult<T>): CheckedResult<ElementResult<T>> =
-            CheckedResult(collectingFailure(result))
-
-        fun failNow(failingResult: FailingResult): FailingResult {
-            collectingFailure(failingResult)
-            return syntacticIfNoFailures<Nothing> { error("expected a failure") } as FailingResult
-        }
-
-        fun collectingFailure(ast: Ast, astKind: AstKind, failureTest: (Ast?) -> FailingResult?) {
-            val child = ast.findChild(astKind)
-            val maybeFailure = child.run(failureTest)
-            collectingFailure(maybeFailure)
-        }
-
-        fun collectingFailure(maybeFailure: FailingResult?) {
-            if (maybeFailure != null) {
-                currentFailures.add(maybeFailure)
-            }
-        }
-
-        fun <T> collectingFailure(result: T): T {
-            when (result) {
-                is FailingResult -> currentFailures.add(result)
-            }
-            return result
-        }
-
-        interface CheckBarrierContext {
-            fun <T : LanguageTreeElement> checked(result: CheckedResult<ElementResult<T>>): T {
-                val value = result.value
-                check(value is Element)
-                return value.element
-            }
-
-            fun <T> checked(result: CheckedResult<SyntacticResult<T>>): T {
-                val value = result.value
-                check(value is Syntactic)
-                return value.value
-            }
-
-            fun <T> checked(results: List<CheckedResult<SyntacticResult<T>>>): List<T> =
-                results.map {
-                    val syntacticResult = it.value
-                    check(syntacticResult is Syntactic)
-                    syntacticResult.value
-                }.toList()
-        }
-
-        fun <T : LanguageTreeElement> elementIfNoFailures(evaluate: CheckBarrierContext.() -> ElementResult<T>): ElementResult<T> =
-            when (currentFailures.size) {
-                0 -> evaluate(object : CheckBarrierContext {})
-                1 -> currentFailures.single()
-                else -> MultipleFailuresResult(currentFailures)
-            }
-
-        fun <T> syntacticIfNoFailures(evaluate: CheckBarrierContext.() -> SyntacticResult<T>): SyntacticResult<T> =
-            when (currentFailures.size) {
-                0 -> evaluate(object : CheckBarrierContext {})
-                1 -> currentFailures.single()
-                else -> MultipleFailuresResult(currentFailures)
-            }
-
-        class CheckedResult<T : LanguageResult<*>>(val value: T)
+    private fun FailureCollectorContext.collectingFailure(ast: Ast, astKind: AstKind, failureTest: (Ast?) -> FailingResult?) {
+        val child = ast.findChild(astKind)
+        val maybeFailure = child.run(failureTest)
+        collectingFailure(maybeFailure)
     }
 
     private val Ast.data get() = sourceData(sourceIdentifier)

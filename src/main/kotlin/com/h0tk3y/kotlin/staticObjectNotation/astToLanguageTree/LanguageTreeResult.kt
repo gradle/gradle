@@ -38,11 +38,15 @@ data class UnsupportedConstruct(
     val languageFeature: UnsupportedLanguageFeature
 ) : FailingResult
 
+data class ParsingError(
+    val sourceData: SourceData, // TODO: why does UnsupportedConstruct have two of these?
+    val message: String
+) : FailingResult
+
 data class MultipleFailuresResult(val failures: List<FailingResult>) : FailingResult
 
 sealed interface UnsupportedLanguageFeature {
     data object PackageHeader : UnsupportedLanguageFeature
-    data object FunctionCallInAccessChain : UnsupportedLanguageFeature
     data object TypeDeclaration : UnsupportedLanguageFeature
     data object CollectionLiteral : UnsupportedLanguageFeature
     data object SupertypeUsage : UnsupportedLanguageFeature
@@ -73,6 +77,7 @@ sealed interface UnsupportedLanguageFeature {
     data object ValModifierNotSupported : UnsupportedLanguageFeature
     data object Indexing : UnsupportedLanguageFeature
     data object InvalidLanguageConstruct : UnsupportedLanguageFeature
+    data object UnsupportedOperationInBinaryExpression: UnsupportedLanguageFeature
 
     // TODO: support
     data object SafeNavigation : UnsupportedLanguageFeature
