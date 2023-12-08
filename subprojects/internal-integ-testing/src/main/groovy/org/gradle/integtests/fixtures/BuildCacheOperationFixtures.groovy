@@ -37,9 +37,14 @@ class BuildCacheOperationFixtures {
         return parent == null ? [] : buildOperations.search(parent) { it.hasDetailsOfType(PackOperationDetails) }
     }
 
-    String getTaskCacheKey(String taskPath) {
+    String getTaskCacheKeyOrNull(String taskPath) {
         def packOperations = getPackOperation(taskPath)
-        assert packOperations.size() > 0
-        return packOperations[0].details["cacheKey"]
+        return packOperations.empty ? null : packOperations[0].details["cacheKey"]
+    }
+
+    String getTaskCacheKey(String taskPath) {
+        def cacheKey = getTaskCacheKeyOrNull(taskPath)
+        assert cacheKey != null
+        return cacheKey
     }
 }
