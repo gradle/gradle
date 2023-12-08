@@ -1,11 +1,14 @@
 abstract class Executer() : DefaultTask() {
-    @get:Input
+    @get:Internal
     abstract val options: ListProperty<String>
 
     init {
-        options.set(null as List<String>?)
-        options.value().add("--safe")
-        options.value().add("--debug")
+        options
+            .unset()
+            .convention(listOf("--debug", "--safe"))
+            .configure {
+                add("--verbose")
+            }
     }
 
     @TaskAction
@@ -16,6 +19,8 @@ abstract class Executer() : DefaultTask() {
     }
 }
 tasks.register<Executer>("executer") {
-    options.value().addAll("--native")
-    options.value().excludeAll("--debug")
+    options.configure {
+        addAll("--native")
+        excludeAll("--debug")
+    }
 }

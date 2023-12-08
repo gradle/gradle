@@ -1,11 +1,14 @@
 abstract class Generator(): DefaultTask() {
-    @get:Input
+    @get:Internal
     abstract val properties: MapProperty<String, Int>
 
     init {
-        properties.set(null as Map<String, Int>?)
-        properties.value()
-            .putAll(mapOf("a" to 1, "b" to 2))
+        properties
+            .unset()
+            .convention(mapOf("a" to 1))
+            .configure {
+                putAll(mapOf("b" to 2, "c" to 3))
+            }
     }
 
     @TaskAction
@@ -20,10 +23,11 @@ abstract class Generator(): DefaultTask() {
 var c = 0
 
 tasks.register<Generator>("generate") {
-    properties.value().put("b", -2)
-    // Values have not been configured yet
-    properties.value().putAll(providers.provider { mapOf("c" to c, "d" to c + 1) })
-    properties.value().excludeAll("a", "d")
+    properties.configure {
+        put("b", -2)
+        // Values have not been configured yet
+        putAll(providers.provider { mapOf("c" to c, "d" to c + 1) })
+    }
 }
 
 // Configure the values. There is no need to reconfigure the task

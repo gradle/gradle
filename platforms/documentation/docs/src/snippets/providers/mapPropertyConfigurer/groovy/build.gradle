@@ -3,9 +3,9 @@ abstract class Generator extends DefaultTask {
     abstract MapProperty<String, Integer> getProperties()
 
     public Generator() {
-        properties.set((Map) null)
-        properties.value()
-            .putAll([a: 1, b: 2])
+        properties.convention([a: 1]).configure {
+            it.putAll([b: 2, c: 3])
+        }
     }
 
     @TaskAction
@@ -20,10 +20,11 @@ abstract class Generator extends DefaultTask {
 def c = 0
 
 tasks.register('generate', Generator) {
-    properties.value().put("b", -2)
-    // Values have not been configured yet
-    properties.value().putAll(providers.provider { [c: c, d: c + 1] })
-    properties.value().excludeAll("a", "d")
+    properties.configure {
+        it.put("b", -2)
+        // Values have not been configured yet
+        it.putAll(providers.provider { [c: c, d: c + 1] })
+    }
 }
 
 // Configure the values. There is no need to reconfigure the task
