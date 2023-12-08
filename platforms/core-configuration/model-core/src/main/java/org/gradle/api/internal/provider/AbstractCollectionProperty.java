@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
 import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollection;
@@ -484,6 +485,15 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public ValueProducer getProducer() {
             return left.getProducer().plus(right.getProducer());
+        }
+    }
+
+    public void update(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Iterable<? extends T>>, ? super Provider<C>> transform) {
+        Provider<? extends Iterable<? extends T>> newValue = transform.transform(shallowCopy());
+        if (newValue != null) {
+            set(newValue);
+        } else {
+            set((Iterable<? extends T>) null);
         }
     }
 }

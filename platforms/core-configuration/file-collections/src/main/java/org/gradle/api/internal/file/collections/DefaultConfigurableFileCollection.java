@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.collections;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
@@ -328,6 +329,16 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         // getFrom returns a live view of the current structure, but here we need a snapshot.
         result.setFrom(new ArrayList<>(getFrom()));
         return result;
+    }
+
+    @Override
+    public void update(Transformer<? extends @org.jetbrains.annotations.Nullable FileCollection, ? super FileCollection> transform) {
+        FileCollection newValue = transform.transform(shallowCopy());
+        if (newValue != null) {
+            setFrom(newValue);
+        } else {
+            setFrom();
+        }
     }
 
     private interface ValueCollector {
