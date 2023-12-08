@@ -20,6 +20,8 @@ import com.example.com.h0tk3y.kotlin.staticObjectNotation.demo.reflection.reflec
 import com.h0tk3y.kotlin.staticObjectNotation.Adding
 import com.h0tk3y.kotlin.staticObjectNotation.Configuring
 import com.h0tk3y.kotlin.staticObjectNotation.Restricted
+import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.MemberFunctionResolver
+import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.ReflectionRuntimePropertyResolver
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RestrictedReflectionToObjectConverter
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.plus
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.schemaFromTypes
@@ -61,7 +63,7 @@ class CustomLambdasTest {
         val reflection = schema.reflect(code)
 
         val outer = Outer()
-        val converter = RestrictedReflectionToObjectConverter(emptyMap(), outer, functionalLambdaHandler)
+        val converter = RestrictedReflectionToObjectConverter(emptyMap(), outer, MemberFunctionResolver(functionalLambdaHandler), ReflectionRuntimePropertyResolver)
         converter.apply(reflection)
 
         return outer
@@ -110,5 +112,6 @@ private val schema = schemaFromTypes(
         Inner::class,
         Functional::class,
         GenericFunctional::class
-    ), emptyList(), emptyMap(), emptyList(), functionalLambdaHandler
+    ), emptyList(), emptyMap(), emptyList(),
+    configureLambdas = functionalLambdaHandler
 )

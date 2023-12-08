@@ -16,96 +16,20 @@
 
 package com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder
 
-import java.lang.reflect.Proxy
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataType
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataTypeRef
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.FqName
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.ref
 import kotlin.reflect.KClass
-import kotlin.reflect.KType
-import kotlin.reflect.KTypeProjection
-import kotlin.reflect.KVariance
-import kotlin.reflect.full.createType
-import kotlin.reflect.full.isSubtypeOf
+import kotlin.reflect.KClassifier
 
-interface ConfigureLambdaHandler {
-    fun isConfigureLambda(type: KType): Boolean
-    fun isConfigureLambdaForType(configuredType: KType, maybeLambdaType: KType): Boolean
-    fun produceNoopConfigureLambda(lambdaType: KType): Any
-}
-
-fun ConfigureLambdaHandler.plus(other: ConfigureLambdaHandler) =
-    CompositeConfigureLambdas(buildList {
-        when (this@plus) {
-            is CompositeConfigureLambdas -> addAll(implementations)
-            else -> add(this@plus)
-        }
-        when (other) {
-            is CompositeConfigureLambdas -> addAll(other.implementations)
-            else -> add(other)
-        }
-    })
-
-val kotlinFunctionAsConfigureLambda: ConfigureLambdaHandler = object : ConfigureLambdaHandler {
-    override fun isConfigureLambda(type: KType): Boolean = isConfigureLambdaType(type)
-    override fun isConfigureLambdaForType(configuredType: KType, maybeLambdaType: KType): Boolean = isConfigureLambdaType(maybeLambdaType, configuredType)
-    override fun produceNoopConfigureLambda(lambdaType: KType): Function1<Any, Unit> = {}
-
-    private fun isConfigureLambdaType(maybeLambdaType: KType) = isConfigureLambdaType(maybeLambdaType, Nothing::class.createType())
-
-    private fun isConfigureLambdaType(maybeLambdaType: KType, configuredType: KType) = maybeLambdaType.isSubtypeOf(configureLambdaTypeFor(configuredType))
-
-    private fun configureLambdaTypeFor(configuredType: KType) =
-        Function1::class.createType(
-            listOf(
-                KTypeProjection(KVariance.INVARIANT, configuredType),
-                KTypeProjection(KVariance.INVARIANT, Unit::class.createType())
-            )
-        )
-}
-
-class CompositeConfigureLambdas(internal val implementations: List<ConfigureLambdaHandler>) : ConfigureLambdaHandler {
-    override fun isConfigureLambda(type: KType): Boolean =
-        implementations.any { it.isConfigureLambda(type) }
-
-    override fun isConfigureLambdaForType(configuredType: KType, maybeLambdaType: KType): Boolean =
-        implementations.any { it.isConfigureLambdaForType(configuredType, maybeLambdaType) }
-
-    override fun produceNoopConfigureLambda(lambdaType: KType): Any {
-        val implementation = implementations.find { it.isConfigureLambda(lambdaType) }
-        when (implementation) {
-            null -> throw IllegalAccessException("none of the configure lambda handlers could produce an instance")
-            else -> return implementation.produceNoopConfigureLambda(lambdaType)
-        }
+internal fun KClassifier.toDataTypeRef(): DataTypeRef =
+    when (this) {
+        Unit::class -> DataType.UnitType.ref
+        Int::class -> DataType.IntDataType.ref
+        String::class -> DataType.StringDataType.ref
+        Boolean::class -> DataType.BooleanDataType.ref
+        Long::class -> DataType.LongDataType.ref
+        is KClass<*> -> DataTypeRef.Name(FqName.parse(java.name))
+        else -> error("unexpected type")
     }
-
-}
-
-fun treatInterfaceAsConfigureLambda(functionalInterface: KClass<*>): ConfigureLambdaHandler = object : ConfigureLambdaHandler {
-    private val typeParameters = functionalInterface.typeParameters
-    private val starProjectedType = functionalInterface.createType(typeParameters.map { KTypeProjection.STAR })
-
-    private fun interfaceTypeWithArgument(typeArgument: KType): KType {
-        val inTypeProjection = KTypeProjection.contravariant(typeArgument)
-        return functionalInterface.createType(functionalInterface.typeParameters.map { inTypeProjection })
-    }
-
-    init {
-        check(functionalInterface.java.isInterface)
-        check(typeParameters.size <= 1) { "generic types with more than one type parameter are not supported" }
-    }
-
-    override fun isConfigureLambda(type: KType): Boolean =
-        type.isSubtypeOf(starProjectedType)
-
-    override fun isConfigureLambdaForType(configuredType: KType, maybeLambdaType: KType) =
-        maybeLambdaType.isSubtypeOf(interfaceTypeWithArgument(configuredType))
-
-    override fun produceNoopConfigureLambda(lambdaType: KType): Any =
-        if (lambdaType.isSubtypeOf(starProjectedType)) {
-            noopConfigureLambdaInstance
-        } else throw IllegalArgumentException("requested lambda type $lambdaType is not a subtype of the interface $starProjectedType")
-
-    private val noopConfigureLambdaInstance: Any by lazy {
-        Proxy.newProxyInstance(
-            functionalInterface.java.classLoader,
-            arrayOf(functionalInterface.java)
-        ) { _, _, _ -> }
-    }
-}
