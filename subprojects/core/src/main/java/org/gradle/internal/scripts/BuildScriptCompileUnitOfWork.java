@@ -30,7 +30,6 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import static java.util.Objects.requireNonNull;
 
@@ -38,13 +37,6 @@ import static java.util.Objects.requireNonNull;
  * A base class that represents a work for compilation for Kotlin and Groovy scripts.
  */
 public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWork {
-
-    public enum BuildScriptLanguage {
-        GROOVY,
-        KOTLIN
-    }
-
-    private static final String BUILD_SCRIPT_LANGUAGE = "buildScriptLanguage";
 
     private final ImmutableWorkspaceProvider workspaceProvider;
     private final FileCollectionFactory fileCollectionFactory;

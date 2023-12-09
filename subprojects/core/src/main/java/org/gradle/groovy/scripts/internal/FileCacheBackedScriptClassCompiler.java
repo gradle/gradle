@@ -70,7 +70,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private final ScriptCompilationHandler scriptCompilationHandler;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final CachedClasspathTransformer classpathTransformer;
-    private final ExecutionEngine executionEngine;
+    private final ExecutionEngine earlyExecutionEngine;
     private final FileCollectionFactory fileCollectionFactory;
     private final InputFingerprinter inputFingerprinter;
     private final ImmutableWorkspaceProvider workspaceProvider;
@@ -79,7 +79,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         ScriptCompilationHandler scriptCompilationHandler,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         CachedClasspathTransformer classpathTransformer,
-        ExecutionEngine executionEngine,
+        ExecutionEngine earlyExecutionEngine,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
         ImmutableWorkspaceProvider workspaceProvider
@@ -87,7 +87,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.classpathTransformer = classpathTransformer;
-        this.executionEngine = executionEngine;
+        this.earlyExecutionEngine = earlyExecutionEngine;
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
         this.workspaceProvider = workspaceProvider;
@@ -95,11 +95,9 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
 
     @Override
     public <T extends Script, M> CompiledScript<T, M> compile(
-        final Object target,
-        final ScriptSource source,
+        final ScriptSource source, final Class<T> scriptBaseClass, final Object target,
         final ClassLoaderScope targetScope,
         final CompileOperation<M> operation,
-        final Class<T> scriptBaseClass,
         final Action<? super ClassNode> verifier
     ) {
         assert source.getResource().isContentCached();
@@ -108,6 +106,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         }
 
         String dslId = operation.getId();
+        // TODO: Figure if execution engine should calculate the source hash on its own
         HashCode sourceHashCode = source.getResource().getContentHash();
         RemappingScriptSource remapped = new RemappingScriptSource(source);
         ClassLoader classLoader = targetScope.getExportClassLoader();
@@ -115,6 +114,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
 
         File genericClassesDir = classesDir(outputDir, operation);
         File metadataDir = metadataDir(outputDir);
+        // TODO: Move instrumentation to the execution engine and remove the remapping or move remapping to the non-cacheable unit of work
         ClassPath remappedClasses = remapClasses(genericClassesDir, remapped);
         return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, remappedClasses, metadataDir, operation, scriptBaseClass);
     }
@@ -146,11 +146,20 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             .get();
     }
 
+    /**
+     * We want to use build cache for script compilation, but build cache might not be available yet with early execution engine.
+     * Thus settings and init scripts are not using build cache for now.<br/><br/>
+     *
+     * When we compile project build scripts, build cache is available, but we need to query execution engine with build cache support
+     * from the project services directly to use it.<br/><br/>
+     *
+     * TODO: Remove this and just inject execution engine once we unify execution engines in https://github.com/gradle/gradle/issues/27249
+     */
     private ExecutionEngine getExecutionEngine(Object target) {
         if (target instanceof ProjectInternal) {
             return ((ProjectInternal) target).getServices().get(ExecutionEngine.class);
         }
-        return executionEngine;
+        return earlyExecutionEngine;
     }
 
     private ClassPath remapClasses(File genericClassesDir, RemappingScriptSource source) {
