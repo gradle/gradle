@@ -17,12 +17,11 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.BuildOperationTreeFixture
 import org.gradle.integtests.fixtures.BuildOperationTreeQueries
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
-import org.gradle.internal.operations.trace.BuildOperationTrace
 import org.gradle.internal.scripts.CompileScriptBuildOperationType
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
@@ -41,17 +40,11 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
     File remappedCachesDir
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
-    String operationsBasePath
-
+    def buildOperations = new BuildOperationsFixture(executer, testDirectoryProvider)
     private TestFile homeDirectory = testDirectoryProvider.getTestDirectory().file("user-home")
 
     def setup() {
         executer.requireOwnGradleUserHomeDir()
-        // We could use BuildOperationsFixture but does not work well with parallel executions
-        operationsBasePath = testDirectoryProvider.testDirectory.file("operations").absolutePath
-        executer.beforeExecute {
-            executer.withArgument("-D$BuildOperationTrace.SYSPROP=$operationsBasePath")
-        }
         root = new FileTreeBuilder(testDirectory)
         cachesDir = new File(homeDirectory, 'caches')
         def versionCaches = new File(cachesDir, GradleVersion.current().version)
@@ -352,11 +345,8 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         buildFile << """
             tasks.register("fastTask") {}
         """
-        def fastBuildOperationsFile = testDirectoryProvider.testDirectory.file("operations-2").absolutePath
-        executer.beforeExecute {
-            // Don't write to the same file as the first process, as that blocks execution on Windows
-            executer.withArgument("-D$BuildOperationTrace.SYSPROP=$fastBuildOperationsFile")
-        }
+        // Don't write to the same file as the first process, as that blocks execution on Windows
+        def fastBuildOperations = new BuildOperationsFixture(executer, testDirectoryProvider, "operations-2")
         def fast = executer.withTasks("fastTask").run()
 
         assert longRunning.isRunning()
@@ -366,7 +356,6 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         then:
         def scripts = scriptDetails(fast.output)
         scriptHasChanged(":", before, scripts)
-        def fastBuildOperations = new BuildOperationTreeFixture(BuildOperationTrace.read(fastBuildOperationsFile))
         getCompileBuildFileOperationsCount(fastBuildOperations) == 2 // classpath + body for fast task
         getCompileBuildFileOperationsCount() == 2 // classpath + body for long running task
     }
@@ -655,7 +644,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     int getCompileBuildFileOperationsCount() {
-        return getCompileBuildFileOperationsCount(new BuildOperationTreeFixture(BuildOperationTrace.read(operationsBasePath)))
+        return getCompileBuildFileOperationsCount(buildOperations)
     }
 
     int getCompileBuildFileOperationsCount(BuildOperationTreeQueries buildOperations) {
