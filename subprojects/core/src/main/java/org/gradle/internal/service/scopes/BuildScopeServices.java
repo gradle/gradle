@@ -119,7 +119,7 @@ import org.gradle.groovy.scripts.internal.BuildScopeInMemoryCachingScriptClassCo
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
 import org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler;
 import org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory;
-import org.gradle.groovy.scripts.internal.FileCacheBackedScriptClassCompiler;
+import org.gradle.groovy.scripts.internal.GroovyScriptClassCompiler;
 import org.gradle.groovy.scripts.internal.GroovyDslWorkspaceProvider;
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
 import org.gradle.groovy.scripts.internal.ScriptSourceListener;
@@ -449,7 +449,7 @@ public class BuildScopeServices extends ScopedServiceRegistry {
     }
 
     protected ScriptCompilerFactory createScriptCompileFactory(
-        FileCacheBackedScriptClassCompiler scriptCompiler,
+        GroovyScriptClassCompiler scriptCompiler,
         CrossBuildInMemoryCachingScriptClassCache cache,
         ScriptRunnerFactory scriptRunnerFactory
     ) {
@@ -459,7 +459,7 @@ public class BuildScopeServices extends ScopedServiceRegistry {
         );
     }
 
-    protected FileCacheBackedScriptClassCompiler createFileCacheBackedScriptClassCompiler(
+    protected GroovyScriptClassCompiler createFileCacheBackedScriptClassCompiler(
         BuildOperationExecutor buildOperationExecutor,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         DefaultScriptCompilationHandler scriptCompilationHandler,
@@ -469,7 +469,7 @@ public class BuildScopeServices extends ScopedServiceRegistry {
         InputFingerprinter inputFingerprinter,
         GroovyDslWorkspaceProvider  groovyDslWorkspaceProvider
     ) {
-        return new FileCacheBackedScriptClassCompiler(
+        return new GroovyScriptClassCompiler(
             new BuildOperationBackedScriptCompilationHandler(scriptCompilationHandler, buildOperationExecutor),
             classLoaderHierarchyHasher,
             classpathTransformer,

@@ -62,7 +62,7 @@ import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardT
 /**
  * A {@link ScriptClassCompiler} which compiles scripts to a cache directory, and loads them from there.
  */
-public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, Closeable {
+public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable {
     private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
     private static final String CLASSPATH_PROPERTY_NAME = "classpath";
     private static final String DSL_ID_PROPERTY_NAME = "dslId";
@@ -75,7 +75,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private final InputFingerprinter inputFingerprinter;
     private final ImmutableWorkspaceProvider workspaceProvider;
 
-    public FileCacheBackedScriptClassCompiler(
+    public GroovyScriptClassCompiler(
         ScriptCompilationHandler scriptCompilationHandler,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         CachedClasspathTransformer classpathTransformer,
@@ -168,7 +168,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         return classpathTransformer.transform(DefaultClassPath.of(genericClassesDir), BuildLogic, new ClassTransform() {
             @Override
             public void applyConfigurationTo(Hasher hasher) {
-                hasher.putString(FileCacheBackedScriptClassCompiler.class.getSimpleName());
+                hasher.putString(GroovyScriptClassCompiler.class.getSimpleName());
                 hasher.putInt(1); // transformation version
                 hasher.putString(className);
             }
