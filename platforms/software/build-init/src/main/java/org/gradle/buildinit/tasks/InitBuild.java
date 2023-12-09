@@ -81,6 +81,8 @@ public abstract class InitBuild extends DefaultTask {
 
     /**
      * Disables interactive dialog, ensuring no user input is required to complete the command.
+     * <p>
+     * This property can be set via the command-line options '--no-dialog' and '--dialog'.
      *
      * @since 8.6
      */
