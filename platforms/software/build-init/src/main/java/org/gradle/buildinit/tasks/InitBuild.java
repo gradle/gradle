@@ -92,9 +92,15 @@ public abstract class InitBuild extends DefaultTask {
     public abstract Property<Boolean> getNoDialog();
 
     /**
-     * The desired type of project to generate, defaults to 'pom' if a 'pom.xml' is found in the project root and if no 'pom.xml' is found, it defaults to 'basic'.
-     *
+     * The desired type of project to generate like 'java-application' or 'kotlin-library'.
+     * <p>
      * This property can be set via command-line option '--type'.
+     * <p>
+     * Defaults to 'basic' - a minimal scaffolding, following Gradle best practices.
+     * If a `pom.xml` is found in the project root directory, the type defaults to 'pom'
+     * and the existing project is converted to Gradle.
+     * <p>
+     * Possible values for the option are provided by {@link #getAvailableBuildTypes()}.
      */
     @Input
     public String getType() {
