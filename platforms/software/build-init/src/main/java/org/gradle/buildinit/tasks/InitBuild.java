@@ -66,7 +66,6 @@ public abstract class InitBuild extends DefaultTask {
     private static final int MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API = 7;
 
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
-    private final Property<Boolean> noDialog = getProject().getObjects().property(Boolean.class);
     private String type;
     private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);
     private String dsl;
@@ -90,9 +89,7 @@ public abstract class InitBuild extends DefaultTask {
     @Input
     @Optional
     @Option(option = "no-dialog", description = "Disable interactive dialog, use default values when none explicitly specified")
-    public Property<Boolean> getNoDialog() {
-        return noDialog;
-    }
+    public abstract Property<Boolean> getNoDialog();
 
     /**
      * The desired type of project to generate, defaults to 'pom' if a 'pom.xml' is found in the project root and if no 'pom.xml' is found, it defaults to 'basic'.
@@ -267,6 +264,7 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private UserInputHandler getEffectiveInputHandler() {
+        Property<Boolean> noDialog = getNoDialog();
         if (noDialog.isPresent() && noDialog.get()) {
             return new NonInteractiveUserInputHandler();
         }
