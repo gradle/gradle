@@ -31,8 +31,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -285,7 +283,7 @@ public class WatchableHierarchies {
     private class RemoveUnwatchedFiles implements FileSystemSnapshotHierarchyVisitor {
         private SnapshotHierarchy root;
         private final Invalidator invalidator;
-        private final Map<Path, Boolean> parentSymlinkCache = new HashMap<>();
+        private final Map<File, Boolean> parentSymlinkCache = new HashMap<>();
 
         public RemoveUnwatchedFiles(SnapshotHierarchy root, Invalidator invalidator) {
             this.root = root;
@@ -307,32 +305,36 @@ public class WatchableHierarchies {
          * (directly or indirectly) via a symlink.
          */
         private boolean shouldKeep(FileSystemLocationSnapshot snapshot) {
-            // Checks in order of decreasing effort
-            return snapshot.getAccessType() != FileMetadata.AccessType.VIA_SYMLINK
-                && isTrustedLocation(snapshot.getAbsolutePath())
-                && !isAnyParentASymlink(Paths.get(snapshot.getAbsolutePath()));
+            // Keep everything in immutable locations, because Gradle makes sure
+            // to update the VFS when it updates those locations
+            if (immutableLocationsFilter.test(snapshot.getAbsolutePath())) {
+                return true;
+            }
+
+            // If it's not being watched, discard it, as we can't trust the VFS for these
+            if (!isInWatchableHierarchy(snapshot.getAbsolutePath())) {
+                return false;
+            }
+
+            // Only keep it if it's accessed directly, as we are not being notified about
+            // changes to content accessed via symlinks
+            return !isAccessedViaSymlink(snapshot);
         }
 
-        /**
-         * We trust locations that we watch as well as immutable locations.
-         */
-        private boolean isTrustedLocation(String absolutePath) {
-            return isInWatchableHierarchy(absolutePath)
-                || immutableLocationsFilter.test(absolutePath);
-        }
-
-        private boolean isAnyParentASymlink(Path absolutePath) {
-            Path rootPath = absolutePath.getRoot();
-            Path currentPath = absolutePath;
+        private boolean isAccessedViaSymlink(FileSystemLocationSnapshot snapshot) {
+            if (snapshot.getAccessType() == FileMetadata.AccessType.VIA_SYMLINK) {
+                return true;
+            }
+            File current = new File(snapshot.getAbsolutePath());
             while (true) {
-                Path parentPath = currentPath.getParent();
-                if (parentPath.equals(rootPath)) {
+                File parent = current.getParentFile();
+                if (parent == null) {
                     return false;
                 }
-                if (parentSymlinkCache.computeIfAbsent(parentPath, Files::isSymbolicLink)) {
+                if (parentSymlinkCache.computeIfAbsent(parent, __ -> Files.isSymbolicLink(parent.toPath()))) {
                     return true;
                 }
-                currentPath = parentPath;
+                current = parent;
             }
         }
 
