@@ -19,38 +19,46 @@ package org.gradle.caching.internal.operations;
 import org.gradle.internal.operations.BuildOperationType;
 
 /**
- * A store operation to a build cache.
+ * A load operation from the local build cache.
  *
- * A store operation may actually store or fail.
- * Store operation results and failures are mutually exclusive.
+ * A load operation may HIT or MISS.
+ * It may also fail.
+ * Load operation results and failures are mutually exclusive.
+ *
+ * @since 8.6
  */
-public final class BuildCacheRemoteStoreBuildOperationType implements BuildOperationType<BuildCacheRemoteStoreBuildOperationType.Details, BuildCacheRemoteStoreBuildOperationType.Result> {
+public final class BuildCacheLocalLoadBuildOperationType implements BuildOperationType<BuildCacheLocalLoadBuildOperationType.Details, BuildCacheLocalLoadBuildOperationType.Result> {
 
     public interface Details {
 
         /**
          * The cache key.
+         *
+         * @since 8.6
          */
         String getCacheKey();
-
-        /**
-         * The number of bytes of the stored cache artifact.
-         */
-        long getArchiveSize();
 
     }
 
     public interface Result {
 
         /**
-         * Whether the entry has actually been stored.
-         * <p>
-         * The cache might not store some entries, e.g. when they are too large.
+         * Whether the load has been a hit.
+         *
+         * @since 8.6
          */
-        boolean isStored();
+        boolean isHit();
+
+        /**
+         * The number of bytes of the cache artifact if it was a hit.
+         * Else undetermined.
+         *
+         * @since 8.6
+         */
+        long getArchiveSize();
 
     }
 
-    private BuildCacheRemoteStoreBuildOperationType() {
+    private BuildCacheLocalLoadBuildOperationType() {
     }
 }

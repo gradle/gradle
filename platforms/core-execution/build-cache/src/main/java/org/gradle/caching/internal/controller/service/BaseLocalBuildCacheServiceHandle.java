@@ -26,12 +26,12 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
-public class DefaultLocalBuildCacheServiceHandle implements LocalBuildCacheServiceHandle {
+public class BaseLocalBuildCacheServiceHandle implements LocalBuildCacheServiceHandle {
 
     private final LocalBuildCacheService service;
     private final boolean pushEnabled;
 
-    public DefaultLocalBuildCacheServiceHandle(LocalBuildCacheService service, boolean pushEnabled) {
+    public BaseLocalBuildCacheServiceHandle(LocalBuildCacheService service, boolean pushEnabled) {
         this.service = service;
         this.pushEnabled = pushEnabled;
     }
@@ -57,10 +57,14 @@ public class DefaultLocalBuildCacheServiceHandle implements LocalBuildCacheServi
     @Override
     public boolean maybeStore(BuildCacheKey key, File file) {
         if (canStore()) {
-            service.storeLocally(key, file);
+            storeInner(key, file);
             return true;
         }
         return false;
+    }
+
+    protected void storeInner(BuildCacheKey key, File file) {
+        service.storeLocally(key, file);
     }
 
     @Override
