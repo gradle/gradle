@@ -16,6 +16,7 @@
 
 package org.gradle.internal.watch.registry.impl;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.Combiners;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileMetadata;
@@ -116,18 +117,42 @@ public class WatchableHierarchies {
         List<File> unsupportedFileSystems,
         Invalidator invalidator
     ) {
-        SnapshotHierarchy newRoot;
-        newRoot = removeWatchedHierarchiesOverLimit(root, isWatchedHierarchy, maximumNumberOfWatchedHierarchies, invalidator);
-        newRoot = removeUnwatchedSnapshots(newRoot, invalidator);
+        SnapshotHierarchy newRoot = root;
+        newRoot = removeWatchedHierarchiesOverLimit(newRoot, isWatchedHierarchy, maximumNumberOfWatchedHierarchies, invalidator);
         if (!unsupportedFileSystems.isEmpty()) {
             newRoot = removeUnwatchableFileSystems(newRoot, unsupportedFileSystems, invalidator);
         }
+        newRoot = removeIndirectlySymlinkedRoots(newRoot, invalidator);
+        newRoot = removeUnwatchedSnapshotsAndDirectSymlinks(newRoot, invalidator);
         watchableHierarchiesSinceLastBuildFinish.clear();
         return newRoot;
     }
 
+    private SnapshotHierarchy removeIndirectlySymlinkedRoots(SnapshotHierarchy root, Invalidator invalidator) {
+        Map<String, Boolean> symlinkCache = new HashMap<>();
+        List<String> absolutePathsToEvict = root.rootSnapshots()
+            .map(FileSystemLocationSnapshot::getAbsolutePath)
+            .filter(absolutePath -> isParentAccessedViaSymlink(symlinkCache, new File(absolutePath)))
+            .collect(ImmutableList.toImmutableList());
+        for (String absolutePath : absolutePathsToEvict) {
+            root = invalidator.invalidate(absolutePath, root);
+        }
+        return root;
+    }
+
+    private boolean isParentAccessedViaSymlink(Map<String, Boolean> symlinkCache, File file) {
+        File parent = file.getParentFile();
+        if (parent == null) {
+            return false;
+        }
+        if (isParentAccessedViaSymlink(symlinkCache, parent)) {
+            return true;
+        }
+        return symlinkCache.computeIfAbsent(parent.getAbsolutePath(), __ -> Files.isSymbolicLink(parent.toPath()));
+    }
+
     @CheckReturnValue
-    private SnapshotHierarchy removeUnwatchedSnapshots(SnapshotHierarchy root, Invalidator invalidator) {
+    private SnapshotHierarchy removeUnwatchedSnapshotsAndDirectSymlinks(SnapshotHierarchy root, Invalidator invalidator) {
         RemoveUnwatchedFiles removeUnwatchedFilesVisitor = new RemoveUnwatchedFiles(root, invalidator);
         root.rootSnapshots()
             .forEach(snapshotRoot -> snapshotRoot.accept(removeUnwatchedFilesVisitor));
@@ -283,7 +308,6 @@ public class WatchableHierarchies {
     private class RemoveUnwatchedFiles implements FileSystemSnapshotHierarchyVisitor {
         private SnapshotHierarchy root;
         private final Invalidator invalidator;
-        private final Map<String, Boolean> symlinkCache = new HashMap<>();
 
         public RemoveUnwatchedFiles(SnapshotHierarchy root, Invalidator invalidator) {
             this.root = root;
@@ -301,8 +325,7 @@ public class WatchableHierarchies {
         }
 
         /**
-         * We keep snapshots if they are both in a trusted location and are not accessed
-         * (directly or indirectly) via a symlink.
+         * We keep snapshots if they are both in a trusted location and are not accessed via a symlink.
          */
         private boolean shouldKeep(FileSystemLocationSnapshot snapshot) {
             // Keep everything in immutable locations, because Gradle makes sure
@@ -318,26 +341,7 @@ public class WatchableHierarchies {
 
             // Only keep it if it's accessed directly, as we are not being notified about
             // changes to content accessed via symlinks
-            return !isAccessedViaSymlink(snapshot);
-        }
-
-        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-        private boolean isAccessedViaSymlink(FileSystemLocationSnapshot snapshot) {
-            if (snapshot.getAccessType() == FileMetadata.AccessType.VIA_SYMLINK) {
-                return true;
-            }
-            return isParentAccessedViaSymlink(new File(snapshot.getAbsolutePath()));
-        }
-
-        private boolean isParentAccessedViaSymlink(File file) {
-            File parent = file.getParentFile();
-            if (parent == null) {
-                return false;
-            }
-            if (isParentAccessedViaSymlink(parent)) {
-                return true;
-            }
-            return symlinkCache.computeIfAbsent(parent.getAbsolutePath(), __ -> Files.isSymbolicLink(parent.toPath()));
+            return snapshot.getAccessType() != FileMetadata.AccessType.VIA_SYMLINK;
         }
 
         private void invalidateUnwatchedFile(FileSystemLocationSnapshot snapshot) {
