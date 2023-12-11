@@ -32,11 +32,15 @@ public final class BuildCacheLocalStoreBuildOperationType implements BuildOperat
 
         /**
          * The cache key.
+         *
+         * @since 8.6
          */
         String getCacheKey();
 
         /**
          * The number of bytes of the stored cache artifact.
+         *
+         * @since 8.6
          */
         long getArchiveSize();
 
@@ -44,6 +48,11 @@ public final class BuildCacheLocalStoreBuildOperationType implements BuildOperat
 
     public interface Result {
 
+        /**
+         * Whether the entry has actually been stored.
+         *
+         * @since 8.6
+         */
         boolean isStored();
 
     }

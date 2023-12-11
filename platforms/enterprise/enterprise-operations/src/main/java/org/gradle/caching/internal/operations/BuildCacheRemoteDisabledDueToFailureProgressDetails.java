@@ -28,29 +28,45 @@ public interface BuildCacheRemoteDisabledDueToFailureProgressDetails {
      * The identifier of the configuration of the remote build cache.
      * <p>
      * For Gradle, this is the buildPath of build that configured the remote build cache in use.
+     *
+     * @since 8.6
      */
     String getBuildCacheConfigurationIdentifier();
 
     /**
      * The cache key.
+     *
+     * @since 8.6
      */
     String getCacheKey();
 
     /**
      * The failure that caused the build cache to be disabled.
+     *
+     * @since 8.6
      */
     Throwable getFailure();
 
     /**
      * The type of operation that had the failure.
+     *
+     * @since 8.6
      */
     BuildCacheOperationType getOperationType();
 
     /**
      * The type of build cache operation.
+     *
+     * @since 8.6
      */
     enum BuildCacheOperationType {
+        /**
+         * @since 8.6
+         */
         LOAD,
+        /**
+         * @since 8.6
+         */
         STORE
     }
 }

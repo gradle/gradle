@@ -33,6 +33,8 @@ public final class BuildCacheLocalLoadBuildOperationType implements BuildOperati
 
         /**
          * The cache key.
+         *
+         * @since 8.6
          */
         String getCacheKey();
 
@@ -40,11 +42,18 @@ public final class BuildCacheLocalLoadBuildOperationType implements BuildOperati
 
     public interface Result {
 
+        /**
+         * Whether the load has been a hit.
+         *
+         * @since 8.6
+         */
         boolean isHit();
 
         /**
          * The number of bytes of the cache artifact if it was a hit.
          * Else undetermined.
+         *
+         * @since 8.6
          */
         long getArchiveSize();
 
