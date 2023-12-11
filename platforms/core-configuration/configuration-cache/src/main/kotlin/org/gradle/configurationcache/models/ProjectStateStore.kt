@@ -27,7 +27,6 @@ import org.gradle.internal.serialize.Encoder
 import org.gradle.util.Path
 import java.io.Closeable
 import java.util.Collections
-import java.util.HashSet
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 
@@ -83,14 +82,8 @@ abstract class ProjectStateStore<K, V>(
     }
 
     fun visitProjects(reusedProjects: Consumer<Path>, updatedProjects: Consumer<Path>) {
+        val previousProjects = previousValues.keys.mapNotNullTo(hashSetOf()) { projectPathForKey(it) }
         val currentProjects = currentValues.keys.mapNotNull { projectPathForKey(it) }
-        val previousProjects = HashSet<Path>()
-        for (key in previousValues.keys) {
-            val path = projectPathForKey(key)
-            if (path != null) {
-                previousProjects.add(path)
-            }
-        }
         for (path in currentProjects) {
             if (previousProjects.contains(path)) {
                 reusedProjects.accept(path)
