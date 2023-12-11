@@ -73,7 +73,7 @@ public interface FileWatcherRegistry extends Closeable {
 
     /**
      * Updates the VFS and the watchers when the build finished.
-
+     *
      * For example, this removes everything from the root which can't be kept after the current build finished.
      * This is anything which is not within a watchable hierarchy or in a cache directory.
      *
