@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
@@ -67,6 +66,7 @@ import org.objectweb.asm.Type;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -489,7 +489,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         }
 
         Multimap<String, ModelProperty<?>> viewPropertiesByNameBuilder = ArrayListMultimap.create();
-        Set<Wrapper<Method>> viewMethods = Sets.newLinkedHashSet();
+        Set<Wrapper<Method>> viewMethods = new LinkedHashSet<>();
         for (StructSchema<?> viewSchema : bindings.getImplementedViewSchemas()) {
             for (ModelType<?> viewType : viewTypes) {
                 if (viewType.equals(viewSchema.getType())) {

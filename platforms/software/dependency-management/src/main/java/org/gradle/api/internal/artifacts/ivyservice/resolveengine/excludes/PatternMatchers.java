@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
-import com.google.common.collect.Maps;
 import org.apache.ivy.plugins.matcher.ExactOrRegexpPatternMatcher;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.GlobPatternMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.matcher.RegexpPatternMatcher;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class PatternMatchers {
@@ -38,7 +38,7 @@ public class PatternMatchers {
 
     private static PatternMatchers instance;
 
-    private final Map<String, PatternMatcher> matchers = Maps.newHashMap();
+    private final Map<String, PatternMatcher> matchers = new HashMap<>();
 
     private PatternMatchers() {
         addMatcher(ExactPatternMatcher.INSTANCE);

@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal.swift;
 
-import com.google.common.collect.Maps;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
@@ -44,6 +43,7 @@ import org.gradle.platform.base.internal.toolchain.ToolChainAvailability;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -56,7 +56,7 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
     private final ToolSearchPath toolSearchPath;
     private final ExecActionFactory execActionFactory;
     private final WorkerLeaseService workerLeaseService;
-    private final Map<NativePlatform, PlatformToolProvider> toolProviders = Maps.newHashMap();
+    private final Map<NativePlatform, PlatformToolProvider> toolProviders = new HashMap<>();
 
     public SwiftcToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, PathToFileResolver fileResolver, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CompilerMetaDataProvider<SwiftcMetadata> compilerMetaDataProvider, Instantiator instantiator, WorkerLeaseService workerLeaseService) {
         this(name, buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, new ToolSearchPath(operatingSystem), compilerMetaDataProvider, instantiator, workerLeaseService);

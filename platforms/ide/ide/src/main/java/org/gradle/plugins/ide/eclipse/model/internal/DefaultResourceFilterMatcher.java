@@ -16,7 +16,6 @@
 package org.gradle.plugins.ide.eclipse.model.internal;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
@@ -25,12 +24,13 @@ import org.gradle.plugins.ide.eclipse.model.ResourceFilterMatcher;
 import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.annotation.Nullable;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public final class DefaultResourceFilterMatcher implements ResourceFilterMatcher {
     private String id;
     private String arguments;
-    private Set<ResourceFilterMatcher> children = Sets.newLinkedHashSet();
+    private Set<ResourceFilterMatcher> children = new LinkedHashSet<>();
 
     public DefaultResourceFilterMatcher() {
     }

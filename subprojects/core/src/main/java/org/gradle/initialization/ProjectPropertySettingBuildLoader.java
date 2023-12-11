@@ -30,10 +30,10 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static com.google.common.collect.Maps.newHashMap;
 import static java.util.Collections.emptyMap;
 import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -95,7 +95,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
      */
     private static class CachingPropertyApplicator {
         private final Class<? extends Project> projectClass;
-        private final Map<Pair<String, ? extends Class<?>>, PropertyMutator> mutators = newHashMap();
+        private final Map<Pair<String, ? extends Class<?>>, PropertyMutator> mutators = new HashMap<>();
 
         CachingPropertyApplicator(Class<? extends Project> projectClass) {
             this.projectClass = projectClass;

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.query;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -66,6 +65,8 @@ import org.gradle.util.internal.CollectionUtils;
 import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -78,9 +79,9 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private final ImmutableAttributesFactory attributesFactory;
     private final ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor;
 
-    private final Set<ComponentIdentifier> componentIds = Sets.newLinkedHashSet();
+    private final Set<ComponentIdentifier> componentIds = new LinkedHashSet<>();
     private Class<? extends Component> componentType;
-    private final Set<Class<? extends Artifact>> artifactTypes = Sets.newLinkedHashSet();
+    private final Set<Class<? extends Artifact>> artifactTypes = new LinkedHashSet<>();
 
     public DefaultArtifactResolutionQuery(
         ConfigurationContainerInternal configurationContainer,
@@ -150,7 +151,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     }
 
     private ArtifactResolutionResult createResult(ComponentMetaDataResolver componentMetaDataResolver, ArtifactResolver artifactResolver) {
-        Set<ComponentResult> componentResults = Sets.newHashSet();
+        Set<ComponentResult> componentResults = new HashSet<>();
 
         for (ComponentIdentifier componentId : componentIds) {
             try {

@@ -16,9 +16,9 @@
 
 package org.gradle.nativeplatform.test.xctest.internal.execution;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,7 +26,7 @@ import java.util.List;
  */
 class XCTestDescriptor {
     private final TestDescriptorInternal descriptorInternal;
-    private final List<String> messages = Lists.newArrayList();
+    private final List<String> messages = new ArrayList<>();
 
     public XCTestDescriptor(TestDescriptorInternal descriptorInternal) {
         this.descriptorInternal = descriptorInternal;

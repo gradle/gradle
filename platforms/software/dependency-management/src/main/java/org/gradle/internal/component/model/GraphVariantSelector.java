@@ -19,7 +19,6 @@ package org.gradle.internal.component.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.attributes.Attribute;
@@ -42,6 +41,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -306,7 +306,7 @@ public class GraphVariantSelector {
     }
 
     private static class TraceDiscardedConfigurations implements AttributeMatchingExplanationBuilder {
-        private final Set<HasAttributes> discarded = Sets.newHashSet();
+        private final Set<HasAttributes> discarded = new HashSet<>();
 
         @Override
         public boolean canSkipExplanation() {

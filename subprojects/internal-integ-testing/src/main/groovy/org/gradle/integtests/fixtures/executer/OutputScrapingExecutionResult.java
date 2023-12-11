@@ -16,7 +16,6 @@
 package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 import org.gradle.internal.Pair;
@@ -67,7 +66,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     private Set<String> tasks;
 
     public static List<String> flattenTaskPaths(Object[] taskPaths) {
-        return CollectionUtils.toStringList(GUtil.flatten(taskPaths, Lists.newArrayList()));
+        return CollectionUtils.toStringList(GUtil.flatten(taskPaths, new ArrayList<>()));
     }
 
     /**
@@ -440,8 +439,8 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     private List<String> grepTasks(final Pattern pattern) {
-        final List<String> tasks = Lists.newArrayList();
-        final List<String> taskStatusLines = Lists.newArrayList();
+        final List<String> tasks = new ArrayList<>();
+        final List<String> taskStatusLines = new ArrayList<>();
 
         getMainContent().eachLine(line -> {
             java.util.regex.Matcher matcher = pattern.matcher(line);

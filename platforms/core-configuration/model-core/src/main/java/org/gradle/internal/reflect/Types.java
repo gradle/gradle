@@ -17,11 +17,11 @@
 package org.gradle.internal.reflect;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 import org.gradle.internal.Cast;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
 
@@ -46,7 +46,7 @@ public class Types {
      * @param visitor the visitor to call for each type in the hierarchy.
      */
     public static <T> void walkTypeHierarchy(Class<T> clazz, Collection<Class<?>> excludedTypes, TypeVisitor<? extends T> visitor) {
-        Set<Class<?>> seenInterfaces = Sets.newHashSet();
+        Set<Class<?>> seenInterfaces = new HashSet<>();
         Queue<Class<? super T>> queue = new ArrayDeque<Class<? super T>>();
         queue.add(clazz);
         Class<? super T> type;

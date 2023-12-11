@@ -17,7 +17,6 @@
 package org.gradle.model.internal.registry;
 
 import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
@@ -27,9 +26,11 @@ import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 class ModelGraph {
     private enum PendingState {
@@ -37,14 +38,14 @@ class ModelGraph {
     }
 
     private final ModelNodeInternal root;
-    private final Map<ModelPath, ModelNodeInternal> flattened = Maps.newTreeMap();
+    private final Map<ModelPath, ModelNodeInternal> flattened = new TreeMap<>();
     private final SetMultimap<ModelPath, ModelListener> pathListeners = LinkedHashMultimap.create();
     private final SetMultimap<ModelPath, ModelListener> parentListeners = LinkedHashMultimap.create();
     private final SetMultimap<ModelPath, ModelListener> ancestorListeners = LinkedHashMultimap.create();
     private final Set<ModelListener> listeners = new LinkedHashSet<ModelListener>();
     private boolean notifying;
     private final Deque<ModelListener> pendingListeners = new ArrayDeque<>();
-    private final Map<ModelNodeInternal, PendingState> pendingNodes = Maps.newLinkedHashMap();
+    private final Map<ModelNodeInternal, PendingState> pendingNodes = new LinkedHashMap<>();
 
     public ModelGraph(ModelNodeInternal rootNode) {
         this.root = rootNode;

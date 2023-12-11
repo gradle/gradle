@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.RepositoryAwareVerificationFailure;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.nio.file.Path;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -29,7 +29,7 @@ import java.util.Set;
  * a concise way on the console.
  */
 class SimpleTextDependencyVerificationReportRenderer extends AbstractTextDependencyVerificationReportRenderer {
-    private final Set<String> artifacts = Sets.newLinkedHashSet();
+    private final Set<String> artifacts = new LinkedHashSet<>();
 
     private ModuleComponentArtifactIdentifier artifact;
 

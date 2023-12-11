@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions;
 
-import com.google.common.collect.Maps;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class InMemoryModuleVersionsCache extends AbstractModuleVersionsCache {
-    private final Map<ModuleAtRepositoryKey, ModuleVersionsCacheEntry> inMemoryCache = Maps.newConcurrentMap();
+    private final Map<ModuleAtRepositoryKey, ModuleVersionsCacheEntry> inMemoryCache = new ConcurrentHashMap<>();
     private final AbstractModuleVersionsCache delegate;
 
     public InMemoryModuleVersionsCache(BuildCommencedTimeProvider timeProvider) {

@@ -18,17 +18,17 @@ package org.gradle.internal.normalization.java.impl;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
-import com.google.common.collect.Sets;
 import org.objectweb.asm.Type;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class MethodMember extends TypedMember implements Comparable<MethodMember> {
     private static final Ordering<Iterable<String>> LEXICOGRAPHICAL_ORDERING = Ordering.<String>natural().lexicographical();
-    private final SortedSet<String> exceptions = Sets.newTreeSet();
-    private final SortedSet<AnnotationMember> parameterAnnotations = Sets.newTreeSet();
+    private final SortedSet<String> exceptions = new TreeSet<>();
+    private final SortedSet<AnnotationMember> parameterAnnotations = new TreeSet<>();
 
     public MethodMember(int access, String name, String typeDesc, String signature, String[] exceptions) {
         super(access, name, signature, typeDesc);

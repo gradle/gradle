@@ -16,7 +16,6 @@
 package org.gradle.api.publish.internal.component;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
@@ -29,12 +28,13 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.inject.Inject;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
 public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants, SoftwareComponentInternal {
     private final String componentName;
-    private final Map<Configuration, ConfigurationVariantMapping> variants = Maps.newLinkedHashMapWithExpectedSize(4);
+    private final Map<Configuration, ConfigurationVariantMapping> variants = new LinkedHashMap<>(4);
     private final ObjectFactory objectFactory;
 
     private Set<UsageContext> cachedVariants;

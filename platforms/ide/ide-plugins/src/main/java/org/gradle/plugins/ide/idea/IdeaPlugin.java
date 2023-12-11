@@ -19,7 +19,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
@@ -67,10 +66,12 @@ import org.gradle.testing.base.TestingExtension;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -273,7 +274,7 @@ public abstract class IdeaPlugin extends IdePlugin {
         module.setName(defaultModuleName);
 
         ConventionMapping conventionMapping = ((IConventionAware) module).getConventionMapping();
-        Set<File> sourceDirs = Sets.newLinkedHashSet();
+        Set<File> sourceDirs = new LinkedHashSet<>();
         conventionMapping.map("sourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
@@ -286,28 +287,28 @@ public abstract class IdeaPlugin extends IdePlugin {
                 return project.getProjectDir();
             }
         });
-        Set<File> testSourceDirs = Sets.newLinkedHashSet();
+        Set<File> testSourceDirs = new LinkedHashSet<>();
         conventionMapping.map("testSourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
                 return testSourceDirs;
             }
         });
-        Set<File> resourceDirs = Sets.newLinkedHashSet();
+        Set<File> resourceDirs = new LinkedHashSet<>();
         conventionMapping.map("resourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() throws Exception {
                 return resourceDirs;
             }
         });
-        Set<File> testResourceDirs = Sets.newLinkedHashSet();
+        Set<File> testResourceDirs = new LinkedHashSet<>();
         conventionMapping.map("testResourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() throws Exception {
                 return testResourceDirs;
             }
         });
-        Set<File> excludeDirs = Sets.newLinkedHashSet();
+        Set<File> excludeDirs = new LinkedHashSet<>();
         conventionMapping.map("excludeDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
@@ -378,7 +379,7 @@ public abstract class IdeaPlugin extends IdePlugin {
 
         // Convention
         ConventionMapping convention = ((IConventionAware) ideaModel.getModule()).getConventionMapping();
-        Set<File> sourceDirs = Sets.newLinkedHashSet();
+        Set<File> sourceDirs = new LinkedHashSet<>();
         convention.map("sourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
@@ -387,7 +388,7 @@ public abstract class IdeaPlugin extends IdePlugin {
                 return sourceDirs;
             }
         });
-        Set<File> resourceDirs = Sets.newLinkedHashSet();
+        Set<File> resourceDirs = new LinkedHashSet<>();
         convention.map("resourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
@@ -427,11 +428,11 @@ public abstract class IdeaPlugin extends IdePlugin {
     }
 
     private void setupScopes(JvmFeatureInternal mainFeature, JvmTestSuite defaultTestSuite) {
-        Map<String, Map<String, Collection<Configuration>>> scopes = Maps.newLinkedHashMap();
+        Map<String, Map<String, Collection<Configuration>>> scopes = new LinkedHashMap<>();
         for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
-            Map<String, Collection<Configuration>> plusMinus = Maps.newLinkedHashMap();
-            plusMinus.put(IdeaDependenciesProvider.SCOPE_PLUS, Lists.<Configuration>newArrayList());
-            plusMinus.put(IdeaDependenciesProvider.SCOPE_MINUS, Lists.<Configuration>newArrayList());
+            Map<String, Collection<Configuration>> plusMinus = new LinkedHashMap<>();
+            plusMinus.put(IdeaDependenciesProvider.SCOPE_PLUS, new ArrayList<>());
+            plusMinus.put(IdeaDependenciesProvider.SCOPE_MINUS, new ArrayList<>());
             scopes.put(scope.name(), plusMinus);
         }
 

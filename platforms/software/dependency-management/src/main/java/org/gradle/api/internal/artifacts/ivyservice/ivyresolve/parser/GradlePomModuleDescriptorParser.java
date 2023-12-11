@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -47,6 +46,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -147,7 +147,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                     mdBuilder.getComponentIdentifier(), relocation);
                 LOGGER.warn("Please update your dependency to directly use the correct version '{}'.", relocation);
                 LOGGER.warn("Resolution will only pick dependencies of the relocated element.  Artifacts and other metadata will be ignored.");
-                PomReader relocatedModule = parsePomForId(parserSettings, DefaultModuleComponentIdentifier.newId(relocation), Maps.newHashMap());
+                PomReader relocatedModule = parsePomForId(parserSettings, DefaultModuleComponentIdentifier.newId(relocation), new HashMap<>());
                 addDependencies(mdBuilder, relocatedModule);
             } else {
                 LOGGER.info(mdBuilder.getComponentIdentifier()
@@ -202,7 +202,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                 ModuleComponentSelector importedId = DefaultModuleComponentSelector.newSelector(
                     DefaultModuleIdentifier.newId(currentDependencyMgt.getGroupId(), currentDependencyMgt.getArtifactId()),
                     new DefaultImmutableVersionConstraint(currentDependencyMgt.getVersion()));
-                PomReader importedPom = parsePomForSelector(parseContext, importedId, Maps.newHashMap());
+                PomReader importedPom = parsePomForSelector(parseContext, importedId, new HashMap<>());
                 for (Map.Entry<MavenDependencyKey, PomDependencyMgt> entry : importedPom.getDependencyMgt().entrySet()) {
                     if (!importedDependencyMgts.containsKey(entry.getKey())) {
                         importedDependencyMgts.put(entry.getKey(), entry.getValue());

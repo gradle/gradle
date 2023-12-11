@@ -16,13 +16,13 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -64,7 +64,7 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
 
     @Override
     public Set<BuildInitTestFramework> getTestFrameworks() {
-        return Sets.newHashSet();
+        return new HashSet<>();
     }
 
     @Override
