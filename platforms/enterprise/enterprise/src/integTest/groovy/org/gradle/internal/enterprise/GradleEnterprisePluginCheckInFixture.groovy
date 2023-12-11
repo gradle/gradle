@@ -16,7 +16,6 @@
 
 package org.gradle.internal.enterprise
 
-
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.test.fixtures.file.TestFile

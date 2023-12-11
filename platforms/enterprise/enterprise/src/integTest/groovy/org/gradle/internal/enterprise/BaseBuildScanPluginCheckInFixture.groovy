@@ -101,7 +101,7 @@ abstract class BaseBuildScanPluginCheckInFixture {
             return
         }
         added = true
-        def builder = new PluginBuilder(projectDir.file('plugin-' + AutoAppliedGradleEnterprisePlugin.ID.id))
+        def builder = new PluginBuilder(projectDir.file('plugin-' + id))
         builder.packageName = packageName
         builder.addPluginSource(id, simpleClassName, """
             package $builder.packageName
@@ -237,7 +237,7 @@ abstract class BaseBuildScanPluginCheckInFixture {
 
     void assertBackgroundJobCompletedBeforeShutdown(String output, String expectedJobOutput) {
         def jobOutputPosition = output.indexOf(expectedJobOutput)
-        assert jobOutputPosition >= 0 : "cannot find $expectedJobOutput"
+        assert jobOutputPosition >= 0: "cannot find $expectedJobOutput"
         assert jobOutputPosition < output.indexOf("${propertyPrefix}.endOfBuild.buildResult.failure")
     }
 }
