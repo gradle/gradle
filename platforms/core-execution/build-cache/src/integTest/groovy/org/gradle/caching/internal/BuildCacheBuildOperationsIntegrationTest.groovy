@@ -222,7 +222,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         def taskBuildOp = operations.only(ExecuteTaskBuildOperationType)
         def remoteDisableProgress = Iterables.getOnlyElement(taskBuildOp.progress(BuildCacheRemoteDisabledDueToFailureProgressDetails))
         with(remoteDisableProgress.details) {
-            buildPath == ':'
+            buildCacheConfigurationIdentifier == ':'
             it.cacheKey == cacheKey
             failure != null
             operationType == 'LOAD'
@@ -261,7 +261,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         def taskBuildOp = operations.only(ExecuteTaskBuildOperationType)
         def remoteDisableProgress = Iterables.getOnlyElement(taskBuildOp.progress(BuildCacheRemoteDisabledDueToFailureProgressDetails))
         with(remoteDisableProgress.details) {
-            buildPath == ':'
+            buildCacheConfigurationIdentifier == ':'
             it.cacheKey == cacheKey
             failure != null
             operationType == 'STORE'

@@ -25,9 +25,11 @@ package org.gradle.caching.internal.operations;
  */
 public interface BuildCacheRemoteDisabledDueToFailureProgressDetails {
     /**
-     * The build path of the configuration of the remote build cache.
+     * The identifier of the configuration of the remote build cache.
+     * <p>
+     * For Gradle, this is the buildPath of build that configured the remote build cache in use.
      */
-    String getBuildPath();
+    String getBuildCacheConfigurationIdentifier();
 
     /**
      * The cache key.

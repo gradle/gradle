@@ -173,7 +173,7 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
         }
 
         @Override
-        public String getBuildPath() {
+        public String getBuildCacheConfigurationIdentifier() {
             return buildPath;
         }
 
