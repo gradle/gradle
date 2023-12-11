@@ -212,6 +212,8 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
     }
 
     def "artifact transforms are sensitive to empty directories by default"() {
+        requireOwnGradleUserHomeDir()
+
         createParameterizedTransformWithSensitivity(DirectorySensitivity.DEFAULT)
         file('augmented').mkdir()
         file('augmented/a').mkdir()
@@ -251,6 +253,8 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
     }
 
     def "artifact transforms ignore empty directories when specified"() {
+        requireOwnGradleUserHomeDir()
+
         createParameterizedTransformWithSensitivity(DirectorySensitivity.IGNORE_DIRECTORIES)
         file('augmented').mkdir()
         file('augmented/a').mkdir()
