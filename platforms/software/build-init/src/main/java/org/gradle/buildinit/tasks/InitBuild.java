@@ -17,6 +17,7 @@
 package org.gradle.buildinit.tasks;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.BuildCancelledException;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
@@ -264,7 +265,14 @@ public abstract class InitBuild extends DefaultTask {
             testFramework,
             insecureProtocol.get(),
             projectDir,
-            toolChainVersion);
+            toolChainVersion
+        );
+
+        boolean userInterrupted = inputHandler.interrupted();
+        if (userInterrupted) {
+            throw new BuildCancelledException();
+        }
+
         initDescriptor.generate(settings);
 
         initDescriptor.getFurtherReading(settings)
