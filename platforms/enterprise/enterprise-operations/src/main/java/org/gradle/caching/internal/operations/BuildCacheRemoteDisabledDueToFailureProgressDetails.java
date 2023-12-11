@@ -27,7 +27,7 @@ public interface BuildCacheRemoteDisabledDueToFailureProgressDetails {
     /**
      * The identifier of the configuration of the remote build cache.
      * <p>
-     * For Gradle, this is the buildPath of build that configured the remote build cache in use.
+     * For Gradle, this is the <code>buildPath</code> of the build that configured the remote build cache in use.
      *
      * @since 8.6
      */
