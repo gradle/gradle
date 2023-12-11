@@ -61,11 +61,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
             import java.io.File;
             import java.io.FileWriter;
-            import org.gradle.api.problems.ProblemBuilder;
-            import org.gradle.api.problems.ProblemBuilderDefiningLabel;
-            import org.gradle.api.problems.ProblemBuilderSpec;
             import org.gradle.api.problems.Problems;
-            import org.gradle.api.problems.ReportableProblem;
             import org.gradle.internal.operations.CurrentBuildOperationRef;
 
             import org.gradle.workers.WorkAction;
