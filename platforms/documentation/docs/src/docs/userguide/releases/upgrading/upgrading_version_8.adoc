@@ -44,6 +44,10 @@ The previous step will help you identify potential problems by issuing deprecati
 
 JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.11].
 
+==== `DependencyAdder` renamed to `DependencyCollector`
+
+The incubating `DependencyAdder` interface has been renamed to `DependencyCollector`.
+A `getDependencies` method has been added to the interface that returns all declared dependencies.
 
 === Deprecations
 

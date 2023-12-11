@@ -27,8 +27,11 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 
+import java.util.Set;
+
 /**
- * A {@code DependencyAdder} is used to add dependencies to a specific configuration.
+ * A {@code DependencyCollector} is used as part of a dependencies block in the DSL. A collector implements
+ * a single dependency scope and exposes the declared dependencies on {@link #getDependencies()}.
  *
  * @apiNote
  * Gradle has specific extensions to make explicit calls to {@code add(...)} unnecessary from the DSL.
@@ -43,17 +46,19 @@ import org.gradle.api.provider.ProviderConvertible;
  * {@link org.gradle.api.internal.artifacts.dsl.dependencies.DependenciesExtensionModule extension module for Groovy DSL} or
  * {@link org.gradle.kotlin.dsl.DependenciesExtensions extension functions for Kotlin DSL}.
  *
- * @since 7.6
+ * @since 8.6
  */
 @Incubating
 @NonExtensible
 @SuppressWarnings("JavadocReference")
-public interface DependencyAdder {
+public interface DependencyCollector {
     /**
      * Add a dependency.
      *
      * @param dependencyNotation dependency to add
      * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
+     *
+     * @since 8.6
      */
     void add(CharSequence dependencyNotation);
 
@@ -63,6 +68,8 @@ public interface DependencyAdder {
      * @param dependencyNotation dependency to add
      * @param configuration an action to configure the dependency
      * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
+     *
+     * @since 8.6
      */
     void add(CharSequence dependencyNotation, Action<? super ExternalModuleDependency> configuration);
 
@@ -71,6 +78,8 @@ public interface DependencyAdder {
      *
      * @param files files to add as a dependency
      * @see DependencyFactory#create(FileCollection)
+     *
+     * @since 8.6
      */
     void add(FileCollection files);
 
@@ -80,6 +89,8 @@ public interface DependencyAdder {
      * @param files files to add as a dependency
      * @param configuration an action to configure the dependency
      * @see DependencyFactory#create(FileCollection)
+     *
+     * @since 8.6
      */
     void add(FileCollection files, Action<? super FileCollectionDependency> configuration);
 
@@ -87,6 +98,8 @@ public interface DependencyAdder {
      * Add a dependency.
      *
      * @param externalModule external module to add as a dependency
+     *
+     * @since 8.6
      */
     void add(ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule);
 
@@ -95,6 +108,8 @@ public interface DependencyAdder {
      *
      * @param externalModule external module to add as a dependency
      * @param configuration an action to configure the dependency
+     *
+     * @since 8.6
      */
     void add(ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule, Action<? super ExternalModuleDependency> configuration);
 
@@ -102,6 +117,8 @@ public interface DependencyAdder {
      * Add a dependency.
      *
      * @param dependency dependency to add
+     *
+     * @since 8.6
      */
     void add(Dependency dependency);
 
@@ -110,6 +127,8 @@ public interface DependencyAdder {
      *
      * @param dependency dependency to add
      * @param configuration an action to configure the dependency
+     *
+     * @since 8.6
      */
     <D extends Dependency> void add(D dependency, Action<? super D> configuration);
 
@@ -117,6 +136,8 @@ public interface DependencyAdder {
      * Add a dependency.
      *
      * @param dependency dependency to add
+     *
+     * @since 8.6
      */
     void add(Provider<? extends Dependency> dependency);
 
@@ -125,6 +146,8 @@ public interface DependencyAdder {
      *
      * @param dependency dependency to add
      * @param configuration an action to configure the dependency
+     *
+     * @since 8.6
      */
     <D extends Dependency> void add(Provider<? extends D> dependency, Action<? super D> configuration);
 
@@ -132,6 +155,8 @@ public interface DependencyAdder {
      * Add a bundle.
      *
      * @param bundle the bundle to add
+     *
+     * @since 8.6
      */
     <D extends Dependency> void bundle(Iterable<? extends D> bundle);
 
@@ -140,6 +165,8 @@ public interface DependencyAdder {
      *
      * @param bundle the bundle to add
      * @param configuration an action to configure each dependency in the bundle
+     *
+     * @since 8.6
      */
     <D extends Dependency> void bundle(Iterable<? extends D> bundle, Action<? super D> configuration);
 
@@ -147,6 +174,8 @@ public interface DependencyAdder {
      * Add a bundle.
      *
      * @param bundle the bundle to add
+     *
+     * @since 8.6
      */
     <D extends Dependency> void bundle(Provider<? extends Iterable<? extends D>> bundle);
 
@@ -155,6 +184,8 @@ public interface DependencyAdder {
      *
      * @param bundle the bundle to add
      * @param configuration an action to configure each dependency in the bundle
+     *
+     * @since 8.6
      */
     <D extends Dependency> void bundle(Provider<? extends Iterable<? extends D>> bundle, Action<? super D> configuration);
 
@@ -162,6 +193,8 @@ public interface DependencyAdder {
      * Add a bundle.
      *
      * @param bundle the bundle to add
+     *
+     * @since 8.6
      */
     <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle);
 
@@ -170,7 +203,16 @@ public interface DependencyAdder {
      *
      * @param bundle the bundle to add
      * @param configuration an action to configure each dependency in the bundle
+     *
+     * @since 8.6
      */
     <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle, Action<? super D> configuration);
+
+    /**
+     * Returns all dependencies declared on this collector.
+     *
+     * @since 8.6
+     */
+    Provider<Set<Dependency>> getDependencies();
 
 }

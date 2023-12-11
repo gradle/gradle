@@ -935,6 +935,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         if (allDependencies == null) {
             initAllDependencies();
         }
+        runDependencyActions();
         return allDependencies;
     }
 
@@ -964,6 +965,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         if (allDependencyConstraints == null) {
             initAllDependencyConstraints();
         }
+        runDependencyActions();
         return allDependencyConstraints;
     }
 
@@ -2052,13 +2054,11 @@ since users cannot create non-legacy configurations and there is no current publ
 
         @Override
         public DependencySet getDependencies() {
-            runDependencyActions();
             return getAllDependencies();
         }
 
         @Override
         public DependencyConstraintSet getDependencyConstraints() {
-            runDependencyActions();
             return getAllDependencyConstraints();
         }
 
