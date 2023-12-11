@@ -30,6 +30,7 @@ import org.gradle.plugins.ide.idea.internal.IdeaModuleSupport;
 import org.gradle.plugins.ide.idea.internal.IdeaProjectInternal;
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
+import org.gradle.plugins.ide.idea.model.IdeaProject;
 import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaJavaLanguageSettings;
 import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaLanguageLevel;
 import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaModule;
@@ -54,6 +55,8 @@ import java.util.stream.Collectors;
 @NonNullApi
 public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInternal, ParameterizedToolingModelBuilder<IdeaModelParameter> {
 
+    private static final String MODEL_NAME = IdeaProject.class.getName();
+
     private final IntermediateToolingModelProvider intermediateToolingModelProvider;
     private final GradleProjectBuilderInternal gradleProjectBuilder;
 
@@ -64,7 +67,7 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
 
     @Override
     public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.idea.IdeaProject");
+        return modelName.equals(MODEL_NAME);
     }
 
     @Override
@@ -99,7 +102,7 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
     private DefaultIdeaProject fetchForRoot(Project root, IdeaModelParameter parameter) {
         return intermediateToolingModelProvider.getModels(
             Collections.singletonList(root),
-            "org.gradle.tooling.model.idea.IdeaProject",
+            MODEL_NAME,
             DefaultIdeaProject.class,
             parameter
         ).get(0);
@@ -125,8 +128,6 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
     }
 
     private DefaultIdeaProject buildRoot(Project rootProject, IdeaModelParameter parameter) {
-        // We have to apply the plugin to the root, because users might have done it themselves, and overridden some settings via the extension
-        // This means, the plugin has to be made CC and IP compatible, at least for the root
         rootProject.getPluginManager().apply(IdeaPlugin.class);
         IdeaModel ideaModelExt = rootProject.getPlugins().getPlugin(IdeaPlugin.class).getModel();
         IdeaProjectInternal ideaProjectExt = (IdeaProjectInternal) ideaModelExt.getProject();
@@ -160,7 +161,7 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
                 .setJdk(DefaultInstalledJdk.current()));
     }
 
-    // Simulates computation of the language level property *for the root project* in the IdeaPlugin
+    // Simulates computation of the IdeaProject language level property in the IdeaPlugin
     private static IdeaLanguageLevel resolveRootLanguageLevel(IdeaProjectInternal ideaProjectExt, List<IsolatedIdeaModuleInternal> isolatedModules) {
         IdeaLanguageLevel explicitLanguageLevel = ideaProjectExt.getRawLanguageLevel();
         if (explicitLanguageLevel != null) {
@@ -171,7 +172,7 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
         return new IdeaLanguageLevel(maxCompatibility);
     }
 
-    // Simulates computation of the target bytecode version property *for the root project* in the IdeaPlugin
+    // Simulates computation of the IdeaProject target bytecode version property in the IdeaPlugin
     private static JavaVersion resolveRootTargetBytecodeVersion(IdeaProjectInternal ideaProjectExt, List<IsolatedIdeaModuleInternal> isolatedModules) {
         JavaVersion explicitTargetBytecodeVersion = ideaProjectExt.getRawTargetBytecodeVersion();
         if (explicitTargetBytecodeVersion != null) {
@@ -251,7 +252,8 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
             return model;
         }
 
-        private static @Nullable JavaVersion resolveTargetBytecodeVersion(IsolatedIdeaModuleInternal isolatedIdeaModule) {
+        @Nullable
+        private static JavaVersion resolveTargetBytecodeVersion(IsolatedIdeaModuleInternal isolatedIdeaModule) {
             JavaVersion targetBytecodeVersionConvention = isolatedIdeaModule.getJavaTargetCompatibility();
             JavaVersion explicitTargetBytecodeVersion = isolatedIdeaModule.getExplicitTargetBytecodeVersion();
             return getPropertyValue(explicitTargetBytecodeVersion, targetBytecodeVersionConvention);
@@ -263,11 +265,13 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
             return getPropertyValue(explicitLanguageLevel, new IdeaLanguageLevel(languageLevelConvention));
         }
 
-        private static <T> @Nullable T takeIfDifferent(T commonValue, @Nullable T value) {
+        @Nullable
+        private static <T> T takeIfDifferent(T commonValue, @Nullable T value) {
             return commonValue.equals(value) ? null : value;
         }
 
-        private static <T> @Nullable T getPropertyValue(@Nullable T value, @Nullable T convention) {
+        @Nullable
+        private static <T> T getPropertyValue(@Nullable T value, @Nullable T convention) {
             return value != null ? value : convention;
         }
     }
