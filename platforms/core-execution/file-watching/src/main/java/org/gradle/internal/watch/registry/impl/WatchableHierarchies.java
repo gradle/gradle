@@ -283,7 +283,7 @@ public class WatchableHierarchies {
     private class RemoveUnwatchedFiles implements FileSystemSnapshotHierarchyVisitor {
         private SnapshotHierarchy root;
         private final Invalidator invalidator;
-        private final Map<File, Boolean> parentSymlinkCache = new HashMap<>();
+        private final Map<String, Boolean> symlinkCache = new HashMap<>();
 
         public RemoveUnwatchedFiles(SnapshotHierarchy root, Invalidator invalidator) {
             this.root = root;
@@ -321,21 +321,23 @@ public class WatchableHierarchies {
             return !isAccessedViaSymlink(snapshot);
         }
 
+        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         private boolean isAccessedViaSymlink(FileSystemLocationSnapshot snapshot) {
             if (snapshot.getAccessType() == FileMetadata.AccessType.VIA_SYMLINK) {
                 return true;
             }
-            File current = new File(snapshot.getAbsolutePath());
-            while (true) {
-                File parent = current.getParentFile();
-                if (parent == null) {
-                    return false;
-                }
-                if (parentSymlinkCache.computeIfAbsent(parent, __ -> Files.isSymbolicLink(parent.toPath()))) {
-                    return true;
-                }
-                current = parent;
+            return isParentAccessedViaSymlink(new File(snapshot.getAbsolutePath()));
+        }
+
+        private boolean isParentAccessedViaSymlink(File file) {
+            File parent = file.getParentFile();
+            if (parent == null) {
+                return false;
             }
+            if (isParentAccessedViaSymlink(parent)) {
+                return true;
+            }
+            return symlinkCache.computeIfAbsent(parent.getAbsolutePath(), __ -> Files.isSymbolicLink(parent.toPath()));
         }
 
         private void invalidateUnwatchedFile(FileSystemLocationSnapshot snapshot) {
