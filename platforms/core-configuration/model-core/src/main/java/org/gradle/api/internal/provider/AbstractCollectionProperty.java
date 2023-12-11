@@ -56,19 +56,19 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
     }
 
     private CollectionSupplierGuard<T, C> emptySupplier() {
-        return guardSupplier(new EmptySupplier());
+        return guard(new EmptySupplier());
     }
 
     private CollectionSupplierGuard<T, C> noValueSupplier() {
-        return guardSupplier(Cast.uncheckedCast(NO_VALUE));
+        return guard(Cast.uncheckedCast(NO_VALUE));
     }
 
     private void setSupplier(CollectionSupplier<T, C> unguardedSupplier) {
-        setSupplier(guardSupplier(unguardedSupplier));
+        setSupplier(guard(unguardedSupplier));
     }
 
     private void setConvention(CollectionSupplier<T, C> unguardedConvention) {
-        setConvention(guardSupplier(unguardedConvention));
+        setConvention(guard(unguardedConvention));
     }
 
     /**
@@ -205,11 +205,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
     protected CollectionSupplierGuard<T, C> finalValue(CollectionSupplierGuard<T, C> value, ValueConsumer consumer) {
         Value<? extends C> result = value.calculateValue(consumer);
         if (!result.isMissing()) {
-            return guardSupplier(new FixedSupplier<>(result.getWithoutSideEffect(), Cast.uncheckedCast(result.getSideEffect())));
+            return guard(new FixedSupplier<>(result.getWithoutSideEffect(), Cast.uncheckedCast(result.getSideEffect())));
         } else if (result.getPathToOrigin().isEmpty()) {
             return noValueSupplier();
         } else {
-            return guardSupplier(new NoValueSupplier<>(result));
+            return guard(new NoValueSupplier<>(result));
         }
     }
 
@@ -507,8 +507,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
             set((Iterable<? extends T>) null);
         }
     }
-    
-    protected CollectionSupplierGuard<T, C> guardSupplier(CollectionSupplier<T, C> supplier) {
+
+    protected CollectionSupplierGuard<T, C> guard(CollectionSupplier<T, C> supplier) {
         return new CollectionSupplierGuard<>(this, supplier);
     }
 

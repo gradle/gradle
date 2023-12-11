@@ -57,19 +57,19 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
     }
 
     private MapSupplierGuard<K, V> emptySupplier() {
-        return guardSupplier(new EmptySupplier());
+        return guard(new EmptySupplier());
     }
 
     private MapSupplierGuard<K, V> noValueSupplier() {
-        return guardSupplier(uncheckedCast(NO_VALUE));
+        return guard(uncheckedCast(NO_VALUE));
     }
 
     private void setConvention(MapSupplier<K, V> unguardedConvention) {
-        setConvention(guardSupplier(unguardedConvention));
+        setConvention(guard(unguardedConvention));
     }
 
     private void setSupplier(MapSupplier<K, V> unguardedSupplier) {
-        setSupplier(guardSupplier(unguardedSupplier));
+        setSupplier(guard(unguardedSupplier));
     }
 
     @Nullable
@@ -265,11 +265,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
     protected MapSupplierGuard<K, V> finalValue(MapSupplierGuard<K, V> value, ValueConsumer consumer) {
         Value<? extends Map<K, V>> result = value.calculateValue(consumer);
         if (!result.isMissing()) {
-            return guardSupplier(new FixedSupplier<>(result.getWithoutSideEffect(), uncheckedCast(result.getSideEffect())));
+            return guard(new FixedSupplier<>(result.getWithoutSideEffect(), uncheckedCast(result.getSideEffect())));
         } else if (result.getPathToOrigin().isEmpty()) {
             return noValueSupplier();
         } else {
-            return guardSupplier(new NoValueSupplier<>(result));
+            return guard(new NoValueSupplier<>(result));
         }
     }
 
@@ -618,7 +618,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
         }
     }
 
-    private MapSupplierGuard<K, V> guardSupplier(MapSupplier<K, V> supplier) {
+    private MapSupplierGuard<K, V> guard(MapSupplier<K, V> supplier) {
         return new MapSupplierGuard<>(this, supplier);
     }
 
