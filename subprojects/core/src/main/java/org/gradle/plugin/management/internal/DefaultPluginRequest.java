@@ -23,6 +23,7 @@ import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 public class DefaultPluginRequest implements PluginRequestInternal {
 
@@ -34,6 +35,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     private final ModuleVersionSelector artifact;
     private final PluginRequest originalRequest;
     private final Origin origin;
+    private final PluginCoordinates alternativeCoordinates;
 
     public DefaultPluginRequest(PluginId id, String version, boolean apply, Integer lineNumber, ScriptSource scriptSource) {
         this(id, version, apply, lineNumber, scriptSource.getDisplayName(), null);
@@ -44,7 +46,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     }
 
     public DefaultPluginRequest(PluginId id, String version, boolean apply, Integer lineNumber, String scriptDisplayName, ModuleVersionSelector artifact) {
-        this(id, version, apply, lineNumber, scriptDisplayName, artifact, null, Origin.OTHER);
+        this(id, version, apply, lineNumber, scriptDisplayName, artifact, null, Origin.OTHER, null);
     }
 
     public DefaultPluginRequest(
@@ -55,7 +57,8 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         String scriptDisplayName,
         ModuleVersionSelector artifact,
         PluginRequest originalRequest,
-        Origin origin
+        Origin origin,
+        PluginCoordinates alternativeCoordinates
     ) {
         this.id = id;
         this.version = version;
@@ -65,6 +68,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         this.artifact = artifact;
         this.originalRequest = originalRequest != null ? originalRequest : this;
         this.origin = origin;
+        this.alternativeCoordinates = alternativeCoordinates;
     }
 
     @Override
@@ -129,5 +133,10 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     @Override
     public Origin getOrigin() {
         return origin;
+    }
+
+    @Override
+    public Optional<PluginCoordinates> getAlternativeCoordinates() {
+        return Optional.ofNullable(alternativeCoordinates);
     }
 }
