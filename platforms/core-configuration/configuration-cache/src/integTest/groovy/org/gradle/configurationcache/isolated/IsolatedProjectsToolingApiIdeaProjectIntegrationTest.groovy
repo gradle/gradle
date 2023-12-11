@@ -17,6 +17,8 @@
 package org.gradle.configurationcache.isolated
 
 import org.gradle.api.JavaVersion
+import org.gradle.plugins.ide.internal.tooling.idea.IsolatedIdeaModuleInternal
+import org.gradle.plugins.ide.internal.tooling.model.IsolatedGradleProjectInternal
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaContentRoot
 import org.gradle.tooling.model.idea.IdeaDependency
@@ -26,6 +28,7 @@ import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet
+import org.gradle.tooling.provider.model.internal.PluginApplyingBuilder
 import spock.lang.Ignore
 
 import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.checkGradleProject
@@ -34,7 +37,9 @@ import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.check
 
 class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
 
-    def "can fetch IdeaProject model for root and re-fetch cached"() {
+    private def pluginApplyingModel = PluginApplyingBuilder.MODEL_NAME
+
+    def "can fetch IdeaProject model"() {
         settingsFile << """
             rootProject.name = 'root'
         """
@@ -45,8 +50,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
 
         then:
         fixture.assertStateStored {
-            // IdeaProject, plugin application "model", intermediate IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal
-            modelsCreated(":", 4)
+            modelsCreated(":", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
         }
 
         then:
@@ -71,8 +75,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
 
         then:
         fixture.assertStateStored {
-            // BasicIdeaProject, plugin application "model", intermediate IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal
-            modelsCreated(":", 4)
+            modelsCreated(":", models(BasicIdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
         }
 
         then:
@@ -108,10 +111,10 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         then:
         fixture.assertStateStored {
             // IdeaProject, plugin application "model", intermediate IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal
-            modelsCreated(":", 4)
+            modelsCreated(":", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
             // plugin application "model", intermediate IsolatedGradleProject, IsolatedIdeaModule
-            modelsCreated(":lib1", 3)
-            modelsCreated(":lib1:lib11", 3)
+            modelsCreated(":lib1", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            modelsCreated(":lib1:lib11", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
         }
 
         checkIdeaProject(ideaModel, expectedIdeaModel)
@@ -140,8 +143,8 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         then:
         fixture.assertStateStored {
             buildModelCreated()
-            modelsCreated(":", 4)
-            modelsCreated(":lib1", 4)
+            modelsCreated(":", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            modelsCreated(":lib1", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
         }
 
         checkIdeaProject(ideaModel, expectedIdeaModel)
@@ -176,10 +179,8 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
 
         then:
         fixture.assertStateStored {
-            // IdeaProject, plugin application "model", intermediate IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal
-            modelsCreated(":", 4)
-            // plugin application "model", intermediate IsolatedGradleProject, IsolatedIdeaModule
-            modelsCreated(":lib1", 3)
+            modelsCreated(":", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            modelsCreated(":lib1", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
         }
 
         checkIdeaProject(ideaModel, expectedIdeaModel)
@@ -231,11 +232,9 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
 
         then:
         fixture.assertStateStored {
-            // IdeaProject, plugin application "model", intermediate IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal
-            modelsCreated(":", 4)
-            // plugin application "model", intermediate IsolatedGradleProject, IsolatedIdeaModule
-            modelsCreated(":lib1", 3)
-            modelsCreated(":lib2", 3)
+            modelsCreated(":", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            modelsCreated(":lib1", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            modelsCreated(":lib2", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
         }
 
         checkIdeaProject(ideaModel, expectedIdeaModel)
@@ -283,11 +282,9 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
 
         then:
         fixture.assertStateStored {
-            // BasicIdeaProject, plugin application "model", intermediate IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal
-            modelsCreated(":", 4)
-            // intermediate IsolatedGradleProject, IsolatedIdeaModule
-            modelsCreated(":api", 3)
-            modelsCreated(":impl", 3)
+            modelsCreated(":", models(BasicIdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            modelsCreated(":api", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            modelsCreated(":impl", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
         }
 
         checkIdeaProject(ideaModel, expectedIdeaModel)
@@ -320,10 +317,8 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
 
         then:
         fixture.assertStateStored {
-            // IdeaProject, plugin application "model", intermediate IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal
-            modelsCreated(":", 4)
-            // plugin application "model", intermediate IsolatedGradleProject, IsolatedIdeaModule
-            modelsCreated(":lib1", 3)
+            modelsCreated(":", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            modelsCreated(":lib1", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
         }
 
         checkIdeaProject(ideaModel, expectedIdeaModel)
@@ -410,21 +405,18 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         then:
         fixture.assertStateStored {
             buildModelCreated()
-            // IdeaProject, plugin application "model", intermediate IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal
-            modelsCreated(":", 4)
-            // IdeaProject, plugin application "model", intermediate IsolatedGradleProject, IsolatedIdeaModule
-            modelsCreated(":buildB", 4)
-            modelsCreated(":buildC", 4)
-            modelsCreated(":buildD", 4)
-            // plugin application "model", intermediate IsolatedGradleProject, IsolatedIdeaModule
-            modelsCreated(":buildB:b1", 3)
-            modelsCreated(":buildB:b2", 3)
-            modelsCreated(":buildD:b1", 3)
-            modelsCreated(":buildD:buildC", 3)
+            modelsCreated(
+                [":", ":buildB", ":buildC", ":buildD"],
+                models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal)
+            )
+            modelsCreated(
+                [":buildB:b1", ":buildB:b2", ":buildD:b1", ":buildD:buildC"],
+                models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal)
+            )
         }
 
         checkModel(result, expectedResult, [
-            [{ ImmutableDomainObjectSet.of(it.allIdeaProjects) }, { a, e -> checkIdeaProject(a, e) } ]
+            [{ ImmutableDomainObjectSet.of(it.allIdeaProjects) }, { a, e -> checkIdeaProject(a, e) }]
         ])
 
         when: "fetching again with Isolated Projects"
@@ -435,7 +427,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         fixture.assertStateLoaded()
 
         checkModel(anotherResult, expectedResult, [
-            [{ ImmutableDomainObjectSet.of(it.allIdeaProjects) }, { a, e -> checkIdeaProject(a, e) } ]
+            [{ ImmutableDomainObjectSet.of(it.allIdeaProjects) }, { a, e -> checkIdeaProject(a, e) }]
         ])
     }
 
@@ -504,5 +496,9 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
             { it.jdk?.javaVersion },
             { it.jdk?.javaHome },
         ])
+    }
+
+    private static List<String> models(Object... models) {
+        models.collect { it instanceof String ? it : (it as Class<?>).getName() }
     }
 }

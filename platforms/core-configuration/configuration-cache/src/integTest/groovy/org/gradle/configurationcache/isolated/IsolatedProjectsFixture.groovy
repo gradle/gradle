@@ -300,6 +300,15 @@ class IsolatedProjectsFixture {
         }
 
         /**
+         * The models are created for the given projects. The projects will also be configured
+         */
+        void modelsCreated(List<String> paths, List<String> modelNames) {
+            for (def path in paths) {
+                modelsCreated(new ModelRequestExpectation(path, modelNames))
+            }
+        }
+
+        /**
          * The models are created for the given project. The project will also be configured
          */
         void modelsCreated(String path, List<String> modelNames) {
