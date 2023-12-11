@@ -18,10 +18,8 @@ package org.gradle.tooling.provider.model.internal;
 
 import org.gradle.api.NonNullApi;
 
-import java.io.Serializable;
-
 @NonNullApi
-public interface PluginApplyingParameter extends Serializable {
+public interface PluginApplyingParameter {
 
     Class<?> getPluginType();
 
