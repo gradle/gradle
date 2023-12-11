@@ -31,6 +31,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
     String basicType = "1: basic"
     String projectNamePrompt = "Project name (default: some-thing)"
     String convertMavenBuildPrompt = "Found a Maven build. Generate a Gradle build from this?"
+    List<String> languageSelectionOptions = ["Select implementation language:", "1: C++", "2: Groovy", "3: Java", "4: Kotlin", "5: Scala", "6: Swift"]
 
     @Override
     String subprojectName() { 'app' }
@@ -124,7 +125,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // Select 'java'
         ConcurrentTestUtil.poll(60) {
-            ["Select implementation language:","1: C++","2: Groovy","3: Java","4: Kotlin","5: Scala","6: Swift"].each {
+            languageSelectionOptions.each {
                 assert handle.standardOutput.contains(it)
             }
         }
@@ -176,6 +177,56 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         dslFixtureFor(BuildInitDsl.KOTLIN).assertGradleFilesGenerated()
+    }
+
+    def "user can interrupt the build without generating files"() {
+        when:
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks("init")
+        def handle = executer.start()
+
+        // Interrupt input
+        handle.stdinPipe.close()
+
+        def result = handle.waitForFailure()
+
+        then:
+        result.assertHasDescription("Execution failed for task ':init'.")
+        result.assertHasCause("Build cancelled.")
+        rootProjectDslFixtureFor(BuildInitDsl.GROOVY).assertGradleFilesNotGenerated()
+    }
+
+    def "user can interrupt the build after multiple prompts without generating files"() {
+        when:
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks("init")
+        def handle = executer.start()
+
+        // Select 'application'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(projectTypePrompt)
+        }
+        handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'java'
+        ConcurrentTestUtil.poll(60) {
+            languageSelectionOptions.each {
+                assert handle.standardOutput.contains(it)
+            }
+        }
+        handle.stdinPipe.write(("3" + TextUtil.platformLineSeparator).bytes)
+
+        // Interrupt input
+        handle.stdinPipe.close()
+
+        def result = handle.waitForFailure()
+
+        then:
+        result.assertHasDescription("Execution failed for task ':init'.")
+        result.assertHasCause("Build cancelled.")
+        rootProjectDslFixtureFor(BuildInitDsl.GROOVY).assertGradleFilesNotGenerated()
     }
 
     def "prompts user when run from an interactive session and pom.xml present"() {

@@ -92,6 +92,12 @@ class ScriptDslFixture {
         assert getVersionCatalogFile().exists()
     }
 
+    void assertGradleFilesNotGenerated(TestFile parentFolder = rootDir) {
+        assert !getBuildFile(parentFolder).exists()
+        assert !getSettingsFile(parentFolder).exists()
+        assertWrapperNotGenerated(parentFolder)
+    }
+
     void assertWrapperNotGenerated(TestFile parentFolder = rootDir) {
         new WrapperTestFixture(parentFolder).notGenerated()
     }
