@@ -23,7 +23,7 @@ import org.gradle.caching.internal.operations.BuildCacheArchivePackBuildOperatio
 import org.gradle.caching.internal.operations.BuildCacheArchiveUnpackBuildOperationType
 import org.gradle.caching.internal.operations.BuildCacheLocalLoadBuildOperationType
 import org.gradle.caching.internal.operations.BuildCacheLocalStoreBuildOperationType
-import org.gradle.caching.internal.operations.BuildCacheRemoteDisabledProgressDetails
+import org.gradle.caching.internal.operations.BuildCacheRemoteDisabledDueToFailureProgressDetails
 import org.gradle.caching.internal.operations.BuildCacheRemoteLoadBuildOperationType
 import org.gradle.caching.internal.operations.BuildCacheRemoteStoreBuildOperationType
 import org.gradle.caching.local.internal.DefaultBuildCacheTempFileStore
@@ -220,7 +220,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         failedLoadOp.failure == failureMessage
 
         def taskBuildOp = operations.only(ExecuteTaskBuildOperationType)
-        def remoteDisableProgress = Iterables.getOnlyElement(taskBuildOp.progress(BuildCacheRemoteDisabledProgressDetails))
+        def remoteDisableProgress = Iterables.getOnlyElement(taskBuildOp.progress(BuildCacheRemoteDisabledDueToFailureProgressDetails))
         with(remoteDisableProgress.details) {
             buildPath == ':'
             it.cacheKey == cacheKey
@@ -259,7 +259,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         failedLoadOp.failure == "${exceptionType.name}: !"
 
         def taskBuildOp = operations.only(ExecuteTaskBuildOperationType)
-        def remoteDisableProgress = Iterables.getOnlyElement(taskBuildOp.progress(BuildCacheRemoteDisabledProgressDetails))
+        def remoteDisableProgress = Iterables.getOnlyElement(taskBuildOp.progress(BuildCacheRemoteDisabledDueToFailureProgressDetails))
         with(remoteDisableProgress.details) {
             buildPath == ':'
             it.cacheKey == cacheKey

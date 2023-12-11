@@ -23,7 +23,7 @@ package org.gradle.caching.internal.operations;
  *
  * @since 8.6
  */
-public interface BuildCacheRemoteDisabledProgressDetails {
+public interface BuildCacheRemoteDisabledDueToFailureProgressDetails {
     /**
      * The build path of the configuration of the remote build cache.
      */

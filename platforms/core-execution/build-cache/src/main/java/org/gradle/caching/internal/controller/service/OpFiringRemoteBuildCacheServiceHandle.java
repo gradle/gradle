@@ -24,7 +24,7 @@ import org.gradle.caching.internal.controller.operations.LoadOperationHitResult;
 import org.gradle.caching.internal.controller.operations.LoadOperationMissResult;
 import org.gradle.caching.internal.controller.operations.StoreOperationDetails;
 import org.gradle.caching.internal.controller.operations.StoreOperationResult;
-import org.gradle.caching.internal.operations.BuildCacheRemoteDisabledProgressDetails;
+import org.gradle.caching.internal.operations.BuildCacheRemoteDisabledDueToFailureProgressDetails;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -98,16 +98,16 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
 
     @Override
     protected void onCacheDisabledDueToFailure(BuildCacheKey key, Operation operation, Throwable failure) {
-        BuildCacheRemoteDisabledProgressDetails.BuildCacheOperationType operationType = convertToBuildOperationType(operation);
-        buildOperationProgressEventEmitter.emitNowIfCurrent(new RemoteDisabledProgressDetails(key, failure, operationType));
+        BuildCacheRemoteDisabledDueToFailureProgressDetails.BuildCacheOperationType operationType = convertToBuildOperationType(operation);
+        buildOperationProgressEventEmitter.emitNowIfCurrent(new RemoteDisabledDueToFailureProgressDetails(key, failure, operationType));
     }
 
-    private static BuildCacheRemoteDisabledProgressDetails.BuildCacheOperationType convertToBuildOperationType(Operation operation) {
+    private static BuildCacheRemoteDisabledDueToFailureProgressDetails.BuildCacheOperationType convertToBuildOperationType(Operation operation) {
         switch (operation) {
             case LOAD:
-                return BuildCacheRemoteDisabledProgressDetails.BuildCacheOperationType.LOAD;
+                return BuildCacheRemoteDisabledDueToFailureProgressDetails.BuildCacheOperationType.LOAD;
             case STORE:
-                return BuildCacheRemoteDisabledProgressDetails.BuildCacheOperationType.STORE;
+                return BuildCacheRemoteDisabledDueToFailureProgressDetails.BuildCacheOperationType.STORE;
             default:
                 throw new IllegalStateException();
         }
@@ -161,12 +161,12 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
         }
     }
 
-    private class RemoteDisabledProgressDetails implements BuildCacheRemoteDisabledProgressDetails {
+    private class RemoteDisabledDueToFailureProgressDetails implements BuildCacheRemoteDisabledDueToFailureProgressDetails {
         private final BuildCacheKey key;
         private final Throwable e;
         private final BuildCacheOperationType operationType;
 
-        public RemoteDisabledProgressDetails(BuildCacheKey key, Throwable e, BuildCacheOperationType operationType) {
+        public RemoteDisabledDueToFailureProgressDetails(BuildCacheKey key, Throwable e, BuildCacheOperationType operationType) {
             this.key = key;
             this.e = e;
             this.operationType = operationType;
