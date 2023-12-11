@@ -14,27 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems;
+package org.gradle.tooling.events.problems.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.tooling.events.problems.OffsetInFileLocation;
 
-import java.io.Serializable;
+public class DefaultOffsetInFileLocation extends DefaultFileLocation implements OffsetInFileLocation {
+    private final int offset;
+    private final int length;
 
-/**
- * Represents a location information of a problem.
- *
- * @since 8.6
- */
-@Incubating
-public interface ProblemLocation extends Serializable {
+    public DefaultOffsetInFileLocation(String path, int offset, int length) {
+        super(path);
+        this.offset = offset;
+        this.length = length;
+    }
 
-    /**
-     * Returns an identifier of the location type.
-     * <p>
-     * As locations will be serialized into a JSON format,
-     * this identifier is used to distinguish between different location types.
-     *
-     * @since 8.6
-     */
-    String getType();
+    public int getOffset() {
+        return offset;
+    }
+
+    @Override
+    public int getLength() {
+        return length;
+    }
 }

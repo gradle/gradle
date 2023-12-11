@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.InternalProblemReporter;
@@ -36,8 +36,8 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     private final InternalProblemReporter problemReporter;
 
-    public DiagnosticToProblemListener(Problems problemReporter) {
-        this.problemReporter = ((InternalProblems) problemReporter).getInternalReporter();
+    public DiagnosticToProblemListener(Problems problemsService) {
+        this.problemReporter = ((InternalProblems) problemsService).getInternalReporter();
     }
 
     @Override
@@ -52,7 +52,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
         Problem problem = problemReporter.create(p -> p
             .label(label)
-            .fileLocation(resourceName, line, column, length)
+            .lineInFileLocation(resourceName, line, column, length)
             .category("compiler", "java")
             .severity(severity)
             .details(message)

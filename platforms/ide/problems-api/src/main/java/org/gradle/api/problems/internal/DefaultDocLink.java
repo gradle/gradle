@@ -16,8 +16,6 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.DocLink;
-
 import javax.annotation.Nullable;
 
 public class DefaultDocLink implements DocLink {

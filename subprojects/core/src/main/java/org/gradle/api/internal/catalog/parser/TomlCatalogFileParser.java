@@ -25,10 +25,11 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
-import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.InternalProblemReporter;
+import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.util.internal.TextUtil;
 import org.tomlj.Toml;
@@ -145,15 +146,15 @@ public class TomlCatalogFileParser {
     }
 
     @Nonnull
-    private static ProblemSpec configureVersionCatalogError(ProblemSpec builder, String message, VersionCatalogProblemId catalogProblemId) {
+    private static ProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String message, VersionCatalogProblemId catalogProblemId) {
         return configureVersionCatalogError(builder, message, catalogProblemId, input -> input);
     }
 
-    private static ProblemSpec configureVersionCatalogError(ProblemSpec builder, String message, VersionCatalogProblemId catalogProblemId, Function<ProblemSpec, ProblemSpec> locationDefiner) {
-        ProblemSpec definingLocation = builder
+    private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String message, VersionCatalogProblemId catalogProblemId, Function<InternalProblemSpec, InternalProblemSpec> locationDefiner) {
+        InternalProblemSpec definingLocation = builder
             .label(message)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()));
-        ProblemSpec definingCategory = locationDefiner.apply(definingLocation);
+        InternalProblemSpec definingCategory = locationDefiner.apply(definingLocation);
         return definingCategory
             .category("dependency-version-catalog", TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()))
             .severity(ERROR);
@@ -165,7 +166,7 @@ public class TomlCatalogFileParser {
             throw throwVersionCatalogProblemException((InternalProblems) problemsServiceSupplier.get(), getInternalReporter().create(builder ->
                 configureVersionCatalogError(builder, getProblemInVersionCatalog(versionCatalogBuilder) + ", parsing failed with " + errors.size() + " error" + getPluralEnding(errors) + ".", TOML_SYNTAX_ERROR, definingLocation -> {
                     errors.forEach(error ->
-                        definingLocation.fileLocation(catalogFilePath.toAbsolutePath().toString(), error.position().line(), error.position().column(), null));
+                        definingLocation.lineInFileLocation(catalogFilePath.toAbsolutePath().toString(), error.position().line(), error.position().column()));
                     return definingLocation;
                 })
                     .details(getErrorText(catalogFilePath, errors)) //TODO provide the location information to the problemBuilder

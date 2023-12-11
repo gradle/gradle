@@ -16,17 +16,22 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.Severity;
 
-import javax.annotation.Nullable;
+public interface InternalProblemBuilder extends InternalProblemSpec {
 
-public interface InternalProblemBuilder extends ProblemBuilder {
+    /**
+     * Creates the new problem. Calling this method won't report the problem via build operations, it can be done separately by calling {@link org.gradle.api.problems.internal.InternalProblemReporter#report(Problem)}.
+     *
+     * @return the new problem
+     */
+    Problem build();
 
+    @Override
     InternalProblemBuilder taskPathLocation(String buildTreePath);
 
     @Override
-    InternalProblemBuilder label(String label, Object... args);
+    InternalProblemBuilder label(String label);
 
     @Override
     InternalProblemBuilder category(String category, String... details);
@@ -38,7 +43,16 @@ public interface InternalProblemBuilder extends ProblemBuilder {
     InternalProblemBuilder documentedAt(String url);
 
     @Override
-    InternalProblemBuilder fileLocation(String path, @Nullable Integer line, @Nullable Integer column, @Nullable Integer length);
+    InternalProblemBuilder fileLocation(String path);
+
+    @Override
+    InternalProblemBuilder lineInFileLocation(String path, int line);
+
+    @Override
+    InternalProblemBuilder lineInFileLocation(String path, int line, int column, int length);
+
+    @Override
+    InternalProblemBuilder offsetInFileLocation(String path, int offset, int length);
 
     @Override
     InternalProblemBuilder pluginLocation(String pluginId);
@@ -52,7 +66,7 @@ public interface InternalProblemBuilder extends ProblemBuilder {
     @Override
     InternalProblemBuilder solution(String solution);
 
-   @Override
+    @Override
     InternalProblemBuilder additionalData(String key, Object value);
 
     @Override

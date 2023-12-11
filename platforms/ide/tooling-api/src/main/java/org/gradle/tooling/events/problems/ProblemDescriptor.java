@@ -33,15 +33,6 @@ import java.util.List;
 public interface ProblemDescriptor extends OperationDescriptor {
 
     /**
-     * Mock for the problem properties in JSON format.
-     * <p>
-     * Note: This method is not functional anymore and will not return anything useful.
-     *
-     * @return the problem properties.
-     */
-    String getJson(); // TODO https://github.com/gradle/gradle/issues/27125
-
-    /**
      * Returns the problem category.
      *
      * @return the problem category
@@ -98,19 +89,10 @@ public interface ProblemDescriptor extends OperationDescriptor {
     List<Solution> getSolutions();
 
     /**
-     * Additional data associated with this problem.
-     *
-     * @return a map of additional data
-     * @since 8.6
-     */
-    AdditionalData getAdditionalData();
-
-    /**
      * Returns the exception associated with this problem.
      *
      * @return the exception
      * @since 8.6
      */
-    @Incubating
     ExceptionContainer getException();
 }

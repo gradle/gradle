@@ -30,7 +30,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.Property;

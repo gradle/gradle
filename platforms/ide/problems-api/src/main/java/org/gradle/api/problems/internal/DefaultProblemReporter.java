@@ -17,7 +17,6 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemSpec;
 
 import java.util.List;
@@ -38,6 +37,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     public void reporting(Action<ProblemSpec> spec) {
         DefaultProblemBuilder problemBuilder = createProblemBuilder();
         spec.execute(problemBuilder);
+        // TODO (donat) instead of blowing up on misconfigured instances: https://github.com/gradle/gradle/issues/27353
         report(problemBuilder.build());
     }
 
@@ -47,6 +47,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         spec.execute(problemBuilder);
         Problem problem = problemBuilder.build();
         RuntimeException exception = problem.getException();
+        // TODO (donat) instead of blowing up on misconfigured instances: https://github.com/gradle/gradle/issues/27353
         if (exception == null) {
             throw new IllegalStateException("Exception must be non-null");
         } else {
@@ -68,7 +69,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Override
-    public Problem create(Action<ProblemSpec> action) {
+    public Problem create(Action<InternalProblemSpec> action) {
         DefaultProblemBuilder defaultProblemBuilder = createProblemBuilder();
         action.execute(defaultProblemBuilder);
         return defaultProblemBuilder.build();

@@ -17,14 +17,16 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.FileLocation;
-import org.gradle.api.problems.PluginIdLocation;
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemCategory;
-import org.gradle.api.problems.ProblemLocation;
+import org.gradle.api.problems.internal.DocLink;
+import org.gradle.api.problems.internal.FileLocation;
+import org.gradle.api.problems.internal.LineInFileLocation;
+import org.gradle.api.problems.internal.OffsetInFileLocation;
+import org.gradle.api.problems.internal.PluginIdLocation;
+import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemCategory;
+import org.gradle.api.problems.internal.ProblemLocation;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.TaskPathLocation;
+import org.gradle.api.problems.internal.TaskPathLocation;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.internal.build.event.types.DefaultAdditionalData;
 import org.gradle.internal.build.event.types.DefaultDetails;
@@ -113,24 +115,34 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
 
     private static InternalSeverity toInternalSeverity(Severity severity) {
         switch (severity) {
-            case ADVICE: return ADVICE;
-            case WARNING: return WARNING;
-            case ERROR: return ERROR;
-            default: throw new RuntimeException("No mapping defined for severity level " + severity);
+            case ADVICE:
+                return ADVICE;
+            case WARNING:
+                return WARNING;
+            case ERROR:
+                return ERROR;
+            default:
+                throw new RuntimeException("No mapping defined for severity level " + severity);
         }
     }
 
     private static List<InternalLocation> toInternalLocations(List<ProblemLocation> locations) {
         return locations.stream().map((Function<ProblemLocation, InternalLocation>) location -> {
-            if (location instanceof FileLocation) {
+            if (location instanceof LineInFileLocation) {
+                LineInFileLocation fileLocation = (LineInFileLocation) location;
+                return new org.gradle.internal.build.event.types.DefaultLineInFileLocation(fileLocation.getPath(), fileLocation.getLine(), fileLocation.getColumn(), fileLocation.getLength());
+            } else if (location instanceof OffsetInFileLocation) {
+                OffsetInFileLocation fileLocation = (OffsetInFileLocation) location;
+                return new org.gradle.internal.build.event.types.DefaultOffsetInFileLocation(fileLocation.getPath(), fileLocation.getOffset(), fileLocation.getLength());
+            } else if (location instanceof FileLocation) { // generic class must be after the subclasses in the if-elseif chain.
                 FileLocation fileLocation = (FileLocation) location;
-                return new org.gradle.internal.build.event.types.DefaultFileLocation(fileLocation.getPath(), fileLocation.getLine(), fileLocation.getColumn(), fileLocation.getLength());
+                return new org.gradle.internal.build.event.types.DefaultFileLocation(fileLocation.getPath());
             } else if (location instanceof PluginIdLocation) {
                 PluginIdLocation pluginLocation = (PluginIdLocation) location;
                 return new org.gradle.internal.build.event.types.DefaultPluginIdLocation(pluginLocation.getPluginId());
             } else if (location instanceof TaskPathLocation) {
                 TaskPathLocation taskLocation = (TaskPathLocation) location;
-                return new org.gradle.internal.build.event.types.DefaultTaskPathLocation(taskLocation.getBuildTreePath().toString());
+                return new org.gradle.internal.build.event.types.DefaultTaskPathLocation(taskLocation.getBuildTreePath());
             } else {
                 throw new RuntimeException("No mapping defined for " + location.getClass().getName());
             }

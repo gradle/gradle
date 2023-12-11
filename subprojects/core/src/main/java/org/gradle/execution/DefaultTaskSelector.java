@@ -100,7 +100,7 @@ public class DefaultTaskSelector implements TaskSelector {
 
         throw getProblemsService().getInternalReporter().throwing(builder -> builder
             .label(message)
-            .fileLocation(Objects.requireNonNull(context.getOriginalPath().getName()), -1, null, null)
+            .fileLocation(Objects.requireNonNull(context.getOriginalPath().getName()))
             .category("task-selection", "no-matches")
             .severity(Severity.ERROR)
             .withException(new TaskSelectionException(message)) // this instead of cause

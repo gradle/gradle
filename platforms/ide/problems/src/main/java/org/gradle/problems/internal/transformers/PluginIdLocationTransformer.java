@@ -18,7 +18,7 @@ package org.gradle.problems.internal.transformers;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.plugins.DefaultPluginManager.OperationDetails;
-import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.problems.internal.OperationListener;

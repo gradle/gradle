@@ -16,8 +16,6 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.Problem;
-
 public class DefaultProblemProgressDetails implements ProblemProgressDetails {
     private final Problem problem;
 

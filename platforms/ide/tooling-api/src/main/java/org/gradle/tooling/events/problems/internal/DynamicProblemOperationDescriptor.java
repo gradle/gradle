@@ -19,7 +19,6 @@ package org.gradle.tooling.events.problems.internal;
 import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
-import org.gradle.tooling.events.problems.AdditionalData;
 import org.gradle.tooling.events.problems.Details;
 import org.gradle.tooling.events.problems.DocumentationLink;
 import org.gradle.tooling.events.problems.ExceptionContainer;
@@ -35,21 +34,13 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 @NonNullApi
-public class DynamicProblemsOperationDescriptor extends DefaultOperationDescriptor implements ProblemDescriptor {
-    private final String json;
+public class DynamicProblemOperationDescriptor extends DefaultOperationDescriptor implements ProblemDescriptor {
 
-    public DynamicProblemsOperationDescriptor(
+    public DynamicProblemOperationDescriptor(
         InternalOperationDescriptor internalDescriptor,
-        OperationDescriptor parent,
-        String json
+        OperationDescriptor parent
     ) {
         super(internalDescriptor, parent);
-        this.json = json;
-    }
-
-    @Override
-    public String getJson() {
-        return json;
     }
 
     @Override
@@ -84,11 +75,6 @@ public class DynamicProblemsOperationDescriptor extends DefaultOperationDescript
 
     @Override
     public DocumentationLink getDocumentationLink() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public AdditionalData getAdditionalData() {
         throw new UnsupportedOperationException();
     }
 

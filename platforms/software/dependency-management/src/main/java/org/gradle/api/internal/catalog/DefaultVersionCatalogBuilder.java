@@ -42,8 +42,9 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.ProblemSpec;
+import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.FileUtils;
@@ -210,7 +211,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         return new DefaultVersionCatalog(name, description.getOrElse(""), realizedLibs.build(), ImmutableMap.copyOf(bundles), ImmutableMap.copyOf(versionConstraints), realizedPlugins.build());
     }
 
-    private static ProblemSpec configureVersionCatalogError(ProblemSpec builder, String message, VersionCatalogProblemId catalogProblemId) {
+    private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String message, VersionCatalogProblemId catalogProblemId) {
         return builder.label(message)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
             .category("dependency-version-catalog", TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()))

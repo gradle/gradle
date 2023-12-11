@@ -17,7 +17,7 @@
 package org.gradle.plugin.devel.tasks.internal
 
 import com.google.gson.Gson
-import org.gradle.api.problems.DocLink
+import org.gradle.api.problems.internal.DocLink
 import org.gradle.api.problems.internal.ProblemEmitter
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.DefaultProblemReporter
@@ -52,7 +52,7 @@ class ValidationProblemSerializationTest extends Specification {
         given:
         def problem = problemReporter.create {
             it.label("label")
-                .fileLocation("location", 1, 2, 3)
+                .lineInFileLocation("location", 1, 2, 3)
                 .category("type")
         }
 
@@ -76,7 +76,7 @@ class ValidationProblemSerializationTest extends Specification {
         def problem = problemReporter.create {
             it.label("label")
                 .documentedAt(new TestDocLink())
-                .fileLocation("location", 1, 1, null)
+                .lineInFileLocation("location", 1, 1)
                 .category("type")
         }
 

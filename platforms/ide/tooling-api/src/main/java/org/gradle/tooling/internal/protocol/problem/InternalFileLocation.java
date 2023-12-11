@@ -16,18 +16,7 @@
 
 package org.gradle.tooling.internal.protocol.problem;
 
-import javax.annotation.Nullable;
-
 public interface InternalFileLocation extends InternalLocation {
 
     String getPath();
-
-    @Nullable
-    Integer getLine();
-
-    @Nullable
-    Integer getColumn();
-
-    @Nullable
-    Integer getLength();
 }

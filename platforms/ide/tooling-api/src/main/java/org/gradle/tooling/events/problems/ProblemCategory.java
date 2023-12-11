@@ -32,6 +32,7 @@ import java.util.List;
  * To use compilation as an example, {@code [java, unused-variable]} would be a subcategory, that along with the {@code [compilation]} main category, denotes a particular compiler warning.
  * The exact definition of subcategories depends on the problem's domain.
  * <p>
+ *
  * @since 8.6
  */
 @Incubating

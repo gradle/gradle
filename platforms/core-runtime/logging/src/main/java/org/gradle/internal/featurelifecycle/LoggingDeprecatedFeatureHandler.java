@@ -20,11 +20,12 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
-import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.api.problems.internal.InternalProblemReporter;
+import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
@@ -90,9 +91,9 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         }
         if (problemsService != null) {
             InternalProblemReporter reporter = ((InternalProblems) problemsService).getInternalReporter();
-            Problem problem = reporter.create(new Action<ProblemSpec>() {
+            Problem problem = reporter.create(new Action<InternalProblemSpec>() {
                 @Override
-                public void execute(ProblemSpec builder) {
+                public void execute(InternalProblemSpec builder) {
                     ProblemSpec problemSpec = builder
                         .label(usage.formattedMessage())
                         .documentedAt(usage.getDocumentationUrl());
@@ -112,7 +113,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         if (location == null) {
             return;
         }
-        genericDeprecation.fileLocation(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber(), null, null);
+        genericDeprecation.lineInFileLocation(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber());
     }
 
     private void maybeLogUsage(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {
