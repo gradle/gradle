@@ -23,7 +23,6 @@ import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ProblemCategory;
 import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
-import org.gradle.internal.operations.OperationIdentifier;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
@@ -43,9 +42,6 @@ public class DefaultProblem implements InternalProblem, Serializable {
     private final ProblemCategory problemCategory;
     private final Map<String, Object> additionalData;
 
-    @Nullable
-    private OperationIdentifier buildOperationId;
-
     protected DefaultProblem(
         String label,
         Severity severity,
@@ -55,8 +51,7 @@ public class DefaultProblem implements InternalProblem, Serializable {
         @Nullable List<String> solutions,
         @Nullable RuntimeException cause,
         ProblemCategory problemCategory,
-        Map<String, Object> additionalData,
-        @Nullable OperationIdentifier buildOperationId
+        Map<String, Object> additionalData
     ) {
         this.label = label;
         this.severity = severity;
@@ -67,7 +62,6 @@ public class DefaultProblem implements InternalProblem, Serializable {
         this.cause = cause;
         this.problemCategory = problemCategory;
         this.additionalData = ImmutableMap.copyOf(additionalData);
-        this.buildOperationId = buildOperationId;
     }
 
     @Override
@@ -116,11 +110,6 @@ public class DefaultProblem implements InternalProblem, Serializable {
         return additionalData;
     }
 
-    @Nullable
-    public OperationIdentifier getBuildOperationId() {
-        return buildOperationId;
-    }
-
     public void setSeverity(Severity severity) {
         this.severity = severity;
     }
@@ -151,13 +140,12 @@ public class DefaultProblem implements InternalProblem, Serializable {
             equals(description, that.description) &&
             equals(solutions, that.solutions) &&
             equals(cause, that.cause) &&
-            equals(additionalData, that.additionalData) &&
-            equals(buildOperationId, that.buildOperationId);
+            equals(additionalData, that.additionalData);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{label, severity, locations, documentationLink, description, solutions, cause, additionalData, buildOperationId});
+        return Arrays.hashCode(new Object[]{label, severity, locations, documentationLink, description, solutions, cause, additionalData});
     }
 
 }

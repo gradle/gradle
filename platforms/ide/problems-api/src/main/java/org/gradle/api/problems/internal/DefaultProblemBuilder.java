@@ -21,9 +21,6 @@ import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemCategory;
 import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
-import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
-import org.gradle.internal.operations.OperationIdentifier;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -44,7 +41,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private RuntimeException exception;
     private final Map<String, Object> additionalData;
     private boolean collectLocation = false;
-    @Nullable private OperationIdentifier currentOperationId = null;
 
     public DefaultProblemBuilder(Problem problem) {
         this.label = problem.getLabel();
@@ -56,10 +52,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         this.solutions = new ArrayList<String>(problem.getSolutions());
         this.exception = problem.getException();
         this.additionalData = new HashMap<String, Object>(problem.getAdditionalData());
-
-        if (problem instanceof DefaultProblem) {
-            this.currentOperationId = ((DefaultProblem) problem).getBuildOperationId();
-        }
         this.namespace = problem.getProblemCategory().getNamespace();
     }
 
@@ -85,25 +77,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             solutions,
             getExceptionForProblemInstantiation(), // TODO: don't create exception if already reported often
             problemCategory,
-            additionalData,
-            getCurrentOperationId()
+            additionalData
         );
-    }
-
-    @Nullable
-    public OperationIdentifier getCurrentOperationId() {
-        if (currentOperationId != null) {
-            // If we have a carried over operation id, use it
-            return currentOperationId;
-        } else {
-            // Otherwise, try to get the current operation id
-            BuildOperationRef buildOperationRef = CurrentBuildOperationRef.instance().get();
-            if (buildOperationRef == null) {
-                return null;
-            } else {
-                return buildOperationRef.getId();
-            }
-        }
     }
 
     public RuntimeException getExceptionForProblemInstantiation() {

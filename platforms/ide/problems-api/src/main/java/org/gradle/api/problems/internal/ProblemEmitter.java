@@ -17,6 +17,7 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.Problem;
+import org.gradle.internal.operations.OperationIdentifier;
 
 
 /**
@@ -26,9 +27,21 @@ public interface ProblemEmitter {
 
     /**
      * Emits the given problem in an implementation specific way.
+     * <p>
+     * The problem will be associated with the build operation currently ran by the thread.
+     * If the build operation is not known, the problem <i>might not</i> be reported.
      *
      * @param problem The problem to emit.
      */
     void emit(Problem problem);
+
+    /**
+     * Emits the given problem in an implementation specific way.
+     * <p>
+     * The problem will be associated with the given operation identifier.
+     *
+     * @param problem The problem to emit.
+     */
+    void emit(Problem problem, OperationIdentifier id);
 
 }

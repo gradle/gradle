@@ -19,6 +19,7 @@ package org.gradle.api.problems.internal;
 import org.gradle.api.Action;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemSpec;
+import org.gradle.internal.operations.OperationIdentifier;
 
 import java.util.List;
 
@@ -80,13 +81,20 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         return new DefaultProblemBuilder(namespace);
     }
 
-    @Override
-    public void report(Problem problem) {
-        // Transform the problem with all registered transformers
+    private Problem transformProblem(Problem problem) {
         for (ProblemTransformer transformer : transformers) {
             problem = transformer.transform((InternalProblem) problem);
         }
+        return problem;
+    }
 
-        emitter.emit(problem);
+    @Override
+    public void report(Problem problem) {
+        emitter.emit(transformProblem(problem));
+    }
+
+    @Override
+    public void report(Problem problem, OperationIdentifier id) {
+        emitter.emit(transformProblem(problem), id);
     }
 }
