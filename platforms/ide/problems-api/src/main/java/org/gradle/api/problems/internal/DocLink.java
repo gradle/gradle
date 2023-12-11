@@ -14,52 +14,33 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems;
+package org.gradle.api.problems.internal;
 
-import org.gradle.api.Incubating;
+
 
 import javax.annotation.Nullable;
+import java.io.Serializable;
 
 /**
- * A basic problem location pointing to a specific part of a file.
+ * A link to a documentation page.
+ * <p>
+ * Subtypes can represent different parts of the gradle documentation, e.g. the DSL reference, the user guide, etc.
  *
- * @since 8.6
  */
-@Incubating
-public interface FileLocation extends ProblemLocation {
+public interface DocLink extends Serializable {
 
     /**
-     * The path to the file.
+     * The URL to the documentation page.
      *
-     * @return the file path
-     * @since 8.6
-     */
-    String getPath();
-
-    /**
-     * The line number within the file.
-     *
-     * @return the line number
-     * @since 8.6
      */
     @Nullable
-    Integer getLine();
+    String getUrl();
 
     /**
-     * The offset on the selected line.
+     * A message that tells the user to consult the documentation.
+     * There are currently 2 different messages used for this, hence this method.
      *
-     * @return the column
-     * @since 8.6
      */
     @Nullable
-    Integer getColumn();
-
-    /**
-     * The content of the content starting from {@link #getColumn()}.
-     *
-     * @return the length
-     * @since 8.6
-     */
-    @Nullable
-    Integer getLength();
+    String getConsultDocumentationMessage();
 }

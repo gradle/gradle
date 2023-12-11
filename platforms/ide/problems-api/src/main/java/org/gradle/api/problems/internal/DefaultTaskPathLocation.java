@@ -16,8 +16,6 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.TaskPathLocation;
-
 /**
  * A problem location that stores a task path if the problem was emitted meanwhile executing a task.
  */
@@ -27,11 +25,6 @@ public class DefaultTaskPathLocation implements TaskPathLocation {
 
     public DefaultTaskPathLocation(String buildTreePath) {
         this.buildTreePath = buildTreePath;
-    }
-
-    @Override
-    public String getType() {
-        return "task";
     }
 
     public String getBuildTreePath() {

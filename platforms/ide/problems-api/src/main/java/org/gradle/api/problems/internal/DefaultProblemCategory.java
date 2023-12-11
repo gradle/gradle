@@ -18,7 +18,6 @@ package org.gradle.api.problems.internal;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.problems.ProblemCategory;
 import org.gradle.util.Path;
 
 import java.io.Serializable;

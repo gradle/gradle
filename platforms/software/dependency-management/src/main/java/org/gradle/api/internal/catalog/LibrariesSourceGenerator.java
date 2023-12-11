@@ -27,9 +27,9 @@ import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemSpec;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -523,7 +523,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         throw throwErrorWithNewProblemsApi(problemsService, ERROR_HEADER, ImmutableList.of(problem));
     }
 
-    private static ProblemSpec configureVersionCatalogError(ProblemSpec spec, String message, VersionCatalogProblemId catalogProblemId) {
+    private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec spec, String message, VersionCatalogProblemId catalogProblemId) {
         return spec
             .label(message)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))

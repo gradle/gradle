@@ -18,40 +18,16 @@ package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.tooling.events.problems.FileLocation;
 
-import javax.annotation.Nullable;
-
 public class DefaultFileLocation implements FileLocation {
-    private final String path;
-    private final Integer line;
-    private final Integer column;
-    private final Integer length;
 
-    public DefaultFileLocation(String path, @Nullable Integer line, @Nullable Integer column, @Nullable Integer length) {
+    private final String path;
+
+    public DefaultFileLocation(String path) {
         this.path = path;
-        this.line = line;
-        this.column = column;
-        this.length = length;
     }
 
     @Override
     public String getPath() {
         return path;
-    }
-    @Override
-    @Nullable
-    public Integer getLine() {
-        return line;
-    }
-
-    @Override
-    @Nullable
-    public Integer getColumn() {
-        return column;
-    }
-
-    @Override
-    @Nullable
-    public Integer getLength() {
-        return length;
     }
 }

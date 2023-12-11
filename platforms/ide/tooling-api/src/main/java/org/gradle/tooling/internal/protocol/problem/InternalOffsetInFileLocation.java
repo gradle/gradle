@@ -14,23 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems;
+package org.gradle.tooling.internal.protocol.problem;
 
-import org.gradle.api.Incubating;
+public interface InternalOffsetInFileLocation extends InternalFileLocation {
 
-/**
- * Plugin ID location.
- *
- * @since 8.6
- */
-@Incubating
-public interface PluginIdLocation extends ProblemLocation {
+    int getOffset();
 
-    /**
-     * The plugin ID.
-     *
-     * @return the plugin ID
-     * @since 8.6
-     */
-    String getPluginId();
+    int getLength();
 }

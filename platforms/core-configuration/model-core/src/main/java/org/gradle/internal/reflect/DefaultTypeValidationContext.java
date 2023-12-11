@@ -18,8 +18,8 @@ package org.gradle.internal.reflect;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemCategory;
+import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemCategory;
 import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;

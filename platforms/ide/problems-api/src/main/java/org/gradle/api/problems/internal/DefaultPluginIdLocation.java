@@ -16,8 +16,6 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.PluginIdLocation;
-
 /**
  * Represents an applied plugin ID.
  */
@@ -27,11 +25,6 @@ public class DefaultPluginIdLocation implements PluginIdLocation {
 
     public DefaultPluginIdLocation(String pluginId) {
         this.pluginId = pluginId;
-    }
-
-    @Override
-    public String getType() {
-        return "pluginId";
     }
 
     @Override
