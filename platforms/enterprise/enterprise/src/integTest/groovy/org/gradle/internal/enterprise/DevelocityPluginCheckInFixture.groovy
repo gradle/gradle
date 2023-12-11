@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,17 +22,17 @@ import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterpri
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
-class GradleEnterprisePluginCheckInFixture extends BaseBuildScanPluginCheckInFixture {
+class DevelocityPluginCheckInFixture extends BaseBuildScanPluginCheckInFixture {
 
-    GradleEnterprisePluginCheckInFixture(TestFile projectDir, MavenFileRepository mavenRepo, GradleExecuter pluginBuildExecuter) {
+    DevelocityPluginCheckInFixture(TestFile projectDir, MavenFileRepository mavenRepo, GradleExecuter pluginBuildExecuter) {
         super(
             projectDir,
             mavenRepo,
             pluginBuildExecuter,
-            AutoAppliedGradleEnterprisePlugin.ID.id,
-            'com.gradle.enterprise.gradleplugin',
-            'GradleEnterprisePlugin',
-            AutoAppliedGradleEnterprisePlugin.NAME
+            AutoAppliedGradleEnterprisePlugin.DEVELOCITY_PLUGIN_ID.id,
+            'com.gradle.develocity.agent.gradle',
+            'DevelocityPlugin',
+            AutoAppliedGradleEnterprisePlugin.DEVELOCITY_PLUGIN_ARTIFACT_NAME
         )
     }
 

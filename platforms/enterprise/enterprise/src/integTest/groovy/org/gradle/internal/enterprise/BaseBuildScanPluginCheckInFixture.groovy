@@ -38,14 +38,15 @@ abstract class BaseBuildScanPluginCheckInFixture {
     private final TestFile projectDir
     private final MavenFileRepository mavenRepo
     private final GradleExecuter pluginBuildExecuter
+    private final String pluginArtifactName
 
     String runtimeVersion = AutoAppliedGradleEnterprisePlugin.VERSION
     String artifactVersion = AutoAppliedGradleEnterprisePlugin.VERSION
 
-    final String id = AutoAppliedGradleEnterprisePlugin.ID.id
-    final String packageName = 'com.gradle.enterprise.gradleplugin'
-    final String simpleClassName = 'GradleEnterprisePlugin'
-    final String className = "${packageName}.${simpleClassName}"
+    final String id
+    final String packageName
+    final String simpleClassName
+    final String className
 
     boolean doCheckIn = true
     protected boolean added
@@ -53,11 +54,20 @@ abstract class BaseBuildScanPluginCheckInFixture {
     BaseBuildScanPluginCheckInFixture(
         TestFile projectDir,
         MavenFileRepository mavenRepo,
-        GradleExecuter pluginBuildExecuter
+        GradleExecuter pluginBuildExecuter,
+        String pluginId,
+        String pluginPackageName,
+        String pluginSimpleClassName,
+        String pluginArtifactName
     ) {
         this.projectDir = projectDir
         this.mavenRepo = mavenRepo
         this.pluginBuildExecuter = pluginBuildExecuter
+        this.id = pluginId
+        this.packageName = pluginPackageName
+        this.simpleClassName = pluginSimpleClassName
+        this.className = "${packageName}.${simpleClassName}"
+        this.pluginArtifactName = pluginArtifactName
     }
 
     String pluginManagement() {
@@ -82,6 +92,10 @@ abstract class BaseBuildScanPluginCheckInFixture {
         }
     }
 
+    private String getPropertyPrefix() {
+        simpleClassName.uncapitalize()
+    }
+
     void publishDummyPluginNow() {
         if (added) {
             return
@@ -94,7 +108,7 @@ abstract class BaseBuildScanPluginCheckInFixture {
 
             class ${simpleClassName} implements $Plugin.name<$Settings.name> {
                 void apply($Settings.name settings) {
-                    println "gradleEnterprisePlugin.apply.runtimeVersion = $runtimeVersion"
+                    println "${propertyPrefix}.apply.runtimeVersion = $runtimeVersion"
 
                     if (!$doCheckIn || settings.gradle.parent != null) {
                         return
@@ -106,16 +120,16 @@ abstract class BaseBuildScanPluginCheckInFixture {
                         $GradleEnterprisePluginRequiredServices.name requiredServices,
                         $GradleEnterprisePluginBuildState.name buildState ->
 
-                        println "gradleEnterprisePlugin.serviceFactoryCreate.config.buildScanRequest = \$config.buildScanRequest"
-                        println "gradleEnterprisePlugin.serviceFactoryCreate.config.autoApplied = \$config.autoApplied"
-                        println "gradleEnterprisePlugin.serviceFactoryCreate.config.taskExecutingBuild = \$config.taskExecutingBuild"
+                        println "${propertyPrefix}.serviceFactoryCreate.config.buildScanRequest = \$config.buildScanRequest"
+                        println "${propertyPrefix}.serviceFactoryCreate.config.autoApplied = \$config.autoApplied"
+                        println "${propertyPrefix}.serviceFactoryCreate.config.taskExecutingBuild = \$config.taskExecutingBuild"
 
-                        println "gradleEnterprisePlugin.serviceFactoryCreate.buildState.buildStartedTime = \$buildState.buildStartedTime"
-                        println "gradleEnterprisePlugin.serviceFactoryCreate.buildState.currentTime = \$buildState.currentTime"
-                        println "gradleEnterprisePlugin.serviceFactoryCreate.buildState.buildInvocationId = \$buildState.buildInvocationId"
-                        println "gradleEnterprisePlugin.serviceFactoryCreate.buildState.workspaceId = \$buildState.workspaceId"
-                        println "gradleEnterprisePlugin.serviceFactoryCreate.buildState.userId = \$buildState.userId"
-                        println "gradleEnterprisePlugin.serviceFactoryCreate.buildState.daemonScanInfo.numberOfBuilds = \${buildState.daemonScanInfo?.numberOfBuilds}"
+                        println "${propertyPrefix}.serviceFactoryCreate.buildState.buildStartedTime = \$buildState.buildStartedTime"
+                        println "${propertyPrefix}.serviceFactoryCreate.buildState.currentTime = \$buildState.currentTime"
+                        println "${propertyPrefix}.serviceFactoryCreate.buildState.buildInvocationId = \$buildState.buildInvocationId"
+                        println "${propertyPrefix}.serviceFactoryCreate.buildState.workspaceId = \$buildState.workspaceId"
+                        println "${propertyPrefix}.serviceFactoryCreate.buildState.userId = \$buildState.userId"
+                        println "${propertyPrefix}.serviceFactoryCreate.buildState.daemonScanInfo.numberOfBuilds = \${buildState.daemonScanInfo?.numberOfBuilds}"
 
 
                         new $GradleEnterprisePluginService.name() {
@@ -138,7 +152,7 @@ abstract class BaseBuildScanPluginCheckInFixture {
                                 new $BuildOperationNotificationListener.name() {
                                     void started($BuildOperationStartedNotification.name notification) {
                                         if (notification.notificationOperationDetails instanceof ${RunRootBuildWorkBuildOperationType.Details.name}) {
-                                            println "gradleEnterprisePlugin.buildOperationNotificationListener.received = true"
+                                            println "${propertyPrefix}.buildOperationNotificationListener.received = true"
                                         }
                                     }
                                     void progress($BuildOperationProgressNotification.name notification) {}
@@ -148,7 +162,7 @@ abstract class BaseBuildScanPluginCheckInFixture {
 
                             $GradleEnterprisePluginEndOfBuildListener.name getEndOfBuildListener() {
                                 return { $GradleEnterprisePluginEndOfBuildListener.BuildResult.name buildResult ->
-                                    println "gradleEnterprisePlugin.endOfBuild.buildResult.failure = \$buildResult.failure"
+                                    println "${propertyPrefix}.endOfBuild.buildResult.failure = \$buildResult.failure"
                                     if (System.getProperty("build-listener-failure") != null) {
                                         throw new RuntimeException("broken")
                                     }
@@ -162,10 +176,10 @@ abstract class BaseBuildScanPluginCheckInFixture {
 
                     def result = checkInService.checkIn(pluginMetadata, serviceFactory)
                     if (result.unsupportedMessage == null) {
-                        println "gradleEnterprisePlugin.checkIn.supported"
+                        println "${propertyPrefix}.checkIn.supported"
                         settings.gradle.extensions.add("serviceRef", result.pluginServiceRef)
                     } else {
-                        println "gradleEnterprisePlugin.checkIn.unsupported.reasonMessage = \$result.unsupportedMessage"
+                        println "${propertyPrefix}.checkIn.unsupported.reasonMessage = \$result.unsupportedMessage"
                     }
                 }
             }
@@ -173,28 +187,28 @@ abstract class BaseBuildScanPluginCheckInFixture {
 
         builder.addPlugin("", "com.gradle.build-scan", 'BuildScanPlugin')
 
-        builder.publishAs("${AutoAppliedGradleEnterprisePlugin.GROUP}:${AutoAppliedGradleEnterprisePlugin.NAME}:${artifactVersion}", mavenRepo, pluginBuildExecuter)
+        builder.publishAs("${AutoAppliedGradleEnterprisePlugin.GROUP}:${pluginArtifactName}:${artifactVersion}", mavenRepo, pluginBuildExecuter)
     }
 
     void assertBuildScanRequest(String output, GradleEnterprisePluginConfig.BuildScanRequest buildScanRequest) {
-        assert output.contains("gradleEnterprisePlugin.serviceFactoryCreate.config.buildScanRequest = $buildScanRequest")
+        assert output.contains("${propertyPrefix}.serviceFactoryCreate.config.buildScanRequest = $buildScanRequest")
     }
 
     void assertAutoApplied(String output, boolean autoApplied) {
-        assert output.contains("gradleEnterprisePlugin.serviceFactoryCreate.config.autoApplied = $autoApplied")
+        assert output.contains("${propertyPrefix}.serviceFactoryCreate.config.autoApplied = $autoApplied")
     }
 
     void assertUnsupportedMessage(String output, String unsupported) {
-        assert output.contains("gradleEnterprisePlugin.checkIn.unsupported.reasonMessage = $unsupported")
+        assert output.contains("${propertyPrefix}.checkIn.unsupported.reasonMessage = $unsupported")
     }
 
     void assertEndOfBuildWithFailure(String output, @Nullable String failure) {
-        assert output.count("gradleEnterprisePlugin.endOfBuild.buildResult.failure = ") == 1
-        assert output.contains("gradleEnterprisePlugin.endOfBuild.buildResult.failure = $failure")
+        assert output.count("${propertyPrefix}.endOfBuild.buildResult.failure = ") == 1
+        assert output.contains("${propertyPrefix}.endOfBuild.buildResult.failure = $failure")
     }
 
     void receivedBuildOperationNotifications(String output) {
-        assert output.contains("gradleEnterprisePlugin.buildOperationNotificationListener.received = true")
+        assert output.contains("${propertyPrefix}.buildOperationNotificationListener.received = true")
     }
 
     void issuedNoPluginWarning(String output) {
@@ -210,20 +224,20 @@ abstract class BaseBuildScanPluginCheckInFixture {
     }
 
     void serviceCreatedOnce(String output) {
-        assert output.count("gradleEnterprisePlugin.serviceFactoryCreate.config.buildScanRequest") == 1
+        assert output.count("${propertyPrefix}.serviceFactoryCreate.config.buildScanRequest") == 1
     }
 
     void appliedOnce(String output) {
-        assert output.count("gradleEnterprisePlugin.apply.runtimeVersion = $runtimeVersion") == 1
+        assert output.count("${propertyPrefix}.apply.runtimeVersion = $runtimeVersion") == 1
     }
 
     void notApplied(String output) {
-        assert !output.contains("gradleEnterprisePlugin.apply.runtimeVersion = $runtimeVersion")
+        assert !output.contains("${propertyPrefix}.apply.runtimeVersion = $runtimeVersion")
     }
 
     void assertBackgroundJobCompletedBeforeShutdown(String output, String expectedJobOutput) {
         def jobOutputPosition = output.indexOf(expectedJobOutput)
         assert jobOutputPosition >= 0 : "cannot find $expectedJobOutput"
-        assert jobOutputPosition < output.indexOf("gradleEnterprisePlugin.endOfBuild.buildResult.failure")
+        assert jobOutputPosition < output.indexOf("${propertyPrefix}.endOfBuild.buildResult.failure")
     }
 }
