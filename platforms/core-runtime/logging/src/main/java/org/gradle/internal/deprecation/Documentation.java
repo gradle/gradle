@@ -34,7 +34,7 @@ public abstract class Documentation implements DocLink {
         return new UserGuide(id, section);
     }
 
-    static Documentation userManual(String id) {
+    public static Documentation userManual(String id) {
         return new UserGuide(id, null);
     }
 
