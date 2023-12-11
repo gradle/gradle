@@ -209,7 +209,6 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
         return () -> offlineDependencyResolution;
     }
 
-
     @NonNullApi
     private static class IdeaModuleBuilder {
 
