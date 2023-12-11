@@ -30,7 +30,6 @@ import org.gradle.plugins.ide.idea.internal.IdeaModuleSupport;
 import org.gradle.plugins.ide.idea.internal.IdeaProjectInternal;
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
-import org.gradle.plugins.ide.idea.model.IdeaProject;
 import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaJavaLanguageSettings;
 import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaLanguageLevel;
 import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaModule;
@@ -38,6 +37,7 @@ import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaProject;
 import org.gradle.plugins.ide.internal.tooling.idea.IsolatedIdeaModuleInternal;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
+import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
 
