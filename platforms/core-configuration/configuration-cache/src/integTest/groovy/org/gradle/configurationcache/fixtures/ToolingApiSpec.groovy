@@ -265,7 +265,7 @@ trait ToolingApiSpec {
         return model
     }
 
-    void fetchModelFails() {
+    void fetchModelFails(Class type = SomeToolingModel.class) {
         failure = toolingApiExecutor.runFailingBuildWithToolingConnection { connection ->
             def output = new ByteArrayOutputStream()
             def error = new ByteArrayOutputStream()
@@ -274,7 +274,7 @@ trait ToolingApiSpec {
                 def args = executer.allArgs
                 args.remove("--no-daemon")
 
-                connection.model(SomeToolingModel)
+                connection.model(type)
                     .withArguments(args)
                     .setStandardOutput(new TeeOutputStream(output, System.out))
                     .setStandardError(new TeeOutputStream(error, System.err))

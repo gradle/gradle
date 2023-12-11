@@ -29,7 +29,7 @@ import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet
 import org.gradle.tooling.provider.model.internal.PluginApplyingBuilder
-import spock.lang.Ignore
+import org.gradle.util.internal.ToBeImplemented
 
 import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.checkGradleProject
 import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.checkModel
@@ -290,40 +290,6 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         checkIdeaProject(ideaModel, expectedIdeaModel)
     }
 
-    // TODO: fix before merge
-    @Ignore
-    def "can fetch IdeaProject model for Scala projects"() {
-        settingsFile << """
-            rootProject.name = 'root'
-            include(":lib1")
-        """
-
-        file("lib1/build.gradle") << """
-            plugins {
-                id 'scala'
-            }
-        """
-
-        when: "fetching without Isolated Projects"
-        def expectedIdeaModel = fetchModel(IdeaProject)
-
-        then:
-        fixture.assertNoConfigurationCache()
-        expectedIdeaModel.modules.name == ["root", "lib1"]
-
-        when: "fetching with Isolated Projects"
-        executer.withArguments(ENABLE_CLI)
-        def ideaModel = fetchModel(IdeaProject)
-
-        then:
-        fixture.assertStateStored {
-            modelsCreated(":", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
-            modelsCreated(":lib1", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
-        }
-
-        checkIdeaProject(ideaModel, expectedIdeaModel)
-    }
-
     def "ensures unique name for all Idea modules in composite"() {
         singleProjectBuildInRootDir("buildA") {
             buildFile << """
@@ -432,6 +398,42 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
     }
 
     // TODO: add a step that changes on project (that gets incrementally reconfigured) and re-fetch the model
+
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/27363")
+    def "can fetch IdeaProject model for Scala projects"() {
+        settingsFile << """
+            rootProject.name = 'root'
+            include(":lib1")
+        """
+
+        file("lib1/build.gradle") << """
+            plugins {
+                id 'scala'
+            }
+        """
+
+        when: "fetching without Isolated Projects"
+        def expectedIdeaModel = fetchModel(IdeaProject)
+
+        then:
+        fixture.assertNoConfigurationCache()
+        expectedIdeaModel.modules.name == ["root", "lib1"]
+
+        when: "fetching with Isolated Projects"
+        executer.withArguments(ENABLE_CLI)
+        fetchModelFails(IdeaProject)
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            modelsCreated(":", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            modelsCreated(":lib1", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            // TODO:isolated there should be no violation
+            problem("Plugin class 'org.gradle.plugins.ide.idea.IdeaPlugin': Cannot access project ':' from project ':lib1'")
+        }
+
+        // TODO:isolated check the model matches the vintage model
+//        checkIdeaProject(ideaModel, expectedIdeaModel)
+    }
 
     private static void checkIdeaProject(IdeaProject actual, IdeaProject expected) {
         checkModel(actual, expected, [
