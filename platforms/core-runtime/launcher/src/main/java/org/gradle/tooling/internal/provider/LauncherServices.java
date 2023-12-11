@@ -59,6 +59,7 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.session.BuildSessionActionExecutor;
 import org.gradle.internal.snapshot.CaseSensitivity;
+import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
@@ -180,7 +181,8 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             WorkerLeaseService workerLeaseService,
             BuildLayoutValidator buildLayoutValidator,
             FileSystem fileSystem,
-            FileSystemWatchingInformation fileSystemWatchingInformation
+            FileSystemWatchingInformation fileSystemWatchingInformation,
+            ValueSnapshotter valueSnapshotter
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             return new SubscribableBuildActionExecutor(
@@ -204,7 +206,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                     new RunAsWorkerThreadBuildActionExecutor(
                         workerLeaseService,
                         new RunAsBuildOperationBuildActionExecutor(
-                            new BuildTreeLifecycleBuildActionExecutor(buildModelServices, buildLayoutValidator),
+                            new BuildTreeLifecycleBuildActionExecutor(buildModelServices, buildLayoutValidator, valueSnapshotter),
                             buildOperationExecutor,
                             loggingBuildOperationProgressBroadcaster,
                             buildOperationNotificationValve))));

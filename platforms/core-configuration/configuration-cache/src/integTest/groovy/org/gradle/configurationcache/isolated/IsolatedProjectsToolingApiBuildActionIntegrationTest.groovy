@@ -16,6 +16,8 @@
 
 package org.gradle.configurationcache.isolated
 
+import org.gradle.configurationcache.fixtures.SomeToolingModel
+
 class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def setup() {
         settingsFile << """
@@ -485,6 +487,138 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
         and:
         fixture.assertStateLoaded()
+    }
+
+    def "caches execution of different BuildAction types"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        buildFile << """
+            plugins.apply(my.MyPlugin)
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            buildModelCreated()
+            modelsCreated(":")
+        }
+        outputContains("creating model for root project 'root'")
+
+        and:
+        model.size() == 1
+        model[0].message == "It works from project :"
+
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model2 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
+
+        then:
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            buildModelCreated()
+            modelsCreated(":")
+        }
+        outputContains("creating model for root project 'root'")
+
+        and:
+        model2.size() == 2
+        model2[0].message == "It works from project :"
+
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model3 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        fixture.assertStateLoaded()
+
+        and:
+        model3.size() == 1
+        model3[0].message == "It works from project :"
+
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model4 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
+
+        then:
+        fixture.assertStateLoaded()
+
+        and:
+        model4.size() == 2
+        model4[0].message == "It works from project :"
+    }
+
+    def "caches execution of BuildAction of same type with different state"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        settingsFile << """
+            include("a")
+        """
+        buildFile << """
+            plugins.apply(my.MyPlugin)
+        """
+        file("a/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model = runBuildAction(new FetchCustomModelForTargetProject(":"))
+
+        then:
+        fixture.assertStateStored {
+            projectsConfigured(":buildSrc", ":")
+            buildModelCreated()
+            modelsCreated(":", SomeToolingModel)
+        }
+        outputContains("creating model for root project 'root'")
+
+        and:
+        model.message == "It works from project :"
+
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model2 = runBuildAction(new FetchCustomModelForTargetProject(":a"))
+
+        then:
+        fixture.assertStateStored {
+            projectsConfigured(":buildSrc", ":", ":a")
+            buildModelCreated()
+            modelsCreated(":a", SomeToolingModel)
+        }
+        outputContains("creating model for project ':a'")
+
+        and:
+        model2.message == "It works from project :a"
+
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model3 = runBuildAction(new FetchCustomModelForTargetProject(":"))
+
+        then:
+        fixture.assertStateLoaded()
+
+        and:
+        model3.message == "It works from project :"
+
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model4 = runBuildAction(new FetchCustomModelForTargetProject(":a"))
+
+        then:
+        fixture.assertStateLoaded()
+
+        and:
+        model4.message == "It works from project :a"
     }
 
 }

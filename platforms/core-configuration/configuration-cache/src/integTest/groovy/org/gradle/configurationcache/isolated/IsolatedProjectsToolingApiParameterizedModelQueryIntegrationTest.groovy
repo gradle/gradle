@@ -16,6 +16,8 @@
 
 package org.gradle.configurationcache.isolated
 
+import org.gradle.configurationcache.fixtures.SomeToolingModel
+
 class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
 
     def setup() {
@@ -40,7 +42,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
         fixture.assertStateStored {
             projectConfigured(":buildSrc")
             buildModelCreated()
-            modelsCreated(":", 2) // only 2 intermediate models are created for 2 unique parameters
+            modelsCreated(":", SomeToolingModel, SomeToolingModel) // only 2 models are created for 2 unique parameters of 4 requests
         }
         outputContains("configuring root")
         outputContains("creating model with parameter='fetch1' for root project 'root'")
@@ -55,6 +57,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
         models[":"][2].message == "fetch1 It works from project :"
         models[":"][3].message == "fetch2 It works from project :"
 
+
         when:
         executer.withArguments(ENABLE_CLI)
         runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1", "fetch2", "fetch1", "fetch2"]))
@@ -63,6 +66,71 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
         fixture.assertStateLoaded()
         outputDoesNotContain("configuring root")
         outputDoesNotContain("creating model")
+    }
+
+    def "parameterized models not reused if build action changes"() {
+        settingsFile << """
+            include("a")
+        """
+        file("a/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+            println("configuring \$project")
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model1 = runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1", "fetch2"]))
+
+        then:
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            buildModelCreated()
+            modelsCreated(":", SomeToolingModel, SomeToolingModel)
+            modelsCreated(":a", SomeToolingModel, SomeToolingModel)
+        }
+        outputContains("configuring root")
+        outputContains("creating model with parameter='fetch1' for root project 'root'")
+        outputContains("creating model with parameter='fetch2' for root project 'root'")
+        outputContains("configuring project ':a'")
+        outputContains("creating model with parameter='fetch1' for project ':a'")
+        outputContains("creating model with parameter='fetch2' for project ':a'")
+
+        and:
+        model1.keySet() ==~ [":", ":a"]
+        model1.values().every { it.size() == 2 }
+
+        model1[":"][0].message == "fetch1 It works from project :"
+        model1[":"][1].message == "fetch2 It works from project :"
+        model1[":a"][0].message == "fetch1 It works from project :a"
+        model1[":a"][1].message == "fetch2 It works from project :a"
+
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model2 = runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch2", "fetch1"]))
+
+        then:
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            buildModelCreated()
+            modelsCreated(":", SomeToolingModel, SomeToolingModel)
+            modelsCreated(":a", SomeToolingModel, SomeToolingModel)
+        }
+        outputContains("configuring root")
+        outputContains("creating model with parameter='fetch1' for root project 'root'")
+        outputContains("creating model with parameter='fetch2' for root project 'root'")
+        outputContains("configuring project ':a'")
+        outputContains("creating model with parameter='fetch1' for project ':a'")
+        outputContains("creating model with parameter='fetch2' for project ':a'")
+
+        and:
+        model2.keySet() ==~ [":", ":a"]
+        model2.values().every { it.size() == 2 }
+
+        model2[":"][0].message == "fetch2 It works from project :"
+        model2[":"][1].message == "fetch1 It works from project :"
+        model2[":a"][0].message == "fetch2 It works from project :a"
+        model2[":a"][1].message == "fetch1 It works from project :a"
     }
 
     def "no parameterized models are reused when settings change"() {
@@ -74,7 +142,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
         fixture.assertStateStored {
             projectConfigured(":buildSrc")
             buildModelCreated()
-            modelsCreated(":", 1)
+            modelsCreated(":", SomeToolingModel)
         }
         outputContains("configuring root")
         outputContains("creating model with parameter='fetch1' for root project 'root'")
@@ -96,7 +164,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
         fixture.assertStateStored {
             projectConfigured(":buildSrc")
             buildModelCreated()
-            modelsCreated(":", 1)
+            modelsCreated(":", SomeToolingModel)
         }
         outputContains("configuring changed settings")
         outputContains("configuring root")
@@ -127,7 +195,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
         fixture.assertStateStored {
             projectConfigured(":buildSrc")
             buildModelCreated()
-            modelsCreated(":", ":a", ":b")
+            modelsCreated(SomeToolingModel, ":", ":a", ":b")
         }
         outputContains("configuring root")
         outputContains("configuring project ':a'")
@@ -156,7 +224,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
         fixture.assertStateUpdated {
             fileChanged("a/build.gradle")
             projectsConfigured(":buildSrc", ":")
-            modelsCreated(":a")
+            modelsCreated(":a", SomeToolingModel)
             modelsReused(":buildSrc", ":", ":b")
         }
 
