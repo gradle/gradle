@@ -128,7 +128,8 @@ public class WatchableHierarchies {
         return newRoot;
     }
 
-    private SnapshotHierarchy removeIndirectlySymlinkedRoots(SnapshotHierarchy root, Invalidator invalidator) {
+    @CheckReturnValue
+    private static SnapshotHierarchy removeIndirectlySymlinkedRoots(SnapshotHierarchy root, Invalidator invalidator) {
         Map<String, Boolean> symlinkCache = new HashMap<>();
         List<String> absolutePathsToEvict = root.rootSnapshots()
             .map(FileSystemLocationSnapshot::getAbsolutePath)
@@ -140,7 +141,7 @@ public class WatchableHierarchies {
         return root;
     }
 
-    private boolean isParentAccessedViaSymlink(Map<String, Boolean> symlinkCache, File file) {
+    private static boolean isParentAccessedViaSymlink(Map<String, Boolean> symlinkCache, File file) {
         File parent = file.getParentFile();
         if (parent == null) {
             return false;
@@ -153,7 +154,7 @@ public class WatchableHierarchies {
 
     @CheckReturnValue
     private SnapshotHierarchy removeUnwatchedSnapshotsAndDirectSymlinks(SnapshotHierarchy root, Invalidator invalidator) {
-        RemoveUnwatchedFiles removeUnwatchedFilesVisitor = new RemoveUnwatchedFiles(root, invalidator);
+        RemoveUnwatchedSnapshotsAndDirectSymlinks removeUnwatchedFilesVisitor = new RemoveUnwatchedSnapshotsAndDirectSymlinks(root, invalidator);
         root.rootSnapshots()
             .forEach(snapshotRoot -> snapshotRoot.accept(removeUnwatchedFilesVisitor));
         return removeUnwatchedFilesVisitor.getRootWithUnwatchedFilesRemoved();
@@ -305,11 +306,11 @@ public class WatchableHierarchies {
         }
     }
 
-    private class RemoveUnwatchedFiles implements FileSystemSnapshotHierarchyVisitor {
+    private class RemoveUnwatchedSnapshotsAndDirectSymlinks implements FileSystemSnapshotHierarchyVisitor {
         private SnapshotHierarchy root;
         private final Invalidator invalidator;
 
-        public RemoveUnwatchedFiles(SnapshotHierarchy root, Invalidator invalidator) {
+        public RemoveUnwatchedSnapshotsAndDirectSymlinks(SnapshotHierarchy root, Invalidator invalidator) {
             this.root = root;
             this.invalidator = invalidator;
         }
@@ -317,7 +318,7 @@ public class WatchableHierarchies {
         @Override
         public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot) {
             if (!shouldKeep(snapshot)) {
-                invalidateUnwatchedFile(snapshot);
+                root = invalidator.invalidate(snapshot.getAbsolutePath(), root);
                 return SnapshotVisitResult.SKIP_SUBTREE;
             } else {
                 return SnapshotVisitResult.CONTINUE;
@@ -334,18 +335,13 @@ public class WatchableHierarchies {
                 return true;
             }
 
-            // If it's not being watched, discard it, as we can't trust the VFS for these
-            if (!isInWatchableHierarchy(snapshot.getAbsolutePath())) {
+            // We are not being notified about changes to content accessed via symlinks
+            if (snapshot.getAccessType() == FileMetadata.AccessType.VIA_SYMLINK) {
                 return false;
             }
 
-            // Only keep it if it's accessed directly, as we are not being notified about
-            // changes to content accessed via symlinks
-            return snapshot.getAccessType() != FileMetadata.AccessType.VIA_SYMLINK;
-        }
-
-        private void invalidateUnwatchedFile(FileSystemLocationSnapshot snapshot) {
-            root = invalidator.invalidate(snapshot.getAbsolutePath(), root);
+            // If it's not being watched, discard it, as we can't trust the VFS for these
+            return isInWatchableHierarchy(snapshot.getAbsolutePath());
         }
 
         public SnapshotHierarchy getRootWithUnwatchedFilesRemoved() {
