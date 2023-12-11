@@ -16,6 +16,8 @@
 
 package org.gradle.configurationcache.isolated
 
+import org.gradle.configurationcache.fixtures.SomeToolingModel
+
 class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def setup() {
         settingsFile << """
@@ -236,5 +238,79 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         result.ignoreBuildSrc.assertTasksExecuted(":a:thing")
     }
 
-    // TODO: add test for caching
+    def "caches execution of phased BuildAction with same component types and different state"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        settingsFile << """
+            include("a")
+            include("b")
+        """
+        buildFile << """
+            plugins.apply(my.MyPlugin)
+        """
+        file("a/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def models = runPhasedBuildAction(new FetchCustomModelForTargetProject(":"), new FetchCustomModelForTargetProject(":a"))
+
+        then:
+        fixture.assertStateStored {
+            projectsConfigured(":buildSrc")
+            buildModelCreated()
+            modelsCreated(SomeToolingModel, ":", ":a")
+        }
+        outputContains("creating model for root project 'root'")
+        outputContains("creating model for project ':a'")
+
+        and:
+        models.left.message == "It works from project :"
+        models.right.message == "It works from project :a"
+
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def models2 = runPhasedBuildAction(new FetchCustomModelForTargetProject(":a"), new FetchCustomModelForTargetProject(":"))
+
+        then:
+        fixture.assertStateStored {
+            projectsConfigured(":buildSrc")
+            buildModelCreated()
+            modelsCreated(SomeToolingModel, ":", ":a")
+        }
+        outputContains("creating model for project ':a'")
+        outputContains("creating model for root project 'root'")
+
+        and:
+        models2.left.message == "It works from project :a"
+        models2.right.message == "It works from project :"
+
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def models3 = runPhasedBuildAction(new FetchCustomModelForTargetProject(":"), new FetchCustomModelForTargetProject(":a"))
+
+        then:
+        fixture.assertStateLoaded()
+        outputDoesNotContain("creating model")
+
+        and:
+        models3.left.message == "It works from project :"
+        models3.right.message == "It works from project :a"
+
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def models4 = runPhasedBuildAction(new FetchCustomModelForTargetProject(":a"), new FetchCustomModelForTargetProject(":"))
+
+        then:
+        fixture.assertStateLoaded()
+        outputDoesNotContain("creating model")
+
+        and:
+        models4.left.message == "It works from project :a"
+        models4.right.message == "It works from project :"
+    }
 }
