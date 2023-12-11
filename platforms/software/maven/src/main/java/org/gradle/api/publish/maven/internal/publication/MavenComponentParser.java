@@ -55,6 +55,7 @@ import org.gradle.api.publish.maven.internal.dependencies.MavenDependency;
 import org.gradle.api.publish.maven.internal.dependencies.MavenPomDependencies;
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
 import org.gradle.api.publish.maven.internal.validation.MavenPublicationErrorChecker;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
@@ -302,9 +303,13 @@ public class MavenComponentParser {
             for (DependencyArtifact artifact : dependency.getArtifacts()) {
                 ResolvedCoordinates artifactCoordinates = coordinates;
                 if (!artifact.getName().equals(dependency.getName())) {
-                    // TODO: We should not allow the artifact name to change the coordinates.
-                    //  Artifacts with name different from the coordinate name is not supported in Maven.
-                    //  This behavior should be deprecated.
+                    DeprecationLogger.deprecateBehaviour("Publishing a dependency with an artifact name different from the dependency's artifactId.")
+                        .withContext("This functionality is only supported by Ivy repositories.")
+                        .withAdvice(String.format("Declare a dependency with artifactId '%s' instead of '%s'.", artifact.getName(), dependency.getName()))
+                        .willBecomeAnErrorInGradle9()
+                        .withUpgradeGuideSection(8, "publishing_artifact_name_different_from_artifact_id_maven")
+                        .nagUser();
+
                     artifactCoordinates = ResolvedCoordinates.create(
                         coordinates.getGroup(),
                         artifact.getName(),

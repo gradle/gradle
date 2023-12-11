@@ -140,6 +140,71 @@ java {
 ======
 =====
 
+[[publishing_artifact_name_different_from_artifact_id_maven]]
+==== Deprecated publishing artifact dependencies with explicit name to Maven repositories
+
+Publishing dependencies with an explicit artifact with name different from the dependency's artifactId to Maven repositories has been deprecated.
+This behavior will still be permitted when publishing to Ivy repositories.
+This will become an error in Gradle 9.0.
+
+Currently, when publishing to Maven repositories, Gradle will interpret the below dependency as if it were declared with coordinates `org:notfoo:1.0`.
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    implementation("org:foo:1.0") {
+        artifact {
+            name = "notfoo"
+        }
+    }
+}
+----
+======
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+dependencies {
+    implementation("org:foo:1.0") {
+        artifact {
+            name = "notfoo"
+        }
+    }
+}
+----
+======
+=====
+
+Instead, this dependency should be declared as:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    implementation("org:notfoo:1.0")
+}
+----
+======
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+dependencies {
+    implementation("org:notfoo:1.0")
+}
+----
+======
+=====
+
 [[deprecated_artifact_identifier]]
 ==== Deprecated `ArtifactIdentifier`
 The `ArtifactIdentifier` class has been deprecated for removal in Gradle 9.0.
