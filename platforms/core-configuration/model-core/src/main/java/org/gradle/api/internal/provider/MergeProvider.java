@@ -38,7 +38,7 @@ public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> {
     private final List<Provider<R>> items;
 
     public MergeProvider(List<Provider<R>> items) {
-        this.items = items;
+        this.items = ImmutableList.copyOf(items);
     }
 
     @Override
@@ -110,14 +110,14 @@ public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> {
         for (Provider<R> item : items) {
             producers.add(Providers.internal(item).getProducer());
         }
-        return new ZipValueProvider(producers.build());
+        return new MergeValueProducer(producers.build());
     }
 
-    private static class ZipValueProvider implements ValueProducer {
+    private static class MergeValueProducer implements ValueProducer {
 
         private final List<ValueProducer> items;
 
-        public ZipValueProvider(List<ValueProducer> items) {
+        public MergeValueProducer(List<ValueProducer> items) {
             this.items = items;
         }
 
