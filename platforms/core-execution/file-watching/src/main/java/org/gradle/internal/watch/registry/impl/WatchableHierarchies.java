@@ -30,11 +30,16 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckReturnValue;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -280,6 +285,7 @@ public class WatchableHierarchies {
     private class RemoveUnwatchedFiles implements FileSystemSnapshotHierarchyVisitor {
         private SnapshotHierarchy root;
         private final Invalidator invalidator;
+        private final Map<Path, Boolean> parentSymlinkCache = new HashMap<>();
 
         public RemoveUnwatchedFiles(SnapshotHierarchy root, Invalidator invalidator) {
             this.root = root;
@@ -288,7 +294,7 @@ public class WatchableHierarchies {
 
         @Override
         public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot) {
-            if (shouldBeRemoved(snapshot)) {
+            if (!shouldKeep(snapshot)) {
                 invalidateUnwatchedFile(snapshot);
                 return SnapshotVisitResult.SKIP_SUBTREE;
             } else {
@@ -296,9 +302,38 @@ public class WatchableHierarchies {
             }
         }
 
-        private boolean shouldBeRemoved(FileSystemLocationSnapshot snapshot) {
-            return snapshot.getAccessType() == FileMetadata.AccessType.VIA_SYMLINK ||
-                (!isInWatchableHierarchy(snapshot.getAbsolutePath()) && !immutableLocationsFilter.test(snapshot.getAbsolutePath()));
+        /**
+         * We keep snapshots if they are both in a trusted location and are not accessed
+         * (directly or indirectly) via a symlink.
+         */
+        private boolean shouldKeep(FileSystemLocationSnapshot snapshot) {
+            // Checks in order of decreasing effort
+            return snapshot.getAccessType() != FileMetadata.AccessType.VIA_SYMLINK
+                && isTrustedLocation(snapshot.getAbsolutePath())
+                && !isAnyParentASymlink(Paths.get(snapshot.getAbsolutePath()));
+        }
+
+        /**
+         * We trust locations that we watch as well as immutable locations.
+         */
+        private boolean isTrustedLocation(String absolutePath) {
+            return isInWatchableHierarchy(absolutePath)
+                || immutableLocationsFilter.test(absolutePath);
+        }
+
+        private boolean isAnyParentASymlink(Path absolutePath) {
+            Path rootPath = absolutePath.getRoot();
+            Path currentPath = absolutePath;
+            while (true) {
+                Path parentPath = currentPath.getParent();
+                if (parentPath.equals(rootPath)) {
+                    return false;
+                }
+                if (parentSymlinkCache.computeIfAbsent(parentPath, Files::isSymbolicLink)) {
+                    return true;
+                }
+                currentPath = parentPath;
+            }
         }
 
         private void invalidateUnwatchedFile(FileSystemLocationSnapshot snapshot) {

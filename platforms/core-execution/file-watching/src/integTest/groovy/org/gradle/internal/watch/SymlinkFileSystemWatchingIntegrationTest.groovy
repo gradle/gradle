@@ -97,6 +97,44 @@ class SymlinkFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchin
         "symlink in a directory"        | "dirWithSymlink/symlinkInside" | "fileInside.txt" | 'dir("dirWithSymlink")' | "fileInside.txt"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/26201")
+    def "changes are detected when parent of input is symlinked"() {
+        def targetDir = file("target")
+        def inputFile = targetDir.file("input.txt")
+        def linkedDir = file("linked-dir").createLink(targetDir)
+
+        inputFile.text = "original"
+
+        buildFile << """
+            task myTask {
+                def outputFile = file("build/output.txt")
+                inputs.file("linked-dir/input.txt")
+                outputs.file(outputFile)
+
+                doLast {
+                    outputFile.text = "Hello world"
+                }
+            }
+        """
+
+        when:
+        withWatchFs().run "myTask"
+        then:
+        executedAndNotSkipped ":myTask"
+
+        when:
+        withWatchFs().run "myTask"
+        then:
+        skipped(":myTask")
+
+        when:
+        inputFile.text = "changed"
+        waitForChangesToBePickedUp()
+        withWatchFs().run "myTask"
+        then:
+        executedAndNotSkipped ":myTask"
+    }
+
     def "file system watching works when the project dir is symlinked"() {
         def actualProjectDir = file("parent/projectDir")
         def symlink = file("symlinkedParent")
