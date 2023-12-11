@@ -290,6 +290,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         checkIdeaProject(ideaModel, expectedIdeaModel)
     }
 
+    // This test mostly reproduces `org.gradle.plugins.ide.tooling.r31.PersistentCompositeDependencySubstitutionCrossVersionSpec.ensures unique name for all Idea modules in composite`
     def "ensures unique name for all Idea modules in composite"() {
         singleProjectBuildInRootDir("buildA") {
             buildFile << """
@@ -364,6 +365,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         expectedResult.getIdeaProject('buildC').modules.name == ['buildA-buildC']
         expectedResult.getIdeaProject('buildD').modules.name == ['buildD', 'buildD-b1', 'buildD-buildC']
 
+
         when: "fetching with Isolated Projects"
         executer.withArguments(ENABLE_CLI)
         def result = runBuildAction(new FetchAllIdeaProjects())
@@ -385,6 +387,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
             [{ ImmutableDomainObjectSet.of(it.allIdeaProjects) }, { a, e -> checkIdeaProject(a, e) }]
         ])
 
+
         when: "fetching again with Isolated Projects"
         executer.withArguments(ENABLE_CLI)
         def anotherResult = runBuildAction(new FetchAllIdeaProjects())
@@ -395,9 +398,27 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         checkModel(anotherResult, expectedResult, [
             [{ ImmutableDomainObjectSet.of(it.allIdeaProjects) }, { a, e -> checkIdeaProject(a, e) }]
         ])
-    }
 
-    // TODO: add a step that changes on project (that gets incrementally reconfigured) and re-fetch the model
+        when: "fetching after change with Isolated Projects"
+        file("buildC/build.gradle") << """
+            println("changed root in buildC")
+        """
+        executer.withArguments(ENABLE_CLI)
+        def afterChangeResult = runBuildAction(new FetchAllIdeaProjects())
+
+        then:
+        fixture.assertStateUpdated {
+            fileChanged("buildC/build.gradle")
+            projectsConfigured(":buildB", ":buildB:b1", ":buildB:b2", ":buildC", ":buildD", ":buildD:b1", ":buildD:buildC")
+            modelsCreated(":buildC", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            modelsReused(":", ":buildB", ":buildD")
+        }
+        outputContains("changed root in buildC")
+
+        checkModel(afterChangeResult, expectedResult, [
+            [{ ImmutableDomainObjectSet.of(it.allIdeaProjects) }, { a, e -> checkIdeaProject(a, e) }]
+        ])
+    }
 
     @ToBeImplemented("https://github.com/gradle/gradle/issues/27363")
     def "can fetch IdeaProject model for Scala projects"() {
