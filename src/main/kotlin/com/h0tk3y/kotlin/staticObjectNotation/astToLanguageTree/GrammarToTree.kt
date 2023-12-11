@@ -600,13 +600,6 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
 
     private fun <T : Any?> workaround(@Suppress("UNUSED_PARAMETER") reason: String, value: T): T = value
 
-    private fun <T> syntacticOrFailure(
-        evaluate: FailureCollectorContext.() -> SyntacticResult<T>
-    ): SyntacticResult<T> {
-        val context = FailureCollectorContext()
-        return evaluate(context)
-    }
-
     private fun Ast.expectKind(expected: AstKind) {
         check(kind == expected) { "invoked an AST-visiting function on an unexpected AST kind: $kind instead of $expected" }
     }

@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.fir.builder.isUnderscore
 import org.jetbrains.kotlin.lexer.KtTokens.*
 import org.jetbrains.kotlin.parsing.*
 import org.jetbrains.kotlin.psi.stubs.elements.KtConstantExpressionElementType
+import org.jetbrains.kotlin.utils.doNothing
 
 class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
 
@@ -28,6 +29,7 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
             LABELED_EXPRESSION -> node.unsupportedBecause(LabelledStatement)
             ANNOTATED_EXPRESSION -> node.unsupportedBecause(AnnotationUsage)
             BINARY_EXPRESSION -> binaryExpression(tree, node)
+            CALL_EXPRESSION -> callExpression(tree, node)
             else -> error("Unexpected tokenType in generic statement: ${node.tokenType}")
         }
 
@@ -101,6 +103,80 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
         }
     }
 
+    private fun callExpression(tree: LightTree, node: LighterASTNode): ElementResult<Expr> {
+        val children = tree.children(node)
+
+        var name: String? = null
+        val valueArguments = mutableListOf<LighterASTNode>()
+        children.forEach { child ->
+            fun process(node: LighterASTNode) {
+                when (node.tokenType) {
+                    REFERENCE_EXPRESSION -> {
+                        name = node.asText
+                    }
+                    VALUE_ARGUMENT_LIST, LAMBDA_ARGUMENT -> {
+                        valueArguments += node
+                    }
+                    else -> TODO()
+                }
+            }
+
+            process(child)
+        }
+
+        if (name == null) error("Not handled!")
+
+        return elementOrFailure {
+            val arguments = valueArguments.flatMap { valueArguments(tree, it) }.map { checkForFailure(it) }
+            elementIfNoFailures {
+                Element(FunctionCall(null, name!!, arguments.map(::checked), node.data))
+            }
+        }
+    }
+
+    private fun valueArguments(tree: LightTree, node: LighterASTNode): List<SyntacticResult<FunctionArgument.ValueArgument>> {
+        val children = tree.children(node)
+
+        val list = mutableListOf<SyntacticResult<FunctionArgument.ValueArgument>>()
+        children.forEach {
+            when (it.tokenType) {
+                VALUE_ARGUMENT -> list.add(valueArgument(tree, it))
+                COMMA, LPAR, RPAR -> doNothing()
+                else -> TODO()
+            }
+        }
+        return list
+    }
+
+    private fun valueArgument(tree: LightTree, node: LighterASTNode): SyntacticResult<FunctionArgument.ValueArgument> =
+        syntacticOrFailure {
+            val children = tree.children(node)
+
+            var identifier: String? = null
+            var expression: FailureCollectorContext.CheckedResult<ElementResult<Expr>>? = null
+            children.forEach {
+                when (it.tokenType) {
+                    VALUE_ARGUMENT_NAME -> identifier = it.asText
+                    EQ -> doNothing()
+                    is KtConstantExpressionElementType -> expression = checkForFailure(constantExpression(it))
+                    CALL_EXPRESSION -> expression = checkForFailure(callExpression(tree, it))
+                    else ->
+                        if (it.isExpression()) expression = checkForFailure(propertyAccessStatement(it))
+                        else TODO()
+                }
+            }
+
+            collectingFailure(expression ?: node.parsingError("Argument is absent"))
+
+            syntacticIfNoFailures {
+                Syntactic(
+                    if (identifier != null) FunctionArgument.Named(identifier!!, checked(expression!!), node.data)
+                    else FunctionArgument.Positional(checked(expression!!), node.data)
+                )
+            }
+
+        }
+
     private fun binaryExpression(tree: LightTree, node: LighterASTNode): ElementResult<Assignment> {
         val children = tree.children(node)
 
@@ -135,10 +211,9 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
             val lhs = checkForFailure(propertyAccessStatement(leftArg!!))
             val expr = checkForFailure(expression(tree, rightArg!!))
 
-            val x = elementIfNoFailures {
+            elementIfNoFailures {
                 Element(Assignment(checked(lhs), checked(expr), node.data))
             }
-            x
         }
     }
 

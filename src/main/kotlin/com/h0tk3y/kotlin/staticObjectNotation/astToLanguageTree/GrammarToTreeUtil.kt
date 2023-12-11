@@ -81,3 +81,10 @@ internal fun <T : LanguageTreeElement> elementOrFailure(
     val context = FailureCollectorContext()
     return evaluate(context)
 }
+
+internal fun <T> syntacticOrFailure(
+    evaluate: FailureCollectorContext.() -> SyntacticResult<T>
+): SyntacticResult<T> {
+    val context = FailureCollectorContext()
+    return evaluate(context)
+}
