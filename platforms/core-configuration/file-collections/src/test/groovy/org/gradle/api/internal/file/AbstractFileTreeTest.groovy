@@ -19,6 +19,7 @@ import org.gradle.api.Action
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
+import org.gradle.api.file.LinksStrategy
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.util.PatternFilterable
@@ -146,6 +147,10 @@ class AbstractFileTreeTest extends Specification {
                 visitor.visitFile(details)
             }
             this
+        }
+
+        FileTree visit(FileVisitor visitor, LinksStrategy linksStrategy) {
+            visit(visitor)
         }
     }
 

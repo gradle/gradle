@@ -112,7 +112,12 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
 
     @Override
     public void visit(FileVisitor visitor) {
-        visitFrom(visitor, dir, RelativePath.EMPTY_ROOT, new AtomicBoolean());
+        visit(visitor, LinksStrategy.FOLLOW);
+    }
+
+    @Override
+    public void visit(FileVisitor visitor, LinksStrategy linksStrategy) {
+        visitFrom(visitor, linksStrategy, dir, RelativePath.EMPTY_ROOT, new AtomicBoolean());
     }
 
     /**
@@ -120,37 +125,36 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
      * (but not the directory itself) will be checked with spec and notified to
      * the listener.  If it is a file, the file will be checked and notified.
      */
-    public void visitFrom(FileVisitor visitor, File fileOrDirectory, RelativePath path, AtomicBoolean stopFlag) {
+    public void visitFrom(FileVisitor visitor, LinksStrategy linksStrategy, File fileOrDirectory, RelativePath path, AtomicBoolean stopFlag) {
         Spec<FileTreeElement> spec = patternSet.getAsSpec();
         Path fileOrDirectoryPath = fileOrDirectory.toPath();
         if (Files.exists(fileOrDirectoryPath, LinkOption.NOFOLLOW_LINKS)) {
-            LinksStrategy linksStrategy = visitor.linksStrategy();
             FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(fileOrDirectoryPath, path, stopFlag, fileSystem, linksStrategy);
             if (details.isDirectory()) {
-                walkDir(fileOrDirectoryPath, path, visitor, spec, stopFlag);
+                walkDir(fileOrDirectoryPath, path, visitor, linksStrategy, spec, stopFlag);
             } else {
-                processSingleFile(fileOrDirectoryPath, details, linksStrategy, visitor, spec);
+                processSingleFile(fileOrDirectoryPath, details, visitor, linksStrategy, spec);
             }
         } else {
             LOGGER.info("file or directory '{}', not found", fileOrDirectory);
         }
     }
 
-    private void processSingleFile(Path file, FileVisitDetails details, LinksStrategy linksStrategy, FileVisitor visitor, Spec<FileTreeElement> spec) {
+    private void processSingleFile(Path file, FileVisitDetails details, FileVisitor visitor, LinksStrategy linksStrategy, Spec<FileTreeElement> spec) {
         if (spec.isSatisfiedBy(details)) {
             linksStrategy.maybeThrowOnBrokenLink(details);
             visitor.visitFile(details);
         }
     }
 
-    private void walkDir(Path dir, RelativePath path, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag) {
+    private void walkDir(Path dir, RelativePath path, FileVisitor visitor, LinksStrategy linksStrategy, Spec<FileTreeElement> spec, AtomicBoolean stopFlag) {
         DirectoryWalker directoryWalker;
         if (visitor instanceof ReproducibleFileVisitor && ((ReproducibleFileVisitor) visitor).isReproducibleFileOrder()) {
             directoryWalker = REPRODUCIBLE_DIRECTORY_WALKER;
         } else {
             directoryWalker = DEFAULT_DIRECTORY_WALKER;
         }
-        directoryWalker.walkDir(dir, path, visitor, spec, stopFlag, postfix);
+        directoryWalker.walkDir(dir, path, visitor, linksStrategy, spec, stopFlag, postfix);
     }
 
     /**

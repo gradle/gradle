@@ -87,7 +87,12 @@ public class SingleIncludePatternFileTree implements MinimalFileTree, LocalFileT
 
     @Override
     public void visit(FileVisitor visitor) {
-        if (visitor.linksStrategy() != LinksStrategy.FOLLOW) {
+        doVisit(visitor, baseDir, new ArrayDeque<>(), 0, new AtomicBoolean());
+    }
+
+    @Override
+    public void visit(FileVisitor visitor, LinksStrategy linksStrategy) {
+        if (linksStrategy != LinksStrategy.FOLLOW) {
             throw new GradleException("Only LinksStrategy.FOLLOW is supported in SingleIncludePatternFileTree");
         }
         doVisit(visitor, baseDir, new ArrayDeque<>(), 0, new AtomicBoolean());
@@ -105,7 +110,7 @@ public class SingleIncludePatternFileTree implements MinimalFileTree, LocalFileT
             patternSet.include(includePattern);
             patternSet.exclude(excludeSpec);
             DirectoryFileTree fileTree = new DirectoryFileTree(baseDir, patternSet, fileSystem);
-            fileTree.visitFrom(visitor, file, new RelativePath(file.isFile(), pathSegments.toArray(new String[0])), stopFlag);
+            fileTree.visitFrom(visitor, LinksStrategy.FOLLOW, file, new RelativePath(file.isFile(), pathSegments.toArray(new String[0])), stopFlag);
         } else if (segment.contains("*") || segment.contains("?")) {
             PatternStep step = PatternStepFactory.getStep(segment, false);
             File[] children = file.listFiles();

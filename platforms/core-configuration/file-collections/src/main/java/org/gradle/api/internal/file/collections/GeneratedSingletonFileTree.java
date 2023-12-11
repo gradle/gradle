@@ -19,6 +19,7 @@ import com.google.common.io.Files;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.file.SymbolicLinkDetails;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
@@ -110,6 +111,11 @@ public class GeneratedSingletonFileTree implements FileSystemMirroringFileTree, 
     public void visit(FileVisitor visitor) {
         FileVisitDetails fileVisitDetails = new FileVisitDetailsImpl(fileName, contentWriter, fileSystem);
         visitor.visitFile(fileVisitDetails);
+    }
+
+    @Override
+    public void visit(FileVisitor visitor, LinksStrategy linksStrategy) {
+        visit(visitor);
     }
 
     private class FileVisitDetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {

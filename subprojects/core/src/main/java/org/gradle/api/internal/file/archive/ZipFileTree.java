@@ -21,6 +21,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.provider.Provider;
@@ -74,7 +75,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
     }
 
     @Override
-    public void visit(FileVisitor visitor) {
+    public void visit(FileVisitor visitor, LinksStrategy linksStrategy) {
         decompressionCache.useCache(() -> {
             File zipFile = fileProvider.get();
             if (!zipFile.exists()) {
@@ -87,7 +88,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
             AtomicBoolean stopFlag = new AtomicBoolean();
             File expandedDir = getExpandedDir();
             try (ZipFile zip = new ZipFile(zipFile)) {
-                ZipVisitor zipVisitor = new ZipVisitor(zip, zipFile, expandedDir, visitor, stopFlag, chmod);
+                ZipVisitor zipVisitor = new ZipVisitor(zip, zipFile, expandedDir, visitor, stopFlag, linksStrategy.preserveLinks(), chmod);
                 zipVisitor.visitAll();
             } catch (GradleException e) {
                 throw e;
@@ -111,8 +112,8 @@ public class ZipFileTree extends AbstractArchiveFileTree {
     private static final class ZipVisitor extends ArchiveVisitor<ZipArchiveEntry> {
         private final ZipFile zip;
 
-        public ZipVisitor(ZipFile zip, File zipFile, File expandedDir, FileVisitor visitor, AtomicBoolean stopFlag, Chmod chmod) {
-            super(zipFile, expandedDir, visitor, stopFlag, chmod);
+        public ZipVisitor(ZipFile zip, File zipFile, File expandedDir, FileVisitor visitor, AtomicBoolean stopFlag, boolean preserveLinks, Chmod chmod) {
+            super(zipFile, expandedDir, visitor, stopFlag, preserveLinks, chmod);
             this.zip = zip;
         }
 

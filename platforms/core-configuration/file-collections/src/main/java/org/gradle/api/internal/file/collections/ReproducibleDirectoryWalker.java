@@ -19,6 +19,7 @@ package org.gradle.api.internal.file.collections;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -41,9 +42,9 @@ public class ReproducibleDirectoryWalker implements DirectoryWalker {
     }
 
     @Override
-    public void walkDir(Path rootDir, RelativePath rootPath, FileVisitor visitor, Spec<? super FileTreeElement> spec, AtomicBoolean stopFlag, boolean postfix) {
+    public void walkDir(Path rootDir, RelativePath rootPath, FileVisitor visitor, LinksStrategy linksStrategy, Spec<? super FileTreeElement> spec, AtomicBoolean stopFlag, boolean postfix) {
         try {
-            PathVisitor pathVisitor = new PathVisitor(spec, postfix, visitor, stopFlag, rootPath, fileSystem);
+            PathVisitor pathVisitor = new PathVisitor(spec, postfix, visitor, linksStrategy, stopFlag, rootPath, fileSystem);
             visit(rootDir, pathVisitor);
         } catch (IOException e) {
             throw new GradleException(String.format("Could not list contents of directory '%s'.", rootDir), e);

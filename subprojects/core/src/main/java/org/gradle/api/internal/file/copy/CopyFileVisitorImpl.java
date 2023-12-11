@@ -18,14 +18,11 @@ package org.gradle.api.internal.file.copy;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.file.ReproducibleFileVisitor;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
-
-import java.util.function.Supplier;
 
 public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
     private final CopySpecResolver copySpecResolver;
@@ -34,11 +31,10 @@ public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
     private final ObjectFactory objectFactory;
     private final FileSystem fileSystem;
     private final boolean reproducibleFileOrder;
-    private final LinksStrategy linksStrategy;
 
     public CopyFileVisitorImpl(
         CopySpecResolver spec, CopyActionProcessingStreamAction action, Instantiator instantiator, ObjectFactory objectFactory, FileSystem fileSystem,
-        boolean reproducibleFileOrder, Supplier<LinksStrategy> defaultLinksStrategy
+        boolean reproducibleFileOrder
     ) {
         this.copySpecResolver = spec;
         this.action = action;
@@ -46,11 +42,6 @@ public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
         this.objectFactory = objectFactory;
         this.fileSystem = fileSystem;
         this.reproducibleFileOrder = reproducibleFileOrder;
-        if (copySpecResolver.getLinksStrategy().isPresent()) {
-            this.linksStrategy = copySpecResolver.getLinksStrategy().get();
-        } else {
-            this.linksStrategy = defaultLinksStrategy.get();
-        }
     }
 
     @Override
@@ -70,7 +61,6 @@ public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
 
     private void processFile(FileVisitDetails visitDetails) {
         DefaultFileCopyDetails details = createDefaultFileCopyDetails(visitDetails);
-        linksStrategy.maybeThrowOnBrokenLink(details);
         for (Action<? super FileCopyDetails> action : copySpecResolver.getAllCopyActions()) {
             action.execute(details);
             if (details.isExcluded()) {
@@ -87,10 +77,5 @@ public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
     @Override
     public boolean isReproducibleFileOrder() {
         return reproducibleFileOrder;
-    }
-
-    @Override
-    public LinksStrategy linksStrategy() {
-        return linksStrategy;
     }
 }

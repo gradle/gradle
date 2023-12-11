@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
@@ -106,6 +107,14 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
     public FileTree visit(FileVisitor visitor) {
         for (FileTree tree : getSourceCollections()) {
             tree.visit(visitor);
+        }
+        return this;
+    }
+
+    @Override
+    public FileTree visit(FileVisitor visitor, LinksStrategy linksStrategy) {
+        for (FileTree tree : getSourceCollections()) {
+            tree.visit(visitor, linksStrategy);
         }
         return this;
     }

@@ -39,8 +39,6 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultConfigurableFilePermissions;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.collections.FileTreeAdapter;
-import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.pattern.PatternMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.model.ObjectFactory;
@@ -596,24 +594,6 @@ public class DefaultCopySpec implements CopySpecInternal {
     @Override
     public Property<LinksStrategy> getLinksStrategy() {
         return buildRootResolver().getLinksStrategy();
-    }
-
-    @Override
-    public LinksStrategy getDefaultLinksStrategy() {
-        for (CopySpecInternal child : childSpecs) {
-            if (child.getDefaultLinksStrategy() == LinksStrategy.PRESERVE_RELATIVE) {
-                return LinksStrategy.PRESERVE_RELATIVE;
-            }
-        }
-        for (Object sourcePath : sourcePaths.getFrom()) {
-            if (sourcePath instanceof FileTreeAdapter) {
-                MinimalFileTree tree = ((FileTreeAdapter) sourcePath).getTree();
-                if (tree.isArchive()) {
-                    return LinksStrategy.PRESERVE_RELATIVE;
-                }
-            }
-        }
-        return LinksStrategy.FOLLOW;
     }
 
     private static class MapBackedExpandAction implements Action<FileCopyDetails> {

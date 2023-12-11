@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
@@ -68,6 +69,12 @@ public class FileCollectionBackedFileTree extends AbstractFileTree {
     @Override
     public FileTree visit(FileVisitor visitor) {
         visitContentsAsFileTrees(child -> child.visit(visitor));
+        return this;
+    }
+
+    @Override
+    public FileTree visit(FileVisitor visitor, LinksStrategy linksStrategy) {
+        visitContentsAsFileTrees(child -> child.visit(visitor, linksStrategy));
         return this;
     }
 

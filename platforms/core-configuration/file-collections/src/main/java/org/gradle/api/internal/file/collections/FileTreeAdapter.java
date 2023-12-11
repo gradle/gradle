@@ -112,7 +112,17 @@ public final class FileTreeAdapter extends AbstractFileTree {
 
     @Override
     public FileTree visit(FileVisitor visitor) {
-        tree.visit(visitor);
+        if (tree.isArchive()) {
+            tree.visit(visitor, LinksStrategy.PRESERVE_RELATIVE);
+        } else {
+            tree.visit(visitor);
+        }
+        return this;
+    }
+
+    @Override
+    public FileTree visit(FileVisitor visitor, LinksStrategy linksStrategy) {
+        tree.visit(visitor, linksStrategy);
         return this;
     }
 

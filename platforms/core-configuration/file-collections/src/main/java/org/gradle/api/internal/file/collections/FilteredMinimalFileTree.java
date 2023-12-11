@@ -81,11 +81,21 @@ public class FilteredMinimalFileTree implements MinimalFileTree, FileSystemMirro
 
     @Override
     public void visit(FileVisitor visitor) {
+        if (tree.isArchive()) {
+            visit(visitor, LinksStrategy.PRESERVE_RELATIVE);
+        } else {
+            visit(visitor, LinksStrategy.FOLLOW);
+        }
+    }
+
+    @Override
+    public void visit(FileVisitor visitor, LinksStrategy linksStrategy) {
         Spec<FileTreeElement> spec = patterns.getAsSpec();
         tree.visit(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {
                 if (spec.isSatisfiedBy(dirDetails)) {
+                    linksStrategy.maybeThrowOnBrokenLink(dirDetails);
                     visitor.visitDir(dirDetails);
                 }
             }
@@ -93,14 +103,10 @@ public class FilteredMinimalFileTree implements MinimalFileTree, FileSystemMirro
             @Override
             public void visitFile(FileVisitDetails fileDetails) {
                 if (spec.isSatisfiedBy(fileDetails)) {
+                    linksStrategy.maybeThrowOnBrokenLink(fileDetails);
                     visitor.visitFile(fileDetails);
                 }
             }
-
-            @Override
-            public LinksStrategy linksStrategy() {
-                return visitor.linksStrategy();
-            }
-        });
+        }, linksStrategy);
     }
 }

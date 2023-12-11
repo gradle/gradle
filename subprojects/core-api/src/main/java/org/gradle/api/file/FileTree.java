@@ -18,6 +18,7 @@ package org.gradle.api.file;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -87,6 +88,16 @@ public interface FileTree extends FileCollection {
      * @return this
      */
     FileTree visit(FileVisitor visitor);
+
+    /**
+     * Visits the files and directories in this file tree using the given links strategy.
+     *
+     * @param visitor The visitor.
+     * @return this
+     * @since 8.6
+     */
+    @Incubating
+    FileTree visit(FileVisitor visitor, LinksStrategy linksStrategy);
 
     /**
      * Visits the files and directories in this file tree. Files are visited in depth-first prefix order, so that a directory

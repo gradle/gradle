@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.collections
 
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
+import org.gradle.api.file.LinksStrategy
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
@@ -43,7 +44,8 @@ class FilteredMinimalFileTreeTest extends Specification {
         _ * patterns.asSpec >> spec
         1 * spec.isSatisfiedBy(included) >> true
         1 * spec.isSatisfiedBy(excluded) >> false
-        1 * source.visit(_) >> { FileVisitor nestedVisitor ->
+        1 * source.isArchive() >> false
+        1 * source.visit(_, _) >> { FileVisitor nestedVisitor, LinksStrategy strategy ->
             nestedVisitor.visitDir(included)
             nestedVisitor.visitDir(excluded)
         }
@@ -64,7 +66,8 @@ class FilteredMinimalFileTreeTest extends Specification {
         _ * patterns.asSpec >> spec
         1 * spec.isSatisfiedBy(included) >> true
         1 * spec.isSatisfiedBy(excluded) >> false
-        1 * source.visit(_) >> { FileVisitor nestedVisitor ->
+        1 * source.isArchive() >> false
+        1 * source.visit(_, _) >> { FileVisitor nestedVisitor, LinksStrategy strategy ->
             nestedVisitor.visitFile(included)
             nestedVisitor.visitFile(excluded)
         }

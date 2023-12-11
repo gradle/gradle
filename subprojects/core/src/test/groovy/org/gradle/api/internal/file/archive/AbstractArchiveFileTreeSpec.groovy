@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file.archive
 
 import org.gradle.api.file.FileVisitor
+import org.gradle.api.file.LinksStrategy
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.MinimalFileTree
@@ -66,6 +67,11 @@ class AbstractArchiveFileTreeSpec extends Specification {
 
         @Override
         void visit(FileVisitor visitor) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        void visit(FileVisitor visitor, LinksStrategy linksStrategy) {
             throw new UnsupportedOperationException()
         }
 

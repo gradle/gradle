@@ -363,11 +363,6 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    public LinksStrategy getDefaultLinksStrategy() {
-        return getDelegateCopySpec().getDefaultLinksStrategy();
-    }
-
-    @Override
     public CopySpecInternal preserve(Action<? super PatternFilterable> action) {
         return getDelegateCopySpec().preserve(action);
     }

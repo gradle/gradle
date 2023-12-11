@@ -16,13 +16,10 @@
 
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
-
-import java.util.function.Supplier;
 
 public class CopySpecBackedCopyActionProcessingStream implements CopyActionProcessingStream {
 
@@ -31,7 +28,6 @@ public class CopySpecBackedCopyActionProcessingStream implements CopyActionProce
     private final ObjectFactory objectFactory;
     private final FileSystem fileSystem;
     private final boolean reproducibleFileOrder;
-    private final Supplier<LinksStrategy> defaultLinksStrategy;
 
     public CopySpecBackedCopyActionProcessingStream(CopySpecInternal spec, Instantiator instantiator, ObjectFactory objectFactory, FileSystem fileSystem, boolean reproducibleFileOrder) {
         this.spec = spec;
@@ -39,11 +35,10 @@ public class CopySpecBackedCopyActionProcessingStream implements CopyActionProce
         this.objectFactory = objectFactory;
         this.fileSystem = fileSystem;
         this.reproducibleFileOrder = reproducibleFileOrder;
-        this.defaultLinksStrategy = spec::getDefaultLinksStrategy;
     }
 
     @Override
     public void process(final CopyActionProcessingStreamAction action) {
-        spec.walk(new CopySpecActionImpl(action, instantiator, objectFactory, fileSystem, reproducibleFileOrder, defaultLinksStrategy));
+        spec.walk(new CopySpecActionImpl(action, instantiator, objectFactory, fileSystem, reproducibleFileOrder));
     }
 }

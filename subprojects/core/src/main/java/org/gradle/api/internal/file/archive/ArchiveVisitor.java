@@ -45,13 +45,14 @@ public abstract class ArchiveVisitor<ENTRY> {
         File expandedDir,
         FileVisitor visitor,
         AtomicBoolean stopFlag,
+        boolean preserveLinks,
         Chmod chmod
     ) {
         this.originalFile = originalFile;
         this.expandedDir = expandedDir;
         this.visitor = visitor;
         this.stopFlag = stopFlag;
-        this.preserveLinks = visitor.linksStrategy().preserveLinks();
+        this.preserveLinks = preserveLinks;
         this.chmod = chmod;
     }
 

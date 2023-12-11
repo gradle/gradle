@@ -47,14 +47,14 @@ class PathVisitor implements java.nio.file.FileVisitor<Path> {
     private final FileSystem fileSystem;
     private final LinksStrategy linksStrategy;
 
-    public PathVisitor(Spec<? super FileTreeElement> spec, boolean postfix, FileVisitor visitor, AtomicBoolean stopFlag, RelativePath rootPath, FileSystem fileSystem) {
+    public PathVisitor(Spec<? super FileTreeElement> spec, boolean postfix, FileVisitor visitor, LinksStrategy linksStrategy, AtomicBoolean stopFlag, RelativePath rootPath, FileSystem fileSystem) {
         this.spec = spec;
         this.postfix = postfix;
         this.visitor = visitor;
         this.stopFlag = stopFlag;
         this.rootPath = rootPath;
         this.fileSystem = fileSystem;
-        this.linksStrategy = visitor.linksStrategy();
+        this.linksStrategy = linksStrategy;
     }
 
     private boolean shouldVisit(FileTreeElement element) {

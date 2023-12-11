@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.file.archive;
 
+import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
@@ -41,6 +43,11 @@ import java.io.File;
 
     private File getBackingFile() {
         return getBackingFileProvider().get();
+    }
+
+    @Override
+    public void visit(FileVisitor visitor) {
+        visit(visitor, LinksStrategy.PRESERVE_RELATIVE);
     }
 
     @Override

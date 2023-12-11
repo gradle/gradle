@@ -88,7 +88,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
     }
 
     @Override
-    public void visit(FileVisitor visitor) {
+    public void visit(FileVisitor visitor, LinksStrategy linksStrategy) {
         decompressionCache.useCache(() -> {
             try {
                 Objects.requireNonNull(visitor);
@@ -99,7 +99,6 @@ public class TarFileTree extends AbstractArchiveFileTree {
 
             final boolean needsLinkPostProcessing;
             final boolean needsLinkFollowing;
-            LinksStrategy linksStrategy = visitor.linksStrategy();
             if (linksStrategy == LinksStrategy.PRESERVE_ALL) {
                 needsLinkPostProcessing = false;
                 needsLinkFollowing = false;
@@ -126,13 +125,13 @@ public class TarFileTree extends AbstractArchiveFileTree {
                 hasMetadata = true;
             }
 
-            File expandedDir = getExpandedDir();
             withStream(!hasMetadata, tar -> {
+                File expandedDir = getExpandedDir();
                 try {
                     TarVisitor tarVisitor = new TarVisitor(
                         tar, tarFileProvider.get(), expandedDir, metadata,
                         needsLinkPostProcessing, needsLinkFollowing, linkTargets,
-                        visitor, stopFlag, chmod
+                        visitor, stopFlag, linksStrategy.preserveLinks(), chmod
                     );
                     tarVisitor.visitAll();
                     if (linkTargets == null && !stopFlag.get()) {
@@ -252,14 +251,15 @@ public class TarFileTree extends AbstractArchiveFileTree {
             File tarFile,
             File expandedDir,
             TreeMap<String, TarArchiveEntry> metadata,
-            boolean needsLinkPostProcessing,
+            boolean needsLinkPostProcessing, //FIXME
             boolean needsLinkFollowing,
             @Nullable Set<String> linkTargets,
             FileVisitor visitor,
             AtomicBoolean stopFlag,
+            boolean preserveLinks, //FIXME
             Chmod chmod
         ) {
-            super(tarFile, expandedDir, visitor, stopFlag, chmod);
+            super(tarFile, expandedDir, visitor, stopFlag, preserveLinks, chmod);
             this.tar = tar;
             this.metadata = metadata;
             this.needsLinkPostProcessing = needsLinkPostProcessing;

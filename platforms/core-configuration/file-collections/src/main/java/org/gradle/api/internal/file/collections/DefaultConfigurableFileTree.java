@@ -21,6 +21,7 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.internal.file.CompositeFileTree;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -80,6 +81,12 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     public FileTree visit(FileVisitor visitor) {
         listener.fileCollectionObserved(this);
         return super.visit(visitor);
+    }
+
+    @Override
+    public FileTree visit(FileVisitor visitor, LinksStrategy linksStrategy) {
+        listener.fileCollectionObserved(this);
+        return super.visit(visitor, linksStrategy);
     }
 
     @Override

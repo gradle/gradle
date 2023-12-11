@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.tasks.util.PatternFilterable;
 
 import java.io.File;
@@ -68,6 +69,11 @@ final class EmptyFileTree extends AbstractFileTree {
 
     @Override
     public FileTree visit(FileVisitor visitor) {
+        return this;
+    }
+
+    @Override
+    public FileTree visit(FileVisitor visitor, LinksStrategy linksStrategy) {
         return this;
     }
 

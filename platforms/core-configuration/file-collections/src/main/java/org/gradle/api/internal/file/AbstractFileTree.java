@@ -60,12 +60,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
             public void visitFile(FileVisitDetails fileDetails) {
                 files.add(fileDetails.getFile());
             }
-
-            @Override
-            public LinksStrategy linksStrategy() {
-                return linksStrategy;
-            }
-        });
+        }, linksStrategy);
         return files;
     }
 
@@ -78,12 +73,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
                 found.set(true);
                 fileDetails.stopVisiting();
             }
-
-            @Override
-            public LinksStrategy linksStrategy() {
-                return LinksStrategy.PRESERVE_ALL;
-            }
-        });
+        }, LinksStrategy.PRESERVE_ALL);
         return !found.get();
     }
 

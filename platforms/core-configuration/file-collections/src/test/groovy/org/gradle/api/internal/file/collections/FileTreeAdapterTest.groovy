@@ -50,6 +50,7 @@ class FileTreeAdapterTest extends Specification {
 
         then:
         1 * tree.visit(visitor)
+        1 * tree.isArchive() >> false
         0 * _._
     }
 

@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.tasks.util.PatternSet;
 
@@ -35,6 +36,8 @@ public interface MinimalFileTree extends MinimalFileCollection {
      * Visits the elements of this tree, in depth-first prefix order.
      */
     void visit(FileVisitor visitor);
+
+    void visit(FileVisitor visitor, LinksStrategy linksStrategy);
 
     void visitStructure(MinimalFileTreeStructureVisitor visitor, FileTreeInternal owner);
 
