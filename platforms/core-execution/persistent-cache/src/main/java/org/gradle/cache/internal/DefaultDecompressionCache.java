@@ -17,8 +17,6 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.FileLockManager;
-import org.gradle.cache.IndexedCache;
-import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 
@@ -27,32 +25,31 @@ import java.io.File;
 /**
  * The default implementation of {@link DecompressionCache} that can be used to store decompressed data extracted from archive files like zip and tars.
  *
- * Will manage access to the cache, so that access to the archive's contents
- * are only permitted to one client at a time.
+ * Will manage access to the cache, so that access to the archive's contents are only permitted to one client at a time.
  */
 public class DefaultDecompressionCache implements DecompressionCache {
     private static final String EXPANSION_CACHE_KEY = "expanded";
     private static final String EXPANSION_CACHE_NAME = "Compressed Files Expansion Cache";
-
     private final PersistentCache cache;
-    private final IndexedCache<File, File> index;
+    private final ProducerGuard<File> guard = ProducerGuard.adaptive();
 
-    public DefaultDecompressionCache(ScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    public DefaultDecompressionCache(ScopedCacheBuilderFactory cacheBuilderFactory) {
         this.cache = cacheBuilderFactory.createCacheBuilder(EXPANSION_CACHE_KEY)
                 .withDisplayName(EXPANSION_CACHE_NAME)
                 .withInitialLockMode(FileLockManager.LockMode.OnDemand)
                 .open();
-        this.index = cache.createIndexedCache(
-            IndexedCacheParameters.of("expanded-files", File.class, File.class)
-                .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(100, true))
-        );
     }
 
     @Override
     public void useCache(File expandedDir, Runnable action) {
-        index.get(expandedDir, () -> {
+        // withFileLock prevents other processes from extracting into the expandedDir at the same time
+        // but multiple threads in this process could still try to extract into the same directory.
+        cache.withFileLock(() -> {
+            // guardByKey prevents multiple threads in this process from extracting into the same directory at the same time.
+            guard.guardByKey(expandedDir, () -> {
                 action.run();
-                return expandedDir;
+                return null;
+            });
         });
     }
 
