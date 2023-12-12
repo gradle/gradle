@@ -74,7 +74,11 @@ public class IdeaModuleBuilderSupport {
 
     public static DefaultIdeaCompilerOutput buildCompilerOutput(IdeaModule ideaModule) {
         return new DefaultIdeaCompilerOutput()
-            .setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false)
+            .setInheritOutputDirs(
+                ideaModule.getInheritOutputDirs() != null
+                    ? ideaModule.getInheritOutputDirs()
+                    : false
+            )
             .setOutputDir(ideaModule.getOutputDir())
             .setTestOutputDir(ideaModule.getTestOutputDir());
     }
@@ -84,28 +88,32 @@ public class IdeaModuleBuilderSupport {
         for (Dependency dependency : resolvedDependencies) {
             if (dependency instanceof SingleEntryModuleLibrary) {
                 SingleEntryModuleLibrary d = (SingleEntryModuleLibrary) dependency;
-                DefaultIdeaSingleEntryLibraryDependency defaultDependency = new DefaultIdeaSingleEntryLibraryDependency()
-                    .setFile(d.getLibraryFile())
-                    .setSource(d.getSourceFile())
-                    .setJavadoc(d.getJavadocFile())
-                    .setScope(new DefaultIdeaDependencyScope(d.getScope()))
-                    .setExported(d.isExported());
-
-                if (d.getModuleVersion() != null) {
-                    defaultDependency.setGradleModuleVersion(new DefaultGradleModuleVersion(d.getModuleVersion()));
-                }
-                dependencies.add(defaultDependency);
+                dependencies.add(ideaSingleEntryLibraryDependencyFor(d));
             } else if (dependency instanceof ModuleDependency) {
-                ModuleDependency moduleDependency = (ModuleDependency) dependency;
-
-                DefaultIdeaModuleDependency ideaModuleDependency = new DefaultIdeaModuleDependency(moduleDependency.getName())
-                    .setExported(moduleDependency.isExported())
-                    .setScope(new DefaultIdeaDependencyScope(moduleDependency.getScope()));
-
-                dependencies.add(ideaModuleDependency);
+                ModuleDependency d = (ModuleDependency) dependency;
+                dependencies.add(ideaModuleDependencyFor(d));
             }
         }
         return dependencies;
     }
 
+    private static DefaultIdeaSingleEntryLibraryDependency ideaSingleEntryLibraryDependencyFor(SingleEntryModuleLibrary d) {
+        DefaultIdeaSingleEntryLibraryDependency defaultDependency = new DefaultIdeaSingleEntryLibraryDependency()
+            .setFile(d.getLibraryFile())
+            .setSource(d.getSourceFile())
+            .setJavadoc(d.getJavadocFile())
+            .setScope(new DefaultIdeaDependencyScope(d.getScope()))
+            .setExported(d.isExported());
+
+        if (d.getModuleVersion() != null) {
+            defaultDependency.setGradleModuleVersion(new DefaultGradleModuleVersion(d.getModuleVersion()));
+        }
+        return defaultDependency;
+    }
+
+    private static DefaultIdeaModuleDependency ideaModuleDependencyFor(ModuleDependency d) {
+        return new DefaultIdeaModuleDependency(d.getName())
+            .setExported(d.isExported())
+            .setScope(new DefaultIdeaDependencyScope(d.getScope()));
+    }
 }
