@@ -57,9 +57,6 @@ public class TarFileTree extends AbstractArchiveFileTree {
     private final Chmod chmod;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileHasher fileHasher;
-    private boolean hasMetadata = false;
-    private final TreeMap<String, TarArchiveEntry> metadata = new TreeMap<>();
-    private Set<String> linkTargets = null;
 
     public TarFileTree(
         Provider<File> tarFileProvider,
@@ -98,20 +95,16 @@ public class TarFileTree extends AbstractArchiveFileTree {
             AtomicBoolean stopFlag = new AtomicBoolean();
 
             final boolean needsLinkPostProcessing;
-            final boolean needsLinkFollowing;
-            if (linksStrategy == LinksStrategy.PRESERVE_ALL) {
+            if (linksStrategy == LinksStrategy.PRESERVE_ALL || linksStrategy == LinksStrategy.ERROR) {
                 needsLinkPostProcessing = false;
-                needsLinkFollowing = false;
-            } else if (linksStrategy == LinksStrategy.PRESERVE_RELATIVE || linksStrategy == LinksStrategy.ERROR) {
-                needsLinkPostProcessing = !hasMetadata;
-                needsLinkFollowing = false;
             } else {
+                // we need metadata to know link targets
                 needsLinkPostProcessing = true;
-                needsLinkFollowing = true;
             }
 
+            TreeMap<String, TarArchiveEntry> metadata = new TreeMap<>();
             // Metadata is needed ahead of time to know which files we need to extract to get the link targets
-            if (needsLinkFollowing && !hasMetadata) {
+            if (!linksStrategy.preserveLinks()) {
                 withStream(true, tar -> {
                     try {
                         TarArchiveEntry entry;
@@ -122,22 +115,16 @@ public class TarFileTree extends AbstractArchiveFileTree {
                         throw cannotExpand(e);
                     }
                 });
-                hasMetadata = true;
             }
 
-            withStream(!hasMetadata, tar -> {
+            withStream(linksStrategy.preserveLinks(), tar -> {
                 File expandedDir = getExpandedDir();
                 try {
                     TarVisitor tarVisitor = new TarVisitor(
-                        tar, tarFileProvider.get(), expandedDir, metadata,
-                        needsLinkPostProcessing, needsLinkFollowing, linkTargets,
+                        tar, tarFileProvider.get(), expandedDir, metadata, needsLinkPostProcessing,
                         visitor, stopFlag, linksStrategy.preserveLinks(), chmod
                     );
                     tarVisitor.visitAll();
-                    if (linkTargets == null && !stopFlag.get()) {
-                        linkTargets = tarVisitor.getAllLinkTargets();
-                    }
-                    hasMetadata = !stopFlag.get();
                 } catch (IOException e) {
                     throw cannotExpand(e);
                 }
@@ -242,8 +229,6 @@ public class TarFileTree extends AbstractArchiveFileTree {
         boolean isStreaming = true;
         private final TreeMap<String, TarArchiveEntry> metadata;
         private final boolean needsLinkPostProcessing;
-        private final boolean needsLinkFollowing;
-        @Nullable
         private Set<String> linkTargets;
 
         public TarVisitor(
@@ -251,20 +236,16 @@ public class TarFileTree extends AbstractArchiveFileTree {
             File tarFile,
             File expandedDir,
             TreeMap<String, TarArchiveEntry> metadata,
-            boolean needsLinkPostProcessing, //FIXME
-            boolean needsLinkFollowing,
-            @Nullable Set<String> linkTargets,
+            boolean needsLinkPostProcessing,
             FileVisitor visitor,
             AtomicBoolean stopFlag,
-            boolean preserveLinks, //FIXME
+            boolean preserveLinks,
             Chmod chmod
         ) {
             super(tarFile, expandedDir, visitor, stopFlag, preserveLinks, chmod);
             this.tar = tar;
             this.metadata = metadata;
             this.needsLinkPostProcessing = needsLinkPostProcessing;
-            this.needsLinkFollowing = needsLinkFollowing;
-            this.linkTargets = linkTargets;
         }
 
         @Override
@@ -274,7 +255,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
 
         @Nullable
         Set<String> getAllLinkTargets() {
-            if (linkTargets == null && needsLinkFollowing) {
+            if (linkTargets == null && !preserveLinks) {
                 linkTargets = new HashSet<>();
                 for (TarArchiveEntry entry : metadata.values()) {
                     if (!entry.isSymbolicLink()) {
@@ -316,7 +297,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
                 if (needsLinkPostProcessing && entry.isSymbolicLink()) {
                     linksQueue.add(entry);
                 } else {
-                    boolean extract = needsLinkFollowing && entry.isFile() && getAllLinkTargets().contains(entry.getName());
+                    boolean extract = !preserveLinks && entry.isFile() && getAllLinkTargets().contains(entry.getName());
                     visitEntry(entry, entry.getName(), extract);
                 }
             }
