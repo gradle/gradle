@@ -23,6 +23,11 @@ import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.process.internal.worker.problem.WorkerProblemProtocol;
 
+/**
+ * Default daemon-side implementation of {@link WorkerProblemProtocol}.
+ * <p>
+ * This implementation will take care of reporting problems received from the worker.
+ */
 @NonNullApi
 public class DefaultWorkerProblemProtocol implements WorkerProblemProtocol {
 
@@ -31,5 +36,4 @@ public class DefaultWorkerProblemProtocol implements WorkerProblemProtocol {
         InternalProblemReporter problemsService = ProblemsProgressEventEmitterHolder.get().getInternalReporter();
         problemsService.report(problem, id);
     }
-
 }
