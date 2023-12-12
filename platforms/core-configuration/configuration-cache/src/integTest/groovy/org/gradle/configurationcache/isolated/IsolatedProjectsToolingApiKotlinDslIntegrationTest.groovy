@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.isolated
 
+import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.build.KotlinDslTestProjectInitiation
 import org.gradle.tooling.model.kotlin.dsl.EditorReport
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
@@ -87,6 +88,57 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
 
         then:
         fixture.assertStateLoaded()
+    }
+
+    @NotYetImplemented
+    // https://github.com/gradle/gradle/issues/27390
+    def "subproject KotlinDslScript models get invalidated when parent classpath changes"() {
+        withSettings("""
+            include("a")
+        """)
+        withBuildScript()
+        withBuildScriptIn("a")
+
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        fetchModel(KotlinDslScriptsModel)
+
+        then:
+        fixture.assertStateStored {
+            modelsCreated(":", 5)
+            modelsCreated(":a", 2)
+        }
+
+
+        when:
+        def someJar = withEmptyJar("classes_some.jar")
+        buildFileKts.prepend("""
+            ${getBuildScriptDependency(someJar)}
+        """)
+
+//        def originalUpdatedModel = fetchModel(KotlinDslScriptsModel)
+
+        then:
+        fixture.assertNoConfigurationCache()
+
+
+        when: "fetching again with Isolated Projects"
+        executer.withArguments(ENABLE_CLI)
+//        def updatedModel = fetchModel(KotlinDslScriptsModel)
+        fetchModel(KotlinDslScriptsModel)
+
+        then:
+        fixture.assertStateUpdated {
+            fileChanged("build.gradle.kts")
+            modelsCreated(":", 5)
+            modelsReused(":a")
+            // TODO: it should recompute models for the :a project as well
+            modelsCreated(":a", 3)
+        }
+
+        // TODO: model fetched with IP should be the same as original
+//        checkKotlinDslScriptsModel(updatedModel, originalUpdatedModel)
     }
 
     static void checkKotlinDslScriptsModel(actual, expected) {
