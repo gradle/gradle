@@ -97,12 +97,12 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         """
 
         when: "fetching without Isolated Projects"
-        def expectedIdeaModel = fetchModel(IdeaProject)
+        def originalIdeaModel = fetchModel(IdeaProject)
 
         then:
         fixture.assertNoConfigurationCache()
-        expectedIdeaModel.modules.size() == 3
-        expectedIdeaModel.modules.every { it.children.isEmpty() } // IdeaModules are always flattened
+        originalIdeaModel.modules.size() == 3
+        originalIdeaModel.modules.every { it.children.isEmpty() } // IdeaModules are always flattened
 
         when: "fetching with Isolated Projects"
         executer.withArguments(ENABLE_CLI)
@@ -117,7 +117,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
             modelsCreated(":lib1:lib11", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
         }
 
-        checkIdeaProject(ideaModel, expectedIdeaModel)
+        checkIdeaProject(ideaModel, originalIdeaModel)
     }
 
     def "can fetch IdeaProject model for non-root project"() {
@@ -127,14 +127,14 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         """
 
         when: "fetching without Isolated Projects"
-        def expectedIdeaModel = runBuildAction(new FetchIdeaProjectForTarget(":lib1"))
+        def originalIdeaModel = runBuildAction(new FetchIdeaProjectForTarget(":lib1"))
 
         then:
         fixture.assertNoConfigurationCache()
 
         // Returned model is for root project even though the target is not the root
-        expectedIdeaModel.name == "root"
-        expectedIdeaModel.modules.name == ["root", "lib1"]
+        originalIdeaModel.name == "root"
+        originalIdeaModel.modules.name == ["root", "lib1"]
 
         when: "fetching with Isolated Projects"
         executer.withArguments(ENABLE_CLI)
@@ -147,7 +147,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
             modelsCreated(":lib1", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
         }
 
-        checkIdeaProject(ideaModel, expectedIdeaModel)
+        checkIdeaProject(ideaModel, originalIdeaModel)
     }
 
     def "can fetch IdeaProject model for java projects"() {
@@ -160,18 +160,18 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
             plugins {
                 id 'java'
             }
-            java.targetCompatibility = JavaVersion.VERSION_1_8
+            java.targetCompatibility = JavaVersion.VERSION_1_9
             java.sourceCompatibility = JavaVersion.VERSION_1_8
         """
 
         when: "fetching without Isolated Projects"
-        def expectedIdeaModel = fetchModel(IdeaProject)
+        def originalIdeaModel = fetchModel(IdeaProject)
 
         then:
         fixture.assertNoConfigurationCache()
-        expectedIdeaModel.modules.name == ["root", "lib1"]
-        expectedIdeaModel.javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_8
-        expectedIdeaModel.javaLanguageSettings.targetBytecodeVersion == JavaVersion.VERSION_1_8
+        originalIdeaModel.modules.name == ["root", "lib1"]
+        originalIdeaModel.javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_8
+        originalIdeaModel.javaLanguageSettings.targetBytecodeVersion == JavaVersion.VERSION_1_9
 
         when: "fetching with Isolated Projects"
         executer.withArguments(ENABLE_CLI)
@@ -183,7 +183,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
             modelsCreated(":lib1", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
         }
 
-        checkIdeaProject(ideaModel, expectedIdeaModel)
+        checkIdeaProject(ideaModel, originalIdeaModel)
     }
 
     def "can fetch IdeaProject model for projects with java and idea plugins"() {
@@ -215,16 +215,16 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         """
 
         when: "fetching without Isolated Projects"
-        def expectedIdeaModel = fetchModel(IdeaProject)
+        def originalIdeaModel = fetchModel(IdeaProject)
 
         then:
         fixture.assertNoConfigurationCache()
-        expectedIdeaModel.javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_8
-        expectedIdeaModel.javaLanguageSettings.targetBytecodeVersion == JavaVersion.VERSION_1_8
-        expectedIdeaModel.modules.name == ["root", "lib1", "lib2"]
-        expectedIdeaModel.modules[1].javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_7
-        expectedIdeaModel.modules[1].javaLanguageSettings.targetBytecodeVersion == JavaVersion.VERSION_1_7
-        expectedIdeaModel.modules[2].javaLanguageSettings == null
+        originalIdeaModel.javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_8
+        originalIdeaModel.javaLanguageSettings.targetBytecodeVersion == JavaVersion.VERSION_1_8
+        originalIdeaModel.modules.name == ["root", "lib1", "lib2"]
+        originalIdeaModel.modules[1].javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_7
+        originalIdeaModel.modules[1].javaLanguageSettings.targetBytecodeVersion == JavaVersion.VERSION_1_7
+        originalIdeaModel.modules[2].javaLanguageSettings == null
 
         when: "fetching with Isolated Projects"
         executer.withArguments(ENABLE_CLI)
@@ -237,7 +237,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
             modelsCreated(":lib2", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
         }
 
-        checkIdeaProject(ideaModel, expectedIdeaModel)
+        checkIdeaProject(ideaModel, originalIdeaModel)
     }
 
     def "can fetch BasicIdeaProject model without resolving external dependencies"() {
@@ -266,11 +266,11 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         """
 
         when: "fetching without Isolated Projects"
-        def expectedIdeaModel = fetchModel(BasicIdeaProject)
+        def originalIdeaModel = fetchModel(BasicIdeaProject)
 
         then:
         fixture.assertNoConfigurationCache()
-        with(expectedIdeaModel.children.find { it.name == "impl" }) { impl ->
+        with(originalIdeaModel.children.find { it.name == "impl" }) { impl ->
             impl.dependencies.size() == 1
             def apiDep = impl.dependencies[0] as IdeaModuleDependency
             apiDep.targetModuleName == "api"
@@ -287,7 +287,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
             modelsCreated(":impl", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
         }
 
-        checkIdeaProject(ideaModel, expectedIdeaModel)
+        checkIdeaProject(ideaModel, originalIdeaModel)
     }
 
     // This test mostly reproduces `org.gradle.plugins.ide.tooling.r31.PersistentCompositeDependencySubstitutionCrossVersionSpec.ensures unique name for all Idea modules in composite`
@@ -345,25 +345,22 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         }
 
         when: "fetching without Isolated Projects"
-        def expectedResult = runBuildAction(new FetchAllIdeaProjects())
+        def originalResult = runBuildAction(new FetchAllIdeaProjects())
 
         then:
-        expectedResult.allIdeaProjects.name == ['buildA', 'buildB', 'buildC', 'buildD']
+        originalResult.allIdeaProjects.name == ['buildA', 'buildB', 'buildC', 'buildD']
+        originalResult.rootIdeaProject.name == 'buildA'
+        originalResult.rootIdeaProject.modules.name == ['buildA']
 
-        // This is not really correct: the IdeaProject for including build should contain all IDEA modules
-        // However, it appears that IDEA 2017 depends on this behaviour, and iterates over the included builds to get all modules
-        expectedResult.rootIdeaProject.name == 'buildA'
-        expectedResult.rootIdeaProject.modules.name == ['buildA']
-
-        def moduleA = expectedResult.rootIdeaProject.modules[0]
+        def moduleA = originalResult.rootIdeaProject.modules[0]
         moduleA.dependencies.each {
             assert it instanceof IdeaModuleDependency
         }
         moduleA.dependencies.targetModuleName == ['buildB-b1', 'buildA-buildC', 'buildD-b1']
 
-        expectedResult.getIdeaProject('buildB').modules.name == ['buildB', 'buildB-b1', 'b2']
-        expectedResult.getIdeaProject('buildC').modules.name == ['buildA-buildC']
-        expectedResult.getIdeaProject('buildD').modules.name == ['buildD', 'buildD-b1', 'buildD-buildC']
+        originalResult.getIdeaProject('buildB').modules.name == ['buildB', 'buildB-b1', 'b2']
+        originalResult.getIdeaProject('buildC').modules.name == ['buildA-buildC']
+        originalResult.getIdeaProject('buildD').modules.name == ['buildD', 'buildD-b1', 'buildD-buildC']
 
 
         when: "fetching with Isolated Projects"
@@ -383,7 +380,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
             )
         }
 
-        checkModel(result, expectedResult, [
+        checkModel(result, originalResult, [
             [{ ImmutableDomainObjectSet.of(it.allIdeaProjects) }, { a, e -> checkIdeaProject(a, e) }]
         ])
 
@@ -395,7 +392,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         then:
         fixture.assertStateLoaded()
 
-        checkModel(anotherResult, expectedResult, [
+        checkModel(anotherResult, originalResult, [
             [{ ImmutableDomainObjectSet.of(it.allIdeaProjects) }, { a, e -> checkIdeaProject(a, e) }]
         ])
 
@@ -415,7 +412,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         }
         outputContains("changed root in buildC")
 
-        checkModel(afterChangeResult, expectedResult, [
+        checkModel(afterChangeResult, originalResult, [
             [{ ImmutableDomainObjectSet.of(it.allIdeaProjects) }, { a, e -> checkIdeaProject(a, e) }]
         ])
     }
@@ -434,11 +431,11 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         """
 
         when: "fetching without Isolated Projects"
-        def expectedIdeaModel = fetchModel(IdeaProject)
+        def originalIdeaModel = fetchModel(IdeaProject)
 
         then:
         fixture.assertNoConfigurationCache()
-        expectedIdeaModel.modules.name == ["root", "lib1"]
+        originalIdeaModel.modules.name == ["root", "lib1"]
 
         when: "fetching with Isolated Projects"
         executer.withArguments(ENABLE_CLI)
@@ -453,7 +450,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         }
 
         // TODO:isolated check the model matches the vintage model
-//        checkIdeaProject(ideaModel, expectedIdeaModel)
+//        checkIdeaProject(ideaModel, originalIdeaModel)
     }
 
     private static void checkIdeaProject(IdeaProject actual, IdeaProject expected) {
