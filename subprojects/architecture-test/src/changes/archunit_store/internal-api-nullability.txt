@@ -4939,7 +4939,6 @@ Class <org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider> 
 Class <org.gradle.process.internal.worker.messaging.WorkerConfig> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (WorkerConfig.java:0)
 Class <org.gradle.process.internal.worker.messaging.WorkerConfigSerializer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (WorkerConfigSerializer.java:0)
 Class <org.gradle.process.internal.worker.request.Receiver$Failure> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Receiver.java:0)
-Class <org.gradle.process.internal.worker.request.Receiver> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Receiver.java:0)
 Class <org.gradle.process.internal.worker.request.Request> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Request.java:0)
 Class <org.gradle.process.internal.worker.request.RequestArgumentSerializers$JavaObjectSerializer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (RequestArgumentSerializers.java:0)
 Class <org.gradle.process.internal.worker.request.RequestArgumentSerializers> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (RequestArgumentSerializers.java:0)

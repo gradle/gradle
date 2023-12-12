@@ -16,7 +16,8 @@
 
 package org.gradle.process.internal.worker.request;
 
-import org.gradle.api.problems.Problem;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.dispatch.StreamCompletion;
 import org.gradle.internal.logging.events.LogEvent;
@@ -29,6 +30,7 @@ import org.gradle.process.internal.worker.WorkerProcessException;
 import org.gradle.process.internal.worker.child.WorkerLoggingProtocol;
 import org.gradle.process.internal.worker.problem.WorkerProblemProtocol;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -37,6 +39,7 @@ import java.util.concurrent.BlockingQueue;
  * <p>
  * This receiver is used per worker action.
  */
+@NonNullApi
 public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailureHandler {
     private static final Object NULL = new Object();
     private static final Object END = new Object();
@@ -65,6 +68,7 @@ public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailu
         return next != END;
     }
 
+    @Nullable
     public Object getNextResult() {
         awaitNextResult();
         Object next = this.next;
@@ -94,7 +98,7 @@ public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailu
     }
 
     @Override
-    public void completed(Object result) {
+    public void completed(@Nullable Object result) {
         try {
             received.put(result == null ? NULL : result);
         } catch (InterruptedException e) {
