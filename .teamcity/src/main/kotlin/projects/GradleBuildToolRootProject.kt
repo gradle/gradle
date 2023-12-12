@@ -12,6 +12,7 @@ import util.UtilProject
 import java.io.File
 
 class GradleBuildToolRootProject(branch: VersionedSettingsBranch) : Project({
+    println("Fuck: " + System.getSecurityManager())
     val model = CIBuildModel(
         projectId = "Check",
         branch = branch,
