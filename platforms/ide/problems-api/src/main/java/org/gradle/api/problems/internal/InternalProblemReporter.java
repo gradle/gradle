@@ -18,7 +18,6 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.problems.ProblemReporter;
-import org.gradle.api.problems.ProblemSpec;
 import org.gradle.internal.operations.OperationIdentifier;
 
 public interface InternalProblemReporter extends ProblemReporter {

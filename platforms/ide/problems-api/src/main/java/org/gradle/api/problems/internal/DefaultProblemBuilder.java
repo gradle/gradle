@@ -17,8 +17,6 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.Severity;
-import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
