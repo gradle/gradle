@@ -66,7 +66,6 @@ internal
 data class KotlinBuildScriptModelParameter(
     val scriptFile: File?,
     val correlationId: String?,
-    val locationAwareHints: Boolean,
     val sourceSetClassPath: SourceSetClassPath? = null,
 ) : Serializable
 
@@ -134,27 +133,25 @@ class KotlinBuildScriptModelBuilder(
         parameter: KotlinBuildScriptModelParameter
     ): KotlinScriptTargetModelBuilder {
 
-        val locationAwareHints = parameter.locationAwareHints
-
         val scriptFile = parameter.scriptFile
-            ?: return projectScriptModelBuilder(null, modelRequestProject, locationAwareHints, intermediateToolingModelProvider)
+            ?: return projectScriptModelBuilder(null, modelRequestProject, intermediateToolingModelProvider)
 
         modelRequestProject.findProjectWithBuildFile(scriptFile)?.let { buildFileProject ->
-            return projectScriptModelBuilder(scriptFile, buildFileProject as ProjectInternal, locationAwareHints, intermediateToolingModelProvider)
+            return projectScriptModelBuilder(scriptFile, buildFileProject as ProjectInternal, intermediateToolingModelProvider)
         }
 
         resolveEnclosingSourceSet(parameter, modelRequestProject, scriptFile)?.let { enclosingSourceSet ->
-            return precompiledScriptPluginModelBuilder(scriptFile, enclosingSourceSet, modelRequestProject, locationAwareHints)
+            return precompiledScriptPluginModelBuilder(scriptFile, enclosingSourceSet, modelRequestProject)
         }
 
         if (isSettingsFileOf(modelRequestProject, scriptFile)) {
-            return settingsScriptModelBuilder(scriptFile, modelRequestProject, locationAwareHints)
+            return settingsScriptModelBuilder(scriptFile, modelRequestProject)
         }
 
         return when (kotlinScriptTypeFor(scriptFile)) {
-            KotlinScriptType.INIT -> initScriptModelBuilder(scriptFile, modelRequestProject, locationAwareHints)
-            KotlinScriptType.SETTINGS -> settingsScriptPluginModelBuilder(scriptFile, modelRequestProject, locationAwareHints)
-            else -> projectScriptPluginModelBuilder(scriptFile, modelRequestProject, locationAwareHints)
+            KotlinScriptType.INIT -> initScriptModelBuilder(scriptFile, modelRequestProject)
+            KotlinScriptType.SETTINGS -> settingsScriptPluginModelBuilder(scriptFile, modelRequestProject)
+            else -> projectScriptPluginModelBuilder(scriptFile, modelRequestProject)
         }
     }
 
@@ -178,8 +175,7 @@ class KotlinBuildScriptModelBuilder(
         KotlinBuildScriptModelParameter(
             (modelRequestProject.findProperty(KotlinBuildScriptModel.SCRIPT_GRADLE_PROPERTY_NAME) as? String)?.let(::canonicalFile),
             modelRequestProject.findProperty(KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME) as? String,
-            modelRequestProject.isLocationAwareEditorHintsEnabled,
-            null
+            sourceSetClassPath = null
         )
 }
 
@@ -216,12 +212,10 @@ private
 fun precompiledScriptPluginModelBuilder(
     scriptFile: File,
     sourceSetClassPath: ResolvedSourceSetClassPath,
-    modelRequestProject: Project,
-    locationAwareHints: Boolean
+    modelRequestProject: Project
 ) = KotlinScriptTargetModelBuilder(
     scriptFile = scriptFile,
     project = modelRequestProject,
-    locationAwareHints = locationAwareHints,
     scriptClassPath = sourceSetClassPath.compileClasspath,
     enclosingScriptProjectDir = sourceSetClassPath.projectDir,
     additionalImports = {
@@ -250,12 +244,10 @@ private
 fun projectScriptModelBuilder(
     scriptFile: File?,
     project: ProjectInternal,
-    locationAwareHints: Boolean,
     intermediateToolingModelProvider: IntermediateToolingModelProvider
 ) = KotlinScriptTargetModelBuilder(
     scriptFile = scriptFile,
     project = project,
-    locationAwareHints = locationAwareHints,
     scriptClassPath = project.scriptCompilationClassPath,
     accessorsClassPath = { classPath ->
         val stage1BlocksAccessorClassPathGenerator = project.serviceOf<Stage1BlocksAccessorClassPathGenerator>()
@@ -271,7 +263,7 @@ fun projectScriptModelBuilder(
 
 
 private
-fun initScriptModelBuilder(scriptFile: File, project: ProjectInternal, locationAwareHints: Boolean) = project.run {
+fun initScriptModelBuilder(scriptFile: File, project: ProjectInternal) = project.run {
 
     val (scriptHandler, scriptClassPath) = compilationClassPathForScriptPluginOf(
         target = gradle,
@@ -285,7 +277,6 @@ fun initScriptModelBuilder(scriptFile: File, project: ProjectInternal, locationA
     KotlinScriptTargetModelBuilder(
         scriptFile = scriptFile,
         project = project,
-        locationAwareHints = locationAwareHints,
         scriptClassPath = scriptClassPath,
         sourcePathBuilder = ScriptHandlerSourcePathBuilder(scriptHandler),
     )
@@ -293,12 +284,11 @@ fun initScriptModelBuilder(scriptFile: File, project: ProjectInternal, locationA
 
 
 private
-fun settingsScriptModelBuilder(scriptFile: File, project: Project, locationAwareHints: Boolean) = project.run {
+fun settingsScriptModelBuilder(scriptFile: File, project: Project) = project.run {
 
     KotlinScriptTargetModelBuilder(
         scriptFile = scriptFile,
         project = project,
-        locationAwareHints = locationAwareHints,
         scriptClassPath = settings.scriptCompilationClassPath,
         sourcePathBuilder = ScriptHandlerSourcePathBuilder(settings.buildscript),
         enclosingScriptProjectDir = rootDir
@@ -307,7 +297,7 @@ fun settingsScriptModelBuilder(scriptFile: File, project: Project, locationAware
 
 
 private
-fun settingsScriptPluginModelBuilder(scriptFile: File, project: ProjectInternal, locationAwareHints: Boolean) = project.run {
+fun settingsScriptPluginModelBuilder(scriptFile: File, project: ProjectInternal) = project.run {
 
     val (scriptHandler, scriptClassPath) = compilationClassPathForScriptPluginOf(
         target = settings,
@@ -321,7 +311,6 @@ fun settingsScriptPluginModelBuilder(scriptFile: File, project: ProjectInternal,
     KotlinScriptTargetModelBuilder(
         scriptFile = scriptFile,
         project = project,
-        locationAwareHints = locationAwareHints,
         scriptClassPath = scriptClassPath,
         sourcePathBuilder = ScriptHandlerSourcePathBuilder(listOf(scriptHandler, settings.buildscript)),
     )
@@ -329,7 +318,7 @@ fun settingsScriptPluginModelBuilder(scriptFile: File, project: ProjectInternal,
 
 
 private
-fun projectScriptPluginModelBuilder(scriptFile: File, project: ProjectInternal, locationAwareHints: Boolean) = project.run {
+fun projectScriptPluginModelBuilder(scriptFile: File, project: ProjectInternal) = project.run {
 
     val (scriptHandler, scriptClassPath) = compilationClassPathForScriptPluginOf(
         target = project,
@@ -343,7 +332,6 @@ fun projectScriptPluginModelBuilder(scriptFile: File, project: ProjectInternal, 
     KotlinScriptTargetModelBuilder(
         scriptFile = scriptFile,
         project = project,
-        locationAwareHints = locationAwareHints,
         scriptClassPath = scriptClassPath,
         sourcePathBuilder = ScriptHandlerSourcePathBuilder(listOf(scriptHandler, buildscript)),
     )
@@ -402,7 +390,6 @@ private
 data class KotlinScriptTargetModelBuilder(
     val scriptFile: File?,
     val project: Project,
-    val locationAwareHints: Boolean,
     val scriptClassPath: ClassPath,
     val accessorsClassPath: (ClassPath) -> AccessorsClassPath = { AccessorsClassPath.empty },
     val sourcePathBuilder: SourcePathBuilder = SourcePathBuilder { ClassPath.EMPTY },
@@ -428,7 +415,7 @@ data class KotlinScriptTargetModelBuilder(
             (scriptClassPath + accessorsClassPath.bin).asFiles,
             (gradleSource() + classpathSources + accessorsClassPath.src).asFiles,
             implicitImports + additionalImports,
-            buildEditorReportsFor(exceptions, locationAwareHints),
+            buildEditorReportsFor(exceptions),
             getExceptionsForFile(exceptions, this.scriptFile),
             enclosingScriptProjectDir
         )
@@ -463,11 +450,11 @@ data class KotlinScriptTargetModelBuilder(
         get() = project.scriptImplicitImports
 
     private
-    fun buildEditorReportsFor(exceptions: List<Exception>, locationAwareHints: Boolean) =
+    fun buildEditorReportsFor(exceptions: List<Exception>) =
         buildEditorReportsFor(
             scriptFile,
             exceptions,
-            locationAwareHints
+            project.isLocationAwareEditorHintsEnabled
         )
 
     private
@@ -527,7 +514,7 @@ val Project.scriptImplicitImports
 
 internal
 val Project.isLocationAwareEditorHintsEnabled: Boolean
-    get() = findProperty(EditorReports.locationAwareEditorHintsPropertyName) == "true"
+    get() = providers.gradleProperty(EditorReports.locationAwareEditorHintsPropertyName).getOrElse("false") == "true"
 
 
 internal
