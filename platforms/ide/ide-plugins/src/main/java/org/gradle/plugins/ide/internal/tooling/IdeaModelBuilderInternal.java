@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,20 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
-/**
- * Builds the {@link org.gradle.tooling.model.idea.BasicIdeaProject} model
- * that contains the Idea module hierarchy without resolving dependencies.
- */
-public class BasicIdeaModelBuilder implements ToolingModelBuilder {
-    private final IdeaModelBuilderInternal ideaModelBuilder;
+@NonNullApi
+public interface IdeaModelBuilderInternal extends ToolingModelBuilder {
 
-    public BasicIdeaModelBuilder(IdeaModelBuilderInternal ideaModelBuilder) {
-        this.ideaModelBuilder = ideaModelBuilder;
-    }
+    /**
+     * Builds a structural implementation of the {@link org.gradle.tooling.model.idea.IdeaProject} model
+     * for the root project of a given project.
+     *
+     * @param project used to discover the root project to build the model for
+     */
+    DefaultIdeaProject buildForRoot(Project project, boolean offlineDependencyResolution);
 
-    @Override
-    public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.idea.BasicIdeaProject");
-    }
-
-    @Override
-    public DefaultIdeaProject buildAll(String modelName, Project project) {
-        return ideaModelBuilder.buildForRoot(project, true);
-    }
 }

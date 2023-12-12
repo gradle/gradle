@@ -185,8 +185,8 @@ public abstract class IdeaModule {
     private File testOutputDir;
     private Map<String, File> pathVariables = new LinkedHashMap<>();
     private String jdkName;
-    private IdeaLanguageLevel languageLevel;
-    private JavaVersion targetBytecodeVersion;
+    protected IdeaLanguageLevel languageLevel;
+    protected JavaVersion targetBytecodeVersion;
     private final IdeaModuleIml iml;
     private final Project project;
     private PathFactory pathFactory;
