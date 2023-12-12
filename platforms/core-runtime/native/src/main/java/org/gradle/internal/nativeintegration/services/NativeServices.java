@@ -172,6 +172,9 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
 
     private void initializeNativeIntegrations(File userHomeDir) {
         this.userHomeDir = userHomeDir;
+        if (true) {
+            throw new IllegalStateException()
+        }
         useNativeIntegrations = isNativeIntegrationsEnabled();
         nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
         if (useNativeIntegrations) {
