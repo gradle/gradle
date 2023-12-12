@@ -85,7 +85,8 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
                     // Write the current build operation id to a file
                     // This needs to be Java 6 compatible, as we are in a worker
-                    File buildOperationIdFile = new File("${buildOperationIdFile.absolutePath}");
+                    // Backslashes need to be escaped, so test works on Windows
+                    File buildOperationIdFile = new File("${buildOperationIdFile.absolutePath.replace('\\', '\\\\')}");
                     try {
                         FileWriter writer = new FileWriter(buildOperationIdFile);
                         writer.write(CurrentBuildOperationRef.instance().get().getId().toString());
