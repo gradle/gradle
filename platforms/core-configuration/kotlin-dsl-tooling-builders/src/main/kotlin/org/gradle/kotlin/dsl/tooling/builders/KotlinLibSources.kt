@@ -31,14 +31,20 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.language.base.artifact.SourcesArtifact
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
-import java.io.Serializable
 
 
 internal
-data class ScriptSourcePathRequestParameter(
-    val skipDependencies: Set<ComponentIdentifier>,
+interface ScriptSourcePathRequestParameter {
+    val skipDependencies: Set<ComponentIdentifier>
     val resolveKotlinLibSources: Boolean
-) : Serializable
+}
+
+
+internal
+data class DefaultScriptSourcePathRequestParameter(
+    override val skipDependencies: Set<ComponentIdentifier>,
+    override val resolveKotlinLibSources: Boolean
+) : ScriptSourcePathRequestParameter
 
 
 internal
@@ -62,7 +68,7 @@ object ScriptSourcePathResolutionBuilder : ParameterizedToolingModelBuilder<Scri
     }
 
     override fun buildAll(modelName: String, project: Project): ScriptSourcePathResolutionResult {
-        return build(project, ScriptSourcePathRequestParameter(emptySet(), true))
+        return build(project, DefaultScriptSourcePathRequestParameter(emptySet(), true))
     }
 
     private
@@ -129,7 +135,7 @@ class ProjectScriptSourcePathBuilder(
 
     private
     fun resolveSourcePathForOther(other: Project, skipDependencies: Set<ComponentIdentifier>, resolveKotlinLibSources: Boolean): ScriptSourcePathResolutionResult {
-        val parameter = ScriptSourcePathRequestParameter(skipDependencies, resolveKotlinLibSources)
+        val parameter = DefaultScriptSourcePathRequestParameter(skipDependencies, resolveKotlinLibSources)
         return intermediateToolingModelProvider.getModels(listOf(other), ScriptSourcePathResolutionResult::class.java, parameter).first()
     }
 }

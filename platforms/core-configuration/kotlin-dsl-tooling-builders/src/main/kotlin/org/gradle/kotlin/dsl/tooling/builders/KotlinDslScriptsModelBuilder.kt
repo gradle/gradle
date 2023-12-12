@@ -160,7 +160,7 @@ class KotlinDslScriptsModelBuilder(private val intermediateToolingModelProvider:
 
         return targetScripts.associateBy(TargetScript::script) { targetScript ->
             val targetProject = targetScript.ownerProject ?: rootProject
-            val parameter = KotlinBuildScriptModelParameter(targetScript.script, correlationId, targetScript.sourceSetClassPath)
+            val parameter = DefaultKotlinBuildScriptModelParameter(targetScript.script, correlationId, targetScript.sourceSetClassPath)
             // TODO:isolated make batch request to run in parallel
             intermediateToolingModelProvider.getModels(listOf(targetProject), KotlinBuildScriptModel::class.java, parameter).first()
         }

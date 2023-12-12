@@ -63,11 +63,19 @@ import java.util.EnumSet
 
 
 internal
-data class KotlinBuildScriptModelParameter(
-    val scriptFile: File?,
-    val correlationId: String?,
-    val sourceSetClassPath: SourceSetClassPath? = null,
-) : Serializable
+interface KotlinBuildScriptModelParameter {
+    val scriptFile: File?
+    val correlationId: String?
+    val sourceSetClassPath: SourceSetClassPath?
+}
+
+
+internal
+data class DefaultKotlinBuildScriptModelParameter(
+    override val scriptFile: File?,
+    override val correlationId: String?,
+    override val sourceSetClassPath: SourceSetClassPath? = null,
+) : KotlinBuildScriptModelParameter
 
 
 internal
@@ -172,7 +180,7 @@ class KotlinBuildScriptModelBuilder(
 
     private
     fun requestParameterOf(modelRequestProject: Project) =
-        KotlinBuildScriptModelParameter(
+        DefaultKotlinBuildScriptModelParameter(
             (modelRequestProject.findProperty(KotlinBuildScriptModel.SCRIPT_GRADLE_PROPERTY_NAME) as? String)?.let(::canonicalFile),
             modelRequestProject.findProperty(KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME) as? String,
             sourceSetClassPath = null
