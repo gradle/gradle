@@ -28,7 +28,7 @@ import org.gradle.util.TestUtil
 import org.gradle.util.internal.ConfigureUtil
 import spock.lang.Specification
 
-class DefaultJvmComponentDependenciesTest extends Specification {
+class JvmComponentDependenciesTest extends Specification {
     def currentProject = Mock(Project)
 
     DependencyFactoryInternal dependencyFactory
