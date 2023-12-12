@@ -35,11 +35,6 @@ public class WorkerProblemEmitter implements ProblemEmitter {
     }
 
     @Override
-    public void emit(Problem problem) {
-        throw new UnsupportedOperationException("Not supported problem emission: operation identifier is required");
-    }
-
-    @Override
     public void emit(Problem problem, OperationIdentifier id) {
         protocol.reportProblem(problem, id);
     }

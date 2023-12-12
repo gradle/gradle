@@ -58,7 +58,8 @@ class DefaultProblemTest extends Specification {
         problemReporter.report(newProblem)
 
         then:
-        1 * emitter.emit(newProblem)
+        // Emitter is called with any Long build id
+        1 * emitter.emit(newProblem, _ as Long)
         newProblem.problemCategory == problem.problemCategory
         newProblem.label == problem.label
         newProblem.additionalData == problem.additionalData

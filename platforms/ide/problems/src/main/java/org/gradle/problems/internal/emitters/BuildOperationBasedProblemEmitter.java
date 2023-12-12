@@ -38,11 +38,6 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter {
     }
 
     @Override
-    public void emit(Problem problem) {
-        eventEmitter.emitNowIfCurrent(new DefaultProblemProgressDetails(problem));
-    }
-
-    @Override
     public void emit(Problem problem, OperationIdentifier id) {
         eventEmitter.emitNow(id, new DefaultProblemProgressDetails(problem));
     }
