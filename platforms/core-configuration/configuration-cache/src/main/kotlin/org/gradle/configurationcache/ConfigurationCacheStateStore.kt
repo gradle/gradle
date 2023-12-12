@@ -38,7 +38,7 @@ interface ConfigurationCacheStateStore {
     fun <T : Any> useForStateLoad(stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T
 
     /**
-     * Writes some value to zer or more state files.
+     * Writes some value to zero or more state files.
      */
     fun useForStore(action: (ConfigurationCacheRepository.Layout) -> Unit)
 

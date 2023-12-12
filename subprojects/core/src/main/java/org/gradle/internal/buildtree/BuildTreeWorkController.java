@@ -28,8 +28,6 @@ public interface BuildTreeWorkController {
 
     /**
      * Schedules and runs requested tasks based on the provided {@code taskSelector}.
-     *
-     * @param isModelBuildingRequested True if tasks run was requested as a part of model building process.
-     * */
-    ExecutionResult<Void> scheduleAndRunRequestedTasks(@Nullable EntryTaskSelector taskSelector, boolean isModelBuildingRequested);
+     */
+    ExecutionResult<Void> scheduleAndRunRequestedTasks(@Nullable EntryTaskSelector taskSelector);
 }

@@ -350,18 +350,22 @@ class IsolatedProjectsFixture {
 
         String getUpdatedProjectsString() {
             def updatedProjects = models.size()
-            return updatedProjects == 1 ? "1 project" : "$updatedProjects projects"
+            return getPluralProjectsString(updatedProjects)
         }
 
         String getReusedProjectsString() {
             def reusedProjects = projectsReused.size()
-            switch (reusedProjects) {
+            return getPluralProjectsString(reusedProjects)
+        }
+
+        private static String getPluralProjectsString(int amount) {
+            switch (amount) {
                 case 0:
                     return "no projects"
                 case 1:
                     return "1 project"
                 default:
-                    return "${reusedProjects} projects"
+                    return "${amount} projects"
             }
         }
 
