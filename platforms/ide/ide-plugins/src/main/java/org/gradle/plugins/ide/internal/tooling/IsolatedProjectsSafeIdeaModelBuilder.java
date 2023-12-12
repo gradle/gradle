@@ -128,6 +128,8 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
     }
 
     private DefaultIdeaProject buildRoot(Project rootProject, IdeaModelParameter parameter) {
+        // Currently, applying the plugin here is redundant due to `applyIdeaPluginToBuildTree`.
+        // However, the latter should go away in the future, while the application here is inherent to the builder
         rootProject.getPluginManager().apply(IdeaPlugin.class);
         IdeaModel ideaModelExt = rootProject.getPlugins().getPlugin(IdeaPlugin.class).getModel();
         IdeaProjectInternal ideaProjectExt = (IdeaProjectInternal) ideaModelExt.getProject();
