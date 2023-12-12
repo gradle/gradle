@@ -20,16 +20,16 @@ import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class TestFileContentCacheFactory implements FileContentCacheFactory {
 
-    private final List<File> calculationLog = Lists.newArrayList();
+    private final List<File> calculationLog = new ArrayList<>();
 
     public List<File> getCalculationLog() {
         return calculationLog;

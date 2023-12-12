@@ -17,8 +17,6 @@ package org.gradle.api.internal.catalog;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
@@ -29,9 +27,9 @@ import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemSpec;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -46,6 +44,8 @@ import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -523,7 +523,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         throw throwErrorWithNewProblemsApi(problemsService, ERROR_HEADER, ImmutableList.of(problem));
     }
 
-    private static ProblemSpec configureVersionCatalogError(ProblemSpec spec, String message, VersionCatalogProblemId catalogProblemId) {
+    private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec spec, String message, VersionCatalogProblemId catalogProblemId) {
         return spec
             .label(message)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
@@ -724,9 +724,9 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         private final ClassNode parent;
         private final AccessorKind kind;
         private final String name;
-        private final Map<String, ClassNode> children = Maps.newLinkedHashMap();
-        private final Set<String> aliases = Sets.newLinkedHashSet();
-        private final Set<String> leafAliases = Sets.newLinkedHashSet();
+        private final Map<String, ClassNode> children = new LinkedHashMap<>();
+        private final Set<String> aliases = new LinkedHashSet<>();
+        private final Set<String> leafAliases = new LinkedHashSet<>();
         public boolean wrapping;
 
         private ClassNode(AccessorKind kind, @Nullable ClassNode parent, @Nullable String name) {

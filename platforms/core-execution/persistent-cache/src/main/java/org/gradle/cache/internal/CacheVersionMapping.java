@@ -19,11 +19,11 @@ package org.gradle.cache.internal;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import org.gradle.util.GradleVersion;
 
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.TreeMap;
 
 public class CacheVersionMapping {
 
@@ -38,7 +38,7 @@ public class CacheVersionMapping {
 
     private CacheVersionMapping(NavigableMap<GradleVersion, CacheVersion> versions) {
         Preconditions.checkArgument(!versions.isEmpty(), "versions must not be empty");
-        this.versions = Maps.newTreeMap(versions);
+        this.versions = new TreeMap<>(versions);
     }
 
     public CacheVersion getLatestVersion() {
@@ -56,7 +56,7 @@ public class CacheVersionMapping {
 
     public static class Builder {
 
-        private final NavigableMap<GradleVersion, Integer> versions = Maps.newTreeMap();
+        private final NavigableMap<GradleVersion, Integer> versions = new TreeMap<>();
 
         private Builder() {
         }
@@ -96,7 +96,7 @@ public class CacheVersionMapping {
         }
 
         public CacheVersionMapping build(CacheVersion parentVersion) {
-            NavigableMap<GradleVersion, CacheVersion> convertedVersions = Maps.newTreeMap();
+            NavigableMap<GradleVersion, CacheVersion> convertedVersions = new TreeMap<>();
             for (Map.Entry<GradleVersion, Integer> entry : versions.entrySet()) {
                 convertedVersions.put(entry.getKey(), parentVersion.append(entry.getValue()));
             }

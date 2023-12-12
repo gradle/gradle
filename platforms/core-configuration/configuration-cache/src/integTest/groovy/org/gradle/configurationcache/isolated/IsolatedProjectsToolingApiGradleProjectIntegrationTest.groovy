@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.isolated
 
+import org.gradle.plugins.ide.internal.tooling.model.IsolatedGradleProjectInternal
 import org.gradle.tooling.model.GradleProject
 
 import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.checkGradleProject
@@ -49,8 +50,8 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
 
         then:
         fixture.assertStateStored {
-            modelsCreated(":", 2) // GradleProject, intermediate IsolatedGradleProjectInternal
-            modelsCreated(":lib1", ":lib1:lib11") // intermediate IsolatedGradleProjectInternal
+            modelsCreated(":", GradleProject, IsolatedGradleProjectInternal)
+            modelsCreated(IsolatedGradleProjectInternal, ":lib1", ":lib1:lib11")
         }
 
         checkGradleProject(projectModel, expectedProjectModel)
@@ -96,8 +97,8 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
 
         then: "fetching with Isolated Projects"
         fixture.assertStateStored {
-            modelsCreated(":", 2) // `GradleProject` and intermediate `IsolatedGradleProjectInternal`
-            modelsCreated(":lib1")
+            modelsCreated(":", GradleProject, IsolatedGradleProjectInternal)
+            modelsCreated(":lib1", IsolatedGradleProjectInternal)
         }
 
         checkGradleProject(projectModel, expectedProjectModel)
@@ -140,8 +141,8 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         then:
         fixture.assertStateStored {
             buildModelCreated()
-            modelsCreated(":") // intermediate IsolatedGradleProject
-            modelsCreated(":lib1", 2) // GradleProject (containing root-project data) and intermediate IsolatedGradleProjectInternal
+            modelsCreated(":", IsolatedGradleProjectInternal)
+            modelsCreated(":lib1", GradleProject, IsolatedGradleProjectInternal)
         }
 
         checkGradleProject(projectModel, expectedProjectModel)
@@ -167,7 +168,7 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         """
 
         when: "fetching without Isolated Projects"
-        def expectedProjectModel = runBuildAction(new FetchGradleProjectForTarget(":included1:lib2"))
+        def expectedProjectModel = runBuildAction(new FetchGradleProjectForTarget(":included1"))
 
         then:
         fixture.assertNoConfigurationCache()
@@ -181,20 +182,20 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
 
         when: "fetching with Isolated Projects"
         executer.withArguments(ENABLE_CLI)
-        def projectModel = runBuildAction(new FetchGradleProjectForTarget(":included1:lib2"))
+        def projectModel = runBuildAction(new FetchGradleProjectForTarget(":included1"))
 
         then:
         fixture.assertStateStored {
             buildModelCreated()
-            modelsCreated(":included1") // intermediate IsolatedGradleProjectInternal
-            modelsCreated(":included1:lib2", 2) // GradleProject (containing root-project data) and intermediate IsolatedGradleProjectInternal
+            modelsCreated(":included1", GradleProject, IsolatedGradleProjectInternal)
+            modelsCreated(":included1:lib2", IsolatedGradleProjectInternal)
         }
 
         checkGradleProject(projectModel, expectedProjectModel)
 
         when:
         executer.withArguments(ENABLE_CLI)
-        runBuildAction(new FetchGradleProjectForTarget(":included1:lib2"))
+        runBuildAction(new FetchGradleProjectForTarget(":included1"))
 
         then:
         fixture.assertStateLoaded()

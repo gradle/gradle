@@ -18,7 +18,7 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.GeneratedSubclasses;
-import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.api.problems.internal.InternalProblemReporter;

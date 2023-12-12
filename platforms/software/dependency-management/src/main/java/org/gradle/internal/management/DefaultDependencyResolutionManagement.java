@@ -16,7 +16,6 @@
 package org.gradle.internal.management;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
@@ -53,13 +52,14 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.lazy.Lazy;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @NonNullApi
 public class DefaultDependencyResolutionManagement implements DependencyResolutionManagementInternal {
     private static final DisplayName UNKNOWN_CODE = Describables.of("unknown code");
     private static final Logger LOGGER = Logging.getLogger(DependencyResolutionManagement.class);
-    private final List<Action<? super ComponentMetadataHandler>> componentMetadataRulesActions = Lists.newArrayList();
+    private final List<Action<? super ComponentMetadataHandler>> componentMetadataRulesActions = new ArrayList<>();
 
     private final Lazy<DependencyResolutionServices> dependencyResolutionServices;
     private final UserCodeApplicationContext context;

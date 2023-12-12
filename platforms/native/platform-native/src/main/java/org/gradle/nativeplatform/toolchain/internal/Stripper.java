@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -24,6 +23,7 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.internal.StripperSpec;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Stripper extends AbstractCompiler<StripperSpec> {
@@ -51,7 +51,7 @@ public class Stripper extends AbstractCompiler<StripperSpec> {
     private static class StripperArgsTransformer implements ArgsTransformer<StripperSpec> {
         @Override
         public List<String> transform(StripperSpec spec) {
-            List<String> args = Lists.newArrayList();
+            List<String> args = new ArrayList<>();
             args.addAll(spec.getArgs());
             args.add("-S");
             args.add("-o");

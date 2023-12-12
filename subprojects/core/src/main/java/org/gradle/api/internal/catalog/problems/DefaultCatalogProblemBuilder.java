@@ -18,8 +18,8 @@ package org.gradle.api.internal.catalog.problems;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.internal.DocLink;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.logging.text.TreeFormatter;
 

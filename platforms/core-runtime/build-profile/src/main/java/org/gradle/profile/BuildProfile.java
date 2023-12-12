@@ -15,7 +15,6 @@
  */
 package org.gradle.profile;
 
-import com.google.common.collect.Maps;
 import org.gradle.StartParameter;
 import org.gradle.api.initialization.Settings;
 import org.gradle.internal.service.scopes.Scopes;
@@ -52,7 +51,7 @@ public class BuildProfile {
 
     private final Map<String, ProjectProfile> projects = new LinkedHashMap<>();
     private final Map<String, ContinuousOperation> dependencySets = new LinkedHashMap<>();
-    private final Map<String, FragmentedOperation> transforms = Maps.newLinkedHashMap();
+    private final Map<String, FragmentedOperation> transforms = new LinkedHashMap<>();
     private long profilingStarted;
     private long buildStarted;
     private long settingsEvaluated;

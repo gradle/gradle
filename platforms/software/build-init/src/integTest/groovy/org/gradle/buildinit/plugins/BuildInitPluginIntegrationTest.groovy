@@ -21,7 +21,9 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.hamcrest.Matcher
 
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
+import static org.gradle.internal.deprecation.Documentation.userManual
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.not
@@ -217,6 +219,16 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    def "proper links"() {
+
+        when:
+        succeeds('init', '--type', 'java-application', '--dsl', GROOVY.toString().toLowerCase())
+
+        then:
+
+        targetDir.file("settings.gradle").assertContents(containsString(userManual("multi_project_builds").getUrl()))
     }
 
     def "gives decent error message when triggered with unknown init-type"() {

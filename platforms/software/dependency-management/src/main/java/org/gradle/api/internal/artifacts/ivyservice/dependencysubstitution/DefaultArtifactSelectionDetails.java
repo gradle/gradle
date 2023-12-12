@@ -16,12 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.DependencyArtifactSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -51,7 +51,7 @@ public class DefaultArtifactSelectionDetails implements ArtifactSelectionDetails
 
     @Override
     public void withoutArtifactSelectors() {
-        targetSelectors = Lists.newArrayList();
+        targetSelectors = new ArrayList<>();
         markUpdated();
     }
 
@@ -67,7 +67,7 @@ public class DefaultArtifactSelectionDetails implements ArtifactSelectionDetails
     @Override
     public void selectArtifact(DependencyArtifactSelector selector) {
         if (targetSelectors == null) {
-            targetSelectors = Lists.newArrayList();
+            targetSelectors = new ArrayList<>();
             markUpdated();
         }
         targetSelectors.add(selector);

@@ -14,27 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems;
-
-import org.gradle.api.Incubating;
-
-import java.io.Serializable;
-
 /**
- * Represents a location information of a problem.
- *
- * @since 8.6
+ * A package that contains transforms for build logic classpath.
  */
-@Incubating
-public interface ProblemLocation extends Serializable {
-
-    /**
-     * Returns an identifier of the location type.
-     * <p>
-     * As locations will be serialized into a JSON format,
-     * this identifier is used to distinguish between different location types.
-     *
-     * @since 8.6
-     */
-    String getType();
-}
+@org.gradle.api.NonNullApi
+package org.gradle.api.internal.initialization.transform;

@@ -16,13 +16,12 @@
 
 package org.gradle.profile;
 
-import com.google.common.collect.Sets;
-
 import java.util.Collection;
+import java.util.HashSet;
 
 public class FragmentedOperation extends Operation {
     private final String description;
-    private final Collection<ContinuousOperation> children = Sets.newHashSet();
+    private final Collection<ContinuousOperation> children = new HashSet<>();
 
     public FragmentedOperation(String description) {
         this.description = description;

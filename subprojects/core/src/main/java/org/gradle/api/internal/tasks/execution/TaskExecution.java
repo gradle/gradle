@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
@@ -255,7 +254,7 @@ public class TaskExecution implements MutableUnitOfWork {
                     try {
                         asyncWorkTracker.waitForCompletion(currentOperation, hasMoreWork ? RELEASE_AND_REACQUIRE_PROJECT_LOCKS : RELEASE_PROJECT_LOCKS);
                     } catch (Throwable t) {
-                        List<Throwable> failures = Lists.newArrayList();
+                        List<Throwable> failures = new ArrayList<>();
 
                         if (actionFailure != null) {
                             failures.add(actionFailure);

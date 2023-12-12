@@ -29,6 +29,7 @@ import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.tooling.provider.model.UnknownModelException
+import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.Path
 
 
@@ -60,8 +61,8 @@ class IntermediateModelController(
         }
     }
 
-    fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, creator: () -> T): T? {
-        val key = ModelKey(identityPath, modelName)
+    fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T): T? {
+        val key = ModelKey(identityPath, modelName, parameter?.hash)
         return loadOrCreateValue(key) {
             try {
                 val model = if (identityPath != null) {

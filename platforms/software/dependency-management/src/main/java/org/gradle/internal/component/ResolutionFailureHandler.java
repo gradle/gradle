@@ -18,7 +18,6 @@ package org.gradle.internal.component;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -55,6 +54,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -495,9 +495,9 @@ public class ResolutionFailureHandler {
     ) {
         Map<String, Attribute<?>> allAttributes = collectAttributes(immutableConsumer, immutableProducer);
         List<String> otherValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
-        Map<Attribute<?>, ?> compatibleAttrs = Maps.newLinkedHashMap();
-        Map<Attribute<?>, ?> incompatibleAttrs = Maps.newLinkedHashMap();
-        Map<Attribute<?>, ?> incompatibleConsumerAttrs = Maps.newLinkedHashMap();
+        Map<Attribute<?>, ?> compatibleAttrs = new LinkedHashMap<>();
+        Map<Attribute<?>, ?> incompatibleAttrs = new LinkedHashMap<>();
+        Map<Attribute<?>, ?> incompatibleConsumerAttrs = new LinkedHashMap<>();
         for (Attribute<?> attribute : allAttributes.values()) {
             Attribute<Object> untyped = Cast.uncheckedCast(attribute);
             String attributeName = attribute.getName();
@@ -533,7 +533,7 @@ public class ResolutionFailureHandler {
         AttributeDescriber describer
     ) {
         Map<String, Attribute<?>> allAttributes = collectAttributes(immutableConsumer, immutableProducer);
-        Map<Attribute<?>, ?> compatibleAttrs = Maps.newLinkedHashMap();
+        Map<Attribute<?>, ?> compatibleAttrs = new LinkedHashMap<>();
         List<String> otherValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
         for (Attribute<?> attribute : allAttributes.values()) {
             Attribute<Object> untyped = Cast.uncheckedCast(attribute);

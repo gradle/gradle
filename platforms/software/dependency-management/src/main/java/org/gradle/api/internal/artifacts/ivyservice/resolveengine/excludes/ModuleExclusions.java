@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.CachingExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.ExcludeFactory;
@@ -31,6 +30,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ModuleExclusions {
     private final CachingExcludeFactory.MergeCaches mergeCaches = new CachingExcludeFactory.MergeCaches();
@@ -46,7 +46,7 @@ public class ModuleExclusions {
             mergeCaches
         )
     );
-    private final Map<ExcludeMetadata, ExcludeSpec> metadataToExcludeCache = Maps.newConcurrentMap();
+    private final Map<ExcludeMetadata, ExcludeSpec> metadataToExcludeCache = new ConcurrentHashMap<>();
     private final ExcludeSpec nothing;
 
     public ModuleExclusions() {

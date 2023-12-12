@@ -78,7 +78,8 @@ $ jps
 Live Daemons appear under the name `GradleDaemon`.
 Because this command uses the JDK, you can view Daemons running any version of Gradle.
 
-== Enable Deamon
+[[enable_deamon]]
+== Enable Daemon
 
 Gradle enables the Daemon by default since Gradle 3.0.
 If your project doesn't use the Daemon, you can enable it for a single build with the `--daemon` flag when you run a build:

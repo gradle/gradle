@@ -16,12 +16,11 @@
 
 package org.gradle.internal.resources;
 
-import com.google.common.collect.Maps;
-
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SharedResourceLeaseRegistry extends AbstractResourceLockRegistry<String, ResourceLock> {
-    private final Map<String, LeaseHolder> sharedResources = Maps.newConcurrentMap();
+    private final Map<String, LeaseHolder> sharedResources = new ConcurrentHashMap<String, LeaseHolder>();
     private final ResourceLockCoordinationService coordinationService;
 
     public SharedResourceLeaseRegistry(ResourceLockCoordinationService coordinationService) {

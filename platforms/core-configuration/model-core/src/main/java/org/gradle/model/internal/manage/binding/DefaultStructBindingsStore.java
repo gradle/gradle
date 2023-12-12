@@ -39,6 +39,7 @@ import org.gradle.api.Named;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.PropertyAccessorType;
+import org.gradle.internal.reflect.Types.TypeVisitResult;
 import org.gradle.internal.reflect.Types.TypeVisitor;
 import org.gradle.model.Managed;
 import org.gradle.model.Unmanaged;
@@ -62,14 +63,23 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 
 import static org.gradle.internal.reflect.Methods.DESCRIPTOR_EQUIVALENCE;
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
-import static org.gradle.internal.reflect.PropertyAccessorType.*;
+import static org.gradle.internal.reflect.PropertyAccessorType.GET_GETTER;
+import static org.gradle.internal.reflect.PropertyAccessorType.IS_GETTER;
+import static org.gradle.internal.reflect.PropertyAccessorType.SETTER;
+import static org.gradle.internal.reflect.PropertyAccessorType.hasGetter;
+import static org.gradle.internal.reflect.PropertyAccessorType.hasSetter;
+import static org.gradle.internal.reflect.PropertyAccessorType.hasVoidReturnType;
+import static org.gradle.internal.reflect.PropertyAccessorType.takesSingleParameter;
 import static org.gradle.internal.reflect.Types.walkTypeHierarchy;
 
 public class DefaultStructBindingsStore implements StructBindingsStore {
@@ -125,7 +135,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
             }
         }
 
-        Map<String, Multimap<PropertyAccessorType, StructMethodBinding>> propertyBindings = Maps.newTreeMap();
+        Map<String, Multimap<PropertyAccessorType, StructMethodBinding>> propertyBindings = new TreeMap<>();
         Set<StructMethodBinding> methodBindings = collectMethodBindings(extractionContext, propertyBindings);
         ImmutableSortedMap<String, ManagedProperty<?>> managedProperties = collectManagedProperties(extractionContext, propertyBindings);
 
@@ -142,11 +152,12 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
     private static <T> void validateTypeHierarchy(final StructBindingValidationProblemCollector problems, ModelType<T> type) {
         walkTypeHierarchy(type.getConcreteClass(), new TypeVisitor<T>() {
             @Override
-            public void visitType(Class<? super T> type) {
+            public TypeVisitResult visitType(Class<? super T> type) {
                 if (type.isAnnotationPresent(Managed.class)) {
                     validateManagedType(problems, type);
                 }
                 validateType(problems, type);
+                return TypeVisitResult.CONTINUE;
             }
         });
     }
@@ -266,7 +277,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
     }
 
     private static boolean isManagedPropertyAccessor(StructBindingExtractionContext<?> extractionContext, String propertyName, Collection<StructMethodBinding> bindings) {
-        Set<WeaklyTypeReferencingMethod<?, ?>> implMethods = Sets.newLinkedHashSet();
+        Set<WeaklyTypeReferencingMethod<?, ?>> implMethods = new LinkedHashSet<>();
         for (StructMethodBinding binding : bindings) {
             if (binding instanceof StructMethodImplementationBinding) {
                 implMethods.add(((StructMethodImplementationBinding) binding).getImplementerMethod());
@@ -285,7 +296,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
     }
 
     private static ModelType<?> determineManagedPropertyType(StructBindingExtractionContext<?> extractionContext, String propertyName, Multimap<PropertyAccessorType, StructMethodBinding> accessorBindings) {
-        Set<ModelType<?>> potentialPropertyTypes = Sets.newLinkedHashSet();
+        Set<ModelType<?>> potentialPropertyTypes = new LinkedHashSet<>();
         for (StructMethodBinding binding : accessorBindings.values()) {
             if (binding.getAccessorType() == SETTER) {
                 continue;
@@ -313,7 +324,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
     }
 
     private static <T, D> Set<ModelType<?>> collectImplementedViews(ModelType<T> publicType, Iterable<? extends ModelType<?>> internalViewTypes, ModelType<D> delegateType) {
-        final Set<ModelType<?>> viewsToImplement = Sets.newLinkedHashSet();
+        final Set<ModelType<?>> viewsToImplement = new LinkedHashSet<>();
         viewsToImplement.add(publicType);
         Iterables.addAll(viewsToImplement, internalViewTypes);
         // TODO:LPTR This should be removed once BinaryContainer is a ModelMap
@@ -322,10 +333,11 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         if (delegateType != null) {
             walkTypeHierarchy(delegateType.getConcreteClass(), new TypeVisitor<D>() {
                 @Override
-                public void visitType(Class<? super D> type) {
+                public TypeVisitResult visitType(Class<? super D> type) {
                     if (type.isInterface()) {
                         viewsToImplement.add(ModelType.of(type));
                     }
+                    return TypeVisitResult.CONTINUE;
                 }
             });
         }
@@ -435,7 +447,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
     }
 
     private static Collection<WeaklyTypeReferencingMethod<?, ?>> collectImplementedMethods(Iterable<StructSchema<?>> implementedSchemas) {
-        Map<Wrapper<Method>, WeaklyTypeReferencingMethod<?, ?>> implementedMethodsBuilder = Maps.newLinkedHashMap();
+        Map<Wrapper<Method>, WeaklyTypeReferencingMethod<?, ?>> implementedMethodsBuilder = new LinkedHashMap<>();
         for (StructSchema<?> implementedSchema : implementedSchemas) {
             for (WeaklyTypeReferencingMethod<?, ?> viewMethod : implementedSchema.getAllMethods()) {
                 implementedMethodsBuilder.put(DESCRIPTOR_EQUIVALENCE.wrap(viewMethod.getMethod()), viewMethod);

@@ -42,7 +42,7 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGen
     private BuildScriptBuilder builder(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
         BuildScriptBuilder builder = scriptBuilderFactory.scriptForNewProjectsWithoutVersionCatalog(settings.getDsl(), buildContentGenerationContext, "settings", settings.isUseIncubatingAPIs());
         builder.fileComment("The settings file is used to specify which projects to include in your build.\n\n")
-            .fileComment(documentationRegistry.getDocumentationRecommendationFor("detailed information on multi-project builds", "building_swift_projects"));
+            .fileComment(documentationRegistry.getDocumentationRecommendationFor("detailed information on multi-project builds", "multi_project_builds"));
         if (settings.getModularizationOption() == ModularizationOption.WITH_LIBRARY_PROJECTS && settings.isUseIncubatingAPIs()) {
             builder.includePluginsBuild();
         }

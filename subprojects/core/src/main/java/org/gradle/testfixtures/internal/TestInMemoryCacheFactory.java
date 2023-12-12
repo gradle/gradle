@@ -15,7 +15,6 @@
  */
 package org.gradle.testfixtures.internal;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
@@ -38,6 +37,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class TestInMemoryCacheFactory implements CacheFactory {
@@ -45,7 +45,7 @@ public class TestInMemoryCacheFactory implements CacheFactory {
      * In case multiple threads is accessing the cache, for example when running JUnit 5 tests in parallel,
      * the map must be protected from concurrent modification.
      */
-    final Map<Pair<File, String>, IndexedCache<?, ?>> caches = Collections.synchronizedMap(Maps.newLinkedHashMap());
+    final Map<Pair<File, String>, IndexedCache<?, ?>> caches = Collections.synchronizedMap(new LinkedHashMap<>());
 
     @Override
     public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {

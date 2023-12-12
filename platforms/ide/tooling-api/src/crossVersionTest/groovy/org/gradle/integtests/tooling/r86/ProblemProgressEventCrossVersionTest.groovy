@@ -24,10 +24,13 @@ import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.FileLocation
+import org.gradle.tooling.events.problems.LineInFileLocation
+import org.gradle.tooling.events.problems.OffsetInFileLocation
 import org.gradle.tooling.events.problems.ProblemDescriptor
 import org.gradle.tooling.events.problems.ProblemEvent
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.TaskPathLocation
+import org.gradle.tooling.events.problems.internal.DefaultProblemsOperationDescriptor
 
 @ToolingApiVersion(">=8.5")
 @TargetGradleVersion(">=8.6")
@@ -110,7 +113,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                     getProblems().forNamespace("org.example.plugin").reporting {
                         it.label("shortProblemMessage")
                         $documentationConfig
-                        .fileLocation("/tmp/foo", 1, 2, 3)
+                        .lineInFileLocation("/tmp/foo", 1, 2, 3)
                         .category("main", "sub", "id")
                         $detailsConfig
                         .additionalData("aKey", "aValue")
@@ -137,16 +140,16 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         problems[0].category.namespace == 'org.example.plugin'
         problems[0].category.category == 'main'
         problems[0].category.subCategories == ['sub','id']
-        problems[0].additionalData.asMap == ['aKey' : 'aValue']
+        ((DefaultProblemsOperationDescriptor)problems[0]).additionalData.asMap == ['aKey' : 'aValue']
         problems[0].label.label == 'shortProblemMessage'
         problems[0].details.details == expectedDetails
         problems[0].severity == Severity.WARNING
         problems[0].locations.size() == 2
-        problems[0].locations[0] instanceof FileLocation
-        (problems[0].locations[0] as FileLocation).path == '/tmp/foo'
-        (problems[0].locations[0] as FileLocation).line == 1
-        (problems[0].locations[0] as FileLocation).column == 2
-        (problems[0].locations[0] as FileLocation).length == 3
+        problems[0].locations[0] instanceof LineInFileLocation
+        (problems[0].locations[0] as LineInFileLocation).path == '/tmp/foo'
+        (problems[0].locations[0] as LineInFileLocation).line == 1
+        (problems[0].locations[0] as LineInFileLocation).column == 2
+        (problems[0].locations[0] as LineInFileLocation).length == 3
         problems[0].locations[1] instanceof TaskPathLocation
         (problems[0].locations[1] as TaskPathLocation).buildTreePath == ':reportProblem'
         problems[0].documentationLink.url == expecteDocumentation
@@ -158,6 +161,217 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         detailsConfig              | expectedDetails | documentationConfig                         | expecteDocumentation
         '.details("long message")' | "long message"  | '.documentedAt("https://docs.example.org")' | 'https://docs.example.org'
         ''                         | null            | ''                                          | null
+    }
+
+    @ToolingApiVersion(">=8.6")
+    def "Problems expose file locations with file path only"() {
+        given:
+        buildFile << """
+            import org.gradle.api.problems.Problems
+            import org.gradle.api.problems.Severity
+            import org.gradle.internal.deprecation.Documentation
+
+            abstract class ProblemReportingTask extends DefaultTask {
+                @Inject
+                protected abstract Problems getProblems();
+
+                @TaskAction
+                void run() {
+                    getProblems().forNamespace("org.example.plugin").reporting {
+                        it.label("shortProblemMessage")
+                        .category("main", "sub", "id")
+                        .fileLocation("/tmp/foo")
+                    }
+                }
+            }
+
+            tasks.register("reportProblem", ProblemReportingTask)
+        """
+        ProblemProgressListener listener = new ProblemProgressListener()
+
+        when:
+        withConnection { connection ->
+            connection.newBuild().forTasks('reportProblem')
+                .addProgressListener(listener)
+                .run()
+        }
+        def problems = listener.problems
+
+        then:
+        problems.size() == 1
+        FileLocation location = (FileLocation) problems[0].locations.find { it instanceof FileLocation }
+        location.path == '/tmp/foo'
+    }
+
+    @ToolingApiVersion(">=8.6")
+    def "Problems expose file locations with path and line"() {
+        given:
+        buildFile << """
+            import org.gradle.api.problems.Problems
+            import org.gradle.api.problems.Severity
+            import org.gradle.internal.deprecation.Documentation
+
+            abstract class ProblemReportingTask extends DefaultTask {
+                @Inject
+                protected abstract Problems getProblems();
+
+                @TaskAction
+                void run() {
+                    getProblems().forNamespace("org.example.plugin").reporting {
+                        it.label("shortProblemMessage")
+                        .category("main", "sub", "id")
+                        .lineInFileLocation("/tmp/foo", 1)
+                    }
+                }
+            }
+
+            tasks.register("reportProblem", ProblemReportingTask)
+        """
+        ProblemProgressListener listener = new ProblemProgressListener()
+
+        when:
+        withConnection { connection ->
+            connection.newBuild().forTasks('reportProblem')
+                .addProgressListener(listener)
+                .run()
+        }
+        def problems = listener.problems
+
+        then:
+        problems.size() == 1
+        LineInFileLocation location = (LineInFileLocation) problems[0].locations.find { it instanceof LineInFileLocation }
+        location.path == '/tmp/foo'
+        location.line == 1
+        location.column < 1
+        location.length < 0
+    }
+
+    @ToolingApiVersion(">=8.6")
+    def "Problems expose file locations with path, line and column"() {
+        given:
+        buildFile << """
+            import org.gradle.api.problems.Problems
+            import org.gradle.api.problems.Severity
+            import org.gradle.internal.deprecation.Documentation
+
+            abstract class ProblemReportingTask extends DefaultTask {
+                @Inject
+                protected abstract Problems getProblems();
+
+                @TaskAction
+                void run() {
+                    getProblems().forNamespace("org.example.plugin").reporting {
+                        it.label("shortProblemMessage")
+                        .category("main", "sub", "id")
+                        .lineInFileLocation("/tmp/foo", 1, 2)
+                    }
+                }
+            }
+
+            tasks.register("reportProblem", ProblemReportingTask)
+        """
+        ProblemProgressListener listener = new ProblemProgressListener()
+
+        when:
+        withConnection { connection ->
+            connection.newBuild().forTasks('reportProblem')
+                .addProgressListener(listener)
+                .run()
+        }
+        def problems = listener.problems
+
+        then:
+        problems.size() == 1
+        LineInFileLocation location = (LineInFileLocation) problems[0].locations.find { it instanceof LineInFileLocation }
+        location.path == '/tmp/foo'
+        location.line == 1
+        location.column == 2
+        location.length < 0
+    }
+
+    @ToolingApiVersion(">=8.6")
+    def "Problems expose file locations with path, line, column and length"() {
+        given:
+        buildFile << """
+            import org.gradle.api.problems.Problems
+            import org.gradle.api.problems.Severity
+            import org.gradle.internal.deprecation.Documentation
+
+            abstract class ProblemReportingTask extends DefaultTask {
+                @Inject
+                protected abstract Problems getProblems();
+
+                @TaskAction
+                void run() {
+                    getProblems().forNamespace("org.example.plugin").reporting {
+                        it.label("shortProblemMessage")
+                        .category("main", "sub", "id")
+                        .lineInFileLocation("/tmp/foo", 1, 2, 3)
+                    }
+                }
+            }
+
+            tasks.register("reportProblem", ProblemReportingTask)
+        """
+        ProblemProgressListener listener = new ProblemProgressListener()
+
+        when:
+        withConnection { connection ->
+            connection.newBuild().forTasks('reportProblem')
+                .addProgressListener(listener)
+                .run()
+        }
+        def problems = listener.problems
+
+        then:
+        problems.size() == 1
+        LineInFileLocation location = (LineInFileLocation) problems[0].locations.find { it instanceof LineInFileLocation }
+        location.path == '/tmp/foo'
+        location.line == 1
+        location.column == 2
+        location.length == 3
+    }
+
+    @ToolingApiVersion(">=8.6")
+    def "Problems expose file locations with offset and length"() {
+        given:
+        buildFile << """
+            import org.gradle.api.problems.Problems
+            import org.gradle.api.problems.Severity
+            import org.gradle.internal.deprecation.Documentation
+
+            abstract class ProblemReportingTask extends DefaultTask {
+                @Inject
+                protected abstract Problems getProblems();
+
+                @TaskAction
+                void run() {
+                    getProblems().forNamespace("org.example.plugin").reporting {
+                        it.label("shortProblemMessage")
+                        .category("main", "sub", "id")
+                        .offsetInFileLocation("/tmp/foo", 20, 10)
+                    }
+                }
+            }
+
+            tasks.register("reportProblem", ProblemReportingTask)
+        """
+        ProblemProgressListener listener = new ProblemProgressListener()
+
+        when:
+        withConnection { connection ->
+            connection.newBuild().forTasks('reportProblem')
+                .addProgressListener(listener)
+                .run()
+        }
+        def problems = listener.problems
+
+        then:
+        problems.size() == 1
+        OffsetInFileLocation location = (OffsetInFileLocation) problems[0].locations.find { it instanceof OffsetInFileLocation }
+        location.path == '/tmp/foo'
+        location.offset == 20
+        location.length == 10
     }
 
     class ProblemProgressListener implements ProgressListener {

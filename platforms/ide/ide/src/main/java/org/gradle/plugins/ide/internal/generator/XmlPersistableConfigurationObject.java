@@ -17,7 +17,6 @@ package org.gradle.plugins.ide.internal.generator;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import groovy.util.Node;
@@ -31,6 +30,7 @@ import javax.annotation.Nullable;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -126,7 +126,7 @@ public abstract class XmlPersistableConfigurationObject extends AbstractPersista
     public static Node findOrCreateFirstChildWithAttributeValue(@Nullable Node root, String childName, String attribute, String value) {
         Node child = findFirstChildWithAttributeValue(root, childName, attribute, value);
         if (child == null) {
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put(attribute, value);
             child = root.appendNode(childName, attributes);
         }

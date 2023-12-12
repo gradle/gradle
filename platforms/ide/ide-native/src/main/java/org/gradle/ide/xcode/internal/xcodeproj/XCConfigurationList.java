@@ -20,8 +20,8 @@ import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Lists;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -36,7 +36,7 @@ public class XCConfigurationList extends PBXProjectItem {
     private boolean defaultConfigurationIsVisible;
 
     public XCConfigurationList() {
-        buildConfigurations = Lists.newArrayList();
+        buildConfigurations = new ArrayList<>();
         defaultConfigurationName = Optional.absent();
         defaultConfigurationIsVisible = false;
 

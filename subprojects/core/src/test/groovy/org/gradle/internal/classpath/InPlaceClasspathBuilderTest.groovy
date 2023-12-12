@@ -16,7 +16,7 @@
 
 package org.gradle.internal.classpath
 
-import org.gradle.api.internal.file.TestFiles
+
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -24,10 +24,10 @@ import spock.lang.Specification
 
 import java.util.zip.ZipEntry
 
-class ClasspathBuilderTest extends Specification {
+class InPlaceClasspathBuilderTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(ClasspathBuilderTest)
-    ClasspathBuilder builder = new ClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(tmpDir.createDir("tmp")))
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(InPlaceClasspathBuilderTest)
+    InPlaceClasspathBuilder builder = new InPlaceClasspathBuilder()
 
     def "creates an empty jar"() {
         def file = tmpDir.file("thing.zip")
@@ -55,6 +55,34 @@ class ClasspathBuilderTest extends Specification {
         def zip = new ZipTestFixture(file)
         zip.hasDescendants("a.class", "dir/b.class", "some/dir/c.class")
         zip.hasDirs("dir", "some", "some/dir")
+    }
+
+    def "overrides previously constructed jar"() {
+        def file = tmpDir.file("thing.zip")
+
+        when:
+        builder.jar(file) {
+            it.put("a.class", "bytes".bytes)
+            it.put("dir/b.class", "bytes".bytes)
+            it.put("some/dir/c.class", "bytes".bytes)
+        }
+        def zip = new ZipTestFixture(file)
+
+        then:
+        zip.hasDescendants("a.class", "dir/b.class", "some/dir/c.class")
+        zip.hasDirs("dir", "some", "some/dir")
+
+        when:
+        builder.jar(file) {
+            it.put("a2.class", "bytes".bytes)
+            it.put("dir2/b2.class", "bytes".bytes)
+            it.put("some2/dir2/c2.class", "bytes".bytes)
+        }
+        zip = new ZipTestFixture(file)
+
+        then:
+        zip.hasDescendants("a2.class", "dir2/b2.class", "some2/dir2/c2.class")
+        zip.hasDirs("dir2", "some2", "some2/dir2")
     }
 
     def "can construct jar with multiple entries in directory"() {

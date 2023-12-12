@@ -19,8 +19,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
@@ -42,8 +40,9 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.ProblemSpec;
+import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.FileUtils;
@@ -59,6 +58,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -113,14 +114,14 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     private final Interner<ImmutableVersionConstraint> versionConstraintInterner;
     private final ObjectFactory objects;
     private final String name;
-    private final Map<String, VersionModel> versionConstraints = Maps.newLinkedHashMap();
-    private final Map<String, Supplier<DependencyModel>> libraries = Maps.newLinkedHashMap();
+    private final Map<String, VersionModel> versionConstraints = new LinkedHashMap<>();
+    private final Map<String, Supplier<DependencyModel>> libraries = new LinkedHashMap<>();
     /**
      * Aliases that are being constructed, used to detect unfinished builders.
      */
-    private final Set<String> aliasesInProgress = Sets.newLinkedHashSet();
-    private final Map<String, Supplier<PluginModel>> plugins = Maps.newLinkedHashMap();
-    private final Map<String, BundleModel> bundles = Maps.newLinkedHashMap();
+    private final Set<String> aliasesInProgress = new LinkedHashSet<>();
+    private final Map<String, Supplier<PluginModel>> plugins = new LinkedHashMap<>();
+    private final Map<String, BundleModel> bundles = new LinkedHashMap<>();
     private final Lazy<DefaultVersionCatalog> model = Lazy.unsafe().of(this::doBuild);
     private final Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier;
     private Import importedCatalog = null;
@@ -210,7 +211,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         return new DefaultVersionCatalog(name, description.getOrElse(""), realizedLibs.build(), ImmutableMap.copyOf(bundles), ImmutableMap.copyOf(versionConstraints), realizedPlugins.build());
     }
 
-    private static ProblemSpec configureVersionCatalogError(ProblemSpec builder, String message, VersionCatalogProblemId catalogProblemId) {
+    private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String message, VersionCatalogProblemId catalogProblemId) {
         return builder.label(message)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
             .category("dependency-version-catalog", TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()))

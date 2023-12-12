@@ -25,11 +25,16 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
-import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemCategory;
-import org.gradle.api.problems.ProblemLocation;
+import org.gradle.api.problems.internal.DocLink;
+import org.gradle.api.problems.internal.FileLocation;
+import org.gradle.api.problems.internal.LineInFileLocation;
+import org.gradle.api.problems.internal.OffsetInFileLocation;
+import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemCategory;
+import org.gradle.api.problems.internal.ProblemLocation;
 import org.gradle.api.problems.internal.DefaultFileLocation;
+import org.gradle.api.problems.internal.DefaultLineInFileLocation;
+import org.gradle.api.problems.internal.DefaultOffsetInFileLocation;
 import org.gradle.api.problems.internal.DefaultPluginIdLocation;
 import org.gradle.api.problems.internal.DefaultProblem;
 import org.gradle.api.problems.internal.DefaultProblemCategory;
@@ -195,28 +200,39 @@ public class ValidationProblemSerialization {
 
     }
 
-    public static class FileLocationAdapter extends TypeAdapter<DefaultFileLocation> {
+    public static class FileLocationAdapter extends TypeAdapter<FileLocation> {
 
         @Override
-        public void write(JsonWriter out, @Nullable DefaultFileLocation value) throws IOException {
+        public void write(JsonWriter out, @Nullable FileLocation value) throws IOException {
             if (value == null) {
                 out.nullValue();
                 return;
             }
 
             out.beginObject();
-            out.name("type").value(value.getType());
+            out.name("type").value("file");
             out.name("path").value(value.getPath());
-            out.name("line").value(value.getLine());
-            out.name("column").value(value.getColumn());
-            out.name("length").value(value.getLength());
+            if (value instanceof LineInFileLocation) {
+                out.name("subtype").value("lineInFile");
+                LineInFileLocation l = (LineInFileLocation) value;
+                out.name("line").value(l.getLine());
+                out.name("column").value(l.getColumn());
+                out.name("length").value(l.getLength());
+            } else if (value instanceof OffsetInFileLocation) {
+                out.name("subtype").value("offsetInFile");
+                OffsetInFileLocation l = (OffsetInFileLocation) value;
+                out.name("offset").value(l.getOffset());
+                out.name("length").value(l.getLength());
+            } else {
+                out.name("subtype").value("file");
+            }
             out.endObject();
         }
 
         @Override
-        public DefaultFileLocation read(JsonReader in) throws IOException {
+        public FileLocation read(JsonReader in) throws IOException {
             in.beginObject();
-            DefaultFileLocation fileLocation = readObject(in);
+            FileLocation fileLocation = readObject(in);
             in.endObject();
 
             Objects.requireNonNull(fileLocation, "path must not be null");
@@ -224,16 +240,26 @@ public class ValidationProblemSerialization {
         }
 
         @Nonnull
-        private static DefaultFileLocation readObject(JsonReader in) throws IOException {
+        private static FileLocation readObject(JsonReader in) throws IOException {
+            String subtype = null;
             String path = null;
+            Integer offset = null;
             Integer line = null;
             Integer column = null;
             Integer length = null;
             while (in.hasNext()) {
                 String name = in.nextName();
                 switch (name) {
+                    case "subtype": {
+                        subtype = in.nextString();
+                        break;
+                    }
                     case "path": {
                         path = in.nextString();
+                        break;
+                    }
+                    case "offset": {
+                        offset = in.nextInt();
                         break;
                     }
                     case "line": {
@@ -252,7 +278,14 @@ public class ValidationProblemSerialization {
                         in.skipValue();
                 }
             }
-            return new DefaultFileLocation(path, line, column, length);
+
+            if (subtype.equals("lineInFile")) {
+                return DefaultLineInFileLocation.from(path, line, column, length);
+            } else if (subtype.equals("offsetInFile")) {
+                return DefaultOffsetInFileLocation.from(path, offset, length);
+            } else {
+                return DefaultFileLocation.from(path);
+            }
         }
     }
 
@@ -266,7 +299,7 @@ public class ValidationProblemSerialization {
             }
 
             out.beginArray();
-            out.name("type").value(value.getType());
+            out.name("type").value("pluginId");
             out.name("pluginId").value(value.getPluginId());
             out.endObject();
         }
@@ -305,7 +338,7 @@ public class ValidationProblemSerialization {
             }
 
             out.beginArray();
-            out.name("type").value(value.getType());
+            out.name("type").value("task");
             out.name("buildTreePath").value(value.getBuildTreePath());
             out.endObject();
         }
@@ -488,7 +521,6 @@ public class ValidationProblemSerialization {
                         default:
                             throw new JsonParseException("Unknown type: " + type);
                     }
-
                 } finally {
                     in.endObject();
                 }
