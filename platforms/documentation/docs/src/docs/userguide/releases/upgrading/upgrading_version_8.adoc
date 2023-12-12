@@ -143,11 +143,11 @@ java {
 [[publishing_artifact_name_different_from_artifact_id_maven]]
 ==== Deprecated publishing artifact dependencies with explicit name to Maven repositories
 
-Publishing dependencies with an explicit artifact with name different from the dependency's artifactId to Maven repositories has been deprecated.
-This behavior will still be permitted when publishing to Ivy repositories.
-This will become an error in Gradle 9.0.
+Publishing dependencies with an explicit artifact with a name different from the dependency's `artifactId` to Maven repositories has been deprecated.
+This behavior is still permitted when publishing to Ivy repositories.
+It will result in an error in Gradle 9.0.
 
-Currently, when publishing to Maven repositories, Gradle will interpret the below dependency as if it were declared with coordinates `org:notfoo:1.0`.
+Currently, when publishing to Maven repositories, Gradle will interpret the dependency below as if it were declared with coordinates `org:notfoo:1.0`.
 
 =====
 [.multi-language-sample]
