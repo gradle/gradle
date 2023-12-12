@@ -33,7 +33,7 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
         withBuildScriptIn("a")
 
         when: "fetching without Isolated Projects"
-        def expectedModel = fetchModel(KotlinDslScriptsModel)
+        def originalModel = fetchModel(KotlinDslScriptsModel)
 
         then:
         fixture.assertNoConfigurationCache()
@@ -48,7 +48,38 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
             modelsCreated(":a", 2)
         }
 
-        checkKotlinDslScriptsModel(model, expectedModel)
+        checkKotlinDslScriptsModel(model, originalModel)
+
+        when: "fetching again with Isolated Projects"
+        executer.withArguments(ENABLE_CLI)
+        fetchModel(KotlinDslScriptsModel)
+
+        then:
+        fixture.assertStateLoaded()
+    }
+
+    def "can fetch KotlinDslScripts model for multi-project build"() {
+        withMultiProjectBuildWithBuildSrc()
+
+        when: "fetching without Isolated Projects"
+        def originalModel = fetchModel(KotlinDslScriptsModel)
+
+        then:
+        fixture.assertNoConfigurationCache()
+
+        when: "fetching with Isolated Projects"
+        executer.withArguments(ENABLE_CLI)
+        def model = fetchModel(KotlinDslScriptsModel)
+
+        then:
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            modelsCreated(":", 5)
+            modelsCreated(":a", 2)
+            modelsCreated(":b", 3)
+        }
+
+        checkKotlinDslScriptsModel(model, originalModel)
 
         when: "fetching again with Isolated Projects"
         executer.withArguments(ENABLE_CLI)
