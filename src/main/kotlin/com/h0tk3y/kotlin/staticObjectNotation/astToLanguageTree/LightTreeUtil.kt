@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.com.intellij.psi.TokenType.ERROR_ELEMENT
 import org.jetbrains.kotlin.com.intellij.psi.TokenType.WHITE_SPACE
 import org.jetbrains.kotlin.com.intellij.psi.tree.IElementType
 import org.jetbrains.kotlin.com.intellij.util.diff.FlyweightCapableTreeStructure
+import org.jetbrains.kotlin.diagnostics.isExpression
 import org.jetbrains.kotlin.lexer.KtTokens.*
 
 typealias LightTree = FlyweightCapableTreeStructure<LighterASTNode>
@@ -58,6 +59,23 @@ internal fun FlyweightCapableTreeStructure<LighterASTNode>.children(
     return ref.get()
         .filterNotNull()
         .filter { it.isUseful }
+}
+
+internal fun FlyweightCapableTreeStructure<LighterASTNode>.getFirstChildExpressionUnwrapped(node: LighterASTNode): LighterASTNode? {
+    val filter: (LighterASTNode) -> Boolean = { it -> it.isExpression()}
+    val firstChild = firstChild(node, filter) ?: return null
+    return if (firstChild.tokenType == PARENTHESIZED) {
+        getFirstChildExpressionUnwrapped(firstChild)
+    } else {
+        firstChild
+    }
+}
+
+private fun FlyweightCapableTreeStructure<LighterASTNode>.firstChild(
+    node: LighterASTNode,
+    filter: (LighterASTNode) -> Boolean
+): LighterASTNode? {
+    return children(node).firstOrNull(filter)
 }
 
 internal val LighterASTNode.asText: String

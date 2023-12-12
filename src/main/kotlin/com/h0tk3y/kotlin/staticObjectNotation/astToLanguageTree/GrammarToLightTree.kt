@@ -1,5 +1,6 @@
 package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.FailureCollectorContext.CheckedResult
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedLanguageFeature.AnnotationUsage
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedLanguageFeature.LabelledStatement
 import com.h0tk3y.kotlin.staticObjectNotation.language.*
@@ -7,10 +8,11 @@ import org.jetbrains.kotlin.ElementTypeUtils.getOperationSymbol
 import org.jetbrains.kotlin.ElementTypeUtils.isExpression
 import org.jetbrains.kotlin.KtNodeTypes.*
 import org.jetbrains.kotlin.com.intellij.lang.LighterASTNode
-import org.jetbrains.kotlin.fir.builder.isUnderscore
+import org.jetbrains.kotlin.com.intellij.psi.TokenType
 import org.jetbrains.kotlin.lexer.KtTokens.*
 import org.jetbrains.kotlin.parsing.*
 import org.jetbrains.kotlin.psi.stubs.elements.KtConstantExpressionElementType
+import org.jetbrains.kotlin.psi.stubs.elements.KtNameReferenceExpressionElementType
 import org.jetbrains.kotlin.utils.doNothing
 
 class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
@@ -33,17 +35,56 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
             else -> error("Unexpected tokenType in generic statement: ${node.tokenType}")
         }
 
-    private fun propertyAccessStatement(node: LighterASTNode): ElementResult<PropertyAccess> =
-        when (node.tokenType) {
-            REFERENCE_EXPRESSION -> referenceExpression(node)
-            else -> error("Unexpected tokenType in property access statement: ${node.tokenType}")
-        }
-
     private fun expression(tree: LightTree, node: LighterASTNode): ElementResult<Expr> =
         when (node.tokenType) {
+            in QUALIFIED_ACCESS, REFERENCE_EXPRESSION -> propertyAccessStatement(tree, node)
             is KtConstantExpressionElementType -> constantExpression(node)
             STRING_TEMPLATE -> stringTemplate(tree, node)
             else -> error("Unexpected tokenType in expression: ${node.tokenType}")
+        }
+
+    private fun propertyAccessStatement(tree: LightTree, node: LighterASTNode): ElementResult<PropertyAccess> =
+        when (node.tokenType) {
+            REFERENCE_EXPRESSION -> Element(PropertyAccess(null, referenceExpression(node).value, node.data))
+            in QUALIFIED_ACCESS -> qualifiedExpression(tree, node)
+            else -> error("Unexpected tokenType in property access statement: ${node.tokenType}")
+        }
+
+    private fun qualifiedExpression(tree: LightTree, node: LighterASTNode): ElementResult<PropertyAccess> =
+        elementOrFailure {
+            val children = tree.children(node)
+
+            var isSelector = false
+            var selector: Syntactic<String>? = null
+            var receiver: CheckedResult<ElementResult<Expr>>? = null //before dot
+            children.forEach {
+                when (val tokenType = it.tokenType) {
+                    DOT -> isSelector = true
+                    SAFE_ACCESS -> {
+                        collectingFailure(node.unsupportedBecause(UnsupportedLanguageFeature.SafeNavigation))
+                    }
+                    else -> {
+                        val isEffectiveSelector = isSelector && tokenType != TokenType.ERROR_ELEMENT
+                        if (isEffectiveSelector) {
+                            val callExpressionCallee = if (tokenType == CALL_EXPRESSION) tree.getFirstChildExpressionUnwrapped(it) else null
+                                if (tokenType is KtNameReferenceExpressionElementType || (tokenType == CALL_EXPRESSION && callExpressionCallee?.tokenType != LAMBDA_EXPRESSION)) {
+                                    selector = referenceExpression(it)
+                                } else {
+                                    collectingFailure(node.parsingError("The expression cannot be a selector (occur after a dot)"))
+                                }
+                        } else {
+                            receiver = checkForFailure(expression(tree, it))
+                        }
+                    }
+                }
+            }
+
+            collectingFailure(selector ?: node.parsingError("Qualified expression without selector"))
+            collectingFailure(receiver ?: node.parsingError("Qualified expression without receiver"))
+
+            elementIfNoFailures {
+                Element(PropertyAccess(checked(receiver!!), selector!!.value, node.data))
+            }
         }
 
     private fun stringTemplate(tree: LightTree, node: LighterASTNode): ElementResult<Expr> {
@@ -153,7 +194,7 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
             val children = tree.children(node)
 
             var identifier: String? = null
-            var expression: FailureCollectorContext.CheckedResult<ElementResult<Expr>>? = null
+            var expression: CheckedResult<ElementResult<Expr>>? = null
             children.forEach {
                 when (it.tokenType) {
                     VALUE_ARGUMENT_NAME -> identifier = it.asText
@@ -161,7 +202,7 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
                     is KtConstantExpressionElementType -> expression = checkForFailure(constantExpression(it))
                     CALL_EXPRESSION -> expression = checkForFailure(callExpression(tree, it))
                     else ->
-                        if (it.isExpression()) expression = checkForFailure(propertyAccessStatement(it))
+                        if (it.isExpression()) expression = checkForFailure(expression(tree, it))
                         else TODO()
                 }
             }
@@ -208,7 +249,7 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
         if (rightArg == null) return node.parsingError("Missing right hand side in binary expression")
 
         return elementOrFailure {
-            val lhs = checkForFailure(propertyAccessStatement(leftArg!!))
+            val lhs = checkForFailure(propertyAccessStatement(tree, leftArg!!))
             val expr = checkForFailure(expression(tree, rightArg!!))
 
             elementIfNoFailures {
@@ -217,11 +258,7 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
         }
     }
 
-    private fun referenceExpression(node: LighterASTNode): ElementResult<PropertyAccess> {
-        val name = node.asText
-        if (name.isUnderscore) return node.parsingError("Underscore usage without backticks in reference expression: $name")
-        return Element(PropertyAccess(null, name, node.data))
-    }
+    private fun referenceExpression(node: LighterASTNode): Syntactic<String> = Syntactic(node.asText)
 
     private fun scriptNodes(tree: LightTree): List<LighterASTNode> {
         // TODO: the actual script we want to parse is wrapped into a class initializer block, we need to extract it
