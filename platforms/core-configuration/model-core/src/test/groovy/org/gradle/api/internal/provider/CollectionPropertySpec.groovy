@@ -1070,8 +1070,6 @@ The value of this property is derived from: <source>""")
         0 * _
     }
 
-<<<<<<< HEAD
-
     def "update can modify property"() {
         given:
         property.set(someValue())
@@ -1152,7 +1150,7 @@ The value of this property is derived from: <source>""")
         then:
         1 * transform.transform(_)
     }
-    
+
     static abstract class CollectionPropertyCircularChainEvaluationTest<T, C extends Collection<T>> extends PropertySpec.PropertyCircularChainEvaluationSpec<C> {
         @Override
         abstract AbstractCollectionProperty<T, C> property()

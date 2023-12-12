@@ -480,12 +480,10 @@ task wrongPropertyElementTypeApi {
             myCollection.add(p)
 
             myCollection.get()
-
-            tasks.register("verify") {}
         """
 
         when:
-        fails "verify"
+        fails "help"
 
         then:
         failureCauseContains("Circular evaluation detected")

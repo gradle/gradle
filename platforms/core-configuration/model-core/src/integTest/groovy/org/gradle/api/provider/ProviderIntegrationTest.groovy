@@ -356,7 +356,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         'provider { "baz" }.zip(task.get().outDir) { f, d -> d.file(f) }'          | _
     }
 
-    def "circular evaluation of provider is detected"() {
+    def "circular evaluation of mapped provider is detected"() {
         buildFile """
             abstract class MyTask extends DefaultTask {
                 @Input
