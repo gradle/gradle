@@ -17,10 +17,8 @@
 package org.gradle.problems.internal.emitters;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -32,8 +30,6 @@ import org.gradle.internal.operations.OperationIdentifier;
  */
 @Incubating
 public class BuildOperationBasedProblemEmitter implements ProblemEmitter {
-
-    private static final Logger LOGGER = Logging.getLogger(BuildOperationBasedProblemEmitter.class);
 
     private final BuildOperationProgressEventEmitter eventEmitter;
 
