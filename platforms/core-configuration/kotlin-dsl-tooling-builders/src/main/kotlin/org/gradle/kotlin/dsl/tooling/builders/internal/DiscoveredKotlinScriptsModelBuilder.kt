@@ -55,7 +55,7 @@ object DiscoveredKotlinScriptsModelBuilder : ToolingModelBuilder {
                 val precompiledScripts = precompiledScriptFiles.map { DiscoveredScript(it, project.findSourceSetClassPath(it)) }
                 addAll(precompiledScripts)
             }
-        }
+        }.toList() // otherwise the builder-returned type fails to serialize with CC
 
         return DiscoveredKotlinScriptsModel(scripts)
     }
