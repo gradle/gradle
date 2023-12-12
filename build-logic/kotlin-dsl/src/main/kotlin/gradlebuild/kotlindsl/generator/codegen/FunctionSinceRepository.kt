@@ -36,6 +36,10 @@ class FunctionSinceRepository(classPath: Set<File>, sourcePath: Set<File>) : Aut
     val unsupportedTypeSimpleNames = listOf(
         "Transformer", // https://github.com/paul-hammant/qdox/issues/182
         "Provider", // https://github.com/paul-hammant/qdox/issues/182
+        "ListProperty", // https://github.com/paul-hammant/qdox/issues/182
+        "MapProperty", // https://github.com/paul-hammant/qdox/issues/182
+        "Property", // https://github.com/paul-hammant/qdox/issues/182
+        "SetProperty", // https://github.com/paul-hammant/qdox/issues/182
     )
 
     private

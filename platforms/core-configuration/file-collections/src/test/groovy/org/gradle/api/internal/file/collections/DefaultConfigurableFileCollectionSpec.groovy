@@ -16,6 +16,8 @@
 package org.gradle.api.internal.file.collections
 
 import org.gradle.api.Task
+import org.gradle.api.Transformer
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionSpec
@@ -26,6 +28,7 @@ import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskResolver
+import org.gradle.api.specs.Spec
 
 import java.util.concurrent.Callable
 import java.util.function.Consumer
@@ -1588,5 +1591,171 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         'setFrom()'    | { it.setFrom() }
         'setFrom([])'  | { it.setFrom([]) }
         'setFrom(*[])' | { it.setFrom(*[]) }
+    }
+
+    def "can obtain shallow copy of #description collection"() {
+        given:
+        configuration.setDelegate(this)
+        configuration.setResolveStrategy(Closure.DELEGATE_ONLY)
+        configuration(collection)
+
+        when:
+        def copy = collection.shallowCopy()
+
+        then:
+        copy.files == collection.files
+
+        where:
+        description      | configuration
+        "empty"          | {}
+        "single element" | { it.setFrom(containing(new File("file"))) }
+        "multi-element"  | { it.setFrom(containing(new File("file1"))); it.from(containing(new File("file2"))) }
+        "finalized"      | { it.setFrom(containing(new File("file"))); it.finalizeValue() }
+    }
+
+    def "shallow copy of #description collection does not follow changes to original"() {
+        given:
+        configuration.setDelegate(this)
+        configuration.setResolveStrategy(Closure.DELEGATE_ONLY)
+        configuration(collection)
+
+        when:
+        def copy = collection.shallowCopy()
+        collection.setFrom(containing(new File("other")))
+
+        then:
+        copy.files != collection.files
+        copy.files == expectedCopyContents as Set<File>
+
+        where:
+        description      | expectedCopyContents                             | configuration
+        "empty"          | [] as File[]                                     | {}
+        "single element" | [new File("file")] as File[]                     | { it.setFrom(containing(expectedCopyContents)) }
+        "multi-element"  | [new File("file1"), new File("file2")] as File[] | { it.setFrom(containing(expectedCopyContents[0])); it.from(containing(expectedCopyContents[1])) }
+    }
+
+    def "shallow copy inherits dependencies of the original"() {
+        given:
+        def task = Mock(Task)
+        collection.builtBy("a")
+
+        when:
+        def copyDeps = collection.shallowCopy().buildDependencies.getDependencies(null)
+
+        then:
+        copyDeps == [task] as Set<Task>
+
+        _ * taskResolver.resolveTask("a") >> task
+    }
+
+    def "shallow copy does not follow changes to dependencies of the original"() {
+        given:
+        def task = Mock(Task)
+        collection.builtBy("a")
+
+        when:
+        def copy = collection.shallowCopy()
+        collection.builtBy("b")
+
+        def copyDeps = copy.buildDependencies.getDependencies(null)
+
+        then:
+        copyDeps == [task] as Set<Task>
+
+        _ * taskResolver.resolveTask("a") >> task
+    }
+
+    def "shallow copy reflects changes to inner collection"() {
+        given:
+        def inner = new DefaultConfigurableFileCollection("<display>", fileResolver, taskDependencyFactory, patternSetFactory, host).from(containing(new File("a")))
+        collection.from(inner)
+
+        when:
+        def copy = collection.shallowCopy()
+        inner.from(containing(new File("b")))
+        collection.from(containing(new File("c")))
+
+        then:
+        copy.files == [new File("a"), new File("b")] as Set<File>
+    }
+
+    def "update can modify contents of the collection"() {
+        given:
+        def a = new File("a.txt")
+        def b = new File("b.md")
+        collection.from(containing(a, b))
+
+        when:
+        collection.update { it.filter { f -> !f.name.endsWith(".txt") } }
+
+        then:
+        collection.files == [b] as Set<File>
+    }
+
+    def "update is not applied to later collection modifications"() {
+        given:
+        def a = new File("a.txt")
+        def b = new File("b.md")
+        def c = new File("c.txt")
+        collection.from(containing(a, b))
+
+        when:
+        collection.update { it.filter { f -> !f.name.endsWith(".txt") } }
+        collection.from(containing(c))
+
+        then:
+        collection.files == [b, c] as Set<File>
+    }
+
+    def "update argument is live"() {
+        given:
+        def a = new File("a.txt")
+        def b = new File("b.md")
+        def c = new File("c.txt")
+        def d = new File("d.md")
+
+        def upstream = new DefaultConfigurableFileCollection("<display>", fileResolver, taskDependencyFactory, patternSetFactory, host).from(containing(a, b))
+        collection.from(upstream)
+        when:
+        collection.update { it.filter { f -> !f.name.endsWith(".txt") } }
+        upstream.from(containing(c, d))
+
+        then:
+        collection.files == [b, d] as Set<File>
+    }
+
+    def "returning null from update clears collection"() {
+        given:
+        collection.from(containing(new File("a.txt")))
+
+        when:
+        collection.update { null }
+
+        then:
+        collection.isEmpty()
+    }
+
+    def "update transformation runs eagerly"() {
+        given:
+        Transformer<FileCollection, FileCollection> transform = Mock()
+        collection.from(containing(new File("a.txt")))
+
+        when:
+        collection.update(transform)
+
+        then:
+        1 * transform.transform(_)
+    }
+
+    def "update transformation result is evaluated lazily"() {
+        given:
+        Spec<File> filterSpec = Mock()
+        collection.from(containing(new File("a.txt")))
+
+        when:
+        collection.update { it.filter(filterSpec) }
+
+        then:
+        0 * filterSpec._
     }
 }

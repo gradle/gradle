@@ -312,4 +312,49 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         }
     }
 
+    /**
+     * Creates a shallow copy of this property. Further changes to this property (via {@code set(...)}, or {@code convention(Object...)}) do not
+     * change the copy. However, the copy still reflects changes to the underlying providers that constitute this property. Consider the following snippet:
+     * <pre>
+     *     def upstream = objects.property(String).value("foo")
+     *     def property = objects.property(String).value(upstream)
+     *     def copy = property.shallowCopy()
+     *     property.set("bar")  // does not affect contents of the copy
+     *     upstream.set("qux")  // does affect the content of the copy
+     *
+     *     println(copy.get())  // prints qux
+     * </pre>
+     * <p>
+     * The copy doesn't share the producer of this property, but inherits producers of the current property value.
+     *
+     * @return the shallow copy of this property
+     */
+    public ProviderInternal<T> shallowCopy() {
+        return new AbstractMinimalProvider<T>() {
+            // the value of "value" is immutable but the field is not, so copy it.
+            // This is in fact enough to have a shallow copy!
+            private final S copiedValue = AbstractProperty.this.value;
+
+            @Override
+            public ValueProducer getProducer() {
+                return copiedValue.getProducer();
+            }
+
+            @Override
+            public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+                return calculateOwnExecutionTimeValue(copiedValue);
+            }
+
+            @Override
+            protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+                return calculateValueFrom(copiedValue, consumer);
+            }
+
+            @Override
+            @Nullable
+            public Class<T> getType() {
+                return AbstractProperty.this.getType();
+            }
+        };
+    }
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.provider
 
+import org.gradle.api.Task
+
 abstract class AbstractPropertySpec<T> extends PropertySpec<T> {
     @Override
     AbstractProperty<T, ? extends ValueSupplier> providerWithValue(T value) {
@@ -123,5 +125,146 @@ abstract class AbstractPropertySpec<T> extends PropertySpec<T> {
 
         then:
         property.isFinalized()
+    }
+
+    def "can obtain shallow copy of property"() {
+        given:
+        def property = propertyWithValue(someValue())
+
+        when:
+        def copy = property.shallowCopy()
+
+        then:
+        copy.orNull == someValue()
+    }
+
+    def "shallow copy of property does not follow changes to original"() {
+        given:
+        def property = propertyWithValue(someValue())
+
+        when:
+        def copy = property.shallowCopy()
+        property.set(someOtherValue())
+
+        then:
+        copy.orNull != property.orNull
+        copy.orNull == someValue()
+    }
+
+    def "shallow copy shares the type with the property"() {
+        given:
+        def property = propertyWithValue(someValue())
+
+        expect:
+        property.type == property.shallowCopy().type
+    }
+
+    def "shallow copy inherits dependencies of the original"() {
+        given:
+        def task = Mock(Task)
+        def provider = supplierWithProducer(task)
+        def property = propertyWithNoValue()
+        property.set(provider)
+
+        expect:
+        assertHasProducer(property.shallowCopy(), task)
+    }
+
+    def "shallow copy does not follow changes to dependencies of the original"() {
+        given:
+        def task = Mock(Task)
+        def provider = supplierWithProducer(task)
+        def property = propertyWithNoValue()
+        property.set(provider)
+
+        when:
+        def copy = property.shallowCopy()
+        property.set(someOtherValue())
+
+        then:
+        assertHasProducer(copy, task)
+        assertHasNoProducer(property)
+    }
+
+    def "shallow copy does not inherit producer from the original"() {
+        given:
+        def task = Mock(Task)
+        def property = propertyWithNoValue()
+        property.attachProducer(owner(task))
+
+        expect:
+        assertHasNoProducer(property.shallowCopy())
+    }
+
+    def "shallow copy reflects changes to the value"() {
+        given:
+        def innerProperty = propertyWithValue(someValue())
+        def property = propertyWithNoValue()
+        property.set(innerProperty)
+
+        when:
+        def copy = property.shallowCopy()
+        innerProperty.set(someOtherValue())
+
+        then:
+        copy.orNull == innerProperty.orNull
+    }
+
+    def "shallow copy is fixed if the underlying provider is fixed"() {
+        given:
+        def property = propertyWithValue(someValue())
+
+        when:
+        def copy = property.shallowCopy()
+
+        then:
+        !copy.calculateExecutionTimeValue().isChangingValue()
+    }
+
+    def "shallow copy is changing if the underlying provider is changing"() {
+        given:
+        def upstream = supplierWithChangingExecutionTimeValues(someValue())
+        def property = propertyWithNoValue()
+        property.set(upstream)
+
+        when:
+        def copy = property.shallowCopy()
+
+        then:
+        copy.calculateExecutionTimeValue().isChangingValue()
+    }
+
+    def "shallow copy copies the convention if the property has no explicit value"() {
+        given:
+        def property = propertyWithNoValue()
+        property.convention(someValue())
+
+        expect:
+        property.shallowCopy().orNull == someValue()
+    }
+
+    def "shallow copy is not affected by changes to original convention"() {
+        given:
+        def property = propertyWithNoValue()
+        property.convention(someValue())
+
+        when:
+        def copy = property.shallowCopy()
+        property.convention(someOtherValue())
+
+        then:
+        copy.orNull == someValue()
+    }
+
+    def "obtaining value of the shadow copy does not finalize property"() {
+        given:
+        def property = propertyWithValue(someValue())
+        property.finalizeValueOnRead()
+
+        when:
+        property.shallowCopy().get()
+
+        then:
+        !property.finalized
     }
 }

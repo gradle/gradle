@@ -18,7 +18,9 @@ package org.gradle.api.internal.provider
 
 import com.google.common.collect.ImmutableMap
 import org.gradle.api.Task
+import org.gradle.api.Transformer
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.internal.Describables
 import org.gradle.internal.state.ManagedFactory
 import org.gradle.util.TestUtil
@@ -1216,5 +1218,86 @@ The value of this property is derived from: <source>""")
         } catch (UnsupportedOperationException ignored) {
             // expected
         }
+    }
+
+    def "update can modify property"() {
+        given:
+        property.set(someValue())
+
+        when:
+        property.update { it.map { someOtherValue() } }
+
+        then:
+        property.get() == someOtherValue()
+    }
+
+    def "update can modify property with convention"() {
+        given:
+        property.convention(someValue())
+
+        when:
+        property.update { it.map { someOtherValue() } }
+
+        then:
+        property.get() == someOtherValue()
+    }
+
+    def "update is not applied to later property modifications"() {
+        given:
+        property.set(someValue())
+
+        when:
+        property.update { it.map { m -> m.collectEntries { k, v -> [v, k] } } }
+        property.set(someOtherValue())
+
+        then:
+        property.get() == someOtherValue()
+    }
+
+    def "update argument is live"() {
+        given:
+        def upstream = property().value(someValue())
+        property.set(upstream)
+
+        when:
+        property.update { it.map { m -> m.collectEntries { k, v -> [v, k] } } }
+        upstream.set(someOtherValue())
+
+        then:
+        property.get() == someOtherValue().collectEntries { k, v -> [v, k] }
+    }
+
+    def "returning null from update unsets the property"() {
+        given:
+        property.set(someValue())
+
+        when:
+        property.update { null }
+
+        then:
+        !property.isPresent()
+    }
+
+    def "returning null from update unsets the property falling back to convention"() {
+        given:
+        property.value(someValue()).convention(someOtherValue())
+
+        when:
+        property.update { null }
+
+        then:
+        property.get() == someOtherValue()
+    }
+
+    def "update transformation runs eagerly"() {
+        given:
+        Transformer<Provider<String>, Provider<String>> transform = Mock()
+        property.set(someValue())
+
+        when:
+        property.update(transform)
+
+        then:
+        1 * transform.transform(_)
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
+import org.gradle.api.Transformer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -137,5 +138,15 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     protected String describeContents() {
         // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
         return String.format("property(%s, %s)", type.getName(), getSupplier());
+    }
+
+    @Override
+    public void update(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends T>, ? super Provider<T>> transform) {
+        Provider<? extends T> newValue = transform.transform(shallowCopy());
+        if (newValue != null) {
+            set(newValue);
+        } else {
+            set((T) null);
+        }
     }
 }
