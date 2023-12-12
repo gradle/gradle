@@ -16,13 +16,12 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import com.google.common.collect.ImmutableMap;
-
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -137,7 +136,7 @@ public class ToolingParameterProxy implements InvocationHandler {
         // even though they are not checked during parameter type validation
         Method[] methods = parameterInterface.getMethods();
 
-        ImmutableMap.Builder<String, Object> properties = ImmutableMap.builder();
+        Map<String, Object> properties = new LinkedHashMap<>();
         for (Method method : methods) {
             if (isGetter(method)) {
                 String propertyName = getPropertyName(method.getName());
@@ -150,7 +149,7 @@ public class ToolingParameterProxy implements InvocationHandler {
             }
         }
 
-        return properties.build();
+        return properties;
     }
 
     private static Class<?> getConsumerParameterInterface(Object parameter) {
