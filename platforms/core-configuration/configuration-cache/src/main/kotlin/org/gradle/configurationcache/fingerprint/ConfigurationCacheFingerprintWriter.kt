@@ -527,7 +527,7 @@ class ConfigurationCacheFingerprintWriter(
         return simplifyingVisitor.simplify()
     }
 
-    fun <T> collectFingerprintForProject(identityPath: Path, action: () -> T): T {
+    fun <T> runCollectingFingerprintForProject(identityPath: Path, action: () -> T): T {
         val previous = projectForThread.get()
         val projectSink = sinksForProject.computeIfAbsent(identityPath) { ProjectScopedSink(host, identityPath, projectScopedWriter) }
         projectForThread.set(projectSink)
