@@ -36,8 +36,6 @@ import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.worker.child.ApplicationClassesInSystemClassLoaderWorkerImplementationFactory;
 import org.gradle.process.internal.worker.child.WorkerJvmMemoryInfoProtocol;
 import org.gradle.process.internal.worker.child.WorkerLoggingProtocol;
-import org.gradle.process.internal.worker.problem.WorkerProblemProtocol;
-import org.gradle.process.internal.worker.problem.WorkerProblemSerializer;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -205,28 +203,17 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     public WorkerProcess build() {
         final WorkerJvmMemoryStatus memoryStatus = shouldPublishJvmMemoryInfo ? new WorkerJvmMemoryStatus() : null;
         final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(connectTimeoutSeconds, TimeUnit.SECONDS, memoryStatus);
-        ConnectionAcceptor acceptor = server.accept(new Action<ObjectConnection>() {
-            @Override
-            public void execute(final ObjectConnection connection) {
-                workerProcess.onConnect(connection, new Runnable() {
-                    @Override
-                    public void run() {
-                        DefaultWorkerLoggingProtocol defaultWorkerLoggingProtocol = new DefaultWorkerLoggingProtocol(outputEventListener);
-                        connection.useParameterSerializers(WorkerLoggingSerializer.create());
-                        connection.addIncoming(WorkerLoggingProtocol.class, defaultWorkerLoggingProtocol);
+        ConnectionAcceptor acceptor = server.accept(connection ->
+            workerProcess.onConnect(connection, () -> {
+                DefaultWorkerLoggingProtocol defaultWorkerLoggingProtocol = new DefaultWorkerLoggingProtocol(outputEventListener);
+                connection.useParameterSerializers(WorkerLoggingSerializer.create());
+                connection.addIncoming(WorkerLoggingProtocol.class, defaultWorkerLoggingProtocol);
 
-                        DefaultWorkerProblemProtocol defaultWorkerProblemProtocol = new DefaultWorkerProblemProtocol();
-                        connection.useParameterSerializers(WorkerProblemSerializer.create());
-                        connection.addIncoming(WorkerProblemProtocol.class, defaultWorkerProblemProtocol);
-
-                        if (shouldPublishJvmMemoryInfo) {
-                            connection.useParameterSerializers(WorkerJvmMemoryInfoSerializer.create());
-                            connection.addIncoming(WorkerJvmMemoryInfoProtocol.class, memoryStatus);
-                        }
-                    }
-                });
-            }
-        });
+                if (shouldPublishJvmMemoryInfo) {
+                    connection.useParameterSerializers(WorkerJvmMemoryInfoSerializer.create());
+                    connection.addIncoming(WorkerJvmMemoryInfoProtocol.class, memoryStatus);
+                }
+            }));
         workerProcess.startAccepting(acceptor);
         Address localAddress = acceptor.getAddress();
 

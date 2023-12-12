@@ -17,9 +17,6 @@
 package org.gradle.process.internal.worker.child;
 
 import org.gradle.api.Action;
-import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.internal.DefaultProblems;
-import org.gradle.api.problems.internal.NoOpProblemEmitter;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
@@ -49,9 +46,6 @@ import org.gradle.process.internal.worker.WorkerLoggingSerializer;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.gradle.process.internal.worker.messaging.WorkerConfig;
 import org.gradle.process.internal.worker.messaging.WorkerConfigSerializer;
-import org.gradle.process.internal.worker.problem.WorkerProblemEmitter;
-import org.gradle.process.internal.worker.problem.WorkerProblemProtocol;
-import org.gradle.process.internal.worker.problem.WorkerProblemSerializer;
 
 import java.io.DataInputStream;
 import java.io.File;
@@ -94,7 +88,6 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         NativeServices.initializeOnWorker(gradleUserHomeDir);
         DefaultServiceRegistry basicWorkerServices = new DefaultServiceRegistry(NativeServices.getInstance(), loggingServiceRegistry);
         basicWorkerServices.add(ExecutorFactory.class, new DefaultExecutorFactory());
-        basicWorkerServices.add(Problems.class, new DefaultProblems(new NoOpProblemEmitter()));
         basicWorkerServices.addProvider(new MessagingServices());
         final WorkerServices workerServices = new WorkerServices(basicWorkerServices, gradleUserHomeDir);
         WorkerLogEventListener workerLogEventListener = new WorkerLogEventListener();
@@ -110,7 +103,6 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
             connection = basicWorkerServices.get(MessagingClient.class).getConnection(config.getServerAddress());
             connection.addUnrecoverableErrorHandler(unrecoverableErrorHandler);
             configureLogging(loggingManager, connection, workerLogEventListener);
-            configureProblems(workerServices, connection);
             // start logging now that the logging manager is connected
             loggingManager.start();
             if (config.shouldPublishJvmMemoryInfo()) {
@@ -182,14 +174,6 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         LoggingManagerInternal loggingManagerInternal = loggingServiceRegistry.newInstance(LoggingManagerInternal.class);
         loggingManagerInternal.captureSystemSources();
         return loggingManagerInternal;
-    }
-
-    private void configureProblems(WorkerServices services, ObjectConnection connection) {
-        connection.useParameterSerializers(WorkerProblemSerializer.create());
-        final WorkerProblemProtocol workerProblemProtocol = connection.addOutgoing(WorkerProblemProtocol.class);
-
-        DefaultProblems problems = (DefaultProblems) services.get(Problems.class);
-        problems.setEmitter(new WorkerProblemEmitter(workerProblemProtocol));
     }
 
     private static class WorkerServices extends DefaultServiceRegistry {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,32 @@
 
 package org.gradle.process.internal.worker.request;
 
+/**
+ * Protocol for controlling a worker process.
+ * <p>
+ * This protocol is used by the daemon to control the current work the worker process is doing.
+ */
 public interface RequestProtocol {
+    /**
+     * Runs the given request in the worker process.
+     * <p>
+     * If the worker process can handle multiple requests, the worker process will continue running after the request is completed.
+     *
+     * @param request The request to run.
+     */
     void run(Request request);
+
+    /**
+     * Runs the given request in the worker process, then stops the worker process.
+     * <p>
+     * If the worker process can handle multiple requests, the worker process will stop after the request is completed.
+     *
+     * @param request The request to run.
+     */
     void runThenStop(Request request);
+
+    /**
+     * Stops the worker process.
+     */
     void stop();
 }
