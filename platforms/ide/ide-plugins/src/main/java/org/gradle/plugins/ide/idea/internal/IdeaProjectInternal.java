@@ -38,7 +38,8 @@ public abstract class IdeaProjectInternal extends IdeaProject {
      * Returns the user-defined value for the {@link #getLanguageLevel()} without triggering
      * the convention computation that is not compatible with Isolated Projects.
      */
-    public @Nullable IdeaLanguageLevel getRawLanguageLevel() {
+    @Nullable
+    public IdeaLanguageLevel getRawLanguageLevel() {
         return languageLevel;
     }
 
@@ -46,7 +47,8 @@ public abstract class IdeaProjectInternal extends IdeaProject {
      * Returns the user-defined value for the {@link #getTargetBytecodeVersion()} without triggering
      * the convention computation that is not compatible with Isolated Projects.
      */
-    public @Nullable JavaVersion getRawTargetBytecodeVersion() {
+    @Nullable
+    public JavaVersion getRawTargetBytecodeVersion() {
         return targetBytecodeVersion;
     }
 }
