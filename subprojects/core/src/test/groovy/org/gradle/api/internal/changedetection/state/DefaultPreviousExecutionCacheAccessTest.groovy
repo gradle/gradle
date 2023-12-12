@@ -15,11 +15,9 @@
  */
 package org.gradle.api.internal.changedetection.state
 
-
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory
 import spock.lang.Specification
 

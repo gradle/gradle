@@ -15,7 +15,7 @@
  */
 package org.gradle.cache.internal
 
-import org.gradle.cache.CacheBuilder
+
 import org.gradle.cache.CacheCleanupStrategy
 import org.gradle.cache.CleanupAction
 import org.gradle.cache.CleanupFrequency

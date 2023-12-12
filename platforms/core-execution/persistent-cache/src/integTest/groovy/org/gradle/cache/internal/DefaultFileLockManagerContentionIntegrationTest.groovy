@@ -259,7 +259,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
                     println "Waiting for lock..."
                     final PersistentCache zincCache = cacheBuilderFactory.createCacheBuilder("zinc-0.3.15")
                             .withDisplayName("Zinc 0.3.15 compiler cache")
-                            .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive))
+                            .withInitialLockMode(FileLockManager.LockMode.Exclusive)
                             .open();
                     println "Starting work..."
                     try {

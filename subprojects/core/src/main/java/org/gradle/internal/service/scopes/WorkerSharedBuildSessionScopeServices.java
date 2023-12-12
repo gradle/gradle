@@ -19,7 +19,6 @@ package org.gradle.internal.service.scopes;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.DecompressionCache;
 import org.gradle.cache.internal.DefaultDecompressionCache;
-import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.scopes.DefaultBuildTreeScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.initialization.layout.ProjectCacheDir;
@@ -46,7 +45,7 @@ public class WorkerSharedBuildSessionScopeServices {
         return new DefaultBuildTreeScopedCacheBuilderFactory(projectCacheDir.getDir(), unscopedCacheBuilderFactory);
     }
 
-    DecompressionCache createDecompressionCacheFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        return new DefaultDecompressionCache(cacheBuilderFactory, inMemoryCacheDecoratorFactory);
+    DecompressionCache createDecompressionCacheFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
+        return new DefaultDecompressionCache(cacheBuilderFactory);
     }
 }

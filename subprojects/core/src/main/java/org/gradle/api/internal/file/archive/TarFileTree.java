@@ -43,6 +43,8 @@ import java.io.InputStream;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.lang.String.format;
+
 public class TarFileTree extends AbstractArchiveFileTree {
     private static final String TAR_ENTRY_PREFIX = "tar entry";
 
@@ -83,6 +85,14 @@ public class TarFileTree extends AbstractArchiveFileTree {
 
     @Override
     public void visit(FileVisitor visitor) {
+        File archiveFile = tarFileProvider.get();
+        if (!archiveFile.exists()) {
+            throw new InvalidUserDataException(format("Cannot expand %s as it does not exist.", getDisplayName()));
+        }
+        if (!archiveFile.isFile()) {
+            throw new InvalidUserDataException(format("Cannot expand %s as it is not a file.", getDisplayName()));
+        }
+
         File expandedDir = getExpandedDir();
         decompressionCache.useCache(expandedDir, () -> {
             InputStream inputStream;
