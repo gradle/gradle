@@ -283,7 +283,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
             return;
         }
 
-        List<ModelNodeInternal> nodesToRemove = Lists.newArrayList();
+        List<ModelNodeInternal> nodesToRemove = new ArrayList<>();
         ensureCanRemove(node, nodesToRemove);
         Collections.reverse(nodesToRemove);
 

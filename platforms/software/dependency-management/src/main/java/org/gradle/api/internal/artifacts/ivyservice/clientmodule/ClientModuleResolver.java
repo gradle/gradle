@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.clientmodule;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -48,6 +47,7 @@ import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -90,7 +90,7 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
 
     @SuppressWarnings("deprecation")
     private List<ModuleDependencyMetadata> createClientModuleDependencies(org.gradle.api.artifacts.ClientModule clientModule) {
-        List<ModuleDependencyMetadata> dependencies = Lists.newArrayList();
+        List<ModuleDependencyMetadata> dependencies = new ArrayList<>();
         for (ModuleDependency moduleDependency : clientModule.getDependencies()) {
             ModuleDependencyMetadata dependencyMetadata = createDependencyMetadata(moduleDependency);
             dependencies.add(dependencyMetadata);

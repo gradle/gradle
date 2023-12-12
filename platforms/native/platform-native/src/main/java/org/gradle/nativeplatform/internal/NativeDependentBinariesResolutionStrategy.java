@@ -18,10 +18,7 @@ package org.gradle.nativeplatform.internal;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
-import com.google.common.collect.Sets;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
@@ -47,8 +44,12 @@ import org.gradle.platform.base.internal.dependents.DependentBinariesResolvedRes
 import javax.annotation.Nullable;
 import java.io.StringWriter;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,19 +69,19 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
     }
 
     private static class State {
-        private final Map<NativeBinarySpecInternal, Set<NativeBinarySpecInternal>> dependencies = Maps.newLinkedHashMap();
-        private final Map<NativeBinarySpecInternal, List<NativeBinarySpecInternal>> dependents = Maps.newHashMap();
+        private final Map<NativeBinarySpecInternal, Set<NativeBinarySpecInternal>> dependencies = new LinkedHashMap<>();
+        private final Map<NativeBinarySpecInternal, List<NativeBinarySpecInternal>> dependents = new HashMap<>();
 
         void registerBinary(NativeBinarySpecInternal binary) {
             if (dependencies.get(binary) == null) {
-                dependencies.put(binary, Sets.<NativeBinarySpecInternal>newLinkedHashSet());
+                dependencies.put(binary, new LinkedHashSet<>());
             }
         }
 
         List<NativeBinarySpecInternal> getDependents(NativeBinarySpecInternal target) {
             List<NativeBinarySpecInternal> result = dependents.get(target);
             if (result == null) {
-                result = Lists.newArrayList();
+                result = new ArrayList<>();
                 for (NativeBinarySpecInternal dependentBinary : dependencies.keySet()) {
                     if (dependencies.get(dependentBinary).contains(target)) {
                         result.add(dependentBinary);
@@ -193,7 +194,7 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
     }
 
     private List<NativeBinarySpecInternal> allBinariesOf(ModelMap<VariantComponentSpec> components) {
-        List<NativeBinarySpecInternal> binaries = Lists.newArrayList();
+        List<NativeBinarySpecInternal> binaries = new ArrayList<>();
         for (VariantComponentSpec nativeComponent : components) {
             for (NativeBinarySpecInternal nativeBinary : nativeComponent.getBinaries().withType(NativeBinarySpecInternal.class)) {
                 binaries.add(nativeBinary);
@@ -216,7 +217,7 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
             return result;
         }
         stack.push(target);
-        result = Lists.newArrayList();
+        result = new ArrayList<>();
         List<NativeBinarySpecInternal> dependents = state.getDependents(target);
         for (NativeBinarySpecInternal dependent : dependents) {
             List<DependentBinariesResolvedResult> children = doBuildResolvedResult(dependent, state, stack);

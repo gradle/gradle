@@ -17,7 +17,6 @@ package org.gradle.api.internal.notations;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
@@ -40,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.GRADLE_API;
@@ -53,7 +53,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     private final FileCollectionFactory fileCollectionFactory;
     private final RuntimeShadedJarFactory runtimeShadedJarFactory;
     private final CurrentGradleInstallation currentGradleInstallation;
-    private final ConcurrentMap<DependencyFactoryInternal.ClassPathNotation, SelfResolvingDependency> internCache = Maps.newConcurrentMap();
+    private final ConcurrentMap<DependencyFactoryInternal.ClassPathNotation, SelfResolvingDependency> internCache = new ConcurrentHashMap<>();
 
     public DependencyClassPathNotationConverter(
         Instantiator instantiator,

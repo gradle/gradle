@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.logging;
 import com.google.common.collect.Lists;
 import org.gradle.api.specs.Spec;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -31,7 +32,7 @@ public class StackTraceFilter {
 
     // stack traces are filtered in call order (from bottom to top)
     public List<StackTraceElement> filter(List<StackTraceElement> stackTrace) {
-        List<StackTraceElement> filtered = Lists.newArrayList();
+        List<StackTraceElement> filtered = new ArrayList<StackTraceElement>();
         for (StackTraceElement element : Lists.reverse(stackTrace)) {
             if (filterSpec.isSatisfiedBy(element)) {
                 filtered.add(element);

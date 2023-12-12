@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Sets;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.execution.model.InputNormalizer;
@@ -25,6 +24,7 @@ import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.properties.InputFilePropertyType;
 
 import javax.annotation.Nullable;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -44,7 +44,7 @@ public class FileParameterUtils {
      * @throws IllegalArgumentException if there are multiple properties declared with the same name.
      */
     public static <T extends FilePropertySpec> ImmutableSortedSet<T> collectFileProperties(String displayName, Iterator<? extends T> fileProperties) {
-        Set<String> names = Sets.newHashSet();
+        Set<String> names = new HashSet<>();
         ImmutableSortedSet.Builder<T> builder = ImmutableSortedSet.naturalOrder();
         while (fileProperties.hasNext()) {
             T propertySpec = fileProperties.next();

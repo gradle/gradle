@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.AttributeContainer;
@@ -29,11 +28,12 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
-    private final Set<ResolvedArtifactResult> artifacts = Sets.newLinkedHashSet();
-    private final Set<Throwable> failures = Sets.newLinkedHashSet();
+    private final Set<ResolvedArtifactResult> artifacts = new LinkedHashSet<>();
+    private final Set<Throwable> failures = new LinkedHashSet<>();
     private final Set<ComponentArtifactIdentifier> seenArtifacts = new HashSet<>();
 
     @Override

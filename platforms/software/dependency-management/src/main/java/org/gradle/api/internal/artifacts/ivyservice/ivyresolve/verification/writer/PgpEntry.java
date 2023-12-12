@@ -22,19 +22,21 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 class PgpEntry extends VerificationEntry {
     private final Factory<File> signatureFile;
-    private final Set<String> trustedKeys = Sets.newTreeSet();
+    private final Set<String> trustedKeys = new TreeSet<>();
     private final AtomicBoolean requiresChecksums = new AtomicBoolean();
     private final Set<String> failed = Sets.newConcurrentHashSet();
     private final AtomicBoolean missing = new AtomicBoolean();
     private final AtomicBoolean hasSignatureFile = new AtomicBoolean();
 
     // this field is used during "grouping" of entries to tell if we should ignore writing this entry
-    private final Set<String> keysDeclaredGlobally = Sets.newHashSet();
+    private final Set<String> keysDeclaredGlobally = new HashSet<>();
 
     PgpEntry(ModuleComponentArtifactIdentifier id, ArtifactVerificationOperation.ArtifactKind artifactKind, File file, Factory<File> signatureFile) {
         super(id, artifactKind, file);

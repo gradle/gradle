@@ -16,7 +16,6 @@
 
 package org.gradle.external.javadoc.internal
 
-import com.google.common.collect.Lists
 import org.gradle.external.javadoc.JavadocOfflineLink
 import spock.lang.Specification
 
@@ -24,7 +23,7 @@ class LinksOfflineJavadocOptionFileOptionTest extends Specification {
     private JavadocOptionFileWriterContext writerContextMock = Mock()
     private final String optionName = "testOption"
 
-    private LinksOfflineJavadocOptionFileOption linksOfflineOption = new LinksOfflineJavadocOptionFileOption(optionName, Lists.<JavadocOfflineLink>newArrayList())
+    private LinksOfflineJavadocOptionFileOption linksOfflineOption = new LinksOfflineJavadocOptionFileOption(optionName, new ArrayList<>())
 
 
     def testWriteNullValue() throws IOException {

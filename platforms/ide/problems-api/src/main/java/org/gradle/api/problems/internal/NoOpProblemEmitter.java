@@ -16,7 +16,6 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.Problem;
 import org.gradle.internal.operations.OperationIdentifier;
 
 public class NoOpProblemEmitter implements ProblemEmitter {

@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
@@ -30,7 +31,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
     def "can emit a problem with mandatory fields"() {
         given:
         buildFile """
-            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.internal.Problem
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
@@ -57,9 +58,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         problems.size() == 1
         problems[0]["label"] == "label"
         problems[0]["problemCategory"]["category"] == "type"
-        problems[0]["locations"][0] == [type:"file", length:null, column:null, line:14, path: "build file '$buildFile.absolutePath'"]
+        problems[0]["locations"][0] == [length:-1, column:-1, line:14, path: "build file '$buildFile.absolutePath'"]
         problems[0]["locations"][1] == [
-            type:"task",
             buildTreePath: ":reportProblem"
         ]
     }
@@ -67,7 +67,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
     def "can emit a problem with user-manual documentation"() {
         given:
         buildFile """
-            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.internal.Problem
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
@@ -79,7 +79,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 void run() {
                     problems.forNamespace("org.example.plugin").reporting {
                         it.label("label")
-                        .documentedAt(Documentation.userManual("test-id", "test-section"))
+                        .documentedAt("https://example.org/doc")
                         .category("type")
                     }
                 }
@@ -92,16 +92,13 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         then:
         this.collectedProblems.size() == 1
         def link = this.collectedProblems[0]["documentationLink"]
-        link["properties"]["page"] == "test-id"
-        link["properties"]["section"] == "test-section"
-        link["url"].startsWith("https://docs.gradle.org")
-        link["consultDocumentationMessage"].startsWith("For more information, please refer to https://docs.gradle.org")
+        link["url"] == 'https://example.org/doc'
     }
 
     def "can emit a problem with upgrade-guide documentation"() {
         given:
         buildFile """
-            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.internal.Problem
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
@@ -114,7 +111,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 void run() {
                     problems.forNamespace("org.example.plugin").reporting {
                         it.label("label")
-                        .documentedAt(Documentation.upgradeGuide(8, "test-section"))
+                        .documentedAt("https://docs.example.org/test-section")
                         .category("type")
                         }
                 }
@@ -127,16 +124,13 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         then:
         this.collectedProblems.size() == 1
         def link = this.collectedProblems[0]["documentationLink"]
-        link["properties"]["page"] == "upgrading_version_8"
-        link["properties"]["section"] == "test-section"
-        link["url"].startsWith("https://docs.gradle.org")
-        link["consultDocumentationMessage"].startsWith("Consult the upgrading guide for further information: https://docs.gradle.org")
+        link["url"] == 'https://docs.example.org/test-section'
     }
 
     def "can emit a problem with dsl-reference documentation"() {
         given:
         buildFile """
-            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.internal.Problem
             import org.gradle.api.problems.internal.InternalProblems
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
@@ -149,7 +143,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 void run() {
                     problems.forNamespace("org.example.plugin").reporting {
                         it.label("label")
-                        .documentedAt(Documentation.dslReference(Problem.class, "label"))
+                        .documentedAt("https://example.org/doc")
                         .category("type")
                     }
                 }
@@ -162,14 +156,13 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         then:
         this.collectedProblems.size() == 1
         def link = this.collectedProblems[0]["documentationLink"]
-        link["properties"]["targetClass"] == Problem.class.name
-        link["properties"]["property"] == "label"
+        link["url"] == 'https://example.org/doc'
     }
 
     def "can emit a problem with partially specified location"() {
         given:
         buildFile """
-            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.internal.Problem
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
@@ -181,7 +174,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 void run() {
                     problems.forNamespace("org.example.plugin").reporting {
                         it.label("label")
-                        .fileLocation("test-location", null, null, null)
+                        .offsetInFileLocation("test-location", 1, 2)
                         .category("type")
                     }
                 }
@@ -194,18 +187,16 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         then:
         this.collectedProblems.size() == 1
         this.collectedProblems[0]["locations"][0] == [
-            "type": "file",
             "path": "test-location",
-            "line": null,
-            "column": null,
-            "length": null
+            "offset": 1,
+            "length": 2
         ]
     }
 
     def "can emit a problem with fully specified location"() {
         given:
         buildFile """
-            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.internal.Problem
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
@@ -217,7 +208,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 void run() {
                     problems.forNamespace("org.example.plugin").reporting {
                         it.label("label")
-                        .fileLocation("test-location", 1, 2, 3)
+                        .offsetInFileLocation("test-location", 1, 2)
                         .category("type")
                     }
                 }
@@ -232,22 +223,19 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         then:
         problems.size() == 1
         problems[0]["locations"][0] == [
-            "type": "file",
             "path": "test-location",
-            "line": 1,
-            "column": 2,
-            "length": 3
+            "offset": 1,
+            "length": 2
         ]
 
         def taskPath = problems[0]["locations"][1]
-        taskPath["type"] == "task"
         taskPath["buildTreePath"] == ":reportProblem"
     }
 
     def "can emit a problem with plugin location specified"() {
         given:
         buildFile """
-            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.internal.Problem
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
@@ -274,14 +262,13 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         def problem = this.collectedProblems[0]
 
         def fileLocation = problem["locations"][0]
-        fileLocation["type"] == "pluginId"
         fileLocation["pluginId"] == "org.example.pluginid"
     }
 
     def "can emit a problem with a severity"(Severity severity) {
         given:
         buildFile """
-            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.internal.Problem
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
@@ -315,7 +302,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
     def "can emit a problem with a solution"() {
         given:
         buildFile """
-            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.internal.Problem
             import org.gradle.api.problems.ProblemReporter
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
@@ -348,7 +335,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
     def "can emit a problem with exception cause"() {
         given:
         buildFile """
-            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.internal.Problem
             import org.gradle.api.problems.ProblemReporter
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
@@ -380,7 +367,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
     def "can emit a problem with additional data"() {
         given:
         buildFile """
-            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.internal.Problem
             import org.gradle.api.problems.ProblemReporter
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
@@ -415,7 +402,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         disableProblemsApiCheck()
 
         buildFile """
-            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.internal.Problem
             import org.gradle.api.problems.ProblemReporter
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation

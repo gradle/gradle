@@ -18,10 +18,8 @@ package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
 
-import javax.annotation.Nullable;
-
 /**
- * Represents a section in a file.
+ * A file location.
  *
  * @since 8.6
  */
@@ -29,33 +27,10 @@ import javax.annotation.Nullable;
 public interface FileLocation extends Location {
 
     /**
-     * File path.
+     * The path to the file.
      *
+     * @return the file path
      * @since 8.6
      */
     String getPath();
-
-    /**
-     * An index of the line in the file, if available.
-     *
-     * @since 8.6
-     */
-    @Nullable
-    Integer getLine();
-
-    /**
-     * An index of the column in the file, if available.
-     *
-     * @since 8.6
-     */
-    @Nullable
-    Integer getColumn();
-
-    /**
-     * The length of the region in the file, if available.
-     *
-     * @since 8.6
-     */
-    @Nullable
-    Integer getLength();
 }

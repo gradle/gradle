@@ -16,7 +16,6 @@
 
 package org.gradle.workers.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
@@ -51,6 +50,7 @@ import org.gradle.workers.WorkerSpec;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -290,7 +290,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         private final DefaultWorkerExecutor workerExecutor;
         private final WorkerSpec spec;
         private final WorkerFactory workerFactory;
-        private final List<AsyncWorkCompletion> workItems = Lists.newArrayList();
+        private final List<AsyncWorkCompletion> workItems = new ArrayList<>();
 
         public DefaultWorkQueue(DefaultWorkerExecutor workerExecutor, WorkerSpec spec, WorkerFactory workerFactory) {
             this.workerExecutor = workerExecutor;

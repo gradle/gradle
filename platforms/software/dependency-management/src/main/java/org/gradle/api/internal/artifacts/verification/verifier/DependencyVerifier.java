@@ -17,8 +17,6 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -38,8 +36,12 @@ import org.gradle.security.internal.PublicKeyService;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -179,7 +181,7 @@ public class DependencyVerifier {
             if (artifactSpecificKeys.isEmpty()) {
                 return config.getIgnoredKeys().stream().map(IgnoredKey::getKeyId).collect(Collectors.toSet());
             }
-            Set<String> allKeys = Sets.newHashSet();
+            Set<String> allKeys = new HashSet<>();
             artifactSpecificKeys.stream()
                 .map(IgnoredKey::getKeyId)
                 .forEach(allKeys::add);
@@ -249,7 +251,7 @@ public class DependencyVerifier {
     }
 
     public List<String> getSuggestedWriteFlags() {
-        Set<String> writeFlags = Sets.newLinkedHashSet();
+        Set<String> writeFlags = new LinkedHashSet<>();
         if (config.isVerifySignatures()) {
             writeFlags.add("pgp");
         }
@@ -280,7 +282,7 @@ public class DependencyVerifier {
         @Override
         public void missingKey(String keyId) {
             if (missingKeys == null) {
-                missingKeys = Lists.newArrayList();
+                missingKeys = new ArrayList<>();
             }
             missingKeys.add(keyId);
         }
@@ -289,12 +291,12 @@ public class DependencyVerifier {
         public void verified(PGPPublicKey key, boolean trusted) {
             if (trusted) {
                 if (trustedKeys == null) {
-                    trustedKeys = Lists.newArrayList();
+                    trustedKeys = new ArrayList<>();
                 }
                 trustedKeys.add(key);
             } else {
                 if (validNotTrusted == null) {
-                    validNotTrusted = Lists.newArrayList();
+                    validNotTrusted = new ArrayList<>();
                 }
                 validNotTrusted.add(key);
             }
@@ -303,7 +305,7 @@ public class DependencyVerifier {
         @Override
         public void failed(PGPPublicKey pgpPublicKey) {
             if (failedKeys == null) {
-                failedKeys = Lists.newArrayList();
+                failedKeys = new ArrayList<>();
             }
             failedKeys.add(pgpPublicKey);
         }
@@ -311,7 +313,7 @@ public class DependencyVerifier {
         @Override
         public void ignored(String keyId) {
             if (ignoredKeys == null) {
-                ignoredKeys = Lists.newArrayList();
+                ignoredKeys = new ArrayList<>();
             }
             ignoredKeys.add(keyId);
         }
@@ -325,7 +327,7 @@ public class DependencyVerifier {
         }
 
         public SignatureVerificationFailure asError(PublicKeyService publicKeyService) {
-            Map<String, SignatureVerificationFailure.SignatureError> errors = Maps.newHashMap();
+            Map<String, SignatureVerificationFailure.SignatureError> errors = new HashMap<>();
             if (missingKeys != null) {
                 for (String missingKey : missingKeys) {
                     errors.put(missingKey, error(null, SignatureVerificationFailure.FailureKind.MISSING_KEY));

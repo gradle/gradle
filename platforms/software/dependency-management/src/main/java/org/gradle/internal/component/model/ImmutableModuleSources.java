@@ -15,10 +15,10 @@
  */
 package org.gradle.internal.component.model;
 
-import com.google.common.collect.Lists;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -58,7 +58,7 @@ public class ImmutableModuleSources implements ModuleSources {
         if (sources instanceof ImmutableModuleSources) {
             return new ImmutableModuleSources((ImmutableModuleSources) sources, source);
         }
-        List<ModuleSource> all = Lists.newArrayList();
+        List<ModuleSource> all = new ArrayList<>();
         sources.withSources(all::add);
         all.add(source);
         return of(all.toArray(new ModuleSource[0]));

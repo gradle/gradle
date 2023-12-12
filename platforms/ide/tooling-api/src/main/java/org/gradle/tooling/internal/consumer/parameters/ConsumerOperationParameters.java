@@ -154,7 +154,7 @@ public class ConsumerOperationParameters implements BuildParameters {
 
         public Builder setLaunchables(Iterable<? extends Launchable> launchables) {
             Set<String> taskPaths = new LinkedHashSet<String>();
-            List<InternalLaunchable> launchablesParams = Lists.newArrayList();
+            List<InternalLaunchable> launchablesParams = new ArrayList<>();
             for (Launchable launchable : launchables) {
                 Object original = new ProtocolToModelAdapter().unpack(launchable);
                 if (original instanceof InternalLaunchable) {

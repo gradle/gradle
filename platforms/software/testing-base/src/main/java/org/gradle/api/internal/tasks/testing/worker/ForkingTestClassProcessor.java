@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.worker;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
@@ -33,6 +32,7 @@ import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -51,7 +51,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private WorkerLeaseRegistry.WorkerLeaseCompletion completion;
     private final DocumentationRegistry documentationRegistry;
     private boolean stoppedNow;
-    private final Set<Throwable> unrecoverableExceptions = Sets.newHashSet();
+    private final Set<Throwable> unrecoverableExceptions = new HashSet<Throwable>();
 
 
     public ForkingTestClassProcessor(

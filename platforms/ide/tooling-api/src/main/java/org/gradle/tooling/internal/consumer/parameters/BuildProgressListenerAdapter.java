@@ -82,13 +82,15 @@ import org.gradle.tooling.events.problems.internal.DefaultDocumentationLink;
 import org.gradle.tooling.events.problems.internal.DefaultExceptionContainer;
 import org.gradle.tooling.events.problems.internal.DefaultFileLocation;
 import org.gradle.tooling.events.problems.internal.DefaultLabel;
+import org.gradle.tooling.events.problems.internal.DefaultLineInFileLocation;
+import org.gradle.tooling.events.problems.internal.DefaultOffsetInFileLocation;
 import org.gradle.tooling.events.problems.internal.DefaultPluginIdLocation;
 import org.gradle.tooling.events.problems.internal.DefaultProblemEvent;
 import org.gradle.tooling.events.problems.internal.DefaultProblemsOperationDescriptor;
 import org.gradle.tooling.events.problems.internal.DefaultSeverity;
 import org.gradle.tooling.events.problems.internal.DefaultSolution;
 import org.gradle.tooling.events.problems.internal.DefaultTaskPathLocation;
-import org.gradle.tooling.events.problems.internal.DynamicProblemsOperationDescriptor;
+import org.gradle.tooling.events.problems.internal.DynamicProblemOperationDescriptor;
 import org.gradle.tooling.events.task.TaskFinishEvent;
 import org.gradle.tooling.events.task.TaskOperationDescriptor;
 import org.gradle.tooling.events.task.TaskOperationResult;
@@ -201,7 +203,9 @@ import org.gradle.tooling.internal.protocol.problem.InternalDetails;
 import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
 import org.gradle.tooling.internal.protocol.problem.InternalFileLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalLabel;
+import org.gradle.tooling.internal.protocol.problem.InternalLineInFileLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalLocation;
+import org.gradle.tooling.internal.protocol.problem.InternalOffsetInFileLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalPluginIdLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalProblemCategory;
 import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
@@ -214,6 +218,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static java.util.Collections.emptyList;
@@ -734,10 +739,9 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                 toExceptionContainer(basicDetails.getException())
             );
         } else {
-            return new DynamicProblemsOperationDescriptor(
+            return new DynamicProblemOperationDescriptor(
                 descriptor,
-                parent,
-                details.getJson()
+                parent
             );
         }
     }
@@ -765,9 +769,15 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private static List<Location> toLocations(List<InternalLocation> locations) {
         List<Location> result = new ArrayList<>(locations.size());
         for (InternalLocation location : locations) {
-            if (location instanceof InternalFileLocation) {
-                InternalFileLocation fileLocation = (InternalFileLocation) location;
-                result.add(new DefaultFileLocation(fileLocation.getPath(), fileLocation.getLine(), fileLocation.getColumn(), fileLocation.getLength()));
+            if (location instanceof InternalLineInFileLocation) {
+                InternalLineInFileLocation l = (InternalLineInFileLocation) location;
+                result.add(new DefaultLineInFileLocation(l.getPath(), Objects.requireNonNull(l.getLine()), l.getColumn(), l.getLength()));
+            } else if (location instanceof InternalOffsetInFileLocation) {
+                InternalOffsetInFileLocation l = (InternalOffsetInFileLocation) location;
+                result.add(new DefaultOffsetInFileLocation(l.getPath(), l.getOffset(), Objects.requireNonNull(l.getLength())));
+            } else if (location instanceof InternalFileLocation) {
+                InternalFileLocation l = (InternalFileLocation) location;
+                result.add(new DefaultFileLocation(l.getPath()));
             } else if (location instanceof InternalPluginIdLocation) {
                 InternalPluginIdLocation pluginLocation = (InternalPluginIdLocation) location;
                 result.add(new DefaultPluginIdLocation(pluginLocation.getPluginId()));

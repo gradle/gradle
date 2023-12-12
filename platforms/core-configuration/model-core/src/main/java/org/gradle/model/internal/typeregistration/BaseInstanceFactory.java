@@ -18,8 +18,6 @@ package org.gradle.model.internal.typeregistration;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.internal.Cast;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.reflect.Types.TypeVisitResult;
@@ -32,6 +30,8 @@ import org.gradle.model.internal.type.ModelTypes;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,8 +40,8 @@ import static org.gradle.internal.reflect.Types.walkTypeHierarchy;
 
 public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
     private final ModelType<PUBLIC> baseInterface;
-    private final Map<ModelType<? extends PUBLIC>, TypeRegistration<? extends PUBLIC>> registrations = Maps.newLinkedHashMap();
-    private final Map<Class<?>, ImplementationFactory<? extends PUBLIC, ?>> factories = Maps.newLinkedHashMap();
+    private final Map<ModelType<? extends PUBLIC>, TypeRegistration<? extends PUBLIC>> registrations = new LinkedHashMap<>();
+    private final Map<Class<?>, ImplementationFactory<? extends PUBLIC, ?>> factories = new LinkedHashMap<>();
 
     public BaseInstanceFactory(Class<PUBLIC> baseInterface) {
         this.baseInterface = ModelType.of(baseInterface);
@@ -198,7 +198,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
         private final ModelType<S> publicType;
         private final boolean managedPublicType;
         private ImplementationRegistration<S> implementationRegistration;
-        private final List<InternalViewRegistration<?>> internalViewRegistrations = Lists.newArrayList();
+        private final List<InternalViewRegistration<?>> internalViewRegistrations = new ArrayList<>();
 
         public TypeRegistration(ModelType<S> publicType) {
             this.publicType = publicType;

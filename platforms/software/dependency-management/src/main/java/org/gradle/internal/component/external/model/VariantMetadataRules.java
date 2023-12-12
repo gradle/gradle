@@ -16,7 +16,6 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyConstraintMetadata;
 import org.gradle.api.artifacts.DependencyConstraintsMetadata;
@@ -47,7 +46,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class VariantMetadataRules {
     private final ImmutableAttributesFactory attributesFactory;
     private final ModuleVersionIdentifier moduleVersionId;
-    private final List<AdditionalVariant> additionalVariants = Lists.newArrayList();
+    private final List<AdditionalVariant> additionalVariants = new ArrayList<>();
 
     private DependencyMetadataRules dependencyMetadataRules;
     private VariantAttributesRules variantAttributesRules;

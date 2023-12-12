@@ -16,11 +16,9 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemCategory;
-import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
+import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -100,8 +98,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder label(String label, Object... args) {
-        this.label = String.format(label, args);
+    public InternalProblemBuilder label(String label) {
+        this.label = label;
         return this;
     }
 
@@ -116,19 +114,33 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         return this;
     }
 
-    public InternalProblemBuilder location(String path, @javax.annotation.Nullable Integer line) {
-        location(path, line, null);
-        return this;
-    }
-
-    public InternalProblemBuilder location(String path, @javax.annotation.Nullable Integer line, @javax.annotation.Nullable Integer column) {
-        this.addLocation(new DefaultFileLocation(path, line, column, 0));
+    @Override
+    public InternalProblemBuilder fileLocation(String path) {
+        this.addLocation(DefaultFileLocation.from(path));
         return this;
     }
 
     @Override
-    public InternalProblemBuilder fileLocation(String path, @javax.annotation.Nullable Integer line, @javax.annotation.Nullable Integer column, @javax.annotation.Nullable Integer length) {
-        this.addLocation(new DefaultFileLocation(path, line, column, length));
+    public InternalProblemBuilder lineInFileLocation(String path, int line) {
+        this.addLocation(DefaultLineInFileLocation.from(path, line));
+        return this;
+    }
+
+    @Override
+    public InternalProblemBuilder lineInFileLocation(String path, int line, int column) {
+        this.addLocation(DefaultLineInFileLocation.from(path, line, column));
+        return this;
+    }
+
+    @Override
+    public InternalProblemBuilder offsetInFileLocation(String path, int offset, int length) {
+        this.addLocation(DefaultOffsetInFileLocation.from(path, offset, length));
+        return this;
+    }
+
+    @Override
+    public InternalProblemBuilder lineInFileLocation(String path, int line, int column, int length) {
+        this.addLocation(DefaultLineInFileLocation.from(path, line, column, length));
         return this;
     }
 

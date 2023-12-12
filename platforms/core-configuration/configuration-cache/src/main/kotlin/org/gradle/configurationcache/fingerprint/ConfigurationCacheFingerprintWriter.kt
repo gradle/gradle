@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache.fingerprint
 
-import com.google.common.collect.Maps.newConcurrentMap
 import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.Describable
 import org.gradle.api.artifacts.ModuleVersionIdentifier
@@ -82,6 +81,7 @@ import org.gradle.util.Path
 import java.io.File
 import java.net.URI
 import java.util.EnumSet
+import java.util.concurrent.ConcurrentHashMap
 
 
 internal
@@ -139,7 +139,7 @@ class ConfigurationCacheFingerprintWriter(
     val projectScopedWriter = ScopedFingerprintWriter<ProjectSpecificFingerprint>(projectScopedContext)
 
     private
-    val sinksForProject = newConcurrentMap<Path, ProjectScopedSink>()
+    val sinksForProject = ConcurrentHashMap<Path, ProjectScopedSink>()
 
     private
     val projectForThread = ThreadLocal<ProjectScopedSink>()

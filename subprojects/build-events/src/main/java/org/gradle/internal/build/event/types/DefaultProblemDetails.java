@@ -64,10 +64,12 @@ public class DefaultProblemDetails implements InternalBasicProblemDetails, Seria
         this.additionalData = additionalData;
         this.exception = exception;
     }
+
     @Override
     public String getJson() {
         return "{}";
     }
+
     @Override
     public InternalProblemCategory getCategory() {
         return category;

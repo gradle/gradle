@@ -26,7 +26,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.internal.reflect.PropertyAccessorType;
@@ -40,6 +39,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public abstract class StructSchemaExtractionStrategySupport implements ModelSchemaExtractionStrategy {
 
@@ -101,7 +101,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
     protected abstract boolean isTarget(ModelType<?> type);
 
     private Iterable<ModelPropertyExtractionContext> selectProperties(final ModelSchemaExtractionContext<?> context, CandidateMethods candidateMethods) {
-        Map<String, ModelPropertyExtractionContext> propertiesMap = Maps.newTreeMap();
+        Map<String, ModelPropertyExtractionContext> propertiesMap = new TreeMap<>();
         for (Map.Entry<Wrapper<Method>, Collection<Method>> entry : candidateMethods.allMethods().entrySet()) {
             Method method = entry.getKey().get();
             PropertyAccessorType propertyAccessorType = PropertyAccessorType.of(method);

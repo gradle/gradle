@@ -14,38 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems;
-
-
-import org.gradle.api.Incubating;
-
-import javax.annotation.Nullable;
-import java.io.Serializable;
+package org.gradle.api.problems.internal;
 
 /**
- * A link to a documentation page.
+ * A basic location pointing to a specific part of a file using a global offset and length for coordinates.
  * <p>
- * Subtypes can represent different parts of the gradle documentation, e.g. the DSL reference, the user guide, etc.
- *
- * @since 8.6
+ * The coordinates are expected to be zero indexed.
  */
-@Incubating
-public interface DocLink extends Serializable {
+public interface OffsetInFileLocation extends FileLocation {
 
     /**
-     * The URL to the documentation page.
+     * The global offset from the beginning of the file.
      *
-     * @since 8.6
+     * @return the zero-indexed the offset
      */
-    @Nullable
-    String getUrl();
+    int getOffset();
 
     /**
-     * A message that tells the user to consult the documentation.
-     * There are currently 2 different messages used for this, hence this method.
+     * The content of the content starting from {@link #getOffset()}.
      *
-     * @since 8.6
+     * @return the length
      */
-    @Nullable
-    String getConsultDocumentationMessage();
+    int getLength();
 }

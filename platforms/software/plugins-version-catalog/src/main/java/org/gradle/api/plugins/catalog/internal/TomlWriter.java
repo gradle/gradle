@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.catalog.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.catalog.DefaultVersionCatalog;
 import org.gradle.api.internal.catalog.DependencyModel;
@@ -24,6 +23,7 @@ import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -165,7 +165,7 @@ class TomlWriter {
             return sb.toString();
         }
         sb.append("{ ");
-        List<String> parts = Lists.newArrayList();
+        List<String> parts = new ArrayList<>();
         if (!strictVersion.isEmpty()) {
             parts.add(keyValuePair("strictly", strictVersion));
         }

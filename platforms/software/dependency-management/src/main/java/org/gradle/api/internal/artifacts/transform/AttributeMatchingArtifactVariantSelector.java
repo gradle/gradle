@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -37,6 +36,7 @@ import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 import org.gradle.internal.component.model.DescriberSelector;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -177,7 +177,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
 
     private static class TraceDiscardedVariants implements AttributeMatchingExplanationBuilder {
 
-        private final Set<HasAttributes> discarded = Sets.newHashSet();
+        private final Set<HasAttributes> discarded = new HashSet<>();
 
         @Override
         public boolean canSkipExplanation() {

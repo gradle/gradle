@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
@@ -57,6 +56,7 @@ import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +88,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     private final VersionParser versionParser;
     private final SelectorStateResolver<ComponentState> selectorStateResolver;
     private final ResolveOptimizations resolveOptimizations;
-    private final Map<VersionConstraint, ResolvedVersionConstraint> resolvedVersionConstraints = Maps.newHashMap();
+    private final Map<VersionConstraint, ResolvedVersionConstraint> resolvedVersionConstraints = new HashMap<>();
     private final AttributeDesugaring attributeDesugaring;
     private final ResolutionConflictTracker conflictTracker;
     private final GraphVariantSelector variantSelector;

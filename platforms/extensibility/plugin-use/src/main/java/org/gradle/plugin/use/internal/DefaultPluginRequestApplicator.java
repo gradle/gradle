@@ -50,14 +50,13 @@ import org.gradle.util.internal.TextUtil;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Formatter;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static com.google.common.collect.Lists.newLinkedList;
-import static com.google.common.collect.Maps.newLinkedHashMap;
 import static org.gradle.util.internal.CollectionUtils.collect;
 
 public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
@@ -98,7 +97,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         addPluginArtifactRepositories(resolveContext, scriptHandler.getRepositories());
 
         final PluginResolver effectivePluginResolver = wrapInAlreadyInClasspathResolver(classLoaderScope, resolveContext);
-        final List<Consumer<PluginManagerInternal>> pluginApplyActions = newLinkedList();
+        final List<Consumer<PluginManagerInternal>> pluginApplyActions = new LinkedList<>();
 
         resolvePluginRequests(requests, scriptHandler, classLoaderScope, effectivePluginResolver, pluginApplyActions);
         if (!autoAppliedPlugins.isEmpty()) {
@@ -109,7 +108,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     }
 
     private void resolvePluginRequests(PluginRequests requests, ScriptHandlerInternal scriptHandler, ClassLoaderScope classLoaderScope, PluginResolver effectivePluginResolver, List<Consumer<PluginManagerInternal>> pluginApplyActions) {
-        final Map<Result, PluginImplementation<?>> pluginImplsFromOtherLoaders = newLinkedHashMap();
+        final Map<Result, PluginImplementation<?>> pluginImplsFromOtherLoaders = new LinkedHashMap<>();
 
         List<Result> results = resolvePluginRequests(requests, effectivePluginResolver);
         if (!results.isEmpty()) {
@@ -128,7 +127,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             MutableClassLoaderScope mutableClassLoaderScope = classLoaderScope.asMutable("-plugins");
             scriptHandler.dropResolvedClassPath();
 
-            final Map<Result, PluginImplementation<?>> pluginImplementations = newLinkedHashMap();
+            final Map<Result, PluginImplementation<?>> pluginImplementations = new LinkedHashMap<>();
             applyPlugins(scriptHandler, mutableClassLoaderScope, pluginApplyActions, pluginImplementations, autoAppliedPluginRequests);
             defineScriptHandlerClassScope(scriptHandler, mutableClassLoaderScope, pluginImplementations.values());
         }

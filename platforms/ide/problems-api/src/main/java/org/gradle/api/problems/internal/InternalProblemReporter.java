@@ -17,7 +17,6 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -31,7 +30,7 @@ public interface InternalProblemReporter extends ProblemReporter {
      * @param action The problem configuration.
      * @return The new problem.
      */
-    Problem create(Action<ProblemSpec> action);
+    Problem create(Action<InternalProblemSpec> action);
 
     /**
      * Reports the target problem.

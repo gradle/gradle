@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
@@ -43,6 +42,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
@@ -54,7 +54,7 @@ class TestExecutionResultEvaluator implements BuildOperationListener {
     private final TestExecutionRequestAction internalTestExecutionRequest;
 
     private final AtomicLong resultCount = new AtomicLong();
-    private final Map<Object, String> runningTasks = Maps.newConcurrentMap();
+    private final Map<Object, String> runningTasks = new ConcurrentHashMap<>();
     private final Queue<FailedTest> failedTests = new ConcurrentLinkedQueue<FailedTest>();
 
     public TestExecutionResultEvaluator(

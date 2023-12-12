@@ -32,7 +32,7 @@ class InjectedProblemsTransformerIntegrationTest extends AbstractIntegrationSpec
     def "task is going to be implicitly added to the problem"() {
         given:
         buildFile """
-            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.internal.Problem
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
@@ -58,14 +58,8 @@ class InjectedProblemsTransformerIntegrationTest extends AbstractIntegrationSpec
         then:
         collectedProblems.size() == 1
         def problem = collectedProblems[0]
-
-        def taskPathLocations = problem["locations"].findAll {
-            it["type"] == "task"
-        }
-        taskPathLocations.size() == 1
-
-        def taskPathLocation = taskPathLocations[0]
-        taskPathLocation["buildTreePath"] == ":reportProblem"
+        def locations = (problem["locations"] as Collection)
+        locations[0]["buildTreePath"] == ":reportProblem"
     }
 
     def "plugin id is going to be implicitly added to the problem"() {
@@ -124,13 +118,7 @@ class InjectedProblemsTransformerIntegrationTest extends AbstractIntegrationSpec
         then:
         collectedProblems.size() == 1
         def problem = collectedProblems[0]
-
-        def pluginIdLocations = problem["locations"].findAll {
-            it["type"] == "pluginId"
-        }
-        pluginIdLocations.size() == 1
-
-        def pluginIdLocation = pluginIdLocations[0]
-        pluginIdLocation["pluginId"] == "test.plugin"
+        def locations = (problem["locations"] as Collection)
+        locations[0]["pluginId"] == "test.plugin"
     }
 }

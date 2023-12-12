@@ -18,20 +18,11 @@ package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 
-import javax.annotation.Nullable;
-
 /**
- * {@link Problem} instance builder that is not capable of creating a new instances.
+ * Provides options to configure problems.
+ * <p>
  *
- * An example of how to use the builder:
- * <pre>{@code
- *  <problemReporter>.report(configurator -> configurator
- *          .label("test problem")
- *          .category("category", "subcategory")
- *          .severity(Severity.ERROR)
- *          .details("this is a test")
- *  }</pre>
- *
+ * @see ProblemReporter
  * @since 8.6
  */
 @Incubating
@@ -39,58 +30,117 @@ public interface ProblemSpec {
 
     /**
      * Declares a short message for this problem.
-     * @param label the short message
-     * @param args the arguments for formatting the label with {@link String#format(String, Object...)}
+     * <p>
+     * The label is the main, human-readable representation of the problem.
+     * It is a mandatory property to configure when emitting a problem with {@link ProblemReporter}.
      *
-     * @return the builder for the next required property
+     * @param label the short message
+     * @return this
      * @since 8.6
      */
-    ProblemSpec label(String label, Object... args);
+    ProblemSpec label(String label);
 
     /**
-     * Declares the problem category.
+     * A category groups related problems together.
+     * <p>
+     * Category is a mandatory property to configure when emitting a problem with {@link ProblemReporter}.
+     * <p>
+     * A category defines the following hierarchical elements to distinguish instances:
+     * <ul>
+     *     <li>namespace</li>
+     *     <li>category</li>
+     *     <li>subcategories</li>
+     * </ul>
+     * <p>
+     * The namespace provides separation for identical problems emitted from different components.
+     * Problems emitted from Gradle core will use the {@code org.gradle} namespace.
+     * Third party plugins are expected to use their plugin id for namespace.
+     * Problems emitted from build scripts should use the {@code buildscript} namespace.
+     * The namespace is bound to {@link ProblemReporter}, hence it is absent from the argument list.
+     * <p>
+     * A category should contain the most broad term describing the problem.
+     * A few examples are: {@code compilation}, {@code deprecation}, {@code task-validation}.
+     * <p>
+     * The problem category can be refined with an optional hierarchy of subcategories.
+     * For example, a problem covering a java compilation warning can be denoted with the following subcategories: {@code [java, unused-variable]}.
+     * <p>
+     * The categorization depends on the domain and don't have any constraints. Clients (i.e. IDEs) receiving problems should use the category information for
+     * properly group and sort the received instances.
      *
      * @param category the type name
      * @param details the type details
-     * @return the builder for the next required property
+     * @return this
      * @since 8.6
-     * @see ProblemCategory
      */
     ProblemSpec category(String category, String... details);
 
     /**
-     * Declares the documentation for this problem.
+     * Declares where this problem is documented.
      *
-     * @return the builder for the next required property
-     * @since 8.6
-     */
-    ProblemSpec documentedAt(DocLink doc);
-
-    /**
-     * Declares the documentation for this problem.
-     *
-     * @return the builder for the next required property
+     * @return this
      * @since 8.6
      */
     ProblemSpec documentedAt(String url);
 
     /**
-     * Declares that this problem is in a file with optional position and length.
+     * Declares that this problem is in a file.
      *
      * @param path the file location
-     * @param line the line number
-     * @param column the column number
-     * @param length the length of the text
-     * @return the builder for the next required property
+     * @return this
      * @since 8.6
      */
-    ProblemSpec fileLocation(String path, @Nullable Integer line, @Nullable Integer column, @Nullable Integer length);
+    ProblemSpec fileLocation(String path);
+
+    /**
+     * Declares that this problem is in a file on a line.
+     *
+     * @param path the file location
+     * @param line the one-indexed line number
+     * @return this
+     * @since 8.6
+     */
+    ProblemSpec lineInFileLocation(String path, int line);
+
+    /**
+     * Declares that this problem is in a file with on a line at a certain position.
+     * <p>
+     *
+     * @param path the file location
+     * @param line the one-indexed line number
+     * @param column the one-indexed column
+     * @return this
+     * @since 8.6
+     */
+    ProblemSpec lineInFileLocation(String path, int line, int column);
+
+    /**
+     * Declares that this problem is in a file with on a line at a certain position.
+     *
+     * @param path the file location
+     * @param line the one-indexed line number
+     * @param column the one-indexed column
+     * @param length the length of the text
+     * @return this
+     * @since 8.6
+     */
+    ProblemSpec lineInFileLocation(String path, int line, int column, int length);
+
+    /**
+     * Declares that this problem is in a file at a certain global position with a given length.
+     *
+     * @param path the file location
+     * @param offset the zero-indexed global offset from the beginning of the file
+     * @param length the length of the text
+     * @return this
+     * @since 8.6
+     */
+    ProblemSpec offsetInFileLocation(String path, int offset, int length);
 
     /**
      * Declares that this problem is emitted while applying a plugin.
      *
      * @param pluginId the ID of the applied plugin
-     * @return the builder for the next required property
+     * @return this
      * @since 8.6
      */
     ProblemSpec pluginLocation(String pluginId);
@@ -98,7 +148,7 @@ public interface ProblemSpec {
     /**
      * Declares that this problem should automatically collect the location information based on the current stack trace.
      *
-     * @return the builder for the next required property
+     * @return this
      * @since 8.6
      */
     ProblemSpec stackLocation();
@@ -120,17 +170,6 @@ public interface ProblemSpec {
      * @since 8.6
      */
     ProblemSpec solution(String solution);
-
-    /**
-     * Specifies arbitrary data associated with this problem.
-     * <p>
-     * The only supported value type is {@link String}. Future Gradle versions may support additional types.
-     *
-     * @return this
-     * @throws RuntimeException for null values and for values with unsupported type.
-     * @since 8.6
-     */
-    ProblemSpec additionalData(String key, Object value);
 
     /**
      * The exception causing this problem.

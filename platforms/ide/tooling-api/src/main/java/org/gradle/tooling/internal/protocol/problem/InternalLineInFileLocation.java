@@ -14,23 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems;
+package org.gradle.tooling.internal.protocol.problem;
 
-import org.gradle.api.Incubating;
+public interface InternalLineInFileLocation extends InternalFileLocation {
 
-/**
- * Task path location.
- *
- * @since 8.6
- */
-@Incubating
-public interface TaskPathLocation extends ProblemLocation {
+    int getLine();
 
-    /**
-     * Returns the absolute build tree path of the task reporting the problem.
-     *
-     * @return the build tree path
-     * @since 8.6
-     */
-    String getBuildTreePath();
+    int getColumn();
+
+    int getLength();
 }
