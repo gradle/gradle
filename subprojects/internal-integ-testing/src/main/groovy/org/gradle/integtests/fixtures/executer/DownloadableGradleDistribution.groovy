@@ -40,10 +40,10 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
     }
 
     private downloadIfNecessary() {
-        download(super.getBinDistribution(), super.getGradleHomeDir())
+        download(super.getBinDistribution(), super.getGradleHomeDir(), versionDir)
     }
 
-    private void download(TestFile distributionZip, TestFile gradleHomeDir) {
+    private void download(TestFile distributionZip, TestFile gradleHomeDir, TestFile versionDir) {
         fileAccessManager.access(distributionZip) {
             if (!distributionZip.exists()) {
                 URL url = getDownloadURL();
