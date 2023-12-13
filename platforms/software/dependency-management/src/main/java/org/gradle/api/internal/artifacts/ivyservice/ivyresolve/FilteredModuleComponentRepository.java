@@ -20,14 +20,10 @@ import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.ArtifactResolutionDetails;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
@@ -48,29 +44,14 @@ import java.util.Map;
 public class FilteredModuleComponentRepository implements ModuleComponentRepository<ModuleComponentGraphResolveState> {
     private final ModuleComponentRepository<ModuleComponentGraphResolveState> delegate;
     private final Action<? super ArtifactResolutionDetails> filterAction;
-    private final String consumerName;
-    private final ImmutableAttributes consumerAttributes;
 
-    public static ModuleComponentRepository<ModuleComponentGraphResolveState> of(ModuleComponentRepository<ModuleComponentGraphResolveState> delegate, Action<? super ArtifactResolutionDetails> action, String consumerName, AttributeContainer attributes) {
-        if (action == Actions.doNothing()) {
-            return delegate;
-        }
-        return new FilteredModuleComponentRepository(delegate, action, consumerName, attributes);
-    }
-
-    private FilteredModuleComponentRepository(ModuleComponentRepository<ModuleComponentGraphResolveState> delegate, Action<? super ArtifactResolutionDetails> filterAction, String consumerName, AttributeContainer attributes) {
+    public FilteredModuleComponentRepository(ModuleComponentRepository<ModuleComponentGraphResolveState> delegate, Action<? super ArtifactResolutionDetails> filterAction) {
         this.delegate = delegate;
         this.filterAction = filterAction;
-        this.consumerName = consumerName;
-        this.consumerAttributes = ((AttributeContainerInternal)attributes).asImmutable();
     }
 
     public Action<? super ArtifactResolutionDetails> getFilterAction() {
         return filterAction;
-    }
-
-    public String getConsumerName() {
-        return consumerName;
     }
 
     @Override
@@ -144,7 +125,7 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         }
 
         private void whenModulePresent(ModuleIdentifier id, @Nullable ModuleComponentIdentifier moduleComponentIdentifier, Runnable present, Runnable absent) {
-            DefaultArtifactResolutionDetails details = new DefaultArtifactResolutionDetails(id, moduleComponentIdentifier, consumerName, consumerAttributes);
+            DefaultArtifactResolutionDetails details = new DefaultArtifactResolutionDetails(id, moduleComponentIdentifier);
             filterAction.execute(details);
             if (details.notFound) {
                 absent.run();
@@ -154,7 +135,7 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         }
 
         private <T> T whenModulePresent(ModuleIdentifier id, ModuleComponentIdentifier moduleComponentIdentifier, Factory<T> present, Factory<T> absent) {
-            DefaultArtifactResolutionDetails details = new DefaultArtifactResolutionDetails(id, moduleComponentIdentifier, consumerName, consumerAttributes);
+            DefaultArtifactResolutionDetails details = new DefaultArtifactResolutionDetails(id, moduleComponentIdentifier);
             filterAction.execute(details);
             if (details.notFound) {
                 return absent.create();
@@ -166,15 +147,11 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
     private static class DefaultArtifactResolutionDetails implements ArtifactResolutionDetails {
         private final ModuleIdentifier moduleIdentifier;
         private final ModuleComponentIdentifier moduleComponentIdentifier;
-        private final String consumerName;
-        private final ImmutableAttributes consumerAttributes;
         private boolean notFound;
 
-        private DefaultArtifactResolutionDetails(ModuleIdentifier moduleIdentifier, @Nullable ModuleComponentIdentifier componentId, String consumerName, ImmutableAttributes consumerAttributes) {
-            this.consumerName = consumerName;
+        private DefaultArtifactResolutionDetails(ModuleIdentifier moduleIdentifier, @Nullable ModuleComponentIdentifier componentId) {
             this.moduleIdentifier = moduleIdentifier;
             this.moduleComponentIdentifier = componentId;
-            this.consumerAttributes = consumerAttributes;
         }
 
         @Override
@@ -186,16 +163,6 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         @Nullable
         public ModuleComponentIdentifier getComponentId() {
             return moduleComponentIdentifier;
-        }
-
-        @Override
-        public AttributeContainer getConsumerAttributes() {
-            return consumerAttributes;
-        }
-
-        @Override
-        public String getConsumerName() {
-            return consumerName;
         }
 
         @Override

@@ -24,7 +24,6 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -88,11 +87,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
             return cachedAction;
         }
         locked = true;
-        if (includedConfigurations == null &&
-                excludedConfigurations == null &&
-                includeSpecs == null &&
-                excludeSpecs == null &&
-                requiredAttributes == null) {
+        if (includeSpecs == null && excludeSpecs == null) {
             // no filtering in place
             return Actions.doNothing();
         }
@@ -282,7 +277,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     }
 
     @Nullable
-    Set<String> getIncludedConfigurations() {
+    public Set<String> getIncludedConfigurations() {
         return includedConfigurations;
     }
 
@@ -291,7 +286,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     }
 
     @Nullable
-    Set<String> getExcludedConfigurations() {
+    public Set<String> getExcludedConfigurations() {
         return excludedConfigurations;
     }
 
@@ -318,7 +313,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     }
 
     @Nullable
-    Map<Attribute<Object>, Set<Object>> getRequiredAttributes() {
+    public Map<Attribute<Object>, Set<Object>> getRequiredAttributes() {
         return requiredAttributes;
     }
 
@@ -470,7 +465,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         }
     }
 
-    private class RepositoryFilterAction implements Action<ArtifactResolutionDetails> {
+    private static class RepositoryFilterAction implements Action<ArtifactResolutionDetails> {
         private final ImmutableList<SpecMatcher> includeMatchers;
         private final ImmutableList<SpecMatcher> excludeMatchers;
 
@@ -481,14 +476,6 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
 
         @Override
         public void execute(ArtifactResolutionDetails details) {
-            if (includedConfigurations != null && !includedConfigurations.contains(details.getConsumerName())) {
-                details.notFound();
-                return;
-            }
-            if (excludedConfigurations != null && excludedConfigurations.contains(details.getConsumerName())) {
-                details.notFound();
-                return;
-            }
             if (includeMatchers != null && !anyMatch(includeMatchers, details)) {
                 details.notFound();
                 return;
@@ -497,24 +484,6 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
                 details.notFound();
                 return;
             }
-            if (anyAttributesExcludes(details)) {
-                details.notFound();
-            }
-        }
-
-        private boolean anyAttributesExcludes(ArtifactResolutionDetails details) {
-            if (requiredAttributes != null) {
-                AttributeContainer consumerAttributes = details.getConsumerAttributes();
-                for (Map.Entry<Attribute<Object>, Set<Object>> entry : requiredAttributes.entrySet()) {
-                    Attribute<Object> key = entry.getKey();
-                    Set<Object> allowedValues = entry.getValue();
-                    Object value = consumerAttributes.getAttribute(key);
-                    if (!allowedValues.contains(value)) {
-                        return true;
-                    }
-                }
-            }
-            return false;
         }
 
         private boolean anyMatch(ImmutableList<SpecMatcher> matchers, ArtifactResolutionDetails details) {

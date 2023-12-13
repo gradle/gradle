@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.api.internal.artifacts.repositories.ArtifactResolutionDetails;
@@ -27,6 +28,10 @@ import org.gradle.api.internal.artifacts.repositories.ContentFilteringRepository
 import org.gradle.api.internal.artifacts.repositories.RepositoryContentDescriptorInternal;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
+
+import javax.annotation.Nullable;
+import java.util.Map;
+import java.util.Set;
 
 class PluginArtifactRepository implements ArtifactRepositoryInternal, ContentFilteringRepository, ResolutionAwareRepository {
     private static final String REPOSITORY_NAME_PREFIX = "__plugin_repository__";
@@ -59,6 +64,24 @@ class PluginArtifactRepository implements ArtifactRepositoryInternal, ContentFil
     @Override
     public Action<? super ArtifactResolutionDetails> getContentFilter() {
         return repositoryContentDescriptor.toContentFilter();
+    }
+
+    @Nullable
+    @Override
+    public Set<String> getIncludedConfigurations() {
+        return repositoryContentDescriptor.getIncludedConfigurations();
+    }
+
+    @Nullable
+    @Override
+    public Set<String> getExcludedConfigurations() {
+        return repositoryContentDescriptor.getExcludedConfigurations();
+    }
+
+    @Nullable
+    @Override
+    public Map<Attribute<Object>, Set<Object>> getRequiredAttributes() {
+        return repositoryContentDescriptor.getRequiredAttributes();
     }
 
     @Override
