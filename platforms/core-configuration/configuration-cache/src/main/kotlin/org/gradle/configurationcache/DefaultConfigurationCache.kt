@@ -44,6 +44,7 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.configuration.inputs.InstrumentedInputs
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
@@ -72,7 +73,8 @@ class DefaultConfigurationCache internal constructor(
      * Force the [FileSystemAccess] service to be initialized as it initializes important static state.
      */
     @Suppress("unused")
-    private val fileSystemAccess: FileSystemAccess
+    private val fileSystemAccess: FileSystemAccess,
+    private val calculatedValueContainerFactory: CalculatedValueContainerFactory
 ) : BuildTreeConfigurationCache, Stoppable {
 
     interface Host {
@@ -102,10 +104,10 @@ class DefaultConfigurationCache internal constructor(
     val store by lazy { cacheRepository.forKey(cacheKey.string) }
 
     private
-    val intermediateModels = lazy { IntermediateModelController(host, cacheIO, store, cacheFingerprintController) }
+    val intermediateModels = lazy { IntermediateModelController(host, cacheIO, store, calculatedValueContainerFactory, cacheFingerprintController) }
 
     private
-    val projectMetadata = lazy { ProjectMetadataController(host, cacheIO, resolveStateFactory, store) }
+    val projectMetadata = lazy { ProjectMetadataController(host, cacheIO, resolveStateFactory, store, calculatedValueContainerFactory) }
 
     private
     val cacheIO by lazy { host.service<ConfigurationCacheIO>() }
@@ -179,8 +181,13 @@ class DefaultConfigurationCache internal constructor(
         return intermediateModels.value.loadOrCreateIntermediateModel(identityPath, modelName, parameter, creator)
     }
 
+    // TODO:configuration - split the component state, such that information for dependency resolution does not have to go through the store
     override fun loadOrCreateProjectMetadata(identityPath: Path, creator: () -> LocalComponentGraphResolveState): LocalComponentGraphResolveState {
-        return projectMetadata.value.loadOrCreateValue(identityPath, creator)
+        // We are preserving the original value if it had to be created,
+        // because it carries information required by dependency resolution
+        // to ensure project artifacts are actually created the first time around.
+        // When the value is loaded from the store, the dependency information is lost.
+        return projectMetadata.value.loadOrCreateOriginalValue(identityPath, creator)
     }
 
     override fun finalizeCacheEntry() {

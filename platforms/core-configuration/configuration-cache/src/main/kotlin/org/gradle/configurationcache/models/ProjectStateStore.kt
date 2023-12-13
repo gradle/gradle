@@ -21,13 +21,17 @@ import org.gradle.cache.internal.streams.ValueStore
 import org.gradle.configurationcache.CheckedFingerprint
 import org.gradle.configurationcache.ConfigurationCacheStateStore
 import org.gradle.configurationcache.StateType
+import org.gradle.internal.Describables
+import org.gradle.internal.DisplayName
 import org.gradle.internal.concurrent.CompositeStoppable
+import org.gradle.internal.model.CalculatedValueContainer
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.util.Path
 import java.io.Closeable
-import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 
 
@@ -37,7 +41,9 @@ import java.util.function.Consumer
 internal
 abstract class ProjectStateStore<K, V>(
     private val store: ConfigurationCacheStateStore,
-    private val stateType: StateType
+    private val stateType: StateType,
+    private val valueDescription: String,
+    private val calculatedValueContainerFactory: CalculatedValueContainerFactory
 ) : Closeable {
 
     private
@@ -55,7 +61,7 @@ abstract class ProjectStateStore<K, V>(
     val previousValues = ConcurrentHashMap<K, BlockAddress>()
 
     private
-    val currentValues = ConcurrentHashMap<K, BlockAddress>()
+    val currentValues = ConcurrentHashMap<K, CalculatedValueContainer<BlockAddress, *>>()
 
     protected
     abstract fun projectPathForKey(key: K): Path?
@@ -69,7 +75,8 @@ abstract class ProjectStateStore<K, V>(
     /**
      * Collects all values used during execution
      */
-    fun collectAccessedValues(): Map<K, BlockAddress> = Collections.unmodifiableMap(currentValues)
+    fun collectAccessedValues(): Map<K, BlockAddress> =
+        currentValues.mapValues { it.value.get() }
 
     fun restoreFromCacheEntry(entryDetails: Map<K, BlockAddress>, checkedFingerprint: CheckedFingerprint.ProjectsInvalid) {
         for (entry in entryDetails) {
@@ -93,33 +100,80 @@ abstract class ProjectStateStore<K, V>(
         }
     }
 
+    /**
+     * Create or load value, with load-after-store semantics
+     */
     fun loadOrCreateValue(key: K, creator: () -> V): V {
-        val addressOfCached = locateCachedValue(key)
-        if (addressOfCached != null) {
-            try {
-                return valuesStore.read(addressOfCached)
-            } catch (e: Exception) {
-                throw RuntimeException("Could not load entry for $key", e)
-            }
+        val address = loadOrCreateAddress(key, creator)
+        return readValue(key, address)
+    }
+
+    /**
+     * If value has to be created, the original value is returned without (de)serialization
+     *
+     * This is delicate API, because the original value is returned only for the first call of this function.
+     * As such, the call should probably be guarded with additional synchronization and memoization.
+     *
+     * Prefer [loadOrCreateValue] unless there is a special reason.
+     */
+    fun loadOrCreateOriginalValue(key: K, creator: () -> V): V {
+        val originalValueCapture = AtomicReference<V>()
+        val address = loadOrCreateAddress(key) {
+            val originalValue = creator()
+            originalValueCapture.set(originalValue)
+            originalValue
         }
-        // TODO - should protect from concurrent creation
-        val value = creator()
-        val address = valuesStore.write(value)
-        currentValues[key] = address
-        return value
+
+        // Skip deserialization if the value was just created
+        originalValueCapture.get()?.let {
+            return it
+        }
+
+        return readValue(key, address)
     }
 
     private
-    fun locateCachedValue(key: K): BlockAddress? {
-        val cachedInCurrent = currentValues[key]
-        if (cachedInCurrent != null) {
-            return cachedInCurrent
+    fun loadOrCreateAddress(key: K, creator: () -> V): BlockAddress {
+        val valueContainer = currentValues.computeIfAbsent(key) { k ->
+            createContainer(k, creator)
         }
-        val cachedInPrevious = previousValues[key]
-        if (cachedInPrevious != null) {
-            currentValues[key] = cachedInPrevious
+
+        // Calculate the value after adding the entry to the map, so that the value container can take care of thread synchronization
+        valueContainer.finalizeIfNotAlready()
+        return valueContainer.get()
+    }
+
+    private
+    fun createContainer(k: K, creator: () -> V): CalculatedValueContainer<BlockAddress, *> =
+        calculatedValueContainerFactory.create<BlockAddress>(displayNameFor(k)) {
+            loadPreviousOrCreateValue(k, creator)
         }
-        return cachedInPrevious
+
+    private
+    fun loadPreviousOrCreateValue(key: K, creator: () -> V): BlockAddress {
+        previousValues[key]?.let { previouslyCached ->
+            return previouslyCached
+        }
+
+        val value = creator()
+        val address = valuesStore.write(value)
+        // Only return the address to enforce load-after-store behavior
+        return address
+    }
+
+    private
+    fun displayNameFor(key: K): DisplayName {
+        val unitDescription = projectPathForKey(key)?.let { "for project $it" } ?: "for build"
+        return Describables.of(valueDescription, unitDescription)
+    }
+
+    private
+    fun readValue(key: K, addressOfCached: BlockAddress): V {
+        try {
+            return valuesStore.read(addressOfCached)
+        } catch (e: Exception) {
+            throw RuntimeException("Could not load entry for $key", e)
+        }
     }
 
     override fun close() {
