@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
@@ -38,6 +39,11 @@ public class DefaultDecompressionCache implements DecompressionCache {
                 .withDisplayName(EXPANSION_CACHE_NAME)
                 .withInitialLockMode(FileLockManager.LockMode.OnDemand)
                 .open();
+    }
+
+    @VisibleForTesting
+    public DefaultDecompressionCache(PersistentCache cache) {
+        this.cache = cache;
     }
 
     @Override

@@ -22,7 +22,7 @@ import org.gradle.util.GradleVersion
 
 abstract class DownloadableGradleDistribution extends DefaultGradleDistribution {
     private TestFile versionDir
-    private final ExclusiveFileAccessManager fileAccessManager = new ExclusiveFileAccessManager()
+    private final ExclusiveFileAccessManager fileAccessManager = new ExclusiveFileAccessManager(120000, 200)
 
     DownloadableGradleDistribution(String version, TestFile versionDir) {
         super(GradleVersion.version(version), versionDir.file("gradle-$version"), versionDir.file("gradle-$version-bin.zip"))

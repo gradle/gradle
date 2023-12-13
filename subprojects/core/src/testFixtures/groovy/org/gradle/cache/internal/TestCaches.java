@@ -28,6 +28,6 @@ public abstract class TestCaches {
 
     public static DecompressionCache decompressionCache(File cacheDir) {
         final TestInMemoryCacheFactory cacheFactory = new TestInMemoryCacheFactory();
-        return null; // new DefaultDecompressionCache(cacheFactory.open(cacheDir, "test compression cache"));
+        return new DefaultDecompressionCache(cacheFactory.open(cacheDir, "test compression cache"));
     }
 }
