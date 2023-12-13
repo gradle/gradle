@@ -26,6 +26,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import javax.inject.Inject;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 
 @AnalyzeClasses(packages = "org.gradle")
 public class DependencyInjectionTest {
@@ -51,9 +52,9 @@ public class DependencyInjectionTest {
     };
 
     @ArchTest
-    public static final ArchRule all_injected_classes_should_be_annotated_with_service_scope = classes()
+    public static final ArchRule all_injected_classes_should_be_annotated_with_service_scope = freeze(classes()
         .that(is_injected_by_getter)
         .or(is_injected_by_constructor)
-        .should().beAnnotatedWith(ServiceScope.class);
+        .should().beAnnotatedWith(ServiceScope.class));
 
 }
