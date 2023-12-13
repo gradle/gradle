@@ -24,15 +24,8 @@ import java.io.File
 
 
 internal
-data class DiscoveredScript(
-    val script: File,
-    val sourceSetClassPath: SourceSetClassPath?
-)
-
-
-internal
 data class DiscoveredKotlinScriptsModel(
-    val scripts: List<DiscoveredScript>
+    val scripts: List<File>
 )
 
 
@@ -46,14 +39,13 @@ object DiscoveredKotlinScriptsModelBuilder : ToolingModelBuilder {
         val scripts = buildList {
             // Project Scripts
             if (project.buildFile.isFile && project.buildFile.hasKotlinDslExtension) {
-                add(DiscoveredScript(project.buildFile, NoSourceSet))
+                add(project.buildFile)
             }
 
             // Precompiled Scripts
             if (project.plugins.hasPlugin("org.gradle.kotlin.kotlin-dsl")) {
                 val precompiledScriptFiles = project.precompiledScriptPluginsSupport.collectScriptPluginFilesOf(project)
-                val precompiledScripts = precompiledScriptFiles.map { DiscoveredScript(it, project.findSourceSetClassPath(it)) }
-                addAll(precompiledScripts)
+                addAll(precompiledScriptFiles)
             }
         }.toList() // otherwise the builder-returned type fails to serialize with CC
 

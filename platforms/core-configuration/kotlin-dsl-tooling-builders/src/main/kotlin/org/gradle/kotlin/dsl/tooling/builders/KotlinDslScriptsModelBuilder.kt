@@ -22,8 +22,6 @@ import org.gradle.internal.resources.ProjectLeaseRegistry
 import org.gradle.internal.time.Time
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.builders.internal.DiscoveredKotlinScriptsModel
-import org.gradle.kotlin.dsl.tooling.builders.internal.NoSourceSet
-import org.gradle.kotlin.dsl.tooling.builders.internal.SourceSetClassPath
 import org.gradle.kotlin.dsl.tooling.builders.internal.hasKotlinDslExtension
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.tooling.model.kotlin.dsl.EditorPosition
@@ -147,20 +145,20 @@ class KotlinDslScriptsModelBuilder(private val intermediateToolingModelProvider:
         val targetScripts = parameter.targetScripts
         val scriptModels = buildScriptModels(targetScripts, rootProject, parameter.correlationId)
         val (commonModel, dehydratedScriptModels) = dehydrateScriptModels(scriptModels)
-        val scriptFiles = targetScripts.map { it.script }
+        val scriptFiles = targetScripts.scripts.map { it.script }
         return StandardKotlinDslScriptsModel(scriptFiles, commonModel, dehydratedScriptModels)
     }
 
     private
     fun buildScriptModels(
-        targetScripts: List<TargetScript>,
+        targetScripts: TargetScripts,
         rootProject: Project,
         correlationId: String?
     ): Map<File, KotlinBuildScriptModel> {
 
-        return targetScripts.associateBy(TargetScript::script) { targetScript ->
+        return targetScripts.scripts.associateBy(TargetScript::script) { targetScript ->
             val targetProject = targetScript.ownerProject ?: rootProject
-            val parameter = DefaultKotlinBuildScriptModelParameter(targetScript.script, correlationId, targetScript.sourceSetClassPath)
+            val parameter = DefaultKotlinBuildScriptModelParameter(targetScript.script, correlationId, isolatedProjectModel = targetScripts.resolvedOwners)
             // TODO:isolated make batch request to run in parallel
             intermediateToolingModelProvider.getModels(listOf(targetProject), KotlinBuildScriptModel::class.java, parameter).first()
         }
@@ -210,10 +208,15 @@ fun Project.parameterFromRequest(intermediateToolingModelProvider: IntermediateT
 
 
 private
-fun Project.resolveScriptPathsParameter(intermediateToolingModelProvider: IntermediateToolingModelProvider): List<TargetScript> =
-    resolveExplicitScriptPathsParameter()
-        ?.takeIf { it.isNotEmpty() }
-        ?: collectKotlinDslScripts(intermediateToolingModelProvider)
+fun Project.resolveScriptPathsParameter(intermediateToolingModelProvider: IntermediateToolingModelProvider): TargetScripts {
+    val explicitTargetScripts = resolveExplicitScriptPathsParameter()
+    if (!explicitTargetScripts.isNullOrEmpty()) {
+        return TargetScripts(explicitTargetScripts, resolvedOwners = false)
+    }
+
+    val discoveredScripts = collectKotlinDslScripts(intermediateToolingModelProvider)
+    return TargetScripts(discoveredScripts, resolvedOwners = true)
+}
 
 
 private
@@ -243,12 +246,12 @@ fun Project.collectKotlinDslScripts(intermediateToolingModelProvider: Intermedia
         .allInitScripts
         .filter(File::isFile)
         .filter { it.hasKotlinDslExtension }
-        .forEach { yield(TargetScript(it, sourceSetClassPath = NoSourceSet)) }
+        .forEach { yield(TargetScript(it)) }
 
     // Settings Script
     val settingsScriptFile = File((project as ProjectInternal).gradle.settings.settingsScript.fileName)
     if (settingsScriptFile.isFile && settingsScriptFile.hasKotlinDslExtension) {
-        yield(TargetScript(settingsScriptFile, sourceSetClassPath = NoSourceSet))
+        yield(TargetScript(settingsScriptFile))
     }
 
     val allProjects = allprojects.toList()
@@ -256,8 +259,8 @@ fun Project.collectKotlinDslScripts(intermediateToolingModelProvider: Intermedia
         intermediateToolingModelProvider.getModels(allProjects, DiscoveredKotlinScriptsModel::class.java)
 
     allProjects.zip(scriptsModels).forEach { (ownerProject, scriptsModel) ->
-        scriptsModel.scripts.forEach { discoveredScript ->
-            yield(TargetScript(discoveredScript.script, ownerProject, discoveredScript.sourceSetClassPath))
+        scriptsModel.scripts.forEach {
+            yield(TargetScript(it, ownerProject))
         }
     }
 }.toList()
@@ -266,15 +269,21 @@ fun Project.collectKotlinDslScripts(intermediateToolingModelProvider: Intermedia
 private
 data class TargetScript(
     val script: File,
-    val ownerProject: Project? = null,
-    val sourceSetClassPath: SourceSetClassPath? = null
+    val ownerProject: Project? = null
 )
 
 
 private
 data class KotlinDslScriptsParameter(
     val correlationId: String?,
-    val targetScripts: List<TargetScript>
+    val targetScripts: TargetScripts
+)
+
+
+private
+data class TargetScripts(
+    val scripts: List<TargetScript>,
+    val resolvedOwners: Boolean
 )
 
 
