@@ -24,7 +24,7 @@ import spock.lang.Specification
 
 import static org.gradle.cache.FileLockManager.LockMode.OnDemand
 import static org.gradle.cache.FileLockManager.LockMode.Shared
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
+import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode
 
 class DefaultUnscopedCacheBuilderFactoryTest extends Specification {
     @Rule

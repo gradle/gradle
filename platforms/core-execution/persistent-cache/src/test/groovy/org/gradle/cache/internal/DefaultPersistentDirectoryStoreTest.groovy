@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit
 
 import static org.gradle.cache.FileLockManager.LockMode.OnDemand
 import static org.gradle.cache.FileLockManager.LockMode.Shared
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
+import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode
 
 class DefaultPersistentDirectoryStoreTest extends Specification {
 

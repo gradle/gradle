@@ -28,7 +28,7 @@ import org.junit.Rule
 import spock.lang.Issue
 
 import static org.gradle.cache.FileLockManager.LockMode.OnDemand
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
+import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode
 
 class DefaultPersistentDirectoryStoreConcurrencyTest extends ConcurrentSpec {
 

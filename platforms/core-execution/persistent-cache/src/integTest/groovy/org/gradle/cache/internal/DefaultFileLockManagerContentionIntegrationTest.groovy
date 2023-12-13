@@ -20,7 +20,7 @@ import org.gradle.api.Action
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.FileLockReleasedSignal
-import org.gradle.cache.internal.filelock.LockOptionsBuilder
+import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
@@ -54,7 +54,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         executer.requireOwnGradleUserHomeDir().withDaemonBaseDir(file("daemonsRequestingLock")).requireDaemon()
         buildFile << """
             import org.gradle.cache.FileLockManager
-            import org.gradle.cache.internal.filelock.LockOptionsBuilder
+            import ${DefaultLockOptions.name}
 
             abstract class FileLocker extends DefaultTask {
                 @Inject
@@ -67,7 +67,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
                 void lockIt() {
                     def lock
                     try {
-                        lock = fileLockManager.lock(projectLayout.projectDirectory.file("locks/testlock").asFile, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), "task file lock")
+                        lock = fileLockManager.lock(projectLayout.projectDirectory.file("locks/testlock").asFile, DefaultLockOptions.mode(FileLockManager.LockMode.Exclusive), "task file lock")
                     } finally {
                         lock?.close()
                     }
@@ -228,7 +228,6 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             import org.gradle.cache.scopes.ScopedCacheBuilderFactory
             import org.gradle.cache.PersistentCache
             import org.gradle.cache.FileLockManager
-            import org.gradle.cache.internal.filelock.LockOptionsBuilder
             import org.gradle.internal.logging.events.OutputEventListener
             import org.gradle.internal.nativeintegration.services.NativeServices
             import ${ServiceRegistry.name}
@@ -360,7 +359,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             String getProcessDisplayName() { return "process" }
         }, receivingFileLockContentionHandler)
         receivingSocket = receivingFileLockContentionHandler.communicator.socket
-        receivingLock = fileLockManager.lock(file("locks/testlock"), LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), "testlock", "test holding lock", whenContended)
+        receivingLock = fileLockManager.lock(file("locks/testlock"), DefaultLockOptions.mode(FileLockManager.LockMode.Exclusive), "testlock", "test holding lock", whenContended)
     }
 
 }

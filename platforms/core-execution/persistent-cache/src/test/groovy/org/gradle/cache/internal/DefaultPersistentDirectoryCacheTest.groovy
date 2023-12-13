@@ -28,7 +28,7 @@ import org.gradle.util.internal.GUtil
 
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.createDefaultFileLockManager
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.unlockUncleanly
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
+import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode
 
 class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
     def metaDataProvider = Stub(ProcessMetaDataProvider) {

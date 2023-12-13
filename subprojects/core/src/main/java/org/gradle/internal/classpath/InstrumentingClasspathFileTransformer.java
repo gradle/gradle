@@ -34,7 +34,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static java.lang.String.format;
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode;
 
 public class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
     private static final int CACHE_FORMAT = 6;

@@ -22,13 +22,13 @@ import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.filelock.LockOptionsBuilder;
+import org.gradle.cache.internal.filelock.DefaultLockOptions;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode;
 
 public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderFactory {
     private final CacheFactory factory;
@@ -73,7 +73,7 @@ public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderF
 
         @Override
         public CacheBuilder withInitialLockMode(FileLockManager.LockMode mode) {
-            this.lockOptions = LockOptionsBuilder.mode(mode);
+            this.lockOptions = DefaultLockOptions.mode(mode);
             return this;
         }
 

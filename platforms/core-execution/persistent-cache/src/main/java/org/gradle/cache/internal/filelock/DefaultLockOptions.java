@@ -18,21 +18,21 @@ package org.gradle.cache.internal.filelock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 
-public class LockOptionsBuilder implements LockOptions {
+public class DefaultLockOptions implements LockOptions {
 
     private FileLockManager.LockMode mode;
     private boolean crossVersion;
 
-    private LockOptionsBuilder(FileLockManager.LockMode mode, boolean crossVersion) {
+    private DefaultLockOptions(FileLockManager.LockMode mode, boolean crossVersion) {
         this.mode = mode;
         this.crossVersion = crossVersion;
     }
 
-    public static LockOptionsBuilder mode(FileLockManager.LockMode lockMode) {
-        return new LockOptionsBuilder(lockMode, false);
+    public static DefaultLockOptions mode(FileLockManager.LockMode lockMode) {
+        return new DefaultLockOptions(lockMode, false);
     }
 
-    public LockOptionsBuilder useCrossVersionImplementation() {
+    public DefaultLockOptions useCrossVersionImplementation() {
         crossVersion = true;
         return this;
     }
@@ -48,13 +48,16 @@ public class LockOptionsBuilder implements LockOptions {
     }
 
     @Override
-    public LockOptions withMode(FileLockManager.LockMode mode) {
-        return new LockOptionsBuilder(mode, crossVersion);
+    public LockOptions copyWithMode(FileLockManager.LockMode mode) {
+        return new DefaultLockOptions(mode, crossVersion);
     }
 
     @Override
     public String toString() {
-        return mode + " (simple=" + crossVersion + ")";
+        return "DefaultLockOptions{" +
+            "mode=" + mode +
+            ", crossVersion=" + crossVersion +
+            '}';
     }
 
     @Override
@@ -62,11 +65,11 @@ public class LockOptionsBuilder implements LockOptions {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof LockOptionsBuilder)) {
+        if (!(o instanceof DefaultLockOptions)) {
             return false;
         }
 
-        LockOptionsBuilder that = (LockOptionsBuilder) o;
+        DefaultLockOptions that = (DefaultLockOptions) o;
 
         if (crossVersion != that.crossVersion) {
             return false;
