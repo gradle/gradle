@@ -107,8 +107,13 @@ class KotlinBuildScriptModelBuilder(
     private val intermediateToolingModelProvider: IntermediateToolingModelProvider
 ) : ParameterizedToolingModelBuilder<KotlinBuildScriptModelParameter> {
 
+    companion object {
+        private
+        val MODEL_NAME = KotlinBuildScriptModel::class.qualifiedName!!
+    }
+
     override fun canBuild(modelName: String): Boolean =
-        modelName == KotlinBuildScriptModel::class.qualifiedName
+        modelName == MODEL_NAME
 
     override fun getParameterType(): Class<KotlinBuildScriptModelParameter> = KotlinBuildScriptModelParameter::class.java
 
