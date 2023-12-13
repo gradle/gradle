@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.archive;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.EmptyFileVisitor;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.test.fixtures.file.TestFile;
@@ -34,7 +35,7 @@ import static org.junit.Assert.fail;
 public class ZipFileTreeTest extends AbstractArchiveFileTreeTest {
     private final TestFile archiveFile = tempDirProvider.getTestDirectory().file("test.zip");
     private final FileOperations fileOperations = TestFiles.fileOperations(tempDirProvider.createDir("tmp"));
-    private final ZipFileTree tree = (ZipFileTree) fileOperations.zipTree(archiveFile);
+    private final FileTree tree = fileOperations.zipTree(archiveFile);
 
     @Override
     protected void archiveFileToRoot(TestFile file) {
@@ -47,13 +48,8 @@ public class ZipFileTreeTest extends AbstractArchiveFileTreeTest {
     }
 
     @Override
-    protected ZipFileTree getTree() {
+    protected FileTree getTree() {
         return tree;
-    }
-
-    @Test
-    public void displayName() {
-        assertThat(tree.getDisplayName(), equalTo("ZIP '" + archiveFile + "'"));
     }
 
     @Test
@@ -62,7 +58,7 @@ public class ZipFileTreeTest extends AbstractArchiveFileTreeTest {
             getTree().visit(new EmptyFileVisitor());
             fail();
         } catch (InvalidUserDataException e) {
-            assertThat(e.getMessage(), equalTo("Cannot expand " + getTree().getDisplayName() + " as it does not exist."));
+            assertThat(e.getMessage(), equalTo("Cannot expand ZIP '" + archiveFile + "' as it does not exist."));
         }
     }
 
@@ -74,20 +70,19 @@ public class ZipFileTreeTest extends AbstractArchiveFileTreeTest {
             getTree().visit(new EmptyFileVisitor());
             fail();
         } catch (InvalidUserDataException e) {
-            assertThat(e.getMessage(), equalTo("Cannot expand " + getTree().getDisplayName() + " as it is not a file."));
+            assertThat(e.getMessage(), equalTo("Cannot expand ZIP '" + archiveFile + "' as it is not a file."));
         }
     }
 
     @Test
     public void wrapsFailureToUnarchiveFile() {
-        tmpDir.write("not a directory");
         getArchiveFile().write("not an archive file");
 
         try {
             getTree().visit(new EmptyFileVisitor());
             fail();
         } catch (GradleException e) {
-            assertThat(e.getMessage(), equalTo("Cannot expand " + getTree().getDisplayName() + "."));
+            assertThat(e.getMessage(), equalTo("Cannot expand ZIP '" + archiveFile + "'."));
         }
     }
 

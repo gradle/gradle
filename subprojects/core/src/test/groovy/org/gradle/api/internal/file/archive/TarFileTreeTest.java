@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.archive;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.EmptyFileVisitor;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.resources.MissingResourceException;
@@ -40,7 +41,7 @@ import static org.junit.Assert.fail;
 public class TarFileTreeTest extends AbstractArchiveFileTreeTest {
     private final TestFile archiveFile = tempDirProvider.getTestDirectory().file("test.tar");
     private final FileOperations fileOperations = TestFiles.fileOperations(tempDirProvider.createDir("tmp"));
-    private final TarFileTree tree = (TarFileTree) fileOperations.tarTree(archiveFile);
+    private final FileTree tree = fileOperations.tarTree(archiveFile);
 
     @Override
     protected void archiveFileToRoot(TestFile file) {
@@ -53,13 +54,8 @@ public class TarFileTreeTest extends AbstractArchiveFileTreeTest {
     }
 
     @Override
-    protected TarFileTree getTree() {
+    protected FileTree getTree() {
         return tree;
-    }
-
-    @Test
-    public void displayName() {
-        assertThat(tree.getDisplayName(), equalTo("TAR '" + archiveFile + "'"));
     }
 
     @Test
@@ -70,7 +66,7 @@ public class TarFileTreeTest extends AbstractArchiveFileTreeTest {
         rootDir.file("subdir2/file2.txt").write("content");
         rootDir.tgzTo(tgz);
 
-        TarFileTree tree = (TarFileTree) fileOperations.tarTree(tgz);
+        FileTree tree = fileOperations.tarTree(tgz);
 
         assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
         assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));
@@ -84,7 +80,7 @@ public class TarFileTreeTest extends AbstractArchiveFileTreeTest {
         rootDir.file("subdir2/file2.txt").write("content");
         rootDir.tbzTo(tbz2);
 
-        TarFileTree tree = (TarFileTree) fileOperations.tarTree(tbz2);
+        FileTree tree = fileOperations.tarTree(tbz2);
 
         assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
         assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));
@@ -96,8 +92,7 @@ public class TarFileTreeTest extends AbstractArchiveFileTreeTest {
             tree.visit(new EmptyFileVisitor());
             fail();
         } catch (InvalidUserDataException e) {
-            assertThat(e.getMessage(), containsString("Cannot expand TAR '" + archiveFile + "'."));
-            assertThat(e.getCause(), instanceOf(MissingResourceException.class));
+            assertThat(e.getMessage(), containsString("Cannot expand TAR '" + archiveFile + "' as it does not exist."));
         }
     }
 
@@ -115,7 +110,6 @@ public class TarFileTreeTest extends AbstractArchiveFileTreeTest {
 
     @Test
     public void wrapsFailureToUnarchiveFile() {
-        tmpDir.write("not a directory");
         archiveFile.write("not a tar file");
 
         try {
