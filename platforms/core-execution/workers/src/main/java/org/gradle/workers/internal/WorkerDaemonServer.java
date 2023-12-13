@@ -36,6 +36,11 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.resources.TextResourceFactory;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
+import org.gradle.cache.internal.DecompressionCache;
+import org.gradle.cache.internal.DefaultDecompressionCache;
+import org.gradle.cache.internal.scopes.DefaultBuildTreeScopedCacheBuilderFactory;
+import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
@@ -91,7 +96,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
     @Override
     public DefaultWorkResult run(TransportableActionExecutionSpec spec) {
         try {
-            try (WorkerProjectServices internalServices = new WorkerProjectServices(spec.getBaseDir(), this.internalServices)) {
+            try (WorkerProjectServices internalServices = new WorkerProjectServices(spec.getBaseDir(), spec.getProjectCacheDir(), this.internalServices)) {
                 RequestHandler<TransportableActionExecutionSpec, DefaultWorkResult> worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure(), internalServices);
                 return worker.run(spec);
             }
@@ -161,8 +166,11 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
     }
 
     static class WorkerProjectServices extends DefaultServiceRegistry {
-        public WorkerProjectServices(File baseDir, ServiceRegistry... parents) {
+        private final File projectCacheDir;
+
+        public WorkerProjectServices(File baseDir, File projectCacheDir, ServiceRegistry... parents) {
             super("worker file services for " + baseDir.getAbsolutePath(), parents);
+            this.projectCacheDir = projectCacheDir;
             addProvider(new WorkerSharedProjectScopeServices(baseDir));
         }
 
@@ -177,6 +185,18 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
                 .withInstantiator(instantiator)
                 .withObjectFactory(objectFactory)
                 .build();
+        }
+
+        /**
+         * This is not correct! These services should be available in the build session scope, not the project scope.
+         * However, workers do not observe the same build lifecycle and do not stop or recreate build session services between builds.
+         * This works around that by recreating the build session scope services for every request.
+         */
+        BuildTreeScopedCacheBuilderFactory createBuildTreeScopedCache(UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+            return new DefaultBuildTreeScopedCacheBuilderFactory(projectCacheDir, unscopedCacheBuilderFactory);
+        }
+        DecompressionCache createDecompressionCacheFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
+            return new DefaultDecompressionCache(cacheBuilderFactory);
         }
 
         protected DefaultResourceHandler.Factory createResourceHandlerFactory() {

@@ -16,12 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.cache.UnscopedCacheBuilderFactory;
-import org.gradle.cache.internal.DecompressionCache;
-import org.gradle.cache.internal.DefaultDecompressionCache;
-import org.gradle.cache.internal.scopes.DefaultBuildTreeScopedCacheBuilderFactory;
-import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
-import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
@@ -39,13 +33,5 @@ public class WorkerSharedBuildSessionScopeServices {
             valueSnapshotterSerializerRegistryList,
             classLoaderHierarchyHasher
         );
-    }
-
-    BuildTreeScopedCacheBuilderFactory createBuildTreeScopedCache(ProjectCacheDir projectCacheDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
-        return new DefaultBuildTreeScopedCacheBuilderFactory(projectCacheDir.getDir(), unscopedCacheBuilderFactory);
-    }
-
-    DecompressionCache createDecompressionCacheFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
-        return new DefaultDecompressionCache(cacheBuilderFactory);
     }
 }

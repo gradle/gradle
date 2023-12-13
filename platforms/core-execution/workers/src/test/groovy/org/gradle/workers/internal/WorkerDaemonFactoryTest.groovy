@@ -32,8 +32,9 @@ class WorkerDaemonFactoryTest extends Specification {
     @Subject factory = new WorkerDaemonFactory(clientsManager, buildOperationExecutor)
 
     def workingDir = new File("some-dir")
+    def projectCacheDir = new File("some-cache-dir")
     def options = Stub(DaemonForkOptions)
-    def requirement = new ForkedWorkerRequirement(workingDir, options)
+    def requirement = new ForkedWorkerRequirement(workingDir, projectCacheDir, options)
     def spec = Stub(IsolatedParametersActionExecutionSpec)
 
     def setup() {

@@ -21,7 +21,6 @@ import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.TestFiles;
-import org.gradle.api.resources.MissingResourceException;
 import org.gradle.test.fixtures.file.TestFile;
 import org.junit.Test;
 
@@ -32,10 +31,8 @@ import static org.gradle.api.file.FileVisitorUtil.assertVisits;
 import static org.gradle.api.file.FileVisitorUtil.assertVisitsPermissions;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes;
 import static org.gradle.util.internal.WrapUtil.toList;
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.fail;
 
 public class TarFileTreeTest extends AbstractArchiveFileTreeTest {
