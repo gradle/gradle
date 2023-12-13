@@ -110,14 +110,14 @@ Names of the generated convention plugins now start with `buildlogic` instead of
 
 #### Generating without interactive questions
 
-There is also a new option `--no-dialog` to disable the interactive dialog entirely.
-It ensures the init command can be completed without any user input.
+A new `--use-defaults` option applies default values for options that were not explicitly configured.
+It also ensures the init command can be completed without interactive user input.
 This is handy to use in shell scripts to ensure they do not accidentally hang.
 
-For example, here is how you can now generate a Kotlin library without answering any questions:
+For example, here is how you can generate a Kotlin library without answering any questions:
 
 ```
-gradle init --no-dialog --type kotlin-library
+gradle init --use-defaults --type kotlin-library
 ```
 
 #### Assignment syntax in Kotlin DSL

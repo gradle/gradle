@@ -295,13 +295,13 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ScriptDslFixture.of(BuildInitDsl.GROOVY, targetDir, null).assertGradleFilesGenerated("app")
     }
 
-    def "user can disable dialog and provide no options to generate a basic project"() {
+    def "user can use defaults and provide no options to generate a basic project non-interactively"() {
         when:
         executer.withForceInteractive(true)
         executer.withStdinPipe()
         executer.withTasks(
             "init",
-            "--no-dialog",
+            "--use-defaults",
         )
         def handle = executer.start()
         handle.stdinPipe.close()
@@ -311,13 +311,13 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
     }
 
-    def "user can disable dialog to generate java application non-interactively"() {
+    def "user can use defaults to generate java application non-interactively"() {
         when:
         executer.withForceInteractive(true)
         executer.withStdinPipe()
         executer.withTasks(
             "init",
-            "--no-dialog",
+            "--use-defaults",
             "--type", "java-application",
         )
         def handle = executer.start()

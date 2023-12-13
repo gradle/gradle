@@ -63,6 +63,7 @@ public abstract class BuildInitPlugin implements Plugin<Project> {
                 initBuild.getProjectLayoutRegistry().getBuildConverter().configureClasspath(
                     detachedResolver, project.getObjects(), projectInternal.getServices().get(JvmPluginServices.class));
 
+                initBuild.getUseDefaults().convention(false);
                 initBuild.getInsecureProtocol().convention(InsecureProtocolOption.WARN);
             });
         }

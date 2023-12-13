@@ -293,10 +293,6 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         outputContains("""Options
-     --dialog     Opposite option of --no-dialog.
-
-     --no-dialog     Disable interactive dialog, use default values when none explicitly specified
-
      --dsl     Set the build script DSL to be used in generated scripts.
                Available values are:
                     groovy
@@ -348,7 +344,17 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
                      kotlin-library
                      pom
                      scala-application
-                     scala-library""")
+                     scala-library
+                     swift-application
+                     swift-library
+
+     --use-defaults     Use default values for options not configured explicitly
+
+     --no-use-defaults     Disables option --use-defaults.
+
+     --rerun     Causes the task to be re-run even if up-to-date.
+
+Description""") // include the next header to make sure all options are listed
     }
 
     def "can initialize in a directory that is under another build's root directory"() {

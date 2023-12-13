@@ -79,17 +79,19 @@ public abstract class InitBuild extends DefaultTask {
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
 
     /**
-     * Disables interactive dialog, ensuring no user input is required to complete the command.
+     * Should default values automatically be accepted for options that are not configured explicitly?
      * <p>
-     * This property can be set via the command-line options '--no-dialog' and '--dialog'.
+     * When true, the interactive dialog is skipped, and no user input is required to complete the command.
+     * <p>
+     * This property can be set via the command-line options '--use-defaults' and '--no-use-defaults'.
      *
      * @since 8.6
      */
     @Incubating
     @Input
     @Optional
-    @Option(option = "no-dialog", description = "Disable interactive dialog, use default values when none explicitly specified")
-    public abstract Property<Boolean> getNoDialog();
+    @Option(option = "use-defaults", description = "Use default values for options not configured explicitly")
+    public abstract Property<Boolean> getUseDefaults();
 
     /**
      * The desired type of project to generate like 'java-application' or 'kotlin-library'.
@@ -270,8 +272,7 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private UserInputHandler getEffectiveInputHandler() {
-        Property<Boolean> noDialog = getNoDialog();
-        if (noDialog.isPresent() && noDialog.get()) {
+        if (getUseDefaults().get()) {
             return new NonInteractiveUserInputHandler();
         }
 
