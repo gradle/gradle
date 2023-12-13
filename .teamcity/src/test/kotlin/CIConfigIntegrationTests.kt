@@ -216,11 +216,14 @@ class CIConfigIntegrationTests {
     }
 
     private fun containsSrcFileWithString(srcRoot: File, content: String, exceptions: List<String>): Boolean {
-        srcRoot.walkTopDown().forEach {
-            if (it.extension == "groovy" || it.extension == "java") {
-                val text = it.readText()
+        srcRoot.walkTopDown().forEach { file ->
+            if (file.extension == "groovy" || file.extension == "java") {
+                val originalText = file.readText()
+                val text = originalText.lineSequence()
+                    .filterNot { it.trim().startsWith("//") }
+                    .joinToString("\n")
                 if (text.contains(content) && exceptions.all { !text.contains(it) }) {
-                    println("Found suspicious test file: $it")
+                    println("Found suspicious test file: $file")
                     return true
                 }
             }
