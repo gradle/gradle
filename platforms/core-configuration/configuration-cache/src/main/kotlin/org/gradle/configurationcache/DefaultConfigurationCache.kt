@@ -190,20 +190,36 @@ class DefaultConfigurationCache internal constructor(
             }
             cacheEntryRequiresCommit = false
         } else if (cacheEntryRequiresCommit) {
-            val reusedProjects = mutableSetOf<Path>()
-            val updatedProjects = mutableSetOf<Path>()
-            intermediateModels.value.visitProjects(reusedProjects::add, updatedProjects::add)
-            projectMetadata.value.visitProjects(reusedProjects::add) { }
-            store.useForStore { layout ->
-                writeConfigurationCacheFingerprint(layout, reusedProjects)
-                cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, intermediateModels.value.values, projectMetadata.value.values, layout.fileFor(StateType.Entry))
-            }
-            problems.projectStateStats(reusedProjects.size, updatedProjects.size)
+            val projectUsage = collectProjectUsage()
+            commitCacheEntry(projectUsage.reused)
+            problems.projectStateStats(projectUsage.reused.size, projectUsage.updated.size)
             cacheEntryRequiresCommit = false
             // Can reuse the cache entry for the rest of this build invocation
             cacheAction = ConfigurationCacheAction.LOAD
         }
         scopeRegistryListener.dispose()
+    }
+
+    private
+    fun collectProjectUsage(): ProjectUsage {
+        val reusedProjects = mutableSetOf<Path>()
+        val updatedProjects = mutableSetOf<Path>()
+        intermediateModels.value.visitProjects(reusedProjects::add, updatedProjects::add)
+        projectMetadata.value.visitProjects(reusedProjects::add) { }
+        return ProjectUsage(reusedProjects, updatedProjects)
+    }
+
+    private
+    data class ProjectUsage(val reused: Set<Path>, val updated: Set<Path>)
+
+    private
+    fun commitCacheEntry(reusedProjects: Set<Path>) {
+        store.useForStore { layout ->
+            writeConfigurationCacheFingerprint(layout, reusedProjects)
+            val usedModels = intermediateModels.value.collectAccessedValues()
+            val usedMetadata = projectMetadata.value.collectAccessedValues()
+            cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, usedModels, usedMetadata, layout.fileFor(StateType.Entry))
+        }
     }
 
     private

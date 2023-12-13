@@ -39,6 +39,7 @@ abstract class ProjectStateStore<K, V>(
     private val store: ConfigurationCacheStateStore,
     private val stateType: StateType
 ) : Closeable {
+
     private
     val valuesStore by lazy {
         val writer = ValueStore.Writer<V> { encoder, value ->
@@ -66,10 +67,9 @@ abstract class ProjectStateStore<K, V>(
     abstract fun read(decoder: Decoder): V
 
     /**
-     * All values used during execution.
+     * Collects all values used during execution
      */
-    val values: Map<K, BlockAddress>
-        get() = Collections.unmodifiableMap(currentValues)
+    fun collectAccessedValues(): Map<K, BlockAddress> = Collections.unmodifiableMap(currentValues)
 
     fun restoreFromCacheEntry(entryDetails: Map<K, BlockAddress>, checkedFingerprint: CheckedFingerprint.ProjectsInvalid) {
         for (entry in entryDetails) {
