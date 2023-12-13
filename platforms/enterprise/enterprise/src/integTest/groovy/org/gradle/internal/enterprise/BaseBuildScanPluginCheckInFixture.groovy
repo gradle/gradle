@@ -38,7 +38,6 @@ abstract class BaseBuildScanPluginCheckInFixture {
     private final TestFile projectDir
     private final MavenFileRepository mavenRepo
     private final GradleExecuter pluginBuildExecuter
-    private final String pluginArtifactName
 
     String runtimeVersion = AutoAppliedGradleEnterprisePlugin.VERSION
     String artifactVersion = AutoAppliedGradleEnterprisePlugin.VERSION
@@ -47,6 +46,8 @@ abstract class BaseBuildScanPluginCheckInFixture {
     final String packageName
     final String simpleClassName
     final String className
+    final String pluginArtifactGroup = AutoAppliedGradleEnterprisePlugin.GROUP
+    final String pluginArtifactName
 
     boolean doCheckIn = true
     protected boolean added
@@ -187,7 +188,7 @@ abstract class BaseBuildScanPluginCheckInFixture {
 
         builder.addPlugin("", "com.gradle.build-scan", 'BuildScanPlugin')
 
-        builder.publishAs("${AutoAppliedGradleEnterprisePlugin.GROUP}:${pluginArtifactName}:${artifactVersion}", mavenRepo, pluginBuildExecuter)
+        builder.publishAs("${pluginArtifactGroup}:${pluginArtifactName}:${artifactVersion}", mavenRepo, pluginBuildExecuter)
     }
 
     void assertBuildScanRequest(String output, GradleEnterprisePluginConfig.BuildScanRequest buildScanRequest) {
