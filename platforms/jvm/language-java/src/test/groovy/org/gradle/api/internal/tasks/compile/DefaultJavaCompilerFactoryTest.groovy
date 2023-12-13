@@ -37,7 +37,9 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         Stub(AnnotationProcessorDetector),
         Stub(ClassPathRegistry),
         Stub(ActionExecutionSpecFactory),
-        Stub(Problems)
+        Stub(BuildLayout),
+        Stub(ProjectCacheDir),
+        Stub(InternalProblems)
     )
 
     def "creates in-process compiler when JavaCompileSpec is provided"() {
