@@ -20,20 +20,16 @@ import groovy.transform.CompileStatic
 
 @CompileStatic
 class ReceivedProblem {
-    private final Long operationId
+    private final long operationId
     private final Map<String, Object> problemDetails
 
-    ReceivedProblem(Long operationId, Map<String, Object> problemDetails) {
+    ReceivedProblem(long operationId, Map<String, Object> problemDetails) {
         this.operationId = operationId
         this.problemDetails = problemDetails
     }
 
-    Long getOperationId() {
-        return operationId
-    }
-
     /**
-     * Proxies all calls to the problem details map.
+     * Proxies all calls, except for the `operationId` property, to the `problemDetails` map.
      * <p>
      * This is done in order to keep compatibility with our already existing tests.
      *
@@ -42,7 +38,11 @@ class ReceivedProblem {
      */
     @Override
     Object getProperty(String propertyName) {
-        return problemDetails[propertyName]
+        if (propertyName == 'operationId') {
+            return operationId
+        } else {
+            return problemDetails[propertyName]
+        }
     }
 
 }
