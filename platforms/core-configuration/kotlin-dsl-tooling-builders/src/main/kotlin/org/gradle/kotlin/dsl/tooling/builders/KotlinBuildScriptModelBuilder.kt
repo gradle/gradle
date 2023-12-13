@@ -141,8 +141,6 @@ class KotlinBuildScriptModelBuilder(
         parameter: KotlinBuildScriptModelParameter
     ): KotlinScriptTargetModelBuilder {
 
-        println("Y0: $modelRequestProject - $parameter")
-
         val scriptFile = parameter.scriptFile
             ?: return projectScriptModelBuilder(null, modelRequestProject, intermediateToolingModelProvider)
 
@@ -151,7 +149,6 @@ class KotlinBuildScriptModelBuilder(
         }
 
         modelRequestProject.enclosingSourceSetOf(scriptFile, searchSubprojects = !parameter.isolatedProjectModel)?.let { enclosingSourceSet ->
-            println("Y1: $enclosingSourceSet")
             return precompiledScriptPluginModelBuilder(scriptFile, enclosingSourceSet)
         }
 
