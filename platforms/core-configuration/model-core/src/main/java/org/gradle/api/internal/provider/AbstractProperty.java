@@ -27,7 +27,7 @@ import org.gradle.internal.state.ModelObject;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public abstract class AbstractProperty<T, S extends ValueSupplier> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
+public abstract class AbstractProperty<T, S extends AbstractMinimalProvider.GuardedValueSupplier<? extends S>> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
     private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this property");
     private static final DisplayName DEFAULT_VALIDATION_DISPLAY_NAME = Describables.of("a property");
 
@@ -336,7 +336,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     private class ShallowCopyProvider extends AbstractMinimalProvider<T> {
         // the value of "value" is immutable but the field is not, so copy it
         // (but use a different owner)
-        private final S copiedValue = GuardedValueSupplier.withOwner(AbstractProperty.this.value, this);
+        private final S copiedValue = AbstractProperty.this.value.withOwner(this);
 
         @Override
         public ValueProducer getProducer() {

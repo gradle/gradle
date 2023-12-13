@@ -243,21 +243,14 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
      *
      * @see org.gradle.api.internal.provider.EvaluationContext.EvaluationOwner
      */
-    public interface GuardedValueSupplier extends ValueSupplier {
+    public interface GuardedValueSupplier<T extends GuardedValueSupplier<T>> extends ValueSupplier {
         /**
          * Returns a view of this guarded value supplier but with the given owner.
          *
          * @param newOwner
          * @return a new supplier that produces the same value, but under a different owner
          */
-        GuardedValueSupplier withOwner(EvaluationContext.EvaluationOwner newOwner);
-
-        /**
-         * Returns a new supplier that produces the same value as the given supplier, but under a different owner
-         */
-        static <S extends GuardedValueSupplier> S withOwner(ValueSupplier value, EvaluationContext.EvaluationOwner newOwner) {
-            return Cast.uncheckedNonnullCast(((GuardedValueSupplier) value).withOwner(newOwner));
-        }
+        T withOwner(EvaluationContext.EvaluationOwner newOwner);
     }
 
     /**
@@ -306,7 +299,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
      * This class uses try-with-resources directly instead of {@link EvaluationContext#evaluate(EvaluationContext.EvaluationOwner, EvaluationContext.ScopedEvaluation)}
      * to avoid extra allocations of lambda instances.
      */
-    protected static final class ProviderGuard<V> implements GuardedValueSupplier, GuardedData<ProviderInternal<V>> {
+    protected static final class ProviderGuard<V> implements GuardedValueSupplier<ProviderGuard<V>>, GuardedData<ProviderInternal<V>> {
         private final EvaluationContext.EvaluationOwner owner;
         private final ProviderInternal<V> value;
 

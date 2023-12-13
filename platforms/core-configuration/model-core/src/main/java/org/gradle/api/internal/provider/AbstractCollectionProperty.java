@@ -512,7 +512,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
         return new CollectionSupplierGuard<>(this, supplier);
     }
 
-    protected static final class CollectionSupplierGuard<T, C extends Collection<T>> implements CollectionSupplier<T, C>, GuardedData<CollectionSupplier<T, C>>, GuardedValueSupplier {
+    protected static final class CollectionSupplierGuard<T, C extends Collection<T>> implements CollectionSupplier<T, C>, GuardedData<CollectionSupplier<T, C>>, GuardedValueSupplier<CollectionSupplierGuard<T, C>> {
         private final EvaluationContext.EvaluationOwner owner;
         private final CollectionSupplier<T, C> supplier;
 
