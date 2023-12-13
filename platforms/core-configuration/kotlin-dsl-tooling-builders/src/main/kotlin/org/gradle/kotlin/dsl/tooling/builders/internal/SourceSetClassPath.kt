@@ -39,7 +39,6 @@ object NoSourceSet : SourceSetClassPath {
 
 internal
 data class ResolvedSourceSetClassPath(
-    val projectDir: File,
     val precompiledScriptPluginsMetadataDir: File,
     val compileClasspath: ClassPath
 ) : SourceSetClassPath
@@ -54,7 +53,7 @@ fun Project.findSourceSetClassPath(file: File): ResolvedSourceSetClassPath? =
 
 internal
 fun Project.resolveSourceSetClassPath(it: SourceSet) =
-    ResolvedSourceSetClassPath(projectDir, precompiledScriptPluginsMetadataDir, DefaultClassPath.of(it.compileClasspath))
+    ResolvedSourceSetClassPath(precompiledScriptPluginsMetadataDir, DefaultClassPath.of(it.compileClasspath))
 
 
 private

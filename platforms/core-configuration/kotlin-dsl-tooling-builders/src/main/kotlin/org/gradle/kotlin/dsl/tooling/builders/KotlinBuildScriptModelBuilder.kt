@@ -225,7 +225,7 @@ fun precompiledScriptPluginModelBuilder(
     scriptFile = scriptFile,
     project = modelRequestProject,
     scriptClassPath = sourceSetClassPath.compileClasspath,
-    enclosingScriptProjectDir = sourceSetClassPath.projectDir,
+    enclosingScriptProjectDir = modelRequestProject.projectDir,
     additionalImports = {
         sourceSetClassPath.precompiledScriptPluginsMetadataDir.run {
             implicitImportsFrom(
