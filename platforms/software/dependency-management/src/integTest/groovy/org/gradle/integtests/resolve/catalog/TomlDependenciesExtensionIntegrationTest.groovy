@@ -763,8 +763,10 @@ lib = {group = "org.gradle.test", name="lib", version.ref="commons-lib"}
             addError("In file '${tomlFile.absolutePath}' at line 3, column 1: Unexpected \'/\', expected a newline or end-of-input")
         })
 
-        def problems = collectedProblems;
-        problems[0].locations[0].path == tomlFile.absolutePath
+        def problems = collectedProblems
+        problems.size() == 1
+        def problem = problems[0]
+        problem["locations"][0].path == tomlFile.absolutePath
     }
 
     @VersionCatalogProblemTestFor([
@@ -792,8 +794,9 @@ key2=
 
         def problems = collectedProblems
         problems.size() == 1
-        problems[0].locations[0].path == tomlFile.absolutePath
-        problems[0].locations[1].path == tomlFile.absolutePath
+        def problem = problems[0]
+        problem["locations"][0].path == tomlFile.absolutePath
+        problem["locations"][1].path == tomlFile.absolutePath
     }
 
     private String getUnexpectedErrorString(int line, int column) {
