@@ -1191,17 +1191,16 @@ The value of this property is derived from: <source>""")
 
     def "can add to explicit value without knowing"() {
         given:
-        property.set([])
         property.getActualValue().addAll(Providers.of(["1", "2"]))
         property.getActualValue().addAll(Providers.of(["3", "4"]))
 
         expect:
         assertValueIs toImmutable(["1", "2", "3", "4"])
+        !property.explicit
     }
 
     def "can add to explicit value via configurer action without knowing"() {
         given:
-        property.set([])
         property.configure {
             it.addAll(Providers.of(["1", "2"]))
             it.addAll(Providers.of(["3", "4"]))
@@ -1209,11 +1208,11 @@ The value of this property is derived from: <source>""")
 
         expect:
         assertValueIs toImmutable(["1", "2", "3", "4"])
+        !property.explicit
     }
 
     def "may exclude elements from convention via predicate"() {
         given:
-        property.set(null as Iterable)
         property.convention(Providers.of(["1", "2", "3", "4", "5", "6"]))
         property.getActualValue().excludeAll({ it.toInteger() % 2 == 1 } as Spec)
         property.getActualValue().excludeAll({ it.toInteger() > 5 } as Spec)
@@ -1224,7 +1223,6 @@ The value of this property is derived from: <source>""")
 
     def "may exclude elements from convention using configurer action via predicate"() {
         given:
-        property.set(null as Iterable)
         property.convention(Providers.of(["1", "2", "3", "4", "5", "6"]))
         property.configure {
             it.excludeAll({ it.toInteger() % 2 == 1 } as Spec)
