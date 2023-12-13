@@ -19,8 +19,11 @@ package org.gradle.configurationcache.problems
 import org.apache.groovy.json.internal.CharBuf
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.configurationcache.logger
+import org.gradle.internal.buildoption.InternalFlag
+import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.HashingOutputStream
 import org.gradle.internal.service.scopes.Scopes
@@ -35,8 +38,14 @@ import kotlin.contracts.contract
 @ServiceScope(Scopes.BuildTree::class)
 class ConfigurationCacheReport(
     executorFactory: ExecutorFactory,
-    temporaryFileProvider: TemporaryFileProvider
+    temporaryFileProvider: TemporaryFileProvider,
+    internalOptions: InternalOptions
 ) : Closeable {
+
+    companion object {
+        private
+        val problemHashing = InternalFlag("org.gradle.configuration-cache.internal.report.problem-hashing", false)
+    }
 
     private
     sealed class State {
@@ -66,8 +75,7 @@ class ConfigurationCacheReport(
             throw IllegalStateException("Operation is not valid in ${javaClass.simpleName} state.")
 
         class Idle(
-            val executorFactory: ExecutorFactory,
-            val temporaryFileProvider: TemporaryFileProvider
+            private val onFirstDiagnostic: (kind: DiagnosticKind, problem: PropertyProblem) -> State
         ) : State() {
 
             /**
@@ -82,19 +90,7 @@ class ConfigurationCacheReport(
                 this to null
 
             override fun onDiagnostic(kind: DiagnosticKind, problem: PropertyProblem): State =
-                Spooling(
-                    htmlReportSpoolFile(),
-                    singleThreadExecutor(),
-                    CharBuf::class.java.classLoader
-                ).onDiagnostic(kind, problem)
-
-            private
-            fun htmlReportSpoolFile() =
-                temporaryFileProvider.createTemporaryFile("configuration-cache-report", "html")
-
-            private
-            fun singleThreadExecutor() =
-                executorFactory.create("Configuration cache report writer", 1)
+                onFirstDiagnostic(kind, problem)
 
             override fun close(): State =
                 this
@@ -106,7 +102,8 @@ class ConfigurationCacheReport(
             /**
              * [JsonModelWriter] uses Groovy's [CharBuf] for fast json encoding.
              */
-            val groovyJsonClassLoader: ClassLoader
+            val groovyJsonClassLoader: ClassLoader,
+            val decorateProblem: ((PropertyProblem) -> PropertyProblem)? = null
         ) : State() {
 
             private
@@ -124,10 +121,7 @@ class ConfigurationCacheReport(
 
             override fun onDiagnostic(kind: DiagnosticKind, problem: PropertyProblem): State {
                 executor.submit {
-                    writer.writeDiagnostic(
-                        kind,
-                        problem
-                    )
+                    writer.writeDiagnostic(kind, decorateProblem?.invoke(problem) ?: problem)
                 }
                 return this
             }
@@ -195,10 +189,17 @@ class ConfigurationCacheReport(
     }
 
     private
-    var state: State = State.Idle(
-        executorFactory,
-        temporaryFileProvider
-    )
+    val isProblemHashing = internalOptions.getOption(problemHashing).get()
+
+    private
+    var state: State = State.Idle { kind, problem ->
+        State.Spooling(
+            temporaryFileProvider.createTemporaryFile("configuration-cache-report", "html"),
+            executorFactory.create("Configuration cache report writer", 1),
+            CharBuf::class.java.classLoader,
+            if (isProblemHashing) ::decorateProblemWithHash else null
+        ).onDiagnostic(kind, problem)
+    }
 
     private
     val stateLock = Object()
@@ -246,5 +247,41 @@ class ConfigurationCacheReport(
         synchronized(stateLock) {
             state = state.f()
         }
+    }
+
+    private
+    fun decorateProblemWithHash(problem: PropertyProblem): PropertyProblem {
+        val exception = problem.exception
+            ?: return problem
+
+        return hashedProblemFor(problem, exception)
+    }
+
+    private
+    fun hashedProblemFor(problem: PropertyProblem, exception: Throwable): PropertyProblem {
+        val exceptionHash = exception.hashWithoutMessage()
+        val exceptionMarker = "[${exceptionHash.toCompactString()}]"
+        return problem.prependMessageFragments(
+            StructuredMessage.Fragment.Reference(exceptionMarker),
+            StructuredMessage.Fragment.Text(" ")
+        )
+    }
+
+    private
+    fun PropertyProblem.prependMessageFragments(vararg fragments: StructuredMessage.Fragment): PropertyProblem {
+        val newFragments = fragments.toList() + message.fragments
+        return copy(message = message.copy(fragments = newFragments))
+    }
+
+    private
+    fun Throwable.hashWithoutMessage(): HashCode {
+        val exceptionType = this@hashWithoutMessage.javaClass.name
+        return Hashing.newHasher().apply {
+            putString(exceptionType)
+            // Take all stacktrace lines except the first message
+            stackTraceToString().lineSequence()
+                .dropWhile { !it.trim().startsWith("at ") }
+                .forEach { putString(it) }
+        }.hash()
     }
 }
