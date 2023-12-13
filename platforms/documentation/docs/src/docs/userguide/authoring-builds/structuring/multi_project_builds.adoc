@@ -23,11 +23,11 @@ Gradle can build the root project and any number of the subprojects in a single 
 == Project locations
 
 Multi-project builds are represented by a tree with a single root.
-Each element in the tree represents a project.
+Each element in the tree represents a (sub)project.
 
-A project has <<intro_multi_project_builds#sec:project_path,a path>>, which denotes the position of the project in the multi-project build tree.
+A (sub)project has <<intro_multi_project_builds#sec:project_path,a path>>, which denotes the position of the (sub)project in the multi-project build tree.
 
-In most cases, the project path is consistent with its location in the file system.
+In most cases, the (sub)project path is consistent with its location in the file system.
 However, this behavior is configurable if necessary.
 
 The project tree is created in the `settings.gradle(.kts)` file.
@@ -38,7 +38,7 @@ The location of the settings file is also the location of the root project.
 
 Let's look at a _basic_ multi-project build example which contains a root project and a single subproject.
 
-The single subproject is called `app`:
+The subproject is called `app`:
 
 [.multi-language-sample]
 =====
@@ -64,7 +64,7 @@ The single subproject is called `app`:
 =====
 
 This is the recommended project structure for starting any Gradle project.
-The <<build_init_plugin#build_init_plugin,build init plugin>> also generates skeleton projects that follow this structure - a root project with a single subproject.
+The <<build_init_plugin#build_init_plugin,build init plugin>> also generates skeleton projects that follow this structure - a root project with a single subproject:
 
 ====
 include::sample[dir="snippets/multiproject/basic-multiproject/kotlin",files="settings.gradle.kts[]"]
@@ -159,6 +159,78 @@ Gradle will then look for the build file of the new `lib` subproject in the `./l
 ----
 =====
 
+[[sec:multibuild_buildSrc]]
+== Common build logic
+
+`buildSrc` is a Gradle recognized and protected directory for managing shared configuration among subprojects.
+
+The `buildSrc` directory is located in the project root and contains custom plugins, shared dependencies and build logic.
+
+It's ideal for keeping build scripts clean and keeping implementation separate from declaration.
+It allows users to reuse tasks among subprojects.
+
+You do not have to add an entry to the settings file in order for `buildSrc` to be recognized.
+Instead, `buildSrc` is added to the classpath of `buildscript` so its contents are available in subproject build files in the same way as classpath dependencies: `buildscript { dependencies { classpath ... } }`
+
+== Adding `buildSrc`
+
+Let's add `buildSrc` to the previously created project and create common configuration under `buildSrc/src/main/kotlin` or `buildSrc/src/main/groovy`:
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+.
+├── app
+│   ...
+│   └── build.gradle.kts
+├── lib
+│   ...
+│   └── build.gradle.kts
+├── build-logic
+│   ├── build.gradle.kts
+│   └── src/main/kotlin/shared-build-configurations.gradle.kts
+└── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── app
+│   ...
+│   └── build.gradle
+├── lib
+│   ...
+│   └── build.gradle
+├── build-logic
+│   ├── build.gradle
+│   └── src/main/groovy/shared-build-configurations.gradle
+└── settings.gradle
+----
+=====
+
+Gradle automatically compiles and tests the code in `build-logic` and puts it in the classpath of your build script:
+
+.build-logic/src/main/groovy/shared-build-configurations.gradle.kts
+[source]
+----
+object Conventions {
+    const val kotlinStdLib = "org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.21"
+}
+----
+
+Which you can use accordingly:
+
+.app/build.gradle.kts
+[source]
+----
+dependencies {
+    implementation(Conventions.kotlinStdLib)
+}
+----
+
 [[sub:modifying_element_of_the_project_tree]]
 == Modifying elements
 
@@ -201,70 +273,3 @@ Gradle supports <<command_line_interface.adoc#sec:name_abbreviation,name abbrevi
 The `rootProject.name` effectively assigns a name to the build, which is used in reports like build scans.
 If the root project name is not set, the name will be the container directory name, which can be unstable (i.e., you can check out your project in any directory).
 The name will be generated randomly if the root project name is not set and checked out to a file system's root (e.g., `/` or `C:\`).
-
-[[sec:multibuild_buildSrc]]
-== Adding `buildSrc`
-
-`buildSrc` is a Gradle recognized and protected directory for managing shared configuration among subprojects.
-
-The `buildSrc` directory is located in the project root and contains custom plugins, shared dependencies and build logic.
-
-It's ideal for keeping build scripts clean and keeping implementation separate from declaration.
-It also allows users to reuse tasks among subprojects
-
-Let's add `buildSrc` to the previously created project and create common configuration under `buildSrc/src/main/kotlin` or `buildSrc/src/main/groovy`:
-
-[.multi-language-sample]
-=====
-[source, kotlin]
-----
-.
-├── app
-│   ...
-│   └── build.gradle.kts
-├── lib
-│   ...
-│   └── build.gradle.kts
-├── build-logic
-│   ├── build.gradle.kts
-│   └── src/main/kotlin/shared-build-configurations.gradle.kts
-└── settings.gradle.kts
-----
-=====
-[.multi-language-sample]
-=====
-[source, groovy]
-----
-.
-├── app
-│   ...
-│   └── build.gradle
-├── lib
-│   ...
-│   └── build.gradle
-├── build-logic
-│   ├── build.gradle
-│   └── src/main/groovy/shared-build-configurations.gradle
-└── settings.gradle
-----
-=====
-
-`buildSrc` is added to the classpath of `buildscript` so its contents are available in subproject build files in the same way as classpath dependencies: `buildscript { dependencies { classpath ... } }`
-
-For example:
-
-.build-logic/src/main/groovy/shared-build-configurations.gradle.kts
-[source]
-----
-object Conventions {
-    const val kotlinStdLib = "org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.21"
-}
-----
-
-.app/build.gradle.kts
-[source]
-----
-dependencies {
-    implementation(Conventions.kotlinStdLib)
-}
-----

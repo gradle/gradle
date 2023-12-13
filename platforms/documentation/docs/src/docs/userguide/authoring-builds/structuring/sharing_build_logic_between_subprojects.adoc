@@ -18,7 +18,7 @@
 Subprojects in a multi-project build typically share some common _traits_.
 
 For example, several subprojects may contain _code_ in a particular programming language, while another subproject may be
-dedicated for _documentation_.
+dedicated to _documentation_.
 Code quality rules apply to all the _code_ subprojects but not the _documentation_ subproject.
 While the subprojects may share common _traits_, they serve different purposes.
 They produce different _artifact types_, for example:
@@ -31,25 +31,27 @@ They produce different _artifact types_, for example:
 Additionally, some subprojects may be dedicated to *testing*.
 
 The traits above identify a subproject's _type_.
-In other words, a subproject's _type_ tells us what _traits_ the project has.
+In other words, a subproject's _type_ tells us what _traits_ the subproject has.
 
 [[sec:convention_plugins]]
-== Share logic using Convention Plugins
+== Share logic using convention plugins
 
 Gradle's recommended way of organizing build logic is to use its plugin system.
 
 A plugin should define the _type_ of a subproject.
 
-In fact, <<plugin_reference#plugin_reference,Gradle core plugins>> are modeled the same way, the <<java_plugin#java_plugin,Java Plugin>> configures a generic `java` project.
-The <<java_library_plugin#java_library_plugin,Java Library Plugin>> internally applies the <<java_plugin#java_plugin,Java Plugin>> and configures aspects specific to a Java library.
-Similarly, the <<application_plugin#application_plugin,Application Plugin>> applies and configures the <<java_plugin#java_plugin,Java Plugin>> and the <<distribution_plugin#distribution_plugin,Distribution Plugin>>.
+In fact, <<plugin_reference#plugin_reference,Gradle core plugins>> are modeled the same way:
+
+- The <<java_plugin#java_plugin,Java Plugin>> configures a generic `java` project.
+- The <<java_library_plugin#java_library_plugin,Java Library Plugin>> internally applies the <<java_plugin#java_plugin,Java Plugin>> and configures aspects specific to a Java library.
+- The <<application_plugin#application_plugin,Application Plugin>> applies and configures the <<java_plugin#java_plugin,Java Plugin>> and the <<distribution_plugin#distribution_plugin,Distribution Plugin>>.
 
 You can compose custom build logic by applying and configuring both core and external plugins.
 You can create custom plugins that define new project _types_ and configure conventions specific to your project or organization.
 For each example _trait_ above, we can write a plugin that encapsulates the logic common to the subproject of a given _type_.
 
 [[sec:using_buildsrc]]
-== Share login in `buildSrc`
+== Share logic in `buildSrc`
 
 We recommend putting source code and tests for the convention plugins in the `buildSrc` directory in the project's root.
 For more information about `buildSrc`, consult <<organizing_gradle_projects.adoc#sec:build_sources,Using `buildSrc` to organize build logic>>.
@@ -57,7 +59,7 @@ For more information about `buildSrc`, consult <<organizing_gradle_projects.adoc
 [[sec:convention_plugins_vs_cross_configuration]]
 == Do not use cross-project configuration
 
-Another discouraged way to share build logic between subprojects is _cross-project configuration_ via the `subprojects {}` and `allprojects {}` DSL constructs.
+An improper way to share build logic between subprojects is _cross-project configuration_ via the `subprojects {}` and `allprojects {}` DSL constructs.
 
 TIP:  Avoid using `subprojects {}` and `allprojects {}`.
 
@@ -68,6 +70,7 @@ Cross configuration can also introduce <<multi_project_configuration_and_executi
 <<multi_project_configuration_and_execution#sec:configuration_on_demand,configuration-on-demand>> from working properly.
 
 === Convention plugins versus cross-configuration
+
 The two most common uses of cross-configuration can be better modeled using convention plugins:
 
 1. Applying plugins or other configuration to subprojects of a certain type. +

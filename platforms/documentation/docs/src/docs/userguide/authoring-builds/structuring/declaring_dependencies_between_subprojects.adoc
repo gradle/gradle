@@ -33,7 +33,9 @@ A typical multi-project build has the following layout:
 ----
 .
 ├── buildSrc
-│   ...
+│   ├── src
+│   │   └──...
+│   └── build.gradle.kts
 ├── api
 │   ├── src
 │   │   └──...
@@ -56,7 +58,9 @@ A typical multi-project build has the following layout:
 ----
 .
 ├── buildSrc
-│   ...
+│   ├── src
+│   │   └──...
+│   └── build.gradle
 ├── api
 │   ├── src
 │   │   └──...
@@ -78,11 +82,12 @@ In this example, there are three projects called `shared`, `api`, and `person-se
 
 1. The `person-service` project depends on the other two projects, `shared` and `api`.
 2. The `api` project depends on the `shared` project. It has no build script and gets nothing injected by another build script.
+3. There is shared build logic used by `shared`, `api`, and `person-service` in `buildSrc`.
 
-We use the `:` separator to define a <<intro_multi_project_builds#sec:project_path,project path>>.
+We use the `:` separator to define a <<intro_multi_project_builds#sec:project_path,project path>> such as `services:person-service` or `:shared`.
 Consult the DSL documentation of link:{groovyDslPath}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[Settings.include(java.lang.String[\])] for more information about defining project paths.
 
-Shared build logic is extracted into a _convention plugin_ that is applied in the subprojects' build scripts that also define project dependencies:
+Shared build logic is extracted into a _convention plugin_ in `buildSrc` that is applied in the subprojects' build scripts that also define project dependencies:
 
 [[javadependencies_2]]
 ====
@@ -101,7 +106,7 @@ IMPORTANT: Project dependencies enable partial multi-project builds.
 [[sec:depending_on_output_of_another_project]]
 == Depending on artifacts produced by another project
 
-<<#sec:project_jar_dependencies,Project dependencies>> model dependencies between modules.
+<<#sec:project_jar_dependencies,Project dependencies>> model dependencies between subprojects (i.e., modules).
 
 Effectively, a project depends on the main output of another project.
 In a Java-based project, it's usually a JAR file.

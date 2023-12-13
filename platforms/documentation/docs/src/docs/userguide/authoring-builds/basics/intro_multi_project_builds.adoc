@@ -24,6 +24,7 @@ The word "interdependent" is vital, as you typically want to link the many modul
 
 Gradle supports this scenario through _multi-project_ builds.
 This is sometimes referred to as a multi-module project.
+Gradle refers to modules as subprojects.
 
 A multi-project build consists of one root project and one or more subprojects.
 
@@ -58,14 +59,16 @@ The directory structure should look as follows:
 
 The Gradle community has two standards for multi-project build structures:
 
-- **<<organizing_gradle_projects.adoc#sec:build_sources,Multi-Project Builds using buildSrc>>** - where `buildSrc` is a subproject-like directory at the Gradle project root containing all the build logic.
-- **<<composite_builds.adoc#composite_builds,Composite Builds>>** - a build that includes other builds where `build-logic` is a build directory at the Gradle project root containing all the build logic.
+1. **<<multi_project_builds.adoc#sec:multibuild_buildSrc,Multi-Project Builds using buildSrc>>** - where `buildSrc` is a subproject-like directory at the Gradle project root containing all the build logic.
+2. **<<composite_builds.adoc#composite_builds,Composite Builds>>** - a build that includes other builds where `build-logic` is a build directory at the Gradle project root containing all the build logic.
 
 image::multi-project-standards.png[]
 
-=== Multi-Project Builds using `buildSrc`
+=== 1. Multi-Project Builds using `buildSrc`
 
-Multi-project builds are great for organizing projects with many modules such as `mobile-app`, `web-app`, `api`, `lib`, and `documentation`:
+Multi-project builds are great for organizing projects with many modules.
+
+For example, a build that has many modules called `mobile-app`, `web-app`, `api`, `lib`, and `documentation` should be structured as follows:
 
 [source]
 ----
@@ -88,9 +91,10 @@ Multi-project builds are great for organizing projects with many modules such as
     └── build.gradle.kts
 ----
 
-These modules will have dependencies between them such as `web-app` and `mobile-app` depending on `lib`.
+The modules will have dependencies between them such as `web-app` and `mobile-app` depending on `lib`.
 This means that in order for Gradle to build `web-app` or `mobile-app`, it must build `lib` first.
-The root settings file will look as follows:
+
+In this example, the root settings file will look as follows:
 
 .settings.gradle.kts
 [source]
@@ -105,14 +109,16 @@ The compiled code from the `buildSrc` is put in the classpath of the root build 
 
 The `buildSrc` directory is treated as a subproject and follows the same structure including a build script and common logic written in Groovy or Kotlin.
 
-=== Composite Builds
+Consult how to declare <<multi_project_builds.adoc#sec:multibuild_buildSrc, dependencies between subprojects>> using `include` to learn more.
+
+=== 2. Composite Builds
 
 Composite Builds, also referred to as _include builds_, are best for sharing logic between projects (_not subprojects_) or isolating access to shared build logic (i.e., convention plugins).
 
 Let's take the previous example.
-The `shared-build-conventions` plugin is now its own project because the owner has decided to publish it to the Gradle Plugin Portal and wants to be able to work on it independently.
+The logic in `buildSrc` has been turned into a plugin that can be published and worked on independently.
 
-The plugin has now become its own project AND it is used as shared build logic:
+The plugin is now its own build called `build-logic` with its own build script and settings file:
 
 [source]
 ----
@@ -137,7 +143,7 @@ The plugin has now become its own project AND it is used as shared build logic:
     └── build.gradle.kts
 ----
 
-The root settings file now includes the separate build called `build-logic`:
+The root settings file includes the `build-logic` build:
 
 .settings.gradle.kts
 [source]
@@ -148,7 +154,7 @@ pluginManagement {
 include("mobile-app", "web-app", "api", "lib", "documentation")
 ----
 
-See how to declare <<multi_project_builds.adoc#sec:multibuild_buildSrc, dependencies between subprojects>> using `include` and how to <<composite_builds#defining_composite_builds,create composite builds>> with `includeBuild`.
+Consult how to <<composite_builds#defining_composite_builds,create composite builds>> with `includeBuild` to learn more.
 
 [[sec:project_path]]
 == Multi-Project path
