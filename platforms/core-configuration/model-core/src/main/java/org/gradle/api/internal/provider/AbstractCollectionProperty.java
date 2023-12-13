@@ -512,13 +512,18 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
         return new CollectionSupplierGuard<>(this, supplier);
     }
 
-    protected static final class CollectionSupplierGuard<T, C extends Collection<T>> implements CollectionSupplier<T, C>, GuardedData<CollectionSupplier<T, C>> {
+    protected static final class CollectionSupplierGuard<T, C extends Collection<T>> implements CollectionSupplier<T, C>, GuardedData<CollectionSupplier<T, C>>, GuardedValueSupplier {
         private final EvaluationContext.EvaluationOwner owner;
         private final CollectionSupplier<T, C> supplier;
 
         public CollectionSupplierGuard(EvaluationContext.EvaluationOwner owner, CollectionSupplier<T, C> supplier) {
             this.owner = owner;
             this.supplier = supplier;
+        }
+
+        @Override
+        public CollectionSupplierGuard<T, C> withOwner(EvaluationContext.EvaluationOwner newOwner) {
+            return new CollectionSupplierGuard<T, C>(newOwner, supplier);
         }
 
         @Override

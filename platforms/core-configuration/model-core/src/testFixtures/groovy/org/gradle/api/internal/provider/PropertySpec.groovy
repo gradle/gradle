@@ -2912,6 +2912,19 @@ The value of this provider is derived from:
         "value" | "getOrElse"
     }
 
+    def "update to itself does not trigger cycles"() {
+        def property = providerWithNoValue()
+
+        given:
+        property.set(someValue())
+
+        when:
+        property.update { it }
+
+        then:
+        property.get() == someValue()
+    }
+
     ModelObject owner() {
         return Stub(ModelObject)
     }
