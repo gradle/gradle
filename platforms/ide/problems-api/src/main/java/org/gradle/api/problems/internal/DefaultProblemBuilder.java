@@ -103,6 +103,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private Problem missingLabelProblem() {
         return invalidProblem("problem label must be specified", "missing-label");
     }
+
     private Problem missingCategoryProblem() {
         return invalidProblem("problem category must be specified", "missing-category");
     }
