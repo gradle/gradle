@@ -21,10 +21,13 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Matchers
 import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
 import spock.lang.Issue
+
+import static org.apache.commons.io.FilenameUtils.separatorsToUnix
 
 class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -2239,4 +2242,121 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         "rename(Transformer)"       | "rename(org.gradle.internal.Transformers.noOpTransformer())"
     }
 
+    // region duplicates in compressed files
+    def "encountering duplicates in a zipTree vs an unzipped dir with DuplicateStrategy.FAIL should give a clear error"() {
+        given: "a directory with a file"
+        TestFile unzippedDir = file("before/files")
+        unzippedDir.file("sub/c.txt").createFile()
+
+        and: "a zip file containing it"
+        TestFile zipFile = file("before/files.zip")
+        unzippedDir.zipTo(zipFile)
+
+        and: "a copy task that copies from both of these, failing on duplicates"
+        buildFile << """
+            task (copy, type: Copy) {
+                from '${separatorsToUnix(unzippedDir.path)}'
+                from zipTree('${separatorsToUnix(zipFile.path)}')
+                into 'after'
+                duplicatesStrategy = DuplicatesStrategy.FAIL
+            }
+        """
+
+        expect: "a failure"
+        fails 'copy'
+
+        and: "with a clear failure message"
+        failure.assertHasCause('Encountered duplicate path "sub/c.txt", extracted from "files.zip", during copy operation configured with DuplicatesStrategy.FAIL')
+        failure.assertHasDescription("Execution failed for task ':copy'.")
+    }
+
+    def "encountering duplicates in a zipTree vs another zipTree with DuplicateStrategy.FAIL should give a clear error"() {
+        given: "a directory with a file"
+        TestFile unzippedDir = file("before/files")
+        unzippedDir.file("sub/c.txt").createFile()
+
+        and: "a zip file containing it"
+        TestFile zipFile = file("before/files.zip")
+        unzippedDir.zipTo(zipFile)
+
+        and: "another zip file with the same contents"
+        TestFile zipFile2 = file("before/files2.zip")
+        unzippedDir.zipTo(zipFile2)
+
+        and: "a copy task that copies from both zip files, failing on duplicates"
+        buildFile << """
+            task (copy, type: Copy) {
+                from zipTree('${separatorsToUnix(zipFile.path)}')
+                from zipTree('${separatorsToUnix(zipFile2.path)}')
+                into 'after'
+                duplicatesStrategy = DuplicatesStrategy.FAIL
+            }
+        """
+
+        expect: "a failure"
+        fails 'copy'
+
+        and: "with a clear failure message"
+        failure.assertHasCause('Encountered duplicate path "sub/c.txt", extracted from "files2.zip", during copy operation configured with DuplicatesStrategy.FAIL')
+        failure.assertHasDescription("Execution failed for task ':copy'.")
+    }
+
+    def "encountering duplicates in a tarTree vs an uncompressed dir with DuplicateStrategy.FAIL should give a clear error"() {
+        given: "a directory with a file"
+        TestFile untarredDir = file("before/files")
+        untarredDir.file("sub/c.txt").createFile()
+
+        and: "a tar file containing it"
+        TestFile tarFile = file("before/files.tar")
+        untarredDir.tarTo(tarFile)
+
+        and: "a copy task that copies from both of these, failing on duplicates"
+        buildFile << """
+            task (copy, type: Copy) {
+                from '${separatorsToUnix(untarredDir.path)}'
+                from tarTree('${separatorsToUnix(tarFile.path)}')
+                into 'after'
+                duplicatesStrategy = DuplicatesStrategy.FAIL
+            }
+        """
+
+        expect: "a failure"
+        fails 'copy'
+
+        and: "with a clear failure message"
+        failure.assertHasCause('Encountered duplicate path "sub/c.txt", extracted from "files.tar", during copy operation configured with DuplicatesStrategy.FAIL')
+        failure.assertHasDescription("Execution failed for task ':copy'.")
+    }
+
+    def "encountering duplicates in a tarTree vs another tarTree with DuplicateStrategy.FAIL should give a clear error"() {
+        given: "a directory with a file"
+        TestFile untarredDir = file("before/files")
+        untarredDir.file("sub/c.txt").createFile()
+
+        and: "a tar file containing it"
+        TestFile tarFile = file("before/files.tar")
+        untarredDir.tarTo(tarFile)
+
+        and: "another tar file with the same contents"
+        TestFile tarFile2 = file("before/files2.tar")
+        untarredDir.tarTo(tarFile2)
+
+        and: "a copy task that copies from both tar files, failing on duplicates"
+        buildFile << """
+            task (copy, type: Copy) {
+                from tarTree('${separatorsToUnix(tarFile.path)}')
+                from tarTree('${separatorsToUnix(tarFile2.path)}')
+                into 'after'
+                duplicatesStrategy = DuplicatesStrategy.FAIL
+            }
+        """
+
+        expect: "a failure"
+        fails 'copy'
+
+        and: "with a clear failure message"
+        failure.assertHasCause('Encountered duplicate path "sub/c.txt", extracted from "files2.tar", during copy operation configured with DuplicatesStrategy.FAIL')
+        failure.assertHasDescription("Execution failed for task ':copy'.")
+    }
+    // endregion duplicates in compressed files
 }

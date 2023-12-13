@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file.copy;
 
+import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.file.DuplicateFileCopyingException;
 import org.gradle.api.file.DuplicatesStrategy;
@@ -55,15 +56,39 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
                     if (strategy == DuplicatesStrategy.EXCLUDE) {
                         return;
                     } else if (strategy == DuplicatesStrategy.FAIL) {
-                        throw new DuplicateFileCopyingException(String.format("Encountered duplicate path \"%s\" during copy operation configured with DuplicatesStrategy.FAIL", details.getRelativePath()));
+                        throw new DuplicateFileCopyingException(String.format("Encountered duplicate path %s during copy operation configured with DuplicatesStrategy.FAIL", explainDuplicateLocation(details)));
                     } else if (strategy == DuplicatesStrategy.WARN) {
-                        LOGGER.warn("Encountered duplicate path \"{}\" during copy operation configured with DuplicatesStrategy.WARN", details.getRelativePath());
+                        LOGGER.warn("Encountered duplicate path {} during copy operation configured with DuplicatesStrategy.WARN", explainDuplicateLocation(details));
                     }
                 }
             }
 
             action.processFile(details);
         }));
+    }
+
+    private String explainDuplicateLocation(FileCopyDetailsInternal copyDetails) {
+        if (copyDetails.isCompressedArchiveEntry()) {
+            return String.format("\"%s\", extracted from \"%s\",", copyDetails.getRelativePath(), extractCompressedFileName(copyDetails));
+        } else {
+            return String.format("\"%s\"", copyDetails.getRelativePath());
+        }
+    }
+
+    private String extractCompressedFileName(FileCopyDetailsInternal copyDetails) {
+        String displayName = FilenameUtils.separatorsToUnix(copyDetails.getDisplayName());
+        int exclamationIndex = displayName.indexOf("!");
+        if (exclamationIndex == -1) {
+            throw new IllegalStateException("Expected to find '!' in display name of compressed file entry: " + displayName);
+        }
+
+        String pathBeforeExclamation = displayName.substring(0, exclamationIndex);
+        int lastSlashIndex = pathBeforeExclamation.lastIndexOf("/");
+        if (lastSlashIndex == -1) {
+            throw new IllegalStateException("Expected to find '/' in display name of compressed file entry: " + displayName);
+        }
+
+        return pathBeforeExclamation.substring(lastSlashIndex + 1);
     }
 
     private void failWithIncorrectDuplicatesStrategySetup(RelativePath relativePath) {

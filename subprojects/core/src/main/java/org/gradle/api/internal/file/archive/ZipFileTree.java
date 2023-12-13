@@ -42,6 +42,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static java.lang.String.format;
 
 public class ZipFileTree extends AbstractArchiveFileTree {
+    private static final String ZIP_ENTRY_PREFIX = "zip entry";
+
     private final Provider<File> fileProvider;
     private final Chmod chmod;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
@@ -102,6 +104,8 @@ public class ZipFileTree extends AbstractArchiveFileTree {
                         visitor.visitFile(details);
                     }
                 }
+            } catch (GradleException e) {
+                throw e; // Gradle exceptions are already meant to be human-readable, so just rethrow it
             } catch (Exception e) {
                 throw new GradleException(format("Cannot expand %s.", getDisplayName()), e);
             }
@@ -143,7 +147,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
 
         @Override
         public String getDisplayName() {
-            return format("zip entry %s!%s", originalFile, entry.getName());
+            return format("%s %s!%s", ZIP_ENTRY_PREFIX, originalFile, entry.getName());
         }
 
         @Override
