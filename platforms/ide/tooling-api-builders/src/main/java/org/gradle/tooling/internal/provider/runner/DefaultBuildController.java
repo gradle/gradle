@@ -20,7 +20,6 @@ import org.gradle.api.BuildCancelledException;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.internal.Try;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildTreeModelController;
@@ -178,33 +177,5 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     public void sendIntermediate(Object model) {
         SerializedPayload serializedModel = payloadSerializer.serialize(model);
         buildEventConsumer.dispatch(new IntermediateModel(serializedModel));
-    }
-
-    private static class NestedAction<T> implements RunnableBuildOperation {
-        private final Supplier<T> action;
-        private Try<T> result;
-
-        public NestedAction(Supplier<T> action) {
-            this.action = action;
-        }
-
-        @Override
-        public void run(BuildOperationContext context) {
-            try {
-                T value = action.get();
-                result = Try.successful(value);
-            } catch (Throwable t) {
-                result = Try.failure(t);
-            }
-        }
-
-        public Try<T> value() {
-            return result;
-        }
-
-        @Override
-        public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Tooling API client action");
-        }
     }
 }

@@ -51,7 +51,7 @@ class DefaultBuildControllerTest extends Specification {
     def parameterCarrierFactory = Mock(ToolingModelParameterCarrier.Factory)
     def buildEventConsumer = Mock(BuildEventConsumer)
     def payloadSerializer = Mock(PayloadSerializer)
-    def controller = new DefaultBuildController(modelController, workerThreadRegistry, cancellationToken, buildStateRegistry, buildEventConsumer, payloadSerializer)
+    def controller = new DefaultBuildController(modelController, workerThreadRegistry, cancellationToken, buildStateRegistry, parameterCarrierFactory, buildEventConsumer, payloadSerializer)
 
     def "cannot get build model from unmanaged thread"() {
         given:

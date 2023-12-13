@@ -52,6 +52,6 @@ public class BuildControllerFactory {
     }
 
     public DefaultBuildController controllerFor(BuildTreeModelController controller) {
-        return new DefaultBuildController(controller, workerThreadRegistry, buildCancellationToken, buildStateRegistry, parameterCarrierFactory, buildEventConsumer);
+        return new DefaultBuildController(controller, workerThreadRegistry, buildCancellationToken, buildStateRegistry, parameterCarrierFactory, buildEventConsumer, payloadSerializer);
     }
 }
