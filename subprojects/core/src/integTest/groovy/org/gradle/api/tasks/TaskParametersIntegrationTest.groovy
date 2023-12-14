@@ -34,6 +34,10 @@ import spock.lang.Issue
 
 class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
+    def setup() {
+        enableProblemsApiCheck()
+    }
+
     def "reports which properties are not serializable"() {
         buildFile << """
             task foo {

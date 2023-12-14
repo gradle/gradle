@@ -24,6 +24,10 @@ import static org.hamcrest.CoreMatchers.containsString
 @UnsupportedWithConfigurationCache(because = "software model")
 class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec {
 
+    def setup() {
+        enableProblemsApiCheck()
+    }
+
     def "can reference input using dollar method expression - #syntax"() {
         when:
         buildScript """

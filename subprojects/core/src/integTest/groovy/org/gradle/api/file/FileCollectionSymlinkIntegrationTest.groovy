@@ -33,6 +33,7 @@ import static org.gradle.work.ChangeType.REMOVED
 class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
     def setup() {
         expectReindentedValidationMessage()
+        enableProblemsApiCheck()
     }
 
     def "#desc can handle symlinks"() {

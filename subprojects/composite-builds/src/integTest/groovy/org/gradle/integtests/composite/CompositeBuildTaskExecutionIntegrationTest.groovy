@@ -18,6 +18,10 @@ package org.gradle.integtests.composite
 
 class CompositeBuildTaskExecutionIntegrationTest extends AbstractCompositeBuildTaskExecutionIntegrationTest {
 
+    def setup() {
+        enableProblemsApiCheck()
+    }
+
     def "can run included root project task"() {
         setup:
         settingsFile << "includeBuild('other-build')"
