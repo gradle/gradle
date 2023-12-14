@@ -30,8 +30,9 @@ public class ConfigurationCacheStoreBuildOperationType implements BuildOperation
 
     public interface Result {
         /**
-         * The number of bytes of the loaded cache artifact if it was a hit.
-         * Else undetermined.
+         * The number of bytes of the loaded configuration cache entry.
+         *
+         * @since 8.6
          */
         long getCacheEntrySize();
     }
