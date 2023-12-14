@@ -103,7 +103,9 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     @Override
     public void report(Problem problem) {
         OperationIdentifier id = CurrentBuildOperationRef.instance().getId();
-        report(problem, id);
+        if (id != null) {
+            report(problem, id);
+        }
     }
 
     /**
@@ -116,8 +118,6 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      */
     @Override
     public void report(Problem problem, @Nullable OperationIdentifier id) {
-        if (id != null) {
-            emitter.emit(transformProblem(problem), id);
-        }
+        emitter.emit(transformProblem(problem), id);
     }
 }
