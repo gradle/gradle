@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider.runner
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.initialization.BuildEventConsumer
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
@@ -28,6 +29,7 @@ import org.gradle.tooling.internal.gradle.GradleBuildIdentity
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelIdentifier
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 import org.gradle.tooling.provider.model.UnknownModelException
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.tooling.provider.model.internal.ToolingModelScope
@@ -47,7 +49,9 @@ class DefaultBuildControllerTest extends Specification {
     def modelController = Mock(BuildTreeModelController)
     def workerThreadRegistry = Mock(WorkerThreadRegistry)
     def parameterCarrierFactory = Mock(ToolingModelParameterCarrier.Factory)
-    def controller = new DefaultBuildController(modelController, workerThreadRegistry, cancellationToken, buildStateRegistry, parameterCarrierFactory)
+    def buildEventConsumer = Mock(BuildEventConsumer)
+    def payloadSerializer = Mock(PayloadSerializer)
+    def controller = new DefaultBuildController(modelController, workerThreadRegistry, cancellationToken, buildStateRegistry, parameterCarrierFactory, buildEventConsumer, payloadSerializer)
 
     def "cannot get build model from unmanaged thread"() {
         given:

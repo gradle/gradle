@@ -136,13 +136,16 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         this.pom = objectFactory.newInstance(DefaultMavenPom.class, objectFactory);
         this.pom.getWriteGradleMetadataMarker().set(providerFactory.provider(this::writeGradleMetadataMarker));
         this.pom.getPackagingProperty().convention(providerFactory.provider(this::determinePackagingFromArtifacts));
-        this.pom.getDependencies().set(getComponent().map(component -> {
-            MavenComponentParser.ParsedDependencyResult result = mavenComponentParser.parseDependencies(component, versionMappingStrategy, getCoordinates());
-            if (!silenceAllPublicationWarnings) {
-                result.getWarnings().complete(getDisplayName() + " pom metadata", silencedVariants);
-            }
-            return result.getDependencies();
-        }));
+        this.pom.getDependencies().set(
+            getComponent()
+                .flatMap(component -> mavenComponentParser.parseDependencies(component, versionMappingStrategy, getCoordinates()))
+                .map(result -> {
+                    if (!silenceAllPublicationWarnings) {
+                        result.getWarnings().complete(getDisplayName() + " pom metadata", silencedVariants);
+                    }
+                    return result.getDependencies();
+                })
+        );
 
         Module module = dependencyMetaDataProvider.getModule();
         MavenPublicationCoordinates coordinates = pom.getCoordinates();

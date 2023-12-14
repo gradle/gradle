@@ -21,6 +21,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
+import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
@@ -78,9 +79,30 @@ public abstract class InitBuild extends DefaultTask {
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
 
     /**
-     * The desired type of project to generate, defaults to 'pom' if a 'pom.xml' is found in the project root and if no 'pom.xml' is found, it defaults to 'basic'.
+     * Should default values automatically be accepted for options that are not configured explicitly?
+     * <p>
+     * When true, the interactive dialog is skipped, and no user input is required to complete the command.
+     * <p>
+     * This property can be set via the command-line options '--use-defaults' and '--no-use-defaults'.
      *
+     * @since 8.6
+     */
+    @Incubating
+    @Input
+    @Optional
+    @Option(option = "use-defaults", description = "Use default values for options not configured explicitly")
+    public abstract Property<Boolean> getUseDefaults();
+
+    /**
+     * The desired type of project to generate like 'java-application' or 'kotlin-library'.
+     * <p>
      * This property can be set via command-line option '--type'.
+     * <p>
+     * Defaults to 'basic' - a minimal scaffolding, following Gradle best practices.
+     * If a `pom.xml` is found in the project root directory, the type defaults to 'pom'
+     * and the existing project is converted to Gradle.
+     * <p>
+     * Possible values for the option are provided by {@link #getAvailableBuildTypes()}.
      */
     @Input
     public String getType() {
@@ -210,7 +232,7 @@ public abstract class InitBuild extends DefaultTask {
 
     @TaskAction
     public void setupProjectLayout() {
-        UserInputHandler inputHandler = getServices().get(UserInputHandler.class);
+        UserInputHandler inputHandler = getEffectiveInputHandler();
         ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
 
         BuildInitializer initDescriptor = getBuildInitializer(inputHandler, projectLayoutRegistry);
@@ -247,6 +269,14 @@ public abstract class InitBuild extends DefaultTask {
 
         initDescriptor.getFurtherReading(settings)
             .ifPresent(link -> getLogger().lifecycle(link));
+    }
+
+    private UserInputHandler getEffectiveInputHandler() {
+        if (getUseDefaults().get()) {
+            return new NonInteractiveUserInputHandler();
+        }
+
+        return getUserInputHandler();
     }
 
     private static void validatePackageName(String packageName) {
@@ -476,4 +506,7 @@ public abstract class InitBuild extends DefaultTask {
 
     @Inject
     protected abstract ProviderFactory getProviderFactory();
+
+    @Inject
+    protected abstract UserInputHandler getUserInputHandler();
 }

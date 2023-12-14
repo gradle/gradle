@@ -129,8 +129,7 @@ class DefaultConfigurationCache internal constructor(
     override fun loadOrScheduleRequestedTasks(
         graph: BuildTreeWorkGraph,
         graphBuilder: BuildTreeWorkGraphBuilder?,
-        scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph,
-        isModelBuildingRequested: Boolean
+        scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph
     ): BuildTreeConfigurationCache.WorkGraphResult {
         return if (isLoaded) {
             val finalizedGraph = loadWorkGraph(graph, graphBuilder, false)
@@ -142,7 +141,7 @@ class DefaultConfigurationCache internal constructor(
         } else {
             runWorkThatContributesToCacheEntry {
                 val finalizedGraph = scheduler(graph)
-                saveWorkGraph(isModelBuildingRequested)
+                saveWorkGraph()
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
                     wasLoadedFromCache = false,
@@ -204,6 +203,7 @@ class DefaultConfigurationCache internal constructor(
             // Can reuse the cache entry for the rest of this build invocation
             cacheAction = ConfigurationCacheAction.LOAD
         }
+        scopeRegistryListener.dispose()
     }
 
     private
@@ -329,23 +329,19 @@ class DefaultConfigurationCache internal constructor(
     private
     fun saveModel(model: Any) {
         saveToCache(
-            stateType = StateType.Model,
-            action = { stateFile -> cacheIO.writeModelTo(model, stateFile) },
-            disposeResources = true
-        )
+            stateType = StateType.Model
+        ) { stateFile -> cacheIO.writeModelTo(model, stateFile) }
     }
 
     private
-    fun saveWorkGraph(isModelBuildingRequested: Boolean) {
+    fun saveWorkGraph() {
         saveToCache(
             stateType = StateType.Work,
-            action = { stateFile -> writeConfigurationCacheState(stateFile) },
-            disposeResources = !isModelBuildingRequested,
-        )
+        ) { stateFile -> writeConfigurationCacheState(stateFile) }
     }
 
     private
-    fun saveToCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> Unit, disposeResources: Boolean) {
+    fun saveToCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> Unit) {
 
         cacheEntryRequiresCommit = true
 
@@ -361,10 +357,6 @@ class DefaultConfigurationCache internal constructor(
                     // Invalidate state on serialization errors
                     problems.failingBuildDueToSerializationError()
                     throw error
-                } finally {
-                    if (disposeResources) {
-                        scopeRegistryListener.dispose()
-                    }
                 }
             }
         }

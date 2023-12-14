@@ -61,6 +61,7 @@ class InitBuildSpec extends Specification {
         buildConverter = Mock()
         init.projectLayoutRegistry = projectLayoutRegistry
         init.insecureProtocol.convention(InsecureProtocolOption.WARN)
+        init.useDefaults.convention(false)
     }
 
     def "creates project with all defaults"() {
