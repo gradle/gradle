@@ -86,7 +86,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
                         ),
                         buildOperationId),
                     new DefaultProblemDetails(
-                        toInternalCategory(problem.getProblemCategory()),
+                        toInternalCategory(problem.getCategory()),
                         toInternalLabel(problem.getLabel()),
                         toInternalDetails(problem.getDetails()),
                         toInternalSeverity(problem.getSeverity()),
@@ -102,7 +102,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
     }
 
     private static InternalProblemCategory toInternalCategory(ProblemCategory category) {
-        return new DefaultProblemCategory(category.getNamespace(), category.getCategory(), category.getSubCategories());
+        return new DefaultProblemCategory(category.getNamespace(), category.getCategory(), category.getSubcategories());
     }
 
     private static InternalLabel toInternalLabel(String label) {

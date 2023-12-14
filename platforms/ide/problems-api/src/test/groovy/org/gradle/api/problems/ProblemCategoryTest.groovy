@@ -29,7 +29,7 @@ class ProblemCategoryTest extends Specification {
         expect:
         pc.namespace == namespace
         pc.category == category
-        pc.subCategories == subcategory
+        pc.subcategories == subcategory
         pc.toString() == expectedToString
 
         where:

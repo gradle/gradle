@@ -30,6 +30,7 @@ import static org.junit.Assume.assumeNotNull
 class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegrationSpec {
 
     def setup() {
+        enableProblemsApiCheck()
         buildFile << """
             apply plugin: "java-gradle-plugin"
         """

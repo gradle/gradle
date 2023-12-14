@@ -58,7 +58,7 @@ class InjectedProblemsTransformerIntegrationTest extends AbstractIntegrationSpec
         then:
         collectedProblems.size() == 1
         def problem = collectedProblems[0]
-        def locations = (problem["locations"] as Collection)
+        def locations = (problem.details["locations"] as Collection)
         locations[0]["buildTreePath"] == ":reportProblem"
     }
 
@@ -118,7 +118,7 @@ class InjectedProblemsTransformerIntegrationTest extends AbstractIntegrationSpec
         then:
         collectedProblems.size() == 1
         def problem = collectedProblems[0]
-        def locations = (problem["locations"] as Collection)
+        def locations = (problem.details["locations"] as Collection)
         locations[0]["pluginId"] == "test.plugin"
     }
 }

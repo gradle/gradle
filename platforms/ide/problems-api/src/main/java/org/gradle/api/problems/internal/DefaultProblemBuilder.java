@@ -29,7 +29,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     private final String namespace;
     private String label;
-    private ProblemCategory problemCategory;
+    private ProblemCategory category;
     private Severity severity;
     private List<ProblemLocation> locations;
     private String details;
@@ -41,7 +41,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     public DefaultProblemBuilder(Problem problem) {
         this.label = problem.getLabel();
-        this.problemCategory = problem.getProblemCategory();
+        this.category = problem.getCategory();
         this.severity = problem.getSeverity();
         this.locations = new ArrayList<ProblemLocation>(problem.getLocations());
         this.details = problem.getDetails();
@@ -49,7 +49,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         this.solutions = new ArrayList<String>(problem.getSolutions());
         this.exception = problem.getException();
         this.additionalData = new HashMap<String, Object>(problem.getAdditionalData());
-        this.namespace = problem.getProblemCategory().getNamespace();
+        this.namespace = problem.getCategory().getNamespace();
     }
 
     public DefaultProblemBuilder(String namespace) {
@@ -66,7 +66,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         }
 
         // Description is mandatory
-        if (problemCategory == null) {
+        if (category == null) {
             return missingCategoryProblem();
         }
 
@@ -85,7 +85,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             details,
             solutions,
             DefaultProblemBuilder.this.getExceptionForProblemInstantiation(),
-            problemCategory,
+            category,
             additionalData
         );
     }
@@ -108,7 +108,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             null,
             null,
             getExceptionForProblemInstantiation(),
-            problemCategory,
+            category,
             Collections.<String, Object>emptyMap()
         );
     }
@@ -209,8 +209,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder category(String category, String... details) {
-        this.problemCategory = DefaultProblemCategory.create(namespace, category, details);
+    public InternalProblemBuilder category(String category, String... subcategories) {
+        this.category = DefaultProblemCategory.create(namespace, category, subcategories);
         return this;
     }
 

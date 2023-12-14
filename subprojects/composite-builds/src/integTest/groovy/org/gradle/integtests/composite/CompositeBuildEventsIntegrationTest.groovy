@@ -26,6 +26,8 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
     BuildTestFile buildC
 
     def setup() {
+        enableProblemsApiCheck()
+
         file('gradle-user-home/init.gradle') << """
             class Util {
                 static def unpack(Throwable t) {

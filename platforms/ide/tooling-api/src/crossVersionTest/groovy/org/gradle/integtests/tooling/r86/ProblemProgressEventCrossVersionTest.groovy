@@ -139,7 +139,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         problems.size() == 1
         problems[0].category.namespace == 'org.example.plugin'
         problems[0].category.category == 'main'
-        problems[0].category.subCategories == ['sub','id']
+        problems[0].category.subcategories == ['sub','id']
         ((DefaultProblemsOperationDescriptor)problems[0]).additionalData.asMap == ['aKey' : 'aValue']
         problems[0].label.label == 'shortProblemMessage'
         problems[0].details.details == expectedDetails

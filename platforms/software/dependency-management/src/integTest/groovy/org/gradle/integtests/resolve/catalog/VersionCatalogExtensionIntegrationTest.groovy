@@ -25,6 +25,10 @@ import spock.lang.Issue
 
 class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport, VersionCatalogErrorMessages {
 
+    def setup() {
+        enableProblemsApiCheck()
+    }
+
     def "dependencies declared in settings trigger the creation of an extension (notation=#notation)"() {
         settingsFile << """
             dependencyResolutionManagement {

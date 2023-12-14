@@ -36,7 +36,7 @@ public class DefaultProblem implements InternalProblem, Serializable {
     private final String description;
     private final List<String> solutions;
     private final RuntimeException cause;
-    private final ProblemCategory problemCategory;
+    private final ProblemCategory category;
     private final Map<String, Object> additionalData;
 
     protected DefaultProblem(
@@ -47,7 +47,7 @@ public class DefaultProblem implements InternalProblem, Serializable {
         @Nullable String description,
         @Nullable List<String> solutions,
         @Nullable RuntimeException cause,
-        ProblemCategory problemCategory,
+        ProblemCategory category,
         Map<String, Object> additionalData
     ) {
         this.label = label;
@@ -57,7 +57,7 @@ public class DefaultProblem implements InternalProblem, Serializable {
         this.description = description;
         this.solutions = solutions == null ? ImmutableList.<String>of() : ImmutableList.copyOf(solutions);
         this.cause = cause;
-        this.problemCategory = problemCategory;
+        this.category = category;
         this.additionalData = ImmutableMap.copyOf(additionalData);
     }
 
@@ -98,8 +98,8 @@ public class DefaultProblem implements InternalProblem, Serializable {
     }
 
     @Override
-    public ProblemCategory getProblemCategory() {
-        return problemCategory;
+    public ProblemCategory getCategory() {
+        return category;
     }
 
     @Override
@@ -132,7 +132,7 @@ public class DefaultProblem implements InternalProblem, Serializable {
         return equals(label, that.label) &&
             severity == that.severity &&
             equals(locations, that.locations) &&
-            equals(problemCategory, that.problemCategory) &&
+            equals(category, that.category) &&
             equals(documentationLink, that.documentationLink) &&
             equals(description, that.description) &&
             equals(solutions, that.solutions) &&

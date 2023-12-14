@@ -35,6 +35,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         executer.beforeExecute {
             withStacktraceEnabled()
         }
+        enableProblemsApiCheck()
     }
 
     def "reports task action execution fails with error"() {

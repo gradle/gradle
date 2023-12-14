@@ -29,6 +29,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
     def setup() {
         expectReindentedValidationMessage()
+        enableProblemsApiCheck()
     }
 
     def "nested #type.simpleName input adds a task dependency"() {

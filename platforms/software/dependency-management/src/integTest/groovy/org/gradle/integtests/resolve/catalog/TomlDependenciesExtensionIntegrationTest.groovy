@@ -31,6 +31,10 @@ import spock.lang.Issue
 
 class TomlDependenciesExtensionIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport, VersionCatalogErrorMessages {
 
+    def setup() {
+        enableProblemsApiCheck()
+    }
+
     @Rule
     final MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 

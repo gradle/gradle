@@ -51,7 +51,7 @@ public interface InternalProblemSpec extends ProblemSpec {
     InternalProblemSpec label(String label);
 
     @Override
-    InternalProblemSpec category(String category, String... details);
+    InternalProblemSpec category(String category, String... subcategories);
 
     @Override
     InternalProblemSpec documentedAt(String url);

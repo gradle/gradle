@@ -155,9 +155,9 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def assertProblem(Map<String, Object> problem, List<String> possibleFiles, String severity) {
-        assert problem["severity"] == severity
+        assert problem.details["severity"] == severity
 
-        def locations = problem["locations"] as List<Map<String, Object>>
+        def locations = problem.details["locations"] as List<Map<String, Object>>
         assert locations.size() == 2
 
         def taskLocation = locations.find {

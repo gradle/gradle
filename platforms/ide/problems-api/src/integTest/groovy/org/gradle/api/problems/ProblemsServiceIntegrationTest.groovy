@@ -62,7 +62,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         collectedProblem['label'] == 'problem label must be specified'
-        collectedProblem['problemCategory'] == [namespace: 'org.example.plugin', category: 'validation', subCategories: ['problems-api', 'missing-label']]
+        collectedProblem['category'] == [namespace: 'org.example.plugin', category: 'validation', subcategories: ['problems-api', 'missing-label']]
         collectedProblem['locations'] == [[length: -1, column: -1, line: 12, path: "build file '$buildFile.absolutePath'"], [buildTreePath: ':reportProblem']]
     }
 
@@ -79,7 +79,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         collectedProblem['label'] == 'problem category must be specified'
-        collectedProblem['problemCategory'] == [namespace: 'org.example.plugin', category: 'validation', subCategories: ['problems-api', 'missing-category']]
+        collectedProblem['category'] == [namespace: 'org.example.plugin', category: 'validation', subcategories: ['problems-api', 'missing-category']]
         collectedProblem['locations'] == [[length: -1, column: -1, line: 12, path: "build file '$buildFile.absolutePath'"], [buildTreePath: ':reportProblem']]
     }
 
@@ -98,7 +98,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         collectedProblem['label'] == 'label'
-        collectedProblem['problemCategory'] == [namespace: 'org.example.plugin', category: 'type', subCategories: []]
+        collectedProblem['category'] == [namespace: 'org.example.plugin', category: 'type', subcategories: []]
         collectedProblem['locations'] == [[buildTreePath: ':reportProblem']]
     }
 
@@ -117,7 +117,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         collectedProblem['label'] == 'label'
-        collectedProblem['problemCategory'] == [namespace: 'org.example.plugin', category: 'type', subCategories: []]
+        collectedProblem['category'] == [namespace: 'org.example.plugin', category: 'type', subcategories: []]
         collectedProblem['locations'] == [[length: -1, column: -1, line: 12, path: "build file '$buildFile.absolutePath'"], [buildTreePath: ':reportProblem']]
     }
 
@@ -276,7 +276,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         collectedProblem['label'] == 'ProblemBuilder.additionalData() supports values of type String, but java.util.ArrayList as given.'
-        collectedProblem['problemCategory'] == [namespace: 'org.example.plugin', category: 'validation', subCategories: ['problems-api', 'invalid-additional-data']]
+        collectedProblem['category'] == [namespace: 'org.example.plugin', category: 'validation', subcategories: ['problems-api', 'invalid-additional-data']]
         collectedProblem['locations'] == [[length: -1, column: -1, line: 12, path: "build file '$buildFile.absolutePath'"], [buildTreePath: ':reportProblem']]
     }
 
@@ -334,8 +334,9 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         fails('reportProblem')
 
         then:
-        this.collectedProblems.size() == 2
-        this.collectedProblems[0]["label"] == "inner"
-        this.collectedProblems[1]["label"] == "outer"
+        def problems = this.collectedProblems
+        problems.size() == 2
+        problems[0].details["label"] == "inner"
+        problems[1].details["label"] == "outer"
     }
 }

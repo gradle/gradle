@@ -34,7 +34,7 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
     InternalProblemBuilder label(String label);
 
     @Override
-    InternalProblemBuilder category(String category, String... details);
+    InternalProblemBuilder category(String category, String... subcategories);
 
     @Override
     InternalProblemBuilder documentedAt(DocLink doc);

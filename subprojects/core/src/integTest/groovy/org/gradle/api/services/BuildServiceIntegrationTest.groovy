@@ -51,6 +51,10 @@ import static org.hamcrest.CoreMatchers.containsString
 
 class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        enableProblemsApiCheck()
+    }
+
     def "does not nag when service is used by task without a corresponding usesService call and feature preview is NOT enabled"() {
         given:
         serviceImplementation()

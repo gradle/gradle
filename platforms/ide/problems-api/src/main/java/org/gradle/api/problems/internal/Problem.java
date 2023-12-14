@@ -31,7 +31,7 @@ public interface Problem {
      *
      * @return the problem category.
      */
-    ProblemCategory getProblemCategory();
+    ProblemCategory getCategory();
 
     /**
      * The label of the problem.

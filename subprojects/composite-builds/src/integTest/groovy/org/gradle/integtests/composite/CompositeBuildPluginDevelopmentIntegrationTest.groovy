@@ -30,6 +30,8 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
     BuildTestFile pluginDependencyA
 
     def setup() {
+        enableProblemsApiCheck()
+
         pluginDependencyA = singleProjectBuild("pluginDependencyA") {
             buildFile << """
                 apply plugin: 'java-library'
