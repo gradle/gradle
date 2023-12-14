@@ -26,7 +26,7 @@ import java.util.List;
 @ServiceScope(Scopes.BuildTree.class)
 public class DefaultProblems implements InternalProblems {
 
-    private ProblemEmitter emitter;
+    private final ProblemEmitter emitter;
     private final List<ProblemTransformer> transformers;
     private final InternalProblemReporter internalReporter;
 
@@ -38,10 +38,6 @@ public class DefaultProblems implements InternalProblems {
         this.emitter = emitter;
         this.transformers = transformers;
         internalReporter = createReporter(DefaultProblemCategory.GRADLE_CORE_NAMESPACE, emitter, transformers);
-    }
-
-    public void setEmitter(ProblemEmitter emitter) {
-        this.emitter = emitter;
     }
 
     @Override

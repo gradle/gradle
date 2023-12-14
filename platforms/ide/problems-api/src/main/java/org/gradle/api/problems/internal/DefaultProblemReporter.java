@@ -40,7 +40,6 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     public void reporting(Action<ProblemSpec> spec) {
         DefaultProblemBuilder problemBuilder = createProblemBuilder();
         spec.execute(problemBuilder);
-        // TODO (donat) instead of blowing up on misconfigured instances: https://github.com/gradle/gradle/issues/27353
         report(problemBuilder.build());
     }
 
@@ -50,7 +49,6 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         spec.execute(problemBuilder);
         Problem problem = problemBuilder.build();
         RuntimeException exception = problem.getException();
-        // TODO (donat) instead of blowing up on misconfigured instances: https://github.com/gradle/gradle/issues/27353
         if (exception == null) {
             throw new IllegalStateException("Exception must be non-null");
         } else {
