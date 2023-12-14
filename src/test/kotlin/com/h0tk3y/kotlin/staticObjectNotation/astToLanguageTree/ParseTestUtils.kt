@@ -11,6 +11,12 @@ class ParseTestUtil {
             return DefaultLanguageTreeBuilder().build(ast, SourceIdentifier("test")).results
         }
 
+        /*internal fun parseWithTopLevelBlock(@Language("kts") code: String): List<ElementResult<*>> {
+            val ast = parseToAst(code)
+            val defaultLanguageTreeBuilder = LanguageTreeBuilderWithTopLevelBlock(DefaultLanguageTreeBuilder())
+            return ast.flatMap { defaultLanguageTreeBuilder.build(ast, SourceIdentifier("test")).results }
+        }*/
+
         fun parseWithLightParser(@Language("kts") code: String): List<ElementResult<*>> {
             val tree = parseToLightTree(code)
             return DefaultLanguageTreeBuilder().build(tree, SourceIdentifier("test")).results
