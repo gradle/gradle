@@ -101,16 +101,18 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
                 })
                 .orElseGet(() -> executeAndStoreInCache(cacheableWork, cacheKey, context))
             )
-            .getOrMapFailure(loadFailure -> {
-                throw new RuntimeException(
+            .getOrMapFailure(loadFailure -> new AfterExecutionResult(
+                Duration.ZERO,
+                Try.failure(new RuntimeException(
                     String.format("Failed to load cache entry %s for %s: %s",
                         cacheKey.getHashCode(),
                         work.getDisplayName(),
                         loadFailure.getMessage()
                     ),
                     loadFailure
-                );
-            });
+                )),
+                null
+            ));
     }
 
     private Optional<BuildCacheLoadResult> tryLoadingFromCache(BuildCacheKey cacheKey, CacheableWork cacheableWork) {
