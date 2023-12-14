@@ -1,2 +1,2 @@
-rootProject.name = "basic-multiproject"
+rootProject.name = "my-gradle-project"
 include("app")

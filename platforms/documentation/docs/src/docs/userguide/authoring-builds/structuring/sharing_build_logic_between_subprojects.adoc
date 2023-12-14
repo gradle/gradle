@@ -17,9 +17,11 @@
 
 Subprojects in a multi-project build typically share some common _traits_.
 
-For example, several subprojects may contain _code_ in a particular programming language, while another subproject may be
-dedicated to _documentation_.
+image::structuring-builds-3.png[]
+
+For example, several subprojects may contain _code_ in a particular programming language, while another subproject may be dedicated to _documentation_.
 Code quality rules apply to all the _code_ subprojects but not the _documentation_ subproject.
+
 While the subprojects may share common _traits_, they serve different purposes.
 They produce different _artifact types_, for example:
 
@@ -38,7 +40,7 @@ In other words, a subproject's _type_ tells us what _traits_ the subproject has.
 
 Gradle's recommended way of organizing build logic is to use its plugin system.
 
-A plugin should define the _type_ of a subproject.
+A plugin should define the _type_ of subproject.
 
 In fact, <<plugin_reference#plugin_reference,Gradle core plugins>> are modeled the same way:
 
@@ -48,26 +50,91 @@ In fact, <<plugin_reference#plugin_reference,Gradle core plugins>> are modeled t
 
 You can compose custom build logic by applying and configuring both core and external plugins.
 You can create custom plugins that define new project _types_ and configure conventions specific to your project or organization.
-For each example _trait_ above, we can write a plugin that encapsulates the logic common to the subproject of a given _type_.
+
+For each example _trait_ above, we can write a plugin that encapsulates the logic common to the subproject of a given _type_:
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+.
+├── buildSrc
+│   ├── src
+│   │   └──main
+│   │      └──kotlin
+│   │         └──myproject.java-conventions.gradle      // <1>
+│   └── build.gradle.kts
+├── api
+│   ├── src
+│   │   └──...
+│   └── build.gradle.kts                                // <2>
+├── services
+│   └── person-service
+│       ├── src
+│       │   └──...
+│       └── build.gradle.kts                            // <2>
+├── shared
+│   ├── src
+│   │   └──...
+│   └── build.gradle.kts                                // <2>
+└── settings.gradle.kts
+----
+<1> Create the `myproject.java-conventions` convention plugin.
+<2> Applies the `myproject.java-conventions` convention plugin.
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── buildSrc
+│   ├── src
+│   │   └──main
+│   │      └──kotlin
+│   │         └──myproject.java-conventions.gradle.kts  // <1>
+│   └── build.gradle
+├── api
+│   ├── src
+│   │   └──...
+│   └── build.gradle                                    // <2>
+├── services
+│   └── person-service
+│       ├── src
+│       │   └──...
+│       └── build.gradle                                // <2>
+├── shared
+│   ├── src
+│   │   └──...
+│   └── build.gradle                                    // <2>
+└── settings.gradle
+----
+<1> Create the `myproject.java-conventions` convention plugin.
+<2> Applies the `myproject.java-conventions` convention plugin.
+=====
 
 [[sec:using_buildsrc]]
 == Share logic in `buildSrc`
 
-We recommend putting source code and tests for the convention plugins in the `buildSrc` directory in the project's root.
-For more information about `buildSrc`, consult <<organizing_gradle_projects.adoc#sec:build_sources,Using `buildSrc` to organize build logic>>.
+We recommend putting source code and tests for the convention plugins in the `buildSrc` directory in the project's root:
+
+====
+include::sample[dir="snippets/multiproject/dependencies-java/kotlin",files="settings.gradle.kts[];buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[];api/build.gradle.kts[];shared/build.gradle.kts[];services/person-service/build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies-java/groovy",files="settings.gradle[];buildSrc/src/main/groovy/myproject.java-conventions.gradle[];api/build.gradle[];shared/build.gradle[];services/person-service/build.gradle[]"]
+====
+
+Consult <<multi_project_builds.adoc#sec:multiproject_buildsrc,Using `buildSrc` for build logic>> to learn more.
 
 [[sec:convention_plugins_vs_cross_configuration]]
 == Do not use cross-project configuration
 
-An improper way to share build logic between subprojects is _cross-project configuration_ via the `subprojects {}` and `allprojects {}` DSL constructs.
+An improper way to share build logic between subprojects is _cross-project configuration_ via the link:{javadocPath}//org/gradle/api/Project.html#subprojects-groovy.lang.Closure-[`subprojects {}`] and link:{javadocPath}/org/gradle/api/Project.html#allprojects-groovy.lang.Closure-[`allprojects {}`] DSL constructs.
 
 TIP:  Avoid using `subprojects {}` and `allprojects {}`.
 
-With cross-configuration, build logic can be injected into a subproject, and this is not obvious when looking at the subproject's
-build script, making it harder to understand the logic of a particular subproject.
+With cross-configuration, build logic can be injected into a subproject, and this is not obvious when looking at the subproject's build script, making it harder to understand the logic of a particular subproject.
 In the long run, cross-configuration usually grows in complexity and becomes a burden.
-Cross configuration can also introduce <<multi_project_configuration_and_execution#sec:decoupled_projects,configuration-time coupling between projects>>, which can prevent optimizations like
-<<multi_project_configuration_and_execution#sec:configuration_on_demand,configuration-on-demand>> from working properly.
+Cross configuration can also introduce <<structuring_software_products_details.adoc#sec:decoupled_projects,configuration-time coupling between projects>>, which can prevent optimizations like
+<<structuring_software_products_details.adoc#sec:configuration_on_demand,configuration-on-demand>> from working properly.
 
 === Convention plugins versus cross-configuration
 
