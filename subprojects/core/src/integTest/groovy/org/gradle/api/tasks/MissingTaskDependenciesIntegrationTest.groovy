@@ -25,10 +25,6 @@ import spock.lang.Issue
 
 class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
-    def setup() {
-        enableProblemsApiCheck()
-    }
-
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 

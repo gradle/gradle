@@ -25,7 +25,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
     def setup() {
         expectReindentedValidationMessage()
-        enableProblemsApiCheck()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13333")

@@ -785,6 +785,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
     }
 
     def "libraries extension is not visible in buildSrc"() {
+        disableProblemsApiCheck()
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
@@ -2244,6 +2245,7 @@ Second: 1.1"""
 
     @Issue("https://github.com/gradle/gradle/issues/17874")
     def "doesn't support rich versions from version catalogs in force method of resolutionStrategy"() {
+        disableProblemsApiCheck()
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
@@ -2278,6 +2280,8 @@ Second: 1.1"""
 
     @Issue("https://github.com/gradle/gradle/issues/17874")
     def "fails if plugin, version or bundle is used in force of resolution strategy"() {
+        disableProblemsApiCheck()
+
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
