@@ -94,7 +94,7 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
         }
 
         // Ensure unique module names for dependencies substituted from included builds
-        applyIdeaProjectToBuildTree(root);
+        applyIdeaPluginToBuildTree(root);
 
         return buildRoot(root, parameter);
     }
@@ -109,7 +109,7 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
         ).get(0);
     }
 
-    private void applyIdeaProjectToBuildTree(Project root) {
+    private void applyIdeaPluginToBuildTree(Project root) {
         applyIdeaPluginToBuildTree((ProjectInternal) root, new ArrayList<>());
     }
 
