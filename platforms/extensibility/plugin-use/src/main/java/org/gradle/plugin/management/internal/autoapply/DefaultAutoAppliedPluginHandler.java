@@ -25,6 +25,7 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.plugins.PluginContainer;
+import org.gradle.plugin.management.internal.PluginCoordinates;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 
@@ -67,18 +68,25 @@ public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler
     }
 
     private static PluginRequests filterAlreadyAppliedOrRequested(PluginRequests autoAppliedPlugins, final PluginRequests initialRequests, final PluginContainer pluginContainer, final ScriptHandler scriptHandler) {
-        return PluginRequests.of(ImmutableList.copyOf(StreamSupport.stream(autoAppliedPlugins.spliterator(), false).filter(autoAppliedPlugin -> !isAlreadyAppliedOrRequested(autoAppliedPlugin, initialRequests, pluginContainer, scriptHandler)).collect(Collectors.toList())));
+        return PluginRequests.of(ImmutableList.copyOf(StreamSupport.stream(autoAppliedPlugins.spliterator(), false)
+            .filter(autoAppliedPlugin -> !isAlreadyAppliedOrRequested(PluginCoordinates.from(autoAppliedPlugin), initialRequests, pluginContainer, scriptHandler))
+            .filter(autoAppliedPlugin -> autoAppliedPlugin.getAlternativeCoordinates()
+                .map(it -> !isAlreadyAppliedOrRequested(it, initialRequests, pluginContainer, scriptHandler))
+                .orElse(true)
+            )
+            .collect(Collectors.toList())
+        ));
     }
 
-    private static boolean isAlreadyAppliedOrRequested(PluginRequestInternal autoAppliedPlugin, PluginRequests requests, PluginContainer pluginContainer, ScriptHandler scriptHandler) {
+    private static boolean isAlreadyAppliedOrRequested(PluginCoordinates autoAppliedPlugin, PluginRequests requests, PluginContainer pluginContainer, ScriptHandler scriptHandler) {
         return isAlreadyApplied(autoAppliedPlugin, pluginContainer) || isAlreadyRequestedInPluginsBlock(autoAppliedPlugin, requests) || isAlreadyRequestedInBuildScriptBlock(autoAppliedPlugin, scriptHandler);
     }
 
-    private static boolean isAlreadyApplied(PluginRequestInternal autoAppliedPlugin, PluginContainer pluginContainer) {
+    private static boolean isAlreadyApplied(PluginCoordinates autoAppliedPlugin, PluginContainer pluginContainer) {
         return pluginContainer.hasPlugin(autoAppliedPlugin.getId().getId());
     }
 
-    private static boolean isAlreadyRequestedInPluginsBlock(PluginRequestInternal autoAppliedPlugin, PluginRequests requests) {
+    private static boolean isAlreadyRequestedInPluginsBlock(PluginCoordinates autoAppliedPlugin, PluginRequests requests) {
         for (PluginRequestInternal request : requests) {
             if (autoAppliedPlugin.getId().equals(request.getId())) {
                 return true;
@@ -87,7 +95,7 @@ public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler
         return false;
     }
 
-    private static boolean isAlreadyRequestedInBuildScriptBlock(PluginRequestInternal autoAppliedPlugin, ScriptHandler scriptHandler) {
+    private static boolean isAlreadyRequestedInBuildScriptBlock(PluginCoordinates autoAppliedPlugin, ScriptHandler scriptHandler) {
         String pluginId = autoAppliedPlugin.getId().getId();
         ModuleIdentifier pluginMarker = DefaultModuleIdentifier.newId(pluginId, pluginId + PLUGIN_MARKER_SUFFIX);
         Predicate<Dependency> predicate = dependency -> hasMatchingCoordinates(dependency, pluginMarker);
@@ -104,4 +112,5 @@ public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler
     private static boolean hasMatchingCoordinates(Dependency dependency, ModuleIdentifier module) {
         return module.getGroup().equals(dependency.getGroup()) && module.getName().equals(dependency.getName());
     }
+
 }

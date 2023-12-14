@@ -18,6 +18,8 @@ package org.gradle.plugin.management.internal;
 
 import org.gradle.plugin.management.PluginRequest;
 
+import java.util.Optional;
+
 public interface PluginRequestInternal extends PluginRequest {
 
     boolean isApply();
@@ -31,6 +33,8 @@ public interface PluginRequestInternal extends PluginRequest {
     PluginRequest getOriginalRequest();
 
     Origin getOrigin();
+
+    Optional<PluginCoordinates> getAlternativeCoordinates();
 
     enum Origin {
         AUTO_APPLIED,
