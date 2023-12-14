@@ -21,32 +21,42 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.CallableBuildOperation
+import org.gradle.internal.operations.RunnableBuildOperation
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import java.util.UUID
 
 
 class ConfigurationCacheBuildOperationsTest {
+    @JvmField
+    @Rule
+    val testDirectoryProvider = TestNameTestDirectoryProvider(javaClass)
+
     @Test
     fun `sets progress display name on store`() {
         // given:
         val buildOperationExecutor = mock<BuildOperationExecutor> {
             on { call<Unit>(any()) } doReturn Unit
         }
+        val stateFile = testDirectoryProvider.file("stateFile")
 
         // when:
         buildOperationExecutor.withStoreOperation("key") {
+            StoreResult(stateFile)
         }
 
         // then:
-        val callableBuildOperation = ArgumentCaptor.forClass(CallableBuildOperation::class.java)
-        verify(buildOperationExecutor).call(callableBuildOperation.capture())
+        val runnableBuildOperation = ArgumentCaptor.forClass(RunnableBuildOperation::class.java)
+        verify(buildOperationExecutor).run(runnableBuildOperation.capture())
 
         // and:
         assertThat(
-            callableBuildOperation.value.description().build().progressDisplayName,
+            runnableBuildOperation.value.description().build().progressDisplayName,
             equalTo("Storing configuration cache state")
         )
     }
@@ -57,9 +67,12 @@ class ConfigurationCacheBuildOperationsTest {
         val buildOperationExecutor = mock<BuildOperationExecutor> {
             on { call<Unit>(any()) } doReturn Unit
         }
+        val stateFile = testDirectoryProvider.file("stateFile")
+        stateFile.text = "CC content"
 
         // when:
-        buildOperationExecutor.withLoadOperation() {
+        buildOperationExecutor.withLoadOperation {
+            LoadResult(stateFile, UUID.randomUUID().toString()) to Unit
         }
 
         // then:
