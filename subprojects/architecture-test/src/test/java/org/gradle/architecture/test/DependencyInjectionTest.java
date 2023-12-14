@@ -31,7 +31,7 @@ import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 @AnalyzeClasses(packages = "org.gradle")
 public class DependencyInjectionTest {
 
-    private static final DescribedPredicate<JavaClass> is_injected_by_getter = new DescribedPredicate<JavaClass>("is injected by a getter marked with @Inject") {
+    private static final DescribedPredicate<JavaClass> is_injected_by_getter = new DescribedPredicate<JavaClass>("are injected into getters via @Inject") {
         @Override
         public boolean test(JavaClass javaClass) {
             return javaClass
@@ -41,7 +41,7 @@ public class DependencyInjectionTest {
         }
     };
 
-    private static final DescribedPredicate<JavaClass> is_injected_by_constructor = new DescribedPredicate<JavaClass>("is injected by a constructor marked with @Inject") {
+    private static final DescribedPredicate<JavaClass> is_injected_by_constructor = new DescribedPredicate<JavaClass>("are injected into constructors via @Inject") {
         @Override
         public boolean test(JavaClass javaClass) {
             return javaClass
