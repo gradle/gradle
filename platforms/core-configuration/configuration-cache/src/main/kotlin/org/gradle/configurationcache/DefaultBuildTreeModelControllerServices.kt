@@ -191,7 +191,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         fun createToolingModelParameterCarrierFactory(valueSnapshotter: ValueSnapshotter): ToolingModelParameterCarrier.Factory {
             return DefaultToolingModelParameterCarrierFactory(valueSnapshotter)
         }
-
     }
 
     private
