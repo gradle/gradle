@@ -49,10 +49,8 @@ public class DefaultCachingStateFactory implements CachingStateFactory {
 
         beforeExecutionState.getInputProperties().forEach((propertyName, valueSnapshot) -> {
             if (logger.isWarnEnabled()) {
-                Hasher valueHasher = Hashing.newHasher();
-                valueSnapshot.appendToHasher(valueHasher);
                 logger.warn("Appending input value fingerprint for '{}' to build cache key: {}",
-                    propertyName, valueHasher.hash());
+                    propertyName, Hashing.hashHashable(valueSnapshot));
             }
             cacheKeyHasher.putString(propertyName);
             valueSnapshot.appendToHasher(cacheKeyHasher);
