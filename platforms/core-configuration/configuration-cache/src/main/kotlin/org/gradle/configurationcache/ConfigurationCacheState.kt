@@ -78,6 +78,7 @@ import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.file.FileSystemDefaultExcludesProvider
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.util.Path
 import org.gradle.vcs.internal.VcsMappingsStore
@@ -142,17 +143,20 @@ class ConfigurationCacheState(
      * Writes the state for the whole build starting from the given root [build] and returns the set
      * of stored included build directories.
      */
-    suspend fun DefaultWriteContext.writeRootBuildState(build: VintageGradleBuild) =
+    suspend fun DefaultWriteContext.writeRootBuildState(build: VintageGradleBuild) {
+        writeBuildInvocationId()
         writeRootBuild(build).also {
             writeInt(0x1ecac8e)
         }
+    }
 
     suspend fun DefaultReadContext.readRootBuildState(
         graph: BuildTreeWorkGraph,
         graphBuilder: BuildTreeWorkGraphBuilder?,
         loadAfterStore: Boolean
-    ): BuildTreeWorkGraph.FinalizedGraph {
+    ): Pair<String, BuildTreeWorkGraph.FinalizedGraph> {
 
+        val originBuildInvocationId = readBuildInvocationId()
         val builds = readRootBuild()
         require(readInt() == 0x1ecac8e) {
             "corrupt state file"
@@ -162,8 +166,17 @@ class ConfigurationCacheState(
                 identifyBuild(build)
             }
         }
-        return calculateRootTaskGraph(builds, graph, graphBuilder)
+        return originBuildInvocationId to calculateRootTaskGraph(builds, graph, graphBuilder)
     }
+
+    private
+    fun DefaultWriteContext.writeBuildInvocationId() {
+        writeString(host.service<BuildInvocationScopeId>().id.asString())
+    }
+
+    private
+    fun DefaultReadContext.readBuildInvocationId(): String =
+        readString()
 
     private
     fun identifyBuild(state: CachedBuildState) {

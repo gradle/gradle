@@ -369,19 +369,20 @@ class DefaultConfigurationCache internal constructor(
     private
     fun loadModel(): Any {
         return loadFromCache(StateType.Model) { stateFile ->
-            cacheIO.readModelFrom(stateFile)
+            LoadResult(originInvocationId = null) to cacheIO.readModelFrom(stateFile)
         }
     }
 
     private
     fun loadWorkGraph(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?, loadAfterStore: Boolean): BuildTreeWorkGraph.FinalizedGraph {
         return loadFromCache(StateType.Work) { stateFile ->
-            cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder)
+            val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder)
+            LoadResult(buildInvocationId) to workGraph
         }
     }
 
     private
-    fun <T : Any> loadFromCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T {
+    fun <T : Any> loadFromCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> Pair<LoadResult, T>): T {
         prepareConfigurationTimeBarrier()
 
         // No need to record the `ClassLoaderScope` tree

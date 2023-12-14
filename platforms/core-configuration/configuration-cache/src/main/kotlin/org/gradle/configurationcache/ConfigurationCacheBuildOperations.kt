@@ -27,8 +27,19 @@ import java.io.File
 
 
 internal
-fun <T : Any> BuildOperationExecutor.withLoadOperation(block: () -> T) =
-    withOperation("Load configuration cache state", "Loading configuration cache state", block, LoadDetails, LoadResult)
+fun <T : Any> BuildOperationExecutor.withLoadOperation(block: () -> Pair<LoadResult, T>) =
+    call(object : CallableBuildOperation<T> {
+        override fun description(): BuildOperationDescriptor.Builder = BuildOperationDescriptor
+            .displayName("Load configuration cache state")
+            .progressDisplayName("Loading configuration cache state")
+            .details(LoadDetails)
+
+        override fun call(context: BuildOperationContext): T =
+            block().let { (opResult, returnValue) ->
+                context.setResult(opResult)
+                returnValue
+            }
+    })
 
 
 internal
@@ -49,8 +60,10 @@ private
 object LoadDetails : ConfigurationCacheLoadBuildOperationType.Details
 
 
-private
-object LoadResult : ConfigurationCacheLoadBuildOperationType.Result
+internal
+data class LoadResult(val originInvocationId: String?) : ConfigurationCacheLoadBuildOperationType.Result {
+    override fun getOriginBuildInvocationId(): String? = originInvocationId
+}
 
 
 private
@@ -61,14 +74,3 @@ internal
 data class StoreResult(val stateFile: File) : ConfigurationCacheStoreBuildOperationType.Result {
     override fun getCacheEntrySize(): Long = stateFile.length()
 }
-
-
-private
-fun <T : Any, D : Any, R : Any> BuildOperationExecutor.withOperation(displayName: String, progressDisplayName: String, block: () -> T, details: D, result: R): T =
-    call(object : CallableBuildOperation<T> {
-        override fun description(): BuildOperationDescriptor.Builder =
-            BuildOperationDescriptor.displayName(displayName).progressDisplayName(progressDisplayName).details(details)
-
-        override fun call(context: BuildOperationContext): T =
-            block().also { context.setResult(result) }
-    })
