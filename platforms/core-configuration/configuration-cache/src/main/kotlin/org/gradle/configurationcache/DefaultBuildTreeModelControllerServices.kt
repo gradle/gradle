@@ -47,14 +47,10 @@ import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices
 import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
-import org.gradle.internal.buildtree.IntermediateBuildActionRunner
 import org.gradle.internal.buildtree.RunTasksRequirements
-import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.snapshot.ValueSnapshotter
-import org.gradle.tooling.provider.model.internal.DefaultIntermediateToolingModelProvider
-import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.internal.IncubationLogger
 
@@ -196,14 +192,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             return DefaultToolingModelParameterCarrierFactory(valueSnapshotter)
         }
 
-        fun createIntermediateToolingModelProvider(
-            buildOperationExecutor: BuildOperationExecutor,
-            buildModelParameters: BuildModelParameters,
-            parameterCarrierFactory: ToolingModelParameterCarrier.Factory
-        ): IntermediateToolingModelProvider {
-            val runner = IntermediateBuildActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API intermediate model")
-            return DefaultIntermediateToolingModelProvider(runner, parameterCarrierFactory)
-        }
     }
 
     private

@@ -29,6 +29,7 @@ import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.configuration.ProjectsPreparer
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.internal.DynamicCallContextTracker
+import org.gradle.configuration.internal.ToolingModelProjectDependencyListener
 import org.gradle.configuration.project.BuildScriptProcessor
 import org.gradle.configuration.project.ConfigureActionsProjectEvaluator
 import org.gradle.configuration.project.DelayedConfigurationActions
@@ -52,6 +53,7 @@ import org.gradle.internal.build.BuildModelController
 import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.buildtree.IntermediateBuildActionRunner
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -60,6 +62,9 @@ import org.gradle.internal.service.CachingServiceLocator
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.invocation.DefaultGradle
+import org.gradle.tooling.provider.model.internal.DefaultIntermediateToolingModelProvider
+import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
+import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 
 
 class DefaultBuildModelControllerServices(
@@ -112,6 +117,15 @@ class DefaultBuildModelControllerServices(
 
         fun createLocalComponentRegistry(currentBuild: BuildState, componentProvider: BuildTreeLocalComponentProvider): DefaultLocalComponentRegistry {
             return DefaultLocalComponentRegistry(currentBuild.buildIdentifier, componentProvider)
+        }
+
+        fun createIntermediateToolingModelProvider(
+            buildOperationExecutor: BuildOperationExecutor,
+            buildModelParameters: BuildModelParameters,
+            parameterCarrierFactory: ToolingModelParameterCarrier.Factory
+        ): IntermediateToolingModelProvider {
+            val runner = IntermediateBuildActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API intermediate model")
+            return DefaultIntermediateToolingModelProvider(runner, parameterCarrierFactory)
         }
     }
 
