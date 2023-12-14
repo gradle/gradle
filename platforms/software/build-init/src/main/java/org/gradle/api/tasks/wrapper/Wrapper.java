@@ -16,8 +16,6 @@
 
 package org.gradle.api.tasks.wrapper;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.io.ByteStreams;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
@@ -25,7 +23,6 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.plugins.StartScriptGenerator;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
@@ -35,33 +32,24 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources;
 import org.gradle.api.tasks.wrapper.internal.WrapperDefaults;
-import org.gradle.internal.util.PropertiesUtils;
+import org.gradle.api.tasks.wrapper.internal.WrapperGenerator;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.internal.DistributionLocator;
 import org.gradle.util.internal.GUtil;
-import org.gradle.util.internal.WrapUtil;
 import org.gradle.util.internal.WrapperDistributionUrlConverter;
 import org.gradle.work.DisableCachingByDefault;
 import org.gradle.wrapper.Download;
-import org.gradle.wrapper.GradleWrapperMain;
 import org.gradle.wrapper.Logger;
 import org.gradle.wrapper.WrapperExecutor;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.Properties;
 
 /**
@@ -118,27 +106,25 @@ public abstract class Wrapper extends DefaultTask {
     void generate() {
         File jarFileDestination = getJarFile();
         File unixScript = getScriptFile();
-        File propertiesFile = getPropertiesFile();
         FileResolver resolver = getFileLookup().getFileResolver(unixScript.getParentFile());
         String jarFileRelativePath = resolver.resolveAsRelativePath(jarFileDestination);
+        File propertiesFile = getPropertiesFile();
         Properties existingProperties = propertiesFile.exists() ? GUtil.loadProperties(propertiesFile) : null;
 
         checkProperties(existingProperties);
         validateDistributionUrl(propertiesFile.getParentFile());
-        writeProperties(propertiesFile, existingProperties);
-        writeWrapperTo(jarFileDestination);
 
-        StartScriptGenerator generator = new StartScriptGenerator();
-        generator.setApplicationName("Gradle");
-        generator.setMainClassName(GradleWrapperMain.class.getName());
-        generator.setClasspath(WrapUtil.toList(jarFileRelativePath));
-        generator.setOptsEnvironmentVar("GRADLE_OPTS");
-        generator.setExitEnvironmentVar("GRADLE_EXIT_CONSOLE");
-        generator.setAppNameSystemProperty("org.gradle.appname");
-        generator.setScriptRelPath(unixScript.getName());
-        generator.setDefaultJvmOpts(ImmutableList.of("-Xmx64m", "-Xms64m"));
-        generator.generateUnixScript(unixScript);
-        generator.generateWindowsScript(getBatchScript());
+        WrapperGenerator.generate(
+            archiveBase, archivePath,
+            distributionBase, distributionPath,
+            getDistributionSha256Sum(existingProperties),
+            propertiesFile,
+            jarFileDestination, jarFileRelativePath,
+            unixScript, getBatchScript(),
+            getDistributionUrl(),
+            getValidateDistributionUrl().get(),
+            networkTimeout.getOrNull()
+        );
     }
 
     private void checkProperties(Properties existingProperties) {
@@ -185,40 +171,6 @@ public abstract class Wrapper extends DefaultTask {
         }
     }
 
-    private void writeWrapperTo(File destination) {
-        URL jarFileSource = Wrapper.class.getResource("/gradle-wrapper.jar");
-        if (jarFileSource == null) {
-            throw new GradleException("Cannot locate wrapper JAR resource.");
-        }
-        try (InputStream in = jarFileSource.openStream(); OutputStream out = new FileOutputStream(destination)) {
-            ByteStreams.copy(in, out);
-        } catch (IOException e) {
-            throw new UncheckedIOException("Failed to write wrapper JAR to " + destination, e);
-        }
-    }
-
-    private void writeProperties(File propertiesFileDestination, Properties existingProperties) {
-        Properties wrapperProperties = new Properties();
-        wrapperProperties.put(WrapperExecutor.DISTRIBUTION_URL_PROPERTY, getDistributionUrl());
-        String distributionSha256Sum = getDistributionSha256Sum(existingProperties);
-        if (distributionSha256Sum != null) {
-            wrapperProperties.put(WrapperExecutor.DISTRIBUTION_SHA_256_SUM, distributionSha256Sum);
-        }
-        wrapperProperties.put(WrapperExecutor.DISTRIBUTION_BASE_PROPERTY, distributionBase.toString());
-        wrapperProperties.put(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY, distributionPath);
-        wrapperProperties.put(WrapperExecutor.ZIP_STORE_BASE_PROPERTY, archiveBase.toString());
-        wrapperProperties.put(WrapperExecutor.ZIP_STORE_PATH_PROPERTY, archivePath);
-        if (networkTimeout.isPresent()) {
-            wrapperProperties.put(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY, String.valueOf(networkTimeout.get()));
-        }
-        wrapperProperties.put(WrapperExecutor.VALIDATE_DISTRIBUTION_URL, String.valueOf(getValidateDistributionUrl().get()));
-        try {
-            PropertiesUtils.store(wrapperProperties, propertiesFileDestination);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
     private String getDistributionSha256Sum(Properties existingProperties) {
         if (distributionSha256Sum != null) {
             return distributionSha256Sum;
@@ -262,8 +214,7 @@ public abstract class Wrapper extends DefaultTask {
      */
     @OutputFile
     public File getBatchScript() {
-        File scriptFile = getScriptFile();
-        return new File(scriptFile.getParentFile(), scriptFile.getName().replaceFirst("(\\.[^\\.]+)?$", ".bat"));
+        return WrapperGenerator.getBatchScript(getScriptFile());
     }
 
     /**
@@ -295,9 +246,7 @@ public abstract class Wrapper extends DefaultTask {
      */
     @OutputFile
     public File getPropertiesFile() {
-        File jarFileDestination = getJarFile();
-        return new File(jarFileDestination.getParentFile(), jarFileDestination.getName().replaceAll("\\.jar$",
-            ".properties"));
+        return WrapperGenerator.getPropertiesFile(getJarFile());
     }
 
     /**
@@ -406,9 +355,8 @@ public abstract class Wrapper extends DefaultTask {
         if (distributionUrl != null) {
             return distributionUrl;
         }
-        GradleVersion gradleVersion = gradleVersionResolver.getGradleVersion();
-        String distType = distributionType.name().toLowerCase(Locale.ENGLISH);
-        return new DistributionLocator().getDistributionFor(gradleVersion, distType).toASCIIString();
+
+        return WrapperGenerator.getDistributionUrl(gradleVersionResolver.getGradleVersion(), distributionType);
     }
 
     /**
