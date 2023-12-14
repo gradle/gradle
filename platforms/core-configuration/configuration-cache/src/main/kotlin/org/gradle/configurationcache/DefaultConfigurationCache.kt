@@ -369,7 +369,7 @@ class DefaultConfigurationCache internal constructor(
     private
     fun loadModel(): Any {
         return loadFromCache(StateType.Model) { stateFile ->
-            LoadResult(originInvocationId = null) to cacheIO.readModelFrom(stateFile)
+            LoadResult(stateFile.stateFile.file) to cacheIO.readModelFrom(stateFile)
         }
     }
 
@@ -377,7 +377,7 @@ class DefaultConfigurationCache internal constructor(
     fun loadWorkGraph(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?, loadAfterStore: Boolean): BuildTreeWorkGraph.FinalizedGraph {
         return loadFromCache(StateType.Work) { stateFile ->
             val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder)
-            LoadResult(buildInvocationId) to workGraph
+            LoadResult(stateFile.stateFile.file, buildInvocationId) to workGraph
         }
     }
 

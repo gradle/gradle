@@ -32,6 +32,12 @@ public class ConfigurationCacheLoadBuildOperationType implements BuildOperationT
 
     public interface Result {
         /**
+         * The number of bytes of the loaded cache artifact if it was a hit.
+         * Else undetermined.
+         */
+        long getCacheEntrySize();
+
+        /**
          * If work was UP_TO_DATE or FROM_CACHE, this will convey the ID of the build that produced the outputs being reused.
          * Value will be null for any other outcome.
          *

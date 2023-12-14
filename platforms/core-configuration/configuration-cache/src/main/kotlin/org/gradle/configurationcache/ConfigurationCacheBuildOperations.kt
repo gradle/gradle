@@ -61,7 +61,8 @@ object LoadDetails : ConfigurationCacheLoadBuildOperationType.Details
 
 
 internal
-data class LoadResult(val originInvocationId: String?) : ConfigurationCacheLoadBuildOperationType.Result {
+data class LoadResult(val stateFile: File, val originInvocationId: String? = null) : ConfigurationCacheLoadBuildOperationType.Result {
+    override fun getCacheEntrySize(): Long = stateFile.length()
     override fun getOriginBuildInvocationId(): String? = originInvocationId
 }
 
