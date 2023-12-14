@@ -26,6 +26,8 @@ import org.gradle.caching.internal.operations.BuildCacheLocalStoreBuildOperation
 import org.gradle.caching.internal.operations.BuildCacheRemoteDisabledDueToFailureProgressDetails
 import org.gradle.caching.internal.operations.BuildCacheRemoteLoadBuildOperationType
 import org.gradle.caching.internal.operations.BuildCacheRemoteStoreBuildOperationType
+import org.gradle.caching.local.internal.DefaultBuildCacheTempFileStore
+import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestBuildCache
@@ -36,9 +38,15 @@ import spock.lang.Shared
 class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
     @Shared
+    String localCacheClass = "LocalBuildCache"
+    @Shared
     String remoteCacheClass = "RemoteBuildCache"
 
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
+
+    void local(String loadBody, String storeBody) {
+        register(localCacheClass, loadBody, storeBody, true)
+    }
 
     void remote(String loadBody, String storeBody) {
         register(remoteCacheClass, loadBody, storeBody)
@@ -48,7 +56,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         executer.beforeExecute { it.withBuildCacheEnabled() }
     }
 
-    void register(String className, String loadBody, String storeBody) {
+    void register(String className, String loadBody, String storeBody, boolean isLocal = false) {
         settingsFile << """
             class ${className} extends AbstractBuildCache {}
             class ${className}ServiceFactory implements BuildCacheServiceFactory<${className}> {
@@ -56,18 +64,32 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
                     return new ${className}Service(configuration)
                 }
             }
-            class ${className}Service implements BuildCacheService {
+            class ${className}Service implements BuildCacheService ${isLocal ? ", ${LocalBuildCacheService.name}" : ""} {
                 ${className}Service(${className} configuration) {
                 }
 
                 @Override
                 boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-                    ${loadBody ?: ""}
+                    ${isLocal ? "" : loadBody ?: ""}
                 }
 
                 @Override
                 void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-                    ${storeBody ?: ""}
+                    ${isLocal ? "" : storeBody ?: ""}
+                }
+
+                // @Override
+                void loadLocally(BuildCacheKey key, Action<? super File> reader) {
+                    ${isLocal ? loadBody ?: "" : ""}
+                }
+
+                // @Override
+                void storeLocally(BuildCacheKey key, File file) {
+                    ${isLocal ? storeBody ?: "" : ""}
+                }
+
+                void withTempFile(BuildCacheKey key, Action<? super File> action) {
+                    new $DefaultBuildCacheTempFileStore.name(new File("${TextUtil.normaliseFileSeparators(file("tmp").absolutePath)}")).withTempFile(key, action)
                 }
 
                 @Override
@@ -205,10 +227,6 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
             failure != null
             operationType == 'LOAD'
         }
-        with(taskBuildOp.result) {
-            cachingDisabledReasonMessage == null
-            cachingDisabledReasonCategory == null
-        }
 
         where:
         exceptionType << [RuntimeException, IOException]
@@ -234,11 +252,11 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         succeeds("t")
 
         then:
-        def failedStoreOp = operations.only(BuildCacheRemoteStoreBuildOperationType)
-        def cacheKey = failedStoreOp.details.cacheKey
+        def failedLoadOp = operations.only(BuildCacheRemoteStoreBuildOperationType)
+        def cacheKey = failedLoadOp.details.cacheKey
         cacheKey != null
-        failedStoreOp.result == null
-        failedStoreOp.failure == "${exceptionType.name}: !"
+        failedLoadOp.result == null
+        failedLoadOp.failure == "${exceptionType.name}: !"
 
         def taskBuildOp = operations.only(ExecuteTaskBuildOperationType)
         def remoteDisableProgress = Iterables.getOnlyElement(taskBuildOp.progress(BuildCacheRemoteDisabledDueToFailureProgressDetails))
@@ -247,10 +265,6 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
             it.cacheKey == cacheKey
             failure != null
             operationType == 'STORE'
-        }
-        with(taskBuildOp.result) {
-            cachingDisabledReasonMessage == null
-            cachingDisabledReasonCategory == null
         }
 
         where:

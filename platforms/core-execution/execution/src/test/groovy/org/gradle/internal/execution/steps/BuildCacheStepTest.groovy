@@ -132,6 +132,8 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         ex.cause == failure
 
         interaction { withValidCacheKey() }
+
+        then:
         _ * work.allowedToLoadFromCache >> true
         1 * buildCacheController.load(cacheKey, _) >> { BuildCacheKey key, CacheableEntity entity ->
             loadedOutputFile << "output"

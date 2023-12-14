@@ -16,19 +16,12 @@
 
 package org.gradle.api.internal.tasks.execution;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.caching.FailureWithCachingState;
-
-import java.util.List;
-import java.util.Optional;
 
 public class CatchExceptionTaskExecuter implements TaskExecuter {
     private final TaskExecuter delegate;
@@ -41,40 +34,9 @@ public class CatchExceptionTaskExecuter implements TaskExecuter {
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         try {
             return delegate.execute(task, state, context);
-        } catch (FailureWithCachingState failureWithCachingState) {
-            state.setOutcome(new TaskExecutionException(task, failureWithCachingState));
-            return new CachingStateTaskExecuterResult(failureWithCachingState);
         } catch (RuntimeException e) {
             state.setOutcome(new TaskExecutionException(task, e));
             return TaskExecuterResult.WITHOUT_OUTPUTS;
-        }
-    }
-
-    private static class CachingStateTaskExecuterResult implements TaskExecuterResult {
-        private final FailureWithCachingState failureWithCachingState;
-
-        public CachingStateTaskExecuterResult(FailureWithCachingState failureWithCachingState) {
-            this.failureWithCachingState = failureWithCachingState;
-        }
-
-        @Override
-        public List<String> getExecutionReasons() {
-            return ImmutableList.of();
-        }
-
-        @Override
-        public boolean executedIncrementally() {
-            return false;
-        }
-
-        @Override
-        public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
-            return Optional.empty();
-        }
-
-        @Override
-        public CachingState getCachingState() {
-            return failureWithCachingState.getCachingState();
         }
     }
 }
