@@ -41,7 +41,7 @@ public class ConfigurationCacheLoadBuildOperationType implements BuildOperationT
         /**
          * The ID of the build that store the configuration cache entry.
          *
-         * Is currently `null` when unknown, e.g. when loading models and not a task graph.
+         * `null` when unknown, e.g. when loading models and not a task graph.
          *
          * @since 8.6
          */
