@@ -81,6 +81,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
                             .label("label")
                             .stackLocation()
                             .category("type")
+                            .withException(new RuntimeException("message"))
                     );
 
                     // Write the current build operation id to a file
