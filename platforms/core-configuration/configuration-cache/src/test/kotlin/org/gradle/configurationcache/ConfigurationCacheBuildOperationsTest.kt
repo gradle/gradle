@@ -68,7 +68,6 @@ class ConfigurationCacheBuildOperationsTest {
             on { call<Unit>(any()) } doReturn Unit
         }
         val stateFile = testDirectoryProvider.file("stateFile")
-        stateFile.text = "CC content"
 
         // when:
         buildOperationExecutor.withLoadOperation {
