@@ -256,6 +256,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
     @ToBeFixedForConfigurationCache(because = "build listener")
     def "fires build finished events for all builds when build script for child build fails"() {
         given:
+        disableProblemsApiCheck()
         buildA.settingsFile << """
             gradle.buildFinished {
                 println "build A finished"
@@ -308,6 +309,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
     @ToBeFixedForConfigurationCache(because = "build listener")
     def "fires build finished events for all builds when build finished event for other builds fail"() {
         given:
+        disableProblemsApiCheck()
         buildA.buildFile << """
             gradle.buildFinished {
                 println "build A finished"
@@ -357,6 +359,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
     @ToBeFixedForConfigurationCache(because = "build listener")
     def "fires build finished events for all builds when other builds fail"() {
         given:
+        disableProblemsApiCheck()
         buildA.buildFile << """
             gradle.buildFinished {
                 println "build A finished"

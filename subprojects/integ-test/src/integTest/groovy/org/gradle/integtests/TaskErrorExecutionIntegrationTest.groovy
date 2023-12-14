@@ -35,7 +35,6 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         executer.beforeExecute {
             withStacktraceEnabled()
         }
-        enableProblemsApiCheck()
     }
 
     def "reports task action execution fails with error"() {
@@ -122,6 +121,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
     }
 
     def "reports task validation failure"() {
+        enableProblemsApiCheck()
         buildFile << '''
             class CustomTask extends DefaultTask {
                 @InputFile File srcFile

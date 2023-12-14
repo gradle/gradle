@@ -23,7 +23,6 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 class FilePropertyIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs, ValidationMessageChecker {
     def setup() {
         expectReindentedValidationMessage()
-        enableProblemsApiCheck()
     }
 
     def "can attach a calculated directory to task property"() {

@@ -437,6 +437,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 
     def "detects dependency cycle between included builds required for buildscript classpath"() {
         given:
+        disableProblemsApiCheck()
         def pluginDependencyB = singleProjectBuild("pluginDependencyB") {
             buildFile << """
                 apply plugin: 'java'
@@ -534,6 +535,7 @@ Circular dependency between the following tasks:
     }
 
     def "does not substitute plugin from same build into root build"() {
+        disableProblemsApiCheck()
         buildA.settingsFile << """
             include "a", "b"
         """
@@ -562,6 +564,7 @@ Circular dependency between the following tasks:
     }
 
     def "does not substitute plugin from root build into included build"() {
+        disableProblemsApiCheck()
         buildA.settingsFile << """
             include "a"
         """
@@ -595,6 +598,7 @@ Circular dependency between the following tasks:
     }
 
     def "does not substitute plugin from same build into included build"() {
+        disableProblemsApiCheck()
         pluginBuild.settingsFile << """
             include "a"
         """

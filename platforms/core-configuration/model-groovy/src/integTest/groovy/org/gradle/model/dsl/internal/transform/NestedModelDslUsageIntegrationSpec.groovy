@@ -25,10 +25,6 @@ import static org.hamcrest.CoreMatchers.containsString
 @UnsupportedWithConfigurationCache(because = "software model")
 class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
 
-    def setup() {
-        enableProblemsApiCheck()
-    }
-
     def "model block can be used in nested context in build script - #code"() {
         given:
         createDirs("a", "b")

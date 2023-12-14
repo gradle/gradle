@@ -45,6 +45,7 @@ class KnownCategories {
         [namespace: "org.gradle", category: "dependency-version-catalog", subCategories: ["no-import-files"]],
         [namespace: "org.gradle", category: "deprecation", subCategories: ["build-invocation"]],
         [namespace: "org.gradle", category: "deprecation", subCategories: ["user-code-direct"]],
+        [namespace: "org.gradle", category: "deprecation", subCategories: ["user-code-indirect"]],
         [namespace: "org.gradle", category: "task-selection", subCategories: ["no-matches"]],
         [namespace: "org.gradle", category: "type-validation", subCategories: ["property", "annotation-invalid-in-context"]],
         [namespace: "org.gradle", category: "type-validation", subCategories: ["property", "cannot-use-optional-on-primitive-types"]],
@@ -71,8 +72,9 @@ class KnownCategories {
         [namespace: "org.gradle", category: "type-validation", subCategories: ["type", "not-cacheable-without-reason"]],
 
         // categories from integration tests
-        [namespace: "org.example.plugin", category: "type", subCategories: []],
         [namespace: "org.gradle", category: "TEST_PROBLEM", subCategories: []],
+        [namespace: "org.example.plugin", category: "deprecation", subCategories: ["plugin"]],
+        [namespace: "org.example.plugin", category: "type", subCategories: []],
         [namespace: "org.example.plugin", category: "validation", subCategories: ["problems-api", "invalid-additional-data"]],
         [namespace: "org.example.plugin", category: "validation", subCategories: ["problems-api", "missing-category"]],
         [namespace: "org.example.plugin", category: "validation", subCategories: ["problems-api", "missing-label"]],

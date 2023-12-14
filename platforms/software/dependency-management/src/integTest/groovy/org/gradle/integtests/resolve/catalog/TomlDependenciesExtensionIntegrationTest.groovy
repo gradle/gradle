@@ -311,6 +311,8 @@ lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
     }
 
     def "libraries extension is not visible in buildSrc"() {
+        disableProblemsApiCheck()
+
         tomlFile << """[libraries]
 lib = "org.gradle.test:lib:1.0"
 """
