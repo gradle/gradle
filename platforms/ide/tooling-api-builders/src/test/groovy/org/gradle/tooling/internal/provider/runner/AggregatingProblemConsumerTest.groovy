@@ -70,6 +70,39 @@ class AggregatingProblemConsumerTest extends Specification {
         1 * eventConsumer.progress(_ as InternalProblemEvent)
     }
 
+    static thresholdForIntermediateSummary = 20
+
+    def "send intermediate event after similar events"() {
+        given:
+        def eventConsumer = Mock(ProgressEventConsumer)
+        def emitter = new AggregatingProblemConsumer(eventConsumer, { new OperationIdentifier(1) })
+        emitter.setThresholdForIntermediateSummary(thresholdForIntermediateSummary)
+
+        when:
+        for (int i = 0; i < thresholdForIntermediateSummary+1; i++) {
+            emitter.emit(createMockProblem("foo"))
+        }
+
+        then:
+        2 * eventConsumer.progress(_ as InternalProblemEvent)
+    }
+
+    def "send no intermediate event when only unique events where sent"() {
+        given:
+        def eventConsumer = Mock(ProgressEventConsumer)
+        def emitter = new AggregatingProblemConsumer(eventConsumer, { new OperationIdentifier(1) })
+
+        emitter.setThresholdForIntermediateSummary(thresholdForIntermediateSummary)
+
+        when:
+        for (int i = 0; i < thresholdForIntermediateSummary+1; i++) {
+            emitter.emit(createMockProblem("foo$i"))
+        }
+
+        then:
+        (thresholdForIntermediateSummary+1) * eventConsumer.progress(_ as InternalProblemEvent)
+    }
+
     private createMockProblem(String categoryName) {
         def problem = Mock(InternalProblemEvent)
         def details = Mock(InternalBasicProblemDetails)

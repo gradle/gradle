@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 import java.util.List;
 
 /**
- * Describes a problem summary
+ * Describes a problem aggregation.
  *
  * @since 8.6
  */
@@ -29,9 +29,9 @@ import java.util.List;
 public interface ProblemAggregationDescriptor extends BaseProblemDescriptor {
 
     /**
-     * Returns the problem summary details.
+     * Returns the list of problem aggregations.
      *
-     * @return The problem summary details.
+     * @return The list of problem aggregations.
      * @since 8.6
      */
     List<ProblemAggregation> getAggregations();

@@ -42,16 +42,22 @@ public class AggregatingProblemConsumer {
     private final Multimap<String, InternalProblemEvent> seenProblems = ArrayListMultimap.create();
     private final ProgressEventConsumer progressEventConsumer;
     private final Supplier<OperationIdentifier> operationIdentifierSupplier;
+    private int thresholdForIntermediateSummary = 10_000;
 
     AggregatingProblemConsumer(ProgressEventConsumer progressEventConsumer, Supplier<OperationIdentifier> operationIdentifierSupplier) {
         this.progressEventConsumer = progressEventConsumer;
         this.operationIdentifierSupplier = operationIdentifierSupplier;
     }
 
+    void setThresholdForIntermediateSummary(int thresholdForIntermediateSummary) {
+        this.thresholdForIntermediateSummary = thresholdForIntermediateSummary;
+    }
+
     void sendProblemSummaries() {
         List<InternalProblemAggregation> problemSummaries = createSummaries();
 
         if (problemSummaries.isEmpty()) {
+            seenProblems.clear();
             return;
         }
 
@@ -84,19 +90,21 @@ public class AggregatingProblemConsumer {
         InternalBasicProblemDetails basicDetails = (InternalBasicProblemDetails) details;
         String aggregationKey = basicDetails.getCategory().getCategory() + ";" + basicDetails.getLabel().getLabel();
 
-        if(seenProblems.size() > 100_000) {
-            progressEventConsumer.progress(problem);
+        sendProgress(problem, aggregationKey);
+
+        if (seenProblems.size() > thresholdForIntermediateSummary) {
             sendProblemSummaries();
-            return;
         }
-
-        Collection<InternalProblemEvent> seenProblem = seenProblems.get(aggregationKey);
-        if (!seenProblem.isEmpty()) {
-            seenProblem.add(problem);
-            return;
-        }
-
-        seenProblems.put(aggregationKey, problem);
-        progressEventConsumer.progress(problem);
     }
+
+    private void sendProgress(InternalProblemEvent problem, String aggregationKey) {
+        Collection<InternalProblemEvent> seenProblem = seenProblems.get(aggregationKey);
+        if (seenProblem.isEmpty()) {
+            seenProblems.put(aggregationKey, problem);
+            progressEventConsumer.progress(problem);
+        } else {
+            seenProblem.add(problem);
+        }
+    }
+
 }

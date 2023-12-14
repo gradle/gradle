@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationDescriptor;
 
 /**
- * Represents a reported problems summary.
+ * A common base interface for Problem API related descriptors.
  *
  * @since 8.6
  */
