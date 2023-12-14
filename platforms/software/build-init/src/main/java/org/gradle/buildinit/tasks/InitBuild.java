@@ -32,7 +32,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
-import org.gradle.api.tasks.wrapper.Wrapper;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.BuildConverter;
 import org.gradle.buildinit.plugins.internal.BuildInitializer;
@@ -45,7 +44,6 @@ import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.text.TreeFormatter;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -275,18 +273,10 @@ public abstract class InitBuild extends DefaultTask {
             throw new BuildCancelledException();
         }
 
-        generateWrapperFiles();
         initDescriptor.generate(settings);
 
         initDescriptor.getFurtherReading(settings)
             .ifPresent(link -> getLogger().lifecycle(link));
-    }
-
-    private void generateWrapperFiles() {
-        Instantiator instantiator = getInstantiator();
-        Wrapper wrapper = instantiator.newInstance(Wrapper.class);
-        wrapper.getNetworkTimeout().convention(10000);
-        wrapper.generate();
     }
 
     private UserInputHandler getEffectiveInputHandler() {
@@ -527,7 +517,4 @@ public abstract class InitBuild extends DefaultTask {
 
     @Inject
     protected abstract UserInputHandler getUserInputHandler();
-
-    @Inject
-    protected abstract Instantiator getInstantiator();
 }

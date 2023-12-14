@@ -131,7 +131,7 @@ public abstract class Wrapper extends DefaultTask {
     }
 
     @TaskAction
-    public void generate() {
+    void generate() {
         File jarFileDestination = getJarFile();
         File unixScript = getScriptFile();
         File propertiesFile = getPropertiesFile();
