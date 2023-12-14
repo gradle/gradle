@@ -17,6 +17,7 @@
 package org.gradle.api.problems
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.problems.ReceivedProblem
 
 class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
@@ -43,7 +44,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    Map<String, Object> getCollectedProblem() {
+    ReceivedProblem getCollectedProblem() {
         assert this.collectedProblems.size() == 1
         this.collectedProblems[0]
     }
