@@ -29,7 +29,6 @@ import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.configuration.ProjectsPreparer
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.internal.DynamicCallContextTracker
-import org.gradle.configuration.internal.ToolingModelProjectDependencyListener
 import org.gradle.configuration.project.BuildScriptProcessor
 import org.gradle.configuration.project.ConfigureActionsProjectEvaluator
 import org.gradle.configuration.project.DelayedConfigurationActions
@@ -65,6 +64,7 @@ import org.gradle.invocation.DefaultGradle
 import org.gradle.tooling.provider.model.internal.DefaultIntermediateToolingModelProvider
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
+import org.gradle.tooling.provider.model.internal.ToolingModelProjectDependencyListener
 
 
 class DefaultBuildModelControllerServices(
@@ -122,10 +122,12 @@ class DefaultBuildModelControllerServices(
         fun createIntermediateToolingModelProvider(
             buildOperationExecutor: BuildOperationExecutor,
             buildModelParameters: BuildModelParameters,
-            parameterCarrierFactory: ToolingModelParameterCarrier.Factory
+            parameterCarrierFactory: ToolingModelParameterCarrier.Factory,
+            listenerManager: ListenerManager
         ): IntermediateToolingModelProvider {
+            val projectDependencyListener = listenerManager.getBroadcaster(ToolingModelProjectDependencyListener::class.java)
             val runner = IntermediateBuildActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API intermediate model")
-            return DefaultIntermediateToolingModelProvider(runner, parameterCarrierFactory)
+            return DefaultIntermediateToolingModelProvider(runner, parameterCarrierFactory, projectDependencyListener)
         }
     }
 
