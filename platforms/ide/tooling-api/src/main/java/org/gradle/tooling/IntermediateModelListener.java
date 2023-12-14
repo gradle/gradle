@@ -27,5 +27,10 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface IntermediateModelListener {
+    /**
+     * Handles the next intermediate result.
+     *
+     * @since 8.6
+     */
     void onModel(Object model);
 }
