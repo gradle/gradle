@@ -143,11 +143,15 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
                 cacheableWork.getDisplayName(), cacheKey.getHashCode());
         }
         AfterExecutionResult result = executeWithoutCache(cacheableWork.work, context);
-        result.getExecution().ifSuccessfulOrElse(
-            executionResult -> storeInCacheUnlessDisabled(cacheableWork, cacheKey, result, executionResult),
-            failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", cacheableWork.getDisplayName())
-        );
-        return result;
+        Optional<Throwable> storeFailure = result.getExecution().map(
+            executionResult -> storeInCacheUnlessDisabled(cacheableWork, cacheKey, result, executionResult)
+        ).getOrMapFailure(failure -> {
+            LOGGER.debug("Not storing result of {} in cache because the execution failed", cacheableWork.getDisplayName());
+            return Optional.empty();
+        });
+        return storeFailure
+            .map(failure -> new AfterExecutionResult(Result.failed(failure, result.getDuration()), result.getAfterExecutionOutputState().orElse(null)))
+            .orElse(result);
     }
 
     /**
@@ -155,29 +159,31 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
      * <p>
      * The former is currently used only for tasks and can be triggered via {@code org.gradle.api.internal.TaskOutputsEnterpriseInternal}.
      */
-    private void storeInCacheUnlessDisabled(CacheableWork cacheableWork, BuildCacheKey cacheKey, AfterExecutionResult result, Execution executionResult) {
+    private Optional<Throwable> storeInCacheUnlessDisabled(CacheableWork cacheableWork, BuildCacheKey cacheKey, AfterExecutionResult result, Execution executionResult) {
         if (executionResult.canStoreOutputsInCache()) {
-            result.getAfterExecutionOutputState()
-                .ifPresent(afterExecutionState -> store(cacheableWork, cacheKey, afterExecutionState.getOutputFilesProducedByWork(), afterExecutionState.getOriginMetadata().getExecutionTime()));
+            return result.getAfterExecutionOutputState()
+                .flatMap(afterExecutionState -> store(cacheableWork, cacheKey, afterExecutionState.getOutputFilesProducedByWork(), afterExecutionState.getOriginMetadata().getExecutionTime()));
         } else {
             LOGGER.debug("Not storing result of {} in cache because storing was disabled for this execution", cacheableWork.getDisplayName());
+            return Optional.empty();
         }
     }
 
-    private void store(CacheableWork work, BuildCacheKey cacheKey, ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork, Duration executionTime) {
+    private Optional<Throwable> store(CacheableWork work, BuildCacheKey cacheKey, ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork, Duration executionTime) {
         try {
             buildCache.store(cacheKey, work, outputFilesProducedByWork, executionTime);
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Stored cache entry for {} with cache key {}",
                     work.getDisplayName(), cacheKey.getHashCode());
             }
+            return Optional.empty();
         } catch (Exception e) {
-            throw new RuntimeException(
+            return Optional.of(new RuntimeException(
                 String.format("Failed to store cache entry %s for %s: %s",
                     cacheKey.getHashCode(),
                     work.getDisplayName(),
                     e.getMessage()),
-                e);
+                e));
         }
     }
 
