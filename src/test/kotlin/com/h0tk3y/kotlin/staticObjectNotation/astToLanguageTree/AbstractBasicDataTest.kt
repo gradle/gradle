@@ -48,6 +48,7 @@ abstract class AbstractBasicDataTest {
         )
         
         val expected = listOf("a.b.c", "a.b.MyData", "MyOtherData")
+        assertEquals(expected.size, results.size, "Number of results doesn't match")
         assertAll(results.mapIndexed { index, it ->
             {
                 assertIs<Element<*>>(it)

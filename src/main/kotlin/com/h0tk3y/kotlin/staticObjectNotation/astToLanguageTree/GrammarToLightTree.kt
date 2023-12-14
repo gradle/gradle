@@ -19,12 +19,45 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
 
     fun script(tree: LightTree): Syntactic<List<ElementResult<*>>> {
         val scriptNodes = scriptNodes(tree)
+        val importNodes = importNodes(tree)
 
         return FailureCollectorContext().run {
+            val imports = importNodes.map { import(tree, it) }
             val statements = scriptNodes.map { statement(tree, it) }
-            Syntactic(failures + statements)
+            Syntactic(failures + imports + statements)
         }
     }
+
+    private fun import(tree: LightTree, node: LighterASTNode): ElementResult<Import> =
+        elementOrFailure {
+            val children = tree.children(node)
+
+            var content: CheckedResult<ElementResult<PropertyAccess>>? = null
+            var contentNodeSource: LightTreeSourceData? = null
+            children.forEach {
+                when (it.tokenType) {
+                    DOT_QUALIFIED_EXPRESSION, REFERENCE_EXPRESSION -> {
+                        contentNodeSource  = it.data
+                        content = checkForFailure(propertyAccessStatement(tree, it))
+                    }
+                }
+            }
+
+            collectingFailure(content ?: node.parsingError("Qualified expression without selector"))
+
+            elementIfNoFailures {
+                fun PropertyAccess.flatten(): List<String> =
+                    buildList {
+                        if (receiver is PropertyAccess) {
+                            addAll(receiver.flatten())
+                        }
+                        add(name)
+                    }
+
+                val nameParts = checked(content!!).flatten()
+                Element(Import(AccessChain(nameParts, contentNodeSource!!), node.data)) //TODO
+            }
+        }
 
     private fun statement(tree: LightTree, node: LighterASTNode): ElementResult<DataStatement> =
         when (node.tokenType) { // TODO: filter out whitespace and comments
@@ -260,15 +293,18 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
 
     private fun referenceExpression(node: LighterASTNode): Syntactic<String> = Syntactic(node.asText)
 
+    private fun importNodes(tree: LightTree): List<LighterASTNode> {
+        // the actual script we want to parse is wrapped into a class initializer block, we need to extract it
+        val root = tree.root
+        val childrenOfRoot = tree.children(root)
+        return tree.children(childrenOfRoot.expectSingleOfKind(IMPORT_LIST))
+    }
+
     private fun scriptNodes(tree: LightTree): List<LighterASTNode> {
-        // TODO: the actual script we want to parse is wrapped into a class initializer block, we need to extract it
+        // the actual script we want to parse is wrapped into a class initializer block, we need to extract it
 
         val root = tree.root
-
         val childrenOfRoot = tree.children(root)
-
-        // TODO: not checking for package, import or shebang statements because our script-into-class wrapping doesn't allow for those
-
         val wrappingClass = childrenOfRoot.expectSingleOfKind(CLASS)
         val childrenOfWrappingClass = tree.children(wrappingClass)
         val wrappingClassBody = childrenOfWrappingClass.expectSingleOfKind(CLASS_BODY)
