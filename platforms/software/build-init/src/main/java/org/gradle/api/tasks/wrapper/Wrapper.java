@@ -34,6 +34,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources;
+import org.gradle.api.tasks.wrapper.internal.WrapperDefaults;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.DistributionLocator;
@@ -43,7 +44,6 @@ import org.gradle.util.internal.WrapperDistributionUrlConverter;
 import org.gradle.work.DisableCachingByDefault;
 import org.gradle.wrapper.Download;
 import org.gradle.wrapper.GradleWrapperMain;
-import org.gradle.wrapper.Install;
 import org.gradle.wrapper.Logger;
 import org.gradle.wrapper.WrapperExecutor;
 
@@ -78,7 +78,7 @@ import java.util.Properties;
  */
 @DisableCachingByDefault(because = "Updating the wrapper is not worth caching")
 public abstract class Wrapper extends DefaultTask {
-    public static final String DEFAULT_DISTRIBUTION_PARENT_NAME = Install.DEFAULT_DISTRIBUTION_PATH;
+    public static final String DEFAULT_DISTRIBUTION_PARENT_NAME = WrapperDefaults.DISTRIBUTION_PATH;
 
     /**
      * Specifies the Gradle distribution type.
@@ -101,34 +101,18 @@ public abstract class Wrapper extends DefaultTask {
         PROJECT, GRADLE_USER_HOME
     }
 
-    private Object scriptFile;
-    private Object jarFile;
-    private String distributionPath;
-    private PathBase distributionBase = PathBase.GRADLE_USER_HOME;
+    private Object scriptFile = WrapperDefaults.SCRIPT_PATH;
+    private Object jarFile = WrapperDefaults.JAR_FILE_PATH;
+    private String distributionPath = DEFAULT_DISTRIBUTION_PARENT_NAME;
+    private PathBase distributionBase = WrapperDefaults.DISTRIBUTION_BASE;
     private String distributionUrl;
     private String distributionSha256Sum;
     private final GradleVersionResolver gradleVersionResolver = new GradleVersionResolver();
-    private DistributionType distributionType = DistributionType.BIN;
-    private String archivePath;
-    private PathBase archiveBase = PathBase.GRADLE_USER_HOME;
+    private DistributionType distributionType = WrapperDefaults.DISTRIBUTION_TYPE;
+    private String archivePath = WrapperDefaults.ARCHIVE_PATH;
+    private PathBase archiveBase = WrapperDefaults.ARCHIVE_BASE;
     private final Property<Integer> networkTimeout = getProject().getObjects().property(Integer.class);
-    private final DistributionLocator locator = new DistributionLocator();
-    private final boolean isOffline;
     private boolean distributionUrlConfigured = false;
-
-    public Wrapper() {
-        scriptFile = "gradlew";
-        jarFile = "gradle/wrapper/gradle-wrapper.jar";
-        distributionPath = DEFAULT_DISTRIBUTION_PARENT_NAME;
-        archivePath = DEFAULT_DISTRIBUTION_PARENT_NAME;
-        isOffline = getProject().getGradle().getStartParameter().isOffline();
-        getValidateDistributionUrl().convention(true);
-    }
-
-    @Inject
-    protected FileLookup getFileLookup() {
-        throw new UnsupportedOperationException();
-    }
 
     @TaskAction
     void generate() {
@@ -179,7 +163,7 @@ public abstract class Wrapper extends DefaultTask {
                 if (!Files.exists(Paths.get(uri).toAbsolutePath())) {
                     throw new UncheckedIOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url));
                 }
-            } else if (uri.getScheme().startsWith("http") && !isOffline) {
+            } else if (uri.getScheme().startsWith("http") && !isOffline()) {
                 try {
                     new Download(new Logger(true), "gradlew", Download.UNKNOWN_VERSION).sendHeadRequest(uri);
                 } catch (Exception e) {
@@ -187,6 +171,10 @@ public abstract class Wrapper extends DefaultTask {
                 }
             }
         }
+    }
+
+    private boolean isOffline() {
+        return getProject().getGradle().getStartParameter().isOffline();
     }
 
     private static URI getDistributionUri(File uriRoot, String url) {
@@ -350,9 +338,8 @@ public abstract class Wrapper extends DefaultTask {
     /**
      * Returns the gradle version for the wrapper.
      *
-     * @see #setGradleVersion(String)
-     *
      * @throws GradleException if the label that can be provided via {@link #setGradleVersion(String)} can not be resolved at the moment. For example, there is not a `release-candidate` available at all times.
+     * @see #setGradleVersion(String)
      */
     @Input
     public String getGradleVersion() {
@@ -418,11 +405,10 @@ public abstract class Wrapper extends DefaultTask {
     public String getDistributionUrl() {
         if (distributionUrl != null) {
             return distributionUrl;
-        } else if (gradleVersionResolver.getGradleVersion() != null) {
-            return locator.getDistributionFor(gradleVersionResolver.getGradleVersion(), distributionType.name().toLowerCase(Locale.ENGLISH)).toASCIIString();
-        } else {
-            return null;
         }
+        GradleVersion gradleVersion = gradleVersionResolver.getGradleVersion();
+        String distType = distributionType.name().toLowerCase(Locale.ENGLISH);
+        return new DistributionLocator().getDistributionFor(gradleVersion, distType).toASCIIString();
     }
 
     /**
@@ -547,11 +533,16 @@ public abstract class Wrapper extends DefaultTask {
     /**
      * Indicates if this task will validate the distribution url that has been configured.
      *
-     * @since 8.2
      * @return whether this task will validate the distribution url
+     * @since 8.2
      */
     @Incubating
     @Input
     @Option(option = "validate-url", description = "Sets task to validate the configured distribution url.")
     public abstract Property<Boolean> getValidateDistributionUrl();
+
+    @Inject
+    protected FileLookup getFileLookup() {
+        throw new UnsupportedOperationException();
+    }
 }
