@@ -78,7 +78,7 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         abstract ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException;
 
         @Override
-        public ToolingModelResult<?> getModelResult(String modelName, @org.jetbrains.annotations.Nullable ToolingModelParameterCarrier parameter) {
+        public ToolingModelResult<?> getModelResult(String modelName, @Nullable ToolingModelParameterCarrier parameter) {
             ToolingModelBuilderLookup.Builder builder = locateBuilder();
             Object model = buildModel(parameter, builder);
             return new ToolingModelResult<>(model, !builder.hasSideEffects());
