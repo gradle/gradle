@@ -82,7 +82,7 @@ public interface BuildController {
     /**
      * Fetches a snapshot of the model of the given type for the given element, usually a Gradle project.
      *
-     * <p>The following elements are supported:
+     * <p>The following elements are supported as targets:
      *
      * <ul>
      *     <li>Any {@link org.gradle.tooling.model.gradle.BasicGradleProject}</li>
