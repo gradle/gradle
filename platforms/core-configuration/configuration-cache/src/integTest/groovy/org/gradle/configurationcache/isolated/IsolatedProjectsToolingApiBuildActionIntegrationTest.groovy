@@ -38,6 +38,8 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         file("a/build.gradle") << """
             plugins.apply(my.MyPlugin)
         """
+        file("b/build.gradle") << """
+        """
         // Intentionally don't apply to project b. Should split this case (some projects don't have the model available) out into a separate test
 
         when:
