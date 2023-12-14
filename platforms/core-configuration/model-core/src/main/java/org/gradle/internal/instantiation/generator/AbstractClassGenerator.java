@@ -49,6 +49,7 @@ import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
+import org.gradle.api.provider.SupportsConvention;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
@@ -412,9 +413,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static boolean isIneligibleForConventionMapping(PropertyMetadata property) {
-        // Provider API types should have conventions set through convention() instead of
+        // Provider API types and convention-supporting types in general should have conventions set through convention() instead of
         // using convention mapping.
-        return Provider.class.isAssignableFrom(property.getType());
+        return Provider.class.isAssignableFrom(property.getType()) || SupportsConvention.class.isAssignableFrom(property.getType());
     }
 
     private static boolean isLazyAttachProperty(PropertyMetadata property) {
