@@ -112,9 +112,7 @@ public class Hashing {
      * Hash the given {@code hashable} instance with the default hash function.
      */
     public static HashCode hashHashable(Hashable hashable) {
-        Hasher hasher = newHasher();
-        hasher.put(hashable);
-        return hasher.hash();
+        return newHasher().put(hashable).hash();
     }
 
     /**

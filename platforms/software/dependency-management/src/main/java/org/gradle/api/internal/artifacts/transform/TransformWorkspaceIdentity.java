@@ -69,7 +69,7 @@ class TransformWorkspaceIdentity implements UnitOfWork.Identity {
         Hasher hasher = Hashing.newHasher();
         hasher.putString(normalizedInputArtifactPath);
         hasher.putString(producerBuildTreePath);
-        secondaryInputsSnapshot.appendToHasher(hasher);
+        hasher.put(secondaryInputsSnapshot);
         hasher.putHash(dependenciesHash);
         return new TransformWorkspaceIdentity(secondaryInputsSnapshot, hasher.hash());
     }
@@ -81,9 +81,9 @@ class TransformWorkspaceIdentity implements UnitOfWork.Identity {
         HashCode dependenciesHash
     ) {
         Hasher hasher = Hashing.newHasher();
-        inputArtifactPath.appendToHasher(hasher);
+        hasher.put(inputArtifactPath);
         hasher.putHash(inputArtifactSnapshot);
-        secondaryInputsSnapshot.appendToHasher(hasher);
+        hasher.put(secondaryInputsSnapshot);
         hasher.putHash(dependenciesHash);
         return new TransformWorkspaceIdentity(secondaryInputsSnapshot, hasher.hash());
     }
@@ -95,9 +95,9 @@ class TransformWorkspaceIdentity implements UnitOfWork.Identity {
         HashCode dependenciesHash
     ) {
         Hasher hasher = Hashing.newHasher();
-        inputArtifactPath.appendToHasher(hasher);
+        hasher.put(inputArtifactPath);
         hasher.putHash(inputArtifactFingerprint.getHash());
-        secondaryInputsSnapshot.appendToHasher(hasher);
+        hasher.put(secondaryInputsSnapshot);
         hasher.putHash(dependenciesHash);
         return new TransformWorkspaceIdentity(secondaryInputsSnapshot, hasher.hash());
     }
