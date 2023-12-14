@@ -30,6 +30,7 @@ import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.tooling.provider.model.UnknownModelException
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
+import org.gradle.tooling.provider.model.internal.ToolingModelResult
 import org.gradle.util.Path
 
 
@@ -61,19 +62,39 @@ class IntermediateModelController(
         }
     }
 
-    fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T): T? {
+    fun <T> loadOrCreateIntermediateModel(
+        identityPath: Path?,
+        modelName: String,
+        parameter: ToolingModelParameterCarrier?,
+        creator: () -> ToolingModelResult<T>
+    ): ToolingModelResult<T> {
+
         val key = ModelKey(identityPath, modelName, parameter?.hash)
-        return loadOrCreateValue(key) {
-            try {
-                val model = if (identityPath != null) {
-                    cacheFingerprintController.collectFingerprintForProject(identityPath, creator)
-                } else {
-                    creator()
-                }
-                if (model == null) IntermediateModel.NullModel else IntermediateModel.Model(model)
-            } catch (e: UnknownModelException) {
-                IntermediateModel.NoModel(e.message!!)
-            }
-        }.result()
+        val value = loadOrCreateValue(key) {
+            createIntermediateModel(identityPath, creator)
+        }
+        val model = value.value.result<T>()
+        return ToolingModelResult(model, value.crossBuildReusable)
+    }
+
+    private
+    fun <T> createIntermediateModel(identityPath: Path?, creator: () -> ToolingModelResult<T>): Value<IntermediateModel> {
+        return try {
+            val modelResult = createModel(identityPath, creator)
+            val modelValue = modelResult.model
+            val wrappedValue = if (modelValue == null) IntermediateModel.NullModel else IntermediateModel.Model(modelValue)
+            Value(wrappedValue, modelResult.isCrossBuildReusable)
+        } catch (e: UnknownModelException) {
+            Value(IntermediateModel.NoModel(e.message!!), false)
+        }
+    }
+
+    private
+    fun <T> createModel(identityPath: Path?, creator: () -> ToolingModelResult<T>): ToolingModelResult<T> {
+        return if (identityPath != null) {
+            cacheFingerprintController.collectFingerprintForProject(identityPath, creator)
+        } else {
+            creator()
+        }
     }
 }

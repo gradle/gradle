@@ -21,6 +21,7 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
+import org.gradle.tooling.provider.model.internal.ToolingModelResult
 import org.gradle.util.Path
 
 
@@ -58,7 +59,12 @@ interface BuildTreeConfigurationCache {
      *
      * @param identityPath The project for which the model should be created, or null for a build scoped model.
      */
-    fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T?): T?
+    fun <T> loadOrCreateIntermediateModel(
+        identityPath: Path?,
+        modelName: String,
+        parameter: ToolingModelParameterCarrier?,
+        creator: () -> ToolingModelResult<T>
+    ): ToolingModelResult<T>
 
     /**
      * Loads cached dependency resolution metadata for the given project, if available, or else runs the given function to create it and then writes the result to the cache.

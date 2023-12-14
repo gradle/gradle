@@ -113,7 +113,7 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
     }
 
     private void applyIdeaPluginToBuildTree(ProjectInternal root, List<GradleInternal> alreadyProcessed) {
-        intermediateToolingModelProvider.applyPlugin(new ArrayList<>(root.getAllprojects()), IdeaPlugin.class);
+        intermediateToolingModelProvider.getModels(new ArrayList<>(root.getAllprojects()), ApplyIdeaPluginBuilder.MODEL_NAME, Void.class);
 
         for (IncludedBuildInternal reference : root.getGradle().includedBuilds()) {
             BuildState target = reference.getTarget();

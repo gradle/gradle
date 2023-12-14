@@ -28,7 +28,6 @@ import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet
-import org.gradle.tooling.provider.model.internal.PluginApplyingBuilder
 import org.gradle.util.internal.ToBeImplemented
 
 import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.checkGradleProject
@@ -37,7 +36,7 @@ import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.check
 
 class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
 
-    private def pluginApplyingModel = PluginApplyingBuilder.MODEL_NAME
+    private def pluginApplyingModel = 'org.gradle.plugins.ide.internal.tooling.ApplyIdeaPluginBuilder$sideEffect'
 
     def "can fetch IdeaProject model"() {
         settingsFile << """

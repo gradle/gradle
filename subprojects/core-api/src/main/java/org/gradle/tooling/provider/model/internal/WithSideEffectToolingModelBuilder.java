@@ -19,8 +19,5 @@ package org.gradle.tooling.provider.model.internal;
 import org.gradle.api.NonNullApi;
 
 @NonNullApi
-public interface PluginApplyingParameter {
-
-    Class<?> getPluginType();
-
+public interface WithSideEffectToolingModelBuilder {
 }

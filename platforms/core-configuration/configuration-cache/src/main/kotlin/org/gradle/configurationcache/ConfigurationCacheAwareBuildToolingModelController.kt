@@ -20,6 +20,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.build.BuildToolingModelController
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
+import org.gradle.tooling.provider.model.internal.ToolingModelResult
 import org.gradle.tooling.provider.model.internal.ToolingModelScope
 
 
@@ -50,9 +51,9 @@ class ConfigurationCacheAwareBuildToolingModelController(
     ) : ToolingModelScope {
         override fun getTarget() = delegate.target
 
-        override fun getModel(modelName: String, parameter: ToolingModelParameterCarrier?): Any? {
+        override fun getModelResult(modelName: String, parameter: ToolingModelParameterCarrier?): ToolingModelResult<*> {
             return cache.loadOrCreateIntermediateModel(target?.identityPath, modelName, parameter) {
-                delegate.getModel(modelName, parameter)
+                delegate.getModelResult(modelName, parameter)
             }
         }
     }

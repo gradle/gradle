@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.ProjectState;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier;
+import org.gradle.tooling.provider.model.internal.ToolingModelResult;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 
 import javax.annotation.Nullable;
@@ -77,8 +78,13 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         abstract ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException;
 
         @Override
-        public Object getModel(String modelName, @Nullable ToolingModelParameterCarrier parameter) {
+        public ToolingModelResult<?> getModelResult(String modelName, @org.jetbrains.annotations.Nullable ToolingModelParameterCarrier parameter) {
             ToolingModelBuilderLookup.Builder builder = locateBuilder();
+            Object model = buildModel(parameter, builder);
+            return new ToolingModelResult<>(model, !builder.hasSideEffects());
+        }
+
+        private static Object buildModel(@Nullable ToolingModelParameterCarrier parameter, ToolingModelBuilderLookup.Builder builder) {
             if (parameter == null) {
                 return builder.build(null);
             } else {

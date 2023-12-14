@@ -17,7 +17,6 @@
 package org.gradle.tooling.provider.model.internal;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
@@ -50,6 +49,11 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
     }
 
     @Override
+    public <T> List<T> getModels(List<Project> targets, String modelName, Class<T> modelType) {
+        return getModelsImpl(targets, modelName, modelType, null);
+    }
+
+    @Override
     public <T> List<T> getModels(List<Project> targets, Class<T> modelType, Object modelBuilderParameter) {
         return getModelsImpl(targets, modelType.getName(), modelType, modelBuilderParameter);
     }
@@ -57,16 +61,6 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
     @Override
     public <T> List<T> getModels(List<Project> targets, String modelName, Class<T> modelType, Object modelBuilderParameter) {
         return getModelsImpl(targets, modelName, modelType, modelBuilderParameter);
-    }
-
-    @Override
-    public <P extends Plugin<Project>> void applyPlugin(List<Project> targets, Class<P> pluginClass) {
-        List<Object> rawModels = fetchModels(targets, PluginApplyingBuilder.MODEL_NAME, createPluginApplyingParameter(pluginClass));
-        ensureModelTypes(Boolean.class, rawModels);
-    }
-
-    private static <P extends Plugin<Project>> PluginApplyingParameter createPluginApplyingParameter(Class<P> pluginClass) {
-        return () -> pluginClass;
     }
 
     private <T> List<T> getModelsImpl(List<Project> targets, String modelName, Class<T> modelType, @Nullable Object modelBuilderParameter) {
@@ -126,7 +120,7 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
     private static <T> List<T> ensureModelTypes(Class<T> implementationType, List<Object> rawModels) {
         for (Object rawModel : rawModels) {
             if (rawModel == null) {
-                throw new IllegalStateException(String.format("Expected model of type %s but found null", implementationType.getName()));
+                continue;
             }
             if (!implementationType.isInstance(rawModel)) {
                 throw new IllegalStateException(String.format("Expected model of type %s but found %s", implementationType.getName(), rawModel.getClass().getName()));

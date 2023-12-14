@@ -17,7 +17,6 @@
 package org.gradle.tooling.provider.model.internal;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -41,6 +40,8 @@ public interface IntermediateToolingModelProvider {
      */
     <T> List<T> getModels(List<Project> targets, Class<T> modelType);
 
+    <T> List<T> getModels(List<Project> targets, String modelName, Class<T> modelType);
+
     /**
      * Fetches models of a given type for the given projects passing a parameter to the underlying builder.
      * <p>
@@ -52,10 +53,5 @@ public interface IntermediateToolingModelProvider {
      * Fetches models of a given type for the given projects passing a parameter to the underlying builder.
      */
     <T> List<T> getModels(List<Project> targets, String modelName, Class<T> modelType, Object modelBuilderParameter);
-
-    /**
-     * Applies a plugin of a given type to the given projects.
-     */
-    <P extends Plugin<Project>> void applyPlugin(List<Project> targets, Class<P> pluginClass);
 
 }

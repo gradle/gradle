@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.models
 
+import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.ValueStore
 import org.gradle.configurationcache.CheckedFingerprint
@@ -26,7 +27,6 @@ import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.util.Path
 import java.io.Closeable
-import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 
@@ -56,6 +56,9 @@ abstract class ProjectStateStore<K, V>(
     private
     val currentValues = ConcurrentHashMap<K, BlockAddress>()
 
+    private
+    val crossBuildUnsafe = newConcurrentHashSet<K>()
+
     protected
     abstract fun projectPathForKey(key: K): Path?
 
@@ -69,7 +72,7 @@ abstract class ProjectStateStore<K, V>(
      * All values used during execution.
      */
     val values: Map<K, BlockAddress>
-        get() = Collections.unmodifiableMap(currentValues)
+        get() = currentValues.filterKeys { it !in crossBuildUnsafe }
 
     fun restoreFromCacheEntry(entryDetails: Map<K, BlockAddress>, checkedFingerprint: CheckedFingerprint.ProjectsInvalid) {
         for (entry in entryDetails) {
@@ -93,20 +96,24 @@ abstract class ProjectStateStore<K, V>(
         }
     }
 
-    fun loadOrCreateValue(key: K, creator: () -> V): V {
+    fun loadOrCreateValue(key: K, creator: () -> Value<V>): Value<V> {
         val addressOfCached = locateCachedValue(key)
         if (addressOfCached != null) {
             try {
-                return valuesStore.read(addressOfCached)
+                val loaded = valuesStore.read(addressOfCached)
+                return Value(loaded, key !in crossBuildUnsafe)
             } catch (e: Exception) {
                 throw RuntimeException("Could not load entry for $key", e)
             }
         }
         // TODO - should protect from concurrent creation
-        val value = creator()
-        val address = valuesStore.write(value)
+        val created = creator()
+        if (!created.crossBuildReusable) {
+            crossBuildUnsafe += key
+        }
+        val address = valuesStore.write(created.value)
         currentValues[key] = address
-        return value
+        return created
     }
 
     private
@@ -125,4 +132,9 @@ abstract class ProjectStateStore<K, V>(
     override fun close() {
         CompositeStoppable.stoppable(valuesStore).stop()
     }
+
+    data class Value<T>(
+        val value: T,
+        val crossBuildReusable: Boolean
+    )
 }

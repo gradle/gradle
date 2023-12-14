@@ -29,7 +29,6 @@ import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
-import org.gradle.tooling.provider.model.internal.PluginApplyingBuilder;
 
 public class ToolingModelServices extends AbstractPluginServiceRegistry {
     @Override
@@ -71,7 +70,7 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
                     registry.register(new BuildEnvironmentBuilder(fileCollectionFactory));
                     registry.register(new IsolatedGradleProjectInternalBuilder());
                     registry.register(new IsolatedIdeaModuleInternalBuilder());
-                    registry.register(new PluginApplyingBuilder());
+                    registry.register(new ApplyIdeaPluginBuilder());
                 }
 
                 private IdeaModelBuilderInternal createIdeaModelBuilder(boolean isolatedProjects, GradleProjectBuilderInternal gradleProjectBuilder) {

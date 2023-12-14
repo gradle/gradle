@@ -39,5 +39,9 @@ public interface ToolingModelScope {
      * Can configure the target project to locate the corresponding model builder.
      */
     @Nullable
-    Object getModel(String modelName, @Nullable ToolingModelParameterCarrier parameter) throws UnknownModelException;
+    default Object getModel(String modelName, @Nullable ToolingModelParameterCarrier parameter) throws UnknownModelException {
+        return getModelResult(modelName, parameter).getModel();
+    }
+
+    ToolingModelResult<?> getModelResult(String modelName, @Nullable ToolingModelParameterCarrier parameter) throws UnknownModelException;
 }

@@ -202,6 +202,11 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         }
 
         @Override
+        public boolean hasSideEffects() {
+            return false;
+        }
+
+        @Override
         public Object build(@Nullable Object parameter) {
             return buildScopeModelBuilder.create(target);
         }
@@ -235,6 +240,11 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         }
 
         @Override
+        public boolean hasSideEffects() {
+            return delegate.hasSideEffects();
+        }
+
+        @Override
         public Class<?> getParameterType() {
             return delegate.getParameterType();
         }
@@ -254,6 +264,11 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         @Override
         public Class<Object> getParameterType() {
             return null;
+        }
+
+        @Override
+        public boolean hasSideEffects() {
+            return delegate instanceof WithSideEffectToolingModelBuilder;
         }
 
         @Override
@@ -279,6 +294,11 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         @Override
         public Class<?> getParameterType() {
             return delegate.getParameterType();
+        }
+
+        @Override
+        public boolean hasSideEffects() {
+            return delegate instanceof WithSideEffectToolingModelBuilder;
         }
 
         @Override

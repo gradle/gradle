@@ -29,6 +29,7 @@ import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintCo
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.metadata.ProjectMetadataController
 import org.gradle.configurationcache.models.IntermediateModelController
+import org.gradle.configurationcache.models.ProjectStateStore
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.IsolateOwner
@@ -48,6 +49,7 @@ import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
+import org.gradle.tooling.provider.model.internal.ToolingModelResult
 import org.gradle.util.Path
 import java.io.File
 import java.io.OutputStream
@@ -175,12 +177,19 @@ class DefaultConfigurationCache internal constructor(
         }
     }
 
-    override fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T?): T? {
+    override fun <T> loadOrCreateIntermediateModel(
+        identityPath: Path?,
+        modelName: String,
+        parameter: ToolingModelParameterCarrier?,
+        creator: () -> ToolingModelResult<T>
+    ): ToolingModelResult<T> {
         return intermediateModels.value.loadOrCreateIntermediateModel(identityPath, modelName, parameter, creator)
     }
 
     override fun loadOrCreateProjectMetadata(identityPath: Path, creator: () -> LocalComponentGraphResolveState): LocalComponentGraphResolveState {
-        return projectMetadata.value.loadOrCreateValue(identityPath, creator)
+        return projectMetadata.value.loadOrCreateValue(identityPath) {
+            ProjectStateStore.Value(creator(), true)
+        }.value
     }
 
     override fun finalizeCacheEntry() {

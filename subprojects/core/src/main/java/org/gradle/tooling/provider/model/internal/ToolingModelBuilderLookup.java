@@ -53,6 +53,8 @@ public interface ToolingModelBuilderLookup {
         @Nullable
         Class<?> getParameterType();
 
+        boolean hasSideEffects();
+
         Object build(@Nullable Object parameter);
     }
 }
