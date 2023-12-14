@@ -13,20 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.tooling.events.problems;
 
+
 import org.gradle.api.Incubating;
-import org.gradle.api.NonNullApi;
-import org.gradle.tooling.events.ProgressEvent;
+
+import java.util.List;
 
 /**
- * A problem.
+ * Represents a reported problems summary.
  *
- * @since 8.4
+ * @since 8.6
  */
-@NonNullApi
 @Incubating
-public interface ProblemEvent extends ProgressEvent {
-    @Override
-    BaseProblemDescriptor getDescriptor();
+public interface ProblemAggregation {
+
+    /**
+     * Returns the problem category.
+     *
+     * @return the problem category
+     * @since 8.6
+     */
+    ProblemCategory getCategory();
+
+    /**
+     * Returns the problem label.
+     *
+     * @return the problem label
+     * @since 8.6
+     */
+    Label getLabel();
+
+    /**
+     * The number of aggregated problems.
+     *
+     * @return the number of aggregated problems.
+     * @since 8.6
+     */
+    List<ProblemDescriptor> getProblemDescriptors();
+
 }

@@ -17,7 +17,6 @@
 package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.OperationDescriptor;
 
 import java.util.List;
 
@@ -30,7 +29,7 @@ import java.util.List;
  * @since 8.4
  */
 @Incubating
-public interface ProblemDescriptor extends OperationDescriptor {
+public interface ProblemDescriptor extends BaseProblemDescriptor {
 
     /**
      * Returns the problem category.
