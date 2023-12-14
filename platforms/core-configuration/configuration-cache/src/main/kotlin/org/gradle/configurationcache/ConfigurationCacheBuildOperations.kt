@@ -22,6 +22,8 @@ import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.CallableBuildOperation
+import org.gradle.internal.operations.RunnableBuildOperation
+import java.io.File
 
 
 internal
@@ -30,8 +32,17 @@ fun <T : Any> BuildOperationExecutor.withLoadOperation(block: () -> T) =
 
 
 internal
-fun BuildOperationExecutor.withStoreOperation(@Suppress("UNUSED_PARAMETER") cacheKey: String, block: () -> Unit) =
-    withOperation("Store configuration cache state", "Storing configuration cache state", block, StoreDetails, StoreResult)
+fun BuildOperationExecutor.withStoreOperation(@Suppress("UNUSED_PARAMETER") cacheKey: String, block: () -> StoreResult) =
+    run(object : RunnableBuildOperation {
+        override fun description(): BuildOperationDescriptor.Builder = BuildOperationDescriptor
+            .displayName("Store configuration cache state")
+            .progressDisplayName("Storing configuration cache state")
+            .details(StoreDetails)
+
+        override fun run(context: BuildOperationContext) {
+            block().let { context.setResult(it) }
+        }
+    })
 
 
 private
@@ -46,8 +57,10 @@ private
 object StoreDetails : ConfigurationCacheStoreBuildOperationType.Details
 
 
-private
-object StoreResult : ConfigurationCacheStoreBuildOperationType.Result
+internal
+data class StoreResult(val stateFile: File) : ConfigurationCacheStoreBuildOperationType.Result {
+    override fun getCacheEntrySize(): Long = stateFile.length()
+}
 
 
 private
