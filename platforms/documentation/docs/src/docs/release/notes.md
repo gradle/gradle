@@ -63,6 +63,31 @@ A new [`named(Spec<String>)` method](javadoc/org/gradle/api/NamedDomainObjectCol
 [`ModuleDependencyCapabilitiesHandler#requireCapability(Object)`](javadoc/org/gradle/api/artifacts/ModuleDependencyCapabilitiesHandler.html#requireCapability-java.lang.Object-),
 and [`CapabilitiesResolution#withCapability(Object, Action)`](javadoc/org/gradle/api/artifacts/CapabilitiesResolution.html#withCapability-java.lang.Object-org.gradle.api.Action-).
 
+#### New `update()` API allow for safe self-referencing lazy properties
+
+Historically, Gradle did not support circular references when evaluating lazy properties:
+
+```
+def property = objects.property(String)
+property.set("some value")
+property.set(property.map { "$it and more" })
+
+println(property.get()) // throws StackOverflowError
+```
+
+[`Property`](javadoc/org/gradle/api/provider/Property.html#update-org.gradle.api.Transformer-) and [`ConfigurableFileCollection`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#update-org.gradle.api.Transformer-) now provide their respective `update(Transformer<...>)` methods which allow self-referencing updates in a safe way:
+
+```
+def property = objects.property(String)
+property.set("some value")
+property.update { it.map { "$it and more" } }
+
+println(property.get()) // "some value and more"
+```
+
+Please refer to the javadoc for [`Property.update(Transformer<>)`](javadoc/org/gradle/api/provider/Property.html#update-org.gradle.api.Transformer-) and [`ConfigurableFileCollection.update(Transformer<>)`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#update-org.gradle.api.Transformer-) for more details, including limitations.
+
+
 ### Problems API
 
 Gradle now has a new incubating API that allows build engineers and plugin authors to consume and report problems that occur during a build.
