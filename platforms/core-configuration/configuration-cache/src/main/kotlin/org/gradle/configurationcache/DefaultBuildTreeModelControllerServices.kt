@@ -86,7 +86,17 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val configurationCacheLogLevel = if (startParameter.isConfigurationCacheQuiet) LogLevel.INFO else LogLevel.LIFECYCLE
         val modelParameters = if (requirements.isCreatesModel) {
             // When creating a model, disable certain features - only enable configure on demand and configuration cache when isolated projects is enabled
-            BuildModelParameters(parallelProjectExecution, isolatedProjects, isolatedProjects, isolatedProjects, true, isolatedProjects, parallelToolingActions, invalidateCoupledProjects, configurationCacheLogLevel)
+            BuildModelParameters(
+                parallelProjectExecution,
+                isolatedProjects,
+                isolatedProjects,
+                isolatedProjects,
+                true,
+                isolatedProjects,
+                parallelToolingActions,
+                invalidateCoupledProjects,
+                configurationCacheLogLevel
+            )
         } else {
             val configurationCache = isolatedProjects || startParameter.configurationCache.get()
             val configureOnDemand = isolatedProjects || startParameter.isConfigureOnDemand
@@ -99,7 +109,17 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             when {
                 configurationCache && startParameter.writeDependencyVerifications.isNotEmpty() -> disabledConfigurationCacheBuildModelParameters(StartParameterBuildOptions.DependencyVerificationWriteOption.LONG_OPTION)
                 configurationCache && startParameter.isExportKeys -> disabledConfigurationCacheBuildModelParameters(StartParameterBuildOptions.ExportKeysOption.LONG_OPTION)
-                else -> BuildModelParameters(parallelProjectExecution, configureOnDemand, configurationCache, isolatedProjects, false, false, parallelToolingActions, invalidateCoupledProjects, configurationCacheLogLevel)
+                else -> BuildModelParameters(
+                    parallelProjectExecution,
+                    configureOnDemand,
+                    configurationCache,
+                    isolatedProjects,
+                    false,
+                    false,
+                    parallelToolingActions,
+                    invalidateCoupledProjects,
+                    configurationCacheLogLevel
+                )
             }
         }
 
@@ -125,7 +145,8 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         return BuildTreeModelControllerServices.Supplier { registration ->
             registration.add(BuildType::class.java, BuildType.TASKS)
             // Configuration cache is not supported for nested build trees
-            val buildModelParameters = BuildModelParameters(startParameter.isParallelProjectExecutionEnabled, startParameter.isConfigureOnDemand, false, false, true, false, false, false, LogLevel.LIFECYCLE)
+            val buildModelParameters =
+                BuildModelParameters(startParameter.isParallelProjectExecutionEnabled, startParameter.isConfigureOnDemand, false, false, true, false, false, false, LogLevel.LIFECYCLE)
             val buildFeatures = DefaultBuildFeatures(startParameter, buildModelParameters)
             val requirements = RunTasksRequirements(startParameter)
             registerServices(registration, buildModelParameters, buildFeatures, requirements)
