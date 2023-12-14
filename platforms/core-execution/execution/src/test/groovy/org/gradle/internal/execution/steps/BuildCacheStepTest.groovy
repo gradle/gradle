@@ -124,10 +124,10 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         def failure = new RuntimeException("unpack failure")
 
         when:
-        step.execute(work, context)
+        def result = step.execute(work, context)
 
         then:
-        def ex = thrown Exception
+        def ex = result.execution.failure.get()
         ex.message == "Failed to load cache entry $cacheKeyHashCode for job ':test': unpack failure"
         ex.cause == failure
 
