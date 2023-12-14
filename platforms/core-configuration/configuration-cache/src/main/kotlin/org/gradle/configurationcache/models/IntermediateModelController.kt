@@ -85,7 +85,7 @@ class IntermediateModelController(
             val wrappedValue = if (modelValue == null) IntermediateModel.NullModel else IntermediateModel.Model(modelValue)
             Value(wrappedValue, modelResult.isCrossBuildReusable)
         } catch (e: UnknownModelException) {
-            Value(IntermediateModel.NoModel(e.message!!), false)
+            Value(IntermediateModel.NoModel(e.message!!), true)
         }
     }
 
