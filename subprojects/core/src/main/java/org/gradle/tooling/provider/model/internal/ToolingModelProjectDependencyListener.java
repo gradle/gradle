@@ -16,10 +16,12 @@
 
 package org.gradle.tooling.provider.model.internal;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scopes;
 
+@NonNullApi
 @EventScope(Scopes.Build.class)
 public interface ToolingModelProjectDependencyListener {
 
