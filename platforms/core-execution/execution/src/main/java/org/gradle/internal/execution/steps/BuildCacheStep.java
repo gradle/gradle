@@ -28,7 +28,6 @@ import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
 import org.gradle.internal.file.Deleter;
@@ -72,12 +71,12 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
     @Override
     public AfterExecutionResult execute(UnitOfWork work, IncrementalChangesContext context) {
         return context.getCachingState().fold(
-            cachingEnabled -> executeWithCache(work, context, cachingEnabled.getKey(), cachingEnabled.getBeforeExecutionState()),
+            cachingEnabled -> executeWithCache(work, context, cachingEnabled.getKey()),
             cachingDisabled -> executeWithoutCache(work, context)
         );
     }
 
-    private AfterExecutionResult executeWithCache(UnitOfWork work, IncrementalChangesContext context, BuildCacheKey cacheKey, BeforeExecutionState beforeExecutionState) {
+    private AfterExecutionResult executeWithCache(UnitOfWork work, IncrementalChangesContext context, BuildCacheKey cacheKey) {
         CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), context.getWorkspace(), work);
         return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
                 ? tryLoadingFromCache(cacheKey, cacheableWork)
