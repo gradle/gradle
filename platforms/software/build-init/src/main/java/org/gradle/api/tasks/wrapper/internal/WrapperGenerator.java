@@ -27,6 +27,7 @@ import org.gradle.api.tasks.wrapper.Wrapper.PathBase;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.DistributionLocator;
+import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.WrapUtil;
 import org.gradle.wrapper.GradleWrapperMain;
 import org.gradle.wrapper.WrapperExecutor;
@@ -97,6 +98,8 @@ public class WrapperGenerator {
             wrapperProperties.put(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY, String.valueOf(networkTimeout));
         }
         wrapperProperties.put(WrapperExecutor.VALIDATE_DISTRIBUTION_URL, String.valueOf(validateDistributionUrl));
+
+        GFileUtils.parentMkdirs(propertiesFileDestination);
         try {
             PropertiesUtils.store(wrapperProperties, propertiesFileDestination);
         } catch (IOException e) {

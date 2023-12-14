@@ -22,6 +22,8 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
+import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.Property;
@@ -32,6 +34,8 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
+import org.gradle.api.tasks.wrapper.internal.WrapperDefaults;
+import org.gradle.api.tasks.wrapper.internal.WrapperGenerator;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.BuildConverter;
 import org.gradle.buildinit.plugins.internal.BuildInitializer;
@@ -45,11 +49,13 @@ import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.util.GradleVersion;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.lang.model.SourceVersion;
+import java.io.File;
 import java.util.List;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -274,9 +280,29 @@ public abstract class InitBuild extends DefaultTask {
         }
 
         initDescriptor.generate(settings);
+        generateWrapper();
 
         initDescriptor.getFurtherReading(settings)
             .ifPresent(link -> getLogger().lifecycle(link));
+    }
+
+    private void generateWrapper() {
+        FileResolver fileResolver = getFileOperations().getFileResolver();
+        File unixScript = fileResolver.resolve(WrapperDefaults.SCRIPT_PATH);
+        File jarFile = fileResolver.resolve(WrapperDefaults.JAR_FILE_PATH);
+        File propertiesFile = WrapperGenerator.getPropertiesFile(jarFile);
+        String distributionUrl = WrapperGenerator.getDistributionUrl(GradleVersion.current(), WrapperDefaults.DISTRIBUTION_TYPE);
+        WrapperGenerator.generate(
+            WrapperDefaults.ARCHIVE_BASE, WrapperDefaults.ARCHIVE_PATH,
+            WrapperDefaults.DISTRIBUTION_BASE, WrapperDefaults.DISTRIBUTION_PATH,
+            null,
+            propertiesFile,
+            jarFile, fileResolver.resolveAsRelativePath(jarFile),
+            unixScript, WrapperGenerator.getBatchScript(unixScript),
+            distributionUrl,
+            true,
+            WrapperDefaults.NETWORK_TIMEOUT
+        );
     }
 
     private UserInputHandler getEffectiveInputHandler() {
@@ -517,4 +543,7 @@ public abstract class InitBuild extends DefaultTask {
 
     @Inject
     protected abstract UserInputHandler getUserInputHandler();
+
+    @Inject
+    protected abstract FileOperations getFileOperations();
 }
