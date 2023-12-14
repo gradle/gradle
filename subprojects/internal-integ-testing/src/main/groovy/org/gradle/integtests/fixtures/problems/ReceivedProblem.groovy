@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.problems
 
 import groovy.transform.CompileStatic
+import spock.lang.Issue
 
 @CompileStatic
 class ReceivedProblem {
@@ -37,6 +38,7 @@ class ReceivedProblem {
      * @return The value of the property.
      */
     @Override
+    @Issue("https://github.com/gradle/gradle/issues/27411")
     Object getProperty(String propertyName) {
         if (propertyName == 'operationId') {
             return operationId
