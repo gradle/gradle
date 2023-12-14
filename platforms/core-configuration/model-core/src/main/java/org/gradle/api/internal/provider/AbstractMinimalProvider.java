@@ -170,7 +170,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public final String toString() {
-        // Override #safeToString instead
+        // Override #toStringNoReentrance instead
         return EvaluationContext.current().tryEvaluate(this, "<CIRCULAR REFERENCE>", this::toStringNoReentrance);
     }
 
