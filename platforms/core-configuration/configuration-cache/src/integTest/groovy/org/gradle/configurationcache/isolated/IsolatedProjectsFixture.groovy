@@ -243,7 +243,7 @@ class IsolatedProjectsFixture {
         return result
     }
 
-    trait HasIntermediateDetails {
+    trait HasIntermediateDetails extends HasBuildActions {
         final projects = new HashSet<String>()
         final List<ModelRequestExpectation> models = []
         int buildModelQueries
