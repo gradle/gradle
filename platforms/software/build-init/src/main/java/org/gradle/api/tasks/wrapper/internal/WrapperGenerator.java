@@ -28,7 +28,6 @@ import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.DistributionLocator;
 import org.gradle.util.internal.GFileUtils;
-import org.gradle.util.internal.WrapUtil;
 import org.gradle.wrapper.GradleWrapperMain;
 import org.gradle.wrapper.WrapperExecutor;
 
@@ -41,6 +40,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.util.Locale;
 import java.util.Properties;
+
+import static java.util.Collections.singletonList;
 
 @NonNullApi
 public class WrapperGenerator {
@@ -123,7 +124,7 @@ public class WrapperGenerator {
         StartScriptGenerator generator = new StartScriptGenerator();
         generator.setApplicationName("Gradle");
         generator.setMainClassName(GradleWrapperMain.class.getName());
-        generator.setClasspath(WrapUtil.toList(jarFileRelativePath));
+        generator.setClasspath(singletonList(jarFileRelativePath));
         generator.setOptsEnvironmentVar("GRADLE_OPTS");
         generator.setExitEnvironmentVar("GRADLE_EXIT_CONSOLE");
         generator.setAppNameSystemProperty("org.gradle.appname");
