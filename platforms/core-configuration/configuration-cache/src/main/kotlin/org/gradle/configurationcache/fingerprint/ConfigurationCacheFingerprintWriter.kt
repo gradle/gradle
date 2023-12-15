@@ -119,6 +119,7 @@ class ConfigurationCacheFingerprintWriter(
         val startParameterProperties: Map<String, Any?>
         val buildStartTime: Long
         val cacheIntermediateModels: Boolean
+        val modelAsProjectDependency: Boolean
         val ignoreInputsInConfigurationCacheTaskGraphWriting: Boolean
         val instrumentationAgentUsed: Boolean
         val ignoredFileSystemCheckInputs: String?
@@ -557,7 +558,9 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun onToolingModelDependency(consumer: ProjectState, target: ProjectState) {
-        onProjectDependency(consumer, target)
+        if (host.modelAsProjectDependency) {
+            onProjectDependency(consumer, target)
+        }
     }
 
     private

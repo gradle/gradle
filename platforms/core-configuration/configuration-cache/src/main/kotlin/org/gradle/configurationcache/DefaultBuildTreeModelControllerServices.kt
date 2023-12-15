@@ -62,6 +62,13 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
         private
         val invalidateCoupledProjects = InternalFlag("org.gradle.internal.invalidate-coupled-projects", true)
+
+        /**
+         * If model dependencies between projects should be treated as project dependencies.
+         * Model dependency is observed when a project requests a model from another project.
+         */
+        private
+        val modelProjectDependencies = InternalFlag("org.gradle.internal.model-project-dependencies", true)
     }
 
     override fun servicesForBuildTree(requirements: BuildActionModelRequirements): BuildTreeModelControllerServices.Supplier {
@@ -79,6 +86,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val parallelProjectExecution = isolatedProjects || requirements.startParameter.isParallelProjectExecutionEnabled
         val parallelToolingActions = parallelProjectExecution && options.getOption(parallelBuilding).get()
         val invalidateCoupledProjects = isolatedProjects && options.getOption(invalidateCoupledProjects).get()
+        val modelAsProjectDependency = isolatedProjects && options.getOption(modelProjectDependencies).get()
         val configurationCacheLogLevel = if (startParameter.isConfigurationCacheQuiet) LogLevel.INFO else LogLevel.LIFECYCLE
         val modelParameters = if (requirements.isCreatesModel) {
             // When creating a model, disable certain features - only enable configure on demand and configuration cache when isolated projects is enabled
@@ -91,6 +99,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                 isolatedProjects,
                 parallelToolingActions,
                 invalidateCoupledProjects,
+                modelAsProjectDependency,
                 configurationCacheLogLevel
             )
         } else {
@@ -108,6 +117,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                     false,
                     parallelToolingActions,
                     invalidateCoupledProjects,
+                    modelAsProjectDependency,
                     configurationCacheLogLevel
                 )
             }
@@ -124,6 +134,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                     false,
                     parallelToolingActions,
                     invalidateCoupledProjects,
+                    modelAsProjectDependency,
                     configurationCacheLogLevel
                 )
             }
@@ -158,6 +169,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                     false,
                     false,
                     true,
+                    false,
                     false,
                     false,
                     false,
