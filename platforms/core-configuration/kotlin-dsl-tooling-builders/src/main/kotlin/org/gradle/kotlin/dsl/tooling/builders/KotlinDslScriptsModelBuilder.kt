@@ -109,8 +109,11 @@ data class StandardEditorPosition(
 internal
 object KotlinDslScriptsModelBuilder : ToolingModelBuilder {
 
+    private
+    val MODEL_NAME = KotlinDslScriptsModel::class.qualifiedName!!
+
     override fun canBuild(modelName: String): Boolean =
-        modelName == KotlinDslScriptsModel::class.qualifiedName
+        modelName == MODEL_NAME
 
     override fun buildAll(modelName: String, project: Project): KotlinDslScriptsModel {
         requireRootProject(project)
