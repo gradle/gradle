@@ -27,7 +27,6 @@ import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
-import org.gradle.tooling.model.internal.ImmutableDomainObjectSet
 import org.gradle.tooling.provider.model.internal.PluginApplyingBuilder
 import org.gradle.util.internal.ToBeImplemented
 
@@ -453,7 +452,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         }
 
         checkModel(result, originalResult, [
-            [{ ImmutableDomainObjectSet.of(it.allIdeaProjects) }, { a, e -> checkIdeaProject(a, e) }]
+            [{ it.allIdeaProjects }, { a, e -> checkIdeaProject(a, e) }]
         ])
 
 
@@ -465,7 +464,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         fixture.assertStateLoaded()
 
         checkModel(anotherResult, originalResult, [
-            [{ ImmutableDomainObjectSet.of(it.allIdeaProjects) }, { a, e -> checkIdeaProject(a, e) }]
+            [{ it.allIdeaProjects }, { a, e -> checkIdeaProject(a, e) }]
         ])
 
         when: "fetching after change with Isolated Projects"
@@ -485,7 +484,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         outputContains("changed root in buildC")
 
         checkModel(afterChangeResult, originalResult, [
-            [{ ImmutableDomainObjectSet.of(it.allIdeaProjects) }, { a, e -> checkIdeaProject(a, e) }]
+            [{ it.allIdeaProjects }, { a, e -> checkIdeaProject(a, e) }]
         ])
     }
 
