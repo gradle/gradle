@@ -32,9 +32,8 @@ import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RestrictedRuntimeProp
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RuntimeFunctionResolver
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RuntimePropertyResolver
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.CollectedPropertyInformation
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.CompositeDataClassSchemaProducer
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.DataClassSchemaProducer
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.defaultDataClassSchemaProducer
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.DefaultPropertyExtractor
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.PropertyExtractor
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.kotlinFunctionAsConfigureLambda
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.plus
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.schemaFromTypes
@@ -102,8 +101,8 @@ fun step2Project(target: ProjectInternal, targetScope: ClassLoaderScope) = objec
         EvaluationSchema(
             createAnalysisSchemaForProject(targetScope),
             analysisStatementFilter = analyzeEverythingExceptPluginsBlock,
-            additionalPropertyResolvers = listOf(hardcodeProjectExtensionsProperties),
-            additionalFunctionResolvers = listOf(hardcodeDependencyExtensionFunctions),
+            runtimePropertyResolvers = listOf(hardcodeProjectExtensionsProperties),
+            runtimeFunctionResolvers = listOf(hardcodeDependencyExtensionFunctions),
         )
 
     override fun topLevelReceiver(): ProjectInternal = target
@@ -136,6 +135,7 @@ fun isPluginsCall(statement: DataStatement) =
 private
 fun createAnalysisSchemaForProject(targetScope: ClassLoaderScope): AnalysisSchema {
     val projectAccessors = projectAccessorsSupport(targetScope)
+    val configureLambdas = treatInterfaceAsConfigureLambda(Action::class).plus(kotlinFunctionAsConfigureLambda)
 
     return schemaFromTypes(
         ProjectTopLevelReceiver::class,
@@ -146,17 +146,15 @@ fun createAnalysisSchemaForProject(targetScope: ClassLoaderScope): AnalysisSchem
             RestrictedDependenciesHandler::class,
             ProjectDependency::class
         ) + projectAccessors.typesFromExtensions,
-        dataClassSchemaProducer = CompositeDataClassSchemaProducer(
-            listOf(defaultDataClassSchemaProducer, DependencyDslAccessorsProducer()) + projectAccessors.dataClassSchemaProducers
-        ),
-
-        configureLambdas = treatInterfaceAsConfigureLambda(Action::class).plus(kotlinFunctionAsConfigureLambda)
+        configureLambdas = configureLambdas,
+        propertyExtractor = DefaultPropertyExtractor() + projectAccessors.propertyExtractor,
+        typeDiscovery = DependencyDslTypeDiscovery(),
     )
 }
 
 
 private
-class ProjectAccessorsSupport(val typesFromExtensions: List<KClass<*>>, val dataClassSchemaProducers: List<DataClassSchemaProducer>)
+class ProjectAccessorsSupport(val typesFromExtensions: List<KClass<*>>, val propertyExtractor: PropertyExtractor)
 
 
 private
@@ -164,7 +162,7 @@ fun projectAccessorsSupport(targetScope: ClassLoaderScope): ProjectAccessorsSupp
     val projectAccessorsClass = try {
         targetScope.localClassLoader.loadClass("org.gradle.accessors.dm.RootProjectAccessor").kotlin
     } catch (e: ClassNotFoundException) {
-        return ProjectAccessorsSupport(emptyList(), emptyList())
+        return ProjectAccessorsSupport(emptyList(), PropertyExtractor.none)
     }
 
     val projectAccessorsExtension = CollectedPropertyInformation(
@@ -177,11 +175,13 @@ fun projectAccessorsSupport(targetScope: ClassLoaderScope): ProjectAccessorsSupp
         isDirectAccessOnly = false
     )
 
-    val producer = ExtensionPropertiesProducer(mapOf(ProjectTopLevelReceiver::class to listOf(projectAccessorsExtension)))
+    val propertyExtractor =
+        DependencyDslAccessorsProducer() +
+            ExtensionProperties(mapOf(ProjectTopLevelReceiver::class to listOf(projectAccessorsExtension)))
 
     return ProjectAccessorsSupport(
         typesFromExtensions = listOf(projectAccessorsClass),
-        dataClassSchemaProducers = listOf(producer)
+        propertyExtractor = propertyExtractor
     )
 }
 

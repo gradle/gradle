@@ -17,18 +17,11 @@
 package org.gradle.internal.restricteddsl.project
 
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.CollectedPropertyInformation
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.DataClassSchemaProducer
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.PropertyExtractor
 import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
 
 
 internal
-class ExtensionPropertiesProducer(private val extensionPropertiesByClass: Map<KClass<*>, Iterable<CollectedPropertyInformation>>) : DataClassSchemaProducer {
-    override fun getOtherClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> = emptyList()
-
-    override fun extractPropertiesOf(kClass: KClass<*>): Iterable<CollectedPropertyInformation> = extensionPropertiesByClass[kClass] ?: emptyList()
-
-    override fun getFunctionsToExtract(kClass: KClass<*>): Iterable<KFunction<*>> = emptyList()
-
-    override fun getConstructorsToExtract(kClass: KClass<*>): Iterable<KFunction<*>> = emptyList()
+class ExtensionProperties(private val extensionPropertiesByClass: Map<KClass<*>, Iterable<CollectedPropertyInformation>>) : PropertyExtractor {
+    override fun extractProperties(kClass: KClass<*>): Iterable<CollectedPropertyInformation> = extensionPropertiesByClass[kClass] ?: emptyList()
 }

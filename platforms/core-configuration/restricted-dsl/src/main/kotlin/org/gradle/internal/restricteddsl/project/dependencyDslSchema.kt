@@ -17,20 +17,15 @@
 package org.gradle.internal.restricteddsl.project
 
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.CollectedPropertyInformation
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.DataClassSchemaProducer
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.DefaultPropertyExtractor
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.PropertyExtractor
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.TypeDiscovery
 import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
 import kotlin.reflect.KType
 
 
 internal
-class DependencyDslAccessorsProducer : DataClassSchemaProducer {
-    private
-    val dependencyGetters = PropertyExtractor { property ->
-        (property.returnType.classifier as? KClass<*>)?.isGeneratedAccessors() == true
-    }
-
+class DependencyDslTypeDiscovery : TypeDiscovery {
     override fun getOtherClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> {
         return if (kClass.isGeneratedAccessors()) {
             allClassesReachableFromGetters(kClass).flatMapTo(mutableSetOf(), ::allSupertypes)
@@ -62,18 +57,25 @@ class DependencyDslAccessorsProducer : DataClassSchemaProducer {
         add(kClass)
         kClass.supertypes.forEach(::visit)
     }
+}
 
-    override fun extractPropertiesOf(kClass: KClass<*>): Iterable<CollectedPropertyInformation> =
+
+internal
+class DependencyDslAccessorsProducer : PropertyExtractor {
+    override fun extractProperties(kClass: KClass<*>): Iterable<CollectedPropertyInformation> =
         if (kClass.isGeneratedAccessors()) {
             dependencyGetters.extractProperties(kClass)
         } else emptyList()
-
-    private
-    fun KClass<*>.isGeneratedAccessors() =
-        // TODO: find a better way to filter the accessor types
-        qualifiedName.orEmpty().startsWith("org.gradle.accessors.dm.")
-
-    override fun getFunctionsToExtract(kClass: KClass<*>): Iterable<KFunction<*>> = emptyList()
-
-    override fun getConstructorsToExtract(kClass: KClass<*>): Iterable<KFunction<*>> = emptyList()
 }
+
+
+private
+val dependencyGetters = DefaultPropertyExtractor { property ->
+    (property.returnType.classifier as? KClass<*>)?.isGeneratedAccessors() == true
+}
+
+
+private
+fun KClass<*>.isGeneratedAccessors() =
+    // TODO: find a better way to filter the accessor types
+    qualifiedName.orEmpty().startsWith("org.gradle.accessors.dm.")
