@@ -72,7 +72,7 @@ public class DefaultProblemCategory implements ProblemCategory, Serializable {
     }
 
     @Override
-    public List<String> getSubCategories() {
+    public List<String> getSubcategories() {
         return ImmutableList.copyOf(subcategories);
     }
 

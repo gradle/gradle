@@ -98,7 +98,7 @@ public class DefaultProblem implements InternalProblem, Serializable {
     }
 
     @Override
-    public ProblemCategory getProblemCategory() {
+    public ProblemCategory getCategory() {
         return problemCategory;
     }
 

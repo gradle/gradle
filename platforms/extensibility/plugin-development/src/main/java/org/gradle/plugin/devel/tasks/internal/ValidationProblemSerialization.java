@@ -434,7 +434,7 @@ public class ValidationProblemSerialization {
             out.name("namespace").value(value.getNamespace());
             out.name("category").value(value.getCategory());
             out.name("subcategories").beginArray();
-            for (String sc : value.getSubCategories()) {
+            for (String sc : value.getSubcategories()) {
                 out.value(sc);
             }
             out.endArray();
