@@ -115,11 +115,8 @@ class KotlinDslScriptsModelBuilder(private val intermediateToolingModelProvider:
         val MODEL_NAME = KotlinDslScriptsModel::class.qualifiedName!!
     }
 
-    private
-    val MODEL_NAME = KotlinDslScriptsModel::class.qualifiedName!!
-
     override fun canBuild(modelName: String): Boolean =
-        modelName == MODEL_NAME
+        modelName == "org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel"
 
     override fun buildAll(modelName: String, project: Project): KotlinDslScriptsModel {
         requireRootProject(project)

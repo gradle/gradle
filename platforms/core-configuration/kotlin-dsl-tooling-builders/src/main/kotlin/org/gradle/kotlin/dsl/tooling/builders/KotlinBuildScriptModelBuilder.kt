@@ -107,13 +107,8 @@ class KotlinBuildScriptModelBuilder(
     private val intermediateToolingModelProvider: IntermediateToolingModelProvider
 ) : ParameterizedToolingModelBuilder<KotlinBuildScriptModelParameter> {
 
-    companion object {
-        private
-        val MODEL_NAME = KotlinBuildScriptModel::class.qualifiedName!!
-    }
-
     override fun canBuild(modelName: String): Boolean =
-        modelName == MODEL_NAME
+        modelName == "org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel"
 
     override fun getParameterType(): Class<KotlinBuildScriptModelParameter> = KotlinBuildScriptModelParameter::class.java
 
@@ -273,17 +268,21 @@ fun projectScriptModelBuilder(
     scriptFile = scriptFile,
     project = project,
     scriptClassPath = project.scriptCompilationClassPath,
-    accessorsClassPath = { classPath ->
-        val stage1BlocksAccessorClassPathGenerator = project.serviceOf<Stage1BlocksAccessorClassPathGenerator>()
-        val projectAccessorClassPathGenerator = project.serviceOf<ProjectAccessorsClassPathGenerator>()
-        val dependenciesAccessors = project.serviceOf<DependenciesAccessors>()
-        projectAccessorClassPathGenerator.projectAccessorsClassPath(project, classPath) +
-            stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(project) +
-            AccessorsClassPath(dependenciesAccessors.classes, dependenciesAccessors.sources)
-    },
+    accessorsClassPath = { project.accessorsClassPathOf(it) },
     sourcePathBuilder = ProjectScriptSourcePathBuilder(project, intermediateToolingModelProvider),
     enclosingScriptProjectDir = project.projectDir
 )
+
+
+private
+fun ProjectInternal.accessorsClassPathOf(classPath: ClassPath): AccessorsClassPath {
+    val stage1BlocksAccessorClassPathGenerator = serviceOf<Stage1BlocksAccessorClassPathGenerator>()
+    val projectAccessorClassPathGenerator = serviceOf<ProjectAccessorsClassPathGenerator>()
+    val dependenciesAccessors = serviceOf<DependenciesAccessors>()
+    return projectAccessorClassPathGenerator.projectAccessorsClassPath(this, classPath) +
+        stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(this) +
+        AccessorsClassPath(dependenciesAccessors.classes, dependenciesAccessors.sources)
+}
 
 
 private
