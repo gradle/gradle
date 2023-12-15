@@ -116,6 +116,9 @@ class KotlinDslScriptsModelBuilder(private val intermediateToolingModelProvider:
         val MODEL_NAME = KotlinDslScriptsModel::class.qualifiedName!!
     }
 
+    private
+    val MODEL_NAME = KotlinDslScriptsModel::class.qualifiedName!!
+
     override fun canBuild(modelName: String): Boolean =
         modelName == MODEL_NAME
 
@@ -208,37 +211,31 @@ private
 fun Project.parameterFromRequest(intermediateToolingModelProvider: IntermediateToolingModelProvider): KotlinDslScriptsParameter =
     KotlinDslScriptsParameter(
         resolveCorrelationIdParameter(),
-        resolveScriptPathsParameter(intermediateToolingModelProvider)
+        resolveScriptsParameter()
     )
 
 
 private
-fun Project.resolveScriptPathsParameter(intermediateToolingModelProvider: IntermediateToolingModelProvider): TargetScripts {
-    val explicitTargetScripts = resolveExplicitScriptPathsParameter()
-    if (!explicitTargetScripts.isNullOrEmpty()) {
-        return TargetScripts(explicitTargetScripts, resolvedOwners = false)
-    }
-
-    val discoveredScripts = collectKotlinDslScripts(intermediateToolingModelProvider)
-    return TargetScripts(discoveredScripts, resolvedOwners = true)
-}
+fun Project.resolveCorrelationIdParameter(): String? =
+    findProperty(KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME) as? String
 
 
 private
-fun Project.resolveExplicitScriptPathsParameter(): List<TargetScript>? =
+fun Project.resolveScriptsParameter(): List<File> =
+    resolveExplicitScriptsParameter()
+        ?.takeIf { it.isNotEmpty() }
+        ?: collectKotlinDslScripts()
+
+
+private
+fun Project.resolveExplicitScriptsParameter(): List<File>? =
     (findProperty(KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME) as? String)
         ?.split("|")
         ?.asSequence()
         ?.filter { it.isNotBlank() }
         ?.map(::canonicalFile)
         ?.filter { it.isFile }
-        ?.map { TargetScript(it) }
         ?.toList()
-
-
-private
-fun Project.resolveCorrelationIdParameter(): String? =
-    findProperty(KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME) as? String
 
 
 // TODO:kotlin-dsl naive implementation for now, refine
@@ -250,12 +247,12 @@ fun Project.collectKotlinDslScripts(intermediateToolingModelProvider: Intermedia
         .startParameter
         .allInitScripts
         .filter(File::isFile)
-        .filter { it.hasKotlinDslExtension }
+        .filter { it.isKotlinDslFile }
         .forEach { yield(TargetScript(it)) }
 
     // Settings Script
     val settingsScriptFile = File((project as ProjectInternal).gradle.settings.settingsScript.fileName)
-    if (settingsScriptFile.isFile && settingsScriptFile.hasKotlinDslExtension) {
+    if (settingsScriptFile.isKotlinDslFile) {
         yield(TargetScript(settingsScriptFile))
     }
 
@@ -314,3 +311,13 @@ fun mapEditorReports(internalReports: List<org.gradle.kotlin.dsl.tooling.models.
             }
         )
     }
+
+
+internal
+val File.isKotlinDslFile: Boolean
+    get() = isFile && hasKotlinDslExtension
+
+
+internal
+val File.hasKotlinDslExtension: Boolean
+    get() = name.endsWith(".gradle.kts")
