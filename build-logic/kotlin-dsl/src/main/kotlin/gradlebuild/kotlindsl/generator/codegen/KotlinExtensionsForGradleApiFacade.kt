@@ -19,6 +19,7 @@ package gradlebuild.kotlindsl.generator.codegen
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classpath.ClassPath
 import java.io.File
+import java.lang.reflect.InvocationTargetException
 import java.net.URLClassLoader
 
 
@@ -103,7 +104,11 @@ class KotlinExtensionsForGradleApiFacade(classPath: ClassPath) : AutoCloseable {
         val facadeClass = loader.loadClass(className)
         val facade = facadeClass.getConstructor().newInstance()
         val function = facadeClass.methods.single { it.name == "generate" }
-        function.invoke(facade, parameters)
+        try {
+            function.invoke(facade, parameters)
+        } catch (e: InvocationTargetException) {
+            throw e.targetException
+        }
     }
 
     override fun close() {
