@@ -2475,7 +2475,7 @@ div.screenshot {
   margin: 12px 0 0;
   outline: none;
   overflow: hidden;
-  padding: 0 25px;
+  padding: 12px 20px 12px 0px;
   position: relative;
   text-align: center;
   text-transform: none;
