@@ -251,7 +251,9 @@ fun projectScriptModelBuilder(
         val stage1BlocksAccessorClassPathGenerator = project.serviceOf<Stage1BlocksAccessorClassPathGenerator>()
         val projectAccessorClassPathGenerator = project.serviceOf<ProjectAccessorsClassPathGenerator>()
         val dependenciesAccessors = project.serviceOf<DependenciesAccessors>()
-        projectAccessorClassPathGenerator.projectAccessorsClassPath(project, classPath) + stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(project) + AccessorsClassPath(dependenciesAccessors.classes, dependenciesAccessors.sources)
+        projectAccessorClassPathGenerator.projectAccessorsClassPath(project, classPath) +
+            stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(project) +
+            AccessorsClassPath(dependenciesAccessors.classes, dependenciesAccessors.sources)
     },
     sourceLookupScriptHandlers = sourceLookupScriptHandlersFor(project),
     enclosingScriptProjectDir = project.projectDir
@@ -415,7 +417,7 @@ data class KotlinScriptTargetModelBuilder(
         return StandardKotlinBuildScriptModel(
             (scriptClassPath + accessorsClassPath.bin).asFiles,
             (gradleSource() + classpathSources + accessorsClassPath.src).asFiles,
-            implicitImports + additionalImports,
+            project.scriptImplicitImports + additionalImports,
             buildEditorReportsFor(exceptions),
             getExceptionsForFile(exceptions, this.scriptFile),
             enclosingScriptProjectDir
@@ -436,19 +438,10 @@ data class KotlinScriptTargetModelBuilder(
         SourcePathProvider.sourcePathFor(
             scriptClassPath,
             scriptFile,
-            rootDir,
-            gradleHomeDir,
+            project.rootDir,
+            project.gradle.gradleHomeDir,
             SourceDistributionResolver(project)
         )
-
-    val gradleHomeDir
-        get() = project.gradle.gradleHomeDir
-
-    val rootDir
-        get() = project.rootDir
-
-    val implicitImports
-        get() = project.scriptImplicitImports
 
     private
     fun buildEditorReportsFor(exceptions: List<Exception>) =
