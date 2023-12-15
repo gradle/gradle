@@ -258,9 +258,9 @@ fun ProjectInternal.accessorsClassPathOf(classPath: ClassPath): AccessorsClassPa
     val stage1BlocksAccessorClassPathGenerator = serviceOf<Stage1BlocksAccessorClassPathGenerator>()
     val projectAccessorClassPathGenerator = serviceOf<ProjectAccessorsClassPathGenerator>()
     val dependenciesAccessors = serviceOf<DependenciesAccessors>()
-    return projectAccessorClassPathGenerator.projectAccessorsClassPath(this, classPath) +
-        stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(this) +
-        AccessorsClassPath(dependenciesAccessors.classes, dependenciesAccessors.sources)
+    return (projectAccessorClassPathGenerator.projectAccessorsClassPath(this, classPath)
+        + stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(this)
+        + AccessorsClassPath(dependenciesAccessors.classes, dependenciesAccessors.sources))
 }
 
 
