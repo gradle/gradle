@@ -102,7 +102,6 @@ public abstract class Wrapper extends DefaultTask {
     private final Property<Integer> networkTimeout = getProject().getObjects().property(Integer.class);
     private boolean distributionUrlConfigured = false;
     private final boolean isOffline = getProject().getGradle().getStartParameter().isOffline();
-    ;
 
     @TaskAction
     void generate() {
