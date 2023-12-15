@@ -24,6 +24,10 @@ abstract class AbstractIsolatedProjectsIntegrationTest extends AbstractConfigura
     public static final String ENABLE_CLI = "-D${PROPERTY_NAME}=true"
     final def fixture = new IsolatedProjectsFixture(this)
 
+    void withIsolatedProjects() {
+        executer.withArgument(ENABLE_CLI)
+    }
+
     void isolatedProjectsRun(String... tasks) {
         run(ENABLE_CLI, *tasks)
     }
