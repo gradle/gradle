@@ -22,7 +22,6 @@ import org.gradle.internal.resources.ProjectLeaseRegistry
 import org.gradle.internal.time.Time
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.builders.internal.DiscoveredKotlinScriptsModel
-import org.gradle.kotlin.dsl.tooling.builders.internal.hasKotlinDslExtension
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.tooling.model.kotlin.dsl.EditorPosition
 import org.gradle.tooling.model.kotlin.dsl.EditorReport
@@ -211,7 +210,7 @@ private
 fun Project.parameterFromRequest(intermediateToolingModelProvider: IntermediateToolingModelProvider): KotlinDslScriptsParameter =
     KotlinDslScriptsParameter(
         resolveCorrelationIdParameter(),
-        resolveScriptsParameter()
+        resolveScriptsParameter(intermediateToolingModelProvider)
     )
 
 
@@ -221,20 +220,26 @@ fun Project.resolveCorrelationIdParameter(): String? =
 
 
 private
-fun Project.resolveScriptsParameter(): List<File> =
-    resolveExplicitScriptsParameter()
-        ?.takeIf { it.isNotEmpty() }
-        ?: collectKotlinDslScripts()
+fun Project.resolveScriptsParameter(intermediateToolingModelProvider: IntermediateToolingModelProvider): TargetScripts {
+    val explicitTargetScripts = resolveExplicitScriptsParameter()
+    if (!explicitTargetScripts.isNullOrEmpty()) {
+        return TargetScripts(explicitTargetScripts, resolvedOwners = false)
+    }
+
+    val discoveredScripts = collectKotlinDslScripts(intermediateToolingModelProvider)
+    return TargetScripts(discoveredScripts, resolvedOwners = true)
+}
 
 
 private
-fun Project.resolveExplicitScriptsParameter(): List<File>? =
+fun Project.resolveExplicitScriptsParameter(): List<TargetScript>? =
     (findProperty(KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME) as? String)
         ?.split("|")
         ?.asSequence()
         ?.filter { it.isNotBlank() }
         ?.map(::canonicalFile)
         ?.filter { it.isFile }
+        ?.map { TargetScript(it) }
         ?.toList()
 
 

@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.tooling.builders.internal
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.kotlin.dsl.tooling.builders.isKotlinDslFile
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import java.io.File
 
@@ -38,7 +39,7 @@ object DiscoveredKotlinScriptsModelBuilder : ToolingModelBuilder {
     override fun buildAll(modelName: String, project: Project): DiscoveredKotlinScriptsModel {
         val scripts = buildList {
             // Project Scripts
-            if (project.buildFile.isFile && project.buildFile.hasKotlinDslExtension) {
+            if (project.buildFile.isKotlinDslFile) {
                 add(project.buildFile)
             }
 
