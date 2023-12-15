@@ -41,7 +41,7 @@ NOTE: You can open this sample inside an IDE.
 
 == The sample explained
 
-As software projects grow, it is common to organize large systems into connected components.
+As software projects grow, organizing large systems into connected components is common.
 Typically, artifacts (such as source code) are organized in repositories and folder structures that reflect component boundaries and architecture.
 
 Gradle can help organize and enforce boundaries between components.
@@ -55,7 +55,7 @@ At the bottom, we define our domain model.
 There are two components:
 
 1. a _domain-model_ component that contains the model definition (i.e., a set of data classes) and,
-2. a _state_ component that is responsible for managing a modifiable state of the model during application runtime.
+2. a _state_ component responsible for managing a modifiable state of the model during application runtime.
 
 On top of the model, business logic for different (end-user) features is implemented independently.
 We have two features:
@@ -67,17 +67,16 @@ At the top, we have concrete applications users use to interact with the feature
 We build a Spring Boot web application that supports both features.
 And an Android app that only supports the _user feature_.
 
-Our components rely on external components that are retrieved from binary repositories.
-The Spring Boot and Android frameworks.
+Our components rely on external components, the Spring Boot and Android frameworks, that are retrieved from binary repositories.
 
-Apart from the production code, there are also components that deal with building and delivering the product:
+Apart from the production code, some components deal with building and delivering the product:
 
 1. The _build-logic_ component contains the configuration details about building the software. +
-It defines a Java version to use and configurest the test framework. +
+It defines a Java version to use and configures the test framework. +
 It also contains additional build logic in <<custom_plugins.adoc#custom_plugins,custom plugins>> with <<custom_tasks.adoc#custom_tasks,custom tasks>>.
 2. The _platforms_ component is a central place to define which versions of external components are to be used in all of our own components. +
-By that, it defines the constraints for the environments – that is, _the platforms_ – to build, test, and run the software product.
-3. The _aggregation_ component contains the setup of the delivery pipeline that is required to push the product to production and do automated end-to-end testing as part of that. +
+It defines the constraints for the environments – that is, _the platforms_ – to build, test, and run the software product.
+3. The _aggregation_ component contains the setup of the delivery pipeline required to push the product to production and do automated end-to-end testing. +
 This is the part of the build typically reserved for CI servers.
 
 == The project structure
@@ -156,19 +155,27 @@ include::sample[dir="samples/build-organization/structuring-software-projects/gr
 
 == Component structure
 
-A project is added by using the `include()` construct in the settings file.
+A (sub)project is added using the `include()` construct in the settings file.
 
 Let's zoom into the _domain-model_ component:
 
-[source]
+[source.multi-language-sample,kotlin]
 ----
-└── domain-model
-    ├── settings.gradle(.kts)
-    └── release
-        └── build.gradle(.kts)
+└── domain-model              <-- component
+    ├── settings.gradle.kts   <-- define inner structure of component and where to locate other components
+    └── release               <-- (sub)project in component
+        └── build.gradle.kts  <-- defines type of the project and its dependencies
 ----
 
-When we look at the `domain-model` build settings file, we see that `release` is a subproject:
+[source.multi-language-sample,groovy]
+----
+└── domain-model              <-- component
+    ├── settings.gradle       <-- define inner structure of component and where to locate other components
+    └── release               <-- (sub)project in component
+        └── build.gradle      <-- defines type of the project and its dependencies
+----
+
+When we look at the `domain-model` settings file, we see that `release` is included as a (sub)project:
 
 ====
 include::sample[dir="samples/build-organization/structuring-software-projects/kotlin",files="domain-model/settings.gradle.kts[tags=include]"]
@@ -177,38 +184,15 @@ include::sample[dir="samples/build-organization/structuring-software-projects/gr
 
 == Assigning types to components
 
-Let's zoom into the _domain-model_ component again:
+In Gradle, you assign a _type_ to a project by <<plugins.adoc#plugins,applying a plugin>>.
 
-[source.multi-language-sample,kotlin]
-----
-└── domain-model              <-- component
-    ├── settings.gradle.kts   <-- define inner structure of component and where to locate other components
-    └── release               <-- project in component
-        └── build.gradle.kts  <-- defines type of the project and its dependencies
-----
-
-[source.multi-language-sample,groovy]
-----
-└── domain-model              <-- component
-    ├── settings.gradle       <-- define inner structure of component and where to locate other components
-    └── release               <-- project in component
-        └── build.gradle      <-- defines type of the project and its dependencies
-----
-
-In Gradle, you assign a type to a project by <<plugins.adoc#plugins,applying a plugin>>.
-The simplest thing you can do is to apply one of Gradle's core plugins such as `java-library`.
-
-You then have additional configuration to do in the context of the product you are building.
-For example, if you apply the `java-library` plugin, you must configure details such as setting the Java version to 11.
-Configuration is typically done in the build file `domain-model/build.gradle(.kts)`:
-
-The custom type `com.example.kotlin-library` is applied to the `domain-model` component:
+In the sample, the custom _type_ `com.example.kotlin-library` is applied to the `domain-model` component:
 ====
 include::sample[dir="samples/build-organization/structuring-software-projects/kotlin",files="domain-model/release/build.gradle.kts[tags=project-type]"]
 include::sample[dir="samples/build-organization/structuring-software-projects/groovy",files="domain-model/release/build.gradle[tags=project-type]"]
 ====
 
-It's important to note that `com.example.kotlin-library` is applied to several other components as well including `state` and `admin-feature`.
+Note that `com.example.kotlin-library` is applied to several other components, including `state` and `admin-feature`.
 
 == Using Convention plugins
 
@@ -217,17 +201,16 @@ Where does the `com.example.kotlin-library` plugin from?
 It is defined in the `build-logic` component.
 
 The `build-logic` component contains build configuration as Gradle plugins called _convention plugins_.
-
-The `build-logic` component in the sample has several projects that each define a project type through a convention plugin:
+The `build-logic` component in the sample has several projects that each define a project _type_ through a _convention plugin_:
 
 - `java-library`
 - `kotlin-library`
 - `spring-application`
 - `android-application`
 
-There is also a project called `commons` for build configuration shared by all the project types.
+There is also a project called `commons` for build configuration shared by all the project _types_.
 
-Looking at the build.gradle(.kts) of the build-logic project for spring boot applications, we see:
+To apply a _convention plugin_ and assign a custom _type_ to a component:
 
 ====
 include::sample[dir="samples/build-organization/structuring-software-projects/kotlin",files="build-logic/spring-boot-application/build.gradle.kts"]
@@ -238,23 +221,23 @@ include::sample[dir="samples/build-organization/structuring-software-projects/gr
 <3> It depends on the `commons` project from `build-logic` to have access to our own commons convention plugin
 <4> It depends on the Spring Boot Gradle plugin from the Gradle Plugin Portal so that we may apply that plugin to our Spring Boot projects
 
-The convention plugin for Spring applications looks like this:
+Let's take a look at the code in `build-logic/spring-boot-application` where we define a custom project _type_ as a _convention plugin_:
 
 ====
 include::sample[dir="samples/build-organization/structuring-software-projects/kotlin",files="build-logic/spring-boot-application/src/main/kotlin/com.example.spring-boot-application.gradle.kts"]
 include::sample[dir="samples/build-organization/structuring-software-projects/groovy",files="build-logic/spring-boot-application/src/main/groovy/com.example.spring-boot-application.gradle"]
 ====
 
-We apply our own `com.example.commons` plugin, which is another convention plugin that, among other things, configures the Java version we are targeting and adds a dependency to a platform (`com.example.platform:product-platform` from our `platforms` component).
-And we apply the spring boot plugin.
-We also add two dependencies that Spring Boot projects should have.
+The `com.example.commons` plugin is applied, which is a convention plugin that configures the Java version and adds a dependency to a platform (`com.example.platform:product-platform` from the `platforms` component).
+The spring boot plugin is applied.
+Two dependencies that Spring Boot projects require are also added.
 
 == Connecting components
 
 The production code components depend on each other.
 
-To make components (builds) know to each other, you use the `includeBuild` statement in the settings file.
-This is not adding a dependency between (projects of) components. It just makes the physical location of one component known to another.
+To make components (i.e., builds) known to each other, you use the `includeBuild` statement in the settings file.
+This does not directly add a dependency between (projects of) components. It simply makes the physical location of one component known to another.
 
 Consider the setup of the `server-application` component:
 ====
@@ -263,12 +246,13 @@ include::sample[dir="samples/build-organization/structuring-software-projects/gr
 ====
 
 We see that the `settings.gradle(.kts)` file only defines the location for build logic components, other production code components, and the inner structure of the component.
+We need the location of `build-logic` to apply the `com.example.spring-boot-application` to the `server application` component.
 
-Only the `build.gradle(.kts)` file in the `app` project then defines actual dependencies by applying a convention plugin and utilizing the _dependencies_ block:
+The `build.gradle(.kts)` file in the `server-application:app` project defines the actual dependencies by applying the `com.example.spring-boot-application` _convention plugin_ and utilizing the _dependencies_ block:
 ====
 include::sample[dir="samples/build-organization/structuring-software-projects/kotlin",files="server-application/app/build.gradle.kts"]
 include::sample[dir="samples/build-organization/structuring-software-projects/groovy",files="server-application/app/build.gradle"]
 ====
 
-To declare dependencies between projects of components (subprojects in builds), you use the `dependencies { }` block of a `build.gradle(.kts)` file: `implementation("com.example.platform:product-platform")`.
+To declare dependencies between projects of components (i.e., subprojects in builds), you use the `dependencies { }` block of a `build.gradle(.kts)` file: `implementation("com.example.platform:product-platform")`.
 If the included component provides a plugin, you <<plugins.adoc#sec:plugins_block,apply the plugin by ID>>: `plugins { id("com.example.java-library") }`

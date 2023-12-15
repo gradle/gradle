@@ -7,19 +7,19 @@ group = "com.example.myproduct"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(8)
+        languageVersion = JavaLanguageVersion.of(11)
     }
 }
 
 android {
-    compileSdkVersion(28)
+    compileSdk = 31
     defaultConfig {
-        minSdkVersion(24)
-        targetSdkVersion(28)
+        minSdk = 26
+        targetSdk = 31
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 }
 
