@@ -22,8 +22,6 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
-import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.Property;
@@ -287,9 +285,9 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private void generateWrapper() {
-        FileResolver fileResolver = getFileOperations().getFileResolver();
-        File unixScript = fileResolver.resolve(WrapperDefaults.SCRIPT_PATH);
-        File jarFile = fileResolver.resolve(WrapperDefaults.JAR_FILE_PATH);
+        File unixScript = getProject().file(WrapperDefaults.SCRIPT_PATH);
+        File jarFile = getProject().file(WrapperDefaults.JAR_FILE_PATH);
+        String jarFileRelativePath = getProject().relativePath(jarFile);
         File propertiesFile = WrapperGenerator.getPropertiesFile(jarFile);
         String distributionUrl = WrapperGenerator.getDistributionUrl(GradleVersion.current(), WrapperDefaults.DISTRIBUTION_TYPE);
         WrapperGenerator.generate(
@@ -297,7 +295,7 @@ public abstract class InitBuild extends DefaultTask {
             WrapperDefaults.DISTRIBUTION_BASE, WrapperDefaults.DISTRIBUTION_PATH,
             null,
             propertiesFile,
-            jarFile, fileResolver.resolveAsRelativePath(jarFile),
+            jarFile, jarFileRelativePath,
             unixScript, WrapperGenerator.getBatchScript(unixScript),
             distributionUrl,
             true,
@@ -325,6 +323,7 @@ public abstract class InitBuild extends DefaultTask {
         }
 
         JavaLanguageVersion current = JavaLanguageVersion.of(Jvm.current().getJavaVersion().getMajorVersion());
+        System.out.println("Java version present=" + javaVersion.isPresent());
         String version = javaVersion.getOrElse(inputHandler.askQuestion("Enter target version of Java (min. " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API + ")", current.toString()));
         try {
             int parsedVersion = Integer.parseInt(version);
@@ -543,7 +542,4 @@ public abstract class InitBuild extends DefaultTask {
 
     @Inject
     protected abstract UserInputHandler getUserInputHandler();
-
-    @Inject
-    protected abstract FileOperations getFileOperations();
 }
