@@ -51,13 +51,13 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
     }
 
     @Override
-    public <T> List<T> getModels(Project requester, List<Project> targets, String modelName, Class<T> modelType, Object modelBuilderParameter) {
+    public <T> List<T> getModels(Project requester, List<Project> targets, String modelName, Class<T> modelType, @Nullable Object parameter) {
         if (targets.isEmpty()) {
             return Collections.emptyList();
         }
 
 
-        List<Object> rawModels = fetchModels(requester, targets, modelName, modelBuilderParameter);
+        List<Object> rawModels = fetchModels(requester, targets, modelName, parameter);
         return ensureModelTypes(modelType, rawModels);
     }
 
