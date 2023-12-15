@@ -32,6 +32,6 @@ class EvaluationSchema(
     val analysisSchema: AnalysisSchema,
     val analysisStatementFilter: AnalysisStatementFilter = analyzeEverything,
     val configureLambdas: ConfigureLambdaHandler = kotlinFunctionAsConfigureLambda.plus(treatInterfaceAsConfigureLambda(Action::class)),
-    val additionalPropertyResolvers: List<RuntimePropertyResolver> = emptyList(),
-    val additionalFunctionResolvers: List<RuntimeFunctionResolver> = emptyList(),
+    val runtimePropertyResolvers: List<RuntimePropertyResolver> = emptyList(),
+    val runtimeFunctionResolvers: List<RuntimeFunctionResolver> = emptyList()
 )

@@ -163,9 +163,9 @@ class DefaultRestrictedKotlinScriptEvaluator(
         val context = ReflectionContext(SchemaTypeRefContext(evaluationSchema.analysisSchema), resolution, trace)
         val topLevelObjectReflection = reflect(resolution.topLevelReceiver, context)
 
-        val propertyResolver = CompositePropertyResolver(listOf(ReflectionRuntimePropertyResolver) + evaluationSchema.additionalPropertyResolvers)
+        val propertyResolver = CompositePropertyResolver(listOf(ReflectionRuntimePropertyResolver) + evaluationSchema.runtimePropertyResolvers)
         val configureLambdas = treatInterfaceAsConfigureLambda(Action::class).plus(evaluationSchema.configureLambdas)
-        val functionResolver = CompositeFunctionResolver(listOf(MemberFunctionResolver(configureLambdas)) + evaluationSchema.additionalFunctionResolvers)
+        val functionResolver = CompositeFunctionResolver(listOf(MemberFunctionResolver(configureLambdas)) + evaluationSchema.runtimeFunctionResolvers)
 
         val topLevelReceiver = step.topLevelReceiver()
         val converter = RestrictedReflectionToObjectConverter(emptyMap(), topLevelReceiver, functionResolver, propertyResolver)
