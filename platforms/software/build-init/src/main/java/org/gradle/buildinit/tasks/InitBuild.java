@@ -316,6 +316,7 @@ public abstract class InitBuild extends DefaultTask {
         }
     }
 
+    @VisibleForTesting
     @Nullable
     JavaLanguageVersion getJavaLanguageVersion(UserInputHandler inputHandler, BuildInitializer initDescriptor) {
         if (!initDescriptor.supportsJavaTargets()) {
