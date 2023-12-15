@@ -22,7 +22,6 @@ import org.gradle.internal.resources.ProjectLeaseRegistry
 import org.gradle.internal.time.Time
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.tooling.model.kotlin.dsl.EditorPosition
 import org.gradle.tooling.model.kotlin.dsl.EditorReport
 import org.gradle.tooling.model.kotlin.dsl.EditorReportSeverity
@@ -36,17 +35,12 @@ import java.io.Serializable
 
 private
 data class StandardKotlinDslScriptsModel(
-    private val scripts: List<File>,
     private val commonModel: CommonKotlinDslScriptModel,
     private val dehydratedScriptModels: Map<File, KotlinDslScriptModel>
 ) : KotlinDslScriptsModel, Serializable {
 
     override fun getScriptModels() =
-        scripts.associateWith(this::hydrateScriptModel)
-
-    private
-    fun hydrateScriptModel(script: File) =
-        dehydratedScriptModels.getValue(script).let { lightModel ->
+        dehydratedScriptModels.mapValues { (_, lightModel) ->
             StandardKotlinDslScriptModel(
                 commonModel.classPath + lightModel.classPath,
                 commonModel.sourcePath + lightModel.sourcePath,
@@ -55,6 +49,28 @@ data class StandardKotlinDslScriptsModel(
                 lightModel.exceptions
             )
         }
+
+    companion object {
+        fun from(scriptModels: Map<File, KotlinDslScriptModel>): StandardKotlinDslScriptsModel {
+            val commonClassPath = commonPrefixOf(scriptModels.values.map { it.classPath })
+            val commonSourcePath = commonPrefixOf(scriptModels.values.map { it.sourcePath })
+            val commonImplicitImports = commonPrefixOf(scriptModels.values.map { it.implicitImports })
+
+            val commonModel = CommonKotlinDslScriptModel(commonClassPath, commonSourcePath, commonImplicitImports)
+
+            val dehydratedScriptModels = scriptModels.mapValues { (_, model) ->
+                StandardKotlinDslScriptModel(
+                    model.classPath.drop(commonClassPath.size),
+                    model.sourcePath.drop(commonSourcePath.size),
+                    model.implicitImports.drop(commonImplicitImports.size),
+                    model.editorReports,
+                    model.exceptions
+                )
+            }
+
+            return StandardKotlinDslScriptsModel(commonModel, dehydratedScriptModels)
+        }
+    }
 }
 
 
@@ -142,15 +158,29 @@ object KotlinDslScriptsModelBuilder : ToolingModelBuilder {
         }
 
     private
-    fun buildFor(parameter: KotlinDslScriptsParameter, project: Project): KotlinDslScriptsModel {
+    fun buildFor(parameter: KotlinDslScriptsParameter, rootProject: Project): KotlinDslScriptsModel {
         val scriptModels = parameter.scriptFiles.associateWith { scriptFile ->
-            KotlinBuildScriptModelBuilder.kotlinBuildScriptModelFor(
-                project,
-                KotlinBuildScriptModelParameter(scriptFile, parameter.correlationId)
-            )
+            buildScriptModel(parameter, rootProject, scriptFile)
         }
-        val (commonModel, dehydratedScriptModels) = dehydrateScriptModels(scriptModels)
-        return StandardKotlinDslScriptsModel(parameter.scriptFiles, commonModel, dehydratedScriptModels)
+        return StandardKotlinDslScriptsModel.from(scriptModels)
+    }
+
+    private
+    fun buildScriptModel(
+        parameter: KotlinDslScriptsParameter,
+        rootProject: Project,
+        scriptFile: File
+    ): StandardKotlinDslScriptModel {
+
+        val scriptModelParameter = KotlinBuildScriptModelParameter(scriptFile, parameter.correlationId)
+        val scriptModel = KotlinBuildScriptModelBuilder.kotlinBuildScriptModelFor(rootProject, scriptModelParameter)
+        return StandardKotlinDslScriptModel(
+            scriptModel.classPath,
+            scriptModel.sourcePath,
+            scriptModel.implicitImports,
+            mapEditorReports(scriptModel.editorReports),
+            scriptModel.exceptions
+        )
     }
 }
 
@@ -161,31 +191,6 @@ data class CommonKotlinDslScriptModel(
     val sourcePath: List<File>,
     val implicitImports: List<String>
 ) : Serializable
-
-
-private
-fun dehydrateScriptModels(
-    scriptModels: Map<File, KotlinBuildScriptModel>
-): Pair<CommonKotlinDslScriptModel, Map<File, KotlinDslScriptModel>> {
-
-    val commonClassPath = commonPrefixOf(scriptModels.values.map { it.classPath })
-    val commonSourcePath = commonPrefixOf(scriptModels.values.map { it.sourcePath })
-    val commonImplicitImports = commonPrefixOf(scriptModels.values.map { it.implicitImports })
-
-    val commonModel = CommonKotlinDslScriptModel(commonClassPath, commonSourcePath, commonImplicitImports)
-
-    val dehydratedScriptModels = scriptModels.mapValues { (_, model) ->
-        StandardKotlinDslScriptModel(
-            model.classPath.drop(commonClassPath.size),
-            model.sourcePath.drop(commonSourcePath.size),
-            model.implicitImports.drop(commonImplicitImports.size),
-            mapEditorReports(model.editorReports),
-            model.exceptions
-        )
-    }
-
-    return commonModel to dehydratedScriptModels
-}
 
 
 private
