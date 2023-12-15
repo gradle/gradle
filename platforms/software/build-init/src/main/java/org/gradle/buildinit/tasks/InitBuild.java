@@ -22,6 +22,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.Property;
@@ -284,9 +285,10 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private void generateWrapper() {
-        File unixScript = getProject().file(WrapperDefaults.SCRIPT_PATH);
-        File jarFile = getProject().file(WrapperDefaults.JAR_FILE_PATH);
-        String jarFileRelativePath = getProject().relativePath(jarFile);
+        Directory projectDirectory = getLayout().getProjectDirectory();
+        File unixScript = projectDirectory.file(WrapperDefaults.SCRIPT_PATH).getAsFile();
+        File jarFile = projectDirectory.file(WrapperDefaults.JAR_FILE_PATH).getAsFile();
+        String jarFileRelativePath = getRelativePath(projectDirectory.getAsFile(), jarFile);
         File propertiesFile = WrapperGenerator.getPropertiesFile(jarFile);
         String distributionUrl = WrapperGenerator.getDistributionUrl(GradleVersion.current(), WrapperDefaults.DISTRIBUTION_TYPE);
         WrapperGenerator.generate(
@@ -300,6 +302,10 @@ public abstract class InitBuild extends DefaultTask {
             true,
             WrapperDefaults.NETWORK_TIMEOUT
         );
+    }
+
+    private static String getRelativePath(File baseDir, File targetFile) {
+        return baseDir.toPath().relativize(targetFile.toPath()).toString();
     }
 
     private UserInputHandler getEffectiveInputHandler() {
@@ -546,4 +552,7 @@ public abstract class InitBuild extends DefaultTask {
 
     @Inject
     protected abstract UserInputHandler getUserInputHandler();
+
+    @Inject
+    protected abstract ProjectLayout getLayout();
 }

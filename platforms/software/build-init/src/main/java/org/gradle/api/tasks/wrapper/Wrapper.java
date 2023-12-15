@@ -101,6 +101,8 @@ public abstract class Wrapper extends DefaultTask {
     private PathBase archiveBase = WrapperDefaults.ARCHIVE_BASE;
     private final Property<Integer> networkTimeout = getProject().getObjects().property(Integer.class);
     private boolean distributionUrlConfigured = false;
+    private final boolean isOffline = getProject().getGradle().getStartParameter().isOffline();
+    ;
 
     @TaskAction
     void generate() {
@@ -149,7 +151,7 @@ public abstract class Wrapper extends DefaultTask {
                 if (!Files.exists(Paths.get(uri).toAbsolutePath())) {
                     throw new UncheckedIOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url));
                 }
-            } else if (uri.getScheme().startsWith("http") && !isOffline()) {
+            } else if (uri.getScheme().startsWith("http") && !isOffline) {
                 try {
                     new Download(new Logger(true), "gradlew", Download.UNKNOWN_VERSION).sendHeadRequest(uri);
                 } catch (Exception e) {
@@ -157,10 +159,6 @@ public abstract class Wrapper extends DefaultTask {
                 }
             }
         }
-    }
-
-    private boolean isOffline() {
-        return getProject().getGradle().getStartParameter().isOffline();
     }
 
     private static URI getDistributionUri(File uriRoot, String url) {
