@@ -112,7 +112,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         !targetDslFixture.settingsFile.exists()
-        targetDslFixture.assertWrapperNotGenerated()
+        targetDslFixture.assertWrapperFilesNotGenerated()
 
         where:
         [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
@@ -135,7 +135,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         !targetDslFixture.buildFile.exists()
-        targetDslFixture.assertWrapperNotGenerated()
+        targetDslFixture.assertWrapperFilesNotGenerated()
 
         where:
         [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
@@ -159,7 +159,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         and:
         !targetDslFixture.buildFile.exists()
         !targetDslFixture.settingsFile.exists()
-        targetDslFixture.assertWrapperNotGenerated()
+        targetDslFixture.assertWrapperFilesNotGenerated()
 
         where:
         [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
@@ -190,7 +190,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         and:
         !targetDslFixture.buildFile.exists()
         !targetDslFixture.settingsFile.exists()
-        targetDslFixture.assertWrapperNotGenerated()
+        targetDslFixture.assertWrapperFilesNotGenerated()
 
         where:
         [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
