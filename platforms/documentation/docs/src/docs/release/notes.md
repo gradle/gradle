@@ -63,7 +63,7 @@ A new [`named(Spec<String>)` method](javadoc/org/gradle/api/NamedDomainObjectCol
 [`ModuleDependencyCapabilitiesHandler#requireCapability(Object)`](javadoc/org/gradle/api/artifacts/ModuleDependencyCapabilitiesHandler.html#requireCapability-java.lang.Object-),
 and [`CapabilitiesResolution#withCapability(Object, Action)`](javadoc/org/gradle/api/artifacts/CapabilitiesResolution.html#withCapability-java.lang.Object-org.gradle.api.Action-).
 
-#### New `update()` API allow for safe self-referencing lazy properties
+#### New `update()` API allows safe self-referencing lazy properties
 
 Historically, Gradle did not support circular references when evaluating lazy properties:
 
