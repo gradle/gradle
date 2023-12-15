@@ -17,25 +17,56 @@
 package com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder
 
 import com.h0tk3y.kotlin.staticObjectNotation.AccessFromCurrentReceiverOnly
-import com.h0tk3y.kotlin.staticObjectNotation.Adding
-import com.h0tk3y.kotlin.staticObjectNotation.Builder
-import com.h0tk3y.kotlin.staticObjectNotation.Configuring
 import com.h0tk3y.kotlin.staticObjectNotation.HasDefaultValue
 import com.h0tk3y.kotlin.staticObjectNotation.HiddenInRestrictedDsl
-import com.h0tk3y.kotlin.staticObjectNotation.Restricted
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataTypeRef
 import java.util.Locale
-import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
+import kotlin.reflect.KType
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
-class PropertyExtractor(private val includeMemberFilter: MemberFilter) {
-    fun extractProperties(kClass: KClass<*>) =
+interface PropertyExtractor {
+    fun extractProperties(kClass: KClass<*>): Iterable<CollectedPropertyInformation>
+
+    companion object {
+        val none = object : PropertyExtractor {
+            override fun extractProperties(kClass: KClass<*>): Iterable<CollectedPropertyInformation> = emptyList()
+        }
+    }
+}
+
+class CompositePropertyExtractor(internal val extractors: Iterable<PropertyExtractor>) : PropertyExtractor {
+    override fun extractProperties(kClass: KClass<*>): Iterable<CollectedPropertyInformation> =
+        extractors.flatMapTo(mutableSetOf()) { it.extractProperties(kClass) }
+}
+
+operator fun PropertyExtractor.plus(other: PropertyExtractor): CompositePropertyExtractor = CompositePropertyExtractor(buildList {
+    fun include(propertyExtractor: PropertyExtractor) = when (propertyExtractor) {
+        is CompositePropertyExtractor -> addAll(propertyExtractor.extractors)
+        else -> add(propertyExtractor)
+    }
+    include(this@plus)
+    include(other)
+})
+
+data class CollectedPropertyInformation(
+    val name: String,
+    val originalReturnType: KType,
+    val returnType: DataTypeRef,
+    val isReadOnly: Boolean,
+    val hasDefaultValue: Boolean,
+    val isHiddenInRestrictedDsl: Boolean,
+    val isDirectAccessOnly: Boolean
+)
+
+class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = isPublicAndRestricted) : PropertyExtractor {
+    override fun extractProperties(kClass: KClass<*>) =
         (propertiesFromAccessorsOf(kClass) + memberPropertiesOf(kClass)).distinctBy { it }
 
     private fun propertiesFromAccessorsOf(kClass: KClass<*>): List<CollectedPropertyInformation> {
@@ -80,17 +111,3 @@ class PropertyExtractor(private val includeMemberFilter: MemberFilter) {
         )
     }
 }
-
-fun interface MemberFilter {
-    fun shouldIncludeMember(member: KCallable<*>): Boolean
-}
-
-val isPublicAndRestricted: MemberFilter = MemberFilter { member: KCallable<*> ->
-    member.visibility == KVisibility.PUBLIC &&
-        member.annotationsWithGetters.any {
-            it is Builder || it is Configuring || it is Adding || it is Restricted || it is HasDefaultValue
-        }
-}
-
-private val KCallable<*>.annotationsWithGetters: List<Annotation>
-    get() = this.annotations + if (this is KProperty) this.getter.annotations else emptyList()

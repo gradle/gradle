@@ -39,11 +39,8 @@ sealed interface DataType {
         val kClass: KClass<out JvmDataClass>,
         val properties: List<DataProperty>,
         val memberFunctions: List<SchemaMemberFunction>,
-        private val constructorSignatures: List<DataConstructorSignature>,
-    ) : DataType {
         val constructors: List<DataConstructor>
-            get() = constructorSignatures.map { DataConstructor(it.parameters, DataTypeRef.Type(this)) }
-
+    ) : DataType {
         override fun toString(): String = "${kClass.simpleName}"
     }
 }
@@ -85,7 +82,7 @@ data class DataTopLevelFunction(
     val packageName: String,
     override val simpleName: String,
     override val parameters: List<DataParameter>,
-    override val semantics: FunctionSemantics.NewObjectFunctionSemantics,
+    override val semantics: FunctionSemantics.Pure,
 ) : SchemaFunction
 
 data class DataMemberFunction(
@@ -103,10 +100,6 @@ data class DataMemberFunction(
         }
     }
 }
-
-data class DataConstructorSignature(
-    val parameters: List<DataParameter>
-)
 
 data class DataConstructor(
     override val parameters: List<DataParameter>,

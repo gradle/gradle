@@ -20,8 +20,11 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataType
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataTypeRef
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.FqName
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ref
+import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
+import kotlin.reflect.KProperty
+import kotlin.reflect.KType
 
 internal fun KClassifier.toDataTypeRef(): DataTypeRef =
     when (this) {
@@ -33,3 +36,37 @@ internal fun KClassifier.toDataTypeRef(): DataTypeRef =
         is KClass<*> -> DataTypeRef.Name(FqName.parse(java.name))
         else -> error("unexpected type")
     }
+
+internal fun checkInScope(
+    type: KType,
+    typeScope: DataSchemaBuilder.PreIndex
+) {
+    if (type.classifier?.isInScope(typeScope) != true) {
+        error("type $type used in a function is not in schema scope")
+    }
+}
+
+private fun KClassifier.isInScope(typeScope: DataSchemaBuilder.PreIndex) =
+    isBuiltInType || this is KClass<*> && typeScope.hasType(this)
+
+private val KClassifier.isBuiltInType: Boolean
+    get() = when (this) {
+        Int::class, String::class, Boolean::class, Long::class, Unit::class -> true
+        else -> false
+    }
+
+internal val KCallable<*>.annotationsWithGetters: List<Annotation>
+    get() = this.annotations + if (this is KProperty) this.getter.annotations else emptyList()
+
+internal fun KType.toDataTypeRefOrError() =
+    toDataTypeRef()
+        ?: error("failed to convert type $this to data type")
+
+private fun KType.toDataTypeRef(): DataTypeRef? = when {
+    // isMarkedNullable -> TODO: support nullable types
+    arguments.isNotEmpty() -> null // TODO: support for some particular generic types
+    else -> when (val classifier = classifier) {
+        null -> null
+        else -> classifier.toDataTypeRef()
+    }
+}

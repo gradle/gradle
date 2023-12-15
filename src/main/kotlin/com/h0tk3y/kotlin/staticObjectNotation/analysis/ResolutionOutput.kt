@@ -99,12 +99,7 @@ sealed interface ObjectOrigin {
         override val invocationId: Long,
         val accessor: ConfigureAccessor,
     ) : FunctionOrigin {
-        override fun toString(): String {
-            val accessorString = when (accessor) {
-                is ConfigureAccessor.Property -> accessor.dataProperty.name
-            }
-            return "$receiver.$accessorString"
-        }
+        override fun toString(): String = accessor.access(receiver).toString()
     }
 
     data class PropertyReference(

@@ -16,12 +16,19 @@
 
 package com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder
 
+import com.h0tk3y.kotlin.staticObjectNotation.Adding
+import com.h0tk3y.kotlin.staticObjectNotation.Builder
+import com.h0tk3y.kotlin.staticObjectNotation.Configuring
+import com.h0tk3y.kotlin.staticObjectNotation.HasDefaultValue
+import com.h0tk3y.kotlin.staticObjectNotation.Restricted
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataTypeRef
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.FqName
+import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KType
+import kotlin.reflect.KVisibility
 
 fun schemaFromTypes(
     topLevelReceiver: KClass<*>,
@@ -29,26 +36,18 @@ fun schemaFromTypes(
     externalFunctions: List<KFunction<*>> = emptyList(),
     externalObjects: Map<FqName, KClass<*>> = emptyMap(),
     defaultImports: List<FqName> = emptyList(),
-    dataClassSchemaProducer: DataClassSchemaProducer = defaultDataClassSchemaProducer,
     configureLambdas: ConfigureLambdaHandler = kotlinFunctionAsConfigureLambda,
+    propertyExtractor: PropertyExtractor = DefaultPropertyExtractor(isPublicAndRestricted),
+    functionExtractor: FunctionExtractor = DefaultFunctionExtractor(isPublicAndRestricted, configureLambdas),
+    typeDiscovery: TypeDiscovery = TypeDiscovery.none
 ): AnalysisSchema =
-    DataSchemaBuilder(dataClassSchemaProducer).schemaFromTypes(
+    DataSchemaBuilder(typeDiscovery, propertyExtractor, functionExtractor).schemaFromTypes(
         topLevelReceiver, types, externalFunctions, externalObjects, defaultImports, configureLambdas
     )
 
-fun KType.toKClass() = (classifier ?: error("unclassifiable type $this is used in the schema")) as? KClass<*>
-    ?: error("type $this classified as a non-class is used in the schema")
-
-
-internal fun KType.toDataTypeRefOrError() =
-    toDataTypeRef()
-        ?: error("failed to convert type $this to data type")
-
-private fun KType.toDataTypeRef(): DataTypeRef? = when {
-    // isMarkedNullable -> TODO: support nullable types
-    arguments.isNotEmpty() -> null // TODO: support for some particular generic types
-    else -> when (val classifier = classifier) {
-        null -> null
-        else -> classifier.toDataTypeRef()
-    }
+val isPublicAndRestricted: MemberFilter = MemberFilter { member: KCallable<*> ->
+    member.visibility == KVisibility.PUBLIC &&
+        member.annotationsWithGetters.any {
+            it is Builder || it is Configuring || it is Adding || it is Restricted || it is HasDefaultValue
+        }
 }
