@@ -30,8 +30,8 @@ import org.gradle.buildinit.plugins.internal.GitAttributesGenerator;
 import org.gradle.buildinit.plugins.internal.GitIgnoreGenerator;
 import org.gradle.buildinit.plugins.internal.GradlePropertiesGenerator;
 import org.gradle.buildinit.plugins.internal.GroovyGradlePluginProjectInitDescriptor;
-import org.gradle.buildinit.plugins.internal.JvmApplicationProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.JavaGradlePluginProjectInitDescriptor;
+import org.gradle.buildinit.plugins.internal.JvmApplicationProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.JvmLibraryProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.KotlinGradlePluginProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.LanguageSpecificAdaptor;
@@ -77,7 +77,7 @@ public class ProjectLayoutSetupRegistryFactory {
         List<BuildContentGenerator> commonGenerators = ImmutableList.of(settingsDescriptor, gitIgnoreGenerator, gitAttributesGenerator, gradlePropertiesGenerator);
         BuildInitializer basicType = of(new BasicProjectGenerator(scriptBuilderFactory, documentationRegistry), commonGenerators);
         PomProjectInitDescriptor mavenBuildConverter = new PomProjectInitDescriptor(mavenSettingsProvider, documentationRegistry, workerExecutor);
-        ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry(basicType, mavenBuildConverter, templateOperationBuilder);
+        ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry(basicType, mavenBuildConverter);
         registry.add(of(new JvmApplicationProjectInitDescriptor(Description.JAVA, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
         registry.add(of(new JvmLibraryProjectInitDescriptor(Description.JAVA, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
         registry.add(of(new JvmApplicationProjectInitDescriptor(Description.GROOVY, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));

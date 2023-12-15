@@ -24,7 +24,7 @@ import spock.lang.Specification
 class ProjectLayoutSetupRegistrySpec extends Specification {
     def defaultType = descriptor("default")
     def converter = converter("maven")
-    def registry = new ProjectLayoutSetupRegistry(defaultType, converter, Mock(TemplateOperationFactory))
+    def registry = new ProjectLayoutSetupRegistry(defaultType, converter)
 
     def "can add multiple descriptors"() {
         when:

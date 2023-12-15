@@ -30,12 +30,10 @@ public class ProjectLayoutSetupRegistry {
     private final Map<String, BuildInitializer> registeredProjectDescriptors = new TreeMap<>();
     private final BuildInitializer defaultType;
     private final BuildConverter converter;
-    private final TemplateOperationFactory templateOperationFactory;
 
-    public ProjectLayoutSetupRegistry(BuildInitializer defaultType, BuildConverter converter, TemplateOperationFactory templateOperationFactory) {
+    public ProjectLayoutSetupRegistry(BuildInitializer defaultType, BuildConverter converter) {
         this.defaultType = defaultType;
         this.converter = converter;
-        this.templateOperationFactory = templateOperationFactory;
         add(defaultType);
         add(converter);
     }
@@ -46,10 +44,6 @@ public class ProjectLayoutSetupRegistry {
         }
 
         registeredProjectDescriptors.put(descriptor.getId(), descriptor);
-    }
-
-    public TemplateOperationFactory getTemplateOperationFactory() {
-        return templateOperationFactory;
     }
 
     public List<ComponentType> getComponentTypes() {
