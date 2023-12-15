@@ -335,6 +335,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
             "--test-framework", "junit-jupiter",
             "--package", "my.project",
             "--project-name", "my-project",
+            "--no-incubating",
             "--no-split-project",
             "--java-version", "14"
         )
