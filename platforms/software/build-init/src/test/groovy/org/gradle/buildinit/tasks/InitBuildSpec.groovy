@@ -35,7 +35,6 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static java.util.Optional.empty
-import static java.util.Optional.of
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT
@@ -219,7 +218,7 @@ class InitBuildSpec extends Specification {
         packageName == "myPackageName"
     }
 
-    def "get tool chain for #language"() {
+    def "get java language version for #language"() {
         given:
         def inputHandler = Mock(UserInputHandler)
         inputHandler.askQuestion(_ as String, _ as String) >> "11"
@@ -233,13 +232,13 @@ class InitBuildSpec extends Specification {
         languageVersion == result
 
         where:
-        language        | result                         | isJvmLanguage
-        Language.JAVA   | of(JavaLanguageVersion.of(11)) | true
-        Language.SCALA  | of(JavaLanguageVersion.of(11)) | true
-        Language.KOTLIN | of(JavaLanguageVersion.of(11)) | true
-        Language.GROOVY | of(JavaLanguageVersion.of(11)) | true
-        Language.CPP    | empty()                        | false
-        Language.SWIFT  | empty()                        | false
+        language        | result                     | isJvmLanguage
+        Language.JAVA   | JavaLanguageVersion.of(11) | true
+        Language.SCALA  | JavaLanguageVersion.of(11) | true
+        Language.KOTLIN | JavaLanguageVersion.of(11) | true
+        Language.GROOVY | JavaLanguageVersion.of(11) | true
+        Language.CPP    | null                       | false
+        Language.SWIFT  | null                       | false
     }
 
     def "gets java-version from property"() {
@@ -253,8 +252,7 @@ class InitBuildSpec extends Specification {
         def version = init.getJavaLanguageVersion(inputHandler, buildInitializer)
 
         then:
-        version.isPresent()
-        version.get().asInt() == 11
+        version.asInt() == 11
     }
 
     def "gets useful error when requesting invalid Java target"() {

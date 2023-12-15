@@ -65,16 +65,9 @@ The Build Init plugin supports generating various build _types_. These are liste
 The plugin adds the following tasks to the project:
 
 `init` — link:{groovyDslPath}/org.gradle.buildinit.tasks.InitBuild.html[InitBuild]::
-_Depends on_: `wrapper`
-+
 Generates a Gradle build.
 
-`wrapper` — link:{groovyDslPath}/org.gradle.api.tasks.wrapper.Wrapper.html[Wrapper]::
-Generates Gradle wrapper files.
-
 Gradle plugins usually need to be _applied_ to a project before they can be used (see <<plugins.adoc#sec:using_plugins,Using plugins>>). However, the Build Init plugin is automatically applied to the root project of every build, which means you do not need to apply it explicitly in order to use it. You can simply execute the task named `init` in the directory where you would like to create the Gradle build. There is no need to create a “stub” `build.gradle` file in order to apply the plugin.
-
-The Build Init plugin also uses the `wrapper` task to <<gradle_wrapper.adoc#sec:adding_wrapper,generate the Gradle Wrapper files>> for the build.
 
 [[sec:what_to_set_up]]
 == What to create
@@ -88,7 +81,7 @@ You can see available options using the `help` task:
 gradle help --task init
 ```
 
-The build type can be specified by using the `--type` command-line option. 
+The build type can be specified by using the `--type` command-line option.
 For example, to create a Java library project run:
 
 ```bash
@@ -111,7 +104,7 @@ You can change the package used for generated source files using the `--package`
 
 If the `--incubating` option is provided, Gradle will generate build scripts which may use the latest versions of APIs, which are marked `@Incubating` and remain <<feature_lifecycle.adoc#feature_lifecycle,subject to change>>. To disable this behavior, use `--no-incubating`.
 
-All build types also setup the link:{groovyDslPath}/org.gradle.api.tasks.wrapper.Wrapper.html[Gradle wrapper].
+All build types also set up <<gradle_wrapper.adoc#gradle_wrapper, Gradle Wrapper>> in the build.
 
 [[sec:build_init_types]]
 == Build init types
