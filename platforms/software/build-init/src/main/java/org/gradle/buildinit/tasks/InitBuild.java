@@ -323,7 +323,6 @@ public abstract class InitBuild extends DefaultTask {
         }
 
         JavaLanguageVersion current = JavaLanguageVersion.of(Jvm.current().getJavaVersion().getMajorVersion());
-        System.out.println("Java version present=" + javaVersion.isPresent());
         String version = javaVersion.getOrElse(inputHandler.askQuestion("Enter target version of Java (min. " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API + ")", current.toString()));
         try {
             int parsedVersion = Integer.parseInt(version);
