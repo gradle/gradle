@@ -123,10 +123,12 @@ data class StandardEditorPosition(
 
 
 internal
-object KotlinDslScriptsModelBuilder : ToolingModelBuilder {
+abstract class AbstractKotlinDslScriptsModelBuilder : ToolingModelBuilder {
 
-    private
-    const val MODEL_NAME = "org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel"
+    companion object {
+        private
+        const val MODEL_NAME = "org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel"
+    }
 
     override fun canBuild(modelName: String): Boolean =
         modelName == MODEL_NAME
@@ -134,7 +136,7 @@ object KotlinDslScriptsModelBuilder : ToolingModelBuilder {
     override fun buildAll(modelName: String, project: Project): KotlinDslScriptsModel {
         requireRootProject(project)
         val timer = Time.startTimer()
-        val parameter = project.parameterFromRequest()
+        val parameter = prepareParameter(project)
         try {
             return project.leaseRegistry.allowUncontrolledAccessToAnyProject {
                 buildFor(parameter, project).also {
@@ -147,6 +149,10 @@ object KotlinDslScriptsModelBuilder : ToolingModelBuilder {
         }
     }
 
+    abstract fun prepareParameter(rootProject: Project): KotlinDslScriptsParameter
+
+    abstract fun buildFor(parameter: KotlinDslScriptsParameter, rootProject: Project): KotlinDslScriptsModel
+
     private
     val Project.leaseRegistry: ProjectLeaseRegistry
         get() = serviceOf()
@@ -156,20 +162,26 @@ object KotlinDslScriptsModelBuilder : ToolingModelBuilder {
         require(project == project.rootProject) {
             "$MODEL_NAME can only be requested on the root project, got '$project'"
         }
+}
 
-    private
-    fun buildFor(parameter: KotlinDslScriptsParameter, rootProject: Project): KotlinDslScriptsModel {
+
+internal
+object KotlinDslScriptsModelBuilder : AbstractKotlinDslScriptsModelBuilder() {
+
+    override fun prepareParameter(rootProject: Project) = rootProject.parameterFromRequest()
+
+    override fun buildFor(parameter: KotlinDslScriptsParameter, rootProject: Project): KotlinDslScriptsModel {
         val scriptModels = parameter.scriptFiles.associateWith { scriptFile ->
-            buildScriptModel(parameter, rootProject, scriptFile)
+            buildScriptModel(rootProject, scriptFile, parameter)
         }
         return StandardKotlinDslScriptsModel.from(scriptModels)
     }
 
     private
     fun buildScriptModel(
-        parameter: KotlinDslScriptsParameter,
         rootProject: Project,
-        scriptFile: File
+        scriptFile: File,
+        parameter: KotlinDslScriptsParameter
     ): StandardKotlinDslScriptModel {
 
         val scriptModelParameter = KotlinBuildScriptModelParameter(scriptFile, parameter.correlationId)
@@ -270,7 +282,7 @@ fun Project.discoverPrecompiledScriptPluginScripts() =
         emptyList()
 
 
-private
+internal
 data class KotlinDslScriptsParameter(
     val correlationId: String?,
     val scriptFiles: List<File>
