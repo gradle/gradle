@@ -136,7 +136,7 @@ class ProjectScriptSourcePathBuilder(
     private
     fun resolveSourcePathForOther(other: Project, skipDependencies: Set<ComponentIdentifier>, resolveKotlinLibSources: Boolean): ScriptSourcePathResolutionResult {
         val parameter = DefaultScriptSourcePathRequestParameter(skipDependencies, resolveKotlinLibSources)
-        return intermediateToolingModelProvider.getModels(listOf(other), ScriptSourcePathResolutionResult::class.java, parameter).first()
+        return intermediateToolingModelProvider.getModels(project, listOf(other), ScriptSourcePathResolutionResult::class.java, parameter).first()
     }
 }
 

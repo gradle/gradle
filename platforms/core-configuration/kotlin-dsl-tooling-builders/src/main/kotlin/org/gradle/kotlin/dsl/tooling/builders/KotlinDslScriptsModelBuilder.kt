@@ -148,7 +148,7 @@ class KotlinDslScriptsModelBuilder(private val intermediateToolingModelProvider:
     private
     fun buildFor(parameter: KotlinDslScriptsParameter, rootProject: Project): KotlinDslScriptsModel {
         val targetScripts = parameter.targetScripts
-        val scriptModels = buildScriptModels(targetScripts, rootProject, parameter.correlationId)
+        val scriptModels = buildScriptModels(rootProject, targetScripts, parameter.correlationId)
         val (commonModel, dehydratedScriptModels) = dehydrateScriptModels(scriptModels)
         val scriptFiles = targetScripts.scripts.map { it.script }
         return StandardKotlinDslScriptsModel(scriptFiles, commonModel, dehydratedScriptModels)
@@ -156,8 +156,8 @@ class KotlinDslScriptsModelBuilder(private val intermediateToolingModelProvider:
 
     private
     fun buildScriptModels(
-        targetScripts: TargetScripts,
         rootProject: Project,
+        targetScripts: TargetScripts,
         correlationId: String?
     ): Map<File, KotlinBuildScriptModel> {
 
@@ -165,7 +165,7 @@ class KotlinDslScriptsModelBuilder(private val intermediateToolingModelProvider:
             val targetProject = targetScript.ownerProject ?: rootProject
             val parameter = DefaultKotlinBuildScriptModelParameter(targetScript.script, correlationId, isolatedProjectModel = targetScripts.resolvedOwners)
             // TODO:isolated make batch request to run in parallel
-            intermediateToolingModelProvider.getModels(listOf(targetProject), KotlinBuildScriptModel::class.java, parameter).first()
+            intermediateToolingModelProvider.getModels(rootProject, listOf(targetProject), KotlinBuildScriptModel::class.java, parameter).first()
         }
     }
 }
@@ -261,7 +261,7 @@ fun Project.collectKotlinDslScripts(intermediateToolingModelProvider: Intermedia
 
     val allProjects = allprojects.toList()
     val scriptsModels =
-        intermediateToolingModelProvider.getModels(allProjects, DiscoveredKotlinScriptsModel::class.java)
+        intermediateToolingModelProvider.getModels(project, allProjects, DiscoveredKotlinScriptsModel::class.java, null)
 
     allProjects.zip(scriptsModels).forEach { (ownerProject, scriptsModel) ->
         scriptsModel.scripts.forEach {
