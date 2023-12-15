@@ -802,7 +802,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private static ProblemCategory toProblemCategory(InternalProblemCategory category) {
-        return new DefaultCategory(category.getNamespace(), category.getCategory(), category.getSubCategories());
+        return new DefaultCategory(category.getNamespace(), category.getCategory(), category.getSubcategories());
     }
 
     private static Label toProblemLabel(InternalLabel label) {

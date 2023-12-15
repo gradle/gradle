@@ -80,11 +80,11 @@ public interface ProblemSpec {
      * </ul>
      *
      * @param category the type name
-     * @param details the type details
+     * @param subcategories the type subcategories
      * @return this
      * @since 8.6
      */
-    ProblemSpec category(String category, String... details);
+    ProblemSpec category(String category, String... subcategories);
 
     /**
      * Declares where this problem is documented.

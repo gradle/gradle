@@ -62,7 +62,7 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
 
     @Override
     protected void recordProblem(Problem problem) {
-        if (onlyAffectsCacheableWork(problem.getProblemCategory()) && !reportCacheabilityProblems) { // TODO (donat) is is already fixed on master
+        if (onlyAffectsCacheableWork(problem.getCategory()) && !reportCacheabilityProblems) { // TODO (donat) is is already fixed on master
             return;
         }
         problems.add(problem);
