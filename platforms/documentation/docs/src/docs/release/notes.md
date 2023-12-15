@@ -63,6 +63,44 @@ A new [`named(Spec<String>)` method](javadoc/org/gradle/api/NamedDomainObjectCol
 [`ModuleDependencyCapabilitiesHandler#requireCapability(Object)`](javadoc/org/gradle/api/artifacts/ModuleDependencyCapabilitiesHandler.html#requireCapability-java.lang.Object-),
 and [`CapabilitiesResolution#withCapability(Object, Action)`](javadoc/org/gradle/api/artifacts/CapabilitiesResolution.html#withCapability-java.lang.Object-org.gradle.api.Action-).
 
+#### New `update()` API allows safe self-referencing lazy properties
+
+Historically, Gradle did not support circular references when evaluating lazy properties:
+
+```
+def property = objects.property(String)
+property.set("some value")
+property.set(property.map { "$it and more" })
+
+println(property.get()) // throws StackOverflowError
+```
+
+[`Property`](javadoc/org/gradle/api/provider/Property.html#update-org.gradle.api.Transformer-) and [`ConfigurableFileCollection`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#update-org.gradle.api.Transformer-) now provide their respective `update(Transformer<...>)` methods which allow self-referencing updates in a safe way:
+
+```
+def property = objects.property(String)
+property.set("some value")
+property.update { it.map { "$it and more" } }
+
+println(property.get()) // "some value and more"
+```
+
+Please refer to the javadoc for [`Property.update(Transformer<>)`](javadoc/org/gradle/api/provider/Property.html#update-org.gradle.api.Transformer-) and [`ConfigurableFileCollection.update(Transformer<>)`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#update-org.gradle.api.Transformer-) for more details, including limitations.
+
+
+### Problems API
+
+Gradle now has a new incubating API that allows build engineers and plugin authors to consume and report problems that occur during a build.
+
+The [`Problems`](javadoc/org/gradle/api/problems/Problems.html) service can be used to describe problems with details (description, location information, link to documentation, etc.) and report them.
+Reported problems are then exposed via the Tooling API, allowing Gradle IDE providers - IntelliJ IDEA, Visual Studio Code, Eclipse - to display details in the UI.
+The reported problems carry location information; therefore, IDEs can easily integrate them into the developer experience, providing error markers, problem views, and more.
+
+Gradle already emits problems from many components, including (but not limited to) deprecation warnings, dependency version catalog errors, task validation errors, and Java toolchain problems.
+
+The current release focuses on reporting problems in the IDE. 
+Users can expect further enhancements to the Problems API aimed at console reporting in future releases.
+
 ### Error and warning reporting improvements
 
 Gradle provides a rich set of error and warning messages to help you understand and resolve problems in your build.

@@ -120,7 +120,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         open fun <T> resolveScriptsForProject(identityPath: Path, action: () -> T): T =
             illegalStateFor("resolveScriptsForProject")
 
-        open fun <T> collectFingerprintForProject(identityPath: Path, action: () -> T): T =
+        open fun <T> runCollectingFingerprintForProject(identityPath: Path, action: () -> T): T =
             illegalStateFor("collectFingerprintForProject")
 
         abstract fun dispose(): WritingState
@@ -169,11 +169,11 @@ class ConfigurationCacheFingerprintController internal constructor(
         }
 
         override fun <T> resolveScriptsForProject(identityPath: Path, action: () -> T): T {
-            return fingerprintWriter.collectFingerprintForProject(identityPath, action)
+            return fingerprintWriter.runCollectingFingerprintForProject(identityPath, action)
         }
 
-        override fun <T> collectFingerprintForProject(identityPath: Path, action: () -> T): T {
-            return fingerprintWriter.collectFingerprintForProject(identityPath, action)
+        override fun <T> runCollectingFingerprintForProject(identityPath: Path, action: () -> T): T {
+            return fingerprintWriter.runCollectingFingerprintForProject(identityPath, action)
         }
 
         override fun pause(): WritingState {
@@ -267,8 +267,8 @@ class ConfigurationCacheFingerprintController internal constructor(
      * Runs the given action that is specific to the given project, and associates any build inputs read by the current thread
      * with the project.
      */
-    fun <T> collectFingerprintForProject(identityPath: Path, action: () -> T): T {
-        return writingState.collectFingerprintForProject(identityPath, action)
+    fun <T> runCollectingFingerprintForProject(identityPath: Path, action: () -> T): T {
+        return writingState.runCollectingFingerprintForProject(identityPath, action)
     }
 
     override fun stop() {

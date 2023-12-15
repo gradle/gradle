@@ -16,12 +16,13 @@
 
 package org.gradle.internal.buildtree;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.problems.buildtree.ProblemReporter;
 
 import java.io.File;
-import java.util.function.Consumer;
 
+@NonNullApi
 public class DeprecationsReporter implements ProblemReporter {
     @Override
     public String getId() {
@@ -29,7 +30,7 @@ public class DeprecationsReporter implements ProblemReporter {
     }
 
     @Override
-    public void report(File reportDir, Consumer<? super Throwable> validationFailures) {
+    public void report(File reportDir, ProblemConsumer validationFailures) {
         Throwable failure = DeprecationLogger.getDeprecationFailure();
         if (failure != null) {
             validationFailures.accept(failure);

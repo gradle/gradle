@@ -22,6 +22,7 @@ import org.gradle.api.Project;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -31,31 +32,26 @@ import java.util.List;
  * from <b>multiple projects of the same build</b>.
  */
 @NonNullApi
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scopes.Build.class)
 public interface IntermediateToolingModelProvider {
 
     /**
-     * Fetches models of a given type for the given projects.
-     * <p>
-     * Model name to find the underlying builder is derived from the binary name of the {@code modelType}.
+     * Fetches models of a given type for the given projects passing a parameter to the underlying builder.
      */
-    <T> List<T> getModels(List<Project> targets, Class<T> modelType);
+    <T> List<T> getModels(Project requester, List<Project> targets, String modelName, Class<T> modelType, @Nullable Object parameter);
 
     /**
      * Fetches models of a given type for the given projects passing a parameter to the underlying builder.
      * <p>
      * Model name to find the underlying builder is derived from the binary name of the {@code modelType}.
      */
-    <T> List<T> getModels(List<Project> targets, Class<T> modelType, Object modelBuilderParameter);
-
-    /**
-     * Fetches models of a given type for the given projects passing a parameter to the underlying builder.
-     */
-    <T> List<T> getModels(List<Project> targets, String modelName, Class<T> modelType, Object modelBuilderParameter);
+    default <T> List<T> getModels(Project requester, List<Project> targets, Class<T> modelType, @Nullable Object parameter) {
+        return getModels(requester, targets, modelType.getName(), modelType, parameter);
+    }
 
     /**
      * Applies a plugin of a given type to the given projects.
      */
-    <P extends Plugin<Project>> void applyPlugin(List<Project> targets, Class<P> pluginClass);
+    <P extends Plugin<Project>> void applyPlugin(Project requester, List<Project> targets, Class<P> pluginClass);
 
 }

@@ -292,12 +292,14 @@ class DefaultBuildTaskSelectorTest extends Specification {
 
         build.projects >> projects
         projects.rootProject >> rootProjectState
+        projects.allProjects >> [rootProjectState]
         rootProjectState.name >> "root"
         rootProjectState.displayName >> Describables.of("<root project>")
         rootProjectState.projectPath >> Path.ROOT
         rootProjectState.identityPath >> Path.ROOT
         rootProjectState.owner >> build
         rootProjectState.childProjects >> rootChildProjects
+        rootProjectState.created >> true
 
         return new RootBuildFixture(build, rootProjectState, rootChildProjects, defaultProjectState)
     }

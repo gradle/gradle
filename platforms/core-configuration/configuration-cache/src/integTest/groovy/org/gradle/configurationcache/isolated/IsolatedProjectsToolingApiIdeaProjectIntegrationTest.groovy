@@ -27,7 +27,6 @@ import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
-import org.gradle.tooling.model.internal.ImmutableDomainObjectSet
 import org.gradle.tooling.provider.model.internal.PluginApplyingBuilder
 import org.gradle.util.internal.ToBeImplemented
 
@@ -240,6 +239,78 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         checkIdeaProject(ideaModel, originalIdeaModel)
     }
 
+    def "IdeaProject model is invalidated when a child project configuration changes"() {
+        settingsFile << """
+            rootProject.name = 'root'
+            include("a")
+            include("b")
+        """
+
+        file("a/build.gradle") << """
+            plugins {
+                id 'java'
+            }
+            java.sourceCompatibility = JavaVersion.VERSION_1_8
+        """
+        file("b/build.gradle") << """
+            plugins {
+                id 'java'
+            }
+            java.sourceCompatibility = JavaVersion.VERSION_1_9
+        """
+
+        when:
+        def originalIdeaModel = fetchModel(IdeaProject)
+
+        then:
+        fixture.assertNoConfigurationCache()
+
+        and:
+        originalIdeaModel.javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_9
+
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def ideaModel = fetchModel(IdeaProject)
+
+        then:
+        fixture.assertStateStored {
+            modelsCreated(":", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            modelsCreated(":a", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            modelsCreated(":b", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+        }
+
+        checkIdeaProject(ideaModel, originalIdeaModel)
+
+
+        when:
+        file("a/build.gradle") << """
+            java.sourceCompatibility = JavaVersion.VERSION_11
+        """
+        def originalUpdatedModel = fetchModel(IdeaProject)
+
+        then:
+        fixture.assertNoConfigurationCache()
+
+        and:
+        originalUpdatedModel.javaLanguageSettings.languageLevel == JavaVersion.VERSION_11
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def updatedModel = fetchModel(IdeaProject)
+
+        then:
+        fixture.assertStateUpdated {
+            fileChanged("a/build.gradle")
+            modelsCreated(":", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            modelsCreated(":a", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            modelsReused(":b")
+        }
+
+        and:
+        checkIdeaProject(updatedModel, originalUpdatedModel)
+    }
+
     def "can fetch BasicIdeaProject model without resolving external dependencies"() {
         settingsFile << """
             rootProject.name = 'root'
@@ -381,7 +452,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         }
 
         checkModel(result, originalResult, [
-            [{ ImmutableDomainObjectSet.of(it.allIdeaProjects) }, { a, e -> checkIdeaProject(a, e) }]
+            [{ it.allIdeaProjects }, { a, e -> checkIdeaProject(a, e) }]
         ])
 
 
@@ -393,7 +464,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         fixture.assertStateLoaded()
 
         checkModel(anotherResult, originalResult, [
-            [{ ImmutableDomainObjectSet.of(it.allIdeaProjects) }, { a, e -> checkIdeaProject(a, e) }]
+            [{ it.allIdeaProjects }, { a, e -> checkIdeaProject(a, e) }]
         ])
 
         when: "fetching after change with Isolated Projects"
@@ -413,7 +484,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         outputContains("changed root in buildC")
 
         checkModel(afterChangeResult, originalResult, [
-            [{ ImmutableDomainObjectSet.of(it.allIdeaProjects) }, { a, e -> checkIdeaProject(a, e) }]
+            [{ it.allIdeaProjects }, { a, e -> checkIdeaProject(a, e) }]
         ])
     }
 

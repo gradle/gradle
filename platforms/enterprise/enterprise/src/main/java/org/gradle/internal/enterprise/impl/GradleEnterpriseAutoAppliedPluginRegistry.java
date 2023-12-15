@@ -28,6 +28,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
+import org.gradle.plugin.management.internal.PluginCoordinates;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin;
@@ -70,8 +71,15 @@ public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPlu
             getScriptDisplayName(),
             artifact,
             null,
-            AUTO_APPLIED
+            AUTO_APPLIED,
+            develocityPluginCoordinates()
         );
+    }
+
+    private static PluginCoordinates develocityPluginCoordinates() {
+        ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(AutoAppliedGradleEnterprisePlugin.GROUP, AutoAppliedGradleEnterprisePlugin.DEVELOCITY_PLUGIN_ARTIFACT_NAME);
+        ModuleVersionSelector artifact = DefaultModuleVersionSelector.newSelector(moduleIdentifier, AutoAppliedGradleEnterprisePlugin.VERSION);
+        return new PluginCoordinates(AutoAppliedGradleEnterprisePlugin.DEVELOCITY_PLUGIN_ID, artifact);
     }
 
     private static String getScriptDisplayName() {

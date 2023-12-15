@@ -338,4 +338,24 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         this.collectedProblems[0]["label"] == "inner"
         this.collectedProblems[1]["label"] == "outer"
     }
+
+    def "problem progress events are not aggregated"() {
+        given:
+        withReportProblemTask """
+            for (int i = 0; i < 10; i++) {
+                problems.forNamespace("org.example.plugin").reporting {
+                        it.label("The 'standard-plugin' is deprecated")
+                        .category("deprecation", "plugin")
+                        .severity(Severity.WARNING)
+                        .solution("Please use 'standard-plugin-2' instead of this plugin")
+                }
+            }
+        """
+
+        when:
+        run("reportProblem")
+
+        then:
+        this.collectedProblems.size() == 10
+    }
 }

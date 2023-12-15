@@ -61,13 +61,24 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
 
         then:
         workGraphStoredAndLoaded()
+        def loadOp = operations.only(ConfigurationCacheLoadBuildOperationType)
+        def storeOp = operations.only(ConfigurationCacheStoreBuildOperationType)
+        with(storeOp.result) {
+            cacheEntrySize > 0
+        }
+        with(loadOp.result) {
+            cacheEntrySize == storeOp.result.cacheEntrySize
+        }
+        def buildInvocationId = loadOp.result.originBuildInvocationId
 
         when:
         inDirectory 'lib'
         configurationCacheRun 'assemble'
 
         then:
+        def loadOpInCcHitBuild = operations.only(ConfigurationCacheLoadBuildOperationType)
         workGraphLoaded()
+        loadOpInCcHitBuild.result.originBuildInvocationId == buildInvocationId
     }
 
     def "emits relevant build operations when configuration cache is used - included build dependency"() {

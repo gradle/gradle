@@ -179,8 +179,9 @@ class IsolatedProjectsFixture {
         assert !scripts.empty
         def sortedScripts = scripts.toSorted { it -> it.startTime }
         assert sortedScripts.first().details.targetType == "settings"
-        def otherScripts = scripts.findAll { it.details.targetType != "settings" }
-        assert otherScripts.size() == projectsWithScripts(details.projects).size()
+        def nonSettingsScripts = scripts.findAll { it.details.targetType != "settings" }
+        def nonSettingsScriptTargets = nonSettingsScripts.collect { fullPath(it.details.buildPath, it.details.targetPath) }.toSet()
+        assert nonSettingsScriptTargets.size() == projectsWithBuildScripts(details.projects).size()
     }
 
     private void assertNoModelsQueried() {
@@ -223,16 +224,20 @@ class IsolatedProjectsFixture {
     }
 
     private static String fullPath(BuildOperationRecord operationRecord) {
-        if (operationRecord.details.buildPath == ':') {
-            return operationRecord.details.projectPath
-        } else if (operationRecord.details.projectPath == ':') {
-            return operationRecord.details.buildPath
+        return fullPath(operationRecord.details.buildPath, operationRecord.details.projectPath)
+    }
+
+    private static String fullPath(String buildPath, String projectPath) {
+        if (buildPath == ':') {
+            return projectPath
+        } else if (projectPath == ':') {
+            return buildPath
         } else {
-            return operationRecord.details.buildPath + operationRecord.details.projectPath
+            return buildPath + projectPath
         }
     }
 
-    private List<String> projectsWithScripts(Collection<String> projects) {
+    private List<String> projectsWithBuildScripts(Collection<String> projects) {
         def result = []
         for (path in projects) {
             def baseName = path == ':' ? "build" : (path.drop(1).replace(':', '/') + "/build")
@@ -243,7 +248,7 @@ class IsolatedProjectsFixture {
         return result
     }
 
-    trait HasIntermediateDetails {
+    trait HasIntermediateDetails extends HasBuildActions {
         final projects = new HashSet<String>()
         final List<ModelRequestExpectation> models = []
         int buildModelQueries
