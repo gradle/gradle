@@ -94,7 +94,6 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      * Reports a problem.
      * <p>
      * The current build operation is used as the operation identifier.
-     * <p>
      * If there is no current build operation, the problem is not reported.
      *
      * @param problem The problem to report.
@@ -110,7 +109,8 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     /**
      * Reports a problem with an explicit operation identifier.
      * <p>
-     * If the operation identifier is null, the problem is not reported.
+     * The operation identifier should not be null,
+     * otherwise the behavior will be defined by the used {@link ProblemEmitter}.
      *
      * @param problem The problem to report.
      * @param id The operation identifier to associate with the problem.
