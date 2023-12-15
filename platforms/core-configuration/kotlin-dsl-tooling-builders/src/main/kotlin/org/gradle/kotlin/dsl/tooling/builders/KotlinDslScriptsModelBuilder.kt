@@ -191,44 +191,56 @@ fun dehydrateScriptModels(
 private
 fun Project.parameterFromRequest(): KotlinDslScriptsParameter =
     KotlinDslScriptsParameter(
-        findProperty(KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME) as? String,
-        (findProperty(KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME) as? String)
-            ?.split("|")
-            ?.asSequence()
-            ?.filter { it.isNotBlank() }
-            ?.map(::canonicalFile)
-            ?.filter { it.isFile }
-            ?.toList()
-            ?.takeIf { it.isNotEmpty() }
-            ?: collectKotlinDslScripts()
+        resolveCorrelationIdParameter(),
+        resolveScriptsParameter()
     )
+
+
+private
+fun Project.resolveCorrelationIdParameter(): String? =
+    findProperty(KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME) as? String
+
+
+private
+fun Project.resolveScriptsParameter(): List<File> =
+    resolveExplicitScriptsParameter()
+        ?.takeIf { it.isNotEmpty() }
+        ?: collectKotlinDslScripts()
+
+
+private
+fun Project.resolveExplicitScriptsParameter(): List<File>? =
+    (findProperty(KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME) as? String)
+        ?.split("|")
+        ?.asSequence()
+        ?.filter { it.isNotBlank() }
+        ?.map(::canonicalFile)
+        ?.filter { it.isFile }
+        ?.toList()
 
 
 // TODO:kotlin-dsl naive implementation for now, refine
 private
 fun Project.collectKotlinDslScripts(): List<File> = sequence<File> {
 
-    val extension = ".gradle.kts"
-
     // Init Scripts
     project
         .gradle
         .startParameter
         .allInitScripts
-        .filter(File::isFile)
-        .filter { it.name.endsWith(extension) }
+        .filter { it.isKotlinDslFile }
         .forEach { yield(it) }
 
     // Settings Script
     val settingsScriptFile = File((project as ProjectInternal).gradle.settings.settingsScript.fileName)
-    if (settingsScriptFile.isFile && settingsScriptFile.name.endsWith(extension)) {
+    if (settingsScriptFile.isKotlinDslFile) {
         yield(settingsScriptFile)
     }
 
     allprojects.forEach { p ->
 
         // Project Scripts
-        if (p.buildFile.isFile && p.buildFile.name.endsWith(extension)) {
+        if (p.buildFile.isKotlinDslFile) {
             yield(p.buildFile)
         }
 
@@ -274,3 +286,13 @@ fun mapEditorReports(internalReports: List<org.gradle.kotlin.dsl.tooling.models.
             }
         )
     }
+
+
+internal
+val File.isKotlinDslFile: Boolean
+    get() = isFile && hasKotlinDslExtension
+
+
+internal
+val File.hasKotlinDslExtension: Boolean
+    get() = name.endsWith(".gradle.kts")
