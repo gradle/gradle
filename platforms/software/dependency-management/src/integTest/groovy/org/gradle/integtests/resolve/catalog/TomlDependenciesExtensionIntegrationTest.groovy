@@ -31,6 +31,10 @@ import spock.lang.Issue
 
 class TomlDependenciesExtensionIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport, VersionCatalogErrorMessages {
 
+    def setup() {
+        enableProblemsApiCheck()
+    }
+
     @Rule
     final MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
@@ -307,6 +311,8 @@ lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
     }
 
     def "libraries extension is not visible in buildSrc"() {
+        disableProblemsApiCheck()
+
         tomlFile << """[libraries]
 lib = "org.gradle.test:lib:1.0"
 """

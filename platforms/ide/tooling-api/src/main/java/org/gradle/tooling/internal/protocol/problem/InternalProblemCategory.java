@@ -24,5 +24,5 @@ public interface InternalProblemCategory {
 
     String getCategory();
 
-    List<String> getSubCategories();
+    List<String> getSubcategories();
 }

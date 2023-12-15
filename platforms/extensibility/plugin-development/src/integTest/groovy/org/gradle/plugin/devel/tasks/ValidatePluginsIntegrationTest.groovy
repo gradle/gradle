@@ -30,6 +30,7 @@ import static org.junit.Assume.assumeNotNull
 class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegrationSpec {
 
     def setup() {
+        enableProblemsApiCheck()
         buildFile << """
             apply plugin: "java-gradle-plugin"
         """
@@ -1047,6 +1048,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     }
 
     def "honors configured Java Toolchain to avoid compiled by a more recent version failure"() {
+        disableProblemsApiCheck()
         def currentJdk = Jvm.current()
         def newerJdk = AvailableJavaHomes.getDifferentVersion { it.languageVersion > currentJdk.javaVersion }
         assumeNotNull(newerJdk)

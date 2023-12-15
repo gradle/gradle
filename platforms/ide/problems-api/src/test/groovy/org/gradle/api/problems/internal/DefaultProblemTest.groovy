@@ -27,7 +27,7 @@ class DefaultProblemTest extends Specification {
 
         def newProblem = problem.toBuilder().build()
         expect:
-        newProblem.problemCategory == problem.problemCategory
+        newProblem.category == problem.category
         newProblem.label == problem.label
         newProblem.additionalData == problem.additionalData
         newProblem.details == problem.details
@@ -61,7 +61,7 @@ class DefaultProblemTest extends Specification {
         // We are not running this test as an integration test, so we won't have a BuildOperationId available,
         // i.e. the OperationId will be null
         1 * emitter.emit(newProblem, operationId)
-        newProblem.problemCategory == problem.problemCategory
+        newProblem.category == problem.category
         newProblem.label == problem.label
         newProblem.additionalData == problem.additionalData
         newProblem.details == problem.details

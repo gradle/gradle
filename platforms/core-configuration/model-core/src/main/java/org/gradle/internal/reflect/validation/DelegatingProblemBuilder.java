@@ -89,7 +89,7 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder category(String category, String... details){
+    public InternalProblemBuilder category(String category, String... details) {
         return validateDelegate(delegate.category(category, details));
     }
 
