@@ -2323,6 +2323,7 @@ Second: 1.1"""
     @Issue("https://github.com/gradle/gradle/issues/23096")
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def 'all properties of version catalog dependencies are copied when the dependency is copied'() {
+        disableProblemsApiCheck()
         given:
         buildFile << """
             configurations {
