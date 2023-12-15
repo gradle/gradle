@@ -57,6 +57,7 @@ import java.io.File;
 import java.util.List;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.Objects.requireNonNull;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 
@@ -322,8 +323,12 @@ public abstract class InitBuild extends DefaultTask {
             return empty();
         }
 
-        JavaLanguageVersion current = JavaLanguageVersion.of(Jvm.current().getJavaVersion().getMajorVersion());
-        String version = javaVersion.getOrElse(inputHandler.askQuestion("Enter target version of Java (min. " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API + ")", current.toString()));
+        String version = javaVersion.getOrNull();
+        if (isNullOrEmpty(version)) {
+            JavaLanguageVersion current = JavaLanguageVersion.of(requireNonNull(Jvm.current().getJavaVersion()).getMajorVersion());
+            version = inputHandler.askQuestion("Enter target version of Java (min. " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API + ")", current.toString());
+        }
+
         try {
             int parsedVersion = Integer.parseInt(version);
             if (parsedVersion < MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API) {
