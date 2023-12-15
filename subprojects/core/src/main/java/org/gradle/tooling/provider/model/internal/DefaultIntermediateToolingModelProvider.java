@@ -38,30 +38,32 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
 
     private final IntermediateBuildActionRunner actionRunner;
     private final ToolingModelParameterCarrier.Factory parameterCarrierFactory;
+    private final ToolingModelProjectDependencyListener projectDependencyListener;
 
-    public DefaultIntermediateToolingModelProvider(IntermediateBuildActionRunner actionRunner, ToolingModelParameterCarrier.Factory parameterCarrierFactory) {
+    public DefaultIntermediateToolingModelProvider(
+        IntermediateBuildActionRunner actionRunner,
+        ToolingModelParameterCarrier.Factory parameterCarrierFactory,
+        ToolingModelProjectDependencyListener projectDependencyListener
+    ) {
         this.actionRunner = actionRunner;
         this.parameterCarrierFactory = parameterCarrierFactory;
+        this.projectDependencyListener = projectDependencyListener;
     }
 
     @Override
-    public <T> List<T> getModels(List<Project> targets, Class<T> modelType) {
-        return getModelsImpl(targets, modelType.getName(), modelType, null);
+    public <T> List<T> getModels(Project requester, List<Project> targets, String modelName, Class<T> modelType, Object modelBuilderParameter) {
+        if (targets.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+
+        List<Object> rawModels = fetchModels(requester, targets, modelName, modelBuilderParameter);
+        return ensureModelTypes(modelType, rawModels);
     }
 
     @Override
-    public <T> List<T> getModels(List<Project> targets, Class<T> modelType, Object modelBuilderParameter) {
-        return getModelsImpl(targets, modelType.getName(), modelType, modelBuilderParameter);
-    }
-
-    @Override
-    public <T> List<T> getModels(List<Project> targets, String modelName, Class<T> modelType, Object modelBuilderParameter) {
-        return getModelsImpl(targets, modelName, modelType, modelBuilderParameter);
-    }
-
-    @Override
-    public <P extends Plugin<Project>> void applyPlugin(List<Project> targets, Class<P> pluginClass) {
-        List<Object> rawModels = fetchModels(targets, PluginApplyingBuilder.MODEL_NAME, createPluginApplyingParameter(pluginClass));
+    public <P extends Plugin<Project>> void applyPlugin(Project requester, List<Project> targets, Class<P> pluginClass) {
+        List<Object> rawModels = fetchModels(requester, targets, PluginApplyingBuilder.MODEL_NAME, createPluginApplyingParameter(pluginClass));
         ensureModelTypes(Boolean.class, rawModels);
     }
 
@@ -69,16 +71,8 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         return () -> pluginClass;
     }
 
-    private <T> List<T> getModelsImpl(List<Project> targets, String modelName, Class<T> modelType, @Nullable Object modelBuilderParameter) {
-        if (targets.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        List<Object> rawModels = fetchModels(targets, modelName, modelBuilderParameter);
-        return ensureModelTypes(modelType, rawModels);
-    }
-
-    private List<Object> fetchModels(List<Project> targets, String modelName, @Nullable Object parameter) {
+    private List<Object> fetchModels(Project requester, List<Project> targets, String modelName, @Nullable Object parameter) {
+        reportToolingModelDependencies((ProjectInternal) requester, targets);
         BuildState buildState = extractSingleBuildState(targets);
         ToolingModelParameterCarrier carrier = parameter == null ? null : parameterCarrierFactory.createCarrier(parameter);
         return buildState.withToolingModels(controller -> getModels(controller, targets, modelName, carrier));
@@ -138,5 +132,11 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
 
     private <T> List<T> runFetchActions(List<Supplier<T>> actions) {
         return actionRunner.run(actions);
+    }
+
+    private void reportToolingModelDependencies(ProjectInternal requester, List<Project> targets) {
+        for (Project target : targets) {
+            projectDependencyListener.onToolingModelDependency(requester.getOwner(), ((ProjectInternal) target).getOwner());
+        }
     }
 }
