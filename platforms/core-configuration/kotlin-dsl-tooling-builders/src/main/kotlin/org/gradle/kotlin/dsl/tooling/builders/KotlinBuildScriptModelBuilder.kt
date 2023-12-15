@@ -96,11 +96,8 @@ data class StandardKotlinBuildScriptModel(
 internal
 object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
 
-    private
-    val MODEL_NAME = KotlinBuildScriptModel::class.qualifiedName!!
-
     override fun canBuild(modelName: String): Boolean =
-        modelName == MODEL_NAME
+        modelName == "org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel"
 
     override fun buildAll(modelName: String, modelRequestProject: Project): KotlinBuildScriptModel {
         val timer = startTimer()
