@@ -21,7 +21,6 @@ import org.gradle.api.problems.ProblemSpec;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public class DefaultProblemReporter implements InternalProblemReporter {
@@ -117,7 +116,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      * @param id The operation identifier to associate with the problem.
      */
     @Override
-    public void report(Problem problem, @Nullable OperationIdentifier id) {
+    public void report(Problem problem, OperationIdentifier id) {
         emitter.emit(transformProblem(problem), id);
     }
 }
