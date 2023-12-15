@@ -47,14 +47,10 @@ import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices
 import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
-import org.gradle.internal.buildtree.IntermediateBuildActionRunner
 import org.gradle.internal.buildtree.RunTasksRequirements
-import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.snapshot.ValueSnapshotter
-import org.gradle.tooling.provider.model.internal.DefaultIntermediateToolingModelProvider
-import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.internal.IncubationLogger
 
@@ -86,20 +82,50 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val configurationCacheLogLevel = if (startParameter.isConfigurationCacheQuiet) LogLevel.INFO else LogLevel.LIFECYCLE
         val modelParameters = if (requirements.isCreatesModel) {
             // When creating a model, disable certain features - only enable configure on demand and configuration cache when isolated projects is enabled
-            BuildModelParameters(parallelProjectExecution, isolatedProjects, isolatedProjects, isolatedProjects, true, isolatedProjects, parallelToolingActions, invalidateCoupledProjects, configurationCacheLogLevel)
+            BuildModelParameters(
+                parallelProjectExecution,
+                isolatedProjects,
+                isolatedProjects,
+                isolatedProjects,
+                true,
+                isolatedProjects,
+                parallelToolingActions,
+                invalidateCoupledProjects,
+                configurationCacheLogLevel
+            )
         } else {
             val configurationCache = isolatedProjects || startParameter.configurationCache.get()
             val configureOnDemand = isolatedProjects || startParameter.isConfigureOnDemand
 
             fun disabledConfigurationCacheBuildModelParameters(buildOptionReason: String): BuildModelParameters {
                 logger.log(configurationCacheLogLevel, "{} as configuration cache cannot be reused due to --{}", requirements.actionDisplayName.capitalizedDisplayName, buildOptionReason)
-                return BuildModelParameters(parallelProjectExecution, configureOnDemand, false, false, false, false, parallelToolingActions, invalidateCoupledProjects, configurationCacheLogLevel)
+                return BuildModelParameters(
+                    parallelProjectExecution,
+                    configureOnDemand,
+                    false,
+                    false,
+                    false,
+                    false,
+                    parallelToolingActions,
+                    invalidateCoupledProjects,
+                    configurationCacheLogLevel
+                )
             }
 
             when {
                 configurationCache && startParameter.writeDependencyVerifications.isNotEmpty() -> disabledConfigurationCacheBuildModelParameters(StartParameterBuildOptions.DependencyVerificationWriteOption.LONG_OPTION)
                 configurationCache && startParameter.isExportKeys -> disabledConfigurationCacheBuildModelParameters(StartParameterBuildOptions.ExportKeysOption.LONG_OPTION)
-                else -> BuildModelParameters(parallelProjectExecution, configureOnDemand, configurationCache, isolatedProjects, false, false, parallelToolingActions, invalidateCoupledProjects, configurationCacheLogLevel)
+                else -> BuildModelParameters(
+                    parallelProjectExecution,
+                    configureOnDemand,
+                    configurationCache,
+                    isolatedProjects,
+                    false,
+                    false,
+                    parallelToolingActions,
+                    invalidateCoupledProjects,
+                    configurationCacheLogLevel
+                )
             }
         }
 
@@ -125,7 +151,18 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         return BuildTreeModelControllerServices.Supplier { registration ->
             registration.add(BuildType::class.java, BuildType.TASKS)
             // Configuration cache is not supported for nested build trees
-            val buildModelParameters = BuildModelParameters(startParameter.isParallelProjectExecutionEnabled, startParameter.isConfigureOnDemand, false, false, true, false, false, false, LogLevel.LIFECYCLE)
+            val buildModelParameters =
+                BuildModelParameters(
+                    startParameter.isParallelProjectExecutionEnabled,
+                    startParameter.isConfigureOnDemand,
+                    false,
+                    false,
+                    true,
+                    false,
+                    false,
+                    false,
+                    LogLevel.LIFECYCLE
+                )
             val buildFeatures = DefaultBuildFeatures(startParameter, buildModelParameters)
             val requirements = RunTasksRequirements(startParameter)
             registerServices(registration, buildModelParameters, buildFeatures, requirements)
@@ -173,15 +210,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
         fun createToolingModelParameterCarrierFactory(valueSnapshotter: ValueSnapshotter): ToolingModelParameterCarrier.Factory {
             return DefaultToolingModelParameterCarrierFactory(valueSnapshotter)
-        }
-
-        fun createIntermediateToolingModelProvider(
-            buildOperationExecutor: BuildOperationExecutor,
-            buildModelParameters: BuildModelParameters,
-            parameterCarrierFactory: ToolingModelParameterCarrier.Factory
-        ): IntermediateToolingModelProvider {
-            val runner = IntermediateBuildActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API intermediate model")
-            return DefaultIntermediateToolingModelProvider(runner, parameterCarrierFactory)
         }
     }
 

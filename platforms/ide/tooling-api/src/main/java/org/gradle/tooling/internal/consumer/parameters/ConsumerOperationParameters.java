@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.tooling.CancellationToken;
+import org.gradle.tooling.IntermediateModelListener;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
@@ -71,6 +72,11 @@ public class ConsumerOperationParameters implements BuildParameters {
         private List<InternalLaunchable> launchables;
         private ClassPath injectedPluginClasspath = ClassPath.EMPTY;
         private Map<String, String> systemProperties;
+        private IntermediateModelListener intermediateModelListener = new IntermediateModelListener() {
+            @Override
+            public void onModel(Object model) {
+            }
+        };
 
         private Builder() {
         }
@@ -133,7 +139,7 @@ public class ConsumerOperationParameters implements BuildParameters {
 
         private static List<String> concat(List<String> first, List<String> second) {
             List<String> result = new ArrayList<String>();
-            if (first  != null) {
+            if (first != null) {
                 result.addAll(first);
             }
             if (second != null) {
@@ -207,13 +213,17 @@ public class ConsumerOperationParameters implements BuildParameters {
             this.cancellationToken = cancellationToken;
         }
 
+        public void setIntermediateModelListener(IntermediateModelListener intermediateModelListener) {
+            this.intermediateModelListener = intermediateModelListener;
+        }
+
         public ConsumerOperationParameters build() {
             if (entryPoint == null) {
                 throw new IllegalStateException("No entry point specified.");
             }
 
             return new ConsumerOperationParameters(entryPoint, parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, envVariables, arguments, tasks, launchables, injectedPluginClasspath,
-                legacyProgressListeners, progressListeners, cancellationToken, systemProperties);
+                legacyProgressListeners, progressListeners, cancellationToken, systemProperties, intermediateModelListener);
         }
 
         public void copyFrom(ConsumerOperationParameters operationParameters) {
@@ -259,11 +269,14 @@ public class ConsumerOperationParameters implements BuildParameters {
     private final Map<OperationType, List<ProgressListener>> progressListeners;
 
     private final Map<String, String> systemProperties;
+    private final IntermediateModelListener intermediateModelListener;
 
-    private ConsumerOperationParameters(String entryPointName, ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
-                                        File javaHome, List<String> jvmArguments,  Map<String, String> envVariables, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables, ClassPath injectedPluginClasspath,
-                                        List<org.gradle.tooling.ProgressListener> legacyProgressListeners, Map<OperationType, List<ProgressListener>> progressListeners, CancellationToken cancellationToken,
-                                        Map<String, String> systemProperties) {
+    private ConsumerOperationParameters(
+        String entryPointName, ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
+        File javaHome, List<String> jvmArguments, Map<String, String> envVariables, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables, ClassPath injectedPluginClasspath,
+        List<org.gradle.tooling.ProgressListener> legacyProgressListeners, Map<OperationType, List<ProgressListener>> progressListeners, CancellationToken cancellationToken,
+        Map<String, String> systemProperties, IntermediateModelListener intermediateModelListener
+    ) {
         this.entryPointName = entryPointName;
         this.parameters = parameters;
         this.stdout = stdout;
@@ -281,6 +294,7 @@ public class ConsumerOperationParameters implements BuildParameters {
         this.legacyProgressListeners = legacyProgressListeners;
         this.progressListeners = progressListeners;
         this.systemProperties = systemProperties;
+        this.intermediateModelListener = intermediateModelListener;
 
         // create the listener adapters right when the ConsumerOperationParameters are instantiated but no earlier,
         // this ensures that when multiple requests are issued that are built from the same builder, such requests do not share any state kept in the listener adapters
@@ -442,8 +456,14 @@ public class ConsumerOperationParameters implements BuildParameters {
     /**
      * @since 7.6
      */
-    public  Map<String, ?> getSystemProperties() {
+    public Map<String, ?> getSystemProperties() {
         return systemProperties;
     }
 
+    /**
+     * @since 8.6
+     */
+    public void sendIntermediate(Object model) {
+        intermediateModelListener.onModel(model);
+    }
 }

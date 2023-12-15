@@ -16,7 +16,6 @@
 
 package org.gradle.api.problems.internal
 
-
 import org.gradle.api.problems.Severity
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.operations.OperationIdentifier
@@ -53,12 +52,15 @@ class DefaultProblemTest extends Specification {
         def newProblem = builder
             .solution("solution")
             .build()
+        def operationId = new OperationIdentifier(1000L)
 
         when:
-        problemReporter.report(newProblem)
+        problemReporter.report(newProblem, operationId)
 
         then:
-        1 * emitter.emit(newProblem)
+        // We are not running this test as an integration test, so we won't have a BuildOperationId available,
+        // i.e. the OperationId will be null
+        1 * emitter.emit(newProblem, operationId)
         newProblem.problemCategory == problem.problemCategory
         newProblem.label == problem.label
         newProblem.additionalData == problem.additionalData
@@ -80,8 +82,7 @@ class DefaultProblemTest extends Specification {
             [],
             new RuntimeException("cause"),
             DefaultProblemCategory.create('a', 'b', 'c'),
-            additionalData,
-            new OperationIdentifier(1)
+            additionalData
         )
     }
 
@@ -96,8 +97,7 @@ class DefaultProblemTest extends Specification {
             [],
             new RuntimeException("cause"),
             DefaultProblemCategory.create('a', 'b', 'c'),
-            [:],
-            new OperationIdentifier(1)
+            [:]
         )
 
 

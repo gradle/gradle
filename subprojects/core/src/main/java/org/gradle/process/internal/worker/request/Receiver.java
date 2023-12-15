@@ -23,6 +23,7 @@ import org.gradle.internal.dispatch.StreamCompletion;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
 import org.gradle.process.internal.worker.DefaultWorkerLoggingProtocol;
 import org.gradle.process.internal.worker.DefaultWorkerProblemProtocol;
@@ -121,8 +122,8 @@ public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailu
     }
 
     @Override
-    public void reportProblem(Problem problem) {
-        problemProtocol.reportProblem(problem);
+    public void reportProblem(Problem problem, OperationIdentifier id) {
+        problemProtocol.reportProblem(problem, id);
     }
 
     @Override
@@ -134,6 +135,8 @@ public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailu
     public void sendOutputEvent(StyledTextOutputEvent event) {
         loggingProtocol.sendOutputEvent(event);
     }
+
+
 
     static class Failure {
         final Throwable failure;

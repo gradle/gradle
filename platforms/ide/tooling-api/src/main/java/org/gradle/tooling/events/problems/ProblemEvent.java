@@ -28,5 +28,5 @@ import org.gradle.tooling.events.ProgressEvent;
 @Incubating
 public interface ProblemEvent extends ProgressEvent {
     @Override
-    ProblemDescriptor getDescriptor();
+    BaseProblemDescriptor getDescriptor();
 }

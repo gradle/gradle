@@ -293,6 +293,38 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         ScriptDslFixture.of(BuildInitDsl.GROOVY, targetDir, null).assertGradleFilesGenerated("app")
+    }
 
+    def "user can use defaults and provide no options to generate a basic project non-interactively"() {
+        when:
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks(
+            "init",
+            "--use-defaults",
+        )
+        def handle = executer.start()
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
+    }
+
+    def "user can use defaults to generate java application non-interactively"() {
+        when:
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks(
+            "init",
+            "--use-defaults",
+            "--type", "java-application",
+        )
+        def handle = executer.start()
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated("app")
     }
 }

@@ -17,12 +17,10 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.Severity;
-import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
-import org.gradle.internal.operations.OperationIdentifier;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,8 +38,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private RuntimeException exception;
     private final Map<String, Object> additionalData;
     private boolean collectLocation = false;
-    @Nullable
-    private OperationIdentifier currentOperationId = null;
 
     public DefaultProblemBuilder(Problem problem) {
         this.label = problem.getLabel();
@@ -53,10 +49,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         this.solutions = new ArrayList<String>(problem.getSolutions());
         this.exception = problem.getException();
         this.additionalData = new HashMap<String, Object>(problem.getAdditionalData());
-
-        if (problem instanceof DefaultProblem) {
-            this.currentOperationId = ((DefaultProblem) problem).getBuildOperationId();
-        }
         this.namespace = problem.getProblemCategory().getNamespace();
     }
 
@@ -68,39 +60,57 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     @Override
     public Problem build() {
+        // Label is mandatory
         if (label == null) {
-            throw new IllegalStateException("Label must be specified");
-        } else if (problemCategory == null) {
-            throw new IllegalStateException("Category must be specified");
+            return missingLabelProblem();
         }
+
+        // Description is mandatory
+        if (problemCategory == null) {
+            return missingCategoryProblem();
+        }
+
+        // We need to explicitly manage serializing the data from the daemon to the tooling API client, hence the restriction.
+        for (Object value : additionalData.values()) {
+            if (!(value instanceof String)) {
+                return invalidProblem("ProblemBuilder.additionalData() supports values of type String, but " + value.getClass().getName() + " as given.", "invalid-additional-data");
+            }
+        }
+
         return new DefaultProblem(
             label,
-            getSeverity(getSeverity()),
+            DefaultProblemBuilder.this.getSeverity(DefaultProblemBuilder.this.getSeverity()),
             locations,
             docLink,
             details,
             solutions,
-            getExceptionForProblemInstantiation(), // TODO: don't create exception if already reported often
+            DefaultProblemBuilder.this.getExceptionForProblemInstantiation(),
             problemCategory,
-            additionalData,
-            getCurrentOperationId()
+            additionalData
         );
     }
 
-    @Nullable
-    public OperationIdentifier getCurrentOperationId() {
-        if (currentOperationId != null) {
-            // If we have a carried over operation id, use it
-            return currentOperationId;
-        } else {
-            // Otherwise, try to get the current operation id
-            BuildOperationRef buildOperationRef = CurrentBuildOperationRef.instance().get();
-            if (buildOperationRef == null) {
-                return null;
-            } else {
-                return buildOperationRef.getId();
-            }
-        }
+    private Problem missingLabelProblem() {
+        return invalidProblem("problem label must be specified", "missing-label");
+    }
+
+    private Problem missingCategoryProblem() {
+        return invalidProblem("problem category must be specified", "missing-category");
+    }
+
+    private Problem invalidProblem(String label, String subcategory) {
+        category("validation", "problems-api", subcategory).stackLocation();
+        return new DefaultProblem(
+            label,
+            Severity.WARNING,
+            Collections.<ProblemLocation>emptyList(),
+            null,
+            null,
+            null,
+            getExceptionForProblemInstantiation(),
+            problemCategory,
+            Collections.<String, Object>emptyMap()
+        );
     }
 
     public RuntimeException getExceptionForProblemInstantiation() {
@@ -215,15 +225,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     @Override
     public InternalProblemBuilder additionalData(String key, Object value) {
-        validateAdditionalDataValueType(value);
         this.additionalData.put(key, value);
         return this;
-    }
-
-    private void validateAdditionalDataValueType(Object value) {
-        if (!(value instanceof String)) {
-            throw new RuntimeException("ProblemBuilder.additionalData() supports values of type String, but " + value.getClass().getName() + " as given.");
-        }
     }
 
     @Override

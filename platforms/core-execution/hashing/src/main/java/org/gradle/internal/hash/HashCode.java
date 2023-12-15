@@ -28,19 +28,19 @@ import static org.gradle.internal.hash.HashCode.Usage.SAFE_TO_REUSE_BYTES;
 
 /**
  * An immutable hash code. Must be 4-255 bytes long.
- *
+ * <p>
  * <h3>Memory considerations</h3>
- *
- * <p>Hashes by default are stored in {@link ByteArrayBackedHashCode a byte array}.
- * For a 128-bit hash this results in 64 bytes of memory used for each {code HashCode}.
- * This implementation also requires GC to track two separate objects (the {@code HashCode} object and its {code byte[]}).</p>
- *
- * <p>Because Gradle uses a lot of MD5 hashes, for 128-bit hashes we have a more efficient implementation.
+ * <p>
+ * Hashes by default are stored in {@link ByteArrayBackedHashCode a byte array}.
+ * For a 128-bit hash this results in 64 bytes of memory used for each {@code HashCode}.
+ * This implementation also requires GC to track two separate objects (the {@code HashCode} object and its {@code byte[]}).
+ * <p>
+ * Because Gradle uses a lot of MD5 hashes, for 128-bit hashes we have a more efficient implementation.
  * {@link HashCode128} uses two longs to store the bits of the hash, and does not need to cache the {@link #hashCode()} either.
  * This results in a memory footprint of 32 bytes.
- * Moreover, there is only one object for GC to keep track of.</p>
- *
- * Inspired by the Google Guava project – https://github.com/google/guava.
+ * Moreover, there is only one object for GC to keep track of.
+ * <p>
+ * Inspired by the <a href="https://github.com/google/guava">Google Guava project</a>.
  */
 public abstract class HashCode implements Serializable, Comparable<HashCode> {
     private static final int MIN_NUMBER_OF_BYTES = 4;
@@ -77,6 +77,16 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
         return fromBytes(bytes, CLONE_BYTES_IF_NECESSARY);
     }
 
+    /**
+     * Decodes the hash code from a string.
+     * <p>
+     * A corresponding operation for encoding/decoding is {@link #toString()}:
+     * <pre>{@code
+     *      assertEquals(hash, HashCode.fromString(hash.toString()))
+     * }</pre>
+     * <p>
+     * This method does not work with {@link #toCompactString()}.
+     */
     public static HashCode fromString(String string) {
         int length = string.length();
 
@@ -119,6 +129,14 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
     @Override
     public abstract boolean equals(@Nullable Object obj);
 
+    /**
+     * Encodes the hash code into a hex string (base-16).
+     * <p>
+     * A corresponding operation for encoding/decoding is {@link #fromString(String)}:
+     * <pre>{@code
+     *      assertEquals(hash, HashCode.fromString(hash.toString()))
+     * }</pre>
+     */
     @Override
     public String toString() {
         StringBuilder sb = toStringBuilder(2 * length(), bytes());
@@ -141,6 +159,15 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
         return sb;
     }
 
+    /**
+     * Encodes the hash code into a base-36 string,
+     * which yields shorter strings than {@link #toString()}.
+     * <p>
+     * The compact string retains all the information of the hash.
+     * However, it is not intended to be parsed with {@link #fromString(String)}.
+     * <p>
+     * For encoding/decoding use {@link #toString()}.
+     */
     public String toCompactString() {
         return new BigInteger(1, bytes()).toString(36);
     }

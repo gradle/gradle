@@ -18,9 +18,9 @@ package org.gradle.process.internal.worker;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.internal.InternalProblemReporter;
-import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.process.internal.worker.problem.WorkerProblemProtocol;
 
 /**
@@ -32,8 +32,8 @@ import org.gradle.process.internal.worker.problem.WorkerProblemProtocol;
 public class DefaultWorkerProblemProtocol implements WorkerProblemProtocol {
 
     @Override
-    public void reportProblem(Problem problem) {
-        InternalProblemReporter problemsService = ((InternalProblems) ProblemsProgressEventEmitterHolder.get()).getInternalReporter();
-        problemsService.report(problem);
+    public void reportProblem(Problem problem, OperationIdentifier id) {
+        InternalProblemReporter problemsService = ProblemsProgressEventEmitterHolder.get().getInternalReporter();
+        problemsService.report(problem, id);
     }
 }

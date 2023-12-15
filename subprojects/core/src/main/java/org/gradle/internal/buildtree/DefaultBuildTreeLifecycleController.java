@@ -73,7 +73,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
     @Override
     public void scheduleAndRunTasks(EntryTaskSelector selector) {
-        runBuild(() -> workController.scheduleAndRunRequestedTasks(selector, false));
+        runBuild(() -> workController.scheduleAndRunRequestedTasks(selector));
     }
 
     @Override
@@ -81,7 +81,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
         return runBuild(() -> {
             modelCreator.beforeTasks(action);
             if (runTasks && isEligibleToRunTasks()) {
-                ExecutionResult<Void> result = workController.scheduleAndRunRequestedTasks(null, true);
+                ExecutionResult<Void> result = workController.scheduleAndRunRequestedTasks(null);
                 if (!result.getFailures().isEmpty()) {
                     return result.asFailure();
                 }
