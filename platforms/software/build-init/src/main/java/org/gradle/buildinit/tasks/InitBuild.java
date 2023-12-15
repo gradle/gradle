@@ -58,8 +58,6 @@ import java.util.List;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Objects.requireNonNull;
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
 
 /**
  * Generates a Gradle project structure.
@@ -255,7 +253,7 @@ public abstract class InitBuild extends DefaultTask {
 
         validatePackageName(packageName);
 
-        java.util.Optional<JavaLanguageVersion> toolChainVersion = getJavaLanguageVersion(inputHandler, initDescriptor);
+        JavaLanguageVersion javaLanguageVersion = getJavaLanguageVersion(inputHandler, initDescriptor);
 
         boolean useIncubatingAPIs = shouldUseIncubatingAPIs(inputHandler);
 
@@ -270,7 +268,7 @@ public abstract class InitBuild extends DefaultTask {
             testFramework,
             insecureProtocol.get(),
             projectDir,
-            toolChainVersion
+            javaLanguageVersion
         );
 
         boolean userInterrupted = inputHandler.interrupted();
@@ -318,9 +316,10 @@ public abstract class InitBuild extends DefaultTask {
         }
     }
 
-    java.util.Optional<JavaLanguageVersion> getJavaLanguageVersion(UserInputHandler inputHandler, BuildInitializer initDescriptor) {
+    @Nullable
+    JavaLanguageVersion getJavaLanguageVersion(UserInputHandler inputHandler, BuildInitializer initDescriptor) {
         if (!initDescriptor.supportsJavaTargets()) {
-            return empty();
+            return null;
         }
 
         String version = javaVersion.getOrNull();
@@ -334,7 +333,7 @@ public abstract class InitBuild extends DefaultTask {
             if (parsedVersion < MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API) {
                 throw new GradleException("Java target version: '" + version + "' is not a supported target version. It must be equal to or greater than " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API);
             }
-            return of(JavaLanguageVersion.of(parsedVersion));
+            return JavaLanguageVersion.of(parsedVersion);
         } catch (NumberFormatException e) {
             throw new GradleException("Invalid Java target version '" + version + "'. The version must be an integer.", e);
         }
