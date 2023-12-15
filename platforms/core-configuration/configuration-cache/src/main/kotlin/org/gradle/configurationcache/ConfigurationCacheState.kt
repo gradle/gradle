@@ -404,7 +404,7 @@ class ConfigurationCacheState(
     suspend fun DefaultWriteContext.writeBuildWithNoWork(state: BuildState, rootBuild: VintageGradleBuild) {
         withGradleIsolate(rootBuild.gradle, userTypesCodec) {
             writeString(state.identityPath.path)
-            if (state.isProjectsAvailable) {
+            if (state.isProjectsCreated) {
                 writeBoolean(true)
                 writeString(state.projects.rootProject.name)
                 writeCollection(state.projects.allProjects) { project ->
@@ -434,7 +434,7 @@ class ConfigurationCacheState(
     suspend fun DefaultWriteContext.writeBuildContent(build: VintageGradleBuild, buildTreeState: StoredBuildTreeState) {
         val gradle = build.gradle
         val state = build.state
-        if (state.isProjectsAvailable) {
+        if (state.isProjectsCreated) {
             writeBoolean(true)
             val scheduledWork = build.scheduledWork
             withDebugFrame({ "Gradle" }) {

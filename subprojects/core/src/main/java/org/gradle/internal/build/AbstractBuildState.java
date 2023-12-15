@@ -121,7 +121,7 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     }
 
     @Override
-    public boolean isProjectsAvailable() {
+    public boolean isProjectsCreated() {
         BuildProjectRegistry projectsForThisBuild = getProjectStateRegistry().findProjectsFor(getBuildIdentifier());
         return projectsForThisBuild != null && projectsForThisBuild.getRootProject().isCreated();
     }

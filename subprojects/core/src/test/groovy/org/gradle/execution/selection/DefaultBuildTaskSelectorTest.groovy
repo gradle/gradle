@@ -274,7 +274,7 @@ class DefaultBuildTaskSelectorTest extends Specification {
         def defaultProjectState = Mock(ProjectState)
         def rootProjectState = Mock(ProjectState)
 
-        build.projectsAvailable >> true
+        build.projectsCreated >> true
         build.mutableModel >> gradle
         gradle.defaultProject >> defaultProject
         defaultProject.owner >> defaultProjectState
