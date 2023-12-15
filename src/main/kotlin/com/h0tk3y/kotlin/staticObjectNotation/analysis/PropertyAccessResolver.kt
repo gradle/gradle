@@ -185,7 +185,7 @@ class PropertyAccessResolverImpl(
     private fun findDataProperty(
         receiverType: DataType, name: String
     ): DataProperty? =
-        if (receiverType is DataType.DataClass<*>) receiverType.properties.find { !it.isHiddenInDsl && it.name == name } else null
+        if (receiverType is DataType.DataClass) receiverType.properties.find { !it.isHiddenInDsl && it.name == name } else null
 
     sealed interface AssignmentResolution {
         data class AssignProperty(val propertyReference: PropertyReferenceResolution) : AssignmentResolution

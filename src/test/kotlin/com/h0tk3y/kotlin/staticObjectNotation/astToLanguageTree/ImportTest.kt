@@ -19,7 +19,7 @@ class ImportTest {
     private fun testContext(errors: MutableList<ResolutionError>): AnalysisContext {
         return AnalysisContext(
             AnalysisSchema(
-                DataType.DataClass(Unit::class, emptyList(), emptyList(), emptyList()),
+                DataType.DataClass(FqName("", ""), emptySet(), emptyList(), emptyList(), emptyList()),
                 emptyMap(),
                 emptyMap(),
                 emptyMap(),

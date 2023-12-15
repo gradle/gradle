@@ -45,15 +45,20 @@ class DataSchemaBuilder(
 
         val extFunctions = externalFunctions.mapNotNull { functionExtractor.topLevelFunction(it, preIndex) }.associateBy { it.fqName }
         val extObjects = externalObjects.map { (key, value) -> key to ExternalObjectProviderKey(value.toDataTypeRef()) }.toMap()
+
+        val topLevelReceiverName = topLevelReceiver.fqName
+
         return AnalysisSchema(
-            dataTypes.single { it.kClass == topLevelReceiver },
-            dataTypes.associateBy { FqName.parse(it.kClass.qualifiedName!!) },
+            dataTypes.single { it.name == topLevelReceiverName },
+            dataTypes.associateBy { it.name },
             extFunctions,
             extObjects,
             defaultImports.toSet(),
             configureLambdas
         )
     }
+
+    private val KClass<*>.fqName get() = FqName.parse(qualifiedName!!)
 
     class PreIndex {
         private val properties = mutableMapOf<KClass<*>, MutableMap<String, DataProperty>>()
@@ -106,12 +111,23 @@ class DataSchemaBuilder(
 
     private fun createDataType(
         kClass: KClass<*>,
-        preIndex: PreIndex
-    ): DataType.DataClass<*> {
+        preIndex: PreIndex,
+    ): DataType.DataClass {
         val properties = preIndex.getAllProperties(kClass)
 
         val functions = functionExtractor.memberFunctions(kClass, preIndex)
         val constructors = functionExtractor.constructors(kClass, preIndex)
-        return DataType.DataClass(kClass, properties, functions.toList(), constructors.toList())
+        val name = kClass.fqName
+        return DataType.DataClass(name, supertypesOf(kClass), properties, functions.toList(), constructors.toList())
+    }
+
+    private fun supertypesOf(kClass: KClass<*>): Set<FqName> = buildSet {
+        fun visit(supertype: KType) {
+            val classifier = supertype.classifier as? KClass<*> ?: error("a supertype is not represented by KClass: ${supertype}")
+            if (add(classifier.fqName)) {
+                classifier.supertypes.forEach(::visit)
+            }
+        }
+        kClass.supertypes.forEach(::visit)
     }
 }

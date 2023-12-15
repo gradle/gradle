@@ -4,7 +4,6 @@ import com.h0tk3y.kotlin.staticObjectNotation.language.LanguageTreeElement
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
-import kotlin.reflect.full.isSubclassOf
 
 @OptIn(ExperimentalContracts::class)
 internal inline fun AnalysisContext.withScope(scope: AnalysisScope, action: () -> Unit) {
@@ -21,7 +20,7 @@ internal inline fun AnalysisContext.withScope(scope: AnalysisScope, action: () -
 
 internal fun checkIsAssignable(valueType: DataType, isAssignableTo: DataType): Boolean = when (isAssignableTo) {
     is DataType.ConstantType<*> -> valueType == isAssignableTo
-    is DataType.DataClass<*> -> valueType is DataType.DataClass<*> && valueType.kClass.isSubclassOf(isAssignableTo.kClass)
+    is DataType.DataClass -> valueType is DataType.DataClass && (isAssignableTo == valueType || isAssignableTo.name in valueType.supertypes)
     DataType.NullType -> false // TODO: proper null type support
     DataType.UnitType -> valueType == DataType.UnitType
 }

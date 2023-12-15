@@ -12,7 +12,7 @@ sealed interface ObjectReflection {
 
     data class DataObjectReflection(
         val identity: Long,
-        override val type: DataType.DataClass<*>,
+        override val type: DataType.DataClass,
         override val objectOrigin: ObjectOrigin,
         val properties: Map<DataProperty, PropertyValueReflection>,
         val addedObjects: List<ObjectReflection>
@@ -77,7 +77,7 @@ fun reflect(
 
         is ObjectOrigin.NullObjectOrigin -> ObjectReflection.Null(objectOrigin)
 
-        is ObjectOrigin.TopLevelReceiver -> reflectData(0, type as DataType.DataClass<*>, objectOrigin, context)
+        is ObjectOrigin.TopLevelReceiver -> reflectData(0, type as DataType.DataClass, objectOrigin, context)
 
         is ObjectOrigin.PropertyDefaultValue -> reflectDefaultValue(objectOrigin, context)
         is ObjectOrigin.FunctionInvocationOrigin -> context.functionCall(objectOrigin.invocationId) {
@@ -88,7 +88,7 @@ fun reflect(
                     } else {
                         reflectData(
                             objectOrigin.invocationId,
-                            type as DataType.DataClass<*>,
+                            type as DataType.DataClass,
                             objectOrigin,
                             context
                         )
@@ -118,7 +118,7 @@ fun reflectDefaultValue(
 ): ObjectReflection {
     return when (val type = context.typeRefContext.getDataType(objectOrigin)) {
         is DataType.ConstantType<*> -> ObjectReflection.DefaultValue(type, objectOrigin)
-        is DataType.DataClass<*> -> reflectData(-1L, type, objectOrigin, context)
+        is DataType.DataClass -> reflectData(-1L, type, objectOrigin, context)
         DataType.NullType -> error("Null type can't appear in property types")
         DataType.UnitType -> error("Unit can't appear in property types")
     }
@@ -133,7 +133,7 @@ fun defaultConstantValue(type: DataType.ConstantType<*>) = when (type) {
 
 fun reflectData(
     identity: Long,
-    type: DataType.DataClass<*>,
+    type: DataType.DataClass,
     objectOrigin: ObjectOrigin,
     context: ReflectionContext
 ): ObjectReflection.DataObjectReflection {

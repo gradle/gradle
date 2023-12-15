@@ -1,11 +1,10 @@
 package com.h0tk3y.kotlin.staticObjectNotation.analysis
 
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.ConfigureLambdaHandler
-import kotlin.reflect.KClass
 
 data class AnalysisSchema(
-    val topLevelReceiverType: DataType.DataClass<*>,
-    val dataClassesByFqName: Map<FqName, DataType.DataClass<*>>,
+    val topLevelReceiverType: DataType.DataClass,
+    val dataClassesByFqName: Map<FqName, DataType.DataClass>,
     val externalFunctionsByFqName: Map<FqName, DataTopLevelFunction>,
     val externalObjectsByFqName: Map<FqName, ExternalObjectProviderKey>,
     val defaultImports: Set<FqName>,
@@ -35,13 +34,14 @@ sealed interface DataType {
     // TODO: `Any` type?
     // TODO: Support subtyping of some sort in the schema rather than via reflection?
 
-    data class DataClass<JvmDataClass : Any>(
-        val kClass: KClass<out JvmDataClass>,
+    data class DataClass(
+        val name: FqName,
+        val supertypes: Set<FqName>,
         val properties: List<DataProperty>,
         val memberFunctions: List<SchemaMemberFunction>,
         val constructors: List<DataConstructor>
     ) : DataType {
-        override fun toString(): String = "${kClass.simpleName}"
+        override fun toString(): String = name.simpleName
     }
 }
 
@@ -182,7 +182,9 @@ data class FqName(val packageName: String, val simpleName: String) {
         }
     }
 
-    override fun toString(): String = "$packageName.$simpleName"
+    val qualifiedName get() = "$packageName.$simpleName"
+
+    override fun toString(): String = qualifiedName
 }
 
 val DataTopLevelFunction.fqName: FqName get() = FqName(packageName, simpleName)
