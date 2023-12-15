@@ -70,6 +70,11 @@ public interface BuildState {
     boolean isProjectsLoaded();
 
     /**
+     * Is the mutable model for projects available?
+     */
+    boolean isProjectsAvailable();
+
+    /**
      * Ensures all projects in this build are configured, if not already done.
      */
     void ensureProjectsConfigured();
