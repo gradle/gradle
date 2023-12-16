@@ -226,27 +226,22 @@ fun Project.resolveExplicitScriptsParameter(): List<File>? =
 
 // TODO:kotlin-dsl naive implementation for now, refine
 private
-fun Project.collectKotlinDslScripts(): List<File> = sequence<File> {
+fun Project.collectKotlinDslScripts(): List<File> = buildList {
 
-    // Init Scripts
-    yieldAll(discoverInitScripts())
+    addAll(discoverInitScripts())
 
-    // Settings Script
     discoverSettingScript()?.let {
-        yield(it)
+        add(it)
     }
 
     allprojects.forEach { p ->
-
-        // Project Scripts
         p.discoverBuildScript()?.let {
-            yield(it)
+            add(it)
         }
 
-        // Precompiled Scripts
-        yieldAll(p.discoverPrecompiledScriptPluginScripts())
+        addAll(p.discoverPrecompiledScriptPluginScripts())
     }
-}.toList()
+}
 
 
 internal
