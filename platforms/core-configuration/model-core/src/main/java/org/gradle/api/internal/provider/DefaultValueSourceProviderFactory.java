@@ -203,7 +203,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
 
         @Override
-        public String toString() {
+        protected String toStringNoReentrance() {
             return String.format("valueof(%s)", getValueSourceType().getSimpleName());
         }
 
