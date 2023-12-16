@@ -22,7 +22,6 @@ import org.gradle.internal.resources.ProjectLeaseRegistry
 import org.gradle.internal.time.Time
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.tooling.model.kotlin.dsl.EditorPosition
 import org.gradle.tooling.model.kotlin.dsl.EditorReport
 import org.gradle.tooling.model.kotlin.dsl.EditorReportSeverity
@@ -36,17 +35,12 @@ import java.io.Serializable
 
 private
 data class StandardKotlinDslScriptsModel(
-    private val scripts: List<File>,
     private val commonModel: CommonKotlinDslScriptModel,
     private val dehydratedScriptModels: Map<File, KotlinDslScriptModel>
 ) : KotlinDslScriptsModel, Serializable {
 
     override fun getScriptModels() =
-        scripts.associateWith(this::hydrateScriptModel)
-
-    private
-    fun hydrateScriptModel(script: File) =
-        dehydratedScriptModels.getValue(script).let { lightModel ->
+        dehydratedScriptModels.mapValues { (_, lightModel) ->
             StandardKotlinDslScriptModel(
                 commonModel.classPath + lightModel.classPath,
                 commonModel.sourcePath + lightModel.sourcePath,
@@ -55,6 +49,28 @@ data class StandardKotlinDslScriptsModel(
                 lightModel.exceptions
             )
         }
+
+    companion object {
+        fun from(scriptModels: Map<File, KotlinDslScriptModel>): StandardKotlinDslScriptsModel {
+            val commonClassPath = commonPrefixOf(scriptModels.values.map { it.classPath })
+            val commonSourcePath = commonPrefixOf(scriptModels.values.map { it.sourcePath })
+            val commonImplicitImports = commonPrefixOf(scriptModels.values.map { it.implicitImports })
+
+            val commonModel = CommonKotlinDslScriptModel(commonClassPath, commonSourcePath, commonImplicitImports)
+
+            val dehydratedScriptModels = scriptModels.mapValues { (_, model) ->
+                StandardKotlinDslScriptModel(
+                    model.classPath.drop(commonClassPath.size),
+                    model.sourcePath.drop(commonSourcePath.size),
+                    model.implicitImports.drop(commonImplicitImports.size),
+                    model.editorReports,
+                    model.exceptions
+                )
+            }
+
+            return StandardKotlinDslScriptsModel(commonModel, dehydratedScriptModels)
+        }
+    }
 }
 
 
@@ -109,8 +125,11 @@ data class StandardEditorPosition(
 internal
 object KotlinDslScriptsModelBuilder : ToolingModelBuilder {
 
+    private
+    const val MODEL_NAME = "org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel"
+
     override fun canBuild(modelName: String): Boolean =
-        modelName == "org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel"
+        modelName == MODEL_NAME
 
     override fun buildAll(modelName: String, project: Project): KotlinDslScriptsModel {
         requireRootProject(project)
@@ -135,19 +154,33 @@ object KotlinDslScriptsModelBuilder : ToolingModelBuilder {
     private
     fun requireRootProject(project: Project) =
         require(project == project.rootProject) {
-            "${KotlinDslScriptsModel::class.qualifiedName} can only be requested on the root project, got '$project'"
+            "$MODEL_NAME can only be requested on the root project, got '$project'"
         }
 
     private
-    fun buildFor(parameter: KotlinDslScriptsParameter, project: Project): KotlinDslScriptsModel {
+    fun buildFor(parameter: KotlinDslScriptsParameter, rootProject: Project): KotlinDslScriptsModel {
         val scriptModels = parameter.scriptFiles.associateWith { scriptFile ->
-            KotlinBuildScriptModelBuilder.kotlinBuildScriptModelFor(
-                project,
-                KotlinBuildScriptModelParameter(scriptFile, parameter.correlationId)
-            )
+            buildScriptModel(parameter, rootProject, scriptFile)
         }
-        val (commonModel, dehydratedScriptModels) = dehydrateScriptModels(scriptModels)
-        return StandardKotlinDslScriptsModel(parameter.scriptFiles, commonModel, dehydratedScriptModels)
+        return StandardKotlinDslScriptsModel.from(scriptModels)
+    }
+
+    private
+    fun buildScriptModel(
+        parameter: KotlinDslScriptsParameter,
+        rootProject: Project,
+        scriptFile: File
+    ): StandardKotlinDslScriptModel {
+
+        val scriptModelParameter = KotlinBuildScriptModelParameter(scriptFile, parameter.correlationId)
+        val scriptModel = KotlinBuildScriptModelBuilder.kotlinBuildScriptModelFor(rootProject, scriptModelParameter)
+        return StandardKotlinDslScriptModel(
+            scriptModel.classPath,
+            scriptModel.sourcePath,
+            scriptModel.implicitImports,
+            mapEditorReports(scriptModel.editorReports),
+            scriptModel.exceptions
+        )
     }
 }
 
@@ -158,31 +191,6 @@ data class CommonKotlinDslScriptModel(
     val sourcePath: List<File>,
     val implicitImports: List<String>
 ) : Serializable
-
-
-private
-fun dehydrateScriptModels(
-    scriptModels: Map<File, KotlinBuildScriptModel>
-): Pair<CommonKotlinDslScriptModel, Map<File, KotlinDslScriptModel>> {
-
-    val commonClassPath = commonPrefixOf(scriptModels.values.map { it.classPath })
-    val commonSourcePath = commonPrefixOf(scriptModels.values.map { it.sourcePath })
-    val commonImplicitImports = commonPrefixOf(scriptModels.values.map { it.implicitImports })
-
-    val commonModel = CommonKotlinDslScriptModel(commonClassPath, commonSourcePath, commonImplicitImports)
-
-    val dehydratedScriptModels = scriptModels.mapValues { (_, model) ->
-        StandardKotlinDslScriptModel(
-            model.classPath.drop(commonClassPath.size),
-            model.sourcePath.drop(commonSourcePath.size),
-            model.implicitImports.drop(commonImplicitImports.size),
-            mapEditorReports(model.editorReports),
-            model.exceptions
-        )
-    }
-
-    return commonModel to dehydratedScriptModels
-}
 
 
 private
@@ -218,46 +226,54 @@ fun Project.resolveExplicitScriptsParameter(): List<File>? =
 
 // TODO:kotlin-dsl naive implementation for now, refine
 private
-fun Project.collectKotlinDslScripts(): List<File> = sequence<File> {
+fun Project.collectKotlinDslScripts(): List<File> = buildList {
 
-    // Init Scripts
-    project
-        .gradle
-        .startParameter
-        .allInitScripts
-        .filter { it.isKotlinDslFile }
-        .forEach { yield(it) }
+    addAll(discoverInitScripts())
 
-    // Settings Script
-    val settingsScriptFile = File((project as ProjectInternal).gradle.settings.settingsScript.fileName)
-    if (settingsScriptFile.isKotlinDslFile) {
-        yield(settingsScriptFile)
+    discoverSettingScript()?.let {
+        add(it)
     }
 
     allprojects.forEach { p ->
-
-        // Project Scripts
-        if (p.buildFile.isKotlinDslFile) {
-            yield(p.buildFile)
+        p.discoverBuildScript()?.let {
+            add(it)
         }
 
-        // Precompiled Scripts
-        if (p.plugins.hasPlugin("org.gradle.kotlin.kotlin-dsl")) {
-            yieldAll(p.precompiledScriptPluginsSupport.collectScriptPluginFilesOf(p))
-        }
+        addAll(p.discoverPrecompiledScriptPluginScripts())
     }
-}.toList()
+}
 
 
-private
-val Project.precompiledScriptPluginsSupport
-    get() = serviceOf<PrecompiledScriptPluginsSupport>()
+internal
+fun Project.discoverInitScripts(): List<File> =
+    gradle.startParameter.allInitScripts
+        .filter { it.isKotlinDslFile }
+
+
+internal
+fun Project.discoverSettingScript(): File? =
+    File((this as ProjectInternal).gradle.settings.settingsScript.fileName)
+        .takeIf { it.isKotlinDslFile }
+
+
+internal
+fun Project.discoverBuildScript(): File? =
+    buildFile.takeIf { it.isKotlinDslFile }
+
+
+internal
+fun Project.discoverPrecompiledScriptPluginScripts() =
+    if (plugins.hasPlugin("org.gradle.kotlin.kotlin-dsl"))
+        serviceOf<PrecompiledScriptPluginsSupport>()
+            .collectScriptPluginFilesOf(this)
+    else
+        emptyList()
 
 
 private
 data class KotlinDslScriptsParameter(
-    var correlationId: String?,
-    var scriptFiles: List<File>
+    val correlationId: String?,
+    val scriptFiles: List<File>
 )
 
 
