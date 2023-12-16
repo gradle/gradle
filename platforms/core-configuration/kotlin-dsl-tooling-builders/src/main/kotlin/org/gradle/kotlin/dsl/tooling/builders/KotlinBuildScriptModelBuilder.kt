@@ -478,7 +478,7 @@ val Project.settings
     get() = (gradle as GradleInternal).settings
 
 
-private
+internal
 val Project.scriptCompilationClassPath
     get() = compilationClassPathOf((this as ProjectInternal).classLoaderScope)
 
