@@ -86,8 +86,6 @@ class JvmComponentDependenciesTest extends Specification {
 
     def "can depend on a project"() {
         def currentProjectDependency = Mock(ProjectDependency)
-        def otherProject = Mock(Project)
-        def otherProjectDependency = Mock(ProjectDependency)
 
         when:
         dependencies {
@@ -97,6 +95,11 @@ class JvmComponentDependenciesTest extends Specification {
         1 * dependencyFactory.create(currentProject) >> currentProjectDependency
 
         dependencies.getImplementation().getDependencies().get() == [currentProjectDependency] as Set
+    }
+
+    def "can depend on a project and configure it"() {
+        def otherProject = Mock(Project)
+        def otherProjectDependency = Mock(ProjectDependency)
 
         when:
         dependencies {
@@ -109,7 +112,7 @@ class JvmComponentDependenciesTest extends Specification {
         1 * currentProject.project(":path:to:somewhere") >> otherProject
         1 * dependencyFactory.create(otherProject) >> otherProjectDependency
 
-        dependencies.getImplementation().getDependencies().get() == [currentProjectDependency, otherProjectDependency] as Set
+        dependencies.getImplementation().getDependencies().get() == [otherProjectDependency] as Set
     }
 
     def "can depend on self resolving dependencies"() {

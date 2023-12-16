@@ -24,6 +24,8 @@ import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency;
+import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.api.provider.SetProperty;
@@ -41,23 +43,38 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
     @Inject
     public DefaultDependencyCollector(DependencyFactoryInternal dependencyFactory) {
         this.dependencyFactory = dependencyFactory;
+        this.getDependencies().finalizeValueOnRead();
     }
 
     @Nested
     public abstract SetProperty<Dependency> getDependencies();
 
     @SuppressWarnings("unchecked")
-    private <D extends Dependency> D finalizeDependency(D dependency) {
+    private <D extends Dependency> D ensureMutable(D dependency) {
         // Only done to make MinimalExternalModuleDependency mutable for configuration
         return (D) dependencyFactory.createDependency(dependency);
     }
 
-    private <D extends Dependency> void doAddEager(D dependency, @Nullable Action<? super D> config) {
-        dependency = finalizeDependency(dependency);
+    private <D extends Dependency> D applyConfiguration(D dependency, @Nullable Action<? super D> config) {
+        D mutable = ensureMutable(dependency);
         if (config != null) {
-            config.execute(dependency);
+            config.execute(mutable);
         }
-        getDependencies().add(dependency);
+
+        if (mutable instanceof AbstractModuleDependency) {
+            ((AbstractModuleDependency) mutable).addMutationValidator(validator -> {
+                if (((PropertyInternal<?>) getDependencies()).isFinalized()) {
+                    throw new InvalidUserCodeException(
+                        "Cannot mutate '" + mutable + "' after it has been finalized.");
+                }
+            });
+        }
+
+        return mutable;
+    }
+
+    private <D extends Dependency> void doAddEager(D dependency, @Nullable Action<? super D> config) {
+        getDependencies().add(applyConfiguration(dependency, config));
     }
 
     private <D extends Dependency> void doAddLazy(Provider<D> dependency, @Nullable Action<? super D> config) {
@@ -71,14 +88,8 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
                         + ") are not supported. Create a Dependency using DependencyFactory first."
                 );
             }
-            return finalizeDependency((D) dep);
+            return applyConfiguration((D) dep, config);
         });
-        if (config != null) {
-            provider = provider.map(d -> {
-                config.execute(d);
-                return d;
-            });
-        }
         getDependencies().add(provider);
     }
 
@@ -87,11 +98,7 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
             bundle instanceof Collection<?> ? ((Collection<?>) bundle).size() : 0
         );
         for (D dep : bundle) {
-            D converted = finalizeDependency(dep);
-            if (config != null) {
-                config.execute(converted);
-            }
-            newList.add(converted);
+            newList.add(applyConfiguration(dep, config));
         }
         return newList;
     }

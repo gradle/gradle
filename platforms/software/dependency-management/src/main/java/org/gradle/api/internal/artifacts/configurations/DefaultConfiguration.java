@@ -517,15 +517,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public void runDependencyActions() {
-        ImmutableActionSet<DependencySet> defaultActions = defaultDependencyActions;
-        ImmutableActionSet<DependencySet> withActions = withDependencyActions;
+        defaultDependencyActions.execute(dependencies);
+        withDependencyActions.execute(dependencies);
 
-        // Discard actions before executing them to avoid potential stack overflows
+        // Discard actions after execution
         defaultDependencyActions = ImmutableActionSet.empty();
         withDependencyActions = ImmutableActionSet.empty();
-
-        defaultActions.execute(dependencies);
-        withActions.execute(dependencies);
 
         for (Configuration superConfig : extendsFrom) {
             ((ConfigurationInternal) superConfig).runDependencyActions();
@@ -935,11 +932,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public DependencySet getAllDependencies() {
-        runDependencyActions();
-        return doGetAllDependencies();
-    }
-
-    private DependencySet doGetAllDependencies() {
         if (allDependencies == null) {
             initAllDependencies();
         }
@@ -948,6 +940,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public boolean hasDependencies() {
+        runDependencyActions();
         return !getAllDependencies().isEmpty();
     }
 
@@ -969,11 +962,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public DependencyConstraintSet getAllDependencyConstraints() {
-        runDependencyActions();
-        return doGetAllDependencyConstraints();
-    }
-
-    private DependencyConstraintSet doGetAllDependencyConstraints() {
         if (allDependencyConstraints == null) {
             initAllDependencyConstraints();
         }
@@ -1233,7 +1221,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public Configuration copyRecursive() {
         warnOnDeprecatedUsage("copyRecursive()", ProperMethodUsage.RESOLVABLE);
-        return createCopy(doGetAllDependencies(), doGetAllDependencyConstraints());
+        return createCopy(getAllDependencies(), getAllDependencyConstraints());
     }
 
     @Override
@@ -1245,7 +1233,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public Configuration copyRecursive(Spec<? super Dependency> dependencySpec) {
         warnOnDeprecatedUsage("copyRecursive(Spec)", ProperMethodUsage.RESOLVABLE);
-        return createCopy(CollectionUtils.filter(doGetAllDependencies(), dependencySpec), doGetAllDependencyConstraints());
+        return createCopy(CollectionUtils.filter(getAllDependencies(), dependencySpec), getAllDependencyConstraints());
     }
 
     /**
@@ -2065,11 +2053,13 @@ since users cannot create non-legacy configurations and there is no current publ
 
         @Override
         public DependencySet getDependencies() {
+            runDependencyActions();
             return getAllDependencies();
         }
 
         @Override
         public DependencyConstraintSet getDependencyConstraints() {
+            runDependencyActions();
             return getAllDependencyConstraints();
         }
 

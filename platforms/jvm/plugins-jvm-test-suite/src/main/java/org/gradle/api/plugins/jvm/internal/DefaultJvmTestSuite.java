@@ -18,6 +18,7 @@ package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -77,21 +78,15 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
         this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
 
-        // This is a workaround for strange behavior from the Kotlin plugin.
-        // It seems Kotlin is not doing this anymore in the newest version, so we should re-evaluate
-        // whether we need withDependencies anymore.
-        //
-        // The Kotlin plugin attempts to look at the declared dependencies to know if it needs to add its own dependencies.
-        // We avoid triggering realization of getTestSuiteTestingFramework by only adding our dependencies just before
-        // resolution.
-        configurations.getByName(sourceSet.getImplementationConfigurationName())
-            .withDependencies(dep -> dep.addAllLater(getDependencies().getImplementation().getDependencies()));
-        configurations.getByName(sourceSet.getCompileOnlyConfigurationName())
-            .withDependencies(dep -> dep.addAllLater(getDependencies().getCompileOnly().getDependencies()));
-        configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName())
-            .withDependencies(dep -> dep.addAllLater(getDependencies().getRuntimeOnly().getDependencies()));
-        configurations.getByName(sourceSet.getAnnotationProcessorConfigurationName())
-            .withDependencies(dep -> dep.addAllLater(getDependencies().getAnnotationProcessor().getDependencies()));
+        Configuration compileOnly = configurations.getByName(sourceSet.getCompileOnlyConfigurationName());
+        Configuration implementation = configurations.getByName(sourceSet.getImplementationConfigurationName());
+        Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
+        Configuration annotationProcessor = configurations.getByName(sourceSet.getAnnotationProcessorConfigurationName());
+
+        implementation.getDependencies().addAllLater(getDependencies().getImplementation().getDependencies());
+        compileOnly.getDependencies().addAllLater(getDependencies().getCompileOnly().getDependencies());
+        runtimeOnly.getDependencies().addAllLater(getDependencies().getRuntimeOnly().getDependencies());
+        annotationProcessor.getDependencies().addAllLater(getDependencies().getAnnotationProcessor().getDependencies());
 
         if (name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             // for the built-in test suite, we don't express an opinion, so we will not add any dependencies
@@ -110,17 +105,24 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             target.getTestTask().configure(this::initializeTestFramework);
         });
 
-        getDependencies().getImplementation().bundle(
-            getTestToolchain().map(JvmTestToolchain::getImplementationDependencies)
-            .orElse(Collections.emptyList())
+        // This is a workaround for strange behavior from the Kotlin plugin.
+        // It seems Kotlin is not doing this anymore in the newest version, so we should re-evaluate
+        // whether we need withDependencies anymore.
+        //
+        // The Kotlin plugin attempts to look at the declared dependencies to know if it needs to add its own dependencies.
+        // We avoid triggering realization of getTestSuiteTestingFramework by only adding our dependencies just before
+        // resolution.
+        implementation.withDependencies(dependencySet ->
+            dependencySet.addAllLater(getTestToolchain().map(JvmTestToolchain::getImplementationDependencies)
+                .orElse(Collections.emptyList()))
         );
-        getDependencies().getRuntimeOnly().bundle(
-            getTestToolchain().map(JvmTestToolchain::getRuntimeOnlyDependencies)
-            .orElse(Collections.emptyList())
+        runtimeOnly.withDependencies(dependencySet ->
+            dependencySet.addAllLater(getTestToolchain().map(JvmTestToolchain::getRuntimeOnlyDependencies)
+                .orElse(Collections.emptyList()))
         );
-        getDependencies().getCompileOnly().bundle(
-            getTestToolchain().map(JvmTestToolchain::getCompileOnlyDependencies)
-            .orElse(Collections.emptyList())
+        compileOnly.withDependencies(dependenciesSet ->
+            dependenciesSet.addAllLater(getTestToolchain().map(JvmTestToolchain::getCompileOnlyDependencies)
+                .orElse(Collections.emptyList()))
         );
     }
 
