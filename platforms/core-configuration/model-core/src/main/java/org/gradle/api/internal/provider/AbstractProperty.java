@@ -49,11 +49,7 @@ public abstract class AbstractProperty<T, S extends AbstractMinimalProvider.Guar
         init(initialValue, initialValue);
     }
 
-    /**
-     * A simple getter that checks if this property has been finalized.
-     *
-     * @return {@code true} if this property has been finalized, {@code false} otherwise
-     */
+    @Override
     public boolean isFinalized() {
         return state.isFinalized();
     }

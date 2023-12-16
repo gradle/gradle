@@ -35,6 +35,7 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NonExtensible;
+import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
@@ -120,7 +121,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         Property.class,
         NamedDomainObjectContainer.class,
         ExtensiblePolymorphicDomainObjectContainer.class,
-        DomainObjectSet.class
+        DomainObjectSet.class,
+        DependencyCollector.class
     );
     private static final Object[] NO_PARAMS = new Object[0];
 

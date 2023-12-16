@@ -940,6 +940,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public boolean hasDependencies() {
+        runDependencyActions();
         return !getAllDependencies().isEmpty();
     }
 

@@ -16,47 +16,41 @@
 
 package org.gradle.api.plugins.jvm.internal
 
-import org.gradle.api.Action
+
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.artifacts.dsl.DependencyAdder
-import org.gradle.api.artifacts.dsl.DependencyFactory
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.jvm.JvmComponentDependencies
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.ConfigureUtil
 import spock.lang.Specification
 
-import javax.inject.Inject
-
-class DefaultJvmComponentDependenciesTest extends Specification {
+class JvmComponentDependenciesTest extends Specification {
     def currentProject = Mock(Project)
-    def dependencyFactory = Mock(DependencyFactory)
-    def implementation = Mock(DependencyAdder)
 
-    static abstract class MockingDefaultJvmComponentDependencies extends DefaultJvmComponentDependencies {
-        DefaultJvmComponentDependenciesTest mockSource
+    DependencyFactoryInternal dependencyFactory
+    JvmComponentDependencies dependencies
 
-        @Inject
-        MockingDefaultJvmComponentDependencies(DependencyAdder implementation, DependencyAdder compileOnly, DependencyAdder runtimeOnly, DependencyAdder annotationProcessor, DefaultJvmComponentDependenciesTest mockSource) {
-            super(implementation, compileOnly, runtimeOnly, annotationProcessor)
-            this.mockSource = mockSource
+    def setup() {
+        dependencyFactory = Mock(DependencyFactoryInternal) {
+            createDependency(_) >> { it[0] }
         }
 
-        @Override
-        Project getProject() {
-            return mockSource.currentProject
-        }
+        def of = TestUtil.createTestServices {
+            it.add(DependencyFactoryInternal, dependencyFactory)
+            it.add(Project, currentProject)
+        }.get(ObjectFactory)
 
-        @Override
-        DependencyFactory getDependencyFactory() {
-            return mockSource.dependencyFactory
-        }
+        dependencies = of.newInstance(JvmComponentDependencies)
     }
-    def dependencies = TestUtil.objectFactory().newInstance(MockingDefaultJvmComponentDependencies, implementation, Mock (DependencyAdder), Mock(DependencyAdder), Mock(DependencyAdder), this)
 
     def "String notation is supported"() {
+        def example = Mock(ExternalModuleDependency)
+        def example2 = Mock(ExternalModuleDependency)
+
         when:
         dependencies {
             implementation "com.example:example:1.0"
@@ -64,10 +58,12 @@ class DefaultJvmComponentDependenciesTest extends Specification {
                 // configure dependency
             }
         }
+
         then:
-        1 * implementation.add('com.example:example:1.0')
-        1 * implementation.add('com.example:example:2.0', _ as Action)
-        0 * _._
+        1 * dependencyFactory.create("com.example:example:1.0") >> example
+        1 * dependencyFactory.create("com.example:example:2.0") >> example2
+
+        dependencies.getImplementation().getDependencies().get() == [example, example2] as Set
     }
 
     def "GAV notation is supported"() {
@@ -80,19 +76,16 @@ class DefaultJvmComponentDependenciesTest extends Specification {
                 // configure dependency
             }
         }
+
         then:
         1 * dependencyFactory.create("com.example", "example", "1.0") >> example
         1 * dependencyFactory.create("com.example", "example", "2.0") >> example2
 
-        1 * implementation.add(example)
-        1 * implementation.add(example2, _ as Action)
-        0 * _._
+        dependencies.getImplementation().getDependencies().get() == [example, example2] as Set
     }
 
     def "can depend on a project"() {
         def currentProjectDependency = Mock(ProjectDependency)
-        def otherProject = Mock(Project)
-        def otherProjectDependency = Mock(ProjectDependency)
 
         when:
         dependencies {
@@ -100,9 +93,13 @@ class DefaultJvmComponentDependenciesTest extends Specification {
         }
         then:
         1 * dependencyFactory.create(currentProject) >> currentProjectDependency
-        1 * implementation.add(currentProjectDependency)
 
-        0 * _._
+        dependencies.getImplementation().getDependencies().get() == [currentProjectDependency] as Set
+    }
+
+    def "can depend on a project and configure it"() {
+        def otherProject = Mock(Project)
+        def otherProjectDependency = Mock(ProjectDependency)
 
         when:
         dependencies {
@@ -110,12 +107,12 @@ class DefaultJvmComponentDependenciesTest extends Specification {
                 // configure dependency
             }
         }
+
         then:
         1 * currentProject.project(":path:to:somewhere") >> otherProject
         1 * dependencyFactory.create(otherProject) >> otherProjectDependency
-        1 * implementation.add(otherProjectDependency, _ as Action)
 
-        0 * _._
+        dependencies.getImplementation().getDependencies().get() == [otherProjectDependency] as Set
     }
 
     def "can depend on self resolving dependencies"() {
@@ -129,15 +126,13 @@ class DefaultJvmComponentDependenciesTest extends Specification {
             implementation gradleApi()
             implementation gradleTestKit()
         }
+
         then:
         1 * dependencyFactory.localGroovy() >> localGroovyDependency
         1 * dependencyFactory.gradleApi() >> gradleApiDependency
         1 * dependencyFactory.gradleTestKit() >> gradleTestKitDependency
-        1 * implementation.add(localGroovyDependency)
-        1 * implementation.add(gradleApiDependency)
-        1 * implementation.add(gradleTestKitDependency)
 
-        0 * _._
+        dependencies.getImplementation().getDependencies().get() == [localGroovyDependency, gradleApiDependency, gradleTestKitDependency] as Set
     }
 
     private void dependencies(@DelegatesTo(JvmComponentDependencies.class) Closure c) {
