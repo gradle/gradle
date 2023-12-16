@@ -154,7 +154,7 @@ class ConfigurationCacheIO internal constructor(
         }
 
     internal
-    fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile, loadAfterStore: Boolean, graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): BuildTreeWorkGraph.FinalizedGraph {
+    fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile, loadAfterStore: Boolean, graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): Pair<String, BuildTreeWorkGraph.FinalizedGraph> {
         return readConfigurationCacheState(stateFile) { state ->
             state.run {
                 readRootBuildState(graph, graphBuilder, loadAfterStore)

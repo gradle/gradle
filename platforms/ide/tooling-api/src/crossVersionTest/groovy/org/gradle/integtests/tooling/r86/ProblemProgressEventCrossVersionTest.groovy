@@ -23,9 +23,11 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.problems.BaseProblemDescriptor
 import org.gradle.tooling.events.problems.FileLocation
 import org.gradle.tooling.events.problems.LineInFileLocation
 import org.gradle.tooling.events.problems.OffsetInFileLocation
+import org.gradle.tooling.events.problems.ProblemAggregationDescriptor
 import org.gradle.tooling.events.problems.ProblemDescriptor
 import org.gradle.tooling.events.problems.ProblemEvent
 import org.gradle.tooling.events.problems.Severity
@@ -39,7 +41,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     @TargetGradleVersion("=8.3")
     def "Older Gradle versions do not report problems"() {
         setup:
-        buildFile << """
+        buildFile """
             plugins {
               id 'java-library'
             }
@@ -62,13 +64,13 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-        listener.problems.size() == 0
+        listener.problems.isEmpty()
     }
 
     @ToolingApiVersion("=8.5")
     def "Gradle 8.5 exposes problem events via JSON strings"() {
         setup:
-        buildFile << """
+        buildFile """
             plugins {
               id 'java-library'
             }
@@ -92,14 +94,14 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-        def problems = listener.problems.collect {new JsonSlurper().parseText(it.json) }
+        def problems = listener.problems.collect { new JsonSlurper().parseText(it.json) }
         problems.size() == 2
     }
 
     @ToolingApiVersion(">=8.6")
     def "Problems expose details via Tooling API events"() {
         given:
-        buildFile << """
+        buildFile """
             import org.gradle.api.problems.Problems
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
@@ -133,14 +135,14 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 .addProgressListener(listener)
                 .run()
         }
-        def problems = listener.problems
+        def problems = listener.problems.collect {  (ProblemDescriptor) it}
 
         then:
         problems.size() == 1
         problems[0].category.namespace == 'org.example.plugin'
         problems[0].category.category == 'main'
-        problems[0].category.subCategories == ['sub','id']
-        ((DefaultProblemsOperationDescriptor)problems[0]).additionalData.asMap == ['aKey' : 'aValue']
+        problems[0].category.subcategories == ['sub', 'id']
+        ((DefaultProblemsOperationDescriptor) problems[0]).additionalData.asMap == ['aKey': 'aValue']
         problems[0].label.label == 'shortProblemMessage'
         problems[0].details.details == expectedDetails
         problems[0].severity == Severity.WARNING
@@ -166,7 +168,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     @ToolingApiVersion(">=8.6")
     def "Problems expose file locations with file path only"() {
         given:
-        buildFile << """
+        buildFile """
             import org.gradle.api.problems.Problems
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
@@ -195,7 +197,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 .addProgressListener(listener)
                 .run()
         }
-        def problems = listener.problems
+        def problems = listener.problems.collect { (ProblemDescriptor) it }
 
         then:
         problems.size() == 1
@@ -206,7 +208,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     @ToolingApiVersion(">=8.6")
     def "Problems expose file locations with path and line"() {
         given:
-        buildFile << """
+        buildFile """
             import org.gradle.api.problems.Problems
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
@@ -235,7 +237,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 .addProgressListener(listener)
                 .run()
         }
-        def problems = listener.problems
+        def problems = listener.problems.collect { (ProblemDescriptor) it }
 
         then:
         problems.size() == 1
@@ -249,7 +251,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     @ToolingApiVersion(">=8.6")
     def "Problems expose file locations with path, line and column"() {
         given:
-        buildFile << """
+        buildFile """
             import org.gradle.api.problems.Problems
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
@@ -278,7 +280,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 .addProgressListener(listener)
                 .run()
         }
-        def problems = listener.problems
+        def problems = listener.problems.collect { (ProblemDescriptor) it }
 
         then:
         problems.size() == 1
@@ -292,7 +294,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     @ToolingApiVersion(">=8.6")
     def "Problems expose file locations with path, line, column and length"() {
         given:
-        buildFile << """
+        buildFile """
             import org.gradle.api.problems.Problems
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
@@ -321,7 +323,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 .addProgressListener(listener)
                 .run()
         }
-        def problems = listener.problems
+        def problems = listener.problems.collect { (ProblemDescriptor) it }
 
         then:
         problems.size() == 1
@@ -335,7 +337,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     @ToolingApiVersion(">=8.6")
     def "Problems expose file locations with offset and length"() {
         given:
-        buildFile << """
+        buildFile """
             import org.gradle.api.problems.Problems
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
@@ -364,7 +366,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 .addProgressListener(listener)
                 .run()
         }
-        def problems = listener.problems
+        def problems = listener.problems.collect { (ProblemDescriptor) it }
 
         then:
         problems.size() == 1
@@ -374,9 +376,62 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         location.length == 10
     }
 
+    @ToolingApiVersion(">=8.6")
+    def "Problems expose summary Tooling API events"() {
+        given:
+        buildFile """
+            import org.gradle.api.problems.internal.Problem
+            import org.gradle.api.problems.Severity
+            import org.gradle.internal.deprecation.Documentation
+
+            abstract class ProblemReportingTask extends DefaultTask {
+                @Inject
+                protected abstract Problems getProblems();
+
+                @TaskAction
+                void run() {
+                    for(int i = 0; i < 10; i++) {
+                        problems.forNamespace("org.example.plugin").reporting{
+                            it.label("The 'standard-plugin' is deprecated")
+                                .category("deprecation", "plugin")
+                                .severity(Severity.WARNING)
+                                .solution("Please use 'standard-plugin-2' instead of this plugin")
+                            }
+                    }
+                 }
+            }
+
+            tasks.register("reportProblem", ProblemReportingTask)
+        """
+        ProblemProgressListener listener = new ProblemProgressListener()
+
+        when:
+        withConnection { connection ->
+            connection.newBuild().forTasks('reportProblem')
+                .addProgressListener(listener)
+                .run()
+        }
+
+        then:
+        def problems = listener.problems
+        problems.size() == 2
+
+
+        def firstProblem = (ProblemDescriptor) problems[0]
+        firstProblem.label.label == "The 'standard-plugin' is deprecated"
+        firstProblem.details.details == null
+
+        def aggregatedProblems = (ProblemAggregationDescriptor) problems[1]
+
+        def aggregations = aggregatedProblems.aggregations
+        aggregations.size() == 1
+        aggregations[0].label.label == "The 'standard-plugin' is deprecated"
+        aggregations[0].problemDescriptors.size() == 10
+    }
+
     class ProblemProgressListener implements ProgressListener {
 
-        List<ProblemDescriptor> problems = []
+        List<BaseProblemDescriptor> problems = []
 
         @Override
         void statusChanged(ProgressEvent event) {

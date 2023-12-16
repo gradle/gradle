@@ -38,5 +38,5 @@ public interface ProblemCategory {
      *
      * @return The subcategories.
      */
-    List<String> getSubCategories();
+    List<String> getSubcategories();
 }

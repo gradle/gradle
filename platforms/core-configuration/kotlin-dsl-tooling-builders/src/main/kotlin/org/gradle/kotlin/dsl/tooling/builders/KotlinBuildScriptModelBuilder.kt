@@ -247,15 +247,21 @@ fun projectScriptModelBuilder(
     scriptFile = scriptFile,
     project = project,
     scriptClassPath = project.scriptCompilationClassPath,
-    accessorsClassPath = { classPath ->
-        val stage1BlocksAccessorClassPathGenerator = project.serviceOf<Stage1BlocksAccessorClassPathGenerator>()
-        val projectAccessorClassPathGenerator = project.serviceOf<ProjectAccessorsClassPathGenerator>()
-        val dependenciesAccessors = project.serviceOf<DependenciesAccessors>()
-        projectAccessorClassPathGenerator.projectAccessorsClassPath(project, classPath) + stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(project) + AccessorsClassPath(dependenciesAccessors.classes, dependenciesAccessors.sources)
-    },
+    accessorsClassPath = { project.accessorsClassPathOf(it) },
     sourceLookupScriptHandlers = sourceLookupScriptHandlersFor(project),
     enclosingScriptProjectDir = project.projectDir
 )
+
+
+private
+fun ProjectInternal.accessorsClassPathOf(classPath: ClassPath): AccessorsClassPath {
+    val stage1BlocksAccessorClassPathGenerator = serviceOf<Stage1BlocksAccessorClassPathGenerator>()
+    val projectAccessorClassPathGenerator = serviceOf<ProjectAccessorsClassPathGenerator>()
+    val dependenciesAccessors = serviceOf<DependenciesAccessors>()
+    return projectAccessorClassPathGenerator.projectAccessorsClassPath(this, classPath) +
+        stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(this) +
+        AccessorsClassPath(dependenciesAccessors.classes, dependenciesAccessors.sources)
+}
 
 
 private
@@ -415,7 +421,7 @@ data class KotlinScriptTargetModelBuilder(
         return StandardKotlinBuildScriptModel(
             (scriptClassPath + accessorsClassPath.bin).asFiles,
             (gradleSource() + classpathSources + accessorsClassPath.src).asFiles,
-            implicitImports + additionalImports,
+            project.scriptImplicitImports + additionalImports,
             buildEditorReportsFor(exceptions),
             getExceptionsForFile(exceptions, this.scriptFile),
             enclosingScriptProjectDir
@@ -436,19 +442,10 @@ data class KotlinScriptTargetModelBuilder(
         SourcePathProvider.sourcePathFor(
             scriptClassPath,
             scriptFile,
-            rootDir,
-            gradleHomeDir,
+            project.rootDir,
+            project.gradle.gradleHomeDir,
             SourceDistributionResolver(project)
         )
-
-    val gradleHomeDir
-        get() = project.gradle.gradleHomeDir
-
-    val rootDir
-        get() = project.rootDir
-
-    val implicitImports
-        get() = project.scriptImplicitImports
 
     private
     fun buildEditorReportsFor(exceptions: List<Exception>) =

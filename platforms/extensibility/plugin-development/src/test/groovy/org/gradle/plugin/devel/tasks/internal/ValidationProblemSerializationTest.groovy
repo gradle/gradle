@@ -43,7 +43,7 @@ class ValidationProblemSerializationTest extends Specification {
         then:
         deserialized.size() == 1
         deserialized[0].label == "label"
-        deserialized[0].problemCategory.toString() == "org.gradle:type"
+        deserialized[0].category.toString() == "org.gradle:type"
         deserialized[0].locations.isEmpty()
         deserialized[0].documentationLink == null
     }
@@ -63,7 +63,7 @@ class ValidationProblemSerializationTest extends Specification {
         then:
         deserialized.size() == 1
         deserialized[0].label == "label"
-        deserialized[0].problemCategory.toString() == "org.gradle:type"
+        deserialized[0].category.toString() == "org.gradle:type"
         deserialized[0].locations[0].path == "location"
         deserialized[0].locations[0].line == 1
         deserialized[0].locations[0].column == 2
@@ -87,7 +87,7 @@ class ValidationProblemSerializationTest extends Specification {
         then:
         deserialized.size() == 1
         deserialized[0].label == "label"
-        deserialized[0].problemCategory.toString() == "org.gradle:type"
+        deserialized[0].category.toString() == "org.gradle:type"
         deserialized[0].locations[0].path == "location"
         deserialized[0].locations[0].line == 1
         deserialized[0].locations[0].column == 1
@@ -127,7 +127,7 @@ class ValidationProblemSerializationTest extends Specification {
         then:
         deserialized.size() == 1
         deserialized[0].label == "label"
-        deserialized[0].problemCategory.toString() == "org.gradle:type"
+        deserialized[0].category.toString() == "org.gradle:type"
         deserialized[0].locations == [] as List
         deserialized[0].documentationLink == null
         deserialized[0].exception.message == "cause"
@@ -148,7 +148,7 @@ class ValidationProblemSerializationTest extends Specification {
         then:
         deserialized.size() == 1
         deserialized[0].label == "label"
-        deserialized[0].problemCategory.toString() == "org.gradle:type"
+        deserialized[0].category.toString() == "org.gradle:type"
         deserialized[0].locations == [] as List
         deserialized[0].documentationLink == null
         deserialized[0].severity == severity
@@ -173,7 +173,7 @@ class ValidationProblemSerializationTest extends Specification {
         then:
         deserialized.size() == 1
         deserialized[0].label == "label"
-        deserialized[0].problemCategory.toString() == "org.gradle:type"
+        deserialized[0].category.toString() == "org.gradle:type"
         deserialized[0].locations == [] as List
         deserialized[0].documentationLink == null
         deserialized[0].solutions[0] == "solution 0"
@@ -196,7 +196,7 @@ class ValidationProblemSerializationTest extends Specification {
         then:
         deserialized.size() == 1
         deserialized[0].label == "label"
-        deserialized[0].problemCategory.toString() == "org.gradle:type"
+        deserialized[0].category.toString() == "org.gradle:type"
         deserialized[0].locations == [] as List
         deserialized[0].documentationLink == null
         deserialized[0].additionalData["key 1"] == "value 1"

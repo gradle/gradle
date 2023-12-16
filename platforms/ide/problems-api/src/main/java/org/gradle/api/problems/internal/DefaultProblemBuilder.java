@@ -17,9 +17,6 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.Severity;
-import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
-import org.gradle.internal.operations.OperationIdentifier;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -32,7 +29,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     private final String namespace;
     private String label;
-    private ProblemCategory problemCategory;
+    private ProblemCategory category;
     private Severity severity;
     private List<ProblemLocation> locations;
     private String details;
@@ -41,12 +38,10 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private RuntimeException exception;
     private final Map<String, Object> additionalData;
     private boolean collectLocation = false;
-    @Nullable
-    private OperationIdentifier currentOperationId = null;
 
     public DefaultProblemBuilder(Problem problem) {
         this.label = problem.getLabel();
-        this.problemCategory = problem.getProblemCategory();
+        this.category = problem.getCategory();
         this.severity = problem.getSeverity();
         this.locations = new ArrayList<ProblemLocation>(problem.getLocations());
         this.details = problem.getDetails();
@@ -54,11 +49,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         this.solutions = new ArrayList<String>(problem.getSolutions());
         this.exception = problem.getException();
         this.additionalData = new HashMap<String, Object>(problem.getAdditionalData());
-
-        if (problem instanceof DefaultProblem) {
-            this.currentOperationId = ((DefaultProblem) problem).getBuildOperationId();
-        }
-        this.namespace = problem.getProblemCategory().getNamespace();
+        this.namespace = problem.getCategory().getNamespace();
     }
 
     public DefaultProblemBuilder(String namespace) {
@@ -75,7 +66,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         }
 
         // Description is mandatory
-        if (problemCategory == null) {
+        if (category == null) {
             return missingCategoryProblem();
         }
 
@@ -94,9 +85,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             details,
             solutions,
             DefaultProblemBuilder.this.getExceptionForProblemInstantiation(),
-            problemCategory,
-            additionalData,
-            DefaultProblemBuilder.this.getCurrentOperationId()
+            category,
+            additionalData
         );
     }
 
@@ -118,26 +108,9 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             null,
             null,
             getExceptionForProblemInstantiation(),
-            problemCategory,
-            Collections.<String, Object>emptyMap(),
-            getCurrentOperationId()
+            category,
+            Collections.<String, Object>emptyMap()
         );
-    }
-
-    @Nullable
-    public OperationIdentifier getCurrentOperationId() {
-        if (currentOperationId != null) {
-            // If we have a carried over operation id, use it
-            return currentOperationId;
-        } else {
-            // Otherwise, try to get the current operation id
-            BuildOperationRef buildOperationRef = CurrentBuildOperationRef.instance().get();
-            if (buildOperationRef == null) {
-                return null;
-            } else {
-                return buildOperationRef.getId();
-            }
-        }
     }
 
     public RuntimeException getExceptionForProblemInstantiation() {
@@ -237,7 +210,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     @Override
     public InternalProblemBuilder category(String category, String... details) {
-        this.problemCategory = DefaultProblemCategory.create(namespace, category, details);
+        this.category = DefaultProblemCategory.create(namespace, category, details);
         return this;
     }
 

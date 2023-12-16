@@ -22,40 +22,56 @@ import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.CallableBuildOperation
+import org.gradle.internal.operations.RunnableBuildOperation
+import java.io.File
 
 
 internal
-fun <T : Any> BuildOperationExecutor.withLoadOperation(block: () -> T) =
-    withOperation("Load configuration cache state", "Loading configuration cache state", block, LoadDetails, LoadResult)
+fun <T : Any> BuildOperationExecutor.withLoadOperation(block: () -> Pair<LoadResult, T>) =
+    call(object : CallableBuildOperation<T> {
+        override fun description(): BuildOperationDescriptor.Builder = BuildOperationDescriptor
+            .displayName("Load configuration cache state")
+            .progressDisplayName("Loading configuration cache state")
+            .details(LoadDetails)
+
+        override fun call(context: BuildOperationContext): T =
+            block().let { (opResult, returnValue) ->
+                context.setResult(opResult)
+                returnValue
+            }
+    })
 
 
 internal
-fun BuildOperationExecutor.withStoreOperation(@Suppress("UNUSED_PARAMETER") cacheKey: String, block: () -> Unit) =
-    withOperation("Store configuration cache state", "Storing configuration cache state", block, StoreDetails, StoreResult)
+fun BuildOperationExecutor.withStoreOperation(@Suppress("UNUSED_PARAMETER") cacheKey: String, block: () -> StoreResult) =
+    run(object : RunnableBuildOperation {
+        override fun description(): BuildOperationDescriptor.Builder = BuildOperationDescriptor
+            .displayName("Store configuration cache state")
+            .progressDisplayName("Storing configuration cache state")
+            .details(StoreDetails)
+
+        override fun run(context: BuildOperationContext) {
+            block().let { context.setResult(it) }
+        }
+    })
 
 
 private
 object LoadDetails : ConfigurationCacheLoadBuildOperationType.Details
 
 
-private
-object LoadResult : ConfigurationCacheLoadBuildOperationType.Result
+internal
+data class LoadResult(val stateFile: File, val originInvocationId: String? = null) : ConfigurationCacheLoadBuildOperationType.Result {
+    override fun getCacheEntrySize(): Long = stateFile.length()
+    override fun getOriginBuildInvocationId(): String? = originInvocationId
+}
 
 
 private
 object StoreDetails : ConfigurationCacheStoreBuildOperationType.Details
 
 
-private
-object StoreResult : ConfigurationCacheStoreBuildOperationType.Result
-
-
-private
-fun <T : Any, D : Any, R : Any> BuildOperationExecutor.withOperation(displayName: String, progressDisplayName: String, block: () -> T, details: D, result: R): T =
-    call(object : CallableBuildOperation<T> {
-        override fun description(): BuildOperationDescriptor.Builder =
-            BuildOperationDescriptor.displayName(displayName).progressDisplayName(progressDisplayName).details(details)
-
-        override fun call(context: BuildOperationContext): T =
-            block().also { context.setResult(result) }
-    })
+internal
+data class StoreResult(val stateFile: File) : ConfigurationCacheStoreBuildOperationType.Result {
+    override fun getCacheEntrySize(): Long = stateFile.length()
+}

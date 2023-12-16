@@ -42,7 +42,7 @@ public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> {
     }
 
     @Override
-    public String toString() {
+    protected String toStringNoReentrance() {
         return String.format("merge([%s])", Joiner.on(", ").join(items));
     }
 
@@ -125,16 +125,6 @@ public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> {
         public boolean isKnown() {
             for (ValueProducer item : items) {
                 if (item.isKnown()) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        @Override
-        public boolean isProducesDifferentValueOverTime() {
-            for (ValueProducer item : items) {
-                if (item.isProducesDifferentValueOverTime()) {
                     return true;
                 }
             }

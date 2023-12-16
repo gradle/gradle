@@ -708,4 +708,23 @@ task thing {
             [false, true]
         ].combinations()
     }
+
+    def "circular evaluation of map property is detected"() {
+        buildFile """
+            def myMap = objects.mapProperty(String, String)
+            def myLazyProv = provider {
+                myMap.getting("foo").getOrElse("not_there")
+            }
+            myMap.put("bar", myLazyProv.map { "barbar" })
+            myLazyProv.get()
+
+            tasks.register("verify") {}
+        """
+
+        when:
+        fails "verify"
+
+        then:
+        failureCauseContains("Circular evaluation detected")
+    }
 }

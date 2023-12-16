@@ -217,7 +217,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         throw ((InternalProblems) getProblemsService()).getInternalReporter().throwing(builder -> builder
             .label(message)
             .lineInFileLocation(source.getFileName(), lineNumber)
-            .category("compiler", "groovy-dsl", "compilation-failed")
+            .category("compilation", "groovy-dsl", "compilation-failed")
             .severity(Severity.ERROR)
             .withException(new ScriptCompilationException(message, e, source, lineNumber))
         );

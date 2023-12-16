@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider;
+package org.gradle.tooling.events.problems;
 
-import org.gradle.api.Buildable;
-import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
+import org.gradle.api.Incubating;
+import org.gradle.tooling.events.OperationDescriptor;
 
-import java.util.Set;
-
-public class BuildableBackedSetProvider<T extends Buildable, V> extends BuildableBackedProvider<Set<V>> {
-
-    public BuildableBackedSetProvider(T buildable, Factory<Set<V>> valueFactory) {
-        super(buildable, Cast.uncheckedCast(Set.class), valueFactory);
-    }
+/**
+ * A common base interface for Problem API related descriptors.
+ *
+ * @since 8.6
+ */
+@Incubating
+public interface BaseProblemDescriptor extends OperationDescriptor {
 }

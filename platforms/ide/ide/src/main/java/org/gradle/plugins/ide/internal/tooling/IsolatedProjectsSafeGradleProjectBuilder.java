@@ -66,35 +66,36 @@ public class IsolatedProjectsSafeGradleProjectBuilder implements GradleProjectBu
         // because the target project given to the builder may not have been a root project
         IsolatedGradleProjectInternal rootIsolatedModel = getRootIsolatedModel(rootProject, parameter);
 
-        return build(rootProject, rootIsolatedModel, parameter);
+        return build(rootProject, rootProject, rootIsolatedModel, parameter);
     }
 
     private IsolatedGradleProjectInternal getRootIsolatedModel(ProjectInternal rootProject, IsolatedGradleProjectParameter parameter) {
-        return getIsolatedModels(singletonList(rootProject), parameter).get(0);
+        return getIsolatedModels(rootProject, singletonList(rootProject), parameter).get(0);
     }
 
-    private DefaultGradleProject build(ProjectInternal project, IsolatedGradleProjectInternal isolatedModel, IsolatedGradleProjectParameter parameter) {
+    private DefaultGradleProject build(Project root, ProjectInternal project, IsolatedGradleProjectInternal isolatedModel, IsolatedGradleProjectParameter parameter) {
         DefaultGradleProject model = buildWithoutChildren(project, isolatedModel);
         Collection<Project> children = getChildProjectsForInternalUse(project);
-        List<IsolatedGradleProjectInternal> isolatedChildrenModels = getIsolatedModels(children, parameter);
-        model.setChildren(buildChildren(model, parameter, children, isolatedChildrenModels));
+        List<IsolatedGradleProjectInternal> isolatedChildrenModels = getIsolatedModels(root, children, parameter);
+        model.setChildren(buildChildren(root, model, parameter, children, isolatedChildrenModels));
         return model;
     }
 
     private List<DefaultGradleProject> buildChildren(
+        Project rootProject,
         DefaultGradleProject parent,
         IsolatedGradleProjectParameter parameter,
         Collection<Project> children,
         List<IsolatedGradleProjectInternal> isolatedChildrenModels
     ) {
-        return Streams.zip(children.stream(), isolatedChildrenModels.stream(), (c, ic) -> build((ProjectInternal) c, ic, parameter))
+        return Streams.zip(children.stream(), isolatedChildrenModels.stream(), (c, ic) -> build(rootProject, (ProjectInternal) c, ic, parameter))
             .map(it -> it.setParent(parent))
             .collect(toList());
     }
 
-    private List<IsolatedGradleProjectInternal> getIsolatedModels(Collection<Project> projects, IsolatedGradleProjectParameter parameter) {
+    private List<IsolatedGradleProjectInternal> getIsolatedModels(Project root, Collection<Project> projects, IsolatedGradleProjectParameter parameter) {
         return intermediateToolingModelProvider
-            .getModels(new ArrayList<>(projects), IsolatedGradleProjectInternal.class, parameter);
+            .getModels(root, new ArrayList<>(projects), IsolatedGradleProjectInternal.class, parameter);
     }
 
     private static DefaultGradleProject buildWithoutChildren(ProjectInternal project, IsolatedGradleProjectInternal isolatedModel) {

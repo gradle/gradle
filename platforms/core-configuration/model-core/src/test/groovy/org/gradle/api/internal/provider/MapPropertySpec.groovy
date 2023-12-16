@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider
 import com.google.common.collect.ImmutableMap
 import org.gradle.api.Task
 import org.gradle.api.Transformer
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.internal.Describables
@@ -27,6 +28,11 @@ import org.gradle.util.TestUtil
 import org.gradle.util.internal.TextUtil
 import org.spockframework.util.Assert
 import spock.lang.Issue
+
+import java.util.function.Consumer
+import java.util.function.Function
+
+import static org.gradle.api.internal.provider.CircularEvaluationSpec.ProviderConsumer.GET_PRODUCER
 
 class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
@@ -1299,5 +1305,183 @@ The value of this property is derived from: <source>""")
 
         then:
         1 * transform.transform(_)
+    }
+
+    static class MapPropertyCircularChainEvaluationTest extends PropertySpec.PropertyCircularChainEvaluationSpec<Map<String, String>> {
+        @Override
+        DefaultMapProperty<String, String> property() {
+            return new DefaultMapProperty(host, String, String)
+        }
+
+        def "calling #consumer throws exception if added item provider references the property"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<String> item = property.map { it.toString() }
+            property.put("item", item)
+
+            when:
+            consumer.accept(property)
+
+            then:
+            thrown(EvaluationContext.CircularEvaluationException)
+
+            where:
+            consumer << throwingConsumers()
+        }
+
+        def "calling #consumer throws exception if added item provider references the property and discards producer"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<String> item = property.map { it.toString() }
+            property.put("item", new ProducerDiscardingProvider(item))
+
+            when:
+            consumer.accept(property)
+
+            then:
+            thrown(EvaluationContext.CircularEvaluationException)
+
+            where:
+            consumer << throwingConsumers() - [GET_PRODUCER]
+        }
+
+        def "calling #consumer is safe even if added item provider referencing the property"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<String> item = property.map { it.toString() }
+            property.put("item", item)
+
+            when:
+            consumer.accept(property)
+
+            then:
+            noExceptionThrown()
+
+            where:
+            consumer << safeConsumers()
+        }
+
+        def "calling #consumer throws exception if added collection provider references the property"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<Map<String, String>> items = property.map { it }
+            property.putAll(items)
+
+            when:
+            consumer.accept(property)
+
+            then:
+            thrown(EvaluationContext.CircularEvaluationException)
+
+            where:
+            consumer << throwingConsumers()
+        }
+
+        def "calling #consumer throws exception if added collection provider references the property and discards producer"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<Map<String, String>> items = property.map { it }
+            property.putAll(new ProducerDiscardingProvider(items))
+
+            when:
+            consumer.accept(property)
+
+            then:
+            thrown(EvaluationContext.CircularEvaluationException)
+
+            where:
+            consumer << throwingConsumers() - [GET_PRODUCER]
+        }
+
+        def "calling #consumer is safe even if added collection provider references the property"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<Map<String, String>> items = property.map { it }
+            property.putAll(items)
+
+            when:
+            consumer.accept(property)
+
+            then:
+            noExceptionThrown()
+
+            where:
+            consumer << safeConsumers()
+        }
+
+        @Override
+        List<Consumer<ProviderInternal<?>>> throwingConsumers() {
+            return super.throwingConsumers() + super.throwingConsumers().collectMany {
+                it != GET_PRODUCER ? combineWithExtraGetters(it) : []
+            }
+        }
+
+        @Override
+        List<? extends Consumer<ProviderInternal<?>>> safeConsumers() {
+            return super.safeConsumers() +
+                extraMapPropertyProviderGetters() as List<Consumer<ProviderInternal<?>>> +
+                super.safeConsumers().collectMany { combineWithExtraGetters(it) } +
+                combineWithExtraGetters(GET_PRODUCER)
+        }
+
+        private List<Consumer<ProviderInternal<?>>> combineWithExtraGetters(Consumer<ProviderInternal<?>> targetConsumer) {
+            if (!(targetConsumer instanceof ProviderConsumer)) {
+                // Map-derived providers do not support consumers for properties.
+                return []
+            }
+
+            extraMapPropertyProviderGetters().collect {
+                new Consumer<ProviderInternal<?>>() {
+                    @Override
+                    void accept(ProviderInternal<?> providerInternal) {
+                        targetConsumer.accept(it.apply(providerInternal))
+                    }
+
+                    @Override
+                    String toString() {
+                        return "${it}.${targetConsumer}"
+                    }
+                }
+            }
+        }
+
+        private List<MapPropertyProviderGetter> extraMapPropertyProviderGetters() {
+            return [
+                new MapPropertyProviderGetter(name: "keySet", impl: { it.keySet() }),
+                new MapPropertyProviderGetter(name: "getting", impl: { it.getting("item") }),
+            ]
+        }
+
+        private static class MapPropertyProviderGetter implements Function<ProviderInternal<?>, ProviderInternal<?>>, Consumer<ProviderInternal<?>> {
+            String name
+            Function<MapProperty<String, String>, ProviderInternal<?>> impl
+
+            @Override
+            void accept(ProviderInternal<?> property) {
+                impl.apply(property as MapProperty<String, String>)
+            }
+
+            @Override
+            ProviderInternal<?> apply(ProviderInternal<?> property) {
+                return impl.apply(property as MapProperty<String, String>)
+            }
+
+            @Override
+            String toString() {
+                return name
+            }
+        }
     }
 }

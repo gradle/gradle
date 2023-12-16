@@ -17,6 +17,7 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
@@ -82,7 +83,7 @@ public interface BuildController {
     /**
      * Fetches a snapshot of the model of the given type for the given element, usually a Gradle project.
      *
-     * <p>The following elements are supported:
+     * <p>The following elements are supported as targets:
      *
      * <ul>
      *     <li>Any {@link org.gradle.tooling.model.gradle.BasicGradleProject}</li>
@@ -209,4 +210,13 @@ public interface BuildController {
      * @since 6.8
      */
     boolean getCanQueryProjectModelInParallel(Class<?> modelType);
+
+    /**
+     * Sends an intermediate result back to the client application. The client application can receive this result
+     * by registering a {@link IntermediateModelListener}.
+     *
+     * @since 8.6
+     */
+    @Incubating
+    <T> void sendIntermediate(T model);
 }

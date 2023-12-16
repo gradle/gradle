@@ -18,6 +18,7 @@ package org.gradle.internal.enterprise.core
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.enterprise.DevelocityPluginCheckInFixture
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
 import org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
@@ -36,6 +37,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     private static final VersionNumber PLUGIN_MINIMUM_NON_DEPRECATED_VERSION = DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9
 
     private final GradleEnterprisePluginCheckInFixture fixture = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
+    private final DevelocityPluginCheckInFixture develocityFixture = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
     def setup() {
         buildFile << """
@@ -320,6 +322,82 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fixture.issuedNoPluginWarningCount(output, 1)
+    }
+
+    def "does not auto-apply plugin when Develocity plugin is applied using plugin ID"() {
+        when:
+        develocityFixture.publishDummyPlugin(executer)
+        settingsFile << develocityFixture.plugins()
+
+        and:
+        runBuildWithScanRequest()
+
+        then:
+        pluginNotApplied()
+    }
+
+    def "does not auto-apply plugin when Develocity plugin is applied using plugin class name"() {
+        when:
+        develocityFixture.publishDummyPlugin(executer)
+        settingsFile.text = """
+            buildscript {
+                repositories {
+                    maven { url '${mavenRepo.uri}' }
+                }
+                dependencies {
+                    classpath '${"com.gradle:develocity-gradle-plugin:${develocityFixture.runtimeVersion}"}'
+                }
+            }
+            apply plugin: $develocityFixture.className
+        """
+
+        and:
+        runBuildWithScanRequest()
+
+        then:
+        pluginNotApplied()
+    }
+
+    def "does not auto-apply plugin when Develocity plugin explicitly requested and not applied"() {
+        when:
+        develocityFixture.publishDummyPlugin(executer)
+        settingsFile << """
+            plugins {
+                id '$develocityFixture.id' version '${develocityFixture.artifactVersion}' apply false
+            }
+        """
+
+        and:
+        runBuildWithScanRequest()
+
+        then:
+        pluginNotApplied()
+    }
+
+    def "does not auto-apply plugin when Develocity plugin is added to initscript classpath"() {
+        when:
+        develocityFixture.publishDummyPlugin(executer)
+        file('init.gradle') << """
+            initscript {
+                repositories {
+                    maven { url '${mavenRepo.uri}' }
+                }
+
+                dependencies {
+                    classpath '${"com.gradle:develocity-gradle-plugin:${develocityFixture.runtimeVersion}"}'
+                }
+            }
+
+            beforeSettings {
+                it.apply plugin: $develocityFixture.className
+            }
+        """
+
+        and:
+        runBuildWithScanRequest('-I', 'init.gradle')
+
+        then:
+        pluginNotApplied()
     }
 
     private void runBuildWithScanRequest(String... additionalArgs) {

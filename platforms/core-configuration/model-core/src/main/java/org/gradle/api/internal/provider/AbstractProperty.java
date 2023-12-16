@@ -27,7 +27,7 @@ import org.gradle.internal.state.ModelObject;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public abstract class AbstractProperty<T, S extends ValueSupplier> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
+public abstract class AbstractProperty<T, S extends AbstractMinimalProvider.GuardedValueSupplier<? extends S>> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
     private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this property");
     private static final DisplayName DEFAULT_VALIDATION_DISPLAY_NAME = Describables.of("a property");
 
@@ -168,7 +168,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     // This method is final - implement describeContents() instead
     @Override
-    public final String toString() {
+    protected final String toStringNoReentrance() {
         if (displayName != null) {
             return displayName.toString();
         } else {
@@ -330,31 +330,33 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
      * @return the shallow copy of this property
      */
     public ProviderInternal<T> shallowCopy() {
-        return new AbstractMinimalProvider<T>() {
-            // the value of "value" is immutable but the field is not, so copy it.
-            // This is in fact enough to have a shallow copy!
-            private final S copiedValue = AbstractProperty.this.value;
+        return new ShallowCopyProvider();
+    }
 
-            @Override
-            public ValueProducer getProducer() {
-                return copiedValue.getProducer();
-            }
+    private class ShallowCopyProvider extends AbstractMinimalProvider<T> {
+        // the value of "value" is immutable but the field is not, so copy it
+        // (but use a different owner)
+        private final S copiedValue = AbstractProperty.this.value.withOwner(this);
 
-            @Override
-            public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-                return calculateOwnExecutionTimeValue(copiedValue);
-            }
+        @Override
+        public ValueProducer getProducer() {
+            return copiedValue.getProducer();
+        }
 
-            @Override
-            protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-                return calculateValueFrom(copiedValue, consumer);
-            }
+        @Override
+        public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+            return calculateOwnExecutionTimeValue(copiedValue);
+        }
 
-            @Override
-            @Nullable
-            public Class<T> getType() {
-                return AbstractProperty.this.getType();
-            }
-        };
+        @Override
+        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+            return calculateValueFrom(copiedValue, consumer);
+        }
+
+        @Override
+        @Nullable
+        public Class<T> getType() {
+            return AbstractProperty.this.getType();
+        }
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildTreeModelController;
@@ -29,9 +30,13 @@ import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalActionAwareBuildController;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
+import org.gradle.tooling.internal.protocol.InternalIntermediateModelRelay;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
+import org.gradle.tooling.internal.provider.serialization.IntermediateModel;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
@@ -43,25 +48,31 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 @SuppressWarnings("deprecation")
-class DefaultBuildController implements org.gradle.tooling.internal.protocol.InternalBuildController, InternalBuildControllerVersion2, InternalActionAwareBuildController {
+class DefaultBuildController implements org.gradle.tooling.internal.protocol.InternalBuildController, InternalBuildControllerVersion2, InternalActionAwareBuildController, InternalIntermediateModelRelay {
     private final WorkerThreadRegistry workerThreadRegistry;
     private final BuildTreeModelController controller;
     private final BuildCancellationToken cancellationToken;
     private final BuildStateRegistry buildStateRegistry;
     private final ToolingModelParameterCarrier.Factory parameterCarrierFactory;
+    private final BuildEventConsumer buildEventConsumer;
+    private final PayloadSerializer payloadSerializer;
 
     public DefaultBuildController(
         BuildTreeModelController controller,
         WorkerThreadRegistry workerThreadRegistry,
         BuildCancellationToken cancellationToken,
         BuildStateRegistry buildStateRegistry,
-        ToolingModelParameterCarrier.Factory parameterCarrierFactory
+        ToolingModelParameterCarrier.Factory parameterCarrierFactory,
+        BuildEventConsumer buildEventConsumer,
+        PayloadSerializer payloadSerializer
     ) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.controller = controller;
         this.cancellationToken = cancellationToken;
         this.buildStateRegistry = buildStateRegistry;
         this.parameterCarrierFactory = parameterCarrierFactory;
+        this.buildEventConsumer = buildEventConsumer;
+        this.payloadSerializer = payloadSerializer;
     }
 
     /**
@@ -160,5 +171,11 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         if (!workerThreadRegistry.isWorkerThread()) {
             throw new IllegalStateException("A build controller cannot be used from a thread that is not managed by Gradle.");
         }
+    }
+
+    @Override
+    public void sendIntermediate(Object model) {
+        SerializedPayload serializedModel = payloadSerializer.serialize(model);
+        buildEventConsumer.dispatch(new IntermediateModel(serializedModel));
     }
 }

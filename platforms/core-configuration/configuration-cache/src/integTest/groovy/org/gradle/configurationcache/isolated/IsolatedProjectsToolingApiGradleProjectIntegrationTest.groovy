@@ -201,4 +201,59 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         fixture.assertStateLoaded()
     }
 
+    def "root GradleProject model is invalidated when a child project configuration changes"() {
+        settingsFile << """
+            rootProject.name = 'root'
+            include("a")
+            include("b")
+        """
+
+        when:
+        def originalModel = fetchModel(GradleProject)
+
+        then:
+        fixture.assertNoConfigurationCache()
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model = fetchModel(GradleProject)
+
+        then:
+        fixture.assertStateStored {
+            modelsCreated(":", GradleProject, IsolatedGradleProjectInternal)
+            modelsCreated(":a", IsolatedGradleProjectInternal)
+            modelsCreated(":b", IsolatedGradleProjectInternal)
+        }
+
+        checkGradleProject(model, originalModel)
+
+
+        when:
+        file("a/build.gradle") << """
+            tasks.register('something')
+        """
+        def originalUpdatedModel = fetchModel(GradleProject)
+
+        then:
+        fixture.assertNoConfigurationCache()
+
+        originalUpdatedModel.children.path == [":a", ":b"]
+        originalUpdatedModel.children.all[0].tasks.name.contains("something")
+
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def updatedModel = fetchModel(GradleProject)
+
+        then:
+        fixture.assertStateUpdated {
+            fileChanged("a/build.gradle")
+            modelsCreated(":", GradleProject, IsolatedGradleProjectInternal)
+            modelsCreated(":a", IsolatedGradleProjectInternal)
+            modelsReused(":b")
+        }
+
+        and:
+        checkGradleProject(updatedModel, originalUpdatedModel)
+    }
 }

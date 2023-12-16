@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
-import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.BuildCancellationToken;
@@ -236,7 +236,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             InternalOptions options,
             ProblemDiagnosticsFactory problemDiagnosticsFactory,
             StartParameter startParameter,
-            Problems problemsService
+            InternalProblems problemsService
         ) {
             return new InitProblems(
                 new InitDeprecationLoggingActionExecutor(

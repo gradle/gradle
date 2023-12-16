@@ -40,7 +40,7 @@ interface ConfigurationCacheStateStore {
     /**
      * Writes some value to zero or more state files.
      */
-    fun useForStore(action: (ConfigurationCacheRepository.Layout) -> Unit)
+    fun <T> useForStore(action: (ConfigurationCacheRepository.Layout) -> T): T
 
     /**
      * Creates a new [ValueStore] that can be used to load and store multiple values.

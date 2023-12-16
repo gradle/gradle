@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.Transformer
+import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularChainEvaluationSpec
 import org.gradle.api.provider.Provider
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Describables
@@ -28,6 +29,9 @@ import org.gradle.internal.state.ModelObject
 import org.gradle.util.internal.TextUtil
 
 import java.util.concurrent.Callable
+import java.util.function.Consumer
+
+import static org.gradle.api.internal.provider.CircularEvaluationSpec.ProviderConsumer.GET_PRODUCER
 
 abstract class PropertySpec<T> extends ProviderSpec<T> {
     @Override
@@ -1057,7 +1061,8 @@ The value of this provider is derived from:
 
         then:
         1 * function.call() >> {
-            property.get()
+            // Emulate concurrent get() in other thread
+            EvaluationContext.current().evaluateNested(property::get)
         }
         1 * function.call() >> someValue()
         0 * function._
@@ -1085,7 +1090,8 @@ The value of this provider is derived from:
         then:
         result == someValue()
         1 * function.call() >> {
-            property.get()
+            // Emulate concurrent get() in other thread
+            EvaluationContext.current().evaluateNested(property::get)
         }
         1 * function.call() >> someValue()
         0 * function._
@@ -2906,6 +2912,19 @@ The value of this provider is derived from:
         "value" | "getOrElse"
     }
 
+    def "update to itself does not trigger cycles"() {
+        def property = providerWithNoValue()
+
+        given:
+        property.set(someValue())
+
+        when:
+        property.update { it }
+
+        then:
+        property.get() == someValue()
+    }
+
     ModelObject owner() {
         return Stub(ModelObject)
     }
@@ -2986,4 +3005,88 @@ The value of this provider is derived from:
     }
 
     static class Thing {}
+
+    static abstract class PropertyCircularChainEvaluationSpec<T> extends CircularChainEvaluationSpec<T> {
+        def host = Mock(PropertyHost)
+
+        @Override
+        final PropertyInternal<T> wrapProviderWithProviderUnderTest(ProviderInternal<T> baseProvider) {
+            return property().value(baseProvider)
+        }
+
+        def "calling #consumer throws exception with proper chain if wrapped property sets convention to itself"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def prop = property()
+            def provider = property().convention(prop)
+            prop.set(provider)
+
+            when:
+            consumer.accept(provider)
+
+            then:
+            EvaluationContext.CircularEvaluationException ex = thrown()
+            assertExceptionHasExpectedCycle(ex, provider, prop)
+
+            where:
+            consumer << throwingConsumers()
+        }
+
+        def "calling #consumer throws exception with proper chain if wrapped property sets convention to itself and discards producer"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def prop = property()
+            def provider = property().convention(new ProducerDiscardingProvider(prop))
+            prop.set(provider)
+
+            when:
+            consumer.accept(provider)
+
+            then:
+            EvaluationContext.CircularEvaluationException ex = thrown()
+            assertExceptionHasExpectedCycle(ex, provider, prop)
+
+            where:
+            consumer << throwingConsumers() - [GET_PRODUCER]
+        }
+
+        def "calling #consumer is safe even if wrapped property sets convention to itself"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def prop = property()
+            def provider = property().convention(prop)
+            prop.set(provider)
+
+            when:
+            consumer.accept(provider)
+
+            then:
+            noExceptionThrown()
+
+            where:
+            consumer << safeConsumers()
+        }
+
+        @Override
+        List<Consumer<ProviderInternal<?>>> throwingConsumers() {
+            return super.throwingConsumers() + namedConsumer("finalizeValue", { it.finalizeValue() })
+        }
+
+        private static Consumer<ProviderInternal<?>> namedConsumer(String name, Consumer<? super PropertyInternal<?>> impl) {
+            return new Consumer<ProviderInternal<?>>() {
+                @Override
+                void accept(ProviderInternal<?> providerInternal) {
+                    impl.accept(providerInternal as PropertyInternal<?>)
+                }
+
+                @Override
+                String toString() {
+                    return name
+                }
+            }
+        }
+    }
 }

@@ -66,13 +66,25 @@ public interface ProblemSpec {
      * <p>
      * The categorization depends on the domain and don't have any constraints. Clients (i.e. IDEs) receiving problems should use the category information for
      * properly group and sort the received instances.
+     * However, we recommend to use the same conventions as the problems emitted from Gradle core use.
+     * <ul>
+     *     <li>Entries should be all-lowercase using a dash for separator (i.e. kebab-case)</li>
+     *     <li>Should be strictly hierarchical: the category declares the domain and subcategories provide further refinement</li>
+     * </ul>
+     * A few examples with a path-like notation (i.e. {@code category:subcategory1:subcategory2}).
+     * <ul>
+     *     <li>compilation:groovy-dsl</li>
+     *     <li>compilation:java:unused-import</li>
+     *     <li>deprecation:user-code-direct</li>
+     *     <li>task-selection:no-matches</li>
+     * </ul>
      *
      * @param category the type name
-     * @param details the type details
+     * @param subcategories the type subcategories
      * @return this
      * @since 8.6
      */
-    ProblemSpec category(String category, String... details);
+    ProblemSpec category(String category, String... subcategories);
 
     /**
      * Declares where this problem is documented.

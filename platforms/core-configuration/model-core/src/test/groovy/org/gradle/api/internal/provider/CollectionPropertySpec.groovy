@@ -24,6 +24,10 @@ import org.gradle.api.provider.Provider
 import org.gradle.internal.Describables
 import org.gradle.util.internal.TextUtil
 
+import java.util.function.Consumer
+
+import static org.gradle.api.internal.provider.CircularEvaluationSpec.ProviderConsumer.GET_PRODUCER
+
 abstract class CollectionPropertySpec<C extends Collection<String>> extends PropertySpec<C> {
     AbstractCollectionProperty<String, C> propertyWithDefaultValue() {
         return property()
@@ -1066,7 +1070,6 @@ The value of this property is derived from: <source>""")
         0 * _
     }
 
-
     def "update can modify property"() {
         given:
         property.set(someValue())
@@ -1146,5 +1149,118 @@ The value of this property is derived from: <source>""")
 
         then:
         1 * transform.transform(_)
+    }
+
+    static abstract class CollectionPropertyCircularChainEvaluationTest<T, C extends Collection<T>> extends PropertySpec.PropertyCircularChainEvaluationSpec<C> {
+        @Override
+        abstract AbstractCollectionProperty<T, C> property()
+
+        def "calling #consumer throws exception if added item provider references the property"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<T> item = property.map { list -> list.iterator().next() }
+            property.add(item)
+
+            when:
+            consumer.accept(property)
+
+            then:
+            thrown(EvaluationContext.CircularEvaluationException)
+
+            where:
+            consumer << throwingConsumers()
+        }
+
+        def "calling #consumer throws exception if added item provider references the property and discards producer"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<T> item = property.map { list -> list.iterator().next() }
+            property.add(new ProducerDiscardingProvider(item))
+
+            when:
+            consumer.accept(property)
+
+            then:
+            thrown(EvaluationContext.CircularEvaluationException)
+
+            where:
+            consumer << throwingConsumers() - [GET_PRODUCER]
+        }
+
+        def "calling #consumer is safe even if added item provider references the property"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<T> item = property.map { items -> items.iterator().next() }
+            property.add(item)
+
+            when:
+            consumer.accept(property)
+
+            then:
+            noExceptionThrown()
+
+            where:
+            consumer << safeConsumers()
+        }
+
+        def "calling #consumer throws exception if added collection provider references the property"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<C> items = property.map { it }
+            property.addAll(items)
+
+            when:
+            consumer.accept(property)
+
+            then:
+            thrown(EvaluationContext.CircularEvaluationException)
+
+            where:
+            consumer << throwingConsumers()
+        }
+
+        def "calling #consumer throws exception if added collection provider references the property and discards producer"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<C> items = property.map { it }
+            property.addAll(new ProducerDiscardingProvider(items))
+
+            when:
+            consumer.accept(property)
+
+            then:
+            thrown(EvaluationContext.CircularEvaluationException)
+
+            where:
+            consumer << throwingConsumers() - [GET_PRODUCER]
+        }
+
+        def "calling #consumer is safe even if added collection provider references the property"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<C> itemsConcat = property.map { it }
+            property.addAll(itemsConcat)
+
+            when:
+            consumer.accept(property)
+
+            then:
+            noExceptionThrown()
+
+            where:
+            consumer << safeConsumers()
+        }
     }
 }

@@ -17,10 +17,13 @@
 package org.gradle.buildinit.tasks;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.BuildCancelledException;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
@@ -30,6 +33,8 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
+import org.gradle.api.tasks.wrapper.internal.WrapperDefaults;
+import org.gradle.api.tasks.wrapper.internal.WrapperGenerator;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.BuildConverter;
 import org.gradle.buildinit.plugins.internal.BuildInitializer;
@@ -43,16 +48,17 @@ import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.util.GradleVersion;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.lang.model.SourceVersion;
+import java.io.File;
 import java.util.List;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Generates a Gradle project structure.
@@ -78,9 +84,30 @@ public abstract class InitBuild extends DefaultTask {
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
 
     /**
-     * The desired type of project to generate, defaults to 'pom' if a 'pom.xml' is found in the project root and if no 'pom.xml' is found, it defaults to 'basic'.
+     * Should default values automatically be accepted for options that are not configured explicitly?
+     * <p>
+     * When true, the interactive dialog is skipped, and no user input is required to complete the command.
+     * <p>
+     * This property can be set via the command-line options '--use-defaults' and '--no-use-defaults'.
      *
+     * @since 8.6
+     */
+    @Incubating
+    @Input
+    @Optional
+    @Option(option = "use-defaults", description = "Use default values for options not configured explicitly")
+    public abstract Property<Boolean> getUseDefaults();
+
+    /**
+     * The desired type of project to generate like 'java-application' or 'kotlin-library'.
+     * <p>
      * This property can be set via command-line option '--type'.
+     * <p>
+     * Defaults to 'basic' - a minimal scaffolding, following Gradle best practices.
+     * If a `pom.xml` is found in the project root directory, the type defaults to 'pom'
+     * and the existing project is converted to Gradle.
+     * <p>
+     * Possible values for the option are provided by {@link #getAvailableBuildTypes()}.
      */
     @Input
     public String getType() {
@@ -210,7 +237,7 @@ public abstract class InitBuild extends DefaultTask {
 
     @TaskAction
     public void setupProjectLayout() {
-        UserInputHandler inputHandler = getServices().get(UserInputHandler.class);
+        UserInputHandler inputHandler = getEffectiveInputHandler();
         ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
 
         BuildInitializer initDescriptor = getBuildInitializer(inputHandler, projectLayoutRegistry);
@@ -227,7 +254,7 @@ public abstract class InitBuild extends DefaultTask {
 
         validatePackageName(packageName);
 
-        java.util.Optional<JavaLanguageVersion> toolChainVersion = getJavaLanguageVersion(inputHandler, initDescriptor);
+        JavaLanguageVersion javaLanguageVersion = getJavaLanguageVersion(inputHandler, initDescriptor);
 
         boolean useIncubatingAPIs = shouldUseIncubatingAPIs(inputHandler);
 
@@ -242,11 +269,51 @@ public abstract class InitBuild extends DefaultTask {
             testFramework,
             insecureProtocol.get(),
             projectDir,
-            toolChainVersion);
+            javaLanguageVersion
+        );
+
+        boolean userInterrupted = inputHandler.interrupted();
+        if (userInterrupted) {
+            throw new BuildCancelledException();
+        }
+
         initDescriptor.generate(settings);
+        generateWrapper();
 
         initDescriptor.getFurtherReading(settings)
             .ifPresent(link -> getLogger().lifecycle(link));
+    }
+
+    private void generateWrapper() {
+        Directory projectDirectory = getLayout().getProjectDirectory();
+        File unixScript = projectDirectory.file(WrapperDefaults.SCRIPT_PATH).getAsFile();
+        File jarFile = projectDirectory.file(WrapperDefaults.JAR_FILE_PATH).getAsFile();
+        String jarFileRelativePath = getRelativePath(projectDirectory.getAsFile(), jarFile);
+        File propertiesFile = WrapperGenerator.getPropertiesFile(jarFile);
+        String distributionUrl = WrapperGenerator.getDistributionUrl(GradleVersion.current(), WrapperDefaults.DISTRIBUTION_TYPE);
+        WrapperGenerator.generate(
+            WrapperDefaults.ARCHIVE_BASE, WrapperDefaults.ARCHIVE_PATH,
+            WrapperDefaults.DISTRIBUTION_BASE, WrapperDefaults.DISTRIBUTION_PATH,
+            null,
+            propertiesFile,
+            jarFile, jarFileRelativePath,
+            unixScript, WrapperGenerator.getBatchScript(unixScript),
+            distributionUrl,
+            true,
+            WrapperDefaults.NETWORK_TIMEOUT
+        );
+    }
+
+    private static String getRelativePath(File baseDir, File targetFile) {
+        return baseDir.toPath().relativize(targetFile.toPath()).toString();
+    }
+
+    private UserInputHandler getEffectiveInputHandler() {
+        if (getUseDefaults().get()) {
+            return new NonInteractiveUserInputHandler();
+        }
+
+        return getUserInputHandler();
     }
 
     private static void validatePackageName(String packageName) {
@@ -255,19 +322,25 @@ public abstract class InitBuild extends DefaultTask {
         }
     }
 
-    java.util.Optional<JavaLanguageVersion> getJavaLanguageVersion(UserInputHandler inputHandler, BuildInitializer initDescriptor) {
+    @VisibleForTesting
+    @Nullable
+    JavaLanguageVersion getJavaLanguageVersion(UserInputHandler inputHandler, BuildInitializer initDescriptor) {
         if (!initDescriptor.supportsJavaTargets()) {
-            return empty();
+            return null;
         }
 
-        JavaLanguageVersion current = JavaLanguageVersion.of(Jvm.current().getJavaVersion().getMajorVersion());
-        String version = javaVersion.getOrElse(inputHandler.askQuestion("Enter target version of Java (min. " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API + ")", current.toString()));
+        String version = javaVersion.getOrNull();
+        if (isNullOrEmpty(version)) {
+            JavaLanguageVersion current = JavaLanguageVersion.of(requireNonNull(Jvm.current().getJavaVersion()).getMajorVersion());
+            version = inputHandler.askQuestion("Enter target version of Java (min. " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API + ")", current.toString());
+        }
+
         try {
             int parsedVersion = Integer.parseInt(version);
             if (parsedVersion < MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API) {
                 throw new GradleException("Java target version: '" + version + "' is not a supported target version. It must be equal to or greater than " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API);
             }
-            return of(JavaLanguageVersion.of(parsedVersion));
+            return JavaLanguageVersion.of(parsedVersion);
         } catch (NumberFormatException e) {
             throw new GradleException("Invalid Java target version '" + version + "'. The version must be an integer.", e);
         }
@@ -476,4 +549,10 @@ public abstract class InitBuild extends DefaultTask {
 
     @Inject
     protected abstract ProviderFactory getProviderFactory();
+
+    @Inject
+    protected abstract UserInputHandler getUserInputHandler();
+
+    @Inject
+    protected abstract ProjectLayout getLayout();
 }

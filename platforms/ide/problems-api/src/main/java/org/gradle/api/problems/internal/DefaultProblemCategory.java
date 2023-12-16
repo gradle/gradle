@@ -33,7 +33,7 @@ public class DefaultProblemCategory implements ProblemCategory, Serializable {
     private static final String SEPARATOR = Path.SEPARATOR;
 
     public static final String DEPRECATION = "deprecation";
-    public static final String VALIDATION = "validation";
+    public static final String VALIDATION = "type-validation";
 
     private final String namespace;
     private final String category;
@@ -72,7 +72,7 @@ public class DefaultProblemCategory implements ProblemCategory, Serializable {
     }
 
     @Override
-    public List<String> getSubCategories() {
+    public List<String> getSubcategories() {
         return ImmutableList.copyOf(subcategories);
     }
 

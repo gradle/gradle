@@ -17,6 +17,7 @@
 package org.gradle.api.problems
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.problems.ReceivedProblem
 
 class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
@@ -43,7 +44,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    Map<String, Object> getCollectedProblem() {
+    ReceivedProblem getCollectedProblem() {
         assert this.collectedProblems.size() == 1
         this.collectedProblems[0]
     }
@@ -61,7 +62,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         collectedProblem['label'] == 'problem label must be specified'
-        collectedProblem['problemCategory'] == [namespace: 'org.example.plugin', category: 'validation', subCategories: ['problems-api', 'missing-label']]
+        collectedProblem['category'] == [namespace: 'org.example.plugin', category: 'validation', subcategories: ['problems-api', 'missing-label']]
         collectedProblem['locations'] == [[length: -1, column: -1, line: 12, path: "build file '$buildFile.absolutePath'"], [buildTreePath: ':reportProblem']]
     }
 
@@ -78,7 +79,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         collectedProblem['label'] == 'problem category must be specified'
-        collectedProblem['problemCategory'] == [namespace: 'org.example.plugin', category: 'validation', subCategories: ['problems-api', 'missing-category']]
+        collectedProblem['category'] == [namespace: 'org.example.plugin', category: 'validation', subcategories: ['problems-api', 'missing-category']]
         collectedProblem['locations'] == [[length: -1, column: -1, line: 12, path: "build file '$buildFile.absolutePath'"], [buildTreePath: ':reportProblem']]
     }
 
@@ -97,7 +98,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         collectedProblem['label'] == 'label'
-        collectedProblem['problemCategory'] == [namespace: 'org.example.plugin', category: 'type', subCategories: []]
+        collectedProblem['category'] == [namespace: 'org.example.plugin', category: 'type', subcategories: []]
         collectedProblem['locations'] == [[buildTreePath: ':reportProblem']]
     }
 
@@ -116,7 +117,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         collectedProblem['label'] == 'label'
-        collectedProblem['problemCategory'] == [namespace: 'org.example.plugin', category: 'type', subCategories: []]
+        collectedProblem['category'] == [namespace: 'org.example.plugin', category: 'type', subcategories: []]
         collectedProblem['locations'] == [[length: -1, column: -1, line: 12, path: "build file '$buildFile.absolutePath'"], [buildTreePath: ':reportProblem']]
     }
 
@@ -275,7 +276,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         collectedProblem['label'] == 'ProblemBuilder.additionalData() supports values of type String, but java.util.ArrayList as given.'
-        collectedProblem['problemCategory'] == [namespace: 'org.example.plugin', category: 'validation', subCategories: ['problems-api', 'invalid-additional-data']]
+        collectedProblem['category'] == [namespace: 'org.example.plugin', category: 'validation', subcategories: ['problems-api', 'invalid-additional-data']]
         collectedProblem['locations'] == [[length: -1, column: -1, line: 12, path: "build file '$buildFile.absolutePath'"], [buildTreePath: ':reportProblem']]
     }
 
@@ -336,5 +337,25 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         this.collectedProblems.size() == 2
         this.collectedProblems[0]["label"] == "inner"
         this.collectedProblems[1]["label"] == "outer"
+    }
+
+    def "problem progress events are not aggregated"() {
+        given:
+        withReportProblemTask """
+            for (int i = 0; i < 10; i++) {
+                problems.forNamespace("org.example.plugin").reporting {
+                        it.label("The 'standard-plugin' is deprecated")
+                        .category("deprecation", "plugin")
+                        .severity(Severity.WARNING)
+                        .solution("Please use 'standard-plugin-2' instead of this plugin")
+                }
+            }
+        """
+
+        when:
+        run("reportProblem")
+
+        then:
+        this.collectedProblems.size() == 10
     }
 }

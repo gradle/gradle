@@ -28,7 +28,6 @@ import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
 import org.gradle.internal.file.Deleter;
@@ -72,12 +71,12 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
     @Override
     public AfterExecutionResult execute(UnitOfWork work, IncrementalChangesContext context) {
         return context.getCachingState().fold(
-            cachingEnabled -> executeWithCache(work, context, cachingEnabled.getKey(), cachingEnabled.getBeforeExecutionState()),
+            cachingEnabled -> executeWithCache(work, context, cachingEnabled.getKey()),
             cachingDisabled -> executeWithoutCache(work, context)
         );
     }
 
-    private AfterExecutionResult executeWithCache(UnitOfWork work, IncrementalChangesContext context, BuildCacheKey cacheKey, BeforeExecutionState beforeExecutionState) {
+    private AfterExecutionResult executeWithCache(UnitOfWork work, IncrementalChangesContext context, BuildCacheKey cacheKey) {
         CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), context.getWorkspace(), work);
         return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
                 ? tryLoadingFromCache(cacheKey, cacheableWork)
@@ -101,16 +100,18 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
                 })
                 .orElseGet(() -> executeAndStoreInCache(cacheableWork, cacheKey, context))
             )
-            .getOrMapFailure(loadFailure -> {
-                throw new RuntimeException(
+            .getOrMapFailure(loadFailure -> new AfterExecutionResult(
+                Duration.ZERO,
+                Try.failure(new RuntimeException(
                     String.format("Failed to load cache entry %s for %s: %s",
                         cacheKey.getHashCode(),
                         work.getDisplayName(),
                         loadFailure.getMessage()
                     ),
                     loadFailure
-                );
-            });
+                )),
+                null
+            ));
     }
 
     private Optional<BuildCacheLoadResult> tryLoadingFromCache(BuildCacheKey cacheKey, CacheableWork cacheableWork) {
@@ -142,11 +143,15 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
                 cacheableWork.getDisplayName(), cacheKey.getHashCode());
         }
         AfterExecutionResult result = executeWithoutCache(cacheableWork.work, context);
-        result.getExecution().ifSuccessfulOrElse(
-            executionResult -> storeInCacheUnlessDisabled(cacheableWork, cacheKey, result, executionResult),
-            failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", cacheableWork.getDisplayName())
-        );
-        return result;
+        try {
+            result.getExecution().ifSuccessfulOrElse(
+                executionResult -> storeInCacheUnlessDisabled(cacheableWork, cacheKey, result, executionResult),
+                failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", cacheableWork.getDisplayName())
+            );
+            return result;
+        } catch (Exception storeFailure) {
+            return new AfterExecutionResult(Result.failed(storeFailure, result.getDuration()), result.getAfterExecutionOutputState().orElse(null));
+        }
     }
 
     /**
