@@ -37,7 +37,7 @@ open class ClassPathModeExceptionCollector : Stoppable {
 }
 
 
-inline fun <T> ClassPathModeExceptionCollector.ignoringErrors(f: () -> T): T? =
+inline fun <T> ClassPathModeExceptionCollector.runCatching(f: () -> T): T? =
     try {
         f()
     } catch (e: Exception) {

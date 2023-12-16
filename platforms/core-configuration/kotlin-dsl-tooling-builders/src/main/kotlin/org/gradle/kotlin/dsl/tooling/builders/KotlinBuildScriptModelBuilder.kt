@@ -43,7 +43,7 @@ import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.provider.KotlinScriptEvaluator
-import org.gradle.kotlin.dsl.provider.ignoringErrors
+import org.gradle.kotlin.dsl.provider.runCatching
 import org.gradle.kotlin.dsl.resolver.EditorReports
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.kotlin.dsl.resolver.SourcePathProvider
@@ -408,12 +408,12 @@ data class KotlinScriptTargetModelBuilder(
         val classpathSources = sourcePathFor(sourceLookupScriptHandlers)
         val classPathModeExceptionCollector = project.serviceOf<ClassPathModeExceptionCollector>()
         val accessorsClassPath =
-            classPathModeExceptionCollector.ignoringErrors {
+            classPathModeExceptionCollector.runCatching {
                 accessorsClassPath(scriptClassPath)
             } ?: AccessorsClassPath.empty
 
         val additionalImports =
-            classPathModeExceptionCollector.ignoringErrors {
+            classPathModeExceptionCollector.runCatching {
                 additionalImports()
             } ?: emptyList()
 
