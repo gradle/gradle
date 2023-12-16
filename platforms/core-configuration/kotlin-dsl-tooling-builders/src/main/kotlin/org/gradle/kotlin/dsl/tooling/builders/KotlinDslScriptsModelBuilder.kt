@@ -109,8 +109,11 @@ data class StandardEditorPosition(
 internal
 object KotlinDslScriptsModelBuilder : ToolingModelBuilder {
 
+    private
+    const val MODEL_NAME = "org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel"
+
     override fun canBuild(modelName: String): Boolean =
-        modelName == "org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel"
+        modelName == MODEL_NAME
 
     override fun buildAll(modelName: String, project: Project): KotlinDslScriptsModel {
         requireRootProject(project)
@@ -135,7 +138,7 @@ object KotlinDslScriptsModelBuilder : ToolingModelBuilder {
     private
     fun requireRootProject(project: Project) =
         require(project == project.rootProject) {
-            "${KotlinDslScriptsModel::class.qualifiedName} can only be requested on the root project, got '$project'"
+            "$MODEL_NAME can only be requested on the root project, got '$project'"
         }
 
     private
