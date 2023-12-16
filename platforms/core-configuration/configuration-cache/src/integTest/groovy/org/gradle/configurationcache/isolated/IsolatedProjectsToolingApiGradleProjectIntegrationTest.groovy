@@ -207,6 +207,8 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
             include("a")
             include("b")
         """
+        file("a/build.gradle") << ""
+        file("b/build.gradle") << ""
 
         when:
         def originalModel = fetchModel(GradleProject)
@@ -255,5 +257,42 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
 
         and:
         checkGradleProject(updatedModel, originalUpdatedModel)
+    }
+
+    def "root GradleProject model is reused when models are not dependencies even when child configuration changes"() {
+        settingsFile << """
+            rootProject.name = 'root'
+            include("a")
+            include("b")
+        """
+        file("a/build.gradle") << ""
+        file("b/build.gradle") << ""
+
+        when:
+        executer.withArguments(ENABLE_CLI, "-Dorg.gradle.internal.model-project-dependencies=false")
+        fetchModel(GradleProject)
+
+        then:
+        fixture.assertStateStored {
+            modelsCreated(":", GradleProject, IsolatedGradleProjectInternal)
+            modelsCreated(":a", IsolatedGradleProjectInternal)
+            modelsCreated(":b", IsolatedGradleProjectInternal)
+        }
+
+
+        when:
+        file("a/build.gradle") << """
+            println("updated :a")
+        """
+        executer.withArguments(ENABLE_CLI, "-Dorg.gradle.internal.model-project-dependencies=false")
+        fetchModel(GradleProject)
+
+        then:
+        outputDoesNotContain("updated :a")
+        fixture.assertStateUpdated {
+            fileChanged("a/build.gradle")
+            runsTasks = false
+            modelsReused(":")
+        }
     }
 }

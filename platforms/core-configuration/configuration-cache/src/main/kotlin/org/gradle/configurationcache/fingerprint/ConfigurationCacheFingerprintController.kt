@@ -331,6 +331,9 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val cacheIntermediateModels: Boolean
             get() = modelParameters.isIntermediateModelCache
 
+        override val modelAsProjectDependency: Boolean
+            get() = modelParameters.isModelAsProjectDependency
+
         override val ignoreInputsInConfigurationCacheTaskGraphWriting: Boolean
             get() = startParameter.isIgnoreInputsInTaskGraphSerialization
 

@@ -169,7 +169,7 @@ class ConfigurationCacheKeyTest {
                 ),
                 startParameter,
                 DefaultInternalOptions(mapOf()),
-                BuildModelParameters(false, false, true, startParameter.isolatedProjects.get(), false, false, false, false, LogLevel.LIFECYCLE)
+                BuildModelParameters(false, false, true, startParameter.isolatedProjects.get(), false, false, false, false, false, LogLevel.LIFECYCLE)
             ),
             RunTasksRequirements(startParameter),
             object : EncryptionConfiguration {
