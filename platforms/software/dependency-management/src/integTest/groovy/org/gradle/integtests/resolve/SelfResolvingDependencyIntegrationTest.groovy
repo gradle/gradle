@@ -51,8 +51,6 @@ task verify {
         when:
         executer.expectDocumentedDeprecationWarning("Directly resolving a file collection dependency's files has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration and resolve the configuration. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
         executer.expectDocumentedDeprecationWarning("Directly resolving a file collection dependency's files has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration and resolve the configuration. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
-        executer.expectDocumentedDeprecationWarning("Directly resolving a file collection dependency's files has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration and resolve the configuration. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
-        executer.expectDocumentedDeprecationWarning("Accessing the build dependencies of a file collection dependency has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration use the configuration to track task dependencies. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
         run "verify"
 
         then:

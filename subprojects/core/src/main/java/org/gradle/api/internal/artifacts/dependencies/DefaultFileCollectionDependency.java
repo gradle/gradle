@@ -86,7 +86,17 @@ public class DefaultFileCollectionDependency extends AbstractDependency implemen
     @Override
     @Deprecated
     public Set<File> resolve() {
-        return resolve(true);
+
+        // TODO #27437: Add deprecation nagging here.
+        // AGP currently uses this method. An issue has been filed for them to migrate away.
+
+//        DeprecationLogger.deprecate("Directly resolving a file collection dependency's files")
+//            .withAdvice("Add the dependency to a resolvable configuration and resolve the configuration.")
+//            .willBecomeAnErrorInGradle9()
+//            .withUpgradeGuideSection(8, "deprecate_self_resolving_dependency")
+//            .nagUser();
+
+        return source.getFiles();
     }
 
     @Override
@@ -106,11 +116,14 @@ public class DefaultFileCollectionDependency extends AbstractDependency implemen
     @Deprecated
     public TaskDependency getBuildDependencies() {
 
-        DeprecationLogger.deprecate("Accessing the build dependencies of a file collection dependency")
-            .withAdvice("Add the dependency to a resolvable configuration use the configuration to track task dependencies.")
-            .willBecomeAnErrorInGradle9()
-            .withUpgradeGuideSection(8, "deprecate_self_resolving_dependency")
-            .nagUser();
+        // TODO #27437: Add deprecation nagging here.
+        // AGP currently uses this method. An issue has been filed for them to migrate away.
+
+//        DeprecationLogger.deprecate("Accessing the build dependencies of a file collection dependency")
+//            .withAdvice("Add the dependency to a resolvable configuration use the configuration to track task dependencies.")
+//            .willBecomeAnErrorInGradle9()
+//            .withUpgradeGuideSection(8, "deprecate_self_resolving_dependency")
+//            .nagUser();
 
         return source.getBuildDependencies();
     }
