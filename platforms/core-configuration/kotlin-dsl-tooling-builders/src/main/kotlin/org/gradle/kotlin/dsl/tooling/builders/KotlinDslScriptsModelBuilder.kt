@@ -224,37 +224,50 @@ private
 fun Project.collectKotlinDslScripts(): List<File> = sequence<File> {
 
     // Init Scripts
-    project
-        .gradle
-        .startParameter
-        .allInitScripts
-        .filter { it.isKotlinDslFile }
-        .forEach { yield(it) }
+    yieldAll(discoverInitScripts())
 
     // Settings Script
-    val settingsScriptFile = File((project as ProjectInternal).gradle.settings.settingsScript.fileName)
-    if (settingsScriptFile.isKotlinDslFile) {
-        yield(settingsScriptFile)
+    discoverSettingScript()?.let {
+        yield(it)
     }
 
     allprojects.forEach { p ->
 
         // Project Scripts
-        if (p.buildFile.isKotlinDslFile) {
-            yield(p.buildFile)
+        p.discoverBuildScript()?.let {
+            yield(it)
         }
 
         // Precompiled Scripts
-        if (p.plugins.hasPlugin("org.gradle.kotlin.kotlin-dsl")) {
-            yieldAll(p.precompiledScriptPluginsSupport.collectScriptPluginFilesOf(p))
-        }
+        yieldAll(p.discoverPrecompiledScriptPluginScripts())
     }
 }.toList()
 
 
-private
-val Project.precompiledScriptPluginsSupport
-    get() = serviceOf<PrecompiledScriptPluginsSupport>()
+internal
+fun Project.discoverInitScripts(): List<File> =
+    gradle.startParameter.allInitScripts
+        .filter { it.isKotlinDslFile }
+
+
+internal
+fun Project.discoverSettingScript(): File? =
+    File((this as ProjectInternal).gradle.settings.settingsScript.fileName)
+        .takeIf { it.isKotlinDslFile }
+
+
+internal
+fun Project.discoverBuildScript(): File? =
+    buildFile.takeIf { it.isKotlinDslFile }
+
+
+internal
+fun Project.discoverPrecompiledScriptPluginScripts() =
+    if (plugins.hasPlugin("org.gradle.kotlin.kotlin-dsl"))
+        serviceOf<PrecompiledScriptPluginsSupport>()
+            .collectScriptPluginFilesOf(this)
+    else
+        emptyList()
 
 
 private
