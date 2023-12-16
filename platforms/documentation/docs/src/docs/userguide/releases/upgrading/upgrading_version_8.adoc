@@ -46,7 +46,7 @@ JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[
 
 ==== `DependencyAdder` renamed to `DependencyCollector`
 
-The incubating `DependencyAdder` interface has been renamed to `DependencyCollector`.
+The incubating `DependencyAdder` interface has been renamed to link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyCollector.html[`DependencyCollector`].
 A `getDependencies` method has been added to the interface that returns all declared dependencies.
 
 === Deprecations
