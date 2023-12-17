@@ -147,6 +147,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     @Override
     public FileTree getPublicHeaderFiles() {
         PatternSet patterns = new PatternSet();
+        // if you would like to add more endings to this pattern, make sure to also edit DefaultCppComponent.java and default.vcxproj.filters
         patterns.include("**/*.h");
         patterns.include("**/*.hpp");
         patterns.include("**/*.h++");
