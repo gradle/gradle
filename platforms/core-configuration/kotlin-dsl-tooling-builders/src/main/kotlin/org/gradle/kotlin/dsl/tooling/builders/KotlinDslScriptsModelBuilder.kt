@@ -241,16 +241,10 @@ private
 fun Project.collectKotlinDslScripts(): List<File> = buildList {
 
     addAll(discoverInitScripts())
-
-    discoverSettingScript()?.let {
-        add(it)
-    }
+    addNotNull(discoverSettingScript())
 
     allprojects.forEach { p ->
-        p.discoverBuildScript()?.let {
-            add(it)
-        }
-
+        addNotNull(p.discoverBuildScript())
         addAll(p.discoverPrecompiledScriptPluginScripts())
     }
 }
@@ -321,3 +315,11 @@ val File.isKotlinDslFile: Boolean
 internal
 val File.hasKotlinDslExtension: Boolean
     get() = name.endsWith(".gradle.kts")
+
+
+internal
+fun <T> MutableCollection<T>.addNotNull(value: T?) {
+    if (value != null) {
+        add(value)
+    }
+}
