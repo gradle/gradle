@@ -200,7 +200,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     public <S extends T> DomainObjectCollection<S> withType(Class<S> type, Action<? super S> configureAction) {
         assertMutable("withType(Class, Action)");
         DomainObjectCollection<S> result = withType(type);
-        result.all(configureAction);
+        result.configureEach(configureAction);
         return result;
     }
 
