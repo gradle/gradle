@@ -39,6 +39,8 @@ import gradlebuild.basics.BuildParams.FLAKY_TEST
 import gradlebuild.basics.BuildParams.GRADLE_INSTALL_PATH
 import gradlebuild.basics.BuildParams.INCLUDE_PERFORMANCE_TEST_SCENARIOS
 import gradlebuild.basics.BuildParams.MAX_PARALLEL_FORKS
+import gradlebuild.basics.BuildParams.MAX_TEST_DISTRIBUTION_LOCAL_EXECUTORS
+import gradlebuild.basics.BuildParams.MAX_TEST_DISTRIBUTION_REMOTE_EXECUTORS
 import gradlebuild.basics.BuildParams.PERFORMANCE_BASELINES
 import gradlebuild.basics.BuildParams.PERFORMANCE_DB_PASSWORD
 import gradlebuild.basics.BuildParams.PERFORMANCE_DB_PASSWORD_ENV
@@ -104,6 +106,8 @@ object BuildParams {
     const val FLAKY_TEST = "flakyTests"
     const val INCLUDE_PERFORMANCE_TEST_SCENARIOS = "includePerformanceTestScenarios"
     const val MAX_PARALLEL_FORKS = "maxParallelForks"
+    const val MAX_TEST_DISTRIBUTION_REMOTE_EXECUTORS = "maxTestDistributionRemoteExecutors"
+    const val MAX_TEST_DISTRIBUTION_LOCAL_EXECUTORS = "maxTestDistributionLocalExecutors"
     const val PERFORMANCE_BASELINES = "performanceBaselines"
     const val PERFORMANCE_TEST_VERBOSE = "performanceTest.verbose"
     const val PERFORMANCE_DB_PASSWORD = "org.gradle.performance.db.password"
@@ -130,6 +134,7 @@ object BuildParams {
      * Run docs tests with the configuration cache enabled.
      */
     const val ENABLE_CONFIGURATION_CACHE_FOR_DOCS_TESTS = "enableConfigurationCacheForDocsTests"
+
     /**
      * Run docs tests that are knowingly broken when running with the configuration cache enabled. Only applied when #ENABLE_CONFIGURATION_CACHE_FOR_DOCS_TESTS is also set.
      */
@@ -250,6 +255,13 @@ val Project.buildVersionQualifier: Provider<String>
 val Project.defaultPerformanceBaselines: Provider<String>
     get() = gradleProperty(DEFAULT_PERFORMANCE_BASELINES)
 
+
+// null means no limit: use all available executors
+val Project.maxTestDistributionRemoteExecutors: Int?
+    get() = gradleProperty(MAX_TEST_DISTRIBUTION_REMOTE_EXECUTORS).orNull?.toInt()
+
+val Project.maxTestDistributionLocalExecutors: Int?
+    get() = gradleProperty(MAX_TEST_DISTRIBUTION_LOCAL_EXECUTORS).orNull?.toInt()
 
 val Project.flakyTestStrategy: FlakyTestStrategy
     get() = gradleProperty(FLAKY_TEST).let {
