@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.support
-
-import org.gradle.api.Project
-
-import org.gradle.api.internal.project.ProjectInternal
-
-import java.io.File
+package org.gradle.kotlin.dsl.tooling.builders.internal
 
 
-inline fun <reified T : Any> Project.serviceOf(): T =
-    (this as ProjectInternal).services.get()
-
-
+/**
+ * Thread unsafe version of [lazy].
+ *
+ * @see LazyThreadSafetyMode.NONE
+ */
 internal
-fun serviceRegistryOf(project: Project) =
-    (project as ProjectInternal).services
-
-
-fun isGradleKotlinDslJar(file: File) =
-    isGradleKotlinDslJarName(file.name)
-
-
-internal
-fun isGradleKotlinDslJarName(jarName: String) =
-    jarName.startsWith("gradle-kotlin-dsl-")
+fun <T> unsafeLazy(initializer: () -> T): Lazy<T> = lazy(LazyThreadSafetyMode.NONE, initializer)
