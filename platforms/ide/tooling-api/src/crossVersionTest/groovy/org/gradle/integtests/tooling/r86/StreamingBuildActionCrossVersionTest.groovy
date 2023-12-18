@@ -21,7 +21,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.IntermediateModelListener
+import org.gradle.tooling.StreamedValueListener
 import org.gradle.tooling.IntermediateResultHandler
 import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.model.GradleProject
@@ -33,7 +33,7 @@ import java.util.concurrent.CountDownLatch
 
 @ToolingApiVersion(">=8.6")
 @TargetGradleVersion(">=8.6")
-class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpecification {
+class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
@@ -41,11 +41,11 @@ class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpec
         file("settings.gradle") << 'rootProject.name="hello-world"'
     }
 
-    def "build action can send intermediate models and then receive them in the same order"() {
+    def "build action can stream values and client receives them in the same order"() {
         when:
         def models = new CopyOnWriteArrayList<Object>()
         def finished = new CountDownLatch(1)
-        def listener = { model -> models.add(model) } as IntermediateModelListener
+        def listener = { model -> models.add(model) } as StreamedValueListener
         def handler = { model ->
             models.add(model)
             finished.countDown()
@@ -54,7 +54,7 @@ class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpec
         withConnection {
             def builder = it.action(new IntermediateModelSendingBuildAction())
             collectOutputs(builder)
-            builder.setIntermediateModelListener(listener)
+            builder.setStreamedValueListener(listener)
             builder.run(handler)
             finished.await()
         }
@@ -75,10 +75,10 @@ class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpec
         result.value == 42
     }
 
-    def "phased build action can send intermediate models and then receive them in the same order"() {
+    def "phased build action can stream values and the client receives them in the same order"() {
         when:
         def models = new CopyOnWriteArrayList<Object>()
-        def listener = { model -> models.add(model) } as IntermediateModelListener
+        def listener = { model -> models.add(model) } as StreamedValueListener
         def handler = { model -> models.add(model) } as IntermediateResultHandler
 
         withConnection {
@@ -87,7 +87,7 @@ class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpec
                 .buildFinished(new CustomIntermediateModelSendingBuildAction(EclipseProject, 2), handler)
                 .build()
             collectOutputs(builder)
-            builder.setIntermediateModelListener(listener)
+            builder.setStreamedValueListener(listener)
             builder.run()
         }
 
@@ -111,7 +111,7 @@ class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpec
         eclipseModel.gradleProject.name == "hello-world"
     }
 
-    def "client application receives intermediate models before build action completes"() {
+    def "client application receives streamed value before build action completes"() {
         when:
         server.start()
         def request = server.expectAndBlock("action")
@@ -121,7 +121,7 @@ class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpec
         def listener = { model ->
             models.add(model)
             modelReceived.countDown()
-        } as IntermediateModelListener
+        } as StreamedValueListener
         def handler = { model ->
             models.add(model)
             finished.countDown()
@@ -130,7 +130,7 @@ class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpec
         withConnection {
             def builder = it.action(new BlockingModelSendingBuildAction(server.uri("action")))
             collectOutputs(builder)
-            builder.setIntermediateModelListener(listener)
+            builder.setStreamedValueListener(listener)
             builder.run(handler)
 
             modelReceived.await()
@@ -145,14 +145,14 @@ class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpec
         models[1] instanceof CustomModel
     }
 
-    def "intermediate model listener is isolated when it fails with an exception"() {
+    def "listener is isolated when it fails with an exception"() {
         when:
-        def listener = { throw new RuntimeException("broken") } as IntermediateModelListener
+        def listener = { throw new RuntimeException("broken") } as StreamedValueListener
 
         withConnection {
             def builder = it.action(new IntermediateModelSendingBuildAction())
             collectOutputs(builder)
-            builder.setIntermediateModelListener(listener)
+            builder.setStreamedValueListener(listener)
             builder.run()
         }
 

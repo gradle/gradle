@@ -16,23 +16,21 @@
 
 package org.gradle.tooling;
 
-// TODO: Consider renaming to StreamingModelListener
-
 import org.gradle.api.Incubating;
 
 /**
- * Receives an intermediate result sent via {@link BuildController#send(Object)}.
+ * Receives a value sent via {@link BuildController#send(Object)}.
  *
  * <p>Objects are received in the order they were sent and all objects are received before the result of the {@link BuildAction} is returned to the application.</p>
  *
  * @since 8.6
  */
 @Incubating
-public interface IntermediateModelListener {
+public interface StreamedValueListener {
     /**
-     * Handles the next intermediate result.
+     * Handles the next value.
      *
      * @since 8.6
      */
-    void onModel(Object model);
+    void onValue(Object value);
 }

@@ -77,7 +77,7 @@ public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildAction
      * @since 8.6
      */
     @Incubating
-    void setIntermediateModelListener(IntermediateModelListener intermediateModelListener);
+    void setStreamedValueListener(StreamedValueListener listener);
 
     /**
      * <p>Specifies the tasks to execute before executing the BuildAction.</p>
