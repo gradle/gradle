@@ -5214,7 +5214,7 @@ Class <org.gradle.tooling.internal.protocol.InternalBuildProgressListener> is no
 Class <org.gradle.tooling.internal.protocol.InternalCancellableConnection> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InternalCancellableConnection.java:0)
 Class <org.gradle.tooling.internal.protocol.InternalCancellationToken> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InternalCancellationToken.java:0)
 Class <org.gradle.tooling.internal.protocol.InternalFailure> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InternalFailure.java:0)
-Class <org.gradle.tooling.internal.protocol.InternalIntermediateModelRelay> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InternalIntermediateModelRelay.java:0)
+Class <org.gradle.tooling.internal.protocol.InternalObjectRelay> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InternalIntermediateModelRelay.java:0)
 Class <org.gradle.tooling.internal.protocol.InternalInvalidatableVirtualFileSystemConnection> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InternalInvalidatableVirtualFileSystemConnection.java:0)
 Class <org.gradle.tooling.internal.protocol.InternalLaunchable> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InternalLaunchable.java:0)
 Class <org.gradle.tooling.internal.protocol.InternalParameterAcceptingConnection> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InternalParameterAcceptingConnection.java:0)

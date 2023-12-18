@@ -22,7 +22,7 @@ package org.gradle.tooling.internal.protocol;
  * <p>Consumer compatibility: This interface is used by all consumer versions from 4.4.</p>
  * <p>Provider compatibility: This interface is implemented by all provider versions from 4.4.</p>
  *
- * <p>Subclasses may also implement {@link InternalActionAwareBuildController}</p>
+ * <p>Subclasses may also implement {@link InternalActionAwareBuildController} and {@link InternalObjectRelay}.</p>
  *
  * @since 4.4
  */

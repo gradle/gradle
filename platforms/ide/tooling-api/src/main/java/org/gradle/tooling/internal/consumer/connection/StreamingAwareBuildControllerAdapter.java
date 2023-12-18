@@ -19,20 +19,20 @@ package org.gradle.tooling.internal.consumer.connection;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
-import org.gradle.tooling.internal.protocol.InternalIntermediateModelRelay;
+import org.gradle.tooling.internal.protocol.InternalObjectRelay;
 
 import java.io.File;
 
-public class IntermediateModelAwareBuildControllerAdapter extends NestedActionAwareBuildControllerAdapter {
-    private final InternalIntermediateModelRelay relay;
+public class StreamingAwareBuildControllerAdapter extends NestedActionAwareBuildControllerAdapter {
+    private final InternalObjectRelay relay;
 
-    public IntermediateModelAwareBuildControllerAdapter(InternalBuildControllerVersion2 buildController, ProtocolToModelAdapter adapter, ModelMapping modelMapping, File rootDir) {
+    public StreamingAwareBuildControllerAdapter(InternalBuildControllerVersion2 buildController, ProtocolToModelAdapter adapter, ModelMapping modelMapping, File rootDir) {
         super(buildController, adapter, modelMapping, rootDir);
-        this.relay = (InternalIntermediateModelRelay) buildController;
+        this.relay = (InternalObjectRelay) buildController;
     }
 
     @Override
     public <T> void send(T value) {
-        relay.sendIntermediate(value);
+        relay.send(value);
     }
 }

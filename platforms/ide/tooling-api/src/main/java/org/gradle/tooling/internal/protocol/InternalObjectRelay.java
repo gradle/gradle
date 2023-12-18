@@ -17,11 +17,18 @@
 package org.gradle.tooling.internal.protocol;
 
 /**
+ * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
+ *
+ * <p>Consumer compatibility: This interface is used by all consumer versions from 8.6.</p>
+ * <p>Provider compatibility: This interface is implemented by all provider versions from 8.6.</p>
+ *
  * @since 8.6
  */
-public interface InternalIntermediateModelRelay {
+public interface InternalObjectRelay {
     /**
+     * Asynchronously sends an object back to the client application.
+     *
      * @since 8.6
      */
-    void sendIntermediate(Object model);
+    void send(Object model);
 }
