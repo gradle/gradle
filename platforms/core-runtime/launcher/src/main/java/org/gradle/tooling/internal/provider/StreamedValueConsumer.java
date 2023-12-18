@@ -24,14 +24,14 @@ import org.gradle.tooling.internal.provider.serialization.StreamedValue;
 
 import java.util.Collections;
 
-public class IntermediateModelListenerAdapter implements BuildEventConsumer {
+public class StreamedValueConsumer implements BuildEventConsumer {
 
     private final ProviderOperationParameters providerParameters;
     private final PayloadSerializer payloadSerializer;
     private final BuildEventConsumer delegate;
     private Throwable failure;
 
-    public IntermediateModelListenerAdapter(ProviderOperationParameters providerParameters, PayloadSerializer payloadSerializer, BuildEventConsumer delegate) {
+    public StreamedValueConsumer(ProviderOperationParameters providerParameters, PayloadSerializer payloadSerializer, BuildEventConsumer delegate) {
         this.providerParameters = providerParameters;
         this.payloadSerializer = payloadSerializer;
         this.delegate = delegate;
@@ -46,7 +46,7 @@ public class IntermediateModelListenerAdapter implements BuildEventConsumer {
             StreamedValue value = (StreamedValue) message;
             Object deserializedValue = payloadSerializer.deserialize(value.getSerializedModel());
             try {
-                providerParameters.sendIntermediate(deserializedValue);
+                providerParameters.onStreamedValue(deserializedValue);
             } catch (Throwable e) {
                 failure = e;
             }

@@ -463,7 +463,7 @@ public class ConsumerOperationParameters implements BuildParameters {
     /**
      * @since 8.6
      */
-    public void sendIntermediate(Object model) {
+    public void onStreamedValue(Object model) {
         intermediateModelListener.onModel(model);
     }
 }

@@ -171,7 +171,9 @@ public interface ProviderOperationParameters {
     Map<String, String> getSystemProperties(Map<String, String> defaultValue);
 
     /**
+     * Handles a value streamed from the client. Blocks until the value has been handled.
+     *
      * @since 8.6
      */
-    void sendIntermediate(Object model);
+    void onStreamedValue(Object value);
 }
