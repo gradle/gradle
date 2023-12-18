@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.api.internal.artifacts.repositories.ArtifactResolutionDetails;
 import org.gradle.api.internal.artifacts.repositories.ContentFilteringRepository;
@@ -105,8 +106,8 @@ class PluginArtifactRepository implements ArtifactRepositoryInternal, ContentFil
     }
 
     @Override
-    public RepositoryContentDescriptorInternal createRepositoryDescriptor() {
-        return delegate.createRepositoryDescriptor();
+    public RepositoryContentDescriptorInternal createRepositoryDescriptor(VersionParser versionParser) {
+        return delegate.createRepositoryDescriptor(versionParser);
     }
 
     @Override

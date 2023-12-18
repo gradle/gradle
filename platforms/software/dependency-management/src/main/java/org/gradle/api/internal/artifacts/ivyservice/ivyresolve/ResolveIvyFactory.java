@@ -150,7 +150,7 @@ public class ResolveIvyFactory {
 
             moduleComponentRepository = new ErrorHandlingModuleComponentRepository(moduleComponentRepository, repositoryBlacklister);
             moduleComponentRepository = filterRepository(repository, moduleComponentRepository);
-            moduleComponentRepository = applyDependencyVerification(moduleComponentRepository, resolutionStrategy.isDependencyVerificationEnabled());
+            moduleComponentRepository = maybeApplyDependencyVerification(moduleComponentRepository, resolutionStrategy.isDependencyVerificationEnabled());
 
             moduleResolver.add(moduleComponentRepository);
             parentModuleResolver.add(moduleComponentRepository);
@@ -175,7 +175,7 @@ public class ResolveIvyFactory {
         return new FilteredModuleComponentRepository(moduleComponentRepository, filter);
     }
 
-    private ModuleComponentRepository<ModuleComponentGraphResolveState> applyDependencyVerification(
+    private ModuleComponentRepository<ModuleComponentGraphResolveState> maybeApplyDependencyVerification(
         ModuleComponentRepository<ModuleComponentGraphResolveState> moduleComponentRepository,
         boolean dependencyVerificationEnabled
     ) {

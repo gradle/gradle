@@ -39,7 +39,6 @@ import org.gradle.internal.action.DefaultConfigurableRules;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
-import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ImplicitInputsCapturingInstantiator;
 import org.gradle.internal.resource.local.FileStore;
@@ -49,7 +48,6 @@ import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 
 public abstract class AbstractArtifactRepository implements ArtifactRepositoryInternal, ContentFilteringRepository, MetadataSupplierAware {
     private String name;
@@ -59,12 +57,11 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     private Action<? super ActionConfiguration> componentMetadataSupplierRuleConfiguration;
     private Action<? super ActionConfiguration> componentMetadataListerRuleConfiguration;
     private final ObjectFactory objectFactory;
-    private final Supplier<RepositoryContentDescriptorInternal> repositoryContentDescriptor = Lazy.locking().of(this::createRepositoryDescriptor);
-    private final VersionParser versionParser;
+    private final RepositoryContentDescriptorInternal repositoryContentDescriptor;
 
     protected AbstractArtifactRepository(ObjectFactory objectFactory, VersionParser versionParser) {
-       this.objectFactory = objectFactory;
-        this.versionParser = versionParser;
+        this.objectFactory = objectFactory;
+        this.repositoryContentDescriptor = createRepositoryDescriptor(versionParser);
     }
 
     @Override
@@ -115,42 +112,38 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     }
 
     @Override
-    public RepositoryContentDescriptorInternal createRepositoryDescriptor() {
+    public RepositoryContentDescriptorInternal createRepositoryDescriptor(VersionParser versionParser) {
         return new DefaultRepositoryContentDescriptor(this::getDisplayName, versionParser);
     }
 
     @Override
     public RepositoryContentDescriptorInternal getRepositoryDescriptorCopy() {
-        return repositoryContentDescriptor.get().asMutableCopy();
-    }
-
-    RepositoryContentDescriptorInternal getRepositoryDescriptor() {
-        return repositoryContentDescriptor.get();
+        return repositoryContentDescriptor.asMutableCopy();
     }
 
     @Override
     public Action<? super ArtifactResolutionDetails> getContentFilter() {
-        return repositoryContentDescriptor.get().toContentFilter();
+        return repositoryContentDescriptor.toContentFilter();
     }
 
     @Override
     public Set<String> getIncludedConfigurations() {
-        return repositoryContentDescriptor.get().getIncludedConfigurations();
+        return repositoryContentDescriptor.getIncludedConfigurations();
     }
 
     @Override
     public Set<String> getExcludedConfigurations() {
-        return repositoryContentDescriptor.get().getExcludedConfigurations();
+        return repositoryContentDescriptor.getExcludedConfigurations();
     }
 
     @Override
     public Map<Attribute<Object>, Set<Object>> getRequiredAttributes() {
-        return repositoryContentDescriptor.get().getRequiredAttributes();
+        return repositoryContentDescriptor.getRequiredAttributes();
     }
 
     @Override
     public void content(Action<? super RepositoryContentDescriptor> configureAction) {
-        configureAction.execute(repositoryContentDescriptor.get());
+        configureAction.execute(repositoryContentDescriptor);
     }
 
     @Nullable
