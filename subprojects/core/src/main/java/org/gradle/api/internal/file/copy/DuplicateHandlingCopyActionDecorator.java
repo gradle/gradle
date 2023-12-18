@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.file.copy;
 
-import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.file.DuplicateFileCopyingException;
 import org.gradle.api.file.DuplicatesStrategy;
@@ -27,39 +26,43 @@ import org.gradle.api.tasks.WorkResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DuplicateHandlingCopyActionDecorator implements CopyAction {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(DuplicateHandlingCopyActionDecorator.class);
     private final CopyAction delegate;
+    private final CopySpecInternal spec;
     private final DocumentationRegistry documentationRegistry;
 
-    public DuplicateHandlingCopyActionDecorator(CopyAction delegate, DocumentationRegistry documentationRegistry) {
+    public DuplicateHandlingCopyActionDecorator(CopyAction delegate, CopySpecInternal spec, DocumentationRegistry documentationRegistry) {
         this.delegate = delegate;
+        this.spec = spec;
         this.documentationRegistry = documentationRegistry;
     }
 
     @Override
     public WorkResult execute(final CopyActionProcessingStream stream) {
-        final Set<RelativePath> visitedFiles = new HashSet<>();
+        final Map<RelativePath, String> visitedFiles = new HashMap<>();
 
-        return delegate.execute(action -> stream.process(details -> {
+        return delegate.execute(action -> stream.process((FileCopyDetailsInternal details) -> {
             if (!details.isDirectory()) {
                 DuplicatesStrategy strategy = details.getDuplicatesStrategy();
                 RelativePath relativePath = details.getRelativePath();
-                if (!visitedFiles.add(relativePath)) {
+                if (visitedFiles.containsKey(relativePath)) {
                     if (details.isDefaultDuplicatesStrategy()) {
                         failWithIncorrectDuplicatesStrategySetup(relativePath);
                     }
                     if (strategy == DuplicatesStrategy.EXCLUDE) {
                         return;
                     } else if (strategy == DuplicatesStrategy.FAIL) {
-                        throw new DuplicateFileCopyingException(String.format("Encountered duplicate path %s during copy operation configured with DuplicatesStrategy.FAIL", explainDuplicateLocation(details)));
+                        throw new DuplicateFileCopyingException(String.format("Cannot copy %s to '%s' because %s has already been copied there.", details.getDisplayName(), buildOutputPath(relativePath), visitedFiles.get(relativePath)));
                     } else if (strategy == DuplicatesStrategy.WARN) {
-                        LOGGER.warn("Encountered duplicate path {} during copy operation configured with DuplicatesStrategy.WARN", explainDuplicateLocation(details));
+                        LOGGER.warn("{} will be copied to '{}', overwriting {}, which has already been copied there.", details.getDisplayName(), buildOutputPath(relativePath), visitedFiles.get(relativePath));
                     }
+                } else {
+                    visitedFiles.put(relativePath, details.getDisplayName());
                 }
             }
 
@@ -67,28 +70,8 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
         }));
     }
 
-    private String explainDuplicateLocation(FileCopyDetailsInternal copyDetails) {
-        if (copyDetails.isCompressedArchiveEntry()) {
-            return String.format("\"%s\", extracted from \"%s\",", copyDetails.getRelativePath(), extractCompressedFileName(copyDetails));
-        } else {
-            return String.format("\"%s\"", copyDetails.getRelativePath());
-        }
-    }
-
-    private String extractCompressedFileName(FileCopyDetailsInternal copyDetails) {
-        String displayName = FilenameUtils.separatorsToUnix(copyDetails.getDisplayName());
-        int exclamationIndex = displayName.indexOf("!");
-        if (exclamationIndex == -1) {
-            throw new IllegalStateException("Expected to find '!' in display name of compressed file entry: " + displayName);
-        }
-
-        String pathBeforeExclamation = displayName.substring(0, exclamationIndex);
-        int lastSlashIndex = pathBeforeExclamation.lastIndexOf("/");
-        if (lastSlashIndex == -1) {
-            throw new IllegalStateException("Expected to find '/' in display name of compressed file entry: " + displayName);
-        }
-
-        return pathBeforeExclamation.substring(lastSlashIndex + 1);
+    private String buildOutputPath(RelativePath relativePath) {
+        return spec.getDestinationDir() == null ? relativePath.getPathString() : spec.getDestinationDir() + "/" + relativePath.getPathString();
     }
 
     private void failWithIncorrectDuplicatesStrategySetup(RelativePath relativePath) {

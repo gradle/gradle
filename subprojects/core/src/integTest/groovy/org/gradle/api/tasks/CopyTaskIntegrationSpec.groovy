@@ -1655,8 +1655,8 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     def "duplicate detection works when . is a path segment"() {
         // FAIL
         given:
-        file('dir1/path/file.txt').createFile() << 'f1'
-        file('dir2/path/file.txt').createFile() << 'f2'
+        def source1 = file('dir1/path/file.txt').with { touch() } << 'f1'
+        def source2 = file('dir2/path/file.txt').with { touch() } << 'f2'
         buildScript '''
             task copy(type: Copy) {
                 into 'dest'
@@ -1674,7 +1674,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         fails 'copy'
 
         then:
-        failure.assertHasCause "Encountered duplicate path \"subdir/path/file.txt\" during copy operation configured with DuplicatesStrategy.FAIL"
+        failure.assertHasCause("Cannot copy file '${source2.path}' to '${file('dest/subdir/path/file.txt')}' because file '${source1.path}' has already been copied there.")
     }
 
     def "each chained matching rule always matches against initial source path"() {
@@ -2244,7 +2244,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     def "encountering duplicates in a zipTree vs an unzipped dir with DuplicateStrategy.FAIL should give a clear error"() {
         given: "a directory with a file"
         def unzippedDir = file("before/files")
-        unzippedDir.file("sub/c.txt").touch()
+        def unzippedFile = unzippedDir.file("sub/c.txt").with {touch() }
 
         and: "a zip file containing it"
         TestFile zipFile = file("before/files.zip")
@@ -2264,14 +2264,14 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         fails 'copy'
 
         and: "with a clear failure message"
-        failure.assertHasCause('Encountered duplicate path "sub/c.txt", extracted from "files.zip", during copy operation configured with DuplicatesStrategy.FAIL')
+        failure.assertHasCause("Cannot copy zip entry '${zipFile.path}!sub/c.txt' to '${file('after/sub/c.txt')}' because file '${unzippedFile}' has already been copied there.")
         failure.assertHasDescription("Execution failed for task ':copy'.")
     }
 
     def "encountering duplicates in a zipTree vs another zipTree with DuplicateStrategy.FAIL should give a clear error"() {
         given: "a directory with a file"
         def unzippedDir = file("before/files")
-        unzippedDir.file("sub/c.txt").touch()
+        def unzippedFile = unzippedDir.file("sub/c.txt").with {touch() }
 
         and: "a zip file containing it"
         def zipFile = file("before/files.zip")
@@ -2295,14 +2295,14 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         fails 'copy'
 
         and: "with a clear failure message"
-        failure.assertHasCause('Encountered duplicate path "sub/c.txt", extracted from "files2.zip", during copy operation configured with DuplicatesStrategy.FAIL')
+        failure.assertHasCause("Cannot copy zip entry '${zipFile2.path}!sub/c.txt' to '${file('after/sub/c.txt')}' because zip entry '${zipFile.path}!sub/c.txt' has already been copied there.")
         failure.assertHasDescription("Execution failed for task ':copy'.")
     }
 
     def "encountering duplicates in a tarTree vs an uncompressed dir with DuplicateStrategy.FAIL should give a clear error"() {
         given: "a directory with a file"
         def untarredDir = file("before/files")
-        untarredDir.file("sub/c.txt").touch()
+        def untarredFile = untarredDir.file("sub/c.txt").with {touch() }
 
         and: "a tar file containing it"
         def tarFile = file("before/files.tar")
@@ -2322,14 +2322,14 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         fails 'copy'
 
         and: "with a clear failure message"
-        failure.assertHasCause('Encountered duplicate path "sub/c.txt", extracted from "files.tar", during copy operation configured with DuplicatesStrategy.FAIL')
+        failure.assertHasCause("Cannot copy tar entry '${tarFile.path}!sub/c.txt' to '${file('after/sub/c.txt')}' because file '${untarredFile}' has already been copied there.")
         failure.assertHasDescription("Execution failed for task ':copy'.")
     }
 
     def "encountering duplicates in a tarTree vs another tarTree with DuplicateStrategy.FAIL should give a clear error"() {
         given: "a directory with a file"
         def untarredDir = file("before/files")
-        untarredDir.file("sub/c.txt").touch()
+        def untarredFile = untarredDir.file("sub/c.txt").with {touch() }
 
         and: "a tar file containing it"
         def tarFile = file("before/files.tar")
@@ -2353,7 +2353,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         fails 'copy'
 
         and: "with a clear failure message"
-        failure.assertHasCause('Encountered duplicate path "sub/c.txt", extracted from "files2.tar", during copy operation configured with DuplicatesStrategy.FAIL')
+        failure.assertHasCause("Cannot copy tar entry '${tarFile2.path}!sub/c.txt' to '${file('after/sub/c.txt')}' because tar entry '${tarFile.path}!sub/c.txt' has already been copied there.")
         failure.assertHasDescription("Execution failed for task ':copy'.")
     }
     // endregion duplicates in compressed files

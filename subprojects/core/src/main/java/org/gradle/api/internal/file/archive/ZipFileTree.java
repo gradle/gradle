@@ -147,7 +147,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
 
         @Override
         public String getDisplayName() {
-            return format("%s %s!%s", ZIP_ENTRY_PREFIX, originalFile, entry.getName());
+            return format("%s '%s!%s'", ZIP_ENTRY_PREFIX, originalFile, entry.getName());
         }
 
         @Override

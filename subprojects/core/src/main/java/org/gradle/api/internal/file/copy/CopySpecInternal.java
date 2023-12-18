@@ -21,6 +21,7 @@ import org.gradle.api.file.SyncSpec;
 import org.gradle.api.tasks.util.PatternFilterable;
 
 import javax.annotation.Nullable;
+import java.io.File;
 
 public interface CopySpecInternal extends SyncSpec {
 
@@ -52,6 +53,9 @@ public interface CopySpecInternal extends SyncSpec {
     PatternFilterable getPreserve();
 
     CopySpecInternal preserve(Action<? super PatternFilterable> action);
+
+    @Nullable
+    File getDestinationDir();
 
     /**
      * Listener triggered when a spec is added to the hierarchy.

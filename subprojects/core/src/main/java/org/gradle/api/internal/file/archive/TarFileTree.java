@@ -200,7 +200,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
 
         @Override
         public String getDisplayName() {
-            return String.format("%s %s!%s", TAR_ENTRY_PREFIX, resource.getDisplayName(), entry.getName());
+            return String.format("%s '%s!%s'", TAR_ENTRY_PREFIX, resource.getDisplayName(), entry.getName());
         }
 
         @Override
@@ -209,7 +209,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
                 getFile();
                 return GFileUtils.openInputStream(getFile());
             } else if (tar.getCurrentEntry() != entry) {
-                throw new UnsupportedOperationException(String.format("The contents of %s has already been read.", this));
+                throw new UnsupportedOperationException(String.format("The contents of %s have already been read.", this));
             } else {
                 read = true;
                 return tar;
