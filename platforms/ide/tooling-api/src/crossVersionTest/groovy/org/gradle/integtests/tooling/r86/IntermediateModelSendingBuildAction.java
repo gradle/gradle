@@ -27,8 +27,8 @@ class IntermediateModelSendingBuildAction implements BuildAction<CustomModel> {
         GradleProject gradleProject = controller.getModel(GradleProject.class);
 
         // Intentionally sending models in an order different from requesting models
-        controller.sendIntermediate(gradleProject);
-        controller.sendIntermediate(eclipseProject);
+        controller.send(gradleProject);
+        controller.send(eclipseProject);
 
         return new CustomModel(42);
     }

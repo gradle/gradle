@@ -21,7 +21,9 @@ package org.gradle.tooling;
 import org.gradle.api.Incubating;
 
 /**
- * Receives an intermediate result sent via {@link BuildController#sendIntermediate(Object)}.
+ * Receives an intermediate result sent via {@link BuildController#send(Object)}.
+ *
+ * <p>Objects are received in the order they were sent and all objects are received before the result of the {@link BuildAction} is returned to the application.</p>
  *
  * @since 8.6
  */

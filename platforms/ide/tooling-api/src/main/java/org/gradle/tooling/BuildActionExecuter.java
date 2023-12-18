@@ -71,7 +71,7 @@ public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildAction
     }
 
     /**
-     * Sets the listener to use to handle intermediate results sent from the action via {@link BuildController#sendIntermediate(Object)}.
+     * Sets the listener to use to handle intermediate results sent from the action via {@link BuildController#send(Object)}.
      * Replaces the current listener.
      *
      * @since 8.6
