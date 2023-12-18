@@ -2245,8 +2245,8 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     // region duplicates in compressed files
     def "encountering duplicates in a zipTree vs an unzipped dir with DuplicateStrategy.FAIL should give a clear error"() {
         given: "a directory with a file"
-        TestFile unzippedDir = file("before/files")
-        unzippedDir.file("sub/c.txt").createFile()
+        def unzippedDir = file("before/files")
+        unzippedDir.file("sub/c.txt").touch()
 
         and: "a zip file containing it"
         TestFile zipFile = file("before/files.zip")
@@ -2272,15 +2272,15 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
     def "encountering duplicates in a zipTree vs another zipTree with DuplicateStrategy.FAIL should give a clear error"() {
         given: "a directory with a file"
-        TestFile unzippedDir = file("before/files")
-        unzippedDir.file("sub/c.txt").createFile()
+        def unzippedDir = file("before/files")
+        unzippedDir.file("sub/c.txt").touch()
 
         and: "a zip file containing it"
-        TestFile zipFile = file("before/files.zip")
+        def zipFile = file("before/files.zip")
         unzippedDir.zipTo(zipFile)
 
         and: "another zip file with the same contents"
-        TestFile zipFile2 = file("before/files2.zip")
+        def zipFile2 = file("before/files2.zip")
         unzippedDir.zipTo(zipFile2)
 
         and: "a copy task that copies from both zip files, failing on duplicates"
@@ -2303,11 +2303,11 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
     def "encountering duplicates in a tarTree vs an uncompressed dir with DuplicateStrategy.FAIL should give a clear error"() {
         given: "a directory with a file"
-        TestFile untarredDir = file("before/files")
-        untarredDir.file("sub/c.txt").createFile()
+        def untarredDir = file("before/files")
+        untarredDir.file("sub/c.txt").touch()
 
         and: "a tar file containing it"
-        TestFile tarFile = file("before/files.tar")
+        def tarFile = file("before/files.tar")
         untarredDir.tarTo(tarFile)
 
         and: "a copy task that copies from both of these, failing on duplicates"
@@ -2330,15 +2330,15 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
     def "encountering duplicates in a tarTree vs another tarTree with DuplicateStrategy.FAIL should give a clear error"() {
         given: "a directory with a file"
-        TestFile untarredDir = file("before/files")
-        untarredDir.file("sub/c.txt").createFile()
+        def untarredDir = file("before/files")
+        untarredDir.file("sub/c.txt").touch()
 
         and: "a tar file containing it"
-        TestFile tarFile = file("before/files.tar")
+        def tarFile = file("before/files.tar")
         untarredDir.tarTo(tarFile)
 
         and: "another tar file with the same contents"
-        TestFile tarFile2 = file("before/files2.tar")
+        def tarFile2 = file("before/files2.tar")
         untarredDir.tarTo(tarFile2)
 
         and: "a copy task that copies from both tar files, failing on duplicates"
