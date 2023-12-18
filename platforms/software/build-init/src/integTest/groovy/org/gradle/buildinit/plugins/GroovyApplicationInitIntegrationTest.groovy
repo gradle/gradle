@@ -20,8 +20,8 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 
 class GroovyApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
-    public static final String SAMPLE_APP_CLASS = "some/thing/App.groovy"
-    public static final String SAMPLE_APP_TEST_CLASS = "some/thing/AppTest.groovy"
+    public static final String SAMPLE_APP_CLASS = "org/example/App.groovy"
+    public static final String SAMPLE_APP_TEST_CLASS = "org/example/AppTest.groovy"
 
     @Override
     String subprojectName() { 'app' }
@@ -41,7 +41,7 @@ class GroovyApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
         run("build")
 
         then:
-        assertTestPassed("some.thing.AppTest", "application has a greeting")
+        assertTestPassed("org.example.AppTest", "application has a greeting")
 
         when:
         run("run")
@@ -68,7 +68,7 @@ class GroovyApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
         run("build")
 
         then:
-        assertTestPassed("some.thing.AppTest", "application has a greeting")
+        assertTestPassed("org.example.AppTest", "application has a greeting")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

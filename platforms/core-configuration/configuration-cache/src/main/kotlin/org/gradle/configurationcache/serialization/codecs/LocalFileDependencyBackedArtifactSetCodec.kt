@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
-import org.gradle.api.capabilities.CapabilitiesMetadata
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.artifacts.TransformRegistration
@@ -235,7 +234,7 @@ class RecordingVariantSet(
         return attributes
     }
 
-    override fun getCapabilities(): CapabilitiesMetadata {
+    override fun getCapabilities(): ImmutableCapabilities {
         return ImmutableCapabilities.EMPTY
     }
 

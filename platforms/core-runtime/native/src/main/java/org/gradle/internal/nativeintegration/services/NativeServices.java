@@ -60,6 +60,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -96,7 +97,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                         LOGGER.info("Initialized file system watching services in: {}", nativeBaseDir);
                         return true;
                     } catch (NativeIntegrationUnavailableException ex) {
-                        LOGGER.debug("Native file system watching is not available for this operating system.", ex);
+                        logFileSystemWatchingUnavailable(ex);
                         return false;
                     }
                 }
@@ -142,6 +143,14 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
      */
     public static void initializeOnWorker(File userHomeDir) {
         INSTANCE.initialize(userHomeDir, EnumSet.noneOf(NativeFeatures.class));
+    }
+
+    public static void logFileSystemWatchingUnavailable(NativeIntegrationUnavailableException ex) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("File system watching is not available", ex);
+        } else {
+            LOGGER.info("File system watching is not available: {}", ex.getMessage());
+        }
     }
 
     /**
@@ -217,6 +226,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         }
     }
 
+    @Nullable
     private static String getNativeDirOverride() {
         return System.getProperty(NATIVE_DIR_OVERRIDE, System.getenv(NATIVE_DIR_OVERRIDE));
     }
@@ -310,7 +320,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return notAvailable(WindowsRegistry.class);
     }
 
-    protected SystemInfo createSystemInfo() {
+    public SystemInfo createSystemInfo() {
         if (useNativeIntegrations) {
             try {
                 return net.rubygrapefruit.platform.Native.get(SystemInfo.class);

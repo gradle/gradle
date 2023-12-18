@@ -18,6 +18,7 @@ package org.gradle.internal.instrumentation.processor.codegen.jvmbytecode
 
 import com.google.testing.compile.Compilation
 import org.gradle.internal.instrumentation.InstrumentationCodeGenTest
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType
 
 import static com.google.testing.compile.CompilationSubject.assertThat
 
@@ -50,17 +51,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
         then:
         def expectedJvmInterceptors = source """
             package my;
-            public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
-
-                private final MethodVisitor methodVisitor;
-                private final InstrumentationMetadata metadata;
-
-                private InterceptorDeclaration_JvmBytecodeImpl(MethodVisitor methodVisitor, InstrumentationMetadata metadata) {
-                    super(methodVisitor);
-                    this.methodVisitor = methodVisitor;
-                    this.metadata = metadata;
-                }
-
+            public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.InstrumentationInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
                         String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
@@ -108,7 +99,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
         assertThat(compilation).hadErrorContaining("Intercepting inherited methods is supported only for Gradle types for now, but type was: java/io/File")
     }
 
-    def "should generate interceptor with public modifier and a public factory class"() {
+    def "should generate interceptor with public modifier and a public factory class for #type"() {
         given:
         def givenSource = source """
             package org.gradle.test;
@@ -117,7 +108,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
             import org.gradle.internal.instrumentation.api.annotations.ParameterKind.*;
             import java.io.File;
 
-            @SpecificJvmCallInterceptors(generatedClassName = "my.InterceptorDeclaration_JvmBytecodeImpl")
+            @SpecificJvmCallInterceptors(generatedClassName = "my.InterceptorDeclaration_JvmBytecodeImpl", type = ${type.getClass().getName()}.$type)
             public class FileInterceptorsDeclaration {
                 @InterceptCalls
                 @InstanceMethod
@@ -131,21 +122,13 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
         Compilation compilation = compile(givenSource)
 
         then:
+        def capability = type.getInterceptorMarkerInterface().getCanonicalName()
+        def factoryCapability = type.getInterceptorFactoryMarkerInterface().getCanonicalName()
         def expectedJvmInterceptors = source """
             package my;
-            public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
+            public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor, $capability {
 
-                private InterceptorDeclaration_JvmBytecodeImpl(MethodVisitor methodVisitor, InstrumentationMetadata metadata) {
-                    super(methodVisitor);
-                    this.methodVisitor = methodVisitor;
-                    this.metadata = metadata;
-                }
-
-                public static class Factory implements JvmBytecodeCallInterceptor.Factory {
-                    @Override
-                    public JvmBytecodeCallInterceptor create(MethodVisitor methodVisitor, InstrumentationMetadata metadata) {
-                        return new my.InterceptorDeclaration_JvmBytecodeImpl(methodVisitor, metadata);
-                    }
+                public static class Factory implements JvmBytecodeCallInterceptor.Factory, $factoryCapability {
                 }
             }
         """
@@ -153,6 +136,9 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
         assertThat(compilation)
             .generatedSourceFile(fqName(expectedJvmInterceptors))
             .containsElementsIn(expectedJvmInterceptors)
+
+        where:
+        type << [BytecodeInterceptorType.INSTRUMENTATION, BytecodeInterceptorType.BYTECODE_UPGRADE]
     }
 
     def "should group visitMethodInsn logic by call owner"() {
@@ -196,7 +182,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
         then:
         def expectedJvmInterceptors = source """
             package my;
-            public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
+            public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.InstrumentationInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
                         String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
@@ -207,6 +193,53 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
                         }
                         if (name.equals("exists") && descriptor.equals("()Z") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
                             _INVOKESTATIC(FILE_INTERCEPTORS_DECLARATION2_TYPE, "intercept_exists", "(Ljava/io/File;)Z");
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            }
+        """
+        assertThat(compilation).succeededWithoutWarnings()
+        assertThat(compilation)
+            .generatedSourceFile(fqName(expectedJvmInterceptors))
+            .containsElementsIn(expectedJvmInterceptors)
+    }
+
+    def "should be able to inject visitor context"() {
+        given:
+        def givenSource = source """
+            package org.gradle.test;
+            import org.gradle.internal.instrumentation.api.annotations.*;
+            import org.gradle.internal.instrumentation.api.annotations.CallableKind.*;
+            import org.gradle.internal.instrumentation.api.annotations.ParameterKind.*;
+            import org.gradle.internal.instrumentation.api.types.*;
+            import java.io.File;
+
+            @SpecificJvmCallInterceptors(generatedClassName = "my.InterceptorDeclaration_JvmBytecodeImpl")
+            public class FileInterceptorsDeclaration2 {
+                @InterceptCalls
+                @InstanceMethod
+                public static boolean intercept_exists(@Receiver File thisFile, @InjectVisitorContext BytecodeInterceptorFilter filter) {
+                    return false;
+                }
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        def expectedJvmInterceptors = source """
+            package my;
+            public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.InstrumentationInterceptor {
+                @Override
+                public boolean visitMethodInsn(String className, int opcode, String owner, String name,
+                        String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
+                    if (owner.equals("java/io/File")) {
+                        if (name.equals("exists") && descriptor.equals("()Z") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
+                            _GETSTATIC(INTERCEPTORS_REQUEST_TYPE, context.name(), INTERCEPTORS_REQUEST_TYPE.getDescriptor());
+                            _INVOKESTATIC(FILE_INTERCEPTORS_DECLARATION2_TYPE, "intercept_exists", "(Ljava/io/File;Lorg/gradle/internal/instrumentation/api/types/BytecodeInterceptorFilter;)Z");
                             return true;
                         }
                     }

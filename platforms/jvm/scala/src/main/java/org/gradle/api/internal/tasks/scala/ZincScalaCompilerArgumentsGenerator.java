@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.tasks.scala;
 
-import com.google.common.collect.Lists;
-
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ZincScalaCompilerArgumentsGenerator {
     public List<String> generate(ScalaCompileSpec spec) {
-        List<String> result = Lists.newArrayList();
+        List<String> result = new ArrayList<>();
 
         MinimalScalaCompileOptions options = spec.getScalaCompileOptions();
         addFlag("-deprecation", options.isDeprecation(), result);

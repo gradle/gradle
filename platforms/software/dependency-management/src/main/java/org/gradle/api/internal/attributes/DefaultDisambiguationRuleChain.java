@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.attributes;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
@@ -31,12 +30,13 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
 public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChain<T>, DisambiguationRule<T> {
-    private final List<Action<? super MultipleCandidatesDetails<T>>> rules = Lists.newArrayList();
+    private final List<Action<? super MultipleCandidatesDetails<T>>> rules = new ArrayList<>();
     private final Instantiator instantiator;
     private final IsolatableFactory isolatableFactory;
 

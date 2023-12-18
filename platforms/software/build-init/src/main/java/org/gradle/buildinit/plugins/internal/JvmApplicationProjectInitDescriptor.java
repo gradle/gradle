@@ -56,7 +56,7 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
                 if (!isSingleProject(settings)) {
                     mainClass = "app." + mainClass;
                 }
-                b.propertyAssignment("Define the main class for the application.", "mainClass", withPackage(settings, mainClass), false);
+                b.propertyAssignment("Define the main class for the application.", "mainClass", withPackage(settings, mainClass), true);
             });
         }
 
@@ -66,11 +66,11 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
                 BuildInitDependency.of("com.google.guava:guava", libraryVersionProvider.getVersion("guava")));
         } else {
             if ("app".equals(projectName)) {
-                buildScriptBuilder.plugin(null, applicationConventionPlugin(settings));
+                buildScriptBuilder.plugin(null, applicationConventionPlugin());
                 buildScriptBuilder.dependencies().dependency("implementation", null, BuildInitDependency.of("org.apache.commons:commons-text"));
                 buildScriptBuilder.dependencies().projectDependency("implementation", null, ":utilities");
             } else {
-                buildScriptBuilder.plugin(null, libraryConventionPlugin(settings));
+                buildScriptBuilder.plugin(null, libraryConventionPlugin());
                 if ("utilities".equals(projectName)) {
                     buildScriptBuilder.dependencies().projectDependency("api", null, ":list");
                 }

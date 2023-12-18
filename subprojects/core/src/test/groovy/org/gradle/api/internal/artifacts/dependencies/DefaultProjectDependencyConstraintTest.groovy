@@ -73,6 +73,7 @@ class DefaultProjectDependencyConstraintTest extends Specification {
                 TestUtil.instantiatorFactory().decorateLenient(),
                 true,
                 new CapabilityNotationParserFactory(false).create(),
+                TestUtil.objectFactory(),
                 AttributeTestUtil.attributesFactory(),
                 TestFiles.taskDependencyFactory()
         )

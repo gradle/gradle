@@ -22,9 +22,7 @@ import groovy.transform.PackageScope
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.annotations.AnnotationCategory
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer
@@ -777,7 +775,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             }
         }
 
-        def validationContext = DefaultTypeValidationContext.withoutRootType(new DefaultProblems(Mock(BuildOperationProgressEventEmitter)), false)
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false)
         metadata.visitValidationFailures(validationContext)
         List<String> actualErrors = validationContext.problems
             .collect({ (normaliseLineSeparators(TypeValidationProblemRenderer.renderMinimalInformationAbout(it)) + (it.severity == Severity.ERROR ? " [STRICT]" : "") as String) })

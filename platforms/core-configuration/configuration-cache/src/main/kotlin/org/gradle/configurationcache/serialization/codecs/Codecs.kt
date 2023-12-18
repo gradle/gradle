@@ -275,6 +275,7 @@ class Codecs(
         filePropertyFactory: FilePropertyFactory,
         nestedCodec: FixedValueReplacingProviderCodec
     ) {
+        bind(GuardedDataCodec)
         bind(ListPropertyCodec(propertyFactory, nestedCodec))
         bind(SetPropertyCodec(propertyFactory, nestedCodec))
         bind(MapPropertyCodec(propertyFactory, nestedCodec))
@@ -387,6 +388,7 @@ class Codecs(
         bind(RegexpPatternCodec)
         bind(UrlCodec)
         bind(LevelCodec)
+        bind(UnitCodec)
         bind(CharsetCodec)
 
         javaTimeTypes()

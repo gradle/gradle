@@ -78,6 +78,7 @@ import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.file.FileSystemDefaultExcludesProvider
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.util.Path
 import org.gradle.vcs.internal.VcsMappingsStore
@@ -142,17 +143,20 @@ class ConfigurationCacheState(
      * Writes the state for the whole build starting from the given root [build] and returns the set
      * of stored included build directories.
      */
-    suspend fun DefaultWriteContext.writeRootBuildState(build: VintageGradleBuild) =
+    suspend fun DefaultWriteContext.writeRootBuildState(build: VintageGradleBuild) {
+        writeBuildInvocationId()
         writeRootBuild(build).also {
             writeInt(0x1ecac8e)
         }
+    }
 
     suspend fun DefaultReadContext.readRootBuildState(
         graph: BuildTreeWorkGraph,
         graphBuilder: BuildTreeWorkGraphBuilder?,
         loadAfterStore: Boolean
-    ): BuildTreeWorkGraph.FinalizedGraph {
+    ): Pair<String, BuildTreeWorkGraph.FinalizedGraph> {
 
+        val originBuildInvocationId = readBuildInvocationId()
         val builds = readRootBuild()
         require(readInt() == 0x1ecac8e) {
             "corrupt state file"
@@ -162,8 +166,17 @@ class ConfigurationCacheState(
                 identifyBuild(build)
             }
         }
-        return calculateRootTaskGraph(builds, graph, graphBuilder)
+        return originBuildInvocationId to calculateRootTaskGraph(builds, graph, graphBuilder)
     }
+
+    private
+    fun DefaultWriteContext.writeBuildInvocationId() {
+        writeString(host.service<BuildInvocationScopeId>().id.asString())
+    }
+
+    private
+    fun DefaultReadContext.readBuildInvocationId(): String =
+        readString()
 
     private
     fun identifyBuild(state: CachedBuildState) {
@@ -391,7 +404,7 @@ class ConfigurationCacheState(
     suspend fun DefaultWriteContext.writeBuildWithNoWork(state: BuildState, rootBuild: VintageGradleBuild) {
         withGradleIsolate(rootBuild.gradle, userTypesCodec) {
             writeString(state.identityPath.path)
-            if (state.projectsAvailable) {
+            if (state.isProjectsCreated) {
                 writeBoolean(true)
                 writeString(state.projects.rootProject.name)
                 writeCollection(state.projects.allProjects) { project ->
@@ -421,7 +434,7 @@ class ConfigurationCacheState(
     suspend fun DefaultWriteContext.writeBuildContent(build: VintageGradleBuild, buildTreeState: StoredBuildTreeState) {
         val gradle = build.gradle
         val state = build.state
-        if (state.projectsAvailable) {
+        if (state.isProjectsCreated) {
             writeBoolean(true)
             val scheduledWork = build.scheduledWork
             withDebugFrame({ "Gradle" }) {
@@ -570,7 +583,7 @@ class ConfigurationCacheState(
             readCachedEnvironmentState(gradle)
             readPreviewFlags(gradle)
             readFileSystemDefaultExcludes(gradle)
-            // It is important that the Gradle Enterprise plugin be read before
+            // It is important that the Develocity plugin be read before
             // build cache configuration, as it may contribute build cache configuration.
             readGradleEnterprisePluginManager(gradle)
             readBuildCacheConfiguration(gradle)
@@ -851,10 +864,6 @@ class ConfigurationCacheState(
     private
     fun isRelevantBuildEventListener(provider: RegisteredBuildServiceProvider<*, *>) =
         Path.path(provider.buildIdentifier.buildPath).name != BUILD_SRC
-
-    private
-    val BuildState.projectsAvailable
-        get() = isProjectsLoaded && projects.rootProject.isCreated
 }
 
 

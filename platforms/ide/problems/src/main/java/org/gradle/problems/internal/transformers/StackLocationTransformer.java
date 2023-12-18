@@ -16,9 +16,9 @@
 
 package org.gradle.problems.internal.transformers;
 
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemTransformer;
-import org.gradle.api.problems.locations.FileLocation;
+import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemTransformer;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemStream;
@@ -31,7 +31,7 @@ public class StackLocationTransformer implements ProblemTransformer {
     }
 
     @Override
-    public Problem transform(Problem problem) {
+    public Problem transform(InternalProblem problem) {
         if (problem.getException() == null) {
             return problem;
         }
@@ -39,7 +39,7 @@ public class StackLocationTransformer implements ProblemTransformer {
         ProblemDiagnostics problemDiagnostics = problemStream.forCurrentCaller(problem.getException());
         Location loc = problemDiagnostics.getLocation();
         if (loc != null) {
-            problem.getLocations().add(new FileLocation(loc.getSourceLongDisplayName().getDisplayName(), loc.getLineNumber(), null, null));
+            return problem.toBuilder().lineInFileLocation(loc.getSourceLongDisplayName().getDisplayName(), loc.getLineNumber()).build();
         }
         return problem;
     }

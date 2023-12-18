@@ -139,7 +139,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         result.assertTaskSkipped(":a:producer")
         result.assertTaskSkipped(":b:producer")
         outputContains("files = [a.thing, b.thing, a.out, b.out, lib1-6500.jar]")
-        outputContains("artifacts = [a.thing, b.thing, a.out (project :a), b.out (project :b), lib1-6500.jar (group:lib1:6500)]")
+        outputContains("artifacts = [a.thing (a.thing), b.thing (b.thing), a.out (project :a), b.out (project :b), lib1-6500.jar (group:lib1:6500)]")
         outputContains("variants = [{artifactType=thing}, {artifactType=thing}, {artifactType=out}, {artifactType=out}, {artifactType=jar, org.gradle.status=release}]")
         outputContains("variant capabilities = [[], [], [capability group='test', name='a', version='unspecified'], [capability group='test', name='b', version='unspecified'], [capability group='group', name='lib1', version='6500']]")
 
@@ -155,7 +155,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         result.assertTaskNotSkipped(":a:producer")
         result.assertTaskSkipped(":b:producer")
         outputContains("files = [a.thing, b.thing, a.out, b.out, lib1-6500.jar]")
-        outputContains("artifacts = [a.thing, b.thing, a.out (project :a), b.out (project :b), lib1-6500.jar (group:lib1:6500)]")
+        outputContains("artifacts = [a.thing (a.thing), b.thing (b.thing), a.out (project :a), b.out (project :b), lib1-6500.jar (group:lib1:6500)]")
         outputContains("variants = [{artifactType=thing}, {artifactType=thing}, {artifactType=out}, {artifactType=out}, {artifactType=jar, org.gradle.status=release}]")
         outputContains("variant capabilities = [[], [], [capability group='test', name='a', version='unspecified'], [capability group='test', name='b', version='unspecified'], [capability group='group', name='lib1', version='6500']]")
     }

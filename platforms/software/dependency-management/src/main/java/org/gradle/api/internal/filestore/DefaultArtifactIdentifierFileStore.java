@@ -52,7 +52,7 @@ public class DefaultArtifactIdentifierFileStore extends GroupedAndNamedUniqueFil
         super(baseDir, temporaryFileProvider, fileAccessTimeJournal, GROUPER, NAMER, checksumService);
     }
 
-    @ServiceScope(Scopes.Build.class)
+    @ServiceScope(Scopes.BuildTree.class)
     public static class Factory {
         private final TemporaryFileProvider temporaryFileProvider;
         private final FileAccessTimeJournal fileAccessTimeJournal;

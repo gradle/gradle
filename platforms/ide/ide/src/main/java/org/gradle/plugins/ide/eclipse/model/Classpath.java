@@ -39,7 +39,7 @@ import static java.util.stream.Collectors.toList;
  */
 public class Classpath extends XmlPersistableConfigurationObject {
     private final FileReferenceFactory fileReferenceFactory;
-    private List<ClasspathEntry> entries = Lists.newArrayList();
+    private List<ClasspathEntry> entries = new ArrayList<>();
 
     public Classpath(XmlTransformer xmlTransformer, FileReferenceFactory fileReferenceFactory) {
         super(xmlTransformer);

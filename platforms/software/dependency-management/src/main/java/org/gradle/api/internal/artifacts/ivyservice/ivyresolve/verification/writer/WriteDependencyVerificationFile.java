@@ -78,6 +78,7 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -137,6 +138,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         this.isDryRun = isDryRun;
         this.generatePgpInfo = checksums.contains(PGP);
         this.isExportKeyring = exportKeyRing;
+        maybeCleanupDryRunFiles();
     }
 
     private boolean isWriteVerificationFile() {
@@ -176,6 +178,21 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     @Override
     public ModuleComponentRepository<ModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ModuleComponentGraphResolveState> original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy) {
         return new DependencyVerifyingModuleComponentRepository(original, this, generatePgpInfo);
+    }
+
+    private void maybeCleanupDryRunFiles() {
+        if (isDryRun) {
+            boolean removed = false;
+            removed |= mayBeDryRunFile(verificationFile).delete() || removed;
+            if (isExportKeyring) {
+                BuildTreeDefinedKeys existingKeyring = new BuildTreeDefinedKeys(verificationFile.getParentFile(), verificationsBuilder.getKeyringFormat());
+                removed |= mayBeDryRunFile(existingKeyring.getAsciiKeyringsFile()).delete();
+                removed |= mayBeDryRunFile(existingKeyring.getBinaryKeyringsFile()).delete();
+            }
+            if (removed) {
+                LOGGER.lifecycle("Removed dry-run verification files from the previous run");
+            }
+        }
     }
 
     @Override
@@ -237,7 +254,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     private void exportKeys(SignatureVerificationService signatureVerificationService, DependencyVerifier verifier, BuildTreeDefinedKeys existingKeyring) throws IOException {
-        Set<String> keysToExport = Sets.newHashSet();
+        Set<String> keysToExport = new HashSet<>();
         verifier.getConfiguration()
             .getTrustedKeys()
             .stream()
@@ -263,6 +280,18 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     private void maybeReadExistingFile() {
+        if (isDryRun) {
+            File previous = mayBeDryRunFile(verificationFile);
+            if (previous.exists()) {
+                LOGGER.info("Found dependency verification dryrun metadata file, updating");
+                try {
+                    DependencyVerificationsXmlReader.readFromXml(new FileInputStream(previous), verificationsBuilder);
+                } catch (FileNotFoundException e) {
+                    throw new UncheckedIOException(e);
+                }
+                return;
+            }
+        }
         if (verificationFile.exists()) {
             LOGGER.info("Found dependency verification metadata file, updating");
             try {
@@ -617,13 +646,12 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     private List<PGPPublicKeyRing> loadExistingKeyRing(BuildTreeDefinedKeys keyrings) throws IOException {
-        List<PGPPublicKeyRing> existingRings;
-        if (!isDryRun) {
-            existingRings = keyrings.loadKeys();
-            LOGGER.info("Existing keyring file contains {} keyrings", existingRings.size());
-        } else {
-            existingRings = Collections.emptyList();
+        File effectiveFile = mayBeDryRunFile(keyrings.getEffectiveKeyringsFile());
+        if (!effectiveFile.exists()) {
+            return Collections.emptyList();
         }
+        List<PGPPublicKeyRing> existingRings = SecuritySupport.loadKeyRingFile(effectiveFile);
+        LOGGER.info("Existing keyring file contains {} keyrings", existingRings.size());
         return existingRings;
     }
 }

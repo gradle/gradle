@@ -23,11 +23,14 @@ import org.gradle.internal.classpath.InstrumentedClosuresHelper;
 import org.gradle.internal.classpath.intercept.AbstractInvocation;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
 import org.gradle.internal.classpath.intercept.CallInterceptorResolver;
+import org.gradle.internal.classpath.intercept.CallInterceptorResolver.ClosureCallInterceptorResolver;
 import org.gradle.internal.classpath.intercept.InterceptScope;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
+import org.gradle.internal.instrumentation.api.annotations.ParameterKind.InjectVisitorContext;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
 
 import javax.annotation.Nullable;
@@ -47,9 +50,10 @@ public class GroovyDynamicDispatchInterceptors {
         Class<?> senderClass,
         GroovyObject receiver,
         String messageName,
-        @CallerClassName String consumer
+        @CallerClassName String consumer,
+        @InjectVisitorContext BytecodeInterceptorFilter interceptorFilter
     ) throws Throwable {
-        if (!CallInterceptorResolver.INTERCEPTOR_RESOLVER.isAwareOfCallSiteName(messageName)) {
+        if (!ClosureCallInterceptorResolver.of(interceptorFilter).isAwareOfCallSiteName(messageName)) {
             ScriptBytecodeAdapter.setGroovyObjectProperty(messageArgument, senderClass, receiver, messageName);
             return;
         }
@@ -68,9 +72,11 @@ public class GroovyDynamicDispatchInterceptors {
         Class<?> senderClass,
         Object receiver,
         String messageName,
-        @CallerClassName String consumer
+        @CallerClassName String consumer,
+        @InjectVisitorContext BytecodeInterceptorFilter interceptorFilter
     ) throws Throwable {
-        CallInterceptor interceptor = CallInterceptorResolver.INTERCEPTOR_RESOLVER.resolveCallInterceptor(InterceptScope.writesOfPropertiesNamed(messageName));
+        CallInterceptorResolver interceptorResolver = ClosureCallInterceptorResolver.of(interceptorFilter);
+        CallInterceptor interceptor = interceptorResolver.resolveCallInterceptor(InterceptScope.writesOfPropertiesNamed(messageName));
         if (interceptor != null) {
             @NonNullApi
             class SetPropertyInvocationImpl extends AbstractInvocation<Object> {

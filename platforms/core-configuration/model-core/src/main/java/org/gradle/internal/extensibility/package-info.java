@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@NonNullApi
-package org.gradle.internal.extensibility;
 
-import org.gradle.api.NonNullApi;
+@org.gradle.api.NonNullApi
+package org.gradle.internal.extensibility;

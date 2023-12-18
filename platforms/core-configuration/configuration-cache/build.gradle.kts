@@ -51,6 +51,7 @@ dependencies {
     implementation(project(":file-watching"))
     implementation(project(":functional"))
     implementation(project(":hashing"))
+    implementation(project(":input-tracking"))
     implementation(project(":launcher"))
     implementation(project(":logging"))
     implementation(project(":messaging"))

@@ -108,7 +108,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         if (alwaysUseAttributeMatching || targetComponentState.getCandidatesForGraphVariantSelection().isUseVariants()) {
             return variantSelector.selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, getArtifacts());
         }
-        return dependencyDescriptor.selectLegacyConfigurations(componentId, configuration, targetComponentState);
+        return dependencyDescriptor.selectLegacyConfigurations(componentId, configuration, targetComponentState, variantSelector.getFailureProcessor());
     }
 
     @Override

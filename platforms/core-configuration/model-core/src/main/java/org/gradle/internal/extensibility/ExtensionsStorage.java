@@ -32,14 +32,14 @@ import static org.gradle.internal.Cast.uncheckedCast;
 
 public class ExtensionsStorage {
 
-    private final Map<String, ExtensionHolder> extensions = new LinkedHashMap<String, ExtensionHolder>();
+    private final Map<String, ExtensionHolder<?>> extensions = new LinkedHashMap<>();
 
     public <T> void add(TypeOf<T> publicType, String name, T extension) {
         if (hasExtension(name)) {
             throw new IllegalArgumentException(
                 format("Cannot add extension with name '%s', as there is an extension already registered with that name.", name));
         }
-        extensions.put(name, new ExtensionHolder<T>(name, publicType, extension));
+        extensions.put(name, new ExtensionHolder<>(name, publicType, extension));
     }
 
     public boolean hasExtension(String name) {
@@ -47,8 +47,8 @@ public class ExtensionsStorage {
     }
 
     public Map<String, Object> getAsMap() {
-        Map<String, Object> rawExtensions = new LinkedHashMap<String, Object>(extensions.size());
-        for (Map.Entry<String, ExtensionHolder> entry : extensions.entrySet()) {
+        Map<String, Object> rawExtensions = new LinkedHashMap<>(extensions.size());
+        for (Map.Entry<String, ExtensionHolder<?>> entry : extensions.entrySet()) {
             rawExtensions.put(entry.getKey(), entry.getValue().get());
         }
         return rawExtensions;
@@ -74,6 +74,7 @@ public class ExtensionsStorage {
         return getHolderByType(type).get();
     }
 
+    @Nullable
     public <T> T findByType(TypeOf<T> type) {
         ExtensionHolder<T> found = findHolderByType(type);
         return found != null ? found.get() : null;
@@ -88,6 +89,7 @@ public class ExtensionsStorage {
             "Extension of type '" + type.getSimpleName() + "' does not exist. Currently registered extension types: " + registeredExtensionTypeNames());
     }
 
+    @Nullable
     private <T> ExtensionHolder<T> findHolderByType(TypeOf<T> type) {
         ExtensionHolder<T> firstHolderWithExactPublicType = firstHolderWithExactPublicType(type);
         return firstHolderWithExactPublicType != null
@@ -97,7 +99,7 @@ public class ExtensionsStorage {
 
     @Nullable
     private <T> ExtensionHolder<T> firstHolderWithExactPublicType(TypeOf<T> type) {
-        for (ExtensionHolder extensionHolder : extensions.values()) {
+        for (ExtensionHolder<?> extensionHolder : extensions.values()) {
             if (type.equals(extensionHolder.getPublicType())) {
                 return uncheckedCast(extensionHolder);
             }
@@ -107,7 +109,7 @@ public class ExtensionsStorage {
 
     @Nullable
     private <T> ExtensionHolder<T> firstHolderWithAssignableType(TypeOf<T> type) {
-        for (ExtensionHolder extensionHolder : extensions.values()) {
+        for (ExtensionHolder<?> extensionHolder : extensions.values()) {
             if (type.isAssignableFrom(extensionHolder.getPublicType())) {
                 return uncheckedCast(extensionHolder);
             }
@@ -123,14 +125,15 @@ public class ExtensionsStorage {
         throw unknownExtensionException(name);
     }
 
+    @Nullable
     public Object findByName(String name) {
-        ExtensionHolder extensionHolder = extensions.get(name);
+        ExtensionHolder<?> extensionHolder = extensions.get(name);
         return extensionHolder != null ? extensionHolder.get() : null;
     }
 
     private List<String> registeredExtensionTypeNames() {
-        List<String> types = new ArrayList<String>(extensions.size());
-        for (ExtensionHolder holder : extensions.values()) {
+        List<String> types = new ArrayList<>(extensions.size());
+        for (ExtensionHolder<?> holder : extensions.values()) {
             types.add(holder.getPublicType().getSimpleName());
         }
         return types;
@@ -138,6 +141,7 @@ public class ExtensionsStorage {
 
     /**
      * Doesn't actually return anything. Always throws a {@link UnknownDomainObjectException}.
+     *
      * @return Nothing.
      */
     private UnknownDomainObjectException unknownExtensionException(final String name) {

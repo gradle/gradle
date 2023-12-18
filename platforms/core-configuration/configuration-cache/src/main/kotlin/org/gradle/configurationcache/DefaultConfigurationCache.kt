@@ -39,14 +39,15 @@ import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
-import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
+import org.gradle.internal.configuration.inputs.InstrumentedInputs
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
+import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.Path
 import java.io.File
 import java.io.OutputStream
@@ -128,8 +129,7 @@ class DefaultConfigurationCache internal constructor(
     override fun loadOrScheduleRequestedTasks(
         graph: BuildTreeWorkGraph,
         graphBuilder: BuildTreeWorkGraphBuilder?,
-        scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph,
-        isModelBuildingRequested: Boolean
+        scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph
     ): BuildTreeConfigurationCache.WorkGraphResult {
         return if (isLoaded) {
             val finalizedGraph = loadWorkGraph(graph, graphBuilder, false)
@@ -141,7 +141,7 @@ class DefaultConfigurationCache internal constructor(
         } else {
             runWorkThatContributesToCacheEntry {
                 val finalizedGraph = scheduler(graph)
-                saveWorkGraph(isModelBuildingRequested)
+                saveWorkGraph()
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
                     wasLoadedFromCache = false,
@@ -175,8 +175,8 @@ class DefaultConfigurationCache internal constructor(
         }
     }
 
-    override fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, creator: () -> T?): T? {
-        return intermediateModels.value.loadOrCreateIntermediateModel(identityPath, modelName, creator)
+    override fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T?): T? {
+        return intermediateModels.value.loadOrCreateIntermediateModel(identityPath, modelName, parameter, creator)
     }
 
     override fun loadOrCreateProjectMetadata(identityPath: Path, creator: () -> LocalComponentGraphResolveState): LocalComponentGraphResolveState {
@@ -203,6 +203,7 @@ class DefaultConfigurationCache internal constructor(
             // Can reuse the cache entry for the rest of this build invocation
             cacheAction = ConfigurationCacheAction.LOAD
         }
+        scopeRegistryListener.dispose()
     }
 
     private
@@ -316,54 +317,48 @@ class DefaultConfigurationCache internal constructor(
     fun prepareForWork() {
         prepareConfigurationTimeBarrier()
         startCollectingCacheFingerprint()
-        Instrumented.setListener(instrumentedInputAccessListener)
+        InstrumentedInputs.setListener(instrumentedInputAccessListener)
     }
 
     private
     fun doneWithWork() {
-        Instrumented.discardListener()
+        InstrumentedInputs.discardListener()
         cacheFingerprintController.stopCollectingFingerprint()
     }
 
     private
     fun saveModel(model: Any) {
         saveToCache(
-            stateType = StateType.Model,
-            action = { stateFile -> cacheIO.writeModelTo(model, stateFile) },
-            disposeResources = true
-        )
+            stateType = StateType.Model
+        ) { stateFile -> cacheIO.writeModelTo(model, stateFile) }
     }
 
     private
-    fun saveWorkGraph(isModelBuildingRequested: Boolean) {
+    fun saveWorkGraph() {
         saveToCache(
             stateType = StateType.Work,
-            action = { stateFile -> writeConfigurationCacheState(stateFile) },
-            disposeResources = !isModelBuildingRequested,
-        )
+        ) { stateFile -> writeConfigurationCacheState(stateFile) }
     }
 
     private
-    fun saveToCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> Unit, disposeResources: Boolean) {
+    fun saveToCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> Unit) {
 
         cacheEntryRequiresCommit = true
 
         if (startParameter.isIgnoreInputsInTaskGraphSerialization) {
-            Instrumented.discardListener()
+            InstrumentedInputs.discardListener()
         }
 
         buildOperationExecutor.withStoreOperation(cacheKey.string) {
             store.useForStore { layout ->
                 try {
-                    action(layout.fileFor(stateType))
+                    val stateFile = layout.fileFor(stateType)
+                    action(stateFile)
+                    StoreResult(stateFile.stateFile.file)
                 } catch (error: ConfigurationCacheError) {
                     // Invalidate state on serialization errors
                     problems.failingBuildDueToSerializationError()
                     throw error
-                } finally {
-                    if (disposeResources) {
-                        scopeRegistryListener.dispose()
-                    }
                 }
             }
         }
@@ -374,19 +369,20 @@ class DefaultConfigurationCache internal constructor(
     private
     fun loadModel(): Any {
         return loadFromCache(StateType.Model) { stateFile ->
-            cacheIO.readModelFrom(stateFile)
+            LoadResult(stateFile.stateFile.file) to cacheIO.readModelFrom(stateFile)
         }
     }
 
     private
     fun loadWorkGraph(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?, loadAfterStore: Boolean): BuildTreeWorkGraph.FinalizedGraph {
         return loadFromCache(StateType.Work) { stateFile ->
-            cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder)
+            val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder)
+            LoadResult(stateFile.stateFile.file, buildInvocationId) to workGraph
         }
     }
 
     private
-    fun <T : Any> loadFromCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T {
+    fun <T : Any> loadFromCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> Pair<LoadResult, T>): T {
         prepareConfigurationTimeBarrier()
 
         // No need to record the `ClassLoaderScope` tree

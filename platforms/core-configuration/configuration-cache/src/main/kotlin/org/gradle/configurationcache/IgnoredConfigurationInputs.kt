@@ -16,12 +16,15 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.ServiceScope
 import java.io.File
 
 
 /**
  * Defines specific configuration inputs that should not be included in the configuration cache fingerprint.
  */
+@ServiceScope(Scopes.BuildTree::class)
 interface IgnoredConfigurationInputs {
     /**
      * Checks if the [file] should be excluded from the configuration inputs fingerprint if it participates

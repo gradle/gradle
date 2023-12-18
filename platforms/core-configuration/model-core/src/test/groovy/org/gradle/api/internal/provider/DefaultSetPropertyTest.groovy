@@ -63,4 +63,11 @@ class DefaultSetPropertyTest extends CollectionPropertySpec<Set<String>> {
         expect:
         property.get() as List == ["123", "abc", "456", "def"]
     }
+
+    static class SetPropertyCircularFunctionEvaluationTest extends CollectionPropertySpec.CollectionPropertyCircularChainEvaluationTest<String, Set<String>> {
+        @Override
+        DefaultSetProperty<String> property() {
+            return new DefaultSetProperty<String>(host, String)
+        }
+    }
 }

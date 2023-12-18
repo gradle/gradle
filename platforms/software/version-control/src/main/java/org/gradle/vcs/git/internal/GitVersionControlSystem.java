@@ -16,7 +16,6 @@
 
 package org.gradle.vcs.git.internal;
 
-import com.google.common.collect.Sets;
 import com.jcraft.jsch.Session;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
@@ -47,6 +46,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -76,7 +76,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
     public Set<VersionRef> getAvailableVersions(VersionControlSpec spec) {
         GitVersionControlSpec gitSpec = cast(spec);
         Collection<Ref> refs = getRemoteRefs(gitSpec, true, false);
-        Set<VersionRef> versions = Sets.newHashSet();
+        Set<VersionRef> versions = new HashSet<>();
         for (Ref ref : refs) {
             GitVersionRef gitRef = GitVersionRef.from(ref);
             versions.add(gitRef);

@@ -35,6 +35,7 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NonExtensible;
+import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
@@ -106,7 +107,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     /**
      * Types that are allowed to be instantiated directly by Gradle when exposed as a getter on a type.
      *
-     * @implNote Keep in sync with subprojects/docs/src/docs/userguide/extending-gradle/custom_gradle_types.adoc
+     * @implNote Keep in sync with platforms/documentation/docs/src/docs/userguide/extending-gradle/custom_gradle_types.adoc
      * @see ManagedObjectFactory#newInstance
      */
     private static final ImmutableSet<Class<?>> MANAGED_PROPERTY_TYPES = ImmutableSet.of(
@@ -120,7 +121,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         Property.class,
         NamedDomainObjectContainer.class,
         ExtensiblePolymorphicDomainObjectContainer.class,
-        DomainObjectSet.class
+        DomainObjectSet.class,
+        DependencyCollector.class
     );
     private static final Object[] NO_PARAMS = new Object[0];
 

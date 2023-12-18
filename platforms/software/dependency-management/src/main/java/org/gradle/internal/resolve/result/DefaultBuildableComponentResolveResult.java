@@ -114,4 +114,14 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
             idResolve.resolved(state, graphState);
         }
     }
+
+    public void applyTo(BuildableComponentResolveResult target) {
+        super.applyTo(target);
+        if (failure != null) {
+            target.failed(failure);
+        }
+        if (state != null) {
+            target.resolved(state, graphState);
+        }
+    }
 }

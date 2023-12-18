@@ -25,10 +25,12 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.UpgradeCapabilityResolver;
+import org.gradle.api.internal.capabilities.CapabilityInternal;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Describables;
-import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.internal.component.external.model.DefaultComponentVariantIdentifier;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -56,7 +58,7 @@ public class DefaultCapabilitiesResolution implements CapabilitiesResolutionInte
 
     @Override
     public void withCapability(Capability capability, Action<? super CapabilityResolutionDetails> action) {
-        actions.add(new CapabilityAction(new CapabilitySpec(capability), action));
+        withCapability(Providers.of(capability), action);
     }
 
     @Override
@@ -66,7 +68,15 @@ public class DefaultCapabilitiesResolution implements CapabilitiesResolutionInte
 
     @Override
     public void withCapability(Object notation, Action<? super CapabilityResolutionDetails> action) {
+        if (notation instanceof Provider) {
+            withCapability(((Provider<?>) notation).map(capabilityNotationParser::parseNotation), action);
+            return;
+        }
         withCapability(capabilityNotationParser.parseNotation(notation), action);
+    }
+
+    private void withCapability(Provider<? extends Capability> capability, Action<? super CapabilityResolutionDetails> action) {
+        actions.add(new CapabilityAction(new CapabilitySpec(capability), action));
     }
 
     @Override
@@ -209,15 +219,16 @@ public class DefaultCapabilitiesResolution implements CapabilitiesResolutionInte
     }
 
     private static class CapabilitySpec implements Spec<Capability> {
-        private final Capability capability;
+        private final Provider<? extends Capability> capability;
 
-        public CapabilitySpec(Capability capability) {
+        public CapabilitySpec(Provider<? extends Capability> capability) {
             this.capability = capability;
         }
 
         @Override
         public boolean isSatisfiedBy(Capability element) {
-            return element.getGroup().equals(capability.getGroup()) && element.getName().equals(capability.getName());
+            Capability cap = capability.get();
+            return element.getGroup().equals(cap.getGroup()) && element.getName().equals(cap.getName());
         }
     }
 }

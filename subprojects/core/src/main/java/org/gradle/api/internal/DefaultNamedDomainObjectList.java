@@ -42,6 +42,10 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
         super(type, new ListElementSource<T>(), instantiator, namer, decorator);
     }
 
+    private DefaultNamedDomainObjectList(DefaultNamedDomainObjectList<? super T> objects, Spec<String> nameFilter, CollectionFilter<T> elementFilter, Instantiator instantiator, Namer<? super T> namer) {
+        super(objects, nameFilter, elementFilter, instantiator, namer);
+    }
+
     @Override
     public void add(int index, T element) {
         assertMutable("add(int, T)");
@@ -131,6 +135,11 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
     @Override
     protected <S extends T> IndexedElementSource<S> filteredStore(CollectionFilter<S> filter, ElementSource<T> elementSource) {
         return new FilteredIndexedElementSource<T, S>(elementSource, filter);
+    }
+
+    public NamedDomainObjectList<T> named(Spec<String> nameFilter) {
+        Spec<T> spec = convertNameToElementFilter(nameFilter);
+        return new DefaultNamedDomainObjectList<>(this, nameFilter, createFilter(spec), getInstantiator(), getNamer());
     }
 
     @Override

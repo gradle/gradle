@@ -16,20 +16,19 @@
 
 package org.gradle.performance.regression.android
 
-
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
 import org.gradle.performance.fixture.IncrementalAndroidTestProject
+import org.gradle.performance.mutator.ClearArtifactTransformCacheWithoutInstrumentedJarsMutator
 import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.ScenarioContext
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.AbstractFileChangeMutator
-import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
 import spock.lang.Issue
 
 import java.util.regex.Matcher
@@ -47,7 +46,9 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
     def setup() {
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
         agpVersion = AndroidTestProject.useAgpLatestStableOrRcVersion(runner)
-        kgpVersion = AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
+        // TODO Use dynamic Kotlin version once https://issuetracker.google.com/issues/312738720 is fixed
+        // kgpVersion = AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
+        kgpVersion = "1.9.20"
     }
 
     @RunFor([
@@ -102,7 +103,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         runner.cleanTasks = ["clean"]
         runner.useDaemon = false
         runner.addBuildMutator { invocationSettings ->
-            new ClearArtifactTransformCacheMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.BUILD)
+            new ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.BUILD)
         }
         if (IncrementalAndroidTestProject.NOW_IN_ANDROID == testProject) {
             configureRunnerSpecificallyForNowInAndroid()
@@ -200,10 +201,10 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
             replaceVersion(text, "kotlin", "$kgpVersion")
 
             // See https://developer.android.com/jetpack/androidx/releases/compose-kotlin#pre-release_kotlin_compatibility
-            replaceVersion(text, "androidxComposeCompiler", "1.5.4-dev-k1.9.20-RC-1edce5fd625")
+            replaceVersion(text, "androidxComposeCompiler", "1.5.4")
 
             // See https://github.com/google/ksp/tags
-            replaceVersion(text, "ksp", "1.9.20-RC-1.0.13")
+            replaceVersion(text, "ksp", "1.9.20-1.0.14")
         }
 
         private static void replaceVersion(StringBuilder text, String target, String version) {

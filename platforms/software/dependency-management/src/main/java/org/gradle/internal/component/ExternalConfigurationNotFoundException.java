@@ -16,15 +16,12 @@
 
 package org.gradle.internal.component;
 
-import org.apache.commons.lang.StringUtils;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-
 /**
  * This exception is used to indicate that a named configuration for an <strong>Ivy</strong> or <strong>Maven</strong>
  * dependency wasn't found when resolving a Graph.
  */
 public class ExternalConfigurationNotFoundException extends ConfigurationNotFoundException {
-    public ExternalConfigurationNotFoundException(ComponentIdentifier fromComponent, String fromConfiguration, String toConfiguration, ComponentIdentifier toComponent) {
-        super(String.format("%s declares a dependency from configuration '%s' to configuration '%s' which is not declared in the descriptor for %s.", StringUtils.capitalize(fromComponent.getDisplayName()), fromConfiguration, toConfiguration, toComponent.getDisplayName()));
+    public ExternalConfigurationNotFoundException(String message) {
+        super(message);
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.api.tasks.wrapper
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources
+import org.gradle.api.tasks.wrapper.internal.WrapperDefaults
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.GUtil
@@ -56,6 +57,7 @@ class WrapperTest extends AbstractTaskTest {
         new File(getProject().getProjectDir(), TARGET_WRAPPER_FINAL).mkdirs()
         wrapper.setDistributionPath("somepath")
         wrapper.setDistributionSha256Sum("somehash")
+        wrapper.validateDistributionUrl.convention(WrapperDefaults.VALIDATE_DISTRIBUTION_URL)
     }
 
     Wrapper getTask() {

@@ -66,6 +66,7 @@ import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.problems.DefaultProblemDiagnosticsFactory;
 import org.gradle.internal.problems.DefaultProblemLocationAnalyzer;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
@@ -76,10 +77,12 @@ import java.util.List;
  * Contains the singleton services for a single build tree which consists of one or more builds.
  */
 public class BuildTreeScopeServices {
+    private final BuildInvocationScopeId buildInvocationScopeId;
     private final BuildTreeState buildTree;
     private final BuildTreeModelControllerServices.Supplier modelServices;
 
-    public BuildTreeScopeServices(BuildTreeState buildTree, BuildTreeModelControllerServices.Supplier modelServices) {
+    public BuildTreeScopeServices(BuildInvocationScopeId buildInvocationScopeId, BuildTreeState buildTree, BuildTreeModelControllerServices.Supplier modelServices) {
+        this.buildInvocationScopeId = buildInvocationScopeId;
         this.buildTree = buildTree;
         this.modelServices = modelServices;
     }
@@ -88,6 +91,7 @@ public class BuildTreeScopeServices {
         for (PluginServiceRegistry pluginServiceRegistry : pluginServiceRegistries) {
             pluginServiceRegistry.registerBuildTreeServices(registration);
         }
+        registration.add(BuildInvocationScopeId.class, buildInvocationScopeId);
         registration.add(BuildTreeState.class, buildTree);
         registration.add(GradleEnterprisePluginManager.class);
         registration.add(DefaultBuildLifecycleControllerFactory.class);

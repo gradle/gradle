@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
 import org.gradle.internal.component.ExternalConfigurationNotFoundException
+import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
@@ -158,6 +159,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     }
 
     def "selects no configurations when no configuration mappings provided"() {
+        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def fromConfig = Stub(ModuleConfigurationMetadata)
@@ -165,10 +167,11 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, ImmutableListMultimap.of(), [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).variants.empty
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent, resolutionFailureHandler).variants.empty
     }
 
     def "selects configurations from target component that match configuration mappings"() {
+        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def fromConfig = Stub(ModuleConfigurationMetadata)
@@ -183,10 +186,11 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).variants == [toConfig1, toConfig2] // verify order as well
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent, resolutionFailureHandler).variants == [toConfig1, toConfig2] // verify order as well
     }
 
     def "selects matching configurations for super-configurations"() {
+        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def fromConfig = Stub(ModuleConfigurationMetadata)
@@ -201,10 +205,11 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).variants == [toConfig1, toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent, resolutionFailureHandler).variants == [toConfig1, toConfig2]
     }
 
     def "configuration mapping can use wildcard on LHS"() {
+        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def fromConfig = Stub(ModuleConfigurationMetadata)
@@ -220,11 +225,12 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).variants == [toConfig1, toConfig2]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent).variants == [toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent, resolutionFailureHandler).variants == [toConfig1, toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent, resolutionFailureHandler).variants == [toConfig2]
     }
 
     def "configuration mapping can use wildcard on RHS to select all public configurations"() {
+        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def toComponentMetadata = Stub(ComponentGraphResolveMetadata)
@@ -244,7 +250,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).variants == [toConfig1, toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent, resolutionFailureHandler).variants == [toConfig1, toConfig2]
     }
 
     private ConfigurationGraphResolveState config(name, visible) {
@@ -260,6 +266,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     }
 
     def "configuration mapping can use all-except-wildcard on LHS"() {
+        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def fromConfig = Stub(ModuleConfigurationMetadata)
@@ -278,12 +285,13 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).variants == [toConfig1]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent).variants == [toConfig1]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig3, toComponent).variants == [toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent, resolutionFailureHandler).variants == [toConfig1]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent, resolutionFailureHandler).variants == [toConfig1]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig3, toComponent, resolutionFailureHandler).variants == [toConfig2]
     }
 
     def "configuration mapping can include fallback on LHS"() {
+        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def fromConfig = Stub(ModuleConfigurationMetadata)
@@ -303,12 +311,13 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).variants == [toConfig1, toConfig3]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent).variants == [toConfig1, toConfig3]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig3, toComponent).variants == [toConfig2, toConfig3]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent, resolutionFailureHandler).variants == [toConfig1, toConfig3]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent, resolutionFailureHandler).variants == [toConfig1, toConfig3]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig3, toComponent, resolutionFailureHandler).variants == [toConfig2, toConfig3]
     }
 
     def "configuration mapping can include fallback on RHS"() {
+        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def toComponentMetadata = Stub(ComponentGraphResolveMetadata)
@@ -333,12 +342,13 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).variants == [toConfig1, toConfig2]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent).variants == [toConfig1]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig3, toComponent).variants == [toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent, resolutionFailureHandler).variants == [toConfig1, toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent, resolutionFailureHandler).variants == [toConfig1]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig3, toComponent, resolutionFailureHandler).variants == [toConfig2]
     }
 
     def "configuration mapping can include self placeholder on RHS"() {
+        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def fromConfig = Stub(ModuleConfigurationMetadata)
@@ -352,11 +362,12 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).variants == [toConfig1]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent).variants == [toConfig1]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent, resolutionFailureHandler).variants == [toConfig1]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent, resolutionFailureHandler).variants == [toConfig1]
     }
 
     def "configuration mapping can include this placeholder on RHS"() {
+        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def fromConfig = Stub(ModuleConfigurationMetadata)
@@ -373,11 +384,12 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).variants == [toConfig1]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent).variants == [toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent, resolutionFailureHandler).variants == [toConfig1]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent, resolutionFailureHandler).variants == [toConfig2]
     }
 
     def "configuration mapping can include wildcard on LHS and placeholder on RHS"() {
+        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def fromConfig = Stub(ModuleConfigurationMetadata)
@@ -394,8 +406,8 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).variants == [toConfig1]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent).variants == [toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent, resolutionFailureHandler).variants == [toConfig1]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent, resolutionFailureHandler).variants == [toConfig2]
 
         where:
         // these all map to the same thing
@@ -407,6 +419,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     }
 
     def "fails when target component does not have matching configurations"() {
+        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
         def fromComponent = Stub(ComponentIdentifier) {
             getDisplayName() >> "thing a"
         }
@@ -426,7 +439,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
 
         when:
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent)
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent, resolutionFailureHandler)
 
         then:
         ExternalConfigurationNotFoundException e = thrown()

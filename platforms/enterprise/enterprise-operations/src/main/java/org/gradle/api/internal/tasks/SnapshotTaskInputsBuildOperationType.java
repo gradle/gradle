@@ -162,7 +162,7 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
             /**
              * The “primary” attribute of the current property.
              * <p>
-             * Used by Gradle Enterprise plugin &lt; 3.8, retained for backwards compatibility.
+             * Used by Develocity plugin &lt; 3.8, retained for backwards compatibility.
              * <p>
              * Returns the name value of one of:
              * <ul>
@@ -194,7 +194,7 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          * No null values.
          * Never empty.
          *
-         * This is kept for backward compatibility with the Gradle Enterprise Gradle plugin.
+         * This is kept for backward compatibility with the Develocity Gradle plugin.
          *
          * @deprecated Always null, since we don't capture inputs when anything is loaded by an unknown classloader.
          */

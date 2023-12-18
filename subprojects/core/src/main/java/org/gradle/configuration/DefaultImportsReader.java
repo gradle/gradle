@@ -19,7 +19,6 @@ package org.gradle.configuration;
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.common.io.LineProcessor;
 import com.google.common.io.Resources;
 import org.apache.commons.lang.StringUtils;
@@ -27,6 +26,7 @@ import org.gradle.api.UncheckedIOException;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -69,7 +69,7 @@ public class DefaultImportsReader implements ImportsReader {
             throw new IllegalStateException("Could not load default imports resource: " + RESOURCE);
         }
         return Resources.asCharSource(url, Charsets.UTF_8).readLines(new LineProcessor<String[]>() {
-            private final List<String> packages = Lists.newLinkedList();
+            private final List<String> packages = new LinkedList<>();
 
             @Override
             public boolean processLine(@SuppressWarnings("NullableProblems") String line) throws IOException {

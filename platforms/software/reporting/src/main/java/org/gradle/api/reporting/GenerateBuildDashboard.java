@@ -92,7 +92,7 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
     }
 
     private Set<Reporting<? extends ReportContainer<?>>> getAggregatedTasks() {
-        final Set<Reporting<? extends ReportContainer<?>>> reports = Sets.newHashSet();
+        final Set<Reporting<? extends ReportContainer<?>>> reports = new HashSet<>();
         getProject().allprojects(new Action<Project>() {
             @Override
             public void execute(Project project) {

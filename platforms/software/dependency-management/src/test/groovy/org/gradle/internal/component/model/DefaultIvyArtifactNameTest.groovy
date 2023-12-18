@@ -21,10 +21,10 @@ import org.gradle.util.Matchers
 import spock.lang.Specification
 
 class DefaultIvyArtifactNameTest extends Specification {
-    def "has useful string representation"() {
+    def "has useful display name"() {
         expect:
         def name = new DefaultIvyArtifactName("name", "type", "ext", "classifier")
-        name.toString() == "name-classifier.ext"
+        name.getDisplayName() == "name-classifier.ext"
 
         where:
         ext   | classifier   | fileName

@@ -16,9 +16,9 @@
 
 package org.gradle.internal.rules;
 
-import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -59,7 +59,7 @@ public class ClosureBackedRuleAction<T> implements RuleAction<T> {
 
     private List<Class<?>> parseInputTypes(Closure<?> closure) {
         Class<?>[] parameterTypes = closure.getParameterTypes();
-        List<Class<?>> inputTypes = Lists.newArrayList();
+        List<Class<?>> inputTypes = new ArrayList<>();
 
         if (parameterTypes.length != 0) {
             if (parameterTypes[0].isAssignableFrom(subjectType)) {

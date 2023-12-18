@@ -3,7 +3,7 @@ plugins {
     id("gradlebuild.publish-public-libraries")
 }
 
-description = "Build operations consumed by the Gradle Enterprise plugin"
+description = "Build operations consumed by the Develocity plugin"
 
 dependencies {
     api(project(":build-operations"))

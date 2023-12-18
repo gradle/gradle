@@ -17,8 +17,6 @@ package org.gradle.api.internal.catalog;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.VersionCatalog;
@@ -49,10 +47,11 @@ import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.model.InputNormalizer;
-import org.gradle.internal.execution.workspace.WorkspaceProvider;
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
@@ -73,8 +72,10 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -82,8 +83,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static org.gradle.internal.execution.ExecutionEngine.Execution;
 
 public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final static String SUPPORTED_PROJECT_NAMES = "[a-zA-Z]([A-Za-z0-9\\-_])*";
@@ -103,8 +102,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final InputFingerprinter inputFingerprinter;
     private final ImmutableAttributesFactory attributesFactory;
     private final CapabilityNotationParser capabilityNotationParser;
-    private final List<DefaultVersionCatalog> models = Lists.newArrayList();
-    private final Map<String, Class<? extends ExternalModuleDependencyFactory>> factories = Maps.newHashMap();
+    private final List<DefaultVersionCatalog> models = new ArrayList<>();
+    private final Map<String, Class<? extends ExternalModuleDependencyFactory>> factories = new HashMap<>();
 
     private ClassLoaderScope classLoaderScope;
     private Class<? extends TypeSafeProjectDependencyFactory> generatedProjectFactory;
@@ -135,7 +134,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     }
 
     @Inject
-    protected Problems getProblemService() {
+    protected Problems getProblemsService() {
         throw new UnsupportedOperationException("not implemented");
     }
 
@@ -189,8 +188,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
     private void executeWork(UnitOfWork work) {
         ExecutionEngine.Result result = engine.createRequest(work).execute();
-        Execution er = result.getExecution().get();
-        GeneratedAccessors accessors = (GeneratedAccessors) er.getOutput();
+        GeneratedAccessors accessors = result.getOutputAs(GeneratedAccessors.class).get();
         ClassPath generatedClasses = DefaultClassPath.of(accessors.classesDir);
         sources = sources.plus(DefaultClassPath.of(accessors.sourcesDir));
         classes = classes.plus(generatedClasses);
@@ -198,7 +196,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     }
 
     private static boolean assertCanGenerateAccessors(ProjectRegistry<? extends ProjectDescriptor> projectRegistry) {
-        List<String> errors = Lists.newArrayList();
+        List<String> errors = new ArrayList<>();
         projectRegistry.getAllProjects()
             .stream()
             .map(ProjectDescriptor::getName)
@@ -336,7 +334,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         return classes;
     }
 
-    private abstract class AbstractAccessorUnitOfWork implements UnitOfWork {
+    private abstract class AbstractAccessorUnitOfWork implements ImmutableUnitOfWork {
         private static final String OUT_SOURCES = "sources";
         private static final String OUT_CLASSES = "classes";
 
@@ -350,7 +348,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
 
         @Override
-        public WorkspaceProvider getWorkspaceProvider() {
+        public ImmutableWorkspaceProvider getWorkspaceProvider() {
             return workspace;
         }
 
@@ -375,7 +373,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                 }
 
                 @Override
-                public Object getOutput() {
+                public Object getOutput(File workspace) {
                     return loadAlreadyProducedOutput(workspace);
                 }
             };
@@ -417,8 +415,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         @Override
         protected List<ClassSource> getClassSources() {
             return Arrays.asList(
-                new DependenciesAccessorClassSource(model.getName(), model, getProblemService()),
-                new PluginsBlockDependenciesAccessorClassSource(model.getName(), model, getProblemService())
+                new DependenciesAccessorClassSource(model.getName(), model, getProblemsService()),
+                new PluginsBlockDependenciesAccessorClassSource(model.getName(), model, getProblemsService())
             );
         }
 
@@ -454,7 +452,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         @Override
         protected List<ClassSource> getClassSources() {
-            List<ClassSource> sources = Lists.newArrayList();
+            List<ClassSource> sources = new ArrayList<>();
             sources.add(new RootProjectAccessorSource(projectRegistry.getRootProject()));
             for (ProjectDescriptor project : projectRegistry.getAllProjects()) {
                 sources.add(new ProjectAccessorClassSource(project));
@@ -496,12 +494,12 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         private final String name;
         private final DefaultVersionCatalog model;
-        private final Problems problemService;
+        private final Problems problemsService;
 
-        private DependenciesAccessorClassSource(String name, DefaultVersionCatalog model, Problems problemService) {
+        private DependenciesAccessorClassSource(String name, DefaultVersionCatalog model, Problems problemsService) {
             this.name = name;
             this.model = model;
-            this.problemService = problemService;
+            this.problemsService = problemsService;
         }
 
         @Override
@@ -517,7 +515,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         @Override
         public String getSource() {
             StringWriter writer = new StringWriter();
-            LibrariesSourceGenerator.generateSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName(), problemService);
+            LibrariesSourceGenerator.generateSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName(), problemsService);
             return writer.toString();
         }
     }
@@ -525,12 +523,12 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private static class PluginsBlockDependenciesAccessorClassSource implements ClassSource {
         private final String name;
         private final DefaultVersionCatalog model;
-        private final Problems problemService;
+        private final Problems problemsService;
 
-        private PluginsBlockDependenciesAccessorClassSource(String name, DefaultVersionCatalog model, Problems problemService) {
+        private PluginsBlockDependenciesAccessorClassSource(String name, DefaultVersionCatalog model, Problems problemsService) {
             this.name = name;
             this.model = model;
-            this.problemService = problemService;
+            this.problemsService = problemsService;
         }
 
         @Override
@@ -546,7 +544,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         @Override
         public String getSource() {
             StringWriter writer = new StringWriter();
-            LibrariesSourceGenerator.generatePluginsBlockSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName(), problemService);
+            LibrariesSourceGenerator.generatePluginsBlockSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName(), problemsService);
             return writer.toString();
         }
     }

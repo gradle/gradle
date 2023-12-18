@@ -2,7 +2,7 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "Logging API consumed by the Gradle Enterprise plugin"
+description = "Logging API consumed by the Develocity plugin"
 
 gradlebuildJava.usedInWorkers()
 

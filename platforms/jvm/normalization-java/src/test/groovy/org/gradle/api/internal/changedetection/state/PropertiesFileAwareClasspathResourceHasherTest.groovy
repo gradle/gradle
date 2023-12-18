@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state
 
 import com.google.common.collect.ImmutableSet
-import com.google.common.collect.Maps
 import org.gradle.api.internal.file.archive.ZipEntry
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.file.FileMetadata
@@ -39,7 +38,7 @@ import java.util.function.Supplier
 
 class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
     @TempDir File tmpdir
-    Map<String, ResourceEntryFilter> filters = Maps.newHashMap()
+    Map<String, ResourceEntryFilter> filters = new HashMap<>()
     ResourceHasher delegate = new RuntimeClasspathResourceHasher()
     ResourceHasher unfilteredHasher = new PropertiesFileAwareClasspathResourceHasher(delegate, PropertiesFileFilter.FILTER_NOTHING)
 

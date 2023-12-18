@@ -16,7 +16,6 @@
 
 package org.gradle.cache.internal;
 
-import com.google.common.collect.Sets;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.gradle.cache.CleanableStore;
@@ -31,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -72,7 +72,7 @@ public class UnusedVersionsCacheCleanup extends AbstractCacheCleanup {
     }
 
     private void determineUsedVersions() {
-        usedVersions = Sets.newTreeSet();
+        usedVersions = new TreeSet<>();
         for (GradleVersion gradleVersion : getUsedGradleVersionsSmallerThanCurrent()) {
             usedVersions.addAll(cacheVersionMapping.getVersionUsedBy(gradleVersion).asSet());
         }

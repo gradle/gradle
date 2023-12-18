@@ -63,6 +63,7 @@ dependencies {
     implementation(project(":normalization-java"))
     implementation(project(":wrapper-shared"))
     implementation(project(":internal-instrumentation-api"))
+    implementation(project(":input-tracking"))
 
     implementation(libs.groovy)
     implementation(libs.groovyAnt)
@@ -157,6 +158,7 @@ dependencies {
     testFixturesImplementation(project(":snapshots"))
     testFixturesImplementation(project(":normalization-java"))
     testFixturesImplementation(project(":enterprise-operations"))
+    testFixturesImplementation(project(":internal-instrumentation-api"))
     testFixturesImplementation(libs.ivy)
     testFixturesImplementation(libs.slf4jApi)
     testFixturesImplementation(libs.guava)

@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
 import java.util.ArrayList;
@@ -35,14 +34,6 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies, ResolutionStrategy.SortOrder sortOrder) {
         this.buildProjectDependencies = buildProjectDependencies;
         this.sortOrder = sortOrder;
-    }
-
-    @Override
-    public void startArtifacts(RootGraphNode root) {
-    }
-
-    @Override
-    public void visitNode(DependencyGraphNode node) {
     }
 
     @Override
@@ -65,10 +56,6 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
         if (artifactSetsById.size() == artifactSetId) {
             artifactSetsById.add(artifacts);
         }
-    }
-
-    @Override
-    public void finishArtifacts() {
     }
 
     public VisitedArtifactsResults complete() {

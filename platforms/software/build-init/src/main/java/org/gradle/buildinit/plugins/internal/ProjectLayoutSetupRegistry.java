@@ -48,6 +48,8 @@ public class ProjectLayoutSetupRegistry {
         registeredProjectDescriptors.put(descriptor.getId(), descriptor);
     }
 
+    // Currently used by `build-logic/build-init-samples/src/main/kotlin/gradlebuild/samples/SamplesGenerator.kt`
+    @SuppressWarnings("unused")
     public TemplateOperationFactory getTemplateOperationFactory() {
         return templateOperationFactory;
     }

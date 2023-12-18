@@ -32,14 +32,15 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     implementation(project(":base-annotations"))
     implementation(project(":base-services"))
-    implementation(project(":enterprise-operations"))
 
     implementation(libs.guava)
     implementation(libs.inject)
 
+    testImplementation(project(":logging"))
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(testFixtures(project(":logging")))
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 
     testFixturesImplementation(project(":enterprise-operations"))
+    testFixturesImplementation(project(":base-services"))
 }

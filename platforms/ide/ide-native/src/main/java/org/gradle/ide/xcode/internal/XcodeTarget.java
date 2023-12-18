@@ -16,7 +16,6 @@
 
 package org.gradle.ide.xcode.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Named;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocation;
@@ -30,6 +29,7 @@ import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget;
 import org.gradle.language.swift.SwiftVersion;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.gradle.ide.xcode.internal.DefaultXcodeProject.BUILD_DEBUG;
@@ -43,11 +43,11 @@ public class XcodeTarget implements Named {
     private final ConfigurableFileCollection headerSearchPaths;
     private final ConfigurableFileCollection compileModules;
     private final ConfigurableFileCollection sources;
-    private final List<TaskDependency> taskDependencies = Lists.newArrayList();
+    private final List<TaskDependency> taskDependencies = new ArrayList<>();
     private String taskName;
     private String gradleCommand;
 
-    private List<XcodeBinary> binaries = Lists.newArrayList();
+    private List<XcodeBinary> binaries = new ArrayList<>();
     private Provider<? extends FileSystemLocation> debugOutputFile;
     private PBXTarget.ProductType productType;
     private String productName;

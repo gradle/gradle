@@ -16,10 +16,11 @@
 
 package org.gradle.internal.component.local.model;
 
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
 import java.io.File;
 
-public interface LocalComponentArtifactMetadata extends ComponentArtifactMetadata {
+public interface LocalComponentArtifactMetadata extends ComponentArtifactMetadata, DisplayName {
     File getFile();
 }

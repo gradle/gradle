@@ -45,9 +45,6 @@ unassigned {
 
 // Gradle Distributions - for testing and for publishing a full distribution
 unassigned {
-    subproject("distributions-core")
-    subproject("distributions-basics")
-    subproject("distributions-native")
     subproject("distributions-full")
 }
 
@@ -57,18 +54,8 @@ unassigned {
     subproject("plugins")
     subproject("build-events")
     subproject("diagnostics")
-    subproject("platform-native")
-    subproject("language-native")
-    subproject("tooling-native")
-    subproject("plugin-use")
-    subproject("plugin-development")
-    subproject("testing-native")
-    subproject("test-kit")
-    subproject("installation-beacon")
     subproject("composite-builds")
     subproject("core-api")
-    subproject("build-profile")
-    subproject("instrumentation-declarations")
 }
 
 // Core Runtime Platform
@@ -78,11 +65,16 @@ platform("core-runtime") {
     subproject("bootstrap")
     subproject("build-operations")
     subproject("build-option")
+    subproject("build-profile")
     subproject("cli")
+    subproject("distributions-basics")
+    subproject("distributions-core")
     subproject("file-temp")
     subproject("files")
     subproject("functional")
+    subproject("installation-beacon")
     subproject("instrumentation-agent")
+    subproject("instrumentation-declarations")
     subproject("internal-instrumentation-api")
     subproject("internal-instrumentation-processor")
     subproject("launcher")
@@ -102,6 +94,7 @@ platform("core-configuration") {
     subproject("base-services-groovy")
     subproject("configuration-cache")
     subproject("file-collections")
+    subproject("input-tracking")
     subproject("kotlin-dsl")
     subproject("kotlin-dsl-provider-plugins")
     subproject("kotlin-dsl-tooling-builders")
@@ -127,6 +120,21 @@ platform("core-execution") {
     subproject("workers")
 }
 
+// Documentation Platform
+platform("documentation") {
+    subproject("docs")
+    subproject("docs-asciidoctor-extensions-base")
+    subproject("docs-asciidoctor-extensions")
+    subproject("samples")
+}
+
+// Extensibility Platform
+platform("extensibility") {
+    subproject("plugin-use")
+    subproject("plugin-development")
+    subproject("test-kit")
+}
+
 // IDE Platform
 platform("ide") {
     subproject("base-ide-plugins")
@@ -137,6 +145,15 @@ platform("ide") {
     subproject("problems-api")
     subproject("tooling-api")
     subproject("tooling-api-builders")
+}
+
+// Native Platform
+platform("native") {
+    subproject("distributions-native")
+    subproject("platform-native")
+    subproject("language-native")
+    subproject("tooling-native")
+    subproject("testing-native")
 }
 
 // Software Platform
@@ -192,7 +209,7 @@ platform("jvm") {
     subproject("war")
 }
 
-// Gradle Enterprise Platform
+// Develocity Platform
 platform("enterprise") {
     subproject("enterprise")
     subproject("enterprise-logging")
@@ -201,12 +218,12 @@ platform("enterprise") {
     subproject("enterprise-workers")
 }
 
+platform("build-infrastructure") {
+    subproject("precondition-tester")
+}
+
 // Internal utility and verification projects
 unassigned {
-    subproject("docs")
-    subproject("docs-asciidoctor-extensions-base")
-    subproject("docs-asciidoctor-extensions")
-    subproject("samples")
     subproject("architecture-test")
     subproject("internal-testing")
     subproject("internal-integ-testing")
@@ -218,7 +235,6 @@ unassigned {
     subproject("soak")
     subproject("smoke-test")
     subproject("performance")
-    subproject("precondition-tester")
 }
 
 rootProject.name = "gradle"

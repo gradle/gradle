@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.attributes.AttributeContainerInternal
@@ -31,19 +32,18 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
-import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal
 import org.gradle.internal.component.AmbiguousGraphVariantsException
 import org.gradle.internal.component.ConfigurationNotFoundException
 import org.gradle.internal.component.IncompatibleGraphVariantsException
 import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude
+import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.problems.TestProblemsUtil.createTestProblems
 import static com.google.common.collect.ImmutableList.copyOf
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
@@ -55,7 +55,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     def setup() {
         attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         factory = AttributeTestUtil.attributesFactory()
-        variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(createTestProblems()))
+        variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(new DocumentationRegistry()))
     }
 
     def "returns this when same target requested"() {
@@ -378,7 +378,7 @@ Configuration 'bar':
         def variant = Stub(VariantGraphResolveState) {
             getName() >> name
             getAttributes() >> attributes
-            getCapabilities() >> Stub(CapabilitiesMetadataInternal)
+            getCapabilities() >> ImmutableCapabilities.EMPTY
         }
         return variant
     }

@@ -97,7 +97,7 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
     }
 
     @Requires(IntegTestPreconditions.NotConfigCached)
-    def "shows warning message when unsupported Gradle Enterprise plugin version is used with configuration caching enabled"() {
+    def "shows warning message when unsupported Develocity plugin version is used with configuration caching enabled"() {
         given:
         plugin.runtimeVersion = pluginVersion
         plugin.artifactVersion = pluginVersion
@@ -108,7 +108,7 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
 
         when:
         if (applied && VersionNumber.parse(pluginVersion) < MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9) {
-            executer.expectDocumentedDeprecationWarning("Gradle Enterprise plugin $pluginVersion has been deprecated. Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
+            executer.expectDocumentedDeprecationWarning("Develocity plugin $pluginVersion has been deprecated. Starting with Gradle 9.0, only Develocity plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
         }
         succeeds("t", "--configuration-cache")
 
@@ -125,7 +125,7 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
     }
 
     @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
-    def "shows warning message when Gradle Enterprise plugin version is used with isolated projects enabled"() {
+    def "shows warning message when Develocity plugin version is used with isolated projects enabled"() {
         given:
         plugin.runtimeVersion = pluginVersion
         plugin.artifactVersion = pluginVersion

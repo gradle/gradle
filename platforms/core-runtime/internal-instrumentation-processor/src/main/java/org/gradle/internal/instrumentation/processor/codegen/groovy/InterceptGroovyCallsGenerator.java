@@ -24,6 +24,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.WildcardTypeName;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
@@ -31,6 +32,7 @@ import org.gradle.internal.instrumentation.model.ParameterKindInfo;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.HasFailures;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
+import org.gradle.internal.instrumentation.processor.codegen.SignatureUtils;
 import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
 import org.gradle.internal.instrumentation.processor.codegen.groovy.CallInterceptorSpecs.CallInterceptorSpec.ConstructorInterceptorSpec;
 import org.gradle.internal.instrumentation.processor.codegen.groovy.CallInterceptorSpecs.CallInterceptorSpec.NamedCallableInterceptorSpec;
@@ -64,26 +66,28 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
     @Override
     protected Consumer<TypeSpec.Builder> classContentForClass(
         String className,
-        Collection<CallInterceptionRequest> requestsClassGroup,
+        List<CallInterceptionRequest> requestsClassGroup,
         Consumer<? super CallInterceptionRequest> onProcessedRequest,
         Consumer<? super HasFailures.FailureInfo> onFailure
     ) {
-        List<TypeSpec> interceptorTypeSpecs = generateInterceptorClasses(requestsClassGroup);
+        List<TypeSpec> interceptorTypeSpecs = generateInterceptorClasses(requestsClassGroup, onFailure);
 
         return builder -> builder
             .addModifiers(Modifier.PUBLIC)
             .addTypes(interceptorTypeSpecs);
     }
 
-    private static List<TypeSpec> generateInterceptorClasses(Collection<CallInterceptionRequest> interceptionRequests) {
+    private static List<TypeSpec> generateInterceptorClasses(Collection<CallInterceptionRequest> interceptionRequests, Consumer<? super HasFailures.FailureInfo> onFailure) {
         List<TypeSpec> result = new ArrayList<>(interceptionRequests.size() / 2);
 
         CallInterceptorSpecs callInterceptorSpecs = GroovyClassGeneratorUtils.groupRequests(interceptionRequests);
         callInterceptorSpecs.getNamedRequests().stream()
+            .peek(spec -> validateRequests(spec.getRequests(), onFailure))
             .map(InterceptGroovyCallsGenerator::generateNamedCallableInterceptorClass)
             .collect(Collectors.toCollection(() -> result));
 
         callInterceptorSpecs.getConstructorRequests().stream()
+            .peek(spec -> validateRequests(spec.getRequests(), onFailure))
             .map(InterceptGroovyCallsGenerator::generateConstructorInterceptorClass)
             .collect(Collectors.toCollection(() -> result));
 
@@ -91,11 +95,11 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
     }
 
     private static TypeSpec generateNamedCallableInterceptorClass(NamedCallableInterceptorSpec spec) {
-        return generateInterceptorClass(spec.getClassName(), namedCallableScopesArgs(spec.getName(), spec.getRequests()), spec.getRequests()).build();
+        return generateInterceptorClass(spec.getClassName(), spec.getInterceptorType(), namedCallableScopesArgs(spec.getName(), spec.getRequests()), spec.getRequests()).build();
     }
 
     private static TypeSpec generateConstructorInterceptorClass(ConstructorInterceptorSpec spec) {
-        return generateInterceptorClass(spec.getClassName(), constructorScopeArg(TypeUtils.typeName(spec.getConstructorType())), spec.getRequests()).build();
+        return generateInterceptorClass(spec.getClassName(), spec.getInterceptorType(), constructorScopeArg(TypeUtils.typeName(spec.getConstructorType())), spec.getRequests()).build();
     }
 
     private static SignatureTree signatureTreeFromRequests(Collection<CallInterceptionRequest> requests) {
@@ -104,13 +108,13 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         return result;
     }
 
-    private static TypeSpec.Builder generateInterceptorClass(String className, CodeBlock scopes, List<CallInterceptionRequest> requests) {
+    private static TypeSpec.Builder generateInterceptorClass(String className, BytecodeInterceptorType interceptorType, CodeBlock scopes, List<CallInterceptionRequest> requests) {
         TypeSpec.Builder generatedClass = TypeSpec.classBuilder(className)
             .superclass(CALL_INTERCEPTOR_CLASS)
             .addSuperinterface(SIGNATURE_AWARE_CALL_INTERCEPTOR_CLASS)
+            .addSuperinterface(interceptorType.getInterceptorMarkerInterface())
             .addJavadoc(interceptorClassJavadoc(requests))
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC);
-
 
         MethodSpec constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC).addStatement("super($L)", scopes).build();
         generatedClass.addMethod(constructor);
@@ -154,6 +158,14 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         }
 
         return generatedClass;
+    }
+
+    private static void validateRequests(List<CallInterceptionRequest> requests, Consumer<? super HasFailures.FailureInfo> onFailure) {
+        for (CallInterceptionRequest request : requests) {
+            if (SignatureUtils.hasInjectVisitorContext(request.getInterceptedCallable())) {
+                onFailure.accept(new HasFailures.FailureInfo(request, "Parameter with @InjectVisitorContext annotation is not supported for Groovy interception."));
+            }
+        }
     }
 
     private static boolean hasGroovyPropertyRequests(List<CallInterceptionRequest> requests) {

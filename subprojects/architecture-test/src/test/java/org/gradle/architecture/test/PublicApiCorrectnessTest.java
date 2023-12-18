@@ -28,8 +28,10 @@ import kotlin.Pair;
 import kotlin.jvm.functions.Function1;
 import kotlin.reflect.KClass;
 import kotlin.reflect.KProperty;
+import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
+import org.gradle.api.specs.Spec;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
@@ -40,6 +42,7 @@ import java.time.Duration;
 import java.util.function.BiFunction;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.implement;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
@@ -53,6 +56,7 @@ import static org.gradle.architecture.test.ArchUnitFixture.gradlePublicApi;
 import static org.gradle.architecture.test.ArchUnitFixture.haveDirectSuperclassOrInterfaceThatAre;
 import static org.gradle.architecture.test.ArchUnitFixture.haveOnlyArgumentsOrReturnTypesThatAre;
 import static org.gradle.architecture.test.ArchUnitFixture.not_written_in_kotlin;
+import static org.gradle.architecture.test.ArchUnitFixture.overrideMethod;
 import static org.gradle.architecture.test.ArchUnitFixture.primitive;
 import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
 import static org.gradle.architecture.test.ArchUnitFixture.useJavaxAnnotationNullable;
@@ -101,6 +105,7 @@ public class PublicApiCorrectnessTest {
             .that(are(public_api_tasks_or_plugins))
             .should(beAbstract());
 
+
     @ArchTest
     public static final ArchRule public_api_classes_do_not_extend_internal_types = freeze(classes()
         .that(are(gradlePublicApi()))
@@ -116,4 +121,9 @@ public class PublicApiCorrectnessTest {
             .that(are(not_written_in_kotlin))
             .should(useJavaxAnnotationNullable()
     );
+
+    @ArchTest
+    public static final ArchRule named_domain_object_collection_implementations_override_named_method = classes()
+        .that(implement(NamedDomainObjectCollection.class))
+        .should(overrideMethod("named", new Class<?>[] {Spec.class}, NamedDomainObjectCollection.class));
 }

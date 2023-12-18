@@ -37,6 +37,7 @@ import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.internal.Describables
+import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -51,7 +52,7 @@ class CalculateArtifactsCodec(
     override suspend fun WriteContext.encode(value: AbstractTransformedArtifactSet.CalculateArtifacts) {
         write(value.ownerId)
         write(value.targetVariantAttributes)
-        writeCollection(value.capabilities)
+        writeCollection(value.capabilities.asSet())
         val files = mutableListOf<Artifact>()
         value.delegate.visitExternalArtifacts { files.add(Artifact(file, artifactName.classifier)) }
         write(files)
@@ -69,7 +70,7 @@ class CalculateArtifactsCodec(
             ownerId,
             FixedFilesArtifactSet(ownerId, files, calculatedValueContainerFactory),
             targetAttributes,
-            capabilities,
+            ImmutableCapabilities.of(capabilities),
             ImmutableList.copyOf(steps.map { BoundTransformStep(it.transformStep, it.recreateDependencies()) })
         )
     }
@@ -97,7 +98,7 @@ class CalculateArtifactsCodec(
         override fun visit(visitor: ArtifactVisitor) {
             val displayName = Describables.of(ownerId)
             for (artifact in artifacts) {
-                visitor.visitArtifact(displayName, ImmutableAttributes.EMPTY, emptyList(), artifact)
+                visitor.visitArtifact(displayName, ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, artifact)
             }
         }
 
@@ -115,7 +116,7 @@ class CalculateArtifactsCodec(
         val artifacts by lazy {
             files.map { file ->
                 val artifactId = ComponentFileArtifactIdentifier(ownerId, file.file.name)
-                PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file.file, file.classifier), artifactId, calculatedValueContainerFactory.create(Describables.of(artifactId), file.file), TaskDependencyContainer.EMPTY, calculatedValueContainerFactory)
+                PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file.file, file.classifier), artifactId, file.file, TaskDependencyContainer.EMPTY, calculatedValueContainerFactory)
             }
         }
     }

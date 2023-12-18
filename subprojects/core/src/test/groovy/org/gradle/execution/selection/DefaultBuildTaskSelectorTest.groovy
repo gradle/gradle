@@ -274,7 +274,7 @@ class DefaultBuildTaskSelectorTest extends Specification {
         def defaultProjectState = Mock(ProjectState)
         def rootProjectState = Mock(ProjectState)
 
-        build.projectsLoaded >> true
+        build.projectsCreated >> true
         build.mutableModel >> gradle
         gradle.defaultProject >> defaultProject
         defaultProject.owner >> defaultProjectState
@@ -292,12 +292,14 @@ class DefaultBuildTaskSelectorTest extends Specification {
 
         build.projects >> projects
         projects.rootProject >> rootProjectState
+        projects.allProjects >> [rootProjectState]
         rootProjectState.name >> "root"
         rootProjectState.displayName >> Describables.of("<root project>")
         rootProjectState.projectPath >> Path.ROOT
         rootProjectState.identityPath >> Path.ROOT
         rootProjectState.owner >> build
         rootProjectState.childProjects >> rootChildProjects
+        rootProjectState.created >> true
 
         return new RootBuildFixture(build, rootProjectState, rootChildProjects, defaultProjectState)
     }

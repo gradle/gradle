@@ -61,6 +61,9 @@ val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
             "CppMultiProjectGeneratorTask",
             "BuildBuilderGenerator",
             "GenerateSamplePageAsciidoc",
+            "PerformanceTest",
+            "BuildCommitDistribution",
+            "DetermineBaselines",
         ) -> true
 
         // Third parties tasks

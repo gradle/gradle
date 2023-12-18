@@ -31,8 +31,8 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.problems.buildtree.ProblemReporter
+import org.gradle.problems.buildtree.ProblemReporter.ProblemConsumer
 import java.io.File
-import java.util.function.Consumer
 
 
 @ServiceScope(Scopes.BuildTree::class)
@@ -142,7 +142,7 @@ class ConfigurationCacheProblems(
      * Writes the report to the given [reportDir] if any [diagnostics][DiagnosticKind] have
      * been reported in which case a warning is also logged with the location of the report.
      */
-    override fun report(reportDir: File, validationFailures: Consumer<in Throwable>) {
+    override fun report(reportDir: File, validationFailures: ProblemConsumer) {
         val summary = summarizer.get()
         val failDueToProblems = summary.failureCount > 0 && isFailOnProblems
         val hasTooManyProblems = hasTooManyProblems(summary)

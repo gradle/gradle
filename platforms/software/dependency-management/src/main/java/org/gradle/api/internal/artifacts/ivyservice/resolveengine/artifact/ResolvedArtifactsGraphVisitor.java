@@ -20,7 +20,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
@@ -59,17 +58,8 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     }
 
     @Override
-    public void start(RootGraphNode root) {
-        artifactResults.startArtifacts(root);
-    }
-
-    @Override
     public void visitNode(DependencyGraphNode node) {
         artifactResults.visitNode(node);
-    }
-
-    @Override
-    public void visitSelector(DependencyGraphSelector selector) {
     }
 
     @Override
@@ -88,8 +78,8 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     }
 
     @Override
-    public void finish(DependencyGraphNode root) {
-        artifactResults.finishArtifacts();
+    public void finish(RootGraphNode root) {
+        artifactResults.finishArtifacts(root);
         artifactsByNodeId.clear();
     }
 

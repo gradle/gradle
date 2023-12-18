@@ -39,7 +39,7 @@ public class HandleInvalidateVirtualFileSystem implements DaemonCommandAction {
             gradleUserHomeScopeServiceRegistry.getCurrentServices().ifPresent(currentServices -> {
                 LOGGER.info("Invalidating {}", command.getChangedPaths());
                 FileSystemAccess fileSystemAccess = currentServices.get(FileSystemAccess.class);
-                fileSystemAccess.write(command.getChangedPaths(), () -> {});
+                fileSystemAccess.invalidate(command.getChangedPaths());
             });
             execution.getConnection().completed(new Success(null));
         } else {

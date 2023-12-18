@@ -38,8 +38,10 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.provider.MergeProvider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.internal.component.MavenPublishingAwareVariant;
 import org.gradle.api.publish.internal.mapping.ComponentDependencyResolver;
 import org.gradle.api.publish.internal.mapping.DependencyCoordinateResolverFactory;
@@ -55,6 +57,7 @@ import org.gradle.api.publish.maven.internal.dependencies.MavenDependency;
 import org.gradle.api.publish.maven.internal.dependencies.MavenPomDependencies;
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
 import org.gradle.api.publish.maven.internal.validation.MavenPublicationErrorChecker;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
@@ -63,7 +66,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -119,7 +125,7 @@ public class MavenComponentParser {
     public Set<MavenArtifact> parseArtifacts(SoftwareComponentInternal component) {
         // TODO Artifact names should be determined by the source variant. We shouldn't
         //      blindly "pass-through" the artifact file name.
-        Set<ArtifactKey> seenArtifacts = Sets.newHashSet();
+        Set<ArtifactKey> seenArtifacts = new HashSet<>();
         return createSortedVariantsStream(component)
             .flatMap(variant -> variant.getArtifacts().stream())
             .filter(artifact -> {
@@ -130,92 +136,116 @@ public class MavenComponentParser {
             .collect(Collectors.toSet());
     }
 
-    public ParsedDependencyResult parseDependencies(
+    public Provider<ParsedDependencyResult> parseDependencies(
         SoftwareComponentInternal component,
         VersionMappingStrategyInternal versionMappingStrategy,
         ModuleVersionIdentifier coordinates
     ) {
         MavenPublicationErrorChecker.checkForUnpublishableAttributes(component, documentationRegistry);
 
-        PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(
-            LOG, UNSUPPORTED_FEATURE, INCOMPATIBLE_FEATURE, PUBLICATION_WARNING_FOOTER, "suppressPomMetadataWarningsFor");
+        List<Provider<ParsedVariantDependencyResult>> parsedVariants = createSortedVariantsStream(component)
+            .map(variant -> dependencyCoordinateResolverFactory
+                .createCoordinateResolvers(variant, versionMappingStrategy)
+                .map(resolvers -> getDependenciesForVariant(variant, resolvers, coordinates))
+            ).collect(Collectors.toList());
 
-        Set<MavenDependencyKey> seenDependencies = Sets.newHashSet();
-        Set<MavenDependencyKey> seenPlatforms = Sets.newHashSet();
-        Set<DependencyConstraint> seenConstraints = Sets.newHashSet();
+        return new MergeProvider<>(parsedVariants).map(variants -> {
+            List<MavenDependency> dependencies = new ArrayList<>();
+            List<MavenDependency> constraints = new ArrayList<>();
+            List<MavenDependency> platforms = new ArrayList<>();
+
+            Set<MavenDependencyKey> seenDependencies = new HashSet<>();
+            Set<MavenDependencyKey> seenPlatforms = new HashSet<>();
+            Set<MavenDependencyKey> seenConstraints = new HashSet<>();
+
+            Map<String, VariantWarningCollector> warnings = new HashMap<>();
+
+            for (ParsedVariantDependencyResult variant : variants) {
+                for (MavenDependency dependency : variant.dependencies) {
+                    if (seenDependencies.add(MavenDependencyKey.of(dependency))) {
+                        dependencies.add(dependency);
+                    }
+                }
+                for (MavenDependency platform : variant.platforms) {
+                    if (seenPlatforms.add(MavenDependencyKey.of(platform))) {
+                        platforms.add(platform);
+                    }
+                }
+                for (MavenDependency dep : variant.constraints) {
+                    if (seenConstraints.add(MavenDependencyKey.of(dep))) {
+                        constraints.add(dep);
+                    }
+                }
+
+                warnings.put(variant.name, variant.warnings);
+            }
+
+            return new ParsedDependencyResult(
+                new DefaultMavenPomDependencies(
+                    ImmutableList.copyOf(dependencies),
+                    ImmutableList.<MavenDependency>builder().addAll(constraints).addAll(platforms).build()
+                ),
+                new PublicationWarningsCollector(warnings, LOG, UNSUPPORTED_FEATURE, INCOMPATIBLE_FEATURE, PUBLICATION_WARNING_FOOTER, "suppressPomMetadataWarningsFor")
+            );
+        });
+    }
+
+    private ParsedVariantDependencyResult getDependenciesForVariant(
+        SoftwareComponentVariant variant,
+        DependencyCoordinateResolverFactory.DependencyResolvers resolvers,
+        ModuleVersionIdentifier coordinates
+    ) {
+        VariantWarningCollector warnings = new VariantWarningCollector();
 
         List<MavenDependency> dependencies = new ArrayList<>();
         List<MavenDependency> constraints = new ArrayList<>();
         List<MavenDependency> platforms = new ArrayList<>();
 
-        createSortedVariantsStream(component).forEach(variant -> {
-            VariantWarningCollector warnings = publicationWarningsCollector.warningCollectorFor(variant.getName());
-            MavenPublishingAwareVariant.ScopeMapping scopeMapping = MavenPublishingAwareVariant.scopeForVariant(variant);
-            String scope = scopeMapping.getScope();
-            boolean optional = scopeMapping.isOptional();
-            Set<ExcludeRule> globalExcludes = variant.getGlobalExcludes();
+        MavenPublishingAwareVariant.ScopeMapping scopeMapping = MavenPublishingAwareVariant.scopeForVariant(variant);
+        String scope = scopeMapping.getScope();
+        boolean optional = scopeMapping.isOptional();
+        Set<ExcludeRule> globalExcludes = variant.getGlobalExcludes();
 
-            DependencyCoordinateResolverFactory.DependencyResolvers resolvers = dependencyCoordinateResolverFactory.createCoordinateResolvers(variant, versionMappingStrategy);
-            MavenDependencyFactory dependencyFactory = new MavenDependencyFactory(
-                warnings,
-                resolvers.getVariantResolver(),
-                resolvers.getComponentResolver(),
-                versionRangeMapper,
-                scope,
-                optional,
-                globalExcludes
-            );
-
-            Consumer<MavenDependency> dependencyAdder = dep -> {
-                if (seenDependencies.add(MavenDependencyKey.of(dep))) {
-                    dependencies.add(dep);
-                }
-            };
-            Consumer<MavenDependency> platformsAdder = dep -> {
-                if (seenPlatforms.add(MavenDependencyKey.of(dep))) {
-                    platforms.add(dep);
-                }
-            };
-
-            for (ModuleDependency dependency : variant.getDependencies()) {
-                if (isDependencyWithDefaultArtifact(dependency) && dependencyMatchesProject(dependency, coordinates)) {
-                    // We skip all self referencing dependency declarations, unless they have custom artifact information
-                    continue;
-                }
-                if (platformSupport.isTargetingPlatform(dependency)) {
-                    dependencyFactory.convertImportDependencyConstraint(dependency, platformsAdder);
-                } else {
-                    dependencyFactory.convertDependency(dependency, dependencyAdder);
-                }
-            }
-
-            for (DependencyConstraint dependency : variant.getDependencyConstraints()) {
-                if (seenConstraints.add(dependency)) { // TODO: De-duplicate constraints like we do with MavenDependencyKey
-                    if (dependency instanceof DefaultProjectDependencyConstraint || dependency.getVersion() != null) {
-                        dependencyFactory.convertDependencyConstraint(dependency, constraints::add);
-                    } else {
-                        // Some dependency constraints, like those with rejectAll() have no version and do not map to Maven.
-                        warnings.addIncompatible(String.format("constraint %s:%s declared with a Maven incompatible version notation", dependency.getGroup(), dependency.getName()));
-                    }
-                }
-            }
-
-            if (!variant.getCapabilities().isEmpty()) {
-                for (Capability capability : variant.getCapabilities()) {
-                    if (isNotDefaultCapability(capability, coordinates)) {
-                        warnings.addVariantUnsupported(String.format("Declares capability %s:%s:%s which cannot be mapped to Maven", capability.getGroup(), capability.getName(), capability.getVersion()));
-                    }
-                }
-            }
-        });
-
-        return new ParsedDependencyResult(
-            new DefaultMavenPomDependencies(
-                ImmutableList.copyOf(dependencies),
-                ImmutableList.<MavenDependency>builder().addAll(constraints).addAll(platforms).build()
-            ),
-            publicationWarningsCollector
+        MavenDependencyFactory dependencyFactory = new MavenDependencyFactory(
+            warnings,
+            resolvers.getVariantResolver(),
+            resolvers.getComponentResolver(),
+            versionRangeMapper,
+            scope,
+            optional,
+            globalExcludes
         );
+
+        for (ModuleDependency dependency : variant.getDependencies()) {
+            if (isDependencyWithDefaultArtifact(dependency) && dependencyMatchesProject(dependency, coordinates)) {
+                // We skip all self referencing dependency declarations, unless they have custom artifact information
+                continue;
+            }
+            if (platformSupport.isTargetingPlatform(dependency)) {
+                dependencyFactory.convertImportDependencyConstraint(dependency, platforms::add);
+            } else {
+                dependencyFactory.convertDependency(dependency, dependencies::add);
+            }
+        }
+
+        for (DependencyConstraint dependency : variant.getDependencyConstraints()) {
+            if (dependency instanceof DefaultProjectDependencyConstraint || dependency.getVersion() != null) {
+                dependencyFactory.convertDependencyConstraint(dependency, constraints::add);
+            } else {
+                // Some dependency constraints, like those with rejectAll() have no version and do not map to Maven.
+                warnings.addIncompatible(String.format("constraint %s:%s declared with a Maven incompatible version notation", dependency.getGroup(), dependency.getName()));
+            }
+        }
+
+        if (!variant.getCapabilities().isEmpty()) {
+            for (Capability capability : variant.getCapabilities()) {
+                if (isNotDefaultCapability(capability, coordinates)) {
+                    warnings.addVariantUnsupported(String.format("Declares capability %s:%s:%s which cannot be mapped to Maven", capability.getGroup(), capability.getName(), capability.getVersion()));
+                }
+            }
+        }
+
+        return new ParsedVariantDependencyResult(variant.getName(), dependencies, platforms, constraints, warnings);
     }
 
     private static boolean isNotDefaultCapability(Capability capability, ModuleVersionIdentifier coordinates) {
@@ -302,9 +332,13 @@ public class MavenComponentParser {
             for (DependencyArtifact artifact : dependency.getArtifacts()) {
                 ResolvedCoordinates artifactCoordinates = coordinates;
                 if (!artifact.getName().equals(dependency.getName())) {
-                    // TODO: We should not allow the artifact name to change the coordinates.
-                    //  Artifacts with name different from the coordinate name is not supported in Maven.
-                    //  This behavior should be deprecated.
+                    DeprecationLogger.deprecateBehaviour("Publishing a dependency with an artifact name different from the dependency's artifactId.")
+                        .withContext("This functionality is only supported by Ivy repositories.")
+                        .withAdvice(String.format("Declare a dependency with artifactId '%s' instead of '%s'.", artifact.getName(), dependency.getName()))
+                        .willBecomeAnErrorInGradle9()
+                        .withUpgradeGuideSection(8, "publishing_artifact_name_different_from_artifact_id_maven")
+                        .nagUser();
+
                     artifactCoordinates = ResolvedCoordinates.create(
                         coordinates.getGroup(),
                         artifact.getName(),
@@ -409,6 +443,9 @@ public class MavenComponentParser {
         }
     }
 
+    /**
+     * Parsed dependencies for all variants.
+     */
     public static class ParsedDependencyResult {
         private final MavenPomDependencies dependencies;
         private final PublicationWarningsCollector warnings;
@@ -427,6 +464,31 @@ public class MavenComponentParser {
 
         public PublicationWarningsCollector getWarnings() {
             return warnings;
+        }
+    }
+
+    /**
+     * Parsed dependencies for a single variant.
+     */
+    private static class ParsedVariantDependencyResult {
+        private final String name;
+        private final List<MavenDependency> dependencies;
+        private final List<MavenDependency> platforms;
+        private final List<MavenDependency> constraints;
+        private final VariantWarningCollector warnings;
+
+        public ParsedVariantDependencyResult(
+            String name,
+            List<MavenDependency> dependencies,
+            List<MavenDependency> platforms,
+            List<MavenDependency> constraints,
+            VariantWarningCollector warnings
+        ) {
+            this.name = name;
+            this.dependencies = dependencies;
+            this.platforms = platforms;
+            this.constraints = constraints;
+            this.warnings = warnings;
         }
     }
 

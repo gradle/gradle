@@ -292,7 +292,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         and:
         fixture.assertStateStored {
             projectConfigured(":buildSrc")
-            modelsCreated(":")
+            modelsCreated(":", 2) // Requested `GradleProject` and intermediate `IsolatedGradleProject`
         }
         outputContains("configuring build")
         outputDoesNotContain("creating model")
@@ -321,5 +321,70 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         fixture.assertStateLoaded()
         outputDoesNotContain("configuring build")
         outputDoesNotContain("creating model")
+    }
+
+    def "can store fingerprint for reused projects"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        settingsFile << """
+            include("a")
+            include("b")
+        """
+        // Materializing of `ValueSource` at configuration time is leading to serializing its `Class`
+        file("a/build.gradle") << """
+            import org.gradle.api.provider.ValueSourceParameters
+
+            plugins.apply(my.MyPlugin)
+
+            abstract class MyValueSource implements ValueSource<String, ValueSourceParameters.None> {
+
+                @Override
+                String obtain() {
+                    return "Foo"
+                }
+            }
+
+            def a = providers.of(MyValueSource) {}
+            println(a.get())
+        """
+
+        file("b/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        fixture.assertStateStored {
+            projectsConfigured(":buildSrc", ":", ":a", ":b")
+            buildModelCreated()
+            modelsCreated(":a", ":b")
+        }
+
+        when:
+        file("buildSrc/build.gradle") << """
+            // change it
+        """
+
+        and:
+        executer.withArguments(ENABLE_CLI)
+        runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        fixture.assertStateUpdated {
+            fileChanged("buildSrc/build.gradle")
+            projectsConfigured(":buildSrc")
+            modelsCreated()
+            modelsReused(":a", ":b", ":")
+        }
+
+        and:
+        executer.withArguments(ENABLE_CLI)
+        runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        fixture.assertStateLoaded()
     }
 }

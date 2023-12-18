@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.junit.Rule
+import spock.lang.Issue
 
 import static org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants.DEFAULT_PROJECT_OUTPUT_PATH
 
@@ -221,5 +222,42 @@ class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpe
         then:
         EclipseClasspathFixture classpath = classpath('.')
         classpath.lib('guava-18.0.jar').assertHasAttribute('gradle_used_by_scope', 'integTest')
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/19529')
+    @ToBeFixedForConfigurationCache
+    def "Supports multi-value ClasspathEntry attributes"() {
+        setup:
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'eclipse'
+            }
+            eclipse {
+                classpath {
+                    file {
+                        whenMerged { classpath ->
+                            classpath.entries.findAll { it.kind == 'con' && it.path.startsWith('org.eclipse.jdt.launching.JRE_CONTAINER') }.each { con ->
+                                con.entryAttributes['add-exports'] = [
+                                    'java.base/jdk.internal.access=ALL-UNNAMED',
+                                    'java.base/jdk.internal.loader=ALL-UNNAMED'
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        run 'eclipse'
+
+        then:
+        EclipseClasspathFixture classpath = classpath('.')
+
+        def container = classpath.entries.find { it.@kind == 'con' }
+        container.attributes.attribute.size() == 2
+        container.attributes.attribute.find { it.@name == 'add-exports' && it.@value == 'java.base/jdk.internal.access=ALL-UNNAMED' }
+        container.attributes.attribute.find { it.@name == 'add-exports' && it.@value == 'java.base/jdk.internal.loader=ALL-UNNAMED' }
     }
 }

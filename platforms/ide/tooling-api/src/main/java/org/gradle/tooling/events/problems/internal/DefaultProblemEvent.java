@@ -18,18 +18,18 @@ package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.internal.BaseProgressEvent;
-import org.gradle.tooling.events.problems.ProblemDescriptor;
+import org.gradle.tooling.events.problems.BaseProblemDescriptor;
 import org.gradle.tooling.events.problems.ProblemEvent;
 
 @NonNullApi
 public class DefaultProblemEvent extends BaseProgressEvent implements ProblemEvent {
-    public DefaultProblemEvent(long eventTime, ProblemDescriptor problemDescriptor) {
+    public DefaultProblemEvent(long eventTime, BaseProblemDescriptor problemDescriptor) {
         super(eventTime, problemDescriptor.getDisplayName(), problemDescriptor);
     }
 
     @Override
-    public ProblemDescriptor getDescriptor() {
-        return (ProblemDescriptor) super.getDescriptor();
+    public BaseProblemDescriptor getDescriptor() {
+        return (BaseProblemDescriptor) super.getDescriptor();
     }
 
 }

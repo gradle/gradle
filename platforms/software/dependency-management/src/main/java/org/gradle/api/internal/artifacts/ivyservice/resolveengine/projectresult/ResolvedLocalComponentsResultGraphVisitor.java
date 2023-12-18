@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 
@@ -50,18 +49,6 @@ public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGrap
                 resolvedProjectConfigurations.add(new DefaultResolvedProjectConfiguration(projectComponentId, node.getResolvedConfigurationId().getConfiguration()));
             }
         }
-    }
-
-    @Override
-    public void visitSelector(DependencyGraphSelector selector) {
-    }
-
-    @Override
-    public void visitEdges(DependencyGraphNode node) {
-    }
-
-    @Override
-    public void finish(DependencyGraphNode root) {
     }
 
     @Override

@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.testing;
 
-import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.StartParameter;
@@ -93,6 +92,7 @@ import org.gradle.util.internal.ConfigureUtil;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -734,7 +734,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
     @Override
     protected List<String> getNoMatchingTestErrorReasons() {
-        List<String> reasons = Lists.newArrayList();
+        List<String> reasons = new ArrayList<>();
         if (!getIncludes().isEmpty()) {
             reasons.add(getIncludes() + "(include rules)");
         }
@@ -1276,6 +1276,35 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Nested
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
+    }
+
+    @Override
+    boolean testsAreNotFiltered() {
+        return super.testsAreNotFiltered()
+            && noCategoryOrTagOrGroupSpecified();
+    }
+
+    private boolean noCategoryOrTagOrGroupSpecified() {
+        TestFrameworkOptions frameworkOptions = getTestFramework().getOptions();
+        if (frameworkOptions == null) {
+            return true;
+        }
+
+        if (JUnitOptions.class.isAssignableFrom(frameworkOptions.getClass())) {
+            JUnitOptions junitOptions = (JUnitOptions) frameworkOptions;
+            return junitOptions.getIncludeCategories().isEmpty()
+                && junitOptions.getExcludeCategories().isEmpty();
+        } else if (JUnitPlatformOptions.class.isAssignableFrom(frameworkOptions.getClass())) {
+            JUnitPlatformOptions junitPlatformOptions = (JUnitPlatformOptions) frameworkOptions;
+            return junitPlatformOptions.getIncludeTags().isEmpty()
+                && junitPlatformOptions.getExcludeTags().isEmpty();
+        } else if (TestNGOptions.class.isAssignableFrom(frameworkOptions.getClass())) {
+            TestNGOptions testNGOptions = (TestNGOptions) frameworkOptions;
+            return testNGOptions.getIncludeGroups().isEmpty()
+                && testNGOptions.getExcludeGroups().isEmpty();
+        } else {
+            throw new IllegalArgumentException("Unknown test framework: " + frameworkOptions.getClass().getName());
+        }
     }
 
     @Inject

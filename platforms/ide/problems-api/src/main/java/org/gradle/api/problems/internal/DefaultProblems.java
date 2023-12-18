@@ -16,85 +16,48 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemBuilder;
-import org.gradle.api.problems.ProblemBuilderSpec;
-import org.gradle.api.problems.ProblemTransformer;
-import org.gradle.api.problems.ReportableProblem;
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.api.problems.ProblemReporter;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.problems.buildtree.ProblemStream;
 
 import java.util.Collections;
 import java.util.List;
 
-import static org.gradle.internal.problems.NoOpProblemDiagnosticsFactory.EMPTY_STREAM;
-
 @ServiceScope(Scopes.BuildTree.class)
 public class DefaultProblems implements InternalProblems {
-    private final BuildOperationProgressEventEmitter buildOperationProgressEventEmitter;
+
+    private ProblemEmitter emitter;
     private final List<ProblemTransformer> transformers;
-    private final ProblemStream problemStream;
+    private final InternalProblemReporter internalReporter;
 
-    public DefaultProblems(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
-        this(buildOperationProgressEventEmitter, Collections.<ProblemTransformer>emptyList(), EMPTY_STREAM);
+    public DefaultProblems(ProblemEmitter emitter) {
+        this(emitter, Collections.<ProblemTransformer>emptyList());
     }
 
-    public DefaultProblems(
-        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
-        List<ProblemTransformer> transformers,
-        ProblemStream problemStream
-    ) {
-        this.buildOperationProgressEventEmitter = buildOperationProgressEventEmitter;
+    public DefaultProblems(ProblemEmitter emitter, List<ProblemTransformer> transformers) {
+        this.emitter = emitter;
         this.transformers = transformers;
-        this.problemStream = problemStream;
+        internalReporter = createReporter(DefaultProblemCategory.GRADLE_CORE_NAMESPACE, emitter, transformers);
+    }
+
+    public void setEmitter(ProblemEmitter emitter) {
+        this.emitter = emitter;
     }
 
     @Override
-    public DefaultBuildableProblemBuilder createProblemBuilder() {
-        return new DefaultBuildableProblemBuilder(this);
-    }
-
-    @Override
-    public ProblemStream getProblemStream() {
-        return problemStream;
-    }
-
-    @Override
-    public RuntimeException throwing(ProblemBuilderSpec action) {
-        DefaultBuildableProblemBuilder defaultProblemBuilder = createProblemBuilder();
-        action.apply(defaultProblemBuilder);
-        throw throwError(defaultProblemBuilder.getException(), defaultProblemBuilder.build());
-    }
-
-    @Override
-    public RuntimeException rethrowing(RuntimeException e, ProblemBuilderSpec action) {
-        DefaultBuildableProblemBuilder defaultProblemBuilder = createProblemBuilder();
-        ProblemBuilder problemBuilder = action.apply(defaultProblemBuilder);
-        problemBuilder.withException(e);
-        throw throwError(e, defaultProblemBuilder.build());
-    }
-
-    @Override
-    public ReportableProblem create(ProblemBuilderSpec action) {
-        DefaultBuildableProblemBuilder defaultProblemBuilder = createProblemBuilder();
-        action.apply(defaultProblemBuilder);
-        return defaultProblemBuilder.build();
-    }
-
-    public RuntimeException throwError(RuntimeException exception, Problem problem) {
-        reportAsProgressEvent(problem);
-        throw exception;
-    }
-
-    @Override
-    public void reportAsProgressEvent(Problem problem) {
-        // Transform the problem with all registered transformers
-        for (ProblemTransformer transformer : transformers) {
-            problem = transformer.transform(problem);
+    public ProblemReporter forNamespace(String namespace) {
+        if (DefaultProblemCategory.GRADLE_CORE_NAMESPACE.equals(namespace)) {
+            throw new IllegalStateException("Cannot use " + DefaultProblemCategory.GRADLE_CORE_NAMESPACE + " namespace.");
         }
+        return createReporter(namespace, emitter, transformers);
+    }
 
-        buildOperationProgressEventEmitter.emitNowIfCurrent(new DefaultProblemProgressDetails(problem));
+    private static DefaultProblemReporter createReporter(String namespace, ProblemEmitter emitter, List<ProblemTransformer> transformers) {
+        return new DefaultProblemReporter(emitter, transformers, namespace);
+    }
+
+    @Override
+    public InternalProblemReporter getInternalReporter() {
+        return internalReporter;
     }
 }

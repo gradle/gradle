@@ -17,7 +17,8 @@
 package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.OperationDescriptor;
+
+import java.util.List;
 
 /**
  * Describes a problem operation.
@@ -28,12 +29,69 @@ import org.gradle.tooling.events.OperationDescriptor;
  * @since 8.4
  */
 @Incubating
-public interface ProblemDescriptor extends OperationDescriptor {
+public interface ProblemDescriptor extends BaseProblemDescriptor {
 
     /**
-     * The problem properties in JSON format.
+     * Returns the problem category.
      *
-     * @return the problem properties.
+     * @return the problem category
+     * @since 8.6
      */
-    String getJson();
+    ProblemCategory getCategory();
+
+    /**
+     * Returns the problem label.
+     *
+     * @return the problem label
+     * @since 8.6
+     */
+    Label getLabel();
+
+    /**
+     * Returns the details string.
+     *
+     * @return the problem details
+     * @since 8.6
+     */
+    Details getDetails();
+
+    /**
+     * Returns the problem severity.
+     *
+     * @return the problem severity
+     * @since 8.6
+     */
+    Severity getSeverity();
+
+    /**
+     * Returns the locations associated with this problem.
+     *
+     * @return the locations
+     * @since 8.6
+     */
+    List<Location> getLocations();
+
+    /**
+     * Returns the link to the documentation
+     *
+     * @return the locations
+     * @since 8.6
+     */
+    DocumentationLink getDocumentationLink();
+
+    /**
+     * Returns the list of solutions.
+     *
+     * @return the solutions
+     * @since 8.6
+     */
+    List<Solution> getSolutions();
+
+    /**
+     * Returns the exception associated with this problem.
+     *
+     * @return the exception
+     * @since 8.6
+     */
+    ExceptionContainer getException();
 }

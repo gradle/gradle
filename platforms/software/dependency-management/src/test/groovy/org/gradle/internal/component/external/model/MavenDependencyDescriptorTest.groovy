@@ -40,6 +40,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
 import org.gradle.internal.component.ExternalConfigurationNotFoundException
+import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
@@ -84,6 +85,7 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     }
 
     def "selects compile and master configurations from target when traversing from compile configuration"() {
+        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def fromCompile = Stub(ModuleConfigurationMetadata)
@@ -94,10 +96,11 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
         expect:
-        dep.selectLegacyConfigurations(fromComponent, fromCompile, toComponent).variants == [toCompile, toMaster]
+        dep.selectLegacyConfigurations(fromComponent, fromCompile, toComponent, resolutionFailureHandler).variants == [toCompile, toMaster]
     }
 
     def "selects compile, runtime and master configurations from target when traversing from other configuration"() {
+        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def fromRuntime = Stub(ModuleConfigurationMetadata)
@@ -111,11 +114,12 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
         expect:
-        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toComponent).variants == [toRuntime, toCompile, toMaster]
-        dep.selectLegacyConfigurations(fromComponent, fromRuntime2, toComponent).variants == [toRuntime, toCompile, toMaster]
+        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toComponent, resolutionFailureHandler).variants == [toRuntime, toCompile, toMaster]
+        dep.selectLegacyConfigurations(fromComponent, fromRuntime2, toComponent, resolutionFailureHandler).variants == [toRuntime, toCompile, toMaster]
     }
 
     def "selects runtime and master configurations from target when traversing from other configuration and target's runtime extends compile"() {
+        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def fromRuntime = Stub(ModuleConfigurationMetadata)
@@ -128,11 +132,12 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
         expect:
-        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toComponent).variants == [toRuntime, toMaster]
-        dep.selectLegacyConfigurations(fromComponent, fromRuntime2, toComponent).variants == [toRuntime, toMaster]
+        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toComponent, resolutionFailureHandler).variants == [toRuntime, toMaster]
+        dep.selectLegacyConfigurations(fromComponent, fromRuntime2, toComponent, resolutionFailureHandler).variants == [toRuntime, toMaster]
     }
 
     def "ignores missing master configuration"() {
+        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def fromRuntime = Stub(ModuleConfigurationMetadata)
@@ -142,10 +147,11 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
         expect:
-        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toComponent).variants == [toRuntime]
+        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toComponent, resolutionFailureHandler).variants == [toRuntime]
     }
 
     def "ignores empty master configuration"() {
+        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def fromRuntime = Stub(ModuleConfigurationMetadata)
@@ -156,10 +162,11 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
         expect:
-        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toComponent).variants == [toRuntime]
+        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toComponent, resolutionFailureHandler).variants == [toRuntime]
     }
 
     def "falls back to default configuration when compile is not defined in target component"() {
+        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def fromCompile = Stub(ModuleConfigurationMetadata)
@@ -171,10 +178,11 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
         expect:
-        dep.selectLegacyConfigurations(fromComponent, fromCompile, toComponent).variants == [toDefault, toMaster]
+        dep.selectLegacyConfigurations(fromComponent, fromCompile, toComponent, resolutionFailureHandler).variants == [toDefault, toMaster]
     }
 
     def "falls back to default configuration when runtime is not defined in target component"() {
+        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def fromRuntime = Stub(ModuleConfigurationMetadata)
@@ -186,10 +194,11 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
         expect:
-        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toComponent).variants == [toDefault, toMaster]
+        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toComponent, resolutionFailureHandler).variants == [toDefault, toMaster]
     }
 
     def "fails when compile configuration is not defined in target component"() {
+        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def fromCompile = Stub(ConfigurationMetadata)
@@ -199,13 +208,14 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
         when:
-        dep.selectLegacyConfigurations(fromComponent, fromCompile, toComponent)
+        dep.selectLegacyConfigurations(fromComponent, fromCompile, toComponent, resolutionFailureHandler)
 
         then:
         thrown(ExternalConfigurationNotFoundException)
     }
 
     def "fails when runtime configuration is not defined in target component"() {
+        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def fromRuntime = Stub(ConfigurationMetadata)
@@ -215,7 +225,7 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
         when:
-        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toComponent)
+        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toComponent, resolutionFailureHandler)
 
         then:
         thrown(ExternalConfigurationNotFoundException)

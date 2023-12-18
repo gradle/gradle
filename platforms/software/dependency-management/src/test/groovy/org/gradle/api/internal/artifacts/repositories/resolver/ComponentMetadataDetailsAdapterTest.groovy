@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.Action
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
@@ -40,7 +41,6 @@ import org.gradle.util.TestUtil
 import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Specification
 
-import static org.gradle.api.problems.TestProblemsUtil.createTestProblems
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class ComponentMetadataDetailsAdapterTest extends Specification {
@@ -160,7 +160,7 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
         def componentSelector = newSelector(DefaultModuleIdentifier.newId(consumerIdentifier.group, consumerIdentifier.name), new DefaultMutableVersionConstraint(consumerIdentifier.version))
         def consumer = new LocalComponentDependencyMetadata(componentSelector, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
         def state = DependencyManagementTestUtil.modelGraphResolveFactory().stateFor(immutable)
-        def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(createTestProblems()))
+        def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(new DocumentationRegistry()))
 
         def variant = consumer.selectVariants(variantSelector, attributes, state, schema, [] as Set).variants[0]
         variant.metadata.dependencies

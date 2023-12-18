@@ -33,14 +33,14 @@ public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractNativ
     private static final int FILE_EVENT_QUEUE_SIZE = 4096;
 
     protected final T fileEventFunctions;
-    private final Predicate<String> watchFilter;
+    private final Predicate<String> immutableLocationsFilter;
 
     public AbstractFileWatcherRegistryFactory(
         T fileEventFunctions,
-        Predicate<String> watchFilter
+        Predicate<String> immutableLocationsFilter
     ) {
         this.fileEventFunctions = fileEventFunctions;
-        this.watchFilter = watchFilter;
+        this.immutableLocationsFilter = immutableLocationsFilter;
     }
 
     @Override
@@ -51,7 +51,7 @@ public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractNativ
             FileWatcherProbeRegistry probeRegistry = new DefaultFileWatcherProbeRegistry(buildDir ->
                 new File(new File(buildDir, ".gradle"), "file-system.probe"));
             W watcher = createFileWatcher(fileEvents);
-            WatchableHierarchies watchableHierarchies = new WatchableHierarchies(probeRegistry, watchFilter);
+            WatchableHierarchies watchableHierarchies = new WatchableHierarchies(probeRegistry, immutableLocationsFilter);
             FileWatcherUpdater fileWatcherUpdater = createFileWatcherUpdater(watcher, probeRegistry, watchableHierarchies);
             return new DefaultFileWatcherRegistry(
                 fileEventFunctions,

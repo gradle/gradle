@@ -21,6 +21,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
@@ -78,6 +79,9 @@ public class ManagedObjectFactory {
         }
         if (type.isAssignableFrom(RegularFileProperty.class)) {
             return attachOwner(getObjectFactory().fileProperty(), owner, propertyName);
+        }
+        if (type.isAssignableFrom(DependencyCollector.class)) {
+            return attachOwner(getObjectFactory().dependencyCollector(), owner, propertyName);
         }
         return attachOwner(instantiator.newInstanceWithDisplayName(type, displayNameFor(owner, propertyName)), owner, propertyName);
     }

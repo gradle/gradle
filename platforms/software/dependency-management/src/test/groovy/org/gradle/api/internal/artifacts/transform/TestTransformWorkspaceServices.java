@@ -21,32 +21,67 @@ import org.gradle.cache.ManualEvictionInMemoryCache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.workspace.WorkspaceProvider;
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
+import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
 
 import java.io.File;
+import java.util.UUID;
+import java.util.function.Supplier;
 
-public class TestTransformWorkspaceServices implements TransformWorkspaceServices {
-    private final File transformationsStoreDirectory;
-    private final ExecutionHistoryStore executionHistoryStore;
+public abstract class TestTransformWorkspaceServices {
 
-    public TestTransformWorkspaceServices(File transformationsStoreDirectory, ExecutionHistoryStore executionHistoryStore) {
-        this.transformationsStoreDirectory = transformationsStoreDirectory;
-        this.executionHistoryStore = executionHistoryStore;
-    }
-
-    @Override
-    public WorkspaceProvider getWorkspaceProvider() {
-        return new WorkspaceProvider() {
+    public static ImmutableTransformWorkspaceServices immutable(File transformationsStoreDirectory) {
+        Cache<UnitOfWork.Identity, Try<TransformExecutionResult.TransformWorkspaceResult>> identityCache = new ManualEvictionInMemoryCache<>();
+        return new ImmutableTransformWorkspaceServices() {
             @Override
-            public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
-                File workspace = new File(transformationsStoreDirectory, path);
-                return action.executeInWorkspace(workspace, executionHistoryStore);
+            public ImmutableWorkspaceProvider getWorkspaceProvider() {
+                return path -> new ImmutableWorkspaceProvider.ImmutableWorkspace() {
+                    @Override
+                    public File getImmutableLocation() {
+                        return new File(transformationsStoreDirectory, path);
+                    }
+
+                    @Override
+                    public <T> T withTemporaryWorkspace(TemporaryWorkspaceAction<T> action) {
+                        return action.executeInTemporaryWorkspace(new File(transformationsStoreDirectory, path + "-" + UUID.randomUUID().toString()));
+                    }
+                };
+            }
+
+            @Override
+            public Cache<UnitOfWork.Identity, Try<TransformExecutionResult.TransformWorkspaceResult>> getIdentityCache() {
+                return identityCache;
+            }
+
+            @Override
+            public void close() {
             }
         };
     }
 
-    @Override
-    public Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> getIdentityCache() {
-        return new ManualEvictionInMemoryCache<>();
+    public static MutableTransformWorkspaceServices mutable(File transformationsStoreDirectory, ExecutionHistoryStore executionHistoryStore) {
+        Cache<UnitOfWork.Identity, Try<TransformExecutionResult.TransformWorkspaceResult>> identityCache = new ManualEvictionInMemoryCache<>();
+        return new MutableTransformWorkspaceServices() {
+            @Override
+            public MutableWorkspaceProvider getWorkspaceProvider() {
+                return new MutableWorkspaceProvider() {
+                    @Override
+                    public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
+                        File workspace = new File(transformationsStoreDirectory, path);
+                        return action.executeInWorkspace(workspace, executionHistoryStore);
+                    }
+                };
+            }
+
+            @Override
+            public Cache<UnitOfWork.Identity, Try<TransformExecutionResult.TransformWorkspaceResult>> getIdentityCache() {
+                return identityCache;
+            }
+
+            @Override
+            public Supplier<File> getReservedFileSystemLocation() {
+                return () -> transformationsStoreDirectory;
+            }
+        };
     }
 }

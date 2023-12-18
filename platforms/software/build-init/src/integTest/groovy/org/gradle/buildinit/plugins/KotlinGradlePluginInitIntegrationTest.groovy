@@ -47,9 +47,9 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         run('init', '--type', 'kotlin-gradle-plugin', '--dsl', scriptDsl.id)
 
         then:
-        subprojectDir.file("src/main/kotlin").assertHasDescendants("some/thing/SomeThingPlugin.kt")
-        subprojectDir.file("src/test/kotlin").assertHasDescendants("some/thing/SomeThingPluginTest.kt")
-        subprojectDir.file("src/functionalTest/kotlin").assertHasDescendants("some/thing/SomeThingPluginFunctionalTest.kt")
+        subprojectDir.file("src/main/kotlin").assertHasDescendants("org/example/SomeThingPlugin.kt")
+        subprojectDir.file("src/test/kotlin").assertHasDescendants("org/example/SomeThingPluginTest.kt")
+        subprojectDir.file("src/functionalTest/kotlin").assertHasDescendants("org/example/SomeThingPluginFunctionalTest.kt")
 
         and:
         commonJvmFilesGenerated(scriptDsl)
@@ -59,8 +59,8 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         run("build")
 
         then:
-        assertTestPassed("some.thing.SomeThingPluginTest", "plugin registers task")
-        assertFunctionalTestPassed("some.thing.SomeThingPluginFunctionalTest", "can run task")
+        assertTestPassed("org.example.SomeThingPluginTest", "plugin registers task")
+        assertFunctionalTestPassed("org.example.SomeThingPluginFunctionalTest", "can run task")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -74,9 +74,9 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         run('init', '--type', 'kotlin-gradle-plugin', '--dsl', scriptDsl.id, '--incubating')
 
         then:
-        subprojectDir.file("src/main/kotlin").assertHasDescendants("some/thing/SomeThingPlugin.kt")
-        subprojectDir.file("src/test/kotlin").assertHasDescendants("some/thing/SomeThingPluginTest.kt")
-        subprojectDir.file("src/functionalTest/kotlin").assertHasDescendants("some/thing/SomeThingPluginFunctionalTest.kt")
+        subprojectDir.file("src/main/kotlin").assertHasDescendants("org/example/SomeThingPlugin.kt")
+        subprojectDir.file("src/test/kotlin").assertHasDescendants("org/example/SomeThingPluginTest.kt")
+        subprojectDir.file("src/functionalTest/kotlin").assertHasDescendants("org/example/SomeThingPluginFunctionalTest.kt")
 
         and:
         commonJvmFilesGenerated(scriptDsl)
@@ -87,8 +87,8 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         run("build")
 
         then:
-        assertTestPassed("some.thing.SomeThingPluginTest", "plugin registers task")
-        assertFunctionalTestPassed("some.thing.SomeThingPluginFunctionalTest", "can run task")
+        assertTestPassed("org.example.SomeThingPluginTest", "plugin registers task")
+        assertFunctionalTestPassed("org.example.SomeThingPluginFunctionalTest", "can run task")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -106,8 +106,8 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         run("build")
 
         then:
-        assertTestPassed("some.thing.SomeThingPluginTest", "plugin registers task")
-        assertFunctionalTestPassed("some.thing.SomeThingPluginFunctionalTest", "can run task")
+        assertTestPassed("org.example.SomeThingPluginTest", "plugin registers task")
+        assertFunctionalTestPassed("org.example.SomeThingPluginFunctionalTest", "can run task")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -123,15 +123,15 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         run('check')
 
         then:
-        assertTestPassed("some.thing.SomeThingPluginTest", "plugin registers task")
-        assertFunctionalTestPassed("some.thing.SomeThingPluginFunctionalTest", "can run task")
+        assertTestPassed("org.example.SomeThingPluginTest", "plugin registers task")
+        assertFunctionalTestPassed("org.example.SomeThingPluginFunctionalTest", "can run task")
 
         when:
         run('check', '--rerun-tasks')
 
         then:
-        assertTestPassed("some.thing.SomeThingPluginTest", "plugin registers task")
-        assertFunctionalTestPassed("some.thing.SomeThingPluginFunctionalTest", "can run task")
+        assertTestPassed("org.example.SomeThingPluginTest", "plugin registers task")
+        assertFunctionalTestPassed("org.example.SomeThingPluginFunctionalTest", "can run task")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

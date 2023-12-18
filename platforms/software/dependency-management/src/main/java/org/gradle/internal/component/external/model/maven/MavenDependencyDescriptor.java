@@ -20,7 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.internal.component.ExternalConfigurationNotFoundException;
+import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
@@ -84,18 +84,18 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
      *    - Always include 'master' if it exists, and it has dependencies and/or artifacts.
      */
     @Override
-    public GraphVariantSelectionResult selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponentState) {
+    public GraphVariantSelectionResult selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponentState, ResolutionFailureHandler resolutionFailureHandler) {
         ImmutableList.Builder<VariantGraphResolveState> result = ImmutableList.builder();
         boolean requiresCompile = fromConfiguration.getName().equals("compile");
         if (!requiresCompile) {
             // From every configuration other than compile, include both the runtime and compile dependencies
-            ConfigurationGraphResolveState runtime = findTargetConfiguration(fromComponent, fromConfiguration, targetComponentState, "runtime");
+            ConfigurationGraphResolveState runtime = findTargetConfiguration(fromComponent, fromConfiguration, targetComponentState, "runtime", resolutionFailureHandler);
             result.add(runtime.asVariant());
             requiresCompile = !runtime.getMetadata().getHierarchy().contains("compile");
         }
         if (requiresCompile) {
             // From compile configuration, or when the target's runtime configuration does not extend from compile, include the compile dependencies
-            ConfigurationGraphResolveState compile = findTargetConfiguration(fromComponent, fromConfiguration, targetComponentState, "compile");
+            ConfigurationGraphResolveState compile = findTargetConfiguration(fromComponent, fromConfiguration, targetComponentState, "compile", resolutionFailureHandler);
             result.add(compile.asVariant());
         }
         ConfigurationGraphResolveState master = targetComponentState.getConfiguration("master");
@@ -105,12 +105,12 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
         return new GraphVariantSelectionResult(result.build(), false);
     }
 
-    private ConfigurationGraphResolveState findTargetConfiguration(ComponentIdentifier fromComponentId, ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponent, String target) {
+    private ConfigurationGraphResolveState findTargetConfiguration(ComponentIdentifier fromComponentId, ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponent, String target, ResolutionFailureHandler resolutionFailureHandler) {
         ConfigurationGraphResolveState configuration = targetComponent.getConfiguration(target);
         if (configuration == null) {
             configuration = targetComponent.getConfiguration("default");
             if (configuration == null) {
-                throw new ExternalConfigurationNotFoundException(fromComponentId, fromConfiguration.getName(), target, targetComponent.getId());
+                throw resolutionFailureHandler.externalConfigurationNotFoundFailure(fromComponentId, fromConfiguration.getName(), target, targetComponent.getId());
             }
         }
         return configuration;

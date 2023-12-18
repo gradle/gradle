@@ -29,9 +29,11 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.util.Collections.singletonList;
-import static java.util.Optional.empty;
 
 public class InitSettings {
+
+    public static final String CONVENTION_PLUGIN_NAME_PREFIX = "buildlogic";
+
     private final BuildInitDsl dsl;
     private final boolean useIncubatingAPIs;
     private final String packageName;
@@ -41,7 +43,8 @@ public class InitSettings {
     private final ModularizationOption modularizationOption;
     private final Directory target;
     private final InsecureProtocolOption insecureProtocolOption;
-    private final Optional<JavaLanguageVersion> toolchainVersion;
+    @Nullable
+    private final JavaLanguageVersion javaLanguageVersion;
 
     /**
      * Temporary constructor until we upgrade gradle/gradle to a nightly.
@@ -55,20 +58,20 @@ public class InitSettings {
         String projectName, List<String> subprojects, ModularizationOption modularizationOption,
         BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, Directory target
     ) {
-        this(projectName, false, subprojects, modularizationOption, dsl, packageName, testFramework, InsecureProtocolOption.WARN, target, empty());
+        this(projectName, false, subprojects, modularizationOption, dsl, packageName, testFramework, InsecureProtocolOption.WARN, target, null);
     }
 
     public InitSettings(
         String projectName, boolean useIncubatingAPIs, List<String> subprojects, ModularizationOption modularizationOption,
         BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, Directory target
     ) {
-        this(projectName, useIncubatingAPIs, subprojects, modularizationOption, dsl, packageName, testFramework, InsecureProtocolOption.WARN, target, empty());
+        this(projectName, useIncubatingAPIs, subprojects, modularizationOption, dsl, packageName, testFramework, InsecureProtocolOption.WARN, target, null);
     }
 
     public InitSettings(
         String projectName, boolean useIncubatingAPIs, List<String> subprojects, ModularizationOption modularizationOption,
         BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, InsecureProtocolOption insecureProtocolOption, Directory target,
-        Optional<JavaLanguageVersion> toolchainVersion
+        @Nullable JavaLanguageVersion javaLanguageVersion
     ) {
         this.projectName = projectName;
         this.useIncubatingAPIs = useIncubatingAPIs;
@@ -79,7 +82,7 @@ public class InitSettings {
         this.testFramework = testFramework;
         this.insecureProtocolOption = insecureProtocolOption;
         this.target = target;
-        this.toolchainVersion = toolchainVersion;
+        this.javaLanguageVersion = javaLanguageVersion;
     }
 
     private static List<String> getSubprojects(List<String> subprojects, ModularizationOption modularizationOption) {
@@ -134,6 +137,6 @@ public class InitSettings {
 
     @Incubating
     public Optional<JavaLanguageVersion> getJavaLanguageVersion() {
-        return toolchainVersion;
+        return Optional.ofNullable(javaLanguageVersion);
     }
 }

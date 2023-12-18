@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.attributes;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
@@ -26,12 +25,13 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Set;
 
 @ServiceScope(Scopes.BuildTree.class)
 public class AttributeDesugaring {
-    private final Map<ImmutableAttributes, ImmutableAttributes> desugared = Maps.newIdentityHashMap();
+    private final Map<ImmutableAttributes, ImmutableAttributes> desugared = new IdentityHashMap<>();
     private final ImmutableAttributesFactory attributesFactory;
 
     public AttributeDesugaring(ImmutableAttributesFactory attributesFactory) {

@@ -20,7 +20,7 @@ import org.gradle.internal.file.FileMetadata.AccessType
 
 class MissingFileSnapshotTest extends AbstractFileSystemLeafSnapshotTest {
     @Override
-    protected MissingFileSnapshot createInitialRootNode(String absolutePath) {
-        return new MissingFileSnapshot(absolutePath, AccessType.DIRECT)
+    protected MissingFileSnapshot createInitialRootNode(String absolutePath, AccessType accessType) {
+        return new MissingFileSnapshot(absolutePath, accessType)
     }
 }

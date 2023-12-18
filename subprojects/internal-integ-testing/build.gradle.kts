@@ -41,6 +41,7 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":build-cache"))
     implementation(project(":persistent-cache"))
+    implementation(project(":platform-jvm"))
     implementation(project(":dependency-management"))
     implementation(project(":configuration-cache"))
     implementation(project(":launcher"))

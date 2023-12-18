@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -38,7 +37,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -63,7 +61,7 @@ public class DefaultVariant implements ConfigurationVariantInternal {
         this.name = name;
         attributes = cache.mutable(parentAttributes);
         this.artifactNotationParser = artifactNotationParser;
-        artifacts = new DefaultPublishArtifactSet(getAsDescribable(), domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class), fileCollectionFactory, taskDependencyFactory);
+        artifacts = new DefaultPublishArtifactSet(getDisplayName(), domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class), fileCollectionFactory, taskDependencyFactory);
     }
 
     @Override
@@ -82,14 +80,11 @@ public class DefaultVariant implements ConfigurationVariantInternal {
     }
 
     public OutgoingVariant convertToOutgoingVariant() {
-        return new LeafOutgoingVariant(getAsDescribable(), attributes, getArtifacts());
+        return new LeafOutgoingVariant(getDisplayName(), attributes, getArtifacts());
     }
 
-    public void visit(ConfigurationInternal.VariantVisitor visitor, Collection<? extends Capability> capabilities) {
-        visitor.visitChildVariant(name, getAsDescribable(), attributes.asImmutable(), capabilities, getArtifacts());
-    }
-
-    private DisplayName getAsDescribable() {
+    @Override
+    public DisplayName getDisplayName() {
         return Describables.of(parentDisplayName, "variant", name);
     }
 
@@ -127,7 +122,7 @@ public class DefaultVariant implements ConfigurationVariantInternal {
 
     @Override
     public String toString() {
-        return getAsDescribable().getDisplayName();
+        return getDisplayName().getDisplayName();
     }
 
     @Override

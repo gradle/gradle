@@ -251,7 +251,6 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getBuildFile(): File {
-            onAccess()
             return delegate.buildFile
         }
 

@@ -95,6 +95,7 @@ fun BuildType.cleanUpGitUntrackedFilesAndDirectories() {
     }
 }
 
+// TODO: Remove this after https://github.com/gradle/gradle/issues/26539 is resolved
 fun BuildSteps.cleanUpReadOnlyDir(os: Os) {
     if (os == Os.WINDOWS) {
         script {
@@ -103,6 +104,7 @@ fun BuildSteps.cleanUpReadOnlyDir(os: Os) {
             scriptContent = """
                 rmdir /s /q %teamcity.build.checkoutDir%\subprojects\performance\build && (echo performance-build-dir removed) || (echo performance-build-dir not found)
                 rmdir /s /q %teamcity.build.checkoutDir%\platforms\software\version-control\build && (echo version-control-build-dir removed) || (echo version-control-build-dir not found)
+                rmdir /s /q %teamcity.build.checkoutDir%\platforms\jvm\code-quality\build && (echo code-quality-build-dir removed) || (echo code-quality-build-dir not found)
                 """
             skipConditionally()
         }

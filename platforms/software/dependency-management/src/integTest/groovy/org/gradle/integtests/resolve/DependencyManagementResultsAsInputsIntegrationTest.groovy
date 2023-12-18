@@ -28,6 +28,7 @@ import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
@@ -216,6 +217,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             import ${DefaultModuleComponentArtifactIdentifier.name}
             import ${ImmutableAttributesFactory.name}
             import ${DefaultResolvedVariantResult.name}
+            import ${ImmutableCapabilities.name}
             import ${Describables.name}
             import ${DefaultComponentSelectionDescriptor.name}
             import ${ComponentSelectionReasons.name}
@@ -267,7 +269,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         "Capability"                   | "new DefaultImmutableCapability('group', System.getProperty('n'), '1.0')"
         "ModuleComponentIdentifier"    | "new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')),'1.0')"
         "ComponentArtifactIdentifier"  | "new DefaultModuleComponentArtifactIdentifier(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')),'1.0'), System.getProperty('n') + '-1.0.jar', 'jar', null)"
-        "ResolvedVariantResult"        | "new DefaultResolvedVariantResult(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')), '1.0'), Describables.of('variantName'), services.get(ImmutableAttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n')), [new DefaultImmutableCapability('group', System.getProperty('n'), '1.0')], null)"
+        "ResolvedVariantResult"        | "new DefaultResolvedVariantResult(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')), '1.0'), Describables.of('variantName'), services.get(ImmutableAttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n')), ImmutableCapabilities.of(new DefaultImmutableCapability('group', System.getProperty('n'), '1.0')), null)"
         // For ResolvedComponentResult
         "ModuleVersionIdentifier"      | "DefaultModuleVersionIdentifier.newId('group', System.getProperty('n'), '1.0')"
 //        "ResolvedComponentResult"      | "null"
