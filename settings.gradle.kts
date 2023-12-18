@@ -24,6 +24,7 @@ pluginManagement {
             create("libs") {
                 val kotlinVersion = version("kotlin", "1.9.20")
                 plugin("kotlin.jvm", "org.jetbrains.kotlin.jvm").versionRef(kotlinVersion)
+                plugin("kotlin.plugin.serialization", "org.jetbrains.kotlin.plugin.serialization").versionRef(kotlinVersion)
             }
         }
     }

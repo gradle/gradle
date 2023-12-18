@@ -22,12 +22,10 @@ import com.h0tk3y.kotlin.staticObjectNotation.Configuring
 import com.h0tk3y.kotlin.staticObjectNotation.HasDefaultValue
 import com.h0tk3y.kotlin.staticObjectNotation.Restricted
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataTypeRef
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.FqName
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
-import kotlin.reflect.KType
 import kotlin.reflect.KVisibility
 
 fun schemaFromTypes(
@@ -42,7 +40,7 @@ fun schemaFromTypes(
     typeDiscovery: TypeDiscovery = TypeDiscovery.none
 ): AnalysisSchema =
     DataSchemaBuilder(typeDiscovery, propertyExtractor, functionExtractor).schemaFromTypes(
-        topLevelReceiver, types, externalFunctions, externalObjects, defaultImports, configureLambdas
+        topLevelReceiver, types, externalFunctions, externalObjects, defaultImports
     )
 
 val isPublicAndRestricted: MemberFilter = MemberFilter { member: KCallable<*> ->

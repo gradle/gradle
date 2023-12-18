@@ -7,7 +7,6 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
 import com.h0tk3y.kotlin.staticObjectNotation.language.AccessChain
 import com.h0tk3y.kotlin.staticObjectNotation.language.AstSourceIdentifier
 import com.h0tk3y.kotlin.staticObjectNotation.language.Import
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.kotlinFunctionAsConfigureLambda
 import kotlinx.ast.common.ast.Ast
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -23,8 +22,7 @@ class ImportTest {
                 emptyMap(),
                 emptyMap(),
                 emptyMap(),
-                emptySet(),
-                kotlinFunctionAsConfigureLambda
+                emptySet()
             ),
             emptyMap(),
             errors::add

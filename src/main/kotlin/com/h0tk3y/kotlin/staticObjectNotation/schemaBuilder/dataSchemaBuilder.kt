@@ -37,7 +37,6 @@ class DataSchemaBuilder(
         externalFunctions: List<KFunction<*>> = emptyList(),
         externalObjects: Map<FqName, KClass<*>> = emptyMap(),
         defaultImports: List<FqName> = emptyList(),
-        configureLambdas: ConfigureLambdaHandler = kotlinFunctionAsConfigureLambda,
     ): AnalysisSchema {
         val preIndex = createPreIndex(types)
 
@@ -53,8 +52,7 @@ class DataSchemaBuilder(
             dataTypes.associateBy { it.name },
             extFunctions,
             extObjects,
-            defaultImports.toSet(),
-            configureLambdas
+            defaultImports.toSet()
         )
     }
 
