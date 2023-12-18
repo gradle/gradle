@@ -29,8 +29,10 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.restricteddsl.evaluationSchema.EvaluationSchema
-import org.gradle.internal.restricteddsl.evaluationSchema.simpleInterpretationWith
+import org.gradle.internal.restricteddsl.evaluationSchema.InterpretationSequence
+import org.gradle.internal.restricteddsl.evaluationSchema.InterpretationSequenceStep
 import org.gradle.internal.restricteddsl.evaluator.InterpretationSchemaBuildingResult.InterpretationSequenceAvailable
+import org.gradle.internal.restricteddsl.evaluator.InterpretationSchemaBuildingResult.SchemaNotBuilt
 import org.gradle.internal.restricteddsl.plugins.schemaForPluginsBlock
 import org.gradle.internal.restricteddsl.project.projectInterpretationSequence
 import org.gradle.plugin.management.PluginManagementSpec
@@ -43,17 +45,11 @@ class DefaultInterpretationSchemaBuilder : InterpretationSchemaBuilder {
         scriptContext: RestrictedScriptContext,
     ): InterpretationSchemaBuildingResult =
         when (scriptContext) {
-            is RestrictedScriptContext.SettingsScript ->
-                InterpretationSequenceAvailable(simpleInterpretationWith(EvaluationSchema(schemaForSettingsScript), targetInstance))
-
+            is RestrictedScriptContext.UnknownScript -> SchemaNotBuilt
+            RestrictedScriptContext.PluginsBlock -> simpleInterpretation("plugins", EvaluationSchema(schemaForPluginsBlock), targetInstance)
+            is RestrictedScriptContext.SettingsScript -> simpleInterpretation("settings", EvaluationSchema(schemaForSettingsScript), targetInstance)
             is RestrictedScriptContext.ProjectScript ->
                 InterpretationSequenceAvailable(projectInterpretationSequence(targetInstance as ProjectInternal, scriptContext.targetScope, scriptContext.scriptSource))
-
-            RestrictedScriptContext.PluginsBlock ->
-                InterpretationSequenceAvailable(simpleInterpretationWith(EvaluationSchema(schemaForPluginsBlock), targetInstance))
-
-            is RestrictedScriptContext.UnknownScript ->
-                InterpretationSchemaBuildingResult.SchemaNotBuilt
         }
 
     private
@@ -73,4 +69,17 @@ class DefaultInterpretationSchemaBuilder : InterpretationSchemaBuilder {
             configureLambdas = treatInterfaceAsConfigureLambda(Action::class).plus(kotlinFunctionAsConfigureLambda)
         )
     }
+
+    private
+    fun simpleInterpretation(id: String, schema: EvaluationSchema, target: Any) =
+        InterpretationSequenceAvailable(
+            InterpretationSequence(
+                listOf(object : InterpretationSequenceStep<Any> {
+                    override val stepIdentifier: String = id
+                    override fun evaluationSchemaForStep(): EvaluationSchema = schema
+                    override fun topLevelReceiver(): Any = target
+                    override fun whenEvaluated(resultReceiver: Any) = Unit
+                })
+            )
+        )
 }

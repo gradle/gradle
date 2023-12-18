@@ -78,6 +78,8 @@ fun projectInterpretationSequence(
 private
 fun step1Plugins(target: ProjectInternal, targetScope: ClassLoaderScope, scriptSource: ScriptSource) =
     object : InterpretationSequenceStep<RuntimeTopLevelPluginsReceiver> {
+        override val stepIdentifier: String = "plugins"
+
         override fun evaluationSchemaForStep(): EvaluationSchema =
             EvaluationSchema(
                 schemaForPluginsBlock,
@@ -100,6 +102,8 @@ fun step1Plugins(target: ProjectInternal, targetScope: ClassLoaderScope, scriptS
 
 private
 fun step2Project(target: ProjectInternal, targetScope: ClassLoaderScope) = object : InterpretationSequenceStep<ProjectInternal> {
+    override val stepIdentifier: String = "project"
+
     override fun evaluationSchemaForStep(): EvaluationSchema =
         EvaluationSchema(
             createAnalysisSchemaForProject(targetScope),
