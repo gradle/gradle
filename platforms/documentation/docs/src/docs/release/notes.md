@@ -73,7 +73,8 @@ def property = objects.property(String)
 property.set("some value")
 property.set(property.map { "$it and more" })
 
-println(property.get()) // throws StackOverflowError
+// Circular evaluation detected (or StackOverflowError, before 8.6)
+println(property.get()) 
 ```
 
 [`Property`](javadoc/org/gradle/api/provider/Property.html#update-org.gradle.api.Transformer-) and [`ConfigurableFileCollection`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#update-org.gradle.api.Transformer-) now provide their respective `update(Transformer<...>)` methods which allow self-referencing updates in a safe way:
@@ -126,6 +127,50 @@ Execution failed for task ':dependencies'.
 > Run with --info or --debug option to get more log output.
 > Run with --scan to get full insights.
 > Get more help at https://help.gradle.org.
+```
+
+#### Better handling of circular references in providers
+
+Before this release, evaluating a provider that contained a cycle in its value assignment would lead to a `StackOverflowError`. 
+Starting with this release, circular references are properly detected and reported.
+
+For instance, the following code:
+
+```
+def property = objects.property(String)
+property.set("some value")
+
+// wrong, self-references only supported via #update()
+property.set(property.map { "$it and more" })
+
+println(property.get()) // error when evaluating
+```
+
+Previously failed with a `StackOverflowError` and limited details:
+
+```
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+A problem occurred evaluating root project 'test'.
+> java.lang.StackOverflowError (no error message)
+
+```
+
+Starting with this release, you get a more helpful error message indicating the source of the cycle and a list of the providers in the chain that led to it:
+
+```
+FAILURE: Build failed with an exception.
+
+* Where:
+Build file '<project>/build.gradle' line: 7
+
+* What went wrong:
+A problem occurred evaluating root project 'test'.
+> Circular evaluation detected: property(java.lang.String, map(java.lang.String map(<CIRCULAR REFERENCE>) check-type()))
+   -> map(java.lang.String map(property(java.lang.String, <CIRCULAR REFERENCE>)) check-type())
+   -> map(property(java.lang.String, map(java.lang.String <CIRCULAR REFERENCE> check-type())))
+   -> property(java.lang.String, map(java.lang.String map(<CIRCULAR REFERENCE>) check-type()))
 ```
 
 ### Gradle init
