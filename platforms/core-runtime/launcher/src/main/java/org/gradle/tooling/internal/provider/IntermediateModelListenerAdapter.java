@@ -19,8 +19,8 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.event.ListenerNotificationException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
-import org.gradle.tooling.internal.provider.serialization.IntermediateModel;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.StreamedValue;
 
 import java.util.Collections;
 
@@ -39,14 +39,14 @@ public class IntermediateModelListenerAdapter implements BuildEventConsumer {
 
     @Override
     public void dispatch(Object message) {
-        if (message instanceof IntermediateModel) {
+        if (message instanceof StreamedValue) {
             if (failure != null) {
                 return;
             }
-            IntermediateModel intermediateModel = (IntermediateModel) message;
-            Object deserializedMessage = payloadSerializer.deserialize(intermediateModel.getSerializedModel());
+            StreamedValue value = (StreamedValue) message;
+            Object deserializedValue = payloadSerializer.deserialize(value.getSerializedModel());
             try {
-                providerParameters.sendIntermediate(deserializedMessage);
+                providerParameters.sendIntermediate(deserializedValue);
             } catch (Throwable e) {
                 failure = e;
             }

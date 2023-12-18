@@ -30,5 +30,5 @@ public interface InternalObjectRelay {
      *
      * @since 8.6
      */
-    void send(Object model);
+    void dispatch(Object value);
 }

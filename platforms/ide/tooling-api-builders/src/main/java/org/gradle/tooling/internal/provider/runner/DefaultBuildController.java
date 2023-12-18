@@ -34,7 +34,7 @@ import org.gradle.tooling.internal.protocol.InternalObjectRelay;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
-import org.gradle.tooling.internal.provider.serialization.IntermediateModel;
+import org.gradle.tooling.internal.provider.serialization.StreamedValue;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.provider.model.UnknownModelException;
@@ -175,8 +175,8 @@ DefaultBuildController implements org.gradle.tooling.internal.protocol.InternalB
     }
 
     @Override
-    public void send(Object model) {
-        SerializedPayload serializedModel = payloadSerializer.serialize(model);
-        buildEventConsumer.dispatch(new IntermediateModel(serializedModel));
+    public void dispatch(Object value) {
+        SerializedPayload serializedModel = payloadSerializer.serialize(value);
+        buildEventConsumer.dispatch(new StreamedValue(serializedModel));
     }
 }

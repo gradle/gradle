@@ -19,12 +19,12 @@ package org.gradle.tooling.internal.provider.serialization;
 import java.io.Serializable;
 
 /**
- * A model object sent back to the client from a client provided {@link org.gradle.tooling.BuildAction} running in the build process.
+ * An object sent back to the client from a client provided {@link org.gradle.tooling.BuildAction} running in the build process.
  */
-public class IntermediateModel implements Serializable {
+public class StreamedValue implements Serializable {
     private final SerializedPayload serializedModel;
 
-    public IntermediateModel(SerializedPayload serializedModel) {
+    public StreamedValue(SerializedPayload serializedModel) {
         this.serializedModel = serializedModel;
     }
 
