@@ -16,23 +16,17 @@
 
 package org.gradle.api.internal.file.copy;
 
+import org.gradle.api.Describable;
 import org.gradle.api.file.FileCopyDetails;
 
 /**
  * @implSpec Implementations representing a file copy of an entry in a compressed archive should return {@code true} from {@link #isCompressedArchiveEntry()}.
  */
-public interface FileCopyDetailsInternal extends FileCopyDetails {
+public interface FileCopyDetailsInternal extends FileCopyDetails, Describable {
 
     boolean isDefaultDuplicatesStrategy();
 
     CopySpecResolver getSpecResolver();
-
-    /**
-     * Obtain a display name that represents what is being copied.
-     *
-     * @return display name
-     */
-    String getDisplayName();
 
     /**
      * Checks if this file copy details represents a file copy of an entry in a compressed archive.
