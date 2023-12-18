@@ -25,18 +25,8 @@ class InterpretationSequence(
 
 internal
 interface InterpretationSequenceStep<R : Any> {
+    val stepIdentifier: String
     fun evaluationSchemaForStep(): EvaluationSchema
     fun topLevelReceiver(): R
     fun whenEvaluated(resultReceiver: R)
 }
-
-
-internal
-fun simpleInterpretationWith(schema: EvaluationSchema, target: Any) =
-    InterpretationSequence(listOf(object : InterpretationSequenceStep<Any> {
-        override fun evaluationSchemaForStep(): EvaluationSchema = schema
-        override fun topLevelReceiver(): Any = target
-        override fun whenEvaluated(resultReceiver: Any) = Unit
-    }))
-
-

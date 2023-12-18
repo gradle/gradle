@@ -19,6 +19,7 @@ package org.gradle.internal.restricteddsl.provider
 import org.gradle.internal.restricteddsl.evaluator.DefaultRestrictedKotlinScriptEvaluator
 import org.gradle.internal.restricteddsl.evaluator.DefaultInterpretationSchemaBuilder
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator
+import org.gradle.internal.restricteddsl.evaluator.StoringInterpretationSchemaBuilder
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 
@@ -34,6 +35,7 @@ internal
 object BuildServices {
     @Suppress("unused")
     fun createRestrictedKotlinScriptEvaluator(): RestrictedKotlinScriptEvaluator {
-        return DefaultRestrictedKotlinScriptEvaluator(DefaultInterpretationSchemaBuilder())
+        val schemaBuilder = StoringInterpretationSchemaBuilder(DefaultInterpretationSchemaBuilder())
+        return DefaultRestrictedKotlinScriptEvaluator(schemaBuilder)
     }
 }

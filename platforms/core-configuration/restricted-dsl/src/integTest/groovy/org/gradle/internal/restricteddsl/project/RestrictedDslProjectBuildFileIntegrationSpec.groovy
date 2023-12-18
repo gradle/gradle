@@ -71,4 +71,32 @@ class RestrictedDslProjectBuildFileIntegrationSpec extends AbstractIntegrationSp
         "string"    | "project(\":a\")" | ""
         "type-safe" | "projects.a"      | "enableFeaturePreview(\"TYPESAFE_PROJECT_ACCESSORS\")\n"
     }
+
+    def 'schema is written during project files interpretation with restricted DSL'() {
+        given:
+        settingsFile("""
+            include(":sub")
+        """)
+
+        file("build.gradle.something") << """
+        plugins {
+        }
+        """
+
+        file("sub/build.gradle.something") << """
+        plugins {
+        }
+        """
+
+        when:
+        run(":help")
+
+        then:
+        [
+            file(".gradle/restricted-schema/plugins.something.schema"),
+            file(".gradle/restricted-schema/project.something.schema"),
+            file("sub/.gradle/restricted-schema/plugins.something.schema"),
+            file("sub/.gradle/restricted-schema/project.something.schema")
+        ].every { it.isFile() && it.text != "" }
+    }
 }

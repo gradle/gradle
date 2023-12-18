@@ -51,4 +51,19 @@ class RestrictedDslProjectSettingsIntegrationSpec extends AbstractIntegrationSpe
         succeeds(":help", ":a:help", ":b:help")
         outputContains("name = test-value")
     }
+
+    def 'schema is written during settings interpretation'() {
+        given:
+        file("settings.gradle.something") << """
+            rootProject.name = "test"
+        """
+
+        when:
+        run(":help")
+
+        then:
+        def schemaFile = file(".gradle/restricted-schema/settings.something.schema")
+        schemaFile.isFile() && schemaFile.text != ""
+    }
+
 }
