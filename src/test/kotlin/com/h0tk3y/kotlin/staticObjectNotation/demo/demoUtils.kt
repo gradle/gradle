@@ -33,7 +33,7 @@ fun AnalysisSchema.resolve(
                 is UnsupportedConstruct -> println(
                     failure.languageFeature.toString() + " in " + ast.toString().take(100)
                 )
-                is MultipleFailuresResult -> failure.failures.forEach { printFailures(it)}
+                is MultipleFailuresResult -> failure.failures.forEach { printFailures(it) }
             }
         }
         failures.forEach { printFailures(it) }

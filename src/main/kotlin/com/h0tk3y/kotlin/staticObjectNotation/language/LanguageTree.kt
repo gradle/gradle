@@ -1,7 +1,6 @@
 package com.h0tk3y.kotlin.staticObjectNotation.language
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataType
-import kotlinx.ast.common.ast.Ast
 
 sealed interface LanguageTreeElement {
     val sourceData: SourceData
@@ -24,7 +23,7 @@ data class Block(val statements: List<DataStatement>, override val sourceData: S
 
 data class Import(val name: AccessChain, override val sourceData: SourceData) : LanguageTreeElement
 
-data class AccessChain(val nameParts: List<String>, val sourceData: SourceData)
+data class AccessChain(val nameParts: List<String>)
 
 data class PropertyAccess(val receiver: Expr?, val name: String, override val sourceData: SourceData) : Expr
 data class FunctionCall(val receiver: Expr?, val name: String, val args: List<FunctionArgument>, override val sourceData: SourceData) : Expr

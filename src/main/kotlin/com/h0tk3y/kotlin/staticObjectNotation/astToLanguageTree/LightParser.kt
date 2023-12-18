@@ -19,9 +19,9 @@ private val psiBuilderFactory by lazy {
     PsiBuilderFactoryImpl()
 }
 
-fun parseToLightTree(@Language("kts") code: String): LightTree {
-    val wrappedCode = wrapScriptIntoClassInitializerBlock(code)
-    return KotlinLightParser.parse(psiBuilderFactory.createBuilder(parserDefinition, lexer, wrappedCode))
+fun parseToLightTree(@Language("kts") code: String): Pair<LightTree, Int> {
+    val (wrappedCode, codeOffset) = wrapScriptIntoClassInitializerBlock(code)
+    return KotlinLightParser.parse(psiBuilderFactory.createBuilder(parserDefinition, lexer, wrappedCode)) to codeOffset
 }
 
 fun main() {
@@ -30,10 +30,10 @@ fun main() {
             #!/usr/bin/env kscript
         a = 1
     """.trimIndent()
-    ).print()
+    ).first.print()
 }
 
-private fun wrapScriptIntoClassInitializerBlock(@Language("kts") code: String): String {
+private fun wrapScriptIntoClassInitializerBlock(@Language("kts") code: String): Pair<String, Int> {
     val packageStatements = mutableListOf<String>()
     val importStatements = mutableListOf<String>()
     val codeStatements = mutableListOf<String>()
@@ -58,6 +58,8 @@ private fun wrapScriptIntoClassInitializerBlock(@Language("kts") code: String): 
     val importSection = importStatements.joinToString("") { addNewlineIfNotBlank(it) }
     val codeSection = codeStatements.joinToString("") { addNewlineIfNotBlank(it) }
 
-    return "${packageSection}${importSection}class Script {init {$codeSection}}"
+    val prefix = "${packageSection}${importSection}class Script {init {"
+    val codeOffset = prefix.length
+    return "$prefix$codeSection}}" to codeOffset
 }
 

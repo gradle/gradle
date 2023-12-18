@@ -15,24 +15,23 @@ import org.jetbrains.kotlin.lexer.KtTokens.*
 
 typealias LightTree = FlyweightCapableTreeStructure<LighterASTNode>
 
-fun FlyweightCapableTreeStructure<LighterASTNode>.sourceData(
-    sourceIdentifier: SourceIdentifier
-) = LightTreeSourceData(sourceIdentifier, this.root) // TODO: not ok to use the root here, due to the artificial wrapping of the script as a class initializer
+fun FlyweightCapableTreeStructure<LighterASTNode>.sourceData(sourceIdentifier: SourceIdentifier, sourceOffset: Int) =
+    LightTreeSourceData(sourceIdentifier, sourceOffset, this.root) // TODO: not ok to use the root here, due to the artificial wrapping of the script as a class initializer
 
 class LightTreeSourceData(
     override val sourceIdentifier: SourceIdentifier,
+    val sourceOffset: Int,
     val node: LighterASTNode
 ) : SourceData {
     override val indexRange: IntRange
-        get() = TODO()
-    override val lineRange: IntRange
-        get() = TODO()
-    override val startColumn: Int
-        get() = TODO()
-    override val endColumn: Int
-        get() = TODO()
+        get() {
+            val originalRange = node.range()
+            val first = originalRange.first - sourceOffset
+            val last = originalRange.last - sourceOffset
+            return first..last
+        }
 
-    override fun text(): String = TODO()
+    override fun text(): String = node.asText
 }
 
 internal fun FlyweightCapableTreeStructure<LighterASTNode>.print(
@@ -94,13 +93,14 @@ internal fun List<LighterASTNode>.expectSingleOfKind(expected: IElementType): Li
 internal fun LighterASTNode.isKind(expected: IElementType) =
     this.tokenType.debugName == expected.debugName
 
-internal fun LighterASTNode.sourceData(sourceIdentifier: SourceIdentifier) = LightTreeSourceData(sourceIdentifier, this)
+internal fun LighterASTNode.sourceData(sourceIdentifier: SourceIdentifier, sourceOffset: Int) =
+    LightTreeSourceData(sourceIdentifier, sourceOffset, this)
 
 private fun LighterASTNode.print(indent: String) {
     println("$indent${tokenType} (${range()}): ${content()}")
 }
 
-private fun LighterASTNode.range() = "$startOffset:$endOffset"
+internal fun LighterASTNode.range() = startOffset..endOffset
 
 private fun LighterASTNode.content(): String? =
     when (tokenType) {

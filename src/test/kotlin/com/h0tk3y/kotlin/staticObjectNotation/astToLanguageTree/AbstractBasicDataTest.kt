@@ -1,17 +1,13 @@
 package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
-import com.h0tk3y.kotlin.staticObjectNotation.language.*
+import com.example.com.h0tk3y.kotlin.staticObjectNotation.prettyPrintLanguageTree
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertAll
 import kotlin.test.assertEquals
-import kotlin.test.assertIs
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 abstract class AbstractBasicDataTest {
 
-    abstract fun parse(@Language("kts") code: String): List<ElementResult<*>>
+    abstract fun parse(@Language("kts") code: String): List<ElementResult<*>> // TODO: remove
 
     @Test
     fun `parses literals`() {
@@ -25,38 +21,63 @@ abstract class AbstractBasicDataTest {
             """.trimIndent()
         )
 
-        assertAll(results.map {
-            {
-                assertTrue(it is Element<*>)
-                val element = it.element
-                assertTrue(element is Assignment)
-                assertTrue(element.rhs is Literal<*>)
-            }
-        })
-        val values = results.map { (((it as Element).element as Assignment).rhs as Literal<*>).value }
-        assertEquals(listOf(1, "test", "test", true, false), values)
+        val expected = """
+                Assignment [indexes: 0..5, file: test] (
+                    lhs = PropertyAccess [indexes: 0..1, file: test] (
+                        name = a
+                    )
+                    rhs = IntLiteral [indexes: 4..5, file: test] (1)
+                )
+                Assignment [indexes: 6..16, file: test] (
+                    lhs = PropertyAccess [indexes: 6..7, file: test] (
+                        name = b
+                    )
+                    rhs = StringLiteral [indexes: 10..16, file: test] (test)
+                )
+                Assignment [indexes: 17..31, file: test] (
+                    lhs = PropertyAccess [indexes: 17..18, file: test] (
+                        name = c
+                    )
+                    rhs = StringLiteral [indexes: 21..31, file: test] (test)
+                )
+                Assignment [indexes: 32..40, file: test] (
+                    lhs = PropertyAccess [indexes: 32..33, file: test] (
+                        name = e
+                    )
+                    rhs = BooleanLiteral [indexes: 36..40, file: test] (true)
+                )
+                Assignment [indexes: 41..50, file: test] (
+                    lhs = PropertyAccess [indexes: 41..42, file: test] (
+                        name = d
+                    )
+                    rhs = BooleanLiteral [indexes: 45..50, file: test] (false)
+                )
+            """.trimIndent()
+        assertResult(expected, results)
     }
-    
+
     @Test
     fun `parses imports`() {
         val results = parse(
             """
-                import a.b.c
-                import a.b.MyData
-                import MyOtherData
+            import a.b.c
+            import a.b.MyData
+            import MyOtherData
             """.trimIndent()
         )
-        
-        val expected = listOf("a.b.c", "a.b.MyData", "MyOtherData")
-        assertEquals(expected.size, results.size, "Number of results doesn't match")
-        assertAll(results.mapIndexed { index, it ->
-            {
-                assertIs<Element<*>>(it)
-                val element = it.element
-                assertIs<Import>(element)
-                assertEquals(expected[index], element.name.nameParts.joinToString("."))
-            }
-        })
+
+        val expected = """
+                Import [indexes: 0..13, file: test (
+                    name parts = [a, b, c]
+                )
+                Import [indexes: 13..31, file: test (
+                    name parts = [a, b, MyData]
+                )
+                Import [indexes: 31..49, file: test (
+                    name parts = [MyOtherData]
+                )
+            """.trimIndent()
+        assertResult(expected, results)
     }
 
     @Test
@@ -68,110 +89,257 @@ abstract class AbstractBasicDataTest {
             """.trimIndent()
         )
 
-        assertAll(results.map {
-            {
-                assertTrue(it is Element)
-                assertTrue(it.element is FunctionCall)
-            }
-        })
+        val expected = """
+                FunctionCall [indexes: 1..8, file: test] (
+                    name = f
+                    args = [
+                        FunctionArgument.Named [indexes: 2..7, file: test] (
+                            name = x,
+                            expr = PropertyAccess [indexes: 6..7, file: test] (
+                                name = y
+                            )
+                        )
+                    ]
+                )
+                FunctionCall [indexes: 10..13, file: test] (
+                    name = f
+                    args = [
+                        FunctionArgument.Positional [indexes: 11..12, file: test] (
+                            expr = IntLiteral [indexes: 11..12, file: test] (1)
+                        )
+                    ]
+                )
+            """.trimIndent()
+        assertResult(expected, results)
     }
-    
+
     @Test
     fun `parses function invocation after an access chain`() {
-        val result = parse("""
+        val results = parse(
+            """
             f.g.h.i.j.k(test)
-        """.trimIndent()).single()
-        
-        assertTrue(result is Element && result.element is FunctionCall)
+            """.trimIndent())
+
+        val expected = """
+            FunctionCall [indexes: 11..17, file: test] (
+                name = k
+                receiver = PropertyAccess [indexes: 7..9, file: test] (
+                    receiver = PropertyAccess [indexes: 5..7, file: test] (
+                        receiver = PropertyAccess [indexes: 3..5, file: test] (
+                            receiver = PropertyAccess [indexes: 1..3, file: test] (
+                                receiver = PropertyAccess [indexes: 0..1, file: test] (
+                                    name = f
+                                )
+                                name = g
+                            )
+                            name = h
+                        )
+                        name = i
+                    )
+                    name = j
+                )
+                args = [
+                    FunctionArgument.Positional [indexes: 12..16, file: test] (
+                        expr = PropertyAccess [indexes: 12..16, file: test] (
+                            name = test
+                        )
+                    )
+                ]
+            )
+            """.trimIndent()
+        assertResult(expected, results)
     }
 
     @Test
     fun `parses positional parameters`() {
-        val result = parse(
+        val results = parse(
             """
             f(1, x, g())
             """.trimIndent()
-        ).single()
-        assertIs<Element<*>>(result)
-        val element = result.element
-        assertIs<FunctionCall>(element)
-        assertAll(element.args.map {
-            { assertIs<FunctionArgument.Positional>(it) }
-        })
+        )
+
+        val expected = """
+            FunctionCall [indexes: 1..12, file: test] (
+                name = f
+                args = [
+                    FunctionArgument.Positional [indexes: 2..3, file: test] (
+                        expr = IntLiteral [indexes: 2..3, file: test] (1)
+                    )
+                    FunctionArgument.Positional [indexes: 5..6, file: test] (
+                        expr = PropertyAccess [indexes: 5..6, file: test] (
+                            name = x
+                        )
+                    )
+                    FunctionArgument.Positional [indexes: 8..11, file: test] (
+                        expr = FunctionCall [indexes: 9..11, file: test] (
+                            name = g
+                            args = []
+                        )
+                    )
+                ]
+            )
+            """.trimIndent()
+        assertResult(expected, results)
     }
 
     @Test
     fun `parses named arguments`() {
-        val result = parse(
+        val results = parse(
             """
             f(a = b, c = d)            
             """.trimIndent()
-        ).single()
-        assertIs<Element<*>>(result)
-        val element = result.element
-        assertIs<FunctionCall>(element)
-        assertTrue(element.args.size == 2)
-        val arg0 = element.args[0]
-        assertIs<FunctionArgument.Named>(arg0)
-        assertEquals("a", arg0.name)
-        val arg1 = element.args[1]
-        assertIs<FunctionArgument.Named>(arg1)
-        assertEquals("c", arg1.name)
+        )
+
+        val expected = """
+            FunctionCall [indexes: 1..15, file: test] (
+                name = f
+                args = [
+                    FunctionArgument.Named [indexes: 2..7, file: test] (
+                        name = a,
+                        expr = PropertyAccess [indexes: 6..7, file: test] (
+                            name = b
+                        )
+                    )
+                    FunctionArgument.Named [indexes: 9..14, file: test] (
+                        name = c,
+                        expr = PropertyAccess [indexes: 13..14, file: test] (
+                            name = d
+                        )
+                    )
+                ]
+            )
+            """.trimIndent()
+        assertResult(expected, results)
     }
 
     @Test
     fun `parses an assignment chain`() {
-        val result = parse("a.b.c = 1").single() as Element
-        val element = result.element
-        assertIs<Assignment>(element)
-        assertEquals(listOf("a", "b", "c"), element.lhs.asChainOrNull()?.nameParts)
+        val results = parse(
+            """
+            a.b.c = 1
+            """.trimIndent()
+        )
+
+        val expected = """
+            Assignment [indexes: 0..9, file: test] (
+                lhs = PropertyAccess [indexes: 0..5, file: test] (
+                    receiver = PropertyAccess [indexes: 1..3, file: test] (
+                        receiver = PropertyAccess [indexes: 0..1, file: test] (
+                            name = a
+                        )
+                        name = b
+                    )
+                    name = c
+                )
+                rhs = IntLiteral [indexes: 8..9, file: test] (1)
+            )
+            """.trimIndent()
+        assertResult(expected, results)
     }
-    
+
     @Test
     fun `parses a local val`() {
-        val result = parse("val a = 1").single()
-        assertIs<Element<*>>(result)
-        val element = result.element
-        assertIs<LocalValue>(element)
-        assertEquals("a", element.name)
-        assertIs<Literal.IntLiteral>(element.rhs)
+        val results = parse("val a = 1")
+
+        val expected = """
+            LocalValue [indexes: 0..9, file: test] (
+                name = a
+                rhs = IntLiteral [indexes: 8..9, file: test] (1)
+            )
+            """.trimIndent()
+        assertResult(expected, results)
     }
 
     @Test
     fun `parses access chain in rhs`() {
-        val result = parse("a = b.c.d").single()
-        assertIs<Element<*>>(result)
-        val element = result.element
-        assertIs<Assignment>(element)
-        val rhs = element.rhs
-        assertIs<PropertyAccess>(rhs)
-        val rhs1 = rhs.receiver
-        assertIs<PropertyAccess>(rhs1)
-        val rhs2 = rhs1.receiver
-        assertIs<PropertyAccess>(rhs2)
-        assertNull(rhs2.receiver)
+        val results = parse("a = b.c.d")
+
+        val expected = """
+            Assignment [indexes: 0..9, file: test] (
+                lhs = PropertyAccess [indexes: 0..1, file: test] (
+                    name = a
+                )
+                rhs = PropertyAccess [indexes: 7..9, file: test] (
+                    receiver = PropertyAccess [indexes: 5..7, file: test] (
+                        receiver = PropertyAccess [indexes: 4..5, file: test] (
+                            name = b
+                        )
+                        name = c
+                    )
+                    name = d
+                )
+            )
+            """.trimIndent()
+        assertResult(expected, results)
     }
 
     @Test
     fun `parses lambdas`() {
-        val result = parse("a { b = 1 }").single() as Element
-        val element = result.element
-        assertIs<FunctionCall>(element)
-        val arg = element.args.single()
-        assertIs<FunctionArgument.Lambda>(arg)
-        assertIs<Assignment>(arg.block.statements.single())
+        val results = parse(
+            """
+            a { b = 1 }
+            """.trimIndent())
+
+        val expected = """
+            FunctionCall [indexes: 2..11, file: test] (
+                name = a
+                args = [
+                    FunctionArgument.Lambda [indexes: 2..11, file: test] (
+                        block = Block [indexes: 2..11, file: test] (
+                            Assignment [indexes: 4..9, file: test] (
+                                lhs = PropertyAccess [indexes: 4..5, file: test] (
+                                    name = b
+                                )
+                                rhs = IntLiteral [indexes: 8..9, file: test] (1)
+                            )
+                        )
+                    )
+                ]
+            )
+            """.trimIndent()
+        assertResult(expected, results)
     }
-    
+
     @Test
     fun `parses call chain`() {
-        val result = parse("f(1).g(2).h(3)").single() as Element<*>
-        val element = result.element
-        assertIs<FunctionCall>(element)
-        val receiver = element.receiver
-        assertIs<FunctionCall>(receiver)
-        val receiver2 = receiver.receiver
-        assertIs<FunctionCall>(receiver2)
-        assertNull(receiver2.receiver)
-        assertEquals("f", receiver2.name)
+        val results = parse("f(1).g(2).h(3)")
+
+        val expected = """
+            FunctionCall [indexes: 11..14, file: test] (
+                name = h
+                receiver = FunctionCall [indexes: 6..9, file: test] (
+                    name = g
+                    receiver = FunctionCall [indexes: 1..4, file: test] (
+                        name = f
+                        args = [
+                            FunctionArgument.Positional [indexes: 2..3, file: test] (
+                                expr = IntLiteral [indexes: 2..3, file: test] (1)
+                            )
+                        ]
+                    )
+                    args = [
+                        FunctionArgument.Positional [indexes: 7..8, file: test] (
+                            expr = IntLiteral [indexes: 7..8, file: test] (2)
+                        )
+                    ]
+                )
+                args = [
+                    FunctionArgument.Positional [indexes: 12..13, file: test] (
+                        expr = IntLiteral [indexes: 12..13, file: test] (3)
+                    )
+                ]
+            )
+            """.trimIndent()
+        assertResult(expected, results)
+    }
+
+    private fun assertResult(expected: String, results: List<ElementResult<*>>) {
+        assertEquals(
+            expected,
+            results.joinToString(separator = "\n") {
+                val element = it as Element<*>
+                prettyPrintLanguageTree(element.element)
+            }
+        )
     }
 }

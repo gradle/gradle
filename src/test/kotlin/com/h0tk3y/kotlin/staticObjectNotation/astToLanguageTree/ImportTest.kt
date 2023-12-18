@@ -92,7 +92,7 @@ class ImportTest {
         assertTrue(errors.isEmpty())
     }
 
-    private fun importOf(vararg nameParts: String) = Import(AccessChain(listOf(*nameParts), ast.sourceData(sourceIdentifier)), ast.sourceData(sourceIdentifier))
+    private fun importOf(vararg nameParts: String) = Import(AccessChain(listOf(*nameParts)), ast.sourceData(sourceIdentifier))
 
     private val ast = object : Ast {
         override val description: String = "test"

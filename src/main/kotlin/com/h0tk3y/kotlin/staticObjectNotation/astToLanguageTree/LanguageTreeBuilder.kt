@@ -9,15 +9,15 @@ import kotlinx.ast.common.ast.Ast
 interface LanguageTreeBuilder {
     fun build(ast: Ast, sourceIdentifier: SourceIdentifier): LanguageTreeResult
 
-    fun build(tree: LightTree, sourceIdentifier: SourceIdentifier): LanguageTreeResult
+    fun build(tree: LightTree, sourceOffset: Int, sourceIdentifier: SourceIdentifier): LanguageTreeResult
 }
 
 class LanguageTreeBuilderWithTopLevelBlock(private val delegate: LanguageTreeBuilder) : LanguageTreeBuilder {
     override fun build(ast: Ast, sourceIdentifier: SourceIdentifier): LanguageTreeResult =
         build(delegate.build(ast, sourceIdentifier), ast.sourceData(sourceIdentifier))
 
-    override fun build(tree: LightTree, sourceIdentifier: SourceIdentifier): LanguageTreeResult =
-        build(delegate.build(tree, sourceIdentifier), tree.sourceData(sourceIdentifier))
+    override fun build(tree: LightTree, sourceOffset: Int, sourceIdentifier: SourceIdentifier): LanguageTreeResult =
+        build(delegate.build(tree, sourceOffset, sourceIdentifier), tree.sourceData(sourceIdentifier, sourceOffset))
 
     private fun build(result: LanguageTreeResult, sourceData: SourceData): LanguageTreeResult {
         val (topLevelStatements, others) = result.results.partition { it is Element && it.element is DataStatement }
@@ -32,8 +32,8 @@ class DefaultLanguageTreeBuilder : LanguageTreeBuilder {
         return LanguageTreeResult(results.value)
     }
 
-    override fun build(tree: LightTree, sourceIdentifier: SourceIdentifier): LanguageTreeResult {
-        val results = GrammarToLightTree(sourceIdentifier).script(tree)
+    override fun build(tree: LightTree, sourceOffset: Int, sourceIdentifier: SourceIdentifier): LanguageTreeResult {
+        val results = GrammarToLightTree(sourceIdentifier, sourceOffset).script(tree)
         return LanguageTreeResult(results.value)
     }
 

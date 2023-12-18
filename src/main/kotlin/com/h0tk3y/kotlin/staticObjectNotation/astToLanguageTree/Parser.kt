@@ -21,7 +21,9 @@ fun parseToAst(text: CharSequence): Ast {
 }
 
 fun main() {
-    parseToAst("""
-        a.b.c.x = 2
-    """.trimIndent()).print()
+    parseToAst(
+        """
+            a.b.c.x = 2
+        """.trimIndent()
+    ).print()
 }

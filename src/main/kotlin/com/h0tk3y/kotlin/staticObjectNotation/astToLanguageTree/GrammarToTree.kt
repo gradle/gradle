@@ -42,7 +42,7 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
             val names = identifierAst.children(simpleIdentifier).map { checkForFailure(simpleIdentifier(it)) }
 
             elementIfNoFailures {
-                Element(Import(AccessChain(checked(names), identifierAst.data), ast.data))
+                Element(Import(AccessChain(checked(names)), ast.data))
             }
         }
 

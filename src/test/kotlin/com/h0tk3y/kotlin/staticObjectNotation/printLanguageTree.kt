@@ -16,17 +16,9 @@
 
 package com.example.com.h0tk3y.kotlin.staticObjectNotation
 
-import com.h0tk3y.kotlin.staticObjectNotation.language.Assignment
-import com.h0tk3y.kotlin.staticObjectNotation.language.Block
-import com.h0tk3y.kotlin.staticObjectNotation.language.FunctionArgument
-import com.h0tk3y.kotlin.staticObjectNotation.language.FunctionCall
-import com.h0tk3y.kotlin.staticObjectNotation.language.Import
-import com.h0tk3y.kotlin.staticObjectNotation.language.LanguageTreeElement
-import com.h0tk3y.kotlin.staticObjectNotation.language.Literal
-import com.h0tk3y.kotlin.staticObjectNotation.language.LocalValue
-import com.h0tk3y.kotlin.staticObjectNotation.language.Null
-import com.h0tk3y.kotlin.staticObjectNotation.language.PropertyAccess
-import com.h0tk3y.kotlin.staticObjectNotation.language.This
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.Element
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParseTestUtil.Parser.parseWithAst
+import com.h0tk3y.kotlin.staticObjectNotation.language.*
 
 fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
     fun StringBuilder.recurse(current: LanguageTreeElement, depth: Int) {
@@ -44,9 +36,11 @@ fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
 
         fun recurseDeeper(next: LanguageTreeElement) = recurse(next, depth + 1)
 
+        fun source() = current.sourceData.prettyPrint()
+
         when (current) {
             is Block -> {
-                append("Block(\n")
+                append("Block [${source()}] (\n")
                 current.statements.forEach {
                     append(nextIndent())
                     recurseDeeper(it)
@@ -56,7 +50,7 @@ fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
             }
 
             is Assignment -> {
-                append("Assignment(\n")
+                append("Assignment [${source()}] (\n")
                 appendNextIndented("lhs = ")
                 recurseDeeper(current.lhs)
                 appendLine()
@@ -67,7 +61,7 @@ fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
             }
 
             is FunctionCall -> {
-                append("FunctionCall(\n")
+                append("FunctionCall [${source()}] (\n")
                 appendNextIndented("name = ${current.name}\n")
                 current.receiver?.let {
                     appendNextIndented("receiver = ")
@@ -89,24 +83,24 @@ fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
             }
 
             is Literal.BooleanLiteral -> {
-                append("BooleanLiteral(${current.value})")
+                append("BooleanLiteral [${source()}] (${current.value})")
             }
 
             is Literal.IntLiteral -> {
-                append("IntLiteral(${current.value})")
+                append("IntLiteral [${source()}] (${current.value})")
             }
 
             is Literal.LongLiteral -> {
-                append("LongLiteral(${current.value})")
+                append("LongLiteral [${source()}] (${current.value})")
             }
 
             is Literal.StringLiteral -> {
-                append("StringLiteral(${current.value})")
+                append("StringLiteral [${source()}] (${current.value})")
             }
 
             is Null -> append("Null")
             is PropertyAccess -> {
-                append("PropertyAccess(\n")
+                append("PropertyAccess [${source()}] (\n")
                 current.receiver?.let { receiver ->
                     appendNextIndented("receiver = ")
                     recurseDeeper(receiver)
@@ -119,7 +113,7 @@ fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
             is This -> append("This")
 
             is LocalValue -> {
-                append("LocalValue(\n")
+                append("LocalValue [${source()}] (\n")
                 appendNextIndented("name = ${current.name}\n")
                 appendNextIndented("rhs = ")
                 recurseDeeper(current.rhs)
@@ -128,7 +122,7 @@ fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
             }
 
             is FunctionArgument.Lambda -> {
-                append("FunctionArgument.Lambda(\n")
+                append("FunctionArgument.Lambda [${source()}] (\n")
                 appendNextIndented("block = ")
                 recurseDeeper(current.block)
                 appendLine()
@@ -136,7 +130,7 @@ fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
             }
 
             is FunctionArgument.Named -> {
-                append("FunctionArgument.Named(\n")
+                append("FunctionArgument.Named [${source()}] (\n")
                 appendNextIndented("name = ${current.name},\n")
                 appendNextIndented("expr = ")
                 recurseDeeper(current.expr)
@@ -145,14 +139,19 @@ fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
             }
 
             is FunctionArgument.Positional -> {
-                append("FunctionArgument.Positional(\n")
+                append("FunctionArgument.Positional [${source()}] (\n")
                 appendNextIndented("expr = ")
                 recurseDeeper(current.expr)
                 appendLine()
                 appendIndented(")")
             }
 
-            is Import -> TODO()
+            is Import -> {
+                append("Import [${source()} (\n")
+                appendNextIndented("name parts = ${current.name.nameParts}")
+                appendLine()
+                appendIndented(")")
+            }
         }
     }
 
@@ -160,7 +159,7 @@ fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
 }
 
 fun main() {
-    /*val result = parseWithTopLevelBlock(
+    val result = parseWithAst(
         """
         rootProject.name = "test-value"
         include(":a")
@@ -176,11 +175,10 @@ fun main() {
             includeBuild("pluginIncluded")
             repositories {
                 mavenCentral()
-                google()
-            }
+                google() }
         }
         """.trimIndent()
     ).single() as Element<*>
 
-    println(prettyPrintLanguageTree(result.element))*/
+    println(prettyPrintLanguageTree(result.element))
 }

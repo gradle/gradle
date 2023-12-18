@@ -14,7 +14,10 @@ import org.jetbrains.kotlin.psi.stubs.elements.KtConstantExpressionElementType
 import org.jetbrains.kotlin.psi.stubs.elements.KtNameReferenceExpressionElementType
 import org.jetbrains.kotlin.utils.doNothing
 
-class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
+class GrammarToLightTree(
+    private val sourceIdentifier: SourceIdentifier,
+    private val sourceOffset: Int
+) {
 
     fun script(tree: LightTree): Syntactic<List<ElementResult<*>>> {
         val scriptNodes = scriptNodes(tree)
@@ -32,11 +35,9 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
             val children = tree.children(node)
 
             var content: CheckedResult<ElementResult<PropertyAccess>>? = null
-            var contentNodeSource: LightTreeSourceData? = null
             children.forEach {
                 when (it.tokenType) {
                     DOT_QUALIFIED_EXPRESSION, REFERENCE_EXPRESSION -> {
-                        contentNodeSource  = it.data
                         content = checkForFailure(propertyAccessStatement(tree, it))
                     }
                 }
@@ -54,7 +55,7 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
                     }
 
                 val nameParts = checked(content!!).flatten()
-                Element(Import(AccessChain(nameParts, contentNodeSource!!), node.data)) //TODO
+                Element(Import(AccessChain(nameParts), node.dataNoOffset)) //TODO
             }
         }
 
@@ -114,6 +115,7 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
 
             var isSelector = false
             var referenceSelector: CheckedResult<SyntacticResult<String>>? = null
+            var referenceSourceData: SourceData? = null
             var functionCallSelector: CheckedResult<ElementResult<FunctionCall>>? = null
             var receiver: CheckedResult<ElementResult<Expr>>? = null //before dot
             children.forEach {
@@ -128,6 +130,7 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
                             val callExpressionCallee = if (tokenType == CALL_EXPRESSION) tree.getFirstChildExpressionUnwrapped(it) else null
                             if (tokenType is KtNameReferenceExpressionElementType) {
                                 referenceSelector = checkForFailure(referenceExpression(it))
+                                referenceSourceData = it.data
                             } else if (tokenType == CALL_EXPRESSION && callExpressionCallee?.tokenType != LAMBDA_EXPRESSION) {
                                 functionCallSelector = checkForFailure(callExpression(tree, it))
                             } else {
@@ -145,10 +148,10 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
 
             elementIfNoFailures {
                 if (referenceSelector != null) {
-                    Element(PropertyAccess(checked(receiver!!), checked(referenceSelector!!), node.data))
+                    Element(PropertyAccess(checked(receiver!!), checked(referenceSelector!!), referenceSourceData!!))
                 } else {
                     val functionCall = checked(functionCallSelector!!)
-                    Element(FunctionCall(checked(receiver!!), functionCall.name, functionCall.args, node.data))
+                    Element(FunctionCall(checked(receiver!!), functionCall.name, functionCall.args, functionCall.sourceData))
                 }
             }
         }
@@ -396,7 +399,8 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
         return blockNodes.slice(1..blockNodes.size - 2)
     }
 
-    private val LighterASTNode.data get() = sourceData(sourceIdentifier)
+    private val LighterASTNode.data get() = sourceData(sourceIdentifier, sourceOffset)
+    private val LighterASTNode.dataNoOffset get() = sourceData(sourceIdentifier, 0) // TODO: again a hack, due to script wrapping
 
     private fun LighterASTNode.unsupportedBecause(feature: UnsupportedLanguageFeature) =
         UnsupportedConstruct(
