@@ -2255,8 +2255,8 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         and: "a copy task that copies from both of these, failing on duplicates"
         buildFile << """
             task (copy, type: Copy) {
-                from '${separatorsToUnix(unzippedDir.path)}'
-                from zipTree('${separatorsToUnix(zipFile.path)}')
+                from 'before/files'
+                from zipTree('before/files.zip')
                 into 'after'
                 duplicatesStrategy = DuplicatesStrategy.FAIL
             }
