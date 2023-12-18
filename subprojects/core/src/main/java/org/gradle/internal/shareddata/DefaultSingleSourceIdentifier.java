@@ -17,13 +17,13 @@
 package org.gradle.internal.shareddata;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.shareddata.ProjectSharedData;
+import org.gradle.api.shareddata.SingleSourceIdentifier;
 import org.gradle.util.Path;
 
 import java.util.Objects;
 
 @NonNullApi
-public class DefaultSingleSourceIdentifier implements ProjectSharedData.SingleSourceIdentifier {
+public class DefaultSingleSourceIdentifier implements SingleSourceIdentifier {
     private final Path identityPath;
 
     public DefaultSingleSourceIdentifier(Path identityPath) {
