@@ -38,6 +38,8 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.Actions;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
@@ -65,6 +67,9 @@ import java.util.Collection;
  * Creates resolver that can resolve module components from repositories.
  */
 public class ResolveIvyFactory {
+
+    private final static Logger LOGGER = Logging.getLogger(ResolveIvyFactory.class);
+
     private final ModuleRepositoryCacheProvider cacheProvider;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
     private final BuildCommencedTimeProvider timeProvider;
@@ -105,7 +110,6 @@ public class ResolveIvyFactory {
     }
 
     public ComponentResolvers create(
-        String resolveContextName,
         ResolutionStrategyInternal resolutionStrategy,
         Collection<? extends ResolutionAwareRepository> repositories,
         ComponentMetadataProcessorFactory metadataProcessor,
@@ -143,9 +147,11 @@ public class ResolveIvyFactory {
             if (baseRepository.isDynamicResolveMode()) {
                 moduleComponentRepository = new IvyDynamicResolveModuleComponentRepository(moduleComponentRepository, moduleResolveStateFactory);
             }
+
             moduleComponentRepository = new ErrorHandlingModuleComponentRepository(moduleComponentRepository, repositoryBlacklister);
-            moduleComponentRepository = filterRepository(repository, moduleComponentRepository, resolveContextName, consumerAttributes);
-            moduleComponentRepository = dependencyVerificationOverride.overrideDependencyVerification(moduleComponentRepository, resolveContextName, resolutionStrategy);
+            moduleComponentRepository = filterRepository(repository, moduleComponentRepository);
+            moduleComponentRepository = maybeApplyDependencyVerification(moduleComponentRepository, resolutionStrategy.isDependencyVerificationEnabled());
+
             moduleResolver.add(moduleComponentRepository);
             parentModuleResolver.add(moduleComponentRepository);
         }
@@ -153,12 +159,32 @@ public class ResolveIvyFactory {
         return moduleResolver;
     }
 
-    private ModuleComponentRepository<ModuleComponentGraphResolveState> filterRepository(ResolutionAwareRepository repository, ModuleComponentRepository<ModuleComponentGraphResolveState> moduleComponentRepository, String consumerName, AttributeContainer consumerAttributes) {
+    private static ModuleComponentRepository<ModuleComponentGraphResolveState> filterRepository(
+        ResolutionAwareRepository repository,
+        ModuleComponentRepository<ModuleComponentGraphResolveState> moduleComponentRepository
+    ) {
         Action<? super ArtifactResolutionDetails> filter = Actions.doNothing();
         if (repository instanceof ContentFilteringRepository) {
             filter = ((ContentFilteringRepository) repository).getContentFilter();
         }
-        return FilteredModuleComponentRepository.of(moduleComponentRepository, filter, consumerName, consumerAttributes);
+
+        if (filter == Actions.doNothing()) {
+            return moduleComponentRepository;
+        }
+
+        return new FilteredModuleComponentRepository(moduleComponentRepository, filter);
+    }
+
+    private ModuleComponentRepository<ModuleComponentGraphResolveState> maybeApplyDependencyVerification(
+        ModuleComponentRepository<ModuleComponentGraphResolveState> moduleComponentRepository,
+        boolean dependencyVerificationEnabled
+    ) {
+        if (!dependencyVerificationEnabled) {
+            LOGGER.warn("Dependency verification has been disabled.");
+            return moduleComponentRepository;
+        }
+
+        return dependencyVerificationOverride.overrideDependencyVerification(moduleComponentRepository);
     }
 
     public ArtifactResult verifiedArtifact(DefaultResolvedArtifactResult defaultResolvedArtifactResult) {

@@ -17,8 +17,31 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.Action;
+import org.gradle.api.attributes.Attribute;
+
+import javax.annotation.Nullable;
+import java.util.Map;
+import java.util.Set;
 
 public interface ContentFilteringRepository {
 
     Action<? super ArtifactResolutionDetails> getContentFilter();
+
+    /**
+     * @see RepositoryContentDescriptorInternal#getIncludedConfigurations()
+     */
+    @Nullable
+    Set<String> getIncludedConfigurations();
+
+    /**
+     * @see RepositoryContentDescriptorInternal#getExcludedConfigurations()
+     */
+    @Nullable
+    Set<String> getExcludedConfigurations();
+
+    /**
+     * @see RepositoryContentDescriptorInternal#getRequiredAttributes()
+     */
+    @Nullable
+    Map<Attribute<Object>, Set<Object>> getRequiredAttributes();
 }
