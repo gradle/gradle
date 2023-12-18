@@ -34,7 +34,9 @@ import org.gradle.internal.shareddata.SharedDataStorage.DataKey
 import org.gradle.internal.shareddata.SharedDataStorage.ProjectProducedSharedData
 import org.gradle.util.Path
 
-internal class SharedDataController(
+
+internal
+class SharedDataController(
     private val host: DefaultConfigurationCache.Host,
     private val cacheIO: ConfigurationCacheIO,
     fingerprintController: ConfigurationCacheFingerprintController,
