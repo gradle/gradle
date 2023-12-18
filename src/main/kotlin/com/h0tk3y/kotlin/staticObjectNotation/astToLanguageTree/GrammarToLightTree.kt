@@ -1,8 +1,7 @@
 package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.FailureCollectorContext.CheckedResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedLanguageFeature.AnnotationUsage
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedLanguageFeature.LabelledStatement
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedLanguageFeature.*
 import com.h0tk3y.kotlin.staticObjectNotation.language.*
 import org.jetbrains.kotlin.ElementTypeUtils.getOperationSymbol
 import org.jetbrains.kotlin.ElementTypeUtils.isExpression
@@ -60,35 +59,62 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
         }
 
     private fun statement(tree: LightTree, node: LighterASTNode): ElementResult<DataStatement> =
-        when (node.tokenType) { // TODO: filter out whitespace and comments
-            LABELED_EXPRESSION -> node.unsupportedBecause(LabelledStatement)
-            ANNOTATED_EXPRESSION -> node.unsupportedBecause(AnnotationUsage)
+        when (node.tokenType) {
             BINARY_EXPRESSION -> binaryExpression(tree, node)
-            CALL_EXPRESSION -> callExpression(tree, node)
-            else -> error("Unexpected tokenType in generic statement: ${node.tokenType}")
+            PROPERTY -> localValue(tree, node)
+            else -> expression(tree, node)
         }
 
     private fun expression(tree: LightTree, node: LighterASTNode): ElementResult<Expr> =
-        when (node.tokenType) {
+        when (val tokenType = node.tokenType) {
+            LABELED_EXPRESSION -> node.unsupportedBecause(LabelledStatement)
+            ANNOTATED_EXPRESSION -> node.unsupportedBecause(AnnotationUsage)
             in QUALIFIED_ACCESS, REFERENCE_EXPRESSION -> propertyAccessStatement(tree, node)
             is KtConstantExpressionElementType -> constantExpression(node)
             STRING_TEMPLATE -> stringTemplate(tree, node)
-            else -> error("Unexpected tokenType in expression: ${node.tokenType}")
-        }
-
-    private fun propertyAccessStatement(tree: LightTree, node: LighterASTNode): ElementResult<PropertyAccess> =
-        when (node.tokenType) {
-            REFERENCE_EXPRESSION -> Element(PropertyAccess(null, referenceExpression(node).value, node.data))
+            CALL_EXPRESSION -> callExpression(tree, node)
             in QUALIFIED_ACCESS -> qualifiedExpression(tree, node)
-            else -> error("Unexpected tokenType in property access statement: ${node.tokenType}")
+            else -> error("Unexpected tokenType in expression: $tokenType")
         }
 
-    private fun qualifiedExpression(tree: LightTree, node: LighterASTNode): ElementResult<PropertyAccess> =
+    @Suppress("UNCHECKED_CAST")
+    private fun propertyAccessStatement(tree: LightTree, node: LighterASTNode): ElementResult<PropertyAccess> =
+        when (val tokenType = node.tokenType) {
+            REFERENCE_EXPRESSION -> Element(PropertyAccess(null, referenceExpression(node).value, node.data))
+            in QUALIFIED_ACCESS -> qualifiedExpression(tree, node) as ElementResult<PropertyAccess>
+            else -> error("Unexpected tokenType in property access statement: $tokenType")
+        }
+
+    private fun localValue(tree: LightTree, node: LighterASTNode): ElementResult<LocalValue> =
+        elementOrFailure {
+            val children = tree.children(node)
+
+            var identifier: Syntactic<String>? = null
+            var expression: CheckedResult<ElementResult<Expr>>? = null
+            children.forEach {
+                when (it.tokenType) {
+                    IDENTIFIER -> identifier = Syntactic(it.asText)
+                    else -> if (it.isExpression()) {
+                        expression = checkForFailure(expression(tree, it))
+                    }
+                }
+            }
+
+            collectingFailure(identifier ?: node.parsingError("Local value without identifier"))
+            collectingFailure(expression ?: node.unsupportedBecause(UnsupportedLanguageFeature.UninitializedProperty))
+
+            elementIfNoFailures {
+                Element(LocalValue(identifier!!.value, checked(expression!!), node.data))
+            }
+        }
+
+    private fun qualifiedExpression(tree: LightTree, node: LighterASTNode): ElementResult<Expr> =
         elementOrFailure {
             val children = tree.children(node)
 
             var isSelector = false
-            var selector: Syntactic<String>? = null
+            var referenceSelector: CheckedResult<SyntacticResult<String>>? = null
+            var functionCallSelector: CheckedResult<ElementResult<FunctionCall>>? = null
             var receiver: CheckedResult<ElementResult<Expr>>? = null //before dot
             children.forEach {
                 when (val tokenType = it.tokenType) {
@@ -100,11 +126,13 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
                         val isEffectiveSelector = isSelector && tokenType != TokenType.ERROR_ELEMENT
                         if (isEffectiveSelector) {
                             val callExpressionCallee = if (tokenType == CALL_EXPRESSION) tree.getFirstChildExpressionUnwrapped(it) else null
-                                if (tokenType is KtNameReferenceExpressionElementType || (tokenType == CALL_EXPRESSION && callExpressionCallee?.tokenType != LAMBDA_EXPRESSION)) {
-                                    selector = referenceExpression(it)
-                                } else {
-                                    collectingFailure(node.parsingError("The expression cannot be a selector (occur after a dot)"))
-                                }
+                            if (tokenType is KtNameReferenceExpressionElementType) {
+                                referenceSelector = checkForFailure(referenceExpression(it))
+                            } else if (tokenType == CALL_EXPRESSION && callExpressionCallee?.tokenType != LAMBDA_EXPRESSION) {
+                                functionCallSelector = checkForFailure(callExpression(tree, it))
+                            } else {
+                                collectingFailure(node.parsingError("The expression cannot be a selector (occur after a dot)"))
+                            }
                         } else {
                             receiver = checkForFailure(expression(tree, it))
                         }
@@ -112,11 +140,16 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
                 }
             }
 
-            collectingFailure(selector ?: node.parsingError("Qualified expression without selector"))
+            collectingFailure(referenceSelector ?: functionCallSelector ?: node.parsingError("Qualified expression without selector"))
             collectingFailure(receiver ?: node.parsingError("Qualified expression without receiver"))
 
             elementIfNoFailures {
-                Element(PropertyAccess(checked(receiver!!), selector!!.value, node.data))
+                if (referenceSelector != null) {
+                    Element(PropertyAccess(checked(receiver!!), checked(referenceSelector!!), node.data))
+                } else {
+                    val functionCall = checked(functionCallSelector!!)
+                    Element(FunctionCall(checked(receiver!!), functionCall.name, functionCall.args, node.data))
+                }
             }
         }
 
@@ -124,10 +157,10 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
         val children = tree.children(node)
         val sb = StringBuilder()
         children.forEach {
-            when (it.tokenType) {
+            when (val tokenType = it.tokenType) {
                 OPEN_QUOTE, CLOSING_QUOTE -> {}
                 LITERAL_STRING_TEMPLATE_ENTRY -> sb.append(it.asText)
-                else -> error("Unhandled tokenType in string template: ${it.tokenType}")
+                else -> error("Unexpected tokenType in string template: $tokenType")
             }
         }
         return Element(Literal.StringLiteral(sb.toString(), node.data))
@@ -177,21 +210,21 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
         }
     }
 
-    private fun callExpression(tree: LightTree, node: LighterASTNode): ElementResult<Expr> {
+    private fun callExpression(tree: LightTree, node: LighterASTNode): ElementResult<FunctionCall> {
         val children = tree.children(node)
 
         var name: String? = null
         val valueArguments = mutableListOf<LighterASTNode>()
         children.forEach { child ->
             fun process(node: LighterASTNode) {
-                when (node.tokenType) {
+                when (val tokenType = node.tokenType) {
                     REFERENCE_EXPRESSION -> {
                         name = node.asText
                     }
                     VALUE_ARGUMENT_LIST, LAMBDA_ARGUMENT -> {
                         valueArguments += node
                     }
-                    else -> TODO()
+                    else -> error("Unexpected token type in call expression: $tokenType")
                 }
             }
 
@@ -208,19 +241,53 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
         }
     }
 
-    private fun valueArguments(tree: LightTree, node: LighterASTNode): List<SyntacticResult<FunctionArgument.ValueArgument>> {
+    private fun valueArguments(tree: LightTree, node: LighterASTNode): List<SyntacticResult<FunctionArgument>> {
         val children = tree.children(node)
 
-        val list = mutableListOf<SyntacticResult<FunctionArgument.ValueArgument>>()
+        val list = mutableListOf<SyntacticResult<FunctionArgument>>()
         children.forEach {
-            when (it.tokenType) {
+            when (val tokenType = it.tokenType) {
                 VALUE_ARGUMENT -> list.add(valueArgument(tree, it))
                 COMMA, LPAR, RPAR -> doNothing()
-                else -> TODO()
+                LAMBDA_EXPRESSION -> list.add(lambda(tree, it))
+                else -> error("Unexpected token type in value arguments: $tokenType")
             }
         }
         return list
     }
+
+    private fun lambda(tree: LightTree, node: LighterASTNode): SyntacticResult<FunctionArgument.Lambda> =
+        syntacticOrFailure {
+            val functionalLiteralNode = tree.firstChild(node) { it.isKind(FUNCTION_LITERAL) }
+
+            collectingFailure(functionalLiteralNode ?: node.parsingError("No functional literal in lambda definition"))
+
+            var block: LighterASTNode? = null
+            functionalLiteralNode?.let {
+                val children = tree.children(functionalLiteralNode)
+                children.forEach {
+                    when (it.tokenType) {
+                        VALUE_PARAMETER_LIST -> collectingFailure(node.unsupportedBecause(LambdaWithParameters))
+                        BLOCK -> block = it
+                        ARROW -> doNothing()
+                    }
+                }
+            }
+
+            var statements: List<CheckedResult<ElementResult<DataStatement>>>? = null
+            block?.let {
+                val children = tree.children(block!!)
+                statements = children.map { checkForFailure(statement(tree, it)) }
+            }
+
+            collectingFailure(statements ?: node.parsingError("Lambda expression without statements"))
+
+            syntacticIfNoFailures {
+                val checkedStatements = statements!!.map(::checked)
+                val b = Block(checkedStatements, block!!.data)
+                Syntactic(FunctionArgument.Lambda(b, node.data))
+            }
+        }
 
     private fun valueArgument(tree: LightTree, node: LighterASTNode): SyntacticResult<FunctionArgument.ValueArgument> =
         syntacticOrFailure {
@@ -229,14 +296,14 @@ class GrammarToLightTree(private val sourceIdentifier: SourceIdentifier) {
             var identifier: String? = null
             var expression: CheckedResult<ElementResult<Expr>>? = null
             children.forEach {
-                when (it.tokenType) {
+                when (val tokenType = it.tokenType) {
                     VALUE_ARGUMENT_NAME -> identifier = it.asText
                     EQ -> doNothing()
                     is KtConstantExpressionElementType -> expression = checkForFailure(constantExpression(it))
                     CALL_EXPRESSION -> expression = checkForFailure(callExpression(tree, it))
                     else ->
                         if (it.isExpression()) expression = checkForFailure(expression(tree, it))
-                        else TODO()
+                        else error("Unexpected token type in value argument: $tokenType")
                 }
             }
 

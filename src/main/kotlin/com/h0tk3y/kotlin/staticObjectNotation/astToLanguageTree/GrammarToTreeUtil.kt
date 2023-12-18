@@ -36,6 +36,7 @@ internal class FailureCollectorContext {
     }
 
     interface CheckBarrierContext {
+
         fun <T : LanguageTreeElement> checked(result: CheckedResult<ElementResult<T>>): T {
             val value = result.value
             check(value is Element<T>)

@@ -71,7 +71,7 @@ internal fun FlyweightCapableTreeStructure<LighterASTNode>.getFirstChildExpressi
     }
 }
 
-private fun FlyweightCapableTreeStructure<LighterASTNode>.firstChild(
+internal fun FlyweightCapableTreeStructure<LighterASTNode>.firstChild(
     node: LighterASTNode,
     filter: (LighterASTNode) -> Boolean
 ): LighterASTNode? {
