@@ -17,13 +17,11 @@
 package org.gradle.api.shareddata;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
-import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -35,45 +33,75 @@ import java.util.Map;
  *
  * @since 8.6
  */
-@NonNullApi
 @Incubating
 public interface ProjectSharedData {
+    /**
+     * TBD
+     * @since 8.6
+     */
     <T> void register(Class<T> dataType, @Nullable String dataIdentifier, Provider<T> dataProvider);
 
+    /**
+     * TBD
+     * @since 8.6
+     */
     <T> Provider<T> obtain(Class<T> dataType, @Nullable String dataIdentifier, SingleSourceIdentifier dataSourceIdentifier);
 
+    /**
+     * TBD
+     * @since 8.6
+     */
     <T> Provider<T> obtain(Class<T> dataType, SingleSourceIdentifier dataSourceIdentifier);
+
+    /**
+     * TBD
+     * @since 8.6
+     */
     <T> Provider<Map<String, ? extends T>> obtain(Class<T> dataType, String dataIdentifier, MultipleSourcesIdentifier dataSourceIdentifier);
 
+    /**
+     * TBD
+     * @since 8.6
+     */
     // TODO: these should conveniently wrap heterogeneous project identifiers, to be used as `sharedData.obtainSharedData(..., sharedData.fromProject(id))`
     SingleSourceIdentifier fromProject(Project project);
+
+    /**
+     * TBD
+     * @since 8.6
+     */
     SingleSourceIdentifier fromProject(ProjectComponentIdentifier project);
 
     /**
-     * Identifies a single source project in queries to obtain shared data from a single project.
-     *
+     * TBD
      * @since 8.6
      */
-    @Incubating
-    interface SingleSourceIdentifier {
-        Path getSourceProjectIdentitiyPath();
-    }
-
     MultipleSourcesIdentifier fromProjects(Collection<Project> projects);
 
     // TODO API shape issue? giving the project instance to the user code is prone to violations of isolation (which we catch, but still)
-    MultipleSourcesIdentifier fromAllProjects();
-    MultipleSourcesIdentifier fromProjectsInCurrentBuild();
-    MultipleSourcesIdentifier fromAllProjectsMatchingIdentityPath(Spec<? super String> filterProjects);
-    MultipleSourcesIdentifier fromResolutionResults(Configuration configuration);
 
     /**
-     * Identifies a collection of projects in queries to obtain shared data from a set of projects.
-     *
+     * TBD
      * @since 8.6
      */
-    @Incubating
-    interface MultipleSourcesIdentifier {
-        Collection<Path> getSourceProjectIdentityPaths();
-    }
+    MultipleSourcesIdentifier fromAllProjects();
+
+    /**
+     * TBD
+     * @since 8.6
+     */
+    MultipleSourcesIdentifier fromProjectsInCurrentBuild();
+
+    /**
+     * TBD
+     * @since 8.6
+     */
+    MultipleSourcesIdentifier fromAllProjectsMatchingIdentityPath(Spec<? super String> filterProjects);
+
+    /**
+     * TBD
+     * @since 8.6
+     */
+    MultipleSourcesIdentifier fromResolutionResults(Configuration configuration);
+
 }

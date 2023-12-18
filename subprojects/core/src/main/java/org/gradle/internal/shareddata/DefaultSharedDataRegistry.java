@@ -22,7 +22,7 @@ import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.shareddata.ProjectSharedData;
+import org.gradle.api.shareddata.SingleSourceIdentifier;
 import org.gradle.internal.Cast;
 import org.gradle.util.Path;
 
@@ -42,7 +42,7 @@ public class DefaultSharedDataRegistry implements SharedDataRegistry {
     }
 
     @Override
-    public <T> ProviderInternal<T> obtainData(ProjectInternal consumerProject, Class<T> dataType, @Nullable String dataIdentifier, ProjectSharedData.SingleSourceIdentifier dataSourceIdentifier) {
+    public <T> ProviderInternal<T> obtainData(ProjectInternal consumerProject, Class<T> dataType, @Nullable String dataIdentifier, SingleSourceIdentifier dataSourceIdentifier) {
         Path sourceProjectIdentitiyPath = dataSourceIdentifier.getSourceProjectIdentitiyPath();
         return new ProjectSharedDataProvider<>(sourceProjectIdentitiyPath, consumerProject.getIdentityPath(), dataType, dataIdentifier);
     }

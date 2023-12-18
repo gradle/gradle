@@ -19,11 +19,11 @@ package org.gradle.internal.shareddata;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.shareddata.ProjectSharedData;
+import org.gradle.api.shareddata.SingleSourceIdentifier;
 
 import javax.annotation.Nullable;
 
 public interface SharedDataRegistry {
     <T> void registerSharedDataProducer(ProjectInternal providerProject, Class<T> dataType, @Nullable String dataIdentifier, Provider<T> dataProvider);
-    <T> ProviderInternal<T> obtainData(ProjectInternal consumerProject, Class<T> dataType, @Nullable String dataIdentifier, ProjectSharedData.SingleSourceIdentifier dataSourceIdentifier);
+    <T> ProviderInternal<T> obtainData(ProjectInternal consumerProject, Class<T> dataType, @Nullable String dataIdentifier, SingleSourceIdentifier dataSourceIdentifier);
 }
