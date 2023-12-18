@@ -42,7 +42,6 @@ import org.gradle.api.problems.Problems;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
 import org.gradle.internal.component.model.GraphSelectionCandidates;
 import org.gradle.internal.component.model.GraphVariantSelector;
@@ -50,13 +49,16 @@ import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.util.GradleVersion;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -84,13 +86,16 @@ public class ResolutionFailureHandler {
     private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
     private static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
     private static final String AMBIGUOUS_TRANSFORMATION_PREFIX = "Transformation failures are explained in more detail at ";
+    private static final String GRADLE_VERSION_TOO_OLD_TEMPLATE = "Plugin %s requires at least Gradle %s (this build used Gradle %s).";
 
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
     private static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";
     private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
     private static final String AMBIGUOUS_TRANSFORMATION_SECTION = "sub:transform-ambiguity";
+    private static final String NEEDS_NEWER_GRADLE_SECTION = "sub:updating-gradle";
 
     private final DocumentationRegistry documentationRegistry;
+    private final ResolutionAssessor resolutionAssessor = new ResolutionAssessor();
 
     public ResolutionFailureHandler(DocumentationRegistry documentationRegistry) {
         this.documentationRegistry = documentationRegistry;
@@ -102,6 +107,10 @@ public class ResolutionFailureHandler {
 
     private void suggestReviewAlgorithm(AbstractVariantSelectionException exception) {
         exception.addResolution(DEFAULT_MESSAGE_PREFIX + documentationRegistry.getDocumentationFor("variant_attributes", "sec:abm_algorithm") + ".");
+    }
+
+    private void suggestUpdateGradle(NoMatchingGraphVariantsException result, String minRequiredGradleVersion) {
+        result.addResolution("Upgrade Gradle to at least version " + minRequiredGradleVersion + ". See the instructions at " + documentationRegistry.getDocumentationFor("upgrading_version_8", NEEDS_NEWER_GRADLE_SECTION + "."));
     }
 
     // region Artifact Variant Selection Failures
@@ -309,11 +318,29 @@ public class ResolutionFailureHandler {
         ComponentGraphResolveMetadata targetComponent,
         GraphSelectionCandidates candidates
     ) {
-        String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, targetComponent, candidates);
-        NoMatchingGraphVariantsException e = new NoMatchingGraphVariantsException(message);
+        NoMatchingGraphVariantsException e = maybeHandlePluginResolutionFailure(fromConfigurationAttributes, attributeMatcher, targetComponent, candidates);
+        if (null == e) {
+            String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, targetComponent, candidates);
+            e = new NoMatchingGraphVariantsException(message);
+        }
+
         suggestReviewAlgorithm(e);
         e.addResolution(NO_MATCHING_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", NO_MATCHING_VARIANTS_SECTION + "."));
         return e;
+    }
+
+    @Nullable
+    private NoMatchingGraphVariantsException maybeHandlePluginResolutionFailure(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, ComponentGraphResolveMetadata targetComponent, GraphSelectionCandidates candidates) {
+        NoMatchingGraphVariantsException result = null;
+        if (resolutionAssessor.isPluginRequestUsingApiVersionAttribute(fromConfigurationAttributes)) {
+            Optional<String> minRequiredGradleVersion = resolutionAssessor.findHigherRequiredVersionOfGradle(fromConfigurationAttributes, attributeMatcher, candidates);
+            if (minRequiredGradleVersion.isPresent()) {
+                String message = buildPluginNeedsNewerGradleVersionFailureMsg(targetComponent.getId().getDisplayName(), minRequiredGradleVersion.get());
+                result = new PluginNeedsNewerGradleVersionException(message);
+                suggestUpdateGradle(result, minRequiredGradleVersion.get());
+            }
+        }
+        return result;
     }
 
     public NoMatchingCapabilitiesException noMatchingCapabilitiesFailure(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> requestedCapabilities, List<? extends VariantGraphResolveState> candidates) {
@@ -384,7 +411,7 @@ public class ResolutionFailureHandler {
         // to make sure the output is consistently the same between invocations
         formatter.startChildren();
         for (VariantGraphResolveState ambiguousVariant : ambiguousVariants.values()) {
-            formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, ambiguousVariant.getMetadata(), variantAware, true, describer);
+            formatUnselectable(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, ambiguousVariant.getMetadata(), variantAware, true, describer);
         }
         formatter.endChildren();
         if (!discarded.isEmpty()) {
@@ -392,7 +419,7 @@ public class ResolutionFailureHandler {
             formatter.startChildren();
             discarded.stream()
                 .sorted(Comparator.comparing(VariantGraphResolveState::getName))
-                .forEach(discardedConf -> formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, discardedConf.getMetadata(), variantAware, false, describer));
+                .forEach(discardedConf -> formatUnselectable(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, discardedConf.getMetadata(), variantAware, false, describer));
             formatter.endChildren();
         }
 
@@ -409,22 +436,14 @@ public class ResolutionFailureHandler {
     ) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("Configuration '" + targetConfiguration.getName() + "' in " + style(StyledTextOutput.Style.Info, targetComponent.getId().getDisplayName()) + " does not match the consumer attributes");
-        formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, targetConfiguration.asVariant().getMetadata(), variantAware, false, describer);
+        formatUnselectable(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, targetConfiguration.asVariant().getMetadata(), variantAware, false, describer);
         return formatter.toString();
     }
 
     private String buildNoMatchingGraphVariantSelectionFailureMsg(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, final ComponentGraphResolveMetadata targetComponent, GraphSelectionCandidates candidates) {
         boolean variantAware = candidates.isUseVariants();
-        Map<String, VariantGraphResolveMetadata> variants = new TreeMap<>();
-        if (variantAware) {
-            for (VariantGraphResolveState variant : candidates.getVariants()) {
-                variants.put(variant.getName(), variant.getMetadata());
-            }
-        } else {
-            for (ConfigurationGraphResolveMetadata configuration : candidates.getCandidateConfigurations()) {
-                variants.put(configuration.getName(), configuration);
-            }
-        }
+        List<VariantGraphResolveMetadata> variants = resolutionAssessor.extractVariantsConsideredForSelection(candidates);
+
         TreeFormatter formatter = new TreeFormatter();
         String targetVariantText = style(StyledTextOutput.Style.Info, targetComponent.getId().getDisplayName());
         if (fromConfigurationAttributes.isEmpty()) {
@@ -438,8 +457,8 @@ public class ResolutionFailureHandler {
         } else {
             // We're sorting the names of the configurations and later attributes
             // to make sure the output is consistently the same between invocations
-            for (VariantGraphResolveMetadata variant : variants.values()) {
-                formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, variant, variantAware, false, describer);
+            for (VariantGraphResolveMetadata variant : variants) {
+                formatUnselectable(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, variant, variantAware, false, describer);
             }
         }
         formatter.endChildren();
@@ -458,7 +477,11 @@ public class ResolutionFailureHandler {
         return sb.toString();
     }
 
-    private void formatConfiguration(
+    private String buildPluginNeedsNewerGradleVersionFailureMsg(String pluginId, String minRequiredGradleVersion) {
+        return String.format(GRADLE_VERSION_TOO_OLD_TEMPLATE, pluginId, minRequiredGradleVersion, GradleVersion.current().getVersion());
+    }
+
+    private void formatUnselectable(
         TreeFormatter formatter,
         ComponentGraphResolveMetadata targetComponent,
         AttributeContainerInternal consumerAttributes,
@@ -493,7 +516,7 @@ public class ResolutionFailureHandler {
         ImmutableAttributes immutableProducer,
         AttributeDescriber describer
     ) {
-        Map<String, Attribute<?>> allAttributes = collectAttributes(immutableConsumer, immutableProducer);
+        Map<String, Attribute<?>> allAttributes = ImmutableAttributes.mapOfAll(immutableConsumer, immutableProducer);
         List<String> otherValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
         Map<Attribute<?>, ?> compatibleAttrs = new LinkedHashMap<>();
         Map<Attribute<?>, ?> incompatibleAttrs = new LinkedHashMap<>();
@@ -532,7 +555,7 @@ public class ResolutionFailureHandler {
         ImmutableAttributes immutableProducer,
         AttributeDescriber describer
     ) {
-        Map<String, Attribute<?>> allAttributes = collectAttributes(immutableConsumer, immutableProducer);
+        Map<String, Attribute<?>> allAttributes = ImmutableAttributes.mapOfAll(immutableConsumer, immutableProducer);
         Map<Attribute<?>, ?> compatibleAttrs = new LinkedHashMap<>();
         List<String> otherValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
         for (Attribute<?> attribute : allAttributes.values()) {
@@ -556,17 +579,6 @@ public class ResolutionFailureHandler {
         formatter.startChildren();
         formatAttributeSection(formatter, "Unmatched attribute", otherValues);
         formatter.endChildren();
-    }
-
-    private Map<String, Attribute<?>> collectAttributes(ImmutableAttributes consumerAttributes, ImmutableAttributes producerAttributes) {
-        Map<String, Attribute<?>> allAttributes = new TreeMap<>();
-        for (Attribute<?> attribute : producerAttributes.keySet()) {
-            allAttributes.put(attribute.getName(), attribute);
-        }
-        for (Attribute<?> attribute : consumerAttributes.keySet()) {
-            allAttributes.put(attribute.getName(), attribute);
-        }
-        return allAttributes;
     }
 
     private void formatAttributeSection(TreeFormatter formatter, String section, List<String> values) {

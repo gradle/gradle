@@ -19,6 +19,7 @@ package org.gradle.plugin.devel.variants
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import spock.lang.Issue
 
 class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -155,4 +156,73 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
         """
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/24609")
+    def "clear error message when plugin requests a higher version of Gradle than available"() {
+        given:
+        def producer = file('producer')
+        def consumer = file('consumer')
+        def pluginModule = mavenRepo.module('com.example', 'producer', '1.0')
+        def pluginMarker = mavenRepo.module('com.example.greeting', 'com.example.greeting.gradle.plugin', '1.0')
+
+        producer.file('settings.gradle').createFile()
+        producer.file('build.gradle') << """
+            plugins {
+                id('java-gradle-plugin')
+                id('maven-publish')
+            }
+
+            group = "com.example"
+            version = "1.0"
+
+            configurations.configureEach {
+                if (canBeConsumed)  {
+                    attributes {
+                        attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, objects.named(GradlePluginApiVersion, '1000.0'))
+                    }
+                }
+            }
+
+            gradlePlugin {
+                plugins.create('greeting') {
+                    id = 'com.example.greeting'
+                    implementationClass = 'example.plugin.GreetingPlugin'
+                }
+            }
+            publishing {
+                repositories {
+                    maven { url = '${mavenRepo.uri}' }
+                }
+            }
+        """
+        producer.file('src/main/java/example/plugin/GreetingPlugin.java') << pluginImplementation('<7.0')
+
+        consumer.file('settings.gradle') << """
+            pluginManagement {
+                repositories {
+                    maven { url = '${mavenRepo.uri}' }
+                }
+            }
+        """
+        consumer.file('build.gradle') << """
+            plugins {
+                id('com.example.greeting') version '1.0'
+            }
+        """
+
+        when:
+        projectDir(producer)
+        succeeds 'publish'
+
+        then:
+        pluginModule.assertPublished()
+        pluginMarker.assertPublished()
+        pluginModule.artifact([:]).assertPublished()
+
+        when:
+        projectDir(consumer)
+        fails 'greet'
+
+        then:
+        failureCauseContains("Could not resolve com.example:producer:1.0.")
+    }
 }

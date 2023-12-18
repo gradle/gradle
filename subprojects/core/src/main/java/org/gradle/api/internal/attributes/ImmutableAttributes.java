@@ -18,6 +18,10 @@ package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
+
+import java.util.Map;
+import java.util.TreeMap;
 
 public interface ImmutableAttributes extends AttributeContainerInternal {
     ImmutableAttributes EMPTY = new DefaultImmutableAttributes();
@@ -34,4 +38,20 @@ public interface ImmutableAttributes extends AttributeContainerInternal {
 
     @Override
     ImmutableSet<Attribute<?>> keySet();
+
+    /**
+     * Returns a single combined map of all attribute values in the given sources, keyed by attribute name.
+     *
+     * @param sources The sources to combine
+     * @return The combined map of attribute values
+     */
+    static Map<String, Attribute<?>> mapOfAll(AttributeContainer... sources) {
+        Map<String, Attribute<?>> allAttributes = new TreeMap<>();
+        for (AttributeContainer source : sources) {
+            for (Attribute<?> attribute : source.keySet()) {
+                allAttributes.put(attribute.getName(), attribute);
+            }
+        }
+        return allAttributes;
+    }
 }
