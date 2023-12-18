@@ -131,9 +131,10 @@ Execution failed for task ':dependencies'.
 
 #### Better handling of circular references in providers
 
-Before this release, evaluating a provider that contained a cycle in its value assignment would lead to a `StackOverflowError`. Starting with this release, circular references are properly detected and reported.
+Before this release, evaluating a provider that contained a cycle in its value assignment would lead to a `StackOverflowError`. 
+Starting with this release, circular references are properly detected and reported.
 
-For instance, code like this:
+For instance, the following code:
 
 ```
 def property = objects.property(String)
@@ -145,7 +146,7 @@ property.set(property.map { "$it and more" })
 println(property.get()) // error when evaluating
 ```
 
-before this release, would fail with an `StackOverflowError`:
+Previously failed with a `StackOverflowError` and limited details:
 
 ```
 FAILURE: Build failed with an exception.
@@ -156,8 +157,7 @@ A problem occurred evaluating root project 'test'.
 
 ```
 
-Starting with this release, you get a more helpful error message indicating the source location where the cycle was detected and a list of the providers in the chain that led to a cycle.
-
+Starting with this release, you get a more helpful error message indicating the source of the cycle and a list of the providers in the chain that led to it:
 
 ```
 FAILURE: Build failed with an exception.
