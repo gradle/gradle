@@ -136,12 +136,6 @@ public interface ValueSupplier {
     }
 
     class ExternalValueProducer implements ValueProducer {
-
-        @Override
-        public boolean isProducesDifferentValueOverTime() {
-            return true;
-        }
-
         @Override
         public void visitProducerTasks(Action<? super Task> visitor) {
         }
@@ -183,11 +177,6 @@ public interface ValueSupplier {
 
         public ProjectProducer(Path project) {
             this.project = project;
-        }
-
-        @Override
-        public boolean isProducesDifferentValueOverTime() {
-            return false;
         }
 
         @Override
