@@ -17,17 +17,37 @@
 
 [[gs:installation]]
 == Gradle Installation
-If all you want to do is run an existing Gradle build, then you don't need to install Gradle if the build uses the <<gradle_wrapper#gradle_wrapper,Gradle Wrapper>>.
-This is identifiable by the presence of the `gradlew` or `gradlew.bat` files in the root of the build.
-You just need to make sure your system <<installation#sec:prerequisites,satisfies Gradle's prerequisites>>.
 
-Android Studio comes with a working installation of Gradle, so you don't need to install Gradle separately when only working within that IDE.
+If all you want to do is run an existing Gradle project, then you don't need to install Gradle if the build uses the <<gradle_wrapper#gradle_wrapper,Gradle Wrapper>>.
+This is identifiable by the presence of the `gradlew` or `gradlew.bat` files in the root of the project:
+
+[listing,subs=+macros]
+----
+.   // <1>
+├── gradle
+│   └── wrapper // <2>
+├── gradlew         // <3>
+├── gradlew.bat     // <3>
+└── ⋮
+----
+<1> Project root directory.
+<2> <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>>.
+<3> Scripts for executing Gradle builds.
+
+If the `gradlew` or `gradlew.bat` files are already present in your project, *you do not need to install Gradle*.
+But you need to make sure your system <<installation#sec:prerequisites,satisfies Gradle's prerequisites>>.
+
+You can follow the steps in the <<upgrading_version_8.adoc#,Upgrading Gradle section>> if you want to update the Gradle version for your project.
+Please use the <<gradle_wrapper.adoc#sec:upgrading_wrapper,Gradle Wrapper>> to upgrade Gradle.
+
+Android Studio comes with a working installation of Gradle, so you *don't need to install Gradle separately when only working within that IDE*.
+
+If you do not meet the criteria above and decide to install Gradle on your machine, first check if Gradle is already installed by running `gradle -v` in your terminal.
+If the command does not return anything, then Gradle is not installed, and you can follow the instructions below.
 
 You can install Gradle Build Tool on Linux, macOS, or Windows.
-
 The installation can be done manually or using a package manager like https://sdkman.io/[SDKMAN!] or https://brew.sh/[Homebrew].
 
-Please use the <<gradle_wrapper.adoc#sec:upgrading_wrapper,Gradle Wrapper>> to upgrade Gradle.
 You can find all Gradle releases and their checksums on the link:{website}/releases[releases page].
 
 [[sec:prerequisites]]
@@ -50,13 +70,15 @@ Java HotSpot(TM) 64-Bit Server VM (build 25.151-b12, mixed mode)
 ----
 
 Gradle uses the JDK it finds in your path, the JDK used by your IDE, or the JDK specified by your project.
+In this example, the $PATH points to JDK17:
 
 ----
-echo $PATH
+❯ echo $PATH
 /opt/homebrew/opt/openjdk@17/bin
 ----
 
 You can also set the `JAVA_HOME` environment variable to point to a specific JDK installation directory.
+This is especially useful when multiple JDKs are installed:
 
 ----
 ❯ echo %JAVA_HOME%
@@ -68,11 +90,11 @@ C:\Program Files\Java\jdk1.7.0_80
 /Library/Java/JavaVirtualMachines/jdk-16.jdk/Contents/Home
 ----
 
-Gradle supports Kotlin and Groovy as the main build languages.
+Gradle supports link:https://kotlinlang.org/[Kotlin] and link:https://groovy-lang.org/[Groovy] as the main build languages.
 Gradle ships with its own Kotlin and Groovy libraries, therefore they do not need to be installed.
 Existing installations are ignored by Gradle.
 
-<<compatibility.adoc#compatibility, See the full compatibility notes for Java, Groovy, Kotlin and Android.>>
+<<compatibility.adoc#compatibility, See the full compatibility notes for Java, Groovy, Kotlin, and Android.>>
 
 == Linux installation
 
