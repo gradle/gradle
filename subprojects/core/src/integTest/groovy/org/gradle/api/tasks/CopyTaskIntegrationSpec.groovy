@@ -27,8 +27,6 @@ import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
 import spock.lang.Issue
 
-import static org.apache.commons.io.FilenameUtils.separatorsToUnix
-
 class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
     @Rule
@@ -2286,8 +2284,8 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         and: "a copy task that copies from both zip files, failing on duplicates"
         buildFile << """
             task (copy, type: Copy) {
-                from zipTree('${separatorsToUnix(zipFile.path)}')
-                from zipTree('${separatorsToUnix(zipFile2.path)}')
+                from zipTree('before/files.zip')
+                from zipTree('before/files2.zip')
                 into 'after'
                 duplicatesStrategy = DuplicatesStrategy.FAIL
             }
@@ -2313,8 +2311,8 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         and: "a copy task that copies from both of these, failing on duplicates"
         buildFile << """
             task (copy, type: Copy) {
-                from '${separatorsToUnix(untarredDir.path)}'
-                from tarTree('${separatorsToUnix(tarFile.path)}')
+                from 'before/files'
+                from tarTree('before/files.tar')
                 into 'after'
                 duplicatesStrategy = DuplicatesStrategy.FAIL
             }
@@ -2344,8 +2342,8 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         and: "a copy task that copies from both tar files, failing on duplicates"
         buildFile << """
             task (copy, type: Copy) {
-                from tarTree('${separatorsToUnix(tarFile.path)}')
-                from tarTree('${separatorsToUnix(tarFile2.path)}')
+                from tarTree('before/files.tar')
+                from tarTree('before/files2.tar')
                 into 'after'
                 duplicatesStrategy = DuplicatesStrategy.FAIL
             }
