@@ -173,6 +173,9 @@ public interface ProviderOperationParameters {
     /**
      * Handles a value streamed from the build action. Blocks until the value has been handled.
      *
+     * <p>This method is called from the provider's message handling loop in the client process, so is required to block until handling is complete so as to preserve
+     * the message ordering.</p>
+     *
      * @since 8.6
      */
     void onStreamedValue(Object value);
