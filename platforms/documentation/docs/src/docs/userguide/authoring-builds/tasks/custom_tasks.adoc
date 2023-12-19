@@ -13,88 +13,110 @@
 // limitations under the License.
 
 [[custom_tasks]]
-= Developing Custom Gradle Task Types
+= Developing Custom Task Types
 
-Gradle supports two types of task. One such type is the simple task, where you define the task with an action closure. We have seen these in <<tutorial_using_tasks.adoc#tutorial_using_tasks,Build Script Basics>>. For this type of task, the action closure determines the behaviour of the task. This type of task is good for implementing one-off tasks in your build script.
+Gradle supports two types of task.
 
-The other type of task is the enhanced task, where the behaviour is built into the task, and the task provides some properties which you can use to configure the behaviour. We have seen these in <<more_about_tasks.adoc#more_about_tasks,Authoring Tasks>>. Most Gradle plugins use enhanced tasks. With enhanced tasks, you don't need to implement the task behaviour as you do with simple tasks. You simply declare the task and configure the task using its properties. In this way, enhanced tasks let you reuse a piece of behaviour in many different places, possibly across different builds.
+One such type is the *simple task*, where you define the task with an action closure.
+For this type of task, the action closure determines the behaviour of the task.
+This type of task is good for implementing one-off tasks in your build script.
 
-The behaviour and properties of an enhanced task are defined by the task's class. When you declare an enhanced task, you specify the type, or class of the task.
+The other type of task is the *enhanced task*, where the behaviour is built into the task, and the task provides some properties which you can use to configure the behaviour.
 
-Implementing your own custom task class in Gradle is easy. You can implement a custom task class in pretty much any language you like, provided it ends up compiled to JVM bytecode. In our examples, we are going to use Groovy as the implementation language. Groovy, Java or Kotlin are all good choices as the language to use to implement a task class, as the Gradle API has been designed to work well with these languages. In general, a task implemented using Java or Kotlin, which are statically typed, will perform better than the same task implemented using Groovy.
+Most Gradle plugins use enhanced tasks.
 
+With enhanced tasks, you don't need to implement the task behaviour as you do with simple tasks.
+You simply declare the task and configure the task using its properties.
+In this way, enhanced tasks let you reuse a piece of behaviour in many different places, possibly across different builds.
+
+The behaviour and properties of an enhanced task are defined by the task's class.
+When you declare an enhanced task, you specify the type, or class of the task.
+
+Implementing your own custom task class in Gradle is easy.
+You can implement a custom task class in Groovy, Java or Kotlin using the Gradle APIs.
 
 [[sec:packaging_a_task_class]]
 == Packaging a task class
 
 There are several places where you can put the source for the task class.
 
-Build script::
-You can include the task class directly in the build script. This has the benefit that the task class is automatically compiled and included in the classpath of the build script without you having to do anything. However, the task class is not visible outside the build script, and so you cannot reuse the task class outside the build script it is defined in.
+=== 1. Build script
+You can include the task class directly in the build script.
+This has the benefit that the task class is automatically compiled and included in the classpath of the build script.
+However, the task class is not visible outside the build script, and so you cannot reuse the task class.
 
-`buildSrc` project::
-You can put the source for the task class in the `__rootProjectDir__/buildSrc/src/main/groovy` directory (or `__rootProjectDir__/buildSrc/src/main/java` or `__rootProjectDir__/buildSrc/src/main/kotlin` depending on which language you prefer). Gradle will take care of compiling and testing the task class and making it available on the classpath of the build script. The task class is visible to every build script used by the build. However, it is not visible outside the build, and so you cannot reuse the task class outside the build it is defined in. Using the `buildSrc` project approach separates the task declaration — that is, what the task should do — from the task implementation — that is, how the task does it.
-+
+TIP: This is not recommended.
+
+=== 2. `buildSrc` project
+You can put the source for the task class in the `buildSrc` directory.
+Gradle will take care of compiling and testing the task class and making it available on the classpath of the build script.
+The task class is visible to every build script used by the build.
+However, it is not visible outside the build, and so you cannot reuse the task class outside the build it is defined in.
+
+Using the `buildSrc` project approach separates the task declaration — that is, what the task should do — from the task implementation — that is, how the task does it.
+
 See <<organizing_gradle_projects.adoc#organizing_gradle_projects,Organizing Gradle Projects>> for more details about the `buildSrc` project.
 
-Standalone project::
-You can create a separate project for your task class. This project produces and publishes a JAR which you can then use in multiple builds and share with others. Generally, this JAR might include some custom plugins, or bundle several related task classes into a single library. Or some combination of the two.
-
-In our examples, we will start with the task class in the build script, to keep things simple. Then we will look at creating a standalone project.
+=== 3. Standalone project
+You can create a separate project for your task class.
+If the project produces and publishes a JAR, you can then use it in multiple builds.
+This JAR could include some custom plugins, or bundle several related task classes into a single library.
+Or some combination of the two.
 
 [[sec:writing_a_simple_task_class]]
 == Writing a simple task class
 
-To implement a custom task class, you extend link:{groovyDslPath}/org.gradle.api.DefaultTask.html[DefaultTask].
+To implement a custom task class, you extend link:{groovyDslPath}/org.gradle.api.DefaultTask.html[`DefaultTask`]:
 
-.Defining a custom task
 ====
 include::sample[dir="snippets/tasks/customTask/kotlin",files="build.gradle.kts[tags=define-task]"]
 include::sample[dir="snippets/tasks/customTask/groovy",files="build.gradle[tags=define-task]"]
 ====
 
-This task doesn't do anything useful, so let's add some behaviour. To do so, we add a method to the task and mark it with the link:{javadocPath}/org/gradle/api/tasks/TaskAction.html[TaskAction] annotation. Gradle will call the method when the task executes. You don't have to use a method to define the behaviour for the task. You could, for instance, call `doFirst()` or `doLast()` with a closure in the task constructor to add behaviour.
+This task doesn't do anything useful, so let's add some behaviour.
 
-.A hello world task
+To do so, we add a method to the task and mark it with the link:{javadocPath}/org/gradle/api/tasks/TaskAction.html[`@TaskAction`] annotation.
+Gradle will call the method when the task executes.
+
 ====
 include::sample[dir="snippets/tasks/customTask/kotlin",files="build.gradle.kts[tags=add-action]"]
 include::sample[dir="snippets/tasks/customTask/groovy",files="build.gradle[tags=add-action]"]
 ====
-
-.Output of **`gradle -q hello`**
 ----
-> gradle -q hello
+$ gradle -q hello
 include::{snippetsPath}/tasks/customTask/tests/customTaskWithAction.out[]
 ----
 
-Let's add a property to the task, so we can customize it.
-Tasks are objects, and when you declare a task, you can set the properties or call methods on the task object.
-Here we add a `greeting` property, and set the value when we declare the `greeting` task.
+You don't have to use a method to define the behaviour for the task.
+You could, for instance, call `doFirst()` or `doLast()` with a closure in the task constructor to add this behaviour.
 
-.A customizable hello world task
+Tasks are objects, and when you declare a task, you can set the properties or call methods on the task object.
+Let's add a property to the task, so we can customize it.
+
+A `greeting` property has been added and its value set when we declare the `greeting` task:
+
 ====
 include::sample[dir="snippets/tasks/customTaskWithProperty/kotlin",files="build.gradle.kts[tags=add-property]"]
 include::sample[dir="snippets/tasks/customTaskWithProperty/groovy",files="build.gradle[tags=add-property]"]
 ====
-
-.Output of **`gradle -q hello greeting`**
 ----
-> gradle -q hello greeting
+$ gradle -q hello greeting
 include::{snippetsPath}/tasks/customTaskWithProperty/tests/customTaskWithProperty.out[]
 ----
-
 
 [[sec:custom_tasks_standalone_project]]
 == A standalone project
 
-Now we will move our task to a standalone project, so we can publish it and share it with others. This project is simply a Groovy project that produces a JAR containing the task class. Here is a simple build script for the project. It applies the Groovy plugin, and adds the Gradle API as a compile-time dependency.
+Now we will move our task to a standalone project, so we can publish it and share it with others.
 
-.A build for a custom task
+This project is simply a Groovy project that produces a JAR containing the task class.
+Here is a simple build script for the project.
+It applies the Groovy plugin, and adds the Gradle API as a compile-time dependency.
+
 ====
 include::sample[dir="snippets/base/customExternalTask/kotlin/task",files="build.gradle.kts[tags=external-task-build]"]
 include::sample[dir="snippets/base/customExternalTask/groovy/task",files="build.gradle[tags=external-task-build]"]
 ====
-
 
 We just follow the convention for where the source for the task class should go.
 
@@ -111,7 +133,6 @@ include::{snippetsPath}/base/customExternalTask/groovy/task/src/main/groovy/org/
 
 To use a task class in a build script, you need to add the class to the build script's classpath. To do this, you use a `buildscript { }` block, as described in <<tutorial_using_tasks.adoc#sec:build_script_external_dependencies,External dependencies for the build script>>. The following example shows how you might do this when the JAR containing the task class has been published to a local repository:
 
-.Using a custom task in another project
 ====
 include::sample[dir="snippets/base/customExternalTask/kotlin/consumer",files="build.gradle.kts[tags=use-task]"]
 include::sample[dir="snippets/base/customExternalTask/groovy/consumer",files="build.gradle[tags=use-task]"]
@@ -133,8 +154,9 @@ include::{snippetsPath}/base/customExternalTask/groovy/task/src/test/groovy/org/
 [[incremental_tasks]]
 == Incremental tasks
 
-With Gradle, it's very simple to implement a task that is skipped when all of its inputs and outputs are up to date (see <<incremental_build.adoc#incremental_build,Incremental Build>>).
-However, there are times when only a few input files have changed since the last execution, and you'd like to avoid reprocessing all of the unchanged inputs.
+With Gradle, it's very simple to implement a task that is skipped when all of its inputs and outputs are `UP-TO-DATE` (see <<incremental_build.adoc#incremental_build,Incremental Build>>).
+
+However, there are times when only a few input files have changed since the last execution, and you'd like to avoid reprocessing all the unchanged inputs.
 This can be particularly useful for a transformer task that converts input files to output files on a 1:1 basis.
 
 If you'd like to optimize your build so that only out-of-date input files are processed, you can do so with an _incremental task_.
@@ -143,19 +165,22 @@ If you'd like to optimize your build so that only out-of-date input files are pr
 === Implementing an incremental task
 
 For a task to process inputs incrementally, that task must contain an _incremental task action_.
+
 This is a task action method that has a single link:{groovyDslPath}/org.gradle.work.InputChanges.html[InputChanges] parameter.
 That parameter tells Gradle that the action only wants to process the changed inputs.
-In addition, the task needs to declare at least one incremental file input property by using either link:{javadocPath}/org/gradle/work/Incremental.html[@Incremental] or link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[@SkipWhenEmpty].
+
+In addition, the task needs to declare at least one incremental file input property by using either link:{javadocPath}/org/gradle/work/Incremental.html[`@Incremental`] or link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[`@SkipWhenEmpty`].
 
 [IMPORTANT]
 ====
 To query incremental changes for an input file property, that property always needs to return the same instance.
-The easiest way to accomplish this is to use one of the following types for such properties: link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[RegularFileProperty], link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty] or link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[ConfigurableFileCollection].
+The easiest way to accomplish this is to use one of the following types for such properties: link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[`RegularFileProperty`], link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[`DirectoryProperty`] or link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[`ConfigurableFileCollection`].
 
 You can learn more about `RegularFileProperty` and `DirectoryProperty` in the <<lazy_configuration#lazy_configuration,Lazy Configuration>> chapter, especially the sections on <<lazy_configuration#lazy_properties,using read-only and configurable properties>> and <<lazy_configuration#working_with_files_in_lazy_properties,lazy file properties>>.
 ====
 
 The incremental task action can use link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges()] to find out what files have changed for a given file-based input property, be it of type `RegularFileProperty`, `DirectoryProperty` or `ConfigurableFileCollection`.
+
 The method returns an `Iterable` of type link:{javadocPath}/org/gradle/work/FileChange.html[FileChanges], which in turn can be queried for the following:
 
 * the link:{javadocPath}/org/gradle/work/FileChange.html#getFile--[affected file]
@@ -165,16 +190,16 @@ The method returns an `Iterable` of type link:{javadocPath}/org/gradle/work/File
 
 The following example demonstrates an incremental task that has a directory input.
 It assumes that the directory contains a collection of text files and copies them to an output directory, reversing the text within each file.
+
 The key things to note are the type of the `inputDir` property, its annotations, and how the action (`execute()`) uses `getFileChanges()` to process the subset of files that have actually changed since the last build.
+
 You can also see how the action deletes a target file if the corresponding input file has been removed:
 
 [[taskDefinition]]
-.Defining an incremental task action
 ====
 include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=incremental-task]"]
 include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=incremental-task]"]
 ====
-
 
 If for some reason the task is executed non-incrementally, for example by running with `--rerun-tasks`, all files are reported as `ADDED`, irrespective of the previous state.
 In this case, Gradle automatically removes the previous outputs, so the incremental task only needs to process the given files.
@@ -190,6 +215,7 @@ When there is a previous execution of the task, and the only changes since that 
 In this case, the link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges()] method returns details for all input files for the given property that were _added_, _modified_ or _removed_.
 
 However, there are many cases where Gradle is unable to determine which input files need to be processed (non-incremental execution).
+
 Examples include:
 
 * There is no history available from a previous execution.
@@ -206,13 +232,10 @@ You can check if the task execution is incremental or not with the link:{groovyD
 [[sec:an_incremental_task_in_action]]
 === An incremental task in action
 
-Given the example incremental task implementation <<#taskDefinition,above>>, let's walk through some scenarios based on it.
-
-First, consider an instance of `IncrementalReverseTask` that is executed against a set of inputs for the first time.
+Consider an instance of `IncrementalReverseTask` that is executed against a set of inputs for the first time.
 In this case, all inputs will be considered added, as shown here:
 
 [[ex:incremental_task_definition]]
-.Running the incremental task for the first time
 ====
 include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=reverse]"]
 include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=reverse]"]
@@ -227,35 +250,31 @@ include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[
     └── 3.txt
 ----
 
-.Output of `gradle -q incrementalReverse`
 ----
-> gradle -q incrementalReverse
+$ gradle -q incrementalReverse
 include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskFirstRun.out[]
 ----
 ====
 
-Naturally when the task is executed again with no changes, then the entire task is up to date and the task action is not executed:
+Naturally when the task is executed again with no changes, then the entire task is `UP-TO-DATE` and the task action is not executed:
 
-.Running the incremental task with unchanged inputs
 ====
-.Output of `gradle incrementalReverse`
 ----
-> gradle incrementalReverse
+$ gradle incrementalReverse
 include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskNoChange.out[]
 ----
 ====
 
 When an input file is modified in some way or a new input file is added, then re-executing the task results in those files being returned by link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges()].
+
 The following example modifies the content of one file and adds another before running the incremental task:
 
-.Running the incremental task with updated input files
 ====
 include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=updated-inputs]"]
 include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=updated-inputs]"]
 
-.Output of `gradle -q updateInputs incrementalReverse`
 ----
-> gradle -q updateInputs incrementalReverse
+$ gradle -q updateInputs incrementalReverse
 include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskUpdatedInputs.out[]
 ----
 ====
@@ -264,32 +283,30 @@ NOTE: The various mutation tasks (`updateInputs`, `removeInput`, etc) are only p
 They should not be viewed as the kinds of tasks or task implementations you should have in your own build scripts.
 
 When an existing input file is removed, then re-executing the task results in that file being returned by link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges()] as `REMOVED`.
+
 The following example removes one of the existing files before executing the incremental task:
 
-.Running the incremental task with an input file removed
 ====
 include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-input]"]
 include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-input]"]
 
-.Output of `gradle -q removeInput incrementalReverse`
 ----
-> gradle -q removeInput incrementalReverse
+$ gradle -q removeInput incrementalReverse
 include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskRemovedInput.out[]
 ----
 ====
 
 When an _output_ file is deleted (or modified), then Gradle is unable to determine which input files are out of date.
 In this case, details for _all_ the input files for the given property are returned by link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges()].
+
 The following example removes just one of the output files from the build directory, but notice how all the input files are considered to be `ADDED`:
 
-.Running the incremental task with an output file removed
 ====
 include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-output]"]
 include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-output]"]
 
-.Output of `gradle -q removeOutput incrementalReverse`
 ----
-> gradle -q removeOutput incrementalReverse
+$ gradle -q removeOutput incrementalReverse
 include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskRemovedOutput.out[]
 ----
 ====
@@ -297,14 +314,14 @@ include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskRemovedOutput
 The last scenario we want to cover concerns what happens when a non-file-based input property is modified.
 In such cases, Gradle is unable to determine how the property impacts the task outputs, so the task is executed non-incrementally.
 This means that _all_ input files for the given property are returned by link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges()] and they are all treated as `ADDED`.
+
 The following example sets the project property `taskInputProperty` to a new value when running the `incrementalReverse` task and that project property is used to initialize the task's `inputProperty` property, as you can see in the <<ex:incremental_task_definition,first example of this section>>.
+
 Here's the output you can expect in this case:
 
-.Running the incremental task with an input property changed
 ====
-.Output of `gradle -q -PtaskInputProperty=changed incrementalReverse`
 ----
-> gradle -q -PtaskInputProperty=changed incrementalReverse
+$ gradle -q -PtaskInputProperty=changed incrementalReverse
 include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskChangedProperty.out[]
 ----
 ====
@@ -325,16 +342,24 @@ Gradle can ensure such stale files are removed if they are declared via link:{ja
 [[sec:declaring_and_using_command_line_options]]
 == Declaring and Using Command Line Options
 
-Sometimes a user wants to declare the value of an exposed task property on the command line instead of the build script. Being able to pass in property values on the command line is particularly helpful if they change more frequently. The task API supports a mechanism for marking a property to automatically generate a corresponding command line parameter with a specific name at runtime.
+Sometimes a user wants to declare the value of an exposed task property on the command line instead of the build script. Being able to pass in property values on the command line is particularly helpful if they change more frequently.
+
+The task API supports a mechanism for marking a property to automatically generate a corresponding command line parameter with a specific name at runtime.
 
 [[sec:declaring_task_option]]
 === Declaring a command-line option
 
-Exposing a new command line option for a task property is straightforward. You just have to annotate the corresponding setter method of a property with link:{javadocPath}/org/gradle/api/tasks/options/Option.html[Option]. An option requires a mandatory identifier. Additionally, you can provide an optional description. A task can expose as many command line options as properties available in the class.
+Exposing a new command line option for a task property is straightforward. You just have to annotate the corresponding setter method of a property with link:{javadocPath}/org/gradle/api/tasks/options/Option.html[Option].
+An option requires a mandatory identifier.
+Additionally, you can provide an optional description.
+A task can expose as many command line options as properties available in the class.
 
-Options may be declared in superinterfaces of the task class as well. If multiple interfaces declare the same property, but with different option flags, they will both work to set the property.
+Options may be declared in superinterfaces of the task class as well.
+If multiple interfaces declare the same property, but with different option flags, they will both work to set the property.
 
-Let's have a look at an example to illustrate the functionality. The custom task `UrlVerify` verifies whether a given URL can be resolved by making a HTTP call and checking the response code. The URL to be verified is configurable through the property `url`. The setter method for the property is annotated with link:{javadocPath}/org/gradle/api/tasks/options/Option.html[@Option].
+Let's have a look at an example to illustrate the functionality.
+The custom task `UrlVerify` verifies whether a given URL can be resolved by making a HTTP call and checking the response code. The URL to be verified is configurable through the property `url`.
+The setter method for the property is annotated with link:{javadocPath}/org/gradle/api/tasks/options/Option.html[@Option].
 
 === Example: Declaring a command line option
 
@@ -355,24 +380,24 @@ Using an option on the command line has to adhere to the following rules:
 - The option argument follows directly after the task declaration e.g. `verifyUrl --url=http://www.google.com/`.
 - Multiple options of a task can be declared in any order on the command line following the task name.
 
-Getting back to the previous example, the build script creates a task instance of type `UrlVerify` and provides a value from the command line through the exposed option.
+Getting back to the previous example, the build script creates a task instance of type `UrlVerify` and provides a value from the command line through the exposed option:
 
-.Using a command line option
 ====
 include::sample[dir="snippets/tasks/commandLineOption-stringOption/kotlin",files="build.gradle.kts[tags=task]"]
 include::sample[dir="snippets/tasks/commandLineOption-stringOption/groovy",files="build.gradle[tags=task]"]
 ====
 
-.Output of **`gradle -q verifyUrl --url=http://www.google.com/`**
 ----
-> gradle -q verifyUrl --url=http://www.google.com/
+$ gradle -q verifyUrl --url=http://www.google.com/
 include::{snippetsPath}/tasks/commandLineOption-stringOption/tests/taskCommandLineOption.out[]
 ----
 
 [[sec:supported_task_option_data_types]]
 === Supported data types for options
 
-Gradle limits the set of data types that can be used for declaring command line options. The use on the command line differ per type.
+Gradle limits the set of data types that can be used for declaring command line options.
+
+The use on the command line differ per type:
 
 `boolean`, `Boolean`, `Property<Boolean>`::
 Describes an option with the value `true` or `false`. Passing the option on the command line treats the value as `true`, for example `--foo` equates to `true`. The absence of the option uses the default value of the property. For each boolean option, an opposite option is created automatically. For example, `--no-foo` is created for the provided option `--foo` and `--bar` is created for `--no-bar`. Options whose name starts with `--no` are disable options and set the option value to `false`. An opposite option is only created if no option with the same name already exists for the task.
@@ -404,11 +429,14 @@ Describes an option with a file system element. Passing the option on the comman
 [[sec:documenting_available_task_option_values]]
 === Documenting available values for an option
 
-In theory, an option for a property type `String` or `List<String>` can accept any arbitrary value. Expected values for such an option can be documented programmatically with the help of the annotation link:{javadocPath}/org/gradle/api/tasks/options/OptionValues.html[OptionValues]. This annotation may be assigned to any method that returns a `List` of one of the supported data types. In addition, you have to provide the option identifier to indicate the relationship between option and available values.
+In theory, an option for a property type `String` or `List<String>` can accept any arbitrary value. Expected values for such an option can be documented programmatically with the help of the annotation link:{javadocPath}/org/gradle/api/tasks/options/OptionValues.html[OptionValues].
+This annotation may be assigned to any method that returns a `List` of one of the supported data types.
+In addition, you have to provide the option identifier to indicate the relationship between option and available values.
 
 NOTE: Passing a value on the command line that is not supported by the option does not fail the build or throw an exception. You'll have to implement custom logic for such behavior in the task action.
 
-This example demonstrates the use of multiple options for a single task. The task implementation provides a list of available values for the option `output-type`.
+This example demonstrates the use of multiple options for a single task.
+The task implementation provides a list of available values for the option `output-type`.
 
 === Example: Declaring available values for an option
 
@@ -421,13 +449,14 @@ include::{snippetsPath}/tasks/commandLineOption-optionValues/groovy/buildSrc/src
 [[sec:listing_task_options]]
 === Listing command line options
 
-Command line options using the annotations link:{javadocPath}/org/gradle/api/tasks/options/Option.html[Option] and link:{javadocPath}/org/gradle/api/tasks/options/OptionValues.html[OptionValues] are self-documenting. You will see <<#sec:declaring_task_option,declared options>> and their <<#sec:documenting_available_task_option_values,available values>> reflected in the console output of the `help` task. The output renders options in alphabetical order, except for boolean disable options which appear following the enable option.
+Command line options using the annotations link:{javadocPath}/org/gradle/api/tasks/options/Option.html[Option] and link:{javadocPath}/org/gradle/api/tasks/options/OptionValues.html[OptionValues] are self-documenting.
+You will see <<#sec:declaring_task_option,declared options>> and their <<#sec:documenting_available_task_option_values,available values>> reflected in the console output of the `help` task.
+The output renders options in alphabetical order, except for boolean disable options which appear following the enable option.
 
 === Example: Listing available values for option
 
-.Output of **`gradle -q help --task processUrl`**
 ----
-> gradle -q help --task processUrl
+$ gradle -q help --task processUrl
 include::{snippetsPath}/tasks/commandLineOption-optionValues/tests/helpTaskOptions.out[]
 ----
 
@@ -443,9 +472,18 @@ Support for declaring command line options currently comes with a few limitation
 [[worker_api]]
 == The Worker API
 
-As can be seen from the discussion of <<#incremental_tasks,incremental tasks>>, the work that a task performs can be viewed as discrete units (i.e. a subset of inputs that are transformed to a certain subset of outputs). Many times, these units of work are highly independent of each other, meaning they can be performed in any order and simply aggregated together to form the overall action of the task. In a single threaded execution, these units of work would execute in sequence, however if we have multiple processors, it would be desirable to perform independent units of work concurrently. By doing so, we can fully utilize the available resources at build time and complete the activity of the task faster.
+As can be seen from the discussion of <<#incremental_tasks,incremental tasks>>, the work that a task performs can be viewed as discrete units (i.e. a subset of inputs that are transformed to a certain subset of outputs).
+Many times, these units of work are highly independent of each other, meaning they can be performed in any order and simply aggregated together to form the overall action of the task.
+In a single threaded execution, these units of work would execute in sequence, however if we have multiple processors, it would be desirable to perform independent units of work concurrently.
+By doing so, we can fully utilize the available resources at build time and complete the activity of the task faster.
 
-The Worker API provides a mechanism for doing exactly this. It allows for safe, concurrent execution of multiple items of work during a task action. But the benefits of the Worker API are not confined to parallelizing the work of a task. You can also configure a desired level of isolation such that work can be executed in an isolated classloader or even in an isolated process. Furthermore, the benefits extend beyond even the execution of a single task. Using the Worker API, Gradle can begin to execute tasks in parallel by default. In other words, once a task has submitted its work to be executed asynchronously, and has exited the task action, Gradle can then begin the execution of other independent tasks in parallel, even if those tasks are in the same project.
+The Worker API provides a mechanism for doing exactly this.
+It allows for safe, concurrent execution of multiple items of work during a task action.
+But the benefits of the Worker API are not confined to parallelizing the work of a task.
+You can also configure a desired level of isolation such that work can be executed in an isolated classloader or even in an isolated process.
+Furthermore, the benefits extend beyond even the execution of a single task.
+Using the Worker API, Gradle can begin to execute tasks in parallel by default.
+In other words, once a task has submitted its work to be executed asynchronously, and has exited the task action, Gradle can then begin the execution of other independent tasks in parallel, even if those tasks are in the same project.
 
 [[using-the-worker-api]]
 === Using the Worker API
@@ -459,7 +497,9 @@ The parameters type must be a <<custom_gradle_types.adoc#managed_types,managed t
 
 You can find out more about implementing work parameters in <<custom_gradle_types.adoc#custom_gradle_types,Developing Custom Gradle Types>>.
 
-The implementation is a class that extends link:{javadocPath}/org/gradle/workers/WorkAction.html[WorkAction]. This class should be abstract and should not implement the `getParameters()` method. Gradle will inject an implementation of this method at runtime with the parameters object for each unit of work.
+The implementation is a class that extends link:{javadocPath}/org/gradle/workers/WorkAction.html[WorkAction].
+This class should be abstract and should not implement the `getParameters()` method.
+Gradle will inject an implementation of this method at runtime with the parameters object for each unit of work.
 
 .Defining the unit of work parameters and implementation
 ====
