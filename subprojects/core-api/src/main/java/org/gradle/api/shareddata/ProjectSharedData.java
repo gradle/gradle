@@ -37,30 +37,35 @@ import java.util.Map;
 public interface ProjectSharedData {
     /**
      * TBD
+     *
      * @since 8.6
      */
     <T> void register(Class<T> dataType, @Nullable String dataIdentifier, Provider<T> dataProvider);
 
     /**
      * TBD
+     *
      * @since 8.6
      */
     <T> Provider<T> obtain(Class<T> dataType, @Nullable String dataIdentifier, SingleSourceIdentifier dataSourceIdentifier);
 
     /**
      * TBD
+     *
      * @since 8.6
      */
     <T> Provider<T> obtain(Class<T> dataType, SingleSourceIdentifier dataSourceIdentifier);
 
     /**
      * TBD
+     *
      * @since 8.6
      */
     <T> Provider<Map<String, ? extends T>> obtain(Class<T> dataType, String dataIdentifier, MultipleSourcesIdentifier dataSourceIdentifier);
 
     /**
      * TBD
+     *
      * @since 8.6
      */
     // TODO: these should conveniently wrap heterogeneous project identifiers, to be used as `sharedData.obtainSharedData(..., sharedData.fromProject(id))`
@@ -68,12 +73,14 @@ public interface ProjectSharedData {
 
     /**
      * TBD
+     *
      * @since 8.6
      */
     SingleSourceIdentifier fromProject(ProjectComponentIdentifier project);
 
     /**
      * TBD
+     *
      * @since 8.6
      */
     MultipleSourcesIdentifier fromProjects(Collection<Project> projects);
@@ -82,24 +89,28 @@ public interface ProjectSharedData {
 
     /**
      * TBD
+     *
      * @since 8.6
      */
     MultipleSourcesIdentifier fromAllProjects();
 
     /**
      * TBD
+     *
      * @since 8.6
      */
     MultipleSourcesIdentifier fromProjectsInCurrentBuild();
 
     /**
      * TBD
+     *
      * @since 8.6
      */
     MultipleSourcesIdentifier fromAllProjectsMatchingIdentityPath(Spec<? super String> filterProjects);
 
     /**
      * TBD
+     *
      * @since 8.6
      */
     MultipleSourcesIdentifier fromResolutionResults(Configuration configuration);
