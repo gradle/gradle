@@ -31,42 +31,42 @@ import java.util.Map;
  * Provides the ability for project configuration logic to register shared data produced by the project and to obtain shared data
  * that is produced by other projects.
  *
- * @since 8.6
+ * @since 8.7
  */
 @Incubating
 public interface ProjectSharedData {
     /**
      * TBD
      *
-     * @since 8.6
+     * @since 8.7
      */
     <T> void register(Class<T> dataType, @Nullable String dataIdentifier, Provider<T> dataProvider);
 
     /**
      * TBD
      *
-     * @since 8.6
+     * @since 8.7
      */
     <T> Provider<T> obtain(Class<T> dataType, @Nullable String dataIdentifier, SingleSourceIdentifier dataSourceIdentifier);
 
     /**
      * TBD
      *
-     * @since 8.6
+     * @since 8.7
      */
     <T> Provider<T> obtain(Class<T> dataType, SingleSourceIdentifier dataSourceIdentifier);
 
     /**
      * TBD
      *
-     * @since 8.6
+     * @since 8.7
      */
     <T> Provider<Map<String, ? extends T>> obtain(Class<T> dataType, String dataIdentifier, MultipleSourcesIdentifier dataSourceIdentifier);
 
     /**
      * TBD
      *
-     * @since 8.6
+     * @since 8.7
      */
     // TODO: these should conveniently wrap heterogeneous project identifiers, to be used as `sharedData.obtainSharedData(..., sharedData.fromProject(id))`
     SingleSourceIdentifier fromProject(Project project);
@@ -74,14 +74,14 @@ public interface ProjectSharedData {
     /**
      * TBD
      *
-     * @since 8.6
+     * @since 8.7
      */
     SingleSourceIdentifier fromProject(ProjectComponentIdentifier project);
 
     /**
      * TBD
      *
-     * @since 8.6
+     * @since 8.7
      */
     MultipleSourcesIdentifier fromProjects(Collection<Project> projects);
 
@@ -90,28 +90,28 @@ public interface ProjectSharedData {
     /**
      * TBD
      *
-     * @since 8.6
+     * @since 8.7
      */
     MultipleSourcesIdentifier fromAllProjects();
 
     /**
      * TBD
      *
-     * @since 8.6
+     * @since 8.7
      */
     MultipleSourcesIdentifier fromProjectsInCurrentBuild();
 
     /**
      * TBD
      *
-     * @since 8.6
+     * @since 8.7
      */
     MultipleSourcesIdentifier fromAllProjectsMatchingIdentityPath(Spec<? super String> filterProjects);
 
     /**
      * TBD
      *
-     * @since 8.6
+     * @since 8.7
      */
     MultipleSourcesIdentifier fromResolutionResults(Configuration configuration);
 

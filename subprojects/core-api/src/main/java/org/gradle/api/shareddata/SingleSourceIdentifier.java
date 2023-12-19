@@ -22,14 +22,14 @@ import org.gradle.util.Path;
 /**
  * Identifies a single source project in queries to obtain shared data from a single project.
  *
- * @since 8.6
+ * @since 8.7
  */
 @Incubating
 public
 interface SingleSourceIdentifier {
     /**
      * TBD
-     * @since 8.6
+     * @since 8.7
      */
     Path getSourceProjectIdentitiyPath();
 }

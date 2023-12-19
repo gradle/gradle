@@ -24,14 +24,14 @@ import java.util.Collection;
 /**
  * Identifies a collection of projects in queries to obtain shared data from a set of projects.
  *
- * @since 8.6
+ * @since 8.7
  */
 @Incubating
 public
 interface MultipleSourcesIdentifier {
     /**
      * TBD
-     * @since 8.6
+     * @since 8.7
      */
     Collection<Path> getSourceProjectIdentityPaths();
 }
