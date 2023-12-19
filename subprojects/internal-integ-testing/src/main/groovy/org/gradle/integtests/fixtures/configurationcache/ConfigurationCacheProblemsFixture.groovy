@@ -23,7 +23,6 @@ import org.gradle.api.Action
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.LogContent
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.test.fixtures.file.TestFile
@@ -49,11 +48,9 @@ final class ConfigurationCacheProblemsFixture {
 
     protected static final String PROBLEMS_REPORT_HTML_FILE_NAME = "configuration-cache-report.html"
 
-    private final GradleExecuter executer
     private final File rootDir
 
-    ConfigurationCacheProblemsFixture(GradleExecuter executer, File rootDir) {
-        this.executer = executer
+    ConfigurationCacheProblemsFixture(File rootDir) {
         this.rootDir = rootDir
     }
 
@@ -83,7 +80,7 @@ final class ConfigurationCacheProblemsFixture {
 
         if (spec.hasProblems()) {
             assertHasConsoleSummary(failure.output, spec)
-            assertProblemsHtmlReport(failure.output, rootDir, spec)
+            assertHtmlReportHasProblems(resolveConfigurationCacheReportDirectory(rootDir, failure.output), spec)
         } else {
             assertNoProblemsSummary(failure.output)
         }
@@ -125,7 +122,7 @@ final class ConfigurationCacheProblemsFixture {
     ) {
         assertNoProblemsSummary(failure.output)
         assertFailureDescription(failure, failureDescriptionMatcherForProblems(spec))
-        assertProblemsHtmlReport(failure.error, rootDir, spec)
+        assertHtmlReportHasProblems(resolveConfigurationCacheReportDirectory(rootDir, failure.output), spec)
     }
 
     void assertFailureHasTooManyProblems(
@@ -148,7 +145,7 @@ final class ConfigurationCacheProblemsFixture {
     ) {
         assertNoProblemsSummary(failure.output)
         assertFailureDescription(failure, failureDescriptionMatcherForTooManyProblems(spec))
-        assertProblemsHtmlReport(failure.error, rootDir, spec)
+        assertHtmlReportHasProblems(resolveConfigurationCacheReportDirectory(rootDir, failure.output), spec)
     }
 
     void assertResultHasProblems(
@@ -172,7 +169,7 @@ final class ConfigurationCacheProblemsFixture {
         // assert !(result instanceof ExecutionFailure)
         if (spec.hasProblems()) {
             assertHasConsoleSummary(result.output, spec)
-            assertProblemsHtmlReport(result.output, rootDir, spec)
+            assertHtmlReportHasProblems(resolveConfigurationCacheReportDirectory(rootDir, result.output), spec)
         } else {
             assertNoProblemsSummary(result.output)
         }
@@ -192,6 +189,19 @@ final class ConfigurationCacheProblemsFixture {
         def spec = new HasConfigurationCacheProblemsSpec()
         specAction.execute(spec)
         return spec
+    }
+
+    static void assertHtmlReportHasProblems(
+        TestFile reportDir,
+        HasConfigurationCacheProblemsSpec spec
+    ) {
+        def totalProblemCount = spec.totalProblemsCount ?: spec.uniqueProblems.size()
+        assertProblemsHtmlReport(
+            reportDir,
+            totalProblemCount,
+            spec.uniqueProblems.size(),
+            spec.problemsWithStackTraceCount == null ? totalProblemCount : spec.problemsWithStackTraceCount
+        )
     }
 
     private static Matcher<String> failureDescriptionMatcherForError(HasConfigurationCacheErrorSpec spec) {
@@ -259,21 +269,6 @@ final class ConfigurationCacheProblemsFixture {
         }
     }
 
-    private static void assertProblemsHtmlReport(
-        String output,
-        File rootDir,
-        HasConfigurationCacheProblemsSpec spec
-    ) {
-        def totalProblemCount = spec.totalProblemsCount ?: spec.uniqueProblems.size()
-        assertProblemsHtmlReport(
-            rootDir,
-            output,
-            totalProblemCount,
-            spec.uniqueProblems.size(),
-            spec.problemsWithStackTraceCount == null ? totalProblemCount : spec.problemsWithStackTraceCount
-        )
-    }
-
     private static void assertInputs(
         String output,
         File rootDir,
@@ -311,9 +306,9 @@ final class ConfigurationCacheProblemsFixture {
             }
         }
         if (!(spec instanceof InputsSpec.IgnoreUnexpected)) {
-            assert unexpectedInputs.isEmpty() : "Unexpected inputs $unexpectedInputs found in the report, expecting $expectedInputs"
+            assert unexpectedInputs.isEmpty(): "Unexpected inputs $unexpectedInputs found in the report, expecting $expectedInputs"
         }
-        assert expectedInputs.isEmpty() : "Expecting $expectedInputs in the report, found $unexpectedInputs"
+        assert expectedInputs.isEmpty(): "Expecting $expectedInputs in the report, found $unexpectedInputs"
     }
 
     static String formatInputForAssert(Map<String, Object> input) {
@@ -341,14 +336,12 @@ final class ConfigurationCacheProblemsFixture {
     }
 
     private static void assertProblemsHtmlReport(
-        File rootDir,
-        String output,
+        TestFile reportDir,
         int totalProblemCount,
         int uniqueProblemCount,
         int problemsWithStackTraceCount
     ) {
         def expectReport = totalProblemCount > 0 || uniqueProblemCount > 0
-        def reportDir = resolveConfigurationCacheReportDirectory(rootDir, output)
         if (expectReport) {
             Map<String, Object> jsModel = readJsModelFromReportDir(reportDir)
             assertThat(

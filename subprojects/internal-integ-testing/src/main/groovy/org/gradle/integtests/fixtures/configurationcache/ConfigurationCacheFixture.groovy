@@ -36,7 +36,7 @@ class ConfigurationCacheFixture {
         this.spec = spec
         buildOperations = new BuildOperationsFixture(spec.executer, spec.temporaryFolder)
         configurationCacheBuildOperations = new ConfigurationCacheBuildOperationsFixture(buildOperations)
-        problems = new ConfigurationCacheProblemsFixture(spec.executer, spec.testDirectory)
+        problems = new ConfigurationCacheProblemsFixture(spec.testDirectory)
     }
 
     /**
