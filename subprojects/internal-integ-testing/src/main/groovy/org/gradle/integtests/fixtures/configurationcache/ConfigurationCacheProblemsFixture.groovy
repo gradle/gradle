@@ -80,7 +80,7 @@ final class ConfigurationCacheProblemsFixture {
 
         if (spec.hasProblems()) {
             assertHasConsoleSummary(failure.output, spec)
-            assertHtmlReportHasProblems(resolveConfigurationCacheReportDirectory(rootDir, failure.output), spec)
+            assertProblemsHtmlReport(failure.output, rootDir, spec)
         } else {
             assertNoProblemsSummary(failure.output)
         }
@@ -122,7 +122,7 @@ final class ConfigurationCacheProblemsFixture {
     ) {
         assertNoProblemsSummary(failure.output)
         assertFailureDescription(failure, failureDescriptionMatcherForProblems(spec))
-        assertHtmlReportHasProblems(resolveConfigurationCacheReportDirectory(rootDir, failure.output), spec)
+        assertProblemsHtmlReport(failure.error, rootDir, spec)
     }
 
     void assertFailureHasTooManyProblems(
@@ -145,7 +145,7 @@ final class ConfigurationCacheProblemsFixture {
     ) {
         assertNoProblemsSummary(failure.output)
         assertFailureDescription(failure, failureDescriptionMatcherForTooManyProblems(spec))
-        assertHtmlReportHasProblems(resolveConfigurationCacheReportDirectory(rootDir, failure.output), spec)
+        assertProblemsHtmlReport(failure.error, rootDir, spec)
     }
 
     void assertResultHasProblems(
@@ -169,7 +169,7 @@ final class ConfigurationCacheProblemsFixture {
         // assert !(result instanceof ExecutionFailure)
         if (spec.hasProblems()) {
             assertHasConsoleSummary(result.output, spec)
-            assertHtmlReportHasProblems(resolveConfigurationCacheReportDirectory(rootDir, result.output), spec)
+            assertProblemsHtmlReport(result.output, rootDir, spec)
         } else {
             assertNoProblemsSummary(result.output)
         }
@@ -189,19 +189,6 @@ final class ConfigurationCacheProblemsFixture {
         def spec = new HasConfigurationCacheProblemsSpec()
         specAction.execute(spec)
         return spec
-    }
-
-    static void assertHtmlReportHasProblems(
-        TestFile reportDir,
-        HasConfigurationCacheProblemsSpec spec
-    ) {
-        def totalProblemCount = spec.totalProblemsCount ?: spec.uniqueProblems.size()
-        assertProblemsHtmlReport(
-            reportDir,
-            totalProblemCount,
-            spec.uniqueProblems.size(),
-            spec.problemsWithStackTraceCount == null ? totalProblemCount : spec.problemsWithStackTraceCount
-        )
     }
 
     private static Matcher<String> failureDescriptionMatcherForError(HasConfigurationCacheErrorSpec spec) {
@@ -269,6 +256,21 @@ final class ConfigurationCacheProblemsFixture {
         }
     }
 
+    private static void assertProblemsHtmlReport(
+        String output,
+        File rootDir,
+        HasConfigurationCacheProblemsSpec spec
+    ) {
+        def totalProblemCount = spec.totalProblemsCount ?: spec.uniqueProblems.size()
+        assertProblemsHtmlReport(
+            rootDir,
+            output,
+            totalProblemCount,
+            spec.uniqueProblems.size(),
+            spec.problemsWithStackTraceCount == null ? totalProblemCount : spec.problemsWithStackTraceCount
+        )
+    }
+
     private static void assertInputs(
         String output,
         File rootDir,
@@ -315,14 +317,14 @@ final class ConfigurationCacheProblemsFixture {
         "${formatTrace(input['trace'][0])}: ${formatStructuredMessage(input['input'])}"
     }
 
-    private static String formatStructuredMessage(List<Map<String, Object>> fragments) {
+    static String formatStructuredMessage(List<Map<String, Object>> fragments) {
         fragments.collect {
             // See StructuredMessage.Fragment
             it['text'] ?: "'${it['name']}'"
         }.join('')
     }
 
-    private static String formatTrace(Map<String, Object> trace) {
+    static String formatTrace(Map<String, Object> trace) {
         switch (trace['kind']) {
             case "Task": return trace['path']
             case "Bean": return trace['type']
@@ -336,12 +338,14 @@ final class ConfigurationCacheProblemsFixture {
     }
 
     private static void assertProblemsHtmlReport(
-        TestFile reportDir,
+        File rootDir,
+        String output,
         int totalProblemCount,
         int uniqueProblemCount,
         int problemsWithStackTraceCount
     ) {
         def expectReport = totalProblemCount > 0 || uniqueProblemCount > 0
+        def reportDir = resolveConfigurationCacheReportDirectory(rootDir, output)
         if (expectReport) {
             Map<String, Object> jsModel = readJsModelFromReportDir(reportDir)
             assertThat(
@@ -359,7 +363,7 @@ final class ConfigurationCacheProblemsFixture {
         }
     }
 
-    private static Map<String, Object> readJsModelFromReportDir(TestFile reportDir) {
+    static Map<String, Object> readJsModelFromReportDir(TestFile reportDir) {
         assertThat("HTML report URI not found", reportDir, notNullValue())
         assertTrue("HTML report directory not found '$reportDir'", reportDir.isDirectory())
         def htmlFile = reportDir.file(PROBLEMS_REPORT_HTML_FILE_NAME)
