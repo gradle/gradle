@@ -1,12 +1,3 @@
 {
-    "acceptedApiChanges": [
-        {
-            "type": "org.gradle.kotlin.dsl.DependenciesExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.DependenciesExtensionsKt.invoke(org.gradle.api.artifacts.dsl.DependencyCollector,org.gradle.api.artifacts.Dependency,org.gradle.api.Action)",
-            "acceptation": "Not sure why this is detected as a new method",
-            "changes": [
-                "Method added to public class"
-            ]
-        }
-    ]
+    "acceptedApiChanges": []
 }
