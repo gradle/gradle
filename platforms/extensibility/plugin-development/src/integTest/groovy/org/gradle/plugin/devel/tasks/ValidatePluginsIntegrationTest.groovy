@@ -31,7 +31,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
     def setup() {
         enableProblemsApiCheck()
-        buildFile << """
+        buildFile """
             apply plugin: "java-gradle-plugin"
         """
     }
