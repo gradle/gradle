@@ -20,10 +20,12 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.StreamedValueListener
 import org.gradle.tooling.IntermediateResultHandler
 import org.gradle.tooling.ResultHandler
+import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.junit.Rule
@@ -162,5 +164,23 @@ class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
         e.cause.cause.message == "broken"
         // Report that the build was successful, as the failure was on the client side
         assertHasConfigureSuccessfulLogging()
+    }
+
+    @TargetGradleVersion("<8.6")
+    def "fails when attempting to stream from a Gradle version that does not support streaming"() {
+        when:
+        def listener = { } as StreamedValueListener
+
+        withConnection {
+            def builder = it.action(new IntermediateModelSendingBuildAction())
+            collectOutputs(builder)
+            builder.setStreamedValueListener(listener)
+            builder.run()
+        }
+
+        then:
+        def e = thrown(BuildActionFailureException)
+        e.cause instanceof UnsupportedVersionException
+        e.cause.message == "Gradle version $targetVersion.version does not support streaming values to the client."
     }
 }

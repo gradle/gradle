@@ -68,11 +68,11 @@ public class InternalBuildActionAdapter<T> implements org.gradle.tooling.interna
     private BuildController wrapBuildController(final InternalBuildControllerVersion2 buildController) {
         ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
         if (buildController instanceof InternalObjectRelay) {
-            return new StreamingAwareBuildControllerAdapter(buildController, protocolToModelAdapter, new ModelMapping(), rootDir);
+            return new StreamingAwareBuildControllerAdapter(buildController, protocolToModelAdapter, new ModelMapping(), versionDetails, rootDir);
         } else if (buildController instanceof InternalActionAwareBuildController) {
-            return new NestedActionAwareBuildControllerAdapter(buildController, protocolToModelAdapter, new ModelMapping(), rootDir);
+            return new NestedActionAwareBuildControllerAdapter(buildController, protocolToModelAdapter, new ModelMapping(), versionDetails, rootDir);
         } else {
-            return new ParameterAwareBuildControllerAdapter(buildController, protocolToModelAdapter, new ModelMapping(), rootDir);
+            return new ParameterAwareBuildControllerAdapter(buildController, protocolToModelAdapter, new ModelMapping(), versionDetails, rootDir);
         }
     }
 }
