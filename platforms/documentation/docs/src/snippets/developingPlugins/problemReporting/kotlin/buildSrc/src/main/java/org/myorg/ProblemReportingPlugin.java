@@ -14,12 +14,12 @@ public class ProblemReportingPlugin implements Plugin<Project> {
     private final ProblemReporter problemReporter;
 
     @Inject
-    public ProblemReportingPlugin(Problems problems) {
-        this.problemReporter = problems.forNamespace("org.myorg");
+    public ProblemReportingPlugin(Problems problems) { // <1>
+        this.problemReporter = problems.forNamespace("org.myorg"); // <2>
     }
 
     public void apply(Project project) {
-        this.problemReporter.reporting(builder -> builder
+        this.problemReporter.reporting(builder -> builder // <3>
             .label("Plugin 'x' is deprecated")
             .details("The plugin 'x' is deprecated since version 2.5")
             .solution("Please use plugin 'y'")
