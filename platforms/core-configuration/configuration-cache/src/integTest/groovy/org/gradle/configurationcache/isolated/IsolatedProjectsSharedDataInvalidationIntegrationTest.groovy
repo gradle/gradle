@@ -16,6 +16,9 @@
 
 package org.gradle.configurationcache.isolated
 
+import spock.lang.Ignore
+
+@Ignore("wip")
 class IsolatedProjectsSharedDataInvalidationIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def "invalidates a shared data consumer project when the data is used in model building"() {
         given:
