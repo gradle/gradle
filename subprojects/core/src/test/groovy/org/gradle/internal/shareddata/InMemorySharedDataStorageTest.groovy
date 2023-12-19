@@ -24,20 +24,22 @@ class InMemorySharedDataStorageTest extends Specification {
     def instance = new InMemorySharedDataStorage()
 
     def 'distinguishes data by #kind'() {
+        given:
+        def consumerPath = Path.ROOT
         def dataProvider = Mock(Provider)
 
-        given:
+        and:
         instance.put(Path.path(putPath), putKeyType, putKeyIdentifier, dataProvider)
 
         when:
-        def resolver = instance.getProjectDataResolver(Path.path(putPath))
+        def resolver = instance.getProjectDataResolver(consumerPath, Path.path(putPath))
         def present = resolver.get(new SharedDataStorage.DataKey(putKeyType, putKeyIdentifier))
 
         then:
         present == dataProvider
 
         when:
-        def resolverWithMissingKey = instance.getProjectDataResolver(Path.path(missingGetPath))
+        def resolverWithMissingKey = instance.getProjectDataResolver(consumerPath, Path.path(missingGetPath))
         def missing = resolverWithMissingKey.get(new SharedDataStorage.DataKey(missingGetType, missingGetIdentifier))
 
         then:
@@ -53,13 +55,14 @@ class InMemorySharedDataStorageTest extends Specification {
 
     def 'returns resolver that is live'() {
         given:
+        def consumerPath = Path.path(":consumer")
         def projectPath = Path.path(":")
         def dataProvider1 = Mock(Provider)
         def dataProvider2 = Mock(Provider)
 
         when:
         instance.put(projectPath, String, "test1", dataProvider1)
-        def resolver = instance.getProjectDataResolver(projectPath)
+        def resolver = instance.getProjectDataResolver(consumerPath, projectPath)
         def data1 = resolver.get(new SharedDataStorage.DataKey(String, "test1"))
         instance.put(projectPath, String, "test2", dataProvider2)
         def data2 = resolver.get(new SharedDataStorage.DataKey(String, "test2"))
