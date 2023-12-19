@@ -29,6 +29,7 @@ subprojects/internal-performance-testing/   @gradle/bt-developer-productivity
 subprojects/internal-testing/               @gradle/bt-developer-productivity
 
 # Cross-cutting architecture checks and decisions
+.github/CODEOWNERS                          @gradle/bt-architecture-council
 architecture-standards/                     @gradle/bt-architecture-council
 subprojects/architecture-test               @gradle/bt-architecture-council
 
@@ -88,9 +89,6 @@ platforms/native/                   @gradle/bt-native-maintainers
 # gitStream files
 .cm/                                @tresat
 .github/workflows/gitstream.yml     @tresat
-
-# Architecture council
-.github/CODEOWNERS @gradle/bt-architecture-council
 
 # IDE Experience team
 platforms/ide/                    @gradle/bt-ide-experience
