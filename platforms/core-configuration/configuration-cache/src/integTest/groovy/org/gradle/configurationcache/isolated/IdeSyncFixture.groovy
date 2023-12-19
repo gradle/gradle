@@ -18,14 +18,18 @@ package org.gradle.configurationcache.isolated
 
 
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture
-import org.gradle.integtests.fixtures.configurationcache.HasConfigurationCacheProblemsSpec
+import org.gradle.internal.Pair
 import org.gradle.test.fixtures.file.TestFile
+import org.hamcrest.Matcher
 
+import javax.annotation.Nullable
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
+
+import static org.hamcrest.CoreMatchers.startsWith
 
 class IdeSyncFixture {
 
@@ -38,26 +42,49 @@ class IdeSyncFixture {
     }
 
     void assertHtmlReportHasProblems(
-        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+        @DelegatesTo(value = HasConfigurationCacheProblemsInReportSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
+        def spec = new HasConfigurationCacheProblemsInReportSpec()
+        specClosure.delegate = spec
+        specClosure()
+
+        spec.validateSpec()
+
         def reportDir = resolveFirstConfigurationCacheReportDir(rootDir)
-        configurationCacheProblemsFixture.assertHtmlReportHasProblems(
-            reportDir,
-            configurationCacheProblemsFixture.newProblemsSpec(specClosure)
-        )
+        def jsModel = configurationCacheProblemsFixture.readJsModelFromReportDir(reportDir)
+
+        def problemsDiagnostics = jsModel.diagnostics.findAll { it['problem'] != null && it['trace'] != null }
+
+        def actualLocationsWithProblems = problemsDiagnostics.collect {
+            def message = configurationCacheProblemsFixture.formatStructuredMessage(it['problem'])
+            def location = configurationCacheProblemsFixture.formatTrace(it['trace'])
+            Pair.of(location, message)
+        }.unique()
+
+        assert jsModel.totalProblemCount == spec.totalProblemsCount
+        assert actualLocationsWithProblems.size() == spec.locationsWithProblems.size()
+        assert spec.locationsWithProblems.every { expectedLocation ->
+            actualLocationsWithProblems.any { actualLocation ->
+                if (expectedLocation.left.matches(actualLocation.left)) {
+                    expectedLocation.right == actualLocation.right
+                } else {
+                    false
+                }
+            }
+        }
     }
 
     private static TestFile resolveFirstConfigurationCacheReportDir(TestFile rootDir) {
-        def reportsDir = rootDir.file("build/reports/configuration-cache")
+        TestFile reportsDir = rootDir.file("build/reports/configuration-cache")
         TestFile reportDir = null
         Files.walkFileTree(reportsDir.toPath(), new SimpleFileVisitor<Path>() {
             @Override
             FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 if (file.getFileName().toString() == "configuration-cache-report.html") {
                     reportDir = new TestFile(file.parent.toString())
-                    return FileVisitResult.TERMINATE;
+                    return FileVisitResult.TERMINATE
                 }
-                return FileVisitResult.CONTINUE;
+                return FileVisitResult.CONTINUE
             }
         })
 
@@ -66,5 +93,35 @@ class IdeSyncFixture {
         }
 
         return reportDir
+    }
+}
+
+class HasConfigurationCacheProblemsInReportSpec {
+
+    final List<Pair<Matcher<String>, String>> locationsWithProblems = []
+
+    @Nullable
+    Integer totalProblemsCount
+
+    void validateSpec() {
+        def totalCount = totalProblemsCount ?: locationsWithProblems.size()
+        if (totalCount < locationsWithProblems.size()) {
+            throw new IllegalArgumentException("Count of total problems can't be lesser than count of unique problems.")
+        }
+    }
+
+    HasConfigurationCacheProblemsInReportSpec withLocatedProblem(String location, String problem) {
+        withLocatedProblem(startsWith(location), problem)
+        return this
+    }
+
+    HasConfigurationCacheProblemsInReportSpec withLocatedProblem(Matcher<String> location, String problem) {
+        locationsWithProblems.add(Pair.of(location, problem))
+        return this
+    }
+
+    HasConfigurationCacheProblemsInReportSpec withTotalProblemsCount(int totalProblemsCount) {
+        this.totalProblemsCount = totalProblemsCount
+        return this
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.isolated
 
+import org.hamcrest.core.StringContains
 import spock.lang.Ignore
 
 
@@ -32,7 +33,16 @@ class IsolatedProjectsJavaProjectSyncTest extends AbstractIdeSyncSmokeTest {
         then:
         fixture.assertHtmlReportHasProblems {
             totalProblemsCount = 78
-            problemsWithStackTraceCount = 50
+            withLocatedProblem(new StringContains("sync.studio.tooling"), "Cannot access project ':app' from project ':'")
+            withLocatedProblem(new StringContains("sync.studio.tooling"), "Cannot access project ':lib' from project ':'")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':app' from project ':'")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':lib' from project ':'")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':' from project ':app'")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':lib' from project ':app'")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':' from project ':lib'")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':app' from project ':lib'")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':app' from project ':'. 'Project.evaluationDependsOn' must be used to establish a dependency between project ':app' and project ':' evaluation")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':lib' from project ':'. 'Project.evaluationDependsOn' must be used to establish a dependency between project ':lib' and project ':' evaluation")
         }
     }
 
