@@ -53,8 +53,7 @@ public class DependencyInjectionTest {
 
     @ArchTest
     public static final ArchRule all_injected_classes_should_be_annotated_with_service_scope = freeze(classes()
-        .that(is_injected_by_getter)
-        .or(is_injected_by_constructor)
+        .that(is_injected_by_getter).or(is_injected_by_constructor)
         .should().beAnnotatedWith(ServiceScope.class));
 
 }
