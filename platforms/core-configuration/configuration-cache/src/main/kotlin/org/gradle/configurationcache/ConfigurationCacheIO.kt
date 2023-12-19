@@ -91,36 +91,6 @@ class ConfigurationCacheIO internal constructor(
         }
     }
 
-    private
-    fun DefaultWriteContext.writeBlockAddresses(
-        projectMetadata: Map<Path, BlockAddress>,
-        addressSerializer: BlockAddressSerializer
-    ) {
-        writeCollection(projectMetadata.entries) { entry ->
-            writeString(entry.key.path)
-            addressSerializer.write(this, entry.value)
-        }
-    }
-
-    private
-    fun DefaultWriteContext.writeIntermediateModelAddresses(
-        intermediateModels: Map<ModelKey, BlockAddress>,
-        addressSerializer: BlockAddressSerializer
-    ) {
-        writeCollection(intermediateModels.entries) { entry ->
-            writeNullableString(entry.key.identityPath?.path)
-            writeString(entry.key.modelName)
-            addressSerializer.write(this, entry.value)
-        }
-    }
-
-    private
-    fun DefaultWriteContext.writeModelKey(key: ModelKey) {
-        writeNullableString(key.identityPath?.path)
-        writeString(key.modelName)
-        writeNullableString(key.parameterHash?.toString())
-    }
-
     internal
     fun readCacheEntryDetailsFrom(stateFile: ConfigurationCacheStateFile): EntryDetails? {
         if (!stateFile.exists) {
@@ -144,6 +114,35 @@ class ConfigurationCacheIO internal constructor(
             val sharedData = readBlockAddressMap()
             EntryDetails(rootDirs, intermediateModels, metadata, sharedData)
         }
+    }
+
+    private
+    fun DefaultWriteContext.writeBlockAddresses(
+        projectMetadata: Map<Path, BlockAddress>,
+        addressSerializer: BlockAddressSerializer
+    ) {
+        writeCollection(projectMetadata.entries) { entry ->
+            writeString(entry.key.path)
+            addressSerializer.write(this, entry.value)
+        }
+    }
+
+    private
+    fun DefaultWriteContext.writeIntermediateModelAddresses(
+        intermediateModels: Map<ModelKey, BlockAddress>,
+        addressSerializer: BlockAddressSerializer
+    ) {
+        writeCollection(intermediateModels.entries) { entry ->
+            writeModelKey(entry.key)
+            addressSerializer.write(this, entry.value)
+        }
+    }
+
+    private
+    fun DefaultWriteContext.writeModelKey(key: ModelKey) {
+        writeNullableString(key.identityPath?.path)
+        writeString(key.modelName)
+        writeNullableString(key.parameterHash?.toString())
     }
 
     private
@@ -175,7 +174,12 @@ class ConfigurationCacheIO internal constructor(
         }
 
     internal
-    fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile, loadAfterStore: Boolean, graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): Pair<String, BuildTreeWorkGraph.FinalizedGraph> {
+    fun readRootBuildStateFrom(
+        stateFile: ConfigurationCacheStateFile,
+        loadAfterStore: Boolean,
+        graph: BuildTreeWorkGraph,
+        graphBuilder: BuildTreeWorkGraphBuilder?
+    ): Pair<String, BuildTreeWorkGraph.FinalizedGraph> {
         return readConfigurationCacheState(stateFile) { state ->
             state.run {
                 readRootBuildState(graph, graphBuilder, loadAfterStore)
