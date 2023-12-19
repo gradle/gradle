@@ -16,7 +16,6 @@
 
 package org.gradle.internal.shareddata;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -46,7 +45,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@NonNullApi
 public class DefaultProjectSharedData implements ProjectSharedData {
     private final ProjectInternal usedInProject;
     private final SharedDataRegistry globalSharedData;

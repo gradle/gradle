@@ -16,7 +16,6 @@
 
 package org.gradle.internal.shareddata;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.provider.Provider;
 import org.gradle.util.Path;
@@ -30,7 +29,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-@NonNullApi
 public class InMemorySharedDataStorage implements SharedDataStorage, HoldsProjectState {
 
     private final ReadWriteLock modificationLock = new ReentrantReadWriteLock();
