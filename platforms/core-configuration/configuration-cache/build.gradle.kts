@@ -101,6 +101,7 @@ dependencies {
     integTestImplementation(libs.guava)
     integTestImplementation(libs.ant)
     integTestImplementation(libs.inject)
+    integTestImplementation((libs.gradleProfiler))
     integTestImplementation("com.microsoft.playwright:playwright:1.20.1")
 
     integTestImplementation(testFixtures(project(":tooling-api")))
