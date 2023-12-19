@@ -33,6 +33,7 @@ import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.Task;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -72,11 +73,8 @@ public class ConsumerOperationParameters implements BuildParameters {
         private List<InternalLaunchable> launchables;
         private ClassPath injectedPluginClasspath = ClassPath.EMPTY;
         private Map<String, String> systemProperties;
-        private StreamedValueListener streamedValueListener = new StreamedValueListener() {
-            @Override
-            public void onValue(Object value) {
-            }
-        };
+        @Nullable
+        private StreamedValueListener streamedValueListener;
 
         private Builder() {
         }
@@ -223,7 +221,7 @@ public class ConsumerOperationParameters implements BuildParameters {
             }
 
             return new ConsumerOperationParameters(entryPoint, parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, envVariables, arguments, tasks, launchables, injectedPluginClasspath,
-                legacyProgressListeners, progressListeners, cancellationToken, systemProperties, streamedValueListener);
+                legacyProgressListeners, progressListeners, cancellationToken, systemProperties, new FailsafeStreamedValueListener(streamedValueListener));
         }
 
         public void copyFrom(ConsumerOperationParameters operationParameters) {
@@ -269,13 +267,13 @@ public class ConsumerOperationParameters implements BuildParameters {
     private final Map<OperationType, List<ProgressListener>> progressListeners;
 
     private final Map<String, String> systemProperties;
-    private final StreamedValueListener streamedValueListener;
+    private final FailsafeStreamedValueListener streamedValueListener;
 
     private ConsumerOperationParameters(
         String entryPointName, ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
         File javaHome, List<String> jvmArguments, Map<String, String> envVariables, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables, ClassPath injectedPluginClasspath,
         List<org.gradle.tooling.ProgressListener> legacyProgressListeners, Map<OperationType, List<ProgressListener>> progressListeners, CancellationToken cancellationToken,
-        Map<String, String> systemProperties, StreamedValueListener streamedValueListener
+        Map<String, String> systemProperties, FailsafeStreamedValueListener streamedValueListener
     ) {
         this.entryPointName = entryPointName;
         this.parameters = parameters;
@@ -458,6 +456,10 @@ public class ConsumerOperationParameters implements BuildParameters {
      */
     public Map<String, ?> getSystemProperties() {
         return systemProperties;
+    }
+
+    public FailsafeStreamedValueListener getStreamedValueListener() {
+        return streamedValueListener;
     }
 
     /**

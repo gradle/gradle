@@ -161,13 +161,29 @@ class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
         then:
 
         def e = thrown(GradleConnectionException)
-        e.cause.cause.message == "broken"
+        e.cause.message == "broken"
+        // Report that the build was successful, as the failure was on the client side
+        assertHasConfigureSuccessfulLogging()
+    }
+
+    def "build fails when build action streams value when no listener is registered"() {
+        when:
+        withConnection {
+            def builder = it.action(new IntermediateModelSendingBuildAction())
+            collectOutputs(builder)
+            builder.run()
+        }
+
+        then:
+        def e = thrown(GradleConnectionException)
+        e.cause instanceof IllegalStateException
+        e.cause.message == "No streaming model listener registered."
         // Report that the build was successful, as the failure was on the client side
         assertHasConfigureSuccessfulLogging()
     }
 
     @TargetGradleVersion("<8.6")
-    def "fails when attempting to stream from a Gradle version that does not support streaming"() {
+    def "streaming fails when build action is running in a Gradle version that does not support streaming"() {
         when:
         def listener = { } as StreamedValueListener
 

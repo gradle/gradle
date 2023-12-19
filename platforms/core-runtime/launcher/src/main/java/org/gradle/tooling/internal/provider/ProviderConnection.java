@@ -232,7 +232,6 @@ public class ProviderConnection {
             return payloadSerializer.deserialize(result.getResult());
         } finally {
             progressListenerConfiguration.failsafeWrapper.rethrowErrors();
-            progressListenerConfiguration.streamedValueConsumer.rethrowErrors();
         }
     }
 
@@ -392,14 +391,12 @@ public class ProviderConnection {
 
         private final BuildEventSubscriptions clientSubscriptions;
         private final FailsafeBuildProgressListenerAdapter failsafeWrapper;
-        private final StreamedValueConsumer streamedValueConsumer;
         private final BuildEventConsumer buildEventConsumer;
 
-        ProgressListenerConfiguration(BuildEventSubscriptions clientSubscriptions, BuildEventConsumer buildEventConsumer, FailsafeBuildProgressListenerAdapter failsafeWrapper, StreamedValueConsumer streamedValueConsumer) {
+        ProgressListenerConfiguration(BuildEventSubscriptions clientSubscriptions, BuildEventConsumer buildEventConsumer, FailsafeBuildProgressListenerAdapter failsafeWrapper) {
             this.clientSubscriptions = clientSubscriptions;
             this.buildEventConsumer = buildEventConsumer;
             this.failsafeWrapper = failsafeWrapper;
-            this.streamedValueConsumer = streamedValueConsumer;
         }
 
         @VisibleForTesting
@@ -418,14 +415,13 @@ public class ProviderConnection {
             BuildEventSubscriptions clientSubscriptions = new BuildEventSubscriptions(operationTypes);
             FailsafeBuildProgressListenerAdapter progressListenerAdapter = new FailsafeBuildProgressListenerAdapter(buildProgressListener);
             BuildEventConsumer buildEventConsumer = clientSubscriptions.isAnyOperationTypeRequested() ? new BuildProgressListenerInvokingBuildEventConsumer(progressListenerAdapter) : new NoOpBuildEventConsumer();
-            StreamedValueConsumer streamedValueConsumer = new StreamedValueConsumer(providerParameters, payloadSerializer, buildEventConsumer);
-            buildEventConsumer = streamedValueConsumer;
+            buildEventConsumer = new StreamedValueConsumer(providerParameters, payloadSerializer, buildEventConsumer);
             if (Boolean.TRUE.equals(providerParameters.isEmbedded())) {
                 // Contract requires build events are delivered by a single thread. This is taken care of by the daemon client when not in embedded mode
                 // Need to apply some synchronization when in embedded mode
                 buildEventConsumer = new SynchronizedConsumer(buildEventConsumer);
             }
-            return new ProgressListenerConfiguration(clientSubscriptions, buildEventConsumer, progressListenerAdapter, streamedValueConsumer);
+            return new ProgressListenerConfiguration(clientSubscriptions, buildEventConsumer, progressListenerAdapter);
         }
 
         private static Set<OperationType> toOperationTypes(InternalBuildProgressListener buildProgressListener, GradleVersion consumerVersion) {

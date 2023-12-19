@@ -17,19 +17,15 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.internal.event.ListenerNotificationException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.StreamedValue;
-
-import java.util.Collections;
 
 public class StreamedValueConsumer implements BuildEventConsumer {
 
     private final ProviderOperationParameters providerParameters;
     private final PayloadSerializer payloadSerializer;
     private final BuildEventConsumer delegate;
-    private Throwable failure;
 
     public StreamedValueConsumer(ProviderOperationParameters providerParameters, PayloadSerializer payloadSerializer, BuildEventConsumer delegate) {
         this.providerParameters = providerParameters;
@@ -40,24 +36,11 @@ public class StreamedValueConsumer implements BuildEventConsumer {
     @Override
     public void dispatch(Object message) {
         if (message instanceof StreamedValue) {
-            if (failure != null) {
-                return;
-            }
             StreamedValue value = (StreamedValue) message;
             Object deserializedValue = payloadSerializer.deserialize(value.getSerializedModel());
-            try {
-                providerParameters.onStreamedValue(deserializedValue);
-            } catch (Throwable e) {
-                failure = e;
-            }
+            providerParameters.onStreamedValue(deserializedValue);
         } else {
             delegate.dispatch(message);
-        }
-    }
-
-    public void rethrowErrors() {
-        if (failure != null) {
-            throw new ListenerNotificationException(null, "Intermediate model listener failed with an exception.", Collections.singletonList(failure));
         }
     }
 }
