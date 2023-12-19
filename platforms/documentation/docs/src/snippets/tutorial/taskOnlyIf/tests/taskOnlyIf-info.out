@@ -1,4 +1,3 @@
-...
 
 > Task :hello SKIPPED
 Skipping task ':hello' as task onlyIf 'there is no property skipHello' is false.
