@@ -554,6 +554,17 @@ Worker daemons will remain running until either the build daemon that started th
 In order to support cancellation (e.g. when the user stops the build with CTRL+C) and task timeouts, custom tasks should react to their executing thread being interrupted.
 The same is true for work items submitted via the worker API. If a task does not respond to an interrupt within 10s, the daemon will shut down in order to free up system resources.
 
+== Verification Failures
+
+Exceptions thrown during task execution result in task failure which typically immediately terminates a build with a build failure result (except when running with the <<command_line_interface.adoc#sec:continue_build_on_failure, `--continue` flag>>).
+
+Another exception to this rule is when a task throws a link:{javadocPath}/org/gradle/api/tasks/VerificationException.html--[VerificationException].
+These exceptions are used to indicate that a task has failed in a controlled manner such that its output is still valid.
+Consumer tasks that use this output can still run.
+
+A failed test task, for instance, will cause a failing outcome for the test task.  However, this shouldn't prevent another task from reading and processing the (valid) test results output files it produced.
+Verification failures are used in exactly this manner by the <<test_report_aggregation_plugin.adoc, `Test Report Aggregation Plugin`>>.
+
 == More details
 
 It's often a good approach to package custom task types in a custom Gradle plugin.

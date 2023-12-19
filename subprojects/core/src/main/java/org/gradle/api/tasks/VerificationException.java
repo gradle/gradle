@@ -20,7 +20,17 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 
 /**
- * Signals that tests have failed. This is only thrown when tests are executed and some tests have failed execution.
+ * Signals that a task has failed in a manner which does not prevent consumers of that task's output from running.
+ *
+ * Tasks can depend upon other task's outcomes (PASS vs. FAIL) and outputs (the files they produce).  A verification
+ * failure represents the case where a task has a failed outcome, but has still produced valid output files for consumption.
+ *
+ * These failures are often caused by user code under analysis (such as from running tests, code quality tools, or linters).
+ * A failed test, for instance, will cause a failing outcome for the test task, but this shouldn't prevent another task
+ * from reading and processing the (valid) test results output it produced (perhaps to aggregate multiple test reports).
+ *
+ * Verification failures do not represent a bug in either the build tool or custom task logic; the responsibility falls to the
+ * project's software engineer to correct the verification failure.
  *
  * @since 7.4
  */
