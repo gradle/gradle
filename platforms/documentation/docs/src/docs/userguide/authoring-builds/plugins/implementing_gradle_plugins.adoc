@@ -427,3 +427,14 @@ This snippet makes the <<#plugin-with-variants,plugin variant `gradle7` defined 
 include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files="build.gradle.kts[tags=consume-plugin-variant]"]
 include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="build.gradle[tags=consume-plugin-variant]"]
 ====
+
+== Reporting problems
+
+Plugins can report problems through Gradle's problem reporting APIs, which allows reporting rich, structured information about problems happening during the build.
+
+The following example shows an example issue reported from a plugin.
+
+====
+include::sample[dir="snippets/developingPlugins/problemReporting/kotlin/buildSrc/src/main/java/org/myorg",files="ProblemReportingPlugin.java"]
+====
+
