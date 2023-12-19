@@ -19,6 +19,7 @@ package org.gradle.api.internal.file.collections;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -44,6 +45,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.Managed;
+import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -96,9 +98,9 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         return this;
     }
 
-    @VisibleForTesting
-    public ConfigurableFileCollection configureConvention(Action<FileCollectionConfigurer> action) {
-        action.execute(getConventionValue());
+    @Override
+    public ConfigurableFileCollection configure(Closure<FileCollectionConfigurer> action) {
+        ConfigureUtil.configure(action, getActualValue());
         return this;
     }
 
