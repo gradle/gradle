@@ -533,10 +533,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public Set<Configuration> getAll() {
         DeprecationLogger.deprecateAction("Calling the Configuration.getAll() method")
-                .withAdvice("Use the configurations container to access the set of configurations instead.")
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "deprecated_configuration_get_all")
-                .nagUser();
+            .withAdvice("Use the configurations container to access the set of configurations instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_configuration_get_all")
+            .nagUser();
 
         return ImmutableSet.copyOf(configurationsProvider.getAll());
     }
@@ -671,9 +671,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 throw new IllegalStateException("The configuration " + identityPath.toString() + " was resolved from a thread not managed by Gradle.");
             } else {
                 DeprecationLogger.deprecateBehaviour("Resolution of the configuration " + identityPath.toString() + " was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved.")
-                        .willBecomeAnErrorInGradle9()
-                        .withUserManual("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
-                        .nagUser();
+                    .willBecomeAnErrorInGradle9()
+                    .withUserManual("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
+                    .nagUser();
                 newState = domainObjectContext.getModel().fromMutableState(p -> resolveExclusivelyIfRequired());
             }
         } else {
@@ -1371,7 +1371,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                     : DefaultMutableVersionConstraint.withVersion(lockedVersion);
                 ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(lockedDependency.getGroup(), lockedDependency.getModule()), versionConstraint);
                 return new LocalComponentDependencyMetadata(
-                    selector, ImmutableAttributes.EMPTY, null, Collections.emptyList(),  Collections.emptyList(),
+                    selector, null, Collections.emptyList(), Collections.emptyList(),
                     false, false, false, true, false, true, getLockReason(strict, lockedVersion)
                 );
             });
@@ -1380,13 +1380,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         Stream<LocalComponentDependencyMetadata> consistentResolutionConstraintMetadata = getConsistentResolutionConstraints().map(dc -> {
             ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dc.getGroup(), dc.getName()), dc.getVersionConstraint());
             return new LocalComponentDependencyMetadata(
-                selector, ImmutableAttributes.EMPTY, null, Collections.emptyList(), Collections.emptyList(),
+                selector, null, Collections.emptyList(), Collections.emptyList(),
                 false, false, false, true, false, true, dc.getReason()
             );
         });
 
         return Stream.concat(dependencyLockingConstraintMetadata, consistentResolutionConstraintMetadata)
-                     .collect(ImmutableList.toImmutableList());
+            .collect(ImmutableList.toImmutableList());
     }
 
     private String getLockReason(boolean strict, String lockedVersion) {
@@ -1535,15 +1535,15 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private void warnOnDeprecatedUsage(String methodName, boolean allowDeprecated, ProperMethodUsage... properUsages) {
         if (!isProperUsage(allowDeprecated, properUsages)) {
             String msgTemplate = "Calling configuration method '%s' is deprecated for configuration '%s', which has permitted usage(s):\n" +
-                    "%s\n" +
-                    "This method is only meant to be called on configurations which allow the %susage(s): '%s'.";
+                "%s\n" +
+                "This method is only meant to be called on configurations which allow the %susage(s): '%s'.";
             String currentUsageDesc = UsageDescriber.describeCurrentUsage(this);
             String properUsageDesc = ProperMethodUsage.summarizeProperUsage(properUsages);
 
             DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, methodName, getName(), currentUsageDesc, allowDeprecated ? "" : "(non-deprecated) ", properUsageDesc))
-                    .willBeRemovedInGradle9()
-                    .withUpgradeGuideSection(8, "deprecated_configuration_usage")
-                    .nagUser();
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "deprecated_configuration_usage")
+                .nagUser();
         }
     }
 
@@ -1712,11 +1712,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             // Don't print role message for legacy role - users might not have actively chosen this role
             if (roleAtCreation != ConfigurationRoles.LEGACY) {
                 throw new GradleException(
-                        String.format("Cannot change the allowed usage of %s, as it was locked upon creation to the role: '%s'.\n" +
-                                "This role permits the following usage:\n" +
-                                "%s\n" +
-                                "Ideally, each configuration should be used for a single purpose.",
-                                getDisplayName(), roleAtCreation.getName(), roleAtCreation.describeUsage()));
+                    String.format("Cannot change the allowed usage of %s, as it was locked upon creation to the role: '%s'.\n" +
+                            "This role permits the following usage:\n" +
+                            "%s\n" +
+                            "Ideally, each configuration should be used for a single purpose.",
+                        getDisplayName(), roleAtCreation.getName(), roleAtCreation.describeUsage()));
             } else {
                 throw new GradleException(String.format("Cannot change the allowed usage of %s, as it has been locked.", getDisplayName()));
             }
@@ -1729,10 +1729,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             String changingUsage = usage + " was " + !current + " and is now " + current;
 
             DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, getDisplayName(), changingUsage))
-                    .withAdvice("Usage should be fixed upon creation.")
-                    .willBeRemovedInGradle9()
-                    .withUpgradeGuideSection(8, "configurations_allowed_usage")
-                    .nagUser();
+                .withAdvice("Usage should be fixed upon creation.")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "configurations_allowed_usage")
+                .nagUser();
         }
     }
 
@@ -1740,10 +1740,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         if (!isSpecialCaseOfRedundantUsageActivation()) {
             String msgTemplate = "The %s usage is already allowed on %s.";
             DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, usage, getDisplayName()))
-                    .withAdvice(String.format("Remove the call to %s, it has no effect.", method))
-                    .willBeRemovedInGradle9()
-                    .withUpgradeGuideSection(8, "redundant_configuration_usage_activation")
-                    .nagUser();
+                .withAdvice(String.format("Remove the call to %s, it has no effect.", method))
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "redundant_configuration_usage_activation")
+                .nagUser();
         }
     }
 
@@ -1758,14 +1758,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      *     <li>While {#roleAtCreation} is {@code null}, we are still initializing, so we should NOT warn.</li>
      *     <li>Changes to the usage of the detached configurations should NOT warn (this done by the Kotlin plugin).</li>
      *     <li>Configurations with a legacy role should NOT warn when changing usage,
-since users cannot create non-legacy configurations and there is no current public API for setting roles upon creation</li>
+     *         since users cannot create non-legacy configurations and there is no current public API for setting roles upon creation</li>
      *     <li>Setting consumable usage to false on the {@code apiElements} and {@code runtimeElements} configurations should NOT warn (this is done by the Kotlin plugin).</li>
      *     <li>All other usage changes should warn.</li>
      * </ol>
      *
      * @param usage the name usage that is being changed
      * @param current the current value of the usage after the change
-     *
      * @return {@code true} if the usage change is a known special case; {@code false} otherwise
      */
     private boolean isSpecialCaseOfChangingUsage(String usage, boolean current) {
@@ -1782,7 +1781,7 @@ since users cannot create non-legacy configurations and there is no current publ
      * <ol>
      *     <li>Redundant activation of a usage of a detached configurations should NOT warn (this done by the Kotlin plugin).</li>
      *     <li>Configurations with a legacy role should NOT warn during redundant usage activation,
-     since users cannot create non-legacy configurations and there is no current public API for setting roles upon creation</li>
+     * since users cannot create non-legacy configurations and there is no current public API for setting roles upon creation</li>
      *     <li>All other usage changes should warn.</li>
      * </ol>
      *
@@ -2361,8 +2360,8 @@ since users cannot create non-legacy configurations and there is no current publ
 
         public static String summarizeProperUsage(ProperMethodUsage... properUsages) {
             return Arrays.stream(properUsages)
-                    .map(ProperMethodUsage::buildProperName)
-                    .collect(Collectors.joining(", "));
+                .map(ProperMethodUsage::buildProperName)
+                .collect(Collectors.joining(", "));
         }
     }
 }
