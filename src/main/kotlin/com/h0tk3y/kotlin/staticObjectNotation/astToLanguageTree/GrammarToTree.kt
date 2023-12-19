@@ -34,8 +34,8 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
         elementOrFailure {
             ast.expectKind(importHeader)
 
-            collectingFailure(ast, asterisk) { it?.unsupported(StarImport) }
-            collectingFailure(ast, importAlias) { it?.unsupported(RenamingImport) }
+            collectingFailure(ast, asterisk) { it?.unsupportedIn(ast, StarImport) }
+            collectingFailure(ast, importAlias) { it?.unsupportedIn(ast, RenamingImport) }
 
             val identifierAst = ast.child(identifier)
 
@@ -53,8 +53,8 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
         elementOrFailure {
             ast.expectKind(statement)
 
-            collectingFailure(ast, label) { it?.let { ast.unsupportedBecause(it, LabelledStatement) } }
-            collectingFailure(ast, annotation) { it?.let { ast.unsupportedBecause(it, AnnotationUsage) } }
+            collectingFailure(ast, label) { it?.let { it.unsupportedIn(ast, LabelledStatement) } }
+            collectingFailure(ast, annotation) { it?.let { it.unsupportedIn(ast, AnnotationUsage) } }
 
             val singleChild =
                 ast.childrenOrEmpty.singleOrNull { it.kind != label && it.kind != annotation && it.kind != whitespace }
@@ -79,7 +79,7 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
 
         val singleChild = ast.singleChild()
         return when (singleChild.kind) {
-            classDeclaration, objectDeclaration, typeAlias -> ast.unsupportedBecause(singleChild, TypeDeclaration)
+            classDeclaration, objectDeclaration, typeAlias -> singleChild.unsupportedIn(ast, TypeDeclaration)
             functionDeclaration -> functionDeclaration(singleChild)
             propertyDeclaration -> propertyDeclaration(singleChild)
             else -> error("unexpected child kind")
@@ -98,14 +98,14 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
         elementOrFailure {
             ast.expectKind(propertyDeclaration)
 
-            collectingFailure(ast, modifiers) { it?.let { ast.unsupportedBecause(it, ValModifierNotSupported) } }
-            collectingFailure(ast, varKeyword) { it?.let { ast.unsupportedBecause(it, LocalVarNotSupported) } }
-            collectingFailure(ast, receiverType) { it?.let { ast.unsupportedBecause(it, ExtensionProperty) } }
-            collectingFailure(ast, multiVariableDeclaration) { it?.let { ast.unsupportedBecause(it, MultiVariable) } }
-            collectingFailure(ast, typeConstraints) { it?.let { ast.unsupportedBecause(it, GenericDeclaration) } }
-            collectingFailure(ast, propertyDelegate) { it?.let { ast.unsupportedBecause(it, DelegatedProperty) } }
-            collectingFailure(ast, getter) { it?.let { ast.unsupportedBecause(it, CustomAccessor) } }
-            collectingFailure(ast, setter) { it?.let { ast.unsupportedBecause(it, CustomAccessor) } }
+            collectingFailure(ast, modifiers) { it?.let { it.unsupportedIn(ast, ValModifierNotSupported) } }
+            collectingFailure(ast, varKeyword) { it?.let { it.unsupportedIn(ast, LocalVarNotSupported) } }
+            collectingFailure(ast, receiverType) { it?.let { it.unsupportedIn(ast, ExtensionProperty) } }
+            collectingFailure(ast, multiVariableDeclaration) { it?.let { it.unsupportedIn(ast, MultiVariable) } }
+            collectingFailure(ast, typeConstraints) { it?.let { it.unsupportedIn(ast, GenericDeclaration) } }
+            collectingFailure(ast, propertyDelegate) { it?.let { it.unsupportedIn(ast, DelegatedProperty) } }
+            collectingFailure(ast, getter) { it?.let { it.unsupportedIn(ast, CustomAccessor) } }
+            collectingFailure(ast, setter) { it?.let { it.unsupportedIn(ast, CustomAccessor) } }
 
             val name = checkForFailure(variableDeclaration(ast.child(variableDeclaration)))
             val expr = checkForFailure(
@@ -141,7 +141,7 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
             ast.expectKind(assignment)
 
             collectingFailure(ast, assignmentAndOperator) {
-                it?.let { ast.unsupportedBecause(it, AugmentingAssignment) }
+                it?.let { it.unsupportedIn(ast, AugmentingAssignment) }
             }
 
             val lhs = checkForFailure(directlyAssignableExpression(ast.child(directlyAssignableExpression)))
@@ -237,9 +237,9 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
         // TODO: support postfix double bang operator?
         val child = ast.singleChild()
         return when (child.kind) {
-            postfixUnaryOperator -> ast.unsupportedBecause(child, UnsupportedOperator)
-            typeArguments -> ast.unsupportedBecause(child, GenericExpression)
-            indexingSuffix -> ast.unsupportedBecause(child, Indexing)
+            postfixUnaryOperator -> child.unsupportedIn(ast, UnsupportedOperator)
+            typeArguments -> child.unsupportedIn(ast, GenericExpression)
+            indexingSuffix -> child.unsupportedIn(ast, Indexing)
             callSuffix -> callSuffix(child)
             navigationSuffix -> navigationSuffix(child).flatMap { Syntactic(UnarySuffix.NavSuffix(it, ast)) }
             else -> error("unexpected child kind")
@@ -457,8 +457,8 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
             val child = ast.singleChild()
             syntacticIfNoFailures {
                 when (child.kind) {
-                    typeArguments -> ast.unsupportedBecause(child, GenericExpression)
-                    indexingSuffix -> ast.unsupportedBecause(child, Indexing)
+                    typeArguments -> child.unsupportedIn(ast, GenericExpression)
+                    indexingSuffix -> child.unsupportedIn(ast, Indexing)
                     navigationSuffix -> navigationSuffix(child)
                     else -> error("unexpected child kind")
                 }
@@ -499,9 +499,9 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
         syntacticOrFailure {
             ast.expectKind(variableDeclaration)
 
-            collectingFailure(ast, annotation) { it?.let { ast.unsupportedBecause(it, AnnotationUsage) } }
+            collectingFailure(ast, annotation) { it?.let { it.unsupportedIn(ast, AnnotationUsage) } }
             // TODO: support explicit variable types
-            collectingFailure(ast, type) { it?.let { ast.unsupportedBecause(it, ExplicitVariableType) } }
+            collectingFailure(ast, type) { it?.let { it.unsupportedIn(ast, ExplicitVariableType) } }
 
             syntacticIfNoFailures {
                 simpleIdentifier(ast.child(simpleIdentifier))
@@ -621,8 +621,4 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
         feature: UnsupportedLanguageFeature
     ) = UnsupportedConstruct(outer.data, this.data, feature)
 
-    private fun Ast.unsupportedBecause(
-        erroneousAst: Ast,
-        feature: UnsupportedLanguageFeature
-    ) = UnsupportedConstruct(this.data, erroneousAst.data, feature)
 }

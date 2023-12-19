@@ -16,9 +16,39 @@
 
 package com.example.com.h0tk3y.kotlin.staticObjectNotation
 
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.Element
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.*
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParseTestUtil.Parser.parseWithAst
 import com.h0tk3y.kotlin.staticObjectNotation.language.*
+
+fun prettyPrintFailingResult(failure: FailingResult): String {
+    fun StringBuilder.recurse(current: FailingResult, depth: Int) {
+        fun indent() = "    ".repeat(depth)
+        fun appendIndented(value: Any) {
+            append(indent())
+            append(value)
+        }
+        fun recurseDeeper(next: FailingResult) = recurse(next, depth + 1)
+        when (current) {
+            is MultipleFailuresResult -> {
+                appendIndented("MultipleFailures(\n")
+                current.failures.forEach {
+                    recurseDeeper(it)
+                    appendLine()
+                }
+                appendIndented(")")
+            }
+            is ParsingError -> TODO()
+            is UnsupportedConstruct -> {
+                appendIndented("UnsupportedConstruct(")
+                append("languageFeature = ${current.languageFeature.javaClass.simpleName}, ")
+                append("potentialElementSource = ${current.potentialElementSource.prettyPrint()}, ")
+                append("erroneousSource = ${current.erroneousSource.prettyPrint()}")
+                append(")")
+            }
+        }
+    }
+    return buildString { recurse(failure, 0) }
+}
 
 fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
     fun StringBuilder.recurse(current: LanguageTreeElement, depth: Int) {
