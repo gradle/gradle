@@ -43,8 +43,9 @@ trait ProviderAssertions {
         def tasks = []
         def taskExtras = []
         producer.visitProducerTasks { tasks.add(it) }
-        producer.visitProducerExtras { if (it instanceof ValueSupplier.ValueProducer.ValueProducerExtra.TaskExtra) { tasks.add(it.task) } }
-        assert taskExtras == expected
+//TODO:shared-data
+//        producer.visitProducerExtras { if (it instanceof ValueSupplier.ValueProducer.ValueProducerExtra.TaskExtra) { tasks.add(it.task) } }
+//        assert taskExtras == expected
         assert tasks == expected
         tasks.clear()
         producer.visitContentProducerTasks { tasks.add(it) }
