@@ -53,7 +53,7 @@ abstract class AbstractIdeSyncSmokeTest extends AbstractIntegrationSpec {
                 .build()
 
         sync(
-            "Android studio sync",
+            "Android Studio sync",
             invocationSettings,
             [new LocalPropertiesMutator(invocationSettings, "/Users/sopivalov/Library/Android/sdk")] // TODO configure SDK_ROOT
         )
