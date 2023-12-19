@@ -43,6 +43,7 @@
     --table-color: #f7f8f7;
     --box-shadow-color: rgba(0, 0, 0, .15);
     --top-header-color: #fff;
+    --footer-white-color: #fff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -68,11 +69,12 @@
         --code-color: #1f1f1f;
         --code-text-color: rgba(255, 255, 255, 0.9);
         --code-link-color: #15768a;
-        --num-color: rgba(255, 255, 255, 0.8);
-        --nav-color: #1f1f1f;
+        --num-color: #000;
+        --nav-color: #121212;
         --table-color: #121212;
         --box-shadow-color: rgba(255, 255, 255, .15);
-        --top-header-color: #050505;
+        --top-header-color: #000;
+        --footer-white-color: #aaa;
     }
 }
 
@@ -1988,11 +1990,11 @@ div.screenshot {
 }
 
 .site-footer__link-group header {
-    color: var(--white-color);
+    color: var(--footer-white-color);
 }
 
 .site-footer__subscribe-newsletter .newsletter-form__header h5 {
-    color: var(--white-color);
+    color: var(--footer-color);
     margin-top: 0;
 }
 
