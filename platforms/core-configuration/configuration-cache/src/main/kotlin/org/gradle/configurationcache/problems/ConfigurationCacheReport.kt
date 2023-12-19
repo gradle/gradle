@@ -44,7 +44,7 @@ class ConfigurationCacheReport(
 
     companion object {
         private
-        val problemHashing = InternalFlag("org.gradle.configuration-cache.internal.report.problem-hashing", false)
+        val stacktraceHashes = InternalFlag("org.gradle.configuration-cache.internal.report.stacktrace-hashes", false)
     }
 
     private
@@ -189,7 +189,7 @@ class ConfigurationCacheReport(
     }
 
     private
-    val isProblemHashing = internalOptions.getOption(problemHashing).get()
+    val isStacktraceHashes = internalOptions.getOption(stacktraceHashes).get()
 
     private
     var state: State = State.Idle { kind, problem ->
@@ -197,7 +197,7 @@ class ConfigurationCacheReport(
             temporaryFileProvider.createTemporaryFile("configuration-cache-report", "html"),
             executorFactory.create("Configuration cache report writer", 1),
             CharBuf::class.java.classLoader,
-            if (isProblemHashing) ::decorateProblemWithHash else null
+            if (isStacktraceHashes) ::decorateProblemWithHash else null
         ).onDiagnostic(kind, problem)
     }
 
