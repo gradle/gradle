@@ -182,7 +182,7 @@ class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
         assertHasConfigureSuccessfulLogging()
     }
 
-    @TargetGradleVersion("<8.6")
+    @TargetGradleVersion(">=3.0 <8.6")
     def "streaming fails when build action is running in a Gradle version that does not support streaming"() {
         when:
         def listener = { } as StreamedValueListener
