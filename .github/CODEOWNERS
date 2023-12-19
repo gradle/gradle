@@ -28,8 +28,9 @@ subprojects/internal-integ-testing/         @gradle/bt-developer-productivity
 subprojects/internal-performance-testing/   @gradle/bt-developer-productivity
 subprojects/internal-testing/               @gradle/bt-developer-productivity
 
-# Architecture Decision Records
+# Cross-cutting architecture checks and decisions
 architecture-standards/                     @gradle/bt-architecture-council
+subprojects/architecture-test               @gradle/bt-architecture-council
 
 # Core automation platform (core/configuration)
 platforms/core-configuration/               @gradle/bt-configuration
