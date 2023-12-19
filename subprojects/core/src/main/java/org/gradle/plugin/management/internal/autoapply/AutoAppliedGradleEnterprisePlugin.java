@@ -28,7 +28,7 @@ public final class AutoAppliedGradleEnterprisePlugin {
 
     public static final String GROUP = "com.gradle";
     public static final String NAME = "gradle-enterprise-gradle-plugin";
-    public static final String VERSION = "3.16";
+    public static final String VERSION = "3.16.1";
 
     public static final String DEVELOCITY_PLUGIN_ARTIFACT_NAME = "develocity-gradle-plugin";
 
