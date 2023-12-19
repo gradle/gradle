@@ -431,10 +431,28 @@ include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files
 == Reporting problems
 
 Plugins can report problems through Gradle's problem reporting APIs, which allows reporting rich, structured information about problems happening during the build.
+This information could be used by different user interfaces like Gradle's console output, build scans, or IDEs to communicate problems to the user in the most appropriate way.
 
 The following example shows an example issue reported from a plugin.
 
 ====
-include::sample[dir="snippets/developingPlugins/problemReporting/kotlin/buildSrc/src/main/java/org/myorg",files="ProblemReportingPlugin.java"]
+include::sample[dir="snippets/developingPlugins/problemReporting/kotlin/buildSrc/src/main/java/org/myorg",files="ProblemReportingPlugin.java[tags=snippet]"]
 ====
+
+<1> The `Problem` service is injected into the plugin.
+<2> A problem reporter, is created for the plugin.
+<3> A problem is reported. This problem is recoverable, so the build will continue.
+
+=== Methods of reporting problems
+
+When it comes to reporting problems, we support three different modes:
+
+- link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#reporting-org.gradle.api.Action-[Reporting] a problem is used for reporting problems that are recoverable, and the build should continue.
+- link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#throwing-org.gradle.api.Action-[Throwing] a problem is used for reporting problems that are not recoverable, and the build should fail.
+- link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#rethrowing-java.lang.RuntimeException-org.gradle.api.Action-[Rethrowing] a problem is used to wrap an already thrown exception. Otherwise, the behavior is the same as for `Throwing`.
+
+=== Problem building
+
+When reporting a problem, a wide variety of information can be provided.
+The documentation provided in link:{javaDocPath}/org/gradle/api/problems/ProblemSpec.html[ProblemSpec] describes all the information that can be provided.
 
