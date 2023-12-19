@@ -260,6 +260,68 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         ivyRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, 'unspecified').assertPublished()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/12259")
+    def "Can publish maven and set displayName and description to pom"() {
+
+        given:
+        plugin('foo', 'com.example.foo', 'fooName', 'fooDesc')
+        publishToMaven()
+
+        and:
+        buildFile << """
+            publishing {
+                publications.withType(MavenPublication) {
+                    pom {
+                        name = "CustomName"
+                        description = "CustomDescription"
+                    }
+                }
+            }
+        """.stripIndent()
+
+        when:
+        succeeds 'publish'
+
+        then:
+        mavenRepo.module('com.example', 'plugins', '1.0').assertPublished()
+
+        def module = mavenRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0')
+        module.assertPublished()
+        module.getPomFile().text.contains('fooName')
+        module.getPomFile().text.contains('fooDesc')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/12259")
+    def "Can publish maven with name and description from custom pom declaration"() {
+
+        given:
+        plugin('foo', 'com.example.foo')
+        publishToMaven()
+
+        and:
+        buildFile << """
+            publishing {
+                publications.withType(MavenPublication) {
+                    pom {
+                        name = "CustomName"
+                        description = "CustomDescription"
+                    }
+                }
+            }
+        """.stripIndent()
+
+        when:
+        succeeds 'publish'
+
+        then:
+        mavenRepo.module('com.example', 'plugins', '1.0').assertPublished()
+
+        def module = mavenRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0')
+        module.assertPublished()
+        module.getPomFile().text.contains('CustomName')
+        module.getPomFile().text.contains('CustomDescription')
+    }
+
     def publishToMaven() {
         buildFile << """
             apply plugin: 'maven-publish'
