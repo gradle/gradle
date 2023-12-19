@@ -24,7 +24,7 @@ package org.gradle.tooling.internal.protocol;
  *
  * @since 8.6
  */
-public interface InternalObjectRelay {
+public interface InternalStreamedValueRelay {
     /**
      * Asynchronously sends an object back to the client application.
      *

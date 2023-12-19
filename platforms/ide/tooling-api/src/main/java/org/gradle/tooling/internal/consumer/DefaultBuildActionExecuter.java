@@ -51,7 +51,7 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
 
     @Override
     public void setStreamedValueListener(StreamedValueListener listener) {
-        operationParamsBuilder.setIntermediateModelListener(listener);
+        operationParamsBuilder.setStreamedValueListener(listener);
     }
 
     @Override

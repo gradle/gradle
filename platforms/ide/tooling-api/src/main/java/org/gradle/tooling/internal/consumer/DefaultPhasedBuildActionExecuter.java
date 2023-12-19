@@ -47,7 +47,7 @@ public class DefaultPhasedBuildActionExecuter extends AbstractLongRunningOperati
 
     @Override
     public void setStreamedValueListener(StreamedValueListener listener) {
-        operationParamsBuilder.setIntermediateModelListener(listener);
+        operationParamsBuilder.setStreamedValueListener(listener);
     }
 
     @Override

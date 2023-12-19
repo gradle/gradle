@@ -54,7 +54,7 @@ class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
         } as ResultHandler
 
         withConnection {
-            def builder = it.action(new IntermediateModelSendingBuildAction())
+            def builder = it.action(new ModelStreamingBuildAction())
             collectOutputs(builder)
             builder.setStreamedValueListener(listener)
             builder.run(handler)
@@ -85,8 +85,8 @@ class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
 
         withConnection {
             def builder = it.action()
-                .projectsLoaded(new CustomIntermediateModelSendingBuildAction(GradleProject, 1), handler)
-                .buildFinished(new CustomIntermediateModelSendingBuildAction(EclipseProject, 2), handler)
+                .projectsLoaded(new CustomModelStreamingBuildAction(GradleProject, 1), handler)
+                .buildFinished(new CustomModelStreamingBuildAction(EclipseProject, 2), handler)
                 .build()
             collectOutputs(builder)
             builder.setStreamedValueListener(listener)
@@ -152,7 +152,7 @@ class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
         def listener = { throw new RuntimeException("broken") } as StreamedValueListener
 
         withConnection {
-            def builder = it.action(new IntermediateModelSendingBuildAction())
+            def builder = it.action(new ModelStreamingBuildAction())
             collectOutputs(builder)
             builder.setStreamedValueListener(listener)
             builder.run()
@@ -169,7 +169,7 @@ class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
     def "build fails when build action streams value when no listener is registered"() {
         when:
         withConnection {
-            def builder = it.action(new IntermediateModelSendingBuildAction())
+            def builder = it.action(new ModelStreamingBuildAction())
             collectOutputs(builder)
             builder.run()
         }
@@ -188,7 +188,7 @@ class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
         def listener = { } as StreamedValueListener
 
         withConnection {
-            def builder = it.action(new IntermediateModelSendingBuildAction())
+            def builder = it.action(new ModelStreamingBuildAction())
             collectOutputs(builder)
             builder.setStreamedValueListener(listener)
             builder.run()

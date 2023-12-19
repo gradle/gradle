@@ -18,18 +18,18 @@ package org.gradle.integtests.tooling.r86;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
+import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.eclipse.EclipseProject;
 
-class CustomIntermediateModelSendingBuildAction<T> implements BuildAction<T> {
-    private final Class<T> type;
-    private final int value;
+class ModelStreamingBuildAction implements BuildAction<CustomModel> {
+    public CustomModel execute(BuildController controller) {
+        EclipseProject eclipseProject = controller.getModel(EclipseProject.class);
+        GradleProject gradleProject = controller.getModel(GradleProject.class);
 
-    public CustomIntermediateModelSendingBuildAction(Class<T> type, int value) {
-        this.type = type;
-        this.value = value;
-    }
+        // Intentionally sending models in an order different from requesting models
+        controller.send(gradleProject);
+        controller.send(eclipseProject);
 
-    public T execute(BuildController controller) {
-        controller.send(new CustomModel(value));
-        return controller.getModel(type);
+        return new CustomModel(42);
     }
 }

@@ -211,7 +211,7 @@ public class ConsumerOperationParameters implements BuildParameters {
             this.cancellationToken = cancellationToken;
         }
 
-        public void setIntermediateModelListener(StreamedValueListener streamedValueListener) {
+        public void setStreamedValueListener(StreamedValueListener streamedValueListener) {
             this.streamedValueListener = streamedValueListener;
         }
 
