@@ -14,14 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling;
+
+import org.gradle.api.Incubating;
 
 /**
+ * Receives a value sent via {@link BuildController#send(Object)}.
+ *
+ * <p>Objects are received in the order they were sent and all objects are received before the result of the {@link BuildAction} is returned to the application.</p>
+ *
  * @since 8.6
  */
-public interface InternalIntermediateModelRelay {
+@Incubating
+public interface StreamedValueListener {
     /**
+     * Handles the next value.
+     *
      * @since 8.6
      */
-    void sendIntermediate(Object model);
+    void onValue(Object value);
 }

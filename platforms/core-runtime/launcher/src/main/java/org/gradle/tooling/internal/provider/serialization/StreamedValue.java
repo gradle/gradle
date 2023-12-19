@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r86;
+package org.gradle.tooling.internal.provider.serialization;
 
-import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.BuildController;
+import java.io.Serializable;
 
-class CustomIntermediateModelSendingBuildAction<T> implements BuildAction<T> {
-    private final Class<T> type;
-    private final int value;
+/**
+ * An object sent back to the client from a client provided {@link org.gradle.tooling.BuildAction} running in the build process.
+ */
+public class StreamedValue implements Serializable {
+    private final SerializedPayload serializedModel;
 
-    public CustomIntermediateModelSendingBuildAction(Class<T> type, int value) {
-        this.type = type;
-        this.value = value;
+    public StreamedValue(SerializedPayload serializedModel) {
+        this.serializedModel = serializedModel;
     }
 
-    public T execute(BuildController controller) {
-        controller.sendIntermediate(new CustomModel(value));
-        return controller.getModel(type);
+    public SerializedPayload getSerializedModel() {
+        return serializedModel;
     }
 }

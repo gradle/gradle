@@ -34,7 +34,7 @@ class BlockingModelSendingBuildAction implements BuildAction<CustomModel> {
     public CustomModel execute(BuildController controller) {
         System.out.println("ACTION STARTED");
         GradleProject gradleProject = controller.getModel(GradleProject.class);
-        controller.sendIntermediate(gradleProject);
+        controller.send(gradleProject);
 
         System.out.println("ACTION WAITING");
         try {

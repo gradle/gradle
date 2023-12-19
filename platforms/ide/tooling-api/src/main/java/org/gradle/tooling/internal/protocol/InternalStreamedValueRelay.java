@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.serialization;
-
-import java.io.Serializable;
+package org.gradle.tooling.internal.protocol;
 
 /**
- * A model object sent back to the client from a client provided {@link org.gradle.tooling.BuildAction} running in the build process.
+ * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
+ *
+ * <p>Consumer compatibility: This interface is used by all consumer versions from 8.6.</p>
+ * <p>Provider compatibility: This interface is implemented by all provider versions from 8.6.</p>
+ *
+ * @since 8.6
  */
-public class IntermediateModel implements Serializable {
-    private final SerializedPayload serializedModel;
-
-    public IntermediateModel(SerializedPayload serializedModel) {
-        this.serializedModel = serializedModel;
-    }
-
-    public SerializedPayload getSerializedModel() {
-        return serializedModel;
-    }
+public interface InternalStreamedValueRelay {
+    /**
+     * Asynchronously sends an object back to the client application.
+     *
+     * @since 8.6
+     */
+    void dispatch(Object value);
 }
