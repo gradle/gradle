@@ -111,48 +111,20 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         fixture.assertStateLoaded()
     }
 
-    def "can fetch GradleProject model for non-root project"() {
+    def "fetching GradleProject for non-root project fails"() {
         settingsFile << """
-            rootProject.name = 'root'
-            include(":lib1")
+            rootProject.name = "root"
+            include("a")
         """
 
-        file("lib1/build.gradle") << """
-            plugins { id 'java' }
-        """
-
-        when: "fetching without Isolated Projects"
-        def expectedProjectModel = runBuildAction(new FetchGradleProjectForTarget(":lib1"))
+        when:
+        executer.withArguments(ENABLE_CLI)
+        runBuildActionFails(new FetchGradleProjectForTarget(":a"))
 
         then:
         fixture.assertNoConfigurationCache()
 
-        // Returned model is for root project even though the target is not the root
-        with(expectedProjectModel) {
-            it.name == "root"
-            it.children.size() == 1
-            it.children[0].name == "lib1"
-        }
-
-        when: "fetching with Isolated Projects"
-        executer.withArguments(ENABLE_CLI)
-        def projectModel = runBuildAction(new FetchGradleProjectForTarget(":lib1"))
-
-        then:
-        fixture.assertStateStored {
-            buildModelCreated()
-            modelsCreated(":", IsolatedGradleProjectInternal)
-            modelsCreated(":lib1", GradleProject, IsolatedGradleProjectInternal)
-        }
-
-        checkGradleProject(projectModel, expectedProjectModel)
-
-        when:
-        executer.withArguments(ENABLE_CLI)
-        runBuildAction(new FetchGradleProjectForTarget(":lib1"))
-
-        then:
-        fixture.assertStateLoaded()
+        failureDescriptionContains("org.gradle.tooling.model.GradleProject can only be requested on the root project, got project ':a'")
     }
 
     def "can fetch GradleProject model for an included build project"() {
