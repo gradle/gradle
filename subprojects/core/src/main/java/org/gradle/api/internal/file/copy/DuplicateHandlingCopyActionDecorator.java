@@ -23,9 +23,11 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -57,9 +59,9 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
                     if (strategy == DuplicatesStrategy.EXCLUDE) {
                         return;
                     } else if (strategy == DuplicatesStrategy.FAIL) {
-                        throw new DuplicateFileCopyingException(String.format("Cannot copy %s to '%s' because %s has already been copied there.", details.getDisplayName(), buildOutputPath(relativePath), visitedFiles.get(relativePath)));
+                        throw new DuplicateFileCopyingException(String.format("Cannot copy %s to '%s' because %s has already been copied there.", details.getDisplayName(), buildFormattedOutputPath(relativePath), visitedFiles.get(relativePath)));
                     } else if (strategy == DuplicatesStrategy.WARN) {
-                        LOGGER.warn("{} will be copied to '{}', overwriting {}, which has already been copied there.", details.getDisplayName(), buildOutputPath(relativePath), visitedFiles.get(relativePath));
+                        LOGGER.warn("{} will be copied to '{}', overwriting {}, which has already been copied there.", details.getDisplayName(), buildFormattedOutputPath(relativePath), visitedFiles.get(relativePath));
                     }
                 } else {
                     visitedFiles.put(relativePath, details.getDisplayName());
@@ -70,8 +72,8 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
         }));
     }
 
-    private String buildOutputPath(RelativePath relativePath) {
-        return spec.getDestinationDir() == null ? relativePath.getPathString() : spec.getDestinationDir() + "/" + relativePath.getPathString();
+    private String buildFormattedOutputPath(RelativePath relativePath) {
+        return TextUtil.toPlatformLineSeparators(spec.getDestinationDir() == null ? relativePath.getPathString() : new File(spec.getDestinationDir(), relativePath.getPathString()).getPath());
     }
 
     private void failWithIncorrectDuplicatesStrategySetup(RelativePath relativePath) {

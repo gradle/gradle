@@ -2244,7 +2244,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     def "encountering duplicates in a zipTree vs an unzipped dir with DuplicateStrategy.FAIL should give a clear error"() {
         given: "a directory with a file"
         def unzippedDir = file("before/files")
-        def unzippedFile = unzippedDir.file("sub/c.txt").with {touch() }
+        def unzippedFile = unzippedDir.file("sub/c.txt").with { touch() }
 
         and: "a zip file containing it"
         TestFile zipFile = file("before/files.zip")
@@ -2264,14 +2264,14 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         fails 'copy'
 
         and: "with a clear failure message"
-        failure.assertHasCause("Cannot copy zip entry '${zipFile.path}!sub/c.txt' to '${file('after/sub/c.txt')}' because file '${unzippedFile}' has already been copied there.")
+        failure.assertHasCause("Cannot copy zip entry '$zipFile!sub/c.txt' to '${file('after/sub/c.txt').toPath()}' because file '$unzippedFile' has already been copied there.")
         failure.assertHasDescription("Execution failed for task ':copy'.")
     }
 
     def "encountering duplicates in a zipTree vs another zipTree with DuplicateStrategy.FAIL should give a clear error"() {
         given: "a directory with a file"
         def unzippedDir = file("before/files")
-        def unzippedFile = unzippedDir.file("sub/c.txt").with {touch() }
+        unzippedDir.file("sub/c.txt").with { touch() }
 
         and: "a zip file containing it"
         def zipFile = file("before/files.zip")
@@ -2295,14 +2295,14 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         fails 'copy'
 
         and: "with a clear failure message"
-        failure.assertHasCause("Cannot copy zip entry '${zipFile2.path}!sub/c.txt' to '${file('after/sub/c.txt')}' because zip entry '${zipFile.path}!sub/c.txt' has already been copied there.")
+        failure.assertHasCause("Cannot copy zip entry '$zipFile2!sub/c.txt' to '${file('after/sub/c.txt').toPath()}' because zip entry '$zipFile!sub/c.txt' has already been copied there.")
         failure.assertHasDescription("Execution failed for task ':copy'.")
     }
 
     def "encountering duplicates in a tarTree vs an uncompressed dir with DuplicateStrategy.FAIL should give a clear error"() {
         given: "a directory with a file"
         def untarredDir = file("before/files")
-        def untarredFile = untarredDir.file("sub/c.txt").with {touch() }
+        def untarredFile = untarredDir.file("sub/c.txt").with { touch() }
 
         and: "a tar file containing it"
         def tarFile = file("before/files.tar")
@@ -2322,14 +2322,14 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         fails 'copy'
 
         and: "with a clear failure message"
-        failure.assertHasCause("Cannot copy tar entry '${tarFile.path}!sub/c.txt' to '${file('after/sub/c.txt')}' because file '${untarredFile}' has already been copied there.")
+        failure.assertHasCause("Cannot copy tar entry '$tarFile!sub/c.txt' to '${file('after/sub/c.txt').toPath()}' because file '$untarredFile' has already been copied there.")
         failure.assertHasDescription("Execution failed for task ':copy'.")
     }
 
     def "encountering duplicates in a tarTree vs another tarTree with DuplicateStrategy.FAIL should give a clear error"() {
         given: "a directory with a file"
         def untarredDir = file("before/files")
-        def untarredFile = untarredDir.file("sub/c.txt").with {touch() }
+        untarredDir.file("sub/c.txt").with { touch() }
 
         and: "a tar file containing it"
         def tarFile = file("before/files.tar")
@@ -2353,7 +2353,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         fails 'copy'
 
         and: "with a clear failure message"
-        failure.assertHasCause("Cannot copy tar entry '${tarFile2.path}!sub/c.txt' to '${file('after/sub/c.txt')}' because tar entry '${tarFile.path}!sub/c.txt' has already been copied there.")
+        failure.assertHasCause("Cannot copy tar entry '$tarFile2!sub/c.txt' to '${file('after/sub/c.txt').toPath()}' because tar entry '$tarFile!sub/c.txt' has already been copied there.")
         failure.assertHasDescription("Execution failed for task ':copy'.")
     }
     // endregion duplicates in compressed files
