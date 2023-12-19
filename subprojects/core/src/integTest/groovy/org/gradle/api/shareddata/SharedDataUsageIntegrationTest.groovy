@@ -22,60 +22,56 @@ class SharedDataUsageIntegrationTest extends AbstractIntegrationSpec {
 
     def 'can consume shared data defined in the same project and later mutate it'() {
         given:
-        buildFile("""
+        buildFile """
             def sharedData = services.get($ProjectSharedData.name)
             sharedData.register(String, "one", provider { "one" })
             println sharedData.obtain(String, "one", sharedData.fromProject(project)).get()
             sharedData.register(String, "two", provider { "two" })
             println sharedData.obtain(String, "two", sharedData.fromProject(project)).get()
-        """)
+        """
 
         when:
-        run("help")
+        run "help"
 
         then:
-        outputContains("one\ntwo")
+        outputContains "one\ntwo"
     }
 
     def 'can consume shared data from explicitly specified project'() {
         given:
-        settingsFile(
-            """
+        settingsFile """
             include(":a")
             include(":b")
-            """
-        )
-        groovyFile(file("a/build.gradle"), """
+        """
+        groovyFile file("a/build.gradle"), """
             def sharedData = services.get($ProjectSharedData.name)
             sharedData.register(String, "test", provider { "data from :a" })
-        """)
-        groovyFile(file("b/build.gradle"), """
+        """
+        groovyFile file("b/build.gradle"), """
             def sharedData = services.get($ProjectSharedData.name)
             println "obtained " + sharedData.obtain(String, "test", sharedData.fromProject(project(":a"))).get()
-        """)
+        """
 
         when:
-        run("help")
+        run "help"
 
         then:
-        outputContains("obtained data from :a")
+        outputContains "obtained data from :a"
     }
 
     def 'shared data queried #queryKind is a provider with a missing value'() {
         given:
-        settingsFile(
-            """
+        settingsFile """
             include(":a")
             include(":b")
-            """
-        )
-        groovyFile(file("a/build.gradle"), """
+        """
+        groovyFile file("a/build.gradle"), """
             sharedData.register(String, "test", provider { "data from :a" })
-        """)
-        groovyFile(file("b/build.gradle"), """
+        """
+        groovyFile file("b/build.gradle"), """
             assert sharedData.obtain(String, "test", sharedData.fromProject(":a")).isPresent() // sanity check
             assert !sharedData.obtain($queryArgs).isPresent()
-        """)
+        """
 
         where:
         queryKind                     | queryArgs
@@ -85,17 +81,15 @@ class SharedDataUsageIntegrationTest extends AbstractIntegrationSpec {
 
     def 'can access shared data from all projects'() {
         given:
-        settingsFile(
-            """
+        settingsFile """
             include(":a")
             include(":b")
-            """
-        )
-        groovyFile(file("a/build.gradle"), """
+        """
+        groovyFile file("a/build.gradle"), """
             def sharedData = services.get($ProjectSharedData.name)
             sharedData.register(String, "test", provider { "data from :a" })
-        """)
-        groovyFile(file("b/build.gradle"), """
+        """
+        groovyFile file("b/build.gradle"), """
             def sharedData = services.get($ProjectSharedData.name)
             sharedData.register(String, "test", provider { "data from :b" })
 
@@ -105,36 +99,34 @@ class SharedDataUsageIntegrationTest extends AbstractIntegrationSpec {
                     println(data.get().entrySet().join("\\n"))
                 }
             }
-        """)
+        """
 
         when:
-        run(":b:printData")
+        run ":b:printData"
 
         then:
-        outputContains(":a=data from :a")
-        outputContains(":b=data from :b")
+        outputContains ":a=data from :a"
+        outputContains ":b=data from :b"
     }
 
     def 'can access shared data from included builds'() {
         given:
-        settingsFile(
-            """
+        settingsFile """
             includeBuild("x")
-            """
-        )
-        groovyFile(file("x/settings.gradle"), """
+        """
+        groovyFile file("x/settings.gradle"), """
             include(":y")
-        """)
-        groovyFile(file("x/build.gradle"), """
+        """
+        groovyFile file("x/build.gradle"), """
             def sharedData = services.get($ProjectSharedData.name)
             sharedData.register(String, "test", provider { ":x" })
-        """)
-        groovyFile(file("x/y/build.gradle"), """
+        """
+        groovyFile file("x/y/build.gradle"), """
             def sharedData = services.get($ProjectSharedData.name)
             sharedData.register(String, "test", provider { ":x:y" })
-        """)
+        """
 
-        groovyFile(file("build.gradle"), """
+        groovyFile file("build.gradle"), """
             def sharedData = services.get($ProjectSharedData.name)
             sharedData.register(String, "test", provider { ":" })
             tasks.register("printData") {
@@ -147,36 +139,34 @@ class SharedDataUsageIntegrationTest extends AbstractIntegrationSpec {
                     println("filtered " + dataFromFilteredProjects.get().entrySet().join(", ") + ";")
                 }
             }
-        """)
+        """
 
         when:
-        run(":printData")
+        run ":printData"
 
         then:
-        outputContains("all :=:, :x:y=:x:y, :x=:x;")
-        outputContains("current :=:;")
-        outputContains("filtered :x:y=:x:y;")
+        outputContains "all :=:, :x:y=:x:y, :x=:x;"
+        outputContains "current :=:;"
+        outputContains "filtered :x:y=:x:y;"
     }
 
     def 'can access shared data from dependency resolution results'() {
         given:
-        settingsFile(
-            """
+        settingsFile """
             include(":a")
             include(":b")
             include(":c")
             includeBuild("x")
-            """
-        )
-        groovyFile(file("x/build.gradle"), """
+        """
+        groovyFile file("x/build.gradle"), """
             plugins {
                 id('java')
             }
             group = "com.example"
             def sharedData = services.get($ProjectSharedData.name)
             sharedData.register(String, "test", provider { "data from :x" })
-        """)
-        groovyFile(file("a/build.gradle"), """
+        """
+        groovyFile file("a/build.gradle"), """
             plugins {
                 id('java')
             }
@@ -185,16 +175,16 @@ class SharedDataUsageIntegrationTest extends AbstractIntegrationSpec {
             }
             def sharedData = services.get($ProjectSharedData.name)
             sharedData.register(String, "test", provider { "data from :a" })
-        """)
-        groovyFile(file("b/build.gradle"), """
+        """
+        groovyFile file("b/build.gradle"), """
             plugins {
                 id('java')
             }
             dependencies {
                 implementation(project(":a"))
             }
-        """)
-        groovyFile(file("c/build.gradle"), """
+        """
+        groovyFile file("c/build.gradle"), """
             plugins {
                 id('java')
             }
@@ -209,12 +199,12 @@ class SharedDataUsageIntegrationTest extends AbstractIntegrationSpec {
                     println("result " + dataFromRuntimeClasspath.get().entrySet().join(", ") + ";")
                 }
             }
-        """)
+        """
 
         when:
-        run(":c:printData")
+        run ":c:printData"
 
         then:
-        outputContains("result :a=data from :a, :x=data from :x;")
+        outputContains "result :a=data from :a, :x=data from :x;"
     }
 }
