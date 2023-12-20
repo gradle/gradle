@@ -443,6 +443,11 @@ include::sample[dir="snippets/developingPlugins/problemReporting/kotlin/buildSrc
 <2> A problem reporter, is created for the plugin. Meanwhile the namespace is up to the plugin author, it is recommended to use the plugin ID.
 <3> A problem is reported. This problem is recoverable, so the build will continue.
 
+=== Problem building
+
+When reporting a problem, a wide variety of information can be provided.
+The documentation provided in link:{javaDocPath}/org/gradle/api/problems/ProblemSpec.html[ProblemSpec] describes all the information that can be provided.
+
 === Methods of reporting problems
 
 When it comes to reporting problems, we support three different modes:
@@ -451,8 +456,4 @@ When it comes to reporting problems, we support three different modes:
 - link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#throwing-org.gradle.api.Action-[Throwing] a problem is used for reporting problems that are not recoverable, and the build should fail.
 - link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#rethrowing-java.lang.RuntimeException-org.gradle.api.Action-[Rethrowing] a problem is used to wrap an already thrown exception. Otherwise, the behavior is the same as for `Throwing`.
 
-=== Problem building
-
-When reporting a problem, a wide variety of information can be provided.
-The documentation provided in link:{javaDocPath}/org/gradle/api/problems/ProblemSpec.html[ProblemSpec] describes all the information that can be provided.
-
+See the link:{javaDocPath}/org/gradle/api/problems/ProblemReporter.html[ProblemReporter] documentation for more details.
