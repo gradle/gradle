@@ -35,14 +35,30 @@ import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.TaskPathLocation
 import org.gradle.tooling.events.problems.internal.DefaultProblemsOperationDescriptor
 
-import static org.gradle.api.problems.ReportingScript.getProblemReportingScript
-
 @ToolingApiVersion(">=8.5")
 @TargetGradleVersion(">=8.6")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {
-        buildFile getProblemReportingScript(taskActionMethodBody)
+        buildFile """
+            import org.gradle.api.problems.internal.Problem
+            import org.gradle.api.problems.Severity
+
+            abstract class ProblemReportingTask extends DefaultTask {
+                @Inject
+                protected abstract Problems getProblems();
+
+                @TaskAction
+                void run() {
+                    $taskActionMethodBody
+                }
+            }
+
+            tasks.register("reportProblem", ProblemReportingTask)
+        """
+        // TODO using the following code breaks the test, but it should be possible to use it
+        //  buildFile getProblemReportingScript(taskActionMethodBody)
+        //  issue https://github.com/gradle/gradle/issues/27484
     }
 
     @TargetGradleVersion("=8.3")
