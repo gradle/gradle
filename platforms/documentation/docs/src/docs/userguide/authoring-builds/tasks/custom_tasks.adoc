@@ -556,14 +556,36 @@ The same is true for work items submitted via the worker API. If a task does not
 
 == Verification Failures
 
-Exceptions thrown during task execution result in task failure which typically immediately terminates a build with a build failure result (except when running with the <<command_line_interface.adoc#sec:continue_build_on_failure, `--continue` flag>>).
+Exceptions thrown during task execution result in task failure which will cause a build to terminate with a build failure result.
+When <<command_line_interface.adoc#sec:continue_build_on_failure, running with the `--continue` flag>> Gradle will continue to run other requested tasks in the build after encountering a task failure.
+However, any tasks that depend on a failed task will be not be executed.
 
-Another exception to this rule is when a task throws a link:{javadocPath}/org/gradle/api/tasks/VerificationException.html--[VerificationException].
-These exceptions are used to indicate that a task has failed in a controlled manner such that its output is still valid.
-Consumer tasks that use this output can still run.
+There is a special type of exception that behaves differently.
+A task can throw a subtype of link:{javadocPath}/org/gradle/api/tasks/VerificationException.html--[VerificationException] to indicate that it has failed in a controlled manner such that its output is still valid for consumers.
+When Gradle is run with `--continue`, consumer tasks that depend on this output can still run.
 
-A failed test task, for instance, will cause a failing outcome for the test task.  However, this shouldn't prevent another task from reading and processing the (valid) test results output files it produced.
+A failed unit test, for instance, will cause a failing outcome for the test task.
+However, this doesn't prevent another task from reading and processing the (valid) test results output files the task produced.
 Verification failures are used in exactly this manner by the <<test_report_aggregation_plugin.adoc, `Test Report Aggregation Plugin`>>.
+
+Verification failures are also useful for tasks that produce output piece by piece that is consumable after any number of pieces.
+
+.Example of a verification failure allowing a consumer task to run
+====
+include::sample[dir="snippets/failures/verificationFailure/kotlin",files="build.gradle.kts[tags=verification-failure]"]
+include::sample[dir="snippets/failures/verificationFailure/groovy",files="build.gradle[tags=verification-failure]"]
+====
+.Output of **`gradle postProcess --continue`**
+----
+> gradle postProcess --continue
+include::{snippetsPath}/failures/verificationFailure/tests/verificationFailure.out[]
+----
+<1> *Register Output*: The `process` task writes its output to a log file.
+<2> *Modify Output*: The task writes to its output file as it executes.
+<3> *Task Failure*: The task throws a `VerificationException` and fails at this point.
+<4> *Continue to Modify Output*: This line never runs due to the exception stopping the task.
+<5> *Consume Output*: The `postProcess` task depends on the output of the `process` task due to using that task's outputs as its own inputs.
+<6> *Use Partial Result*: With the `--continue` flag set, Gradle still runs the requested `postProcess` task despite the `process` task's failure.  `postProcess` can read and display the partial (though still valid) result.
 
 == More details
 
