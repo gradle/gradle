@@ -138,23 +138,19 @@ class ConfigurationCacheProblems(
         return "configuration-cache"
     }
 
-    fun reportFailure(summary: Summary = summarizer.get(), htmlReportFile: File? = null): Throwable? {
+    fun queryFailure(summary: Summary = summarizer.get(), htmlReportFile: File? = null): Throwable? {
         val failDueToProblems = summary.failureCount > 0 && isFailOnProblems
         val hasTooManyProblems = hasTooManyProblems(summary)
-        val cacheActionText = cacheAction.summaryText()
+        val summaryText = { summary.textForConsole(cacheAction.summaryText(), htmlReportFile) }
         return when {
             // TODO - always include this as a build failure;
             //  currently it is disabled when a serialization problem happens
             failDueToProblems -> {
-                ConfigurationCacheProblemsException(summary.causes) {
-                    summary.textForConsole(cacheActionText, htmlReportFile)
-                }
+                ConfigurationCacheProblemsException(summary.causes, summaryText)
             }
 
             hasTooManyProblems -> {
-                TooManyConfigurationCacheProblemsException(summary.causes) {
-                    summary.textForConsole(cacheActionText, htmlReportFile)
-                }
+                TooManyConfigurationCacheProblemsException(summary.causes, summaryText)
             }
 
             else -> null
@@ -178,7 +174,7 @@ class ConfigurationCacheProblems(
             return
         }
 
-        val failure = reportFailure(summary, htmlReportFile)
+        val failure = queryFailure(summary, htmlReportFile)
         failure?.let {
             validationFailures.accept(it)
         } ?: {
