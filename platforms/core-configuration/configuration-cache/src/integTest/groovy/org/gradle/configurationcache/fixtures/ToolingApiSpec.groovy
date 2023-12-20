@@ -31,6 +31,7 @@ import org.gradle.internal.Pair
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionExecuter
+import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
@@ -302,6 +303,26 @@ trait ToolingApiSpec {
             OutputScrapingExecutionResult.from(output.toString(), error.toString())
         }
         return model
+    }
+
+    void runBuildActionFails(BuildAction buildAction) {
+        failure = toolingApiExecutor.runFailingBuildWithToolingConnection { connection ->
+            def output = new ByteArrayOutputStream()
+            def error = new ByteArrayOutputStream()
+            def args = executer.allArgs.tap { remove("--no-daemon") }
+            def failure
+            try {
+                connection.action(buildAction)
+                    .withArguments(args)
+                    .setStandardOutput(new TeeOutputStream(output, System.out))
+                    .setStandardError(new TeeOutputStream(error, System.err))
+                    .run()
+                throw new IllegalStateException("Expected build action to fail but it did not.")
+            } catch (BuildActionFailureException t) {
+                failure = OutputScrapingExecutionFailure.from(output.toString(), error.toString())
+            }
+            failure
+        }
     }
 
     def <T, S> Pair<T, S> runPhasedBuildAction(BuildAction<T> projectsLoadedAction, BuildAction<S> modelAction, @DelegatesTo(BuildActionExecuter) Closure config = {}) {
