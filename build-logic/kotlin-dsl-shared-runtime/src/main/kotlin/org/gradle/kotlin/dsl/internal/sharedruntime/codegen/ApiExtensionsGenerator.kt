@@ -408,9 +408,12 @@ fun Boolean.toKotlinNullabilityString(): String =
 
 private
 fun ApiTypeUsage.toTypeParameterString(): String =
-    "$sourceName${
-    bounds.takeIf { it.isNotEmpty() }?.let { " : ${it.single().toTypeParameterString()}" } ?: ""
-    }${typeArguments.toTypeParametersString(type)}${isNullable.toKotlinNullabilityString()}"
+    "$sourceName${bounds.toBoundsString()}${typeArguments.toTypeParametersString(type)}${isNullable.toKotlinNullabilityString()}"
+
+
+private
+fun List<ApiTypeUsage>.toBoundsString() =
+    takeIf { it.isNotEmpty() }?.let { " : ${it.single().toTypeParameterString()}" } ?: ""
 
 
 private
