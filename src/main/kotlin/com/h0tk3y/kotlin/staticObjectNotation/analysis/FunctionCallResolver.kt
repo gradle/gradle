@@ -54,7 +54,13 @@ class FunctionCallResolverImpl(
 
         val overloads: List<FunctionResolutionAndBinding> = lookupFunctions(functionCall, argResolutions, context)
 
-        return invokeIfSingleOverload(overloads, functionCall, argResolutions)
+        return invokeIfSingleOverload(overloads, functionCall, argResolutions)?.also {
+            val function = it.function
+            val receiver = it.receiver
+            if (function is DataMemberFunction && function.isDirectAccessOnly && receiver != null) {
+                checkAccessOnCurrentReceiver(receiver, functionCall)
+            }
+        }
     }
 
     private fun AnalysisContext.invokeIfSingleOverload(
@@ -165,7 +171,7 @@ class FunctionCallResolverImpl(
                     is FunctionSemantics.AddAndConfigure -> result
                 }
                 withScope(AnalysisScope(currentScopes.last(), configureReceiver, lambda)) {
-                    codeAnalyzer.analyzeCodeInProgramOrder(this, lambda.block.statements)
+                    codeAnalyzer.analyzeStatementsInProgramOrder(this, lambda.block.statements)
                 }
             } else {
                 errorCollector(ResolutionError(call, ErrorReason.MissingConfigureLambda))
@@ -262,7 +268,7 @@ class FunctionCallResolverImpl(
         functionCall: FunctionCall,
         argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>
     ): List<FunctionResolutionAndBinding> {
-        val receiverType = getDataType(receiver) as? DataType.DataClass<*>
+        val receiverType = getDataType(receiver) as? DataType.DataClass
             ?: return emptyList()
         val functionName = functionCall.name
         val matchingMembers = receiverType.memberFunctions.filter { it.simpleName == functionName }
@@ -346,7 +352,7 @@ class FunctionCallResolverImpl(
             }
         }
         val constructors = candidateTypes
-            .flatMap { (it as? DataType.DataClass<*>)?.constructors.orEmpty() }
+            .flatMap { (it as? DataType.DataClass)?.constructors.orEmpty() }
             .filter { it.parameters.size == functionCall.args.size }
 
         return chooseMatchingOverloads(null, constructors, functionCall.args, argResolution)

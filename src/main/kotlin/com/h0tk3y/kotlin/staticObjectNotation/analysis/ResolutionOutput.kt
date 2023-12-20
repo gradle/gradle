@@ -99,12 +99,7 @@ sealed interface ObjectOrigin {
         override val invocationId: Long,
         val accessor: ConfigureAccessor,
     ) : FunctionOrigin {
-        override fun toString(): String {
-            val accessorString = when (accessor) {
-                is ConfigureAccessor.Property -> accessor.dataProperty.name
-            }
-            return "$receiver.$accessorString"
-        }
+        override fun toString(): String = accessor.access(receiver).toString()
     }
 
     data class PropertyReference(
@@ -151,8 +146,8 @@ private fun functionInvocationString(function: SchemaFunction, receiver: ObjectO
         if (function is DataConstructor) {
             val fqn = when (val ref = function.dataClass) {
                 is DataTypeRef.Name -> ref.fqName.toString()
-                is DataTypeRef.Type -> (ref.type as? DataType.DataClass<*>)?.kClass?.qualifiedName
-                    ?: ref.type.toString()
+                is DataTypeRef.Type -> (ref.dataType as? DataType.DataClass)?.name?.qualifiedName
+                    ?: ref.dataType.toString()
             }
             append(fqn)
             append(".")

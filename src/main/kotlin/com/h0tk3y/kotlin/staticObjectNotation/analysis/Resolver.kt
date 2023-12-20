@@ -28,7 +28,7 @@ class ResolverImpl(
             val topLevelReceiver = ObjectOrigin.TopLevelReceiver(schema.topLevelReceiverType, topLevelBlock)
             val topLevelScope = AnalysisScope(null, topLevelReceiver, topLevelBlock)
             withScope(topLevelScope) {
-                codeAnalyzer.analyzeCodeInProgramOrder(this, topLevelBlock.statements)
+                codeAnalyzer.analyzeStatementsInProgramOrder(this, topLevelBlock.statements)
             }
             return ResolutionResult(topLevelReceiver, assignments, additions, errors)
         }

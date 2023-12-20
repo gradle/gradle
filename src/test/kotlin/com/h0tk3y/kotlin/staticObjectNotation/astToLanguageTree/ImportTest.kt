@@ -7,7 +7,6 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
 import com.h0tk3y.kotlin.staticObjectNotation.language.AccessChain
 import com.h0tk3y.kotlin.staticObjectNotation.language.Import
 import com.h0tk3y.kotlin.staticObjectNotation.language.SourceIdentifier
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.kotlinFunctionAsConfigureLambda
 import kotlinx.ast.common.ast.Ast
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -19,12 +18,11 @@ class ImportTest {
     private fun testContext(errors: MutableList<ResolutionError>): AnalysisContext {
         return AnalysisContext(
             AnalysisSchema(
-                DataType.DataClass(Unit::class, emptyList(), emptyList(), emptyList()),
+                DataType.DataClass(FqName("", ""), emptySet(), emptyList(), emptyList(), emptyList()),
                 emptyMap(),
                 emptyMap(),
                 emptyMap(),
-                emptySet(),
-                kotlinFunctionAsConfigureLambda
+                emptySet()
             ),
             emptyMap(),
             errors::add

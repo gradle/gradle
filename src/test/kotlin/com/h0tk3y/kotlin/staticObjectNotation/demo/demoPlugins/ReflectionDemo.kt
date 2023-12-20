@@ -6,6 +6,7 @@ import com.example.com.h0tk3y.kotlin.staticObjectNotation.demo.reflection.reflec
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.FqName
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.ObjectReflection.ConstantValue
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.ObjectReflection.DataObjectReflection
+import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.PropertyValueReflection
 import kotlinx.ast.common.ast.Ast
 import kotlinx.ast.common.ast.astInfoOrNull
 
@@ -30,7 +31,7 @@ object ReflectionDemo {
 
         val pluginsProp = schema.topLevelReceiverType.properties.find { it.name == "plugins" }
 
-        val plugins = (result as DataObjectReflection).properties[pluginsProp] as DataObjectReflection
+        val plugins = (result as DataObjectReflection).properties[pluginsProp]!!.value as DataObjectReflection
 
         val kotlinKaptPlugin = plugins.addedObjects
             .find {
@@ -40,7 +41,7 @@ object ReflectionDemo {
                 idPropertyValue is ConstantValue && idPropertyValue.value == "org.jetbrains.kotlin.kapt"
             } as DataObjectReflection
 
-        val version = kotlinKaptPlugin.properties[versionProp] as ConstantValue
+        val version = kotlinKaptPlugin.properties[versionProp]!!.value as ConstantValue
 
         val ast = version.objectOrigin.originElement.sourceData
         val versionRange = ast.indexRange

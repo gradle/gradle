@@ -7,15 +7,14 @@ object ReflectionDemo {
     fun main(args: Array<String>) {
         schema.reflectAndPrint(
             """
-            val myD = newD("shared")
-            
-            a = b()
-            val c1 = c(1)
-            c1.d = myD
-            str = c1.d.id
-            
-            c(b()) {
-                d = c1.d
+            plugins {
+                val kotlinVersion = "1.9.20"
+
+                id("org.jetbrains.kotlin.jvm") version kotlinVersion
+                id("org.jetbrains.kotlin.kapt") version kotlinVersion apply false
+                val java = id("java")
+                val app = id("application")
+                app.apply(java.apply)
             }
             """.trimIndent()
         )

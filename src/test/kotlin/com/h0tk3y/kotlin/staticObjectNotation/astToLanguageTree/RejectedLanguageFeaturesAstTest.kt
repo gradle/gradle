@@ -368,4 +368,16 @@ class RejectedLanguageFeaturesAstTest: AbstractRejectedLanguageFeaturesTest() {
             """.trimIndent()
         assertResult(expected, code)
     }
+
+    @Test
+    fun `rejects augmenting assignments`() {
+        val code = """
+            a += b
+            a.x -= b
+            """.trimIndent()
+        val expected = """
+            xxx
+            """.trimIndent()
+        assertResult(expected, code)
+    }
 }
