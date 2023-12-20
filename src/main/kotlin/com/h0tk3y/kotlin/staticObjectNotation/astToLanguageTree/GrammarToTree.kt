@@ -144,11 +144,14 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
                 it?.let { it.unsupportedIn(ast, AugmentingAssignment) }
             }
 
-            val lhs = checkForFailure(directlyAssignableExpression(ast.child(directlyAssignableExpression)))
             val expr = checkForFailure(expression(ast.child(expression)))
 
             elementIfNoFailures {
-                Element(Assignment(checked(lhs), checked(expr), ast.data))
+                val lhs = checkForFailure(directlyAssignableExpression(ast.child(directlyAssignableExpression)))
+
+                elementIfNoFailures {
+                    Element(Assignment(checked(lhs), checked(expr), ast.data))
+                }
             }
         }
 

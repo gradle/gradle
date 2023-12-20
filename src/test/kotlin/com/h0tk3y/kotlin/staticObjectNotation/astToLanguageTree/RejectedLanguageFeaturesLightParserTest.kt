@@ -359,7 +359,16 @@ class RejectedLanguageFeaturesLightParserTest: AbstractRejectedLanguageFeaturesT
             a.x -= b
             """.trimIndent()
         val expected = """
-            xxx
+            UnsupportedConstruct(
+                languageFeature = UnsupportedOperationInBinaryExpression, 
+                potentialElementSource = indexes: 0..6, line/column: 1/1..1/7, file: test, 
+                erroneousSource = indexes: 0..6, line/column: 1/1..1/7, file: test
+            )
+            UnsupportedConstruct(
+                languageFeature = UnsupportedOperationInBinaryExpression, 
+                potentialElementSource = indexes: 7..15, line/column: 2/1..2/9, file: test, 
+                erroneousSource = indexes: 7..15, line/column: 2/1..2/9, file: test
+            )
             """.trimIndent()
         assertResult(expected, code)
     }

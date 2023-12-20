@@ -376,7 +376,16 @@ class RejectedLanguageFeaturesAstTest: AbstractRejectedLanguageFeaturesTest() {
             a.x -= b
             """.trimIndent()
         val expected = """
-            xxx
+            UnsupportedConstruct(
+                languageFeature = AugmentingAssignment, 
+                potentialElementSource = indexes: 0..6, line/column: 1/1..1/7, file: test, 
+                erroneousSource = indexes: 2..4, line/column: 1/3..1/5, file: test
+            )
+            UnsupportedConstruct(
+                languageFeature = AugmentingAssignment, 
+                potentialElementSource = indexes: 7..15, line/column: 2/1..2/9, file: test, 
+                erroneousSource = indexes: 11..13, line/column: 2/5..2/7, file: test
+            )
             """.trimIndent()
         assertResult(expected, code)
     }
