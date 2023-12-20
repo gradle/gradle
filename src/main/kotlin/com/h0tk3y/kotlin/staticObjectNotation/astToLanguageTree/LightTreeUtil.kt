@@ -25,7 +25,7 @@ fun FlyweightCapableTreeStructure<LighterASTNode>.sourceData(
         sourceCode,
         sourceOffset,
         this.root
-    ) // TODO: not ok to use the root here, due to the artificial wrapping of the script as a class initializer
+    )
 
 class LightTreeSourceData(
     override val sourceIdentifier: SourceIdentifier,
@@ -176,7 +176,7 @@ val LighterASTNode.isUseful: Boolean
 
 internal
 fun LighterASTNode.expectKind(expected: IElementType) {
-    check(isKind(expected)) // TODO: sucky String matching, but don't have a better idea atm
+    check(isKind(expected))
 }
 
 internal
@@ -185,7 +185,7 @@ fun List<LighterASTNode>.expectSingleOfKind(expected: IElementType): LighterASTN
 
 internal
 fun LighterASTNode.isKind(expected: IElementType) =
-    this.tokenType.debugName == expected.debugName
+    this.tokenType == expected
 
 internal
 fun LighterASTNode.sourceData(sourceIdentifier: SourceIdentifier, sourceCode: String, sourceOffset: Int) =

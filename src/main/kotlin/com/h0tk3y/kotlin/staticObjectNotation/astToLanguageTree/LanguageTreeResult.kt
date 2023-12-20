@@ -39,7 +39,7 @@ data class UnsupportedConstruct(
 ) : FailingResult
 
 data class ParsingError(
-    val sourceData: SourceData, // TODO: why does UnsupportedConstruct have two of these?
+    val sourceData: SourceData,
     val message: String
 ) : FailingResult
 
@@ -79,10 +79,8 @@ sealed interface UnsupportedLanguageFeature {
     data object InvalidLanguageConstruct : UnsupportedLanguageFeature
     data object UnsupportedOperationInBinaryExpression: UnsupportedLanguageFeature
 
-    // TODO: support
     data object SafeNavigation : UnsupportedLanguageFeature
 
-    // TODO: support class tokens?
     data object Reflection : UnsupportedLanguageFeature
     data object TodoNotCoveredYet : UnsupportedLanguageFeature
 }
