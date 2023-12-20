@@ -85,6 +85,10 @@ public abstract class ValueState<S> {
         finalizeOnNextGet();
     }
 
+    public abstract boolean isExplicit();
+
+    public abstract S convention();
+
     private static class NonFinalizedValue<S> extends ValueState<S> {
         private final PropertyHost host;
         private boolean explicitValue;
@@ -176,6 +180,11 @@ public abstract class ValueState<S> {
         }
 
         @Override
+        public boolean isExplicit() {
+            return explicitValue;
+        }
+
+        @Override
         public S implicitValue() {
             explicitValue = false;
             return convention;
@@ -189,6 +198,11 @@ public abstract class ValueState<S> {
             } else {
                 return value;
             }
+        }
+
+        @Override
+        public S convention() {
+            return convention;
         }
 
         @Override
@@ -234,6 +248,11 @@ public abstract class ValueState<S> {
         @Override
         public void disallowUnsafeRead() {
             // Finalized already so read is safe
+        }
+
+        @Override
+        public boolean isExplicit() {
+            return true;
         }
 
         @Override
@@ -287,6 +306,11 @@ public abstract class ValueState<S> {
         @Override
         public void setConvention(S convention) {
             throw unexpected();
+        }
+
+        @Override
+        public S convention() {
+            return null;
         }
 
         private UnsupportedOperationException unexpected() {

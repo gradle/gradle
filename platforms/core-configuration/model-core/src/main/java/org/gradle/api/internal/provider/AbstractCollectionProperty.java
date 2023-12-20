@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
+import org.gradle.api.Action;
 import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
 import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollection;
@@ -86,6 +87,21 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             return getExplicitValue();
         }
         return getConventionValue();
+    }
+
+    @Override
+    public void configureConvention(Action<CollectionPropertyConfigurer> configurationAction) {
+        configurationAction.execute(getConventionValue());
+    }
+
+    @Override
+    public void configureExplicit(Action<CollectionPropertyConfigurer> configurationAction) {
+        configurationAction.execute(getExplicitValue());
+    }
+
+    @Override
+    public void configure(Action<CollectionPropertyConfigurer> configurationAction) {
+        configurationAction.execute(getActualValue());
     }
 
     private boolean isNoValueSupplier(CollectionSupplier<T, C> valueSupplier) {

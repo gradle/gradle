@@ -16,6 +16,7 @@
 
 package org.gradle.api.provider;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
 
@@ -105,6 +106,12 @@ public interface HasMultipleValues<T> extends HasConfigurableValue, CollectionPr
     @Incubating
     //TODO-RC consider renaming to implied
     CollectionPropertyConfigurer<T> getActualValue();
+
+    void configure(Action<CollectionPropertyConfigurer> configurationAction);
+
+    void configureConvention(Action<CollectionPropertyConfigurer> configurationAction);
+
+    void configureExplicit(Action<CollectionPropertyConfigurer> configurationAction);
 
     /**
      * Disallows further changes to the value of this property. Calls to methods that change the value of this property, such as {@link #set(Iterable)} or {@link #add(Object)} will fail.
