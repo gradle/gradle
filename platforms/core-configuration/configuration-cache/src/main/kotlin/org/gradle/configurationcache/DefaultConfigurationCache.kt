@@ -354,7 +354,8 @@ class DefaultConfigurationCache internal constructor(
                 try {
                     val stateFile = layout.fileFor(stateType)
                     action(stateFile)
-                    StoreResult(stateFile.stateFile.file)
+                    val storeFailure = problems.reportFailure()
+                    StoreResult(stateFile.stateFile.file, storeFailure)
                 } catch (error: ConfigurationCacheError) {
                     // Invalidate state on serialization errors
                     problems.failingBuildDueToSerializationError()
