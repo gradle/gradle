@@ -334,12 +334,13 @@ data class KotlinExtensionFunction(
 
         appendReproducibleNewLine(
             """
-            /**
-             * $description.
-             *
-             * @see ${targetType.sourceName}.$name${if (since != null) "\n * @since $since" else ""}
-             */
-            """.trimIndent()
+               |/**
+               | * $description.
+               | *
+               | * @see ${targetType.sourceName}.$name
+            ${"| * @since ".appendOrNull(since) ?: ""}
+               | */
+            """.trimMargin().dropBlankLines()
         )
         if (isDeprecated) appendReproducibleNewLine("""@Deprecated("Deprecated Gradle API")""")
         if (isIncubating) appendReproducibleNewLine("@org.gradle.api.Incubating")
@@ -357,6 +358,14 @@ data class KotlinExtensionFunction(
         appendReproducibleNewLine("`$name`(${parameters.toArgumentsString()})".prependIndent())
         appendReproducibleNewLine()
     }.toString()
+
+    private
+    fun String.appendOrNull(s: String?) =
+        if (s == null) null else "$this$s"
+
+    private
+    fun String.dropBlankLines(): String =
+        lineSequence().filter(String::isNotBlank).joinToString("\n")
 
     private
     fun List<MappedApiFunctionParameter>.toDeclarationString(): String =
