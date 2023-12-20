@@ -433,7 +433,7 @@ include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files
 Plugins can report problems through Gradle's problem reporting APIs, which allows reporting rich, structured information about problems happening during the build.
 This information could be used by different user interfaces like Gradle's console output, build scans, or IDEs to communicate problems to the user in the most appropriate way.
 
-The following brief example shows an example issue reported from a plugin. For a full example, see our link:../samples/render-samples/sample_problems_api_usage.html[end-to-end sample].
+The following brief example shows an example issue reported from a plugin. For a full example, see our link:../samples/sample_problems_api_usage.html[end-to-end sample].
 
 ====
 include::sample[dir="snippets/developingPlugins/problemReporting/kotlin/buildSrc/src/main/java/org/myorg",files="ProblemReportingPlugin.java[tags=snippet]"]
