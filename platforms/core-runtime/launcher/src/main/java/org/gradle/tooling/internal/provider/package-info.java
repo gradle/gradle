@@ -14,21 +14,5 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.serialization;
-
-import java.io.Serializable;
-
-/**
- * A model object sent back to the client from a client provided {@link org.gradle.tooling.BuildAction} running in the build process.
- */
-public class IntermediateModel implements Serializable {
-    private final SerializedPayload serializedModel;
-
-    public IntermediateModel(SerializedPayload serializedModel) {
-        this.serializedModel = serializedModel;
-    }
-
-    public SerializedPayload getSerializedModel() {
-        return serializedModel;
-    }
-}
+@org.gradle.api.NonNullApi
+package org.gradle.tooling.internal.provider;

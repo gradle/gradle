@@ -31,7 +31,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private String label;
     private ProblemCategory category;
     private Severity severity;
-    private List<ProblemLocation> locations;
+    private final List<ProblemLocation> locations;
     private String details;
     private DocLink docLink;
     private List<String> solutions;
@@ -77,17 +77,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             }
         }
 
-        return new DefaultProblem(
-            label,
-            DefaultProblemBuilder.this.getSeverity(DefaultProblemBuilder.this.getSeverity()),
-            locations,
-            docLink,
-            details,
-            solutions,
-            DefaultProblemBuilder.this.getExceptionForProblemInstantiation(),
-            category,
-            additionalData
-        );
+        return new DefaultProblem(label, getSeverity(), locations, docLink, details, solutions, getExceptionForProblemInstantiation(), category, additionalData);
     }
 
     private Problem missingLabelProblem() {
@@ -100,28 +90,11 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     private Problem invalidProblem(String label, String subcategory) {
         category("validation", "problems-api", subcategory).stackLocation();
-        return new DefaultProblem(
-            label,
-            Severity.WARNING,
-            Collections.<ProblemLocation>emptyList(),
-            null,
-            null,
-            null,
-            getExceptionForProblemInstantiation(),
-            category,
-            Collections.<String, Object>emptyMap()
-        );
+        return new DefaultProblem(label, Severity.WARNING, Collections.<ProblemLocation>emptyList(), null, null, null, getExceptionForProblemInstantiation(), category, Collections.<String, Object>emptyMap());
     }
 
     public RuntimeException getExceptionForProblemInstantiation() {
         return getException() == null && collectLocation ? new RuntimeException() : getException();
-    }
-
-    protected Severity getSeverity(@Nullable Severity severity) {
-        if (severity != null) {
-            return severity;
-        }
-        return getSeverity();
     }
 
     protected Severity getSeverity() {

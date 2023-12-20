@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r86;
+package org.gradle.tooling.internal.protocol;
 
-import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.BuildController;
-
-class CustomIntermediateModelSendingBuildAction<T> implements BuildAction<T> {
-    private final Class<T> type;
-    private final int value;
-
-    public CustomIntermediateModelSendingBuildAction(Class<T> type, int value) {
-        this.type = type;
-        this.value = value;
-    }
-
-    public T execute(BuildController controller) {
-        controller.sendIntermediate(new CustomModel(value));
-        return controller.getModel(type);
-    }
+/**
+ * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
+ *
+ * <p>Consumer compatibility: This interface is used by all consumer versions from 8.6.</p>
+ * <p>Provider compatibility: This interface is implemented by all provider versions from 8.6.</p>
+ *
+ * @since 8.6
+ */
+public interface InternalStreamedValueRelay {
+    /**
+     * Asynchronously sends an object back to the client application.
+     *
+     * @since 8.6
+     */
+    void dispatch(Object value);
 }
