@@ -448,7 +448,7 @@ include::sample[dir="snippets/developingPlugins/problemReporting/kotlin/buildSrc
 When reporting a problem, a wide variety of information can be provided.
 The documentation provided in link:{javaDocPath}/org/gradle/api/problems/ProblemSpec.html[ProblemSpec] describes all the information that can be provided.
 
-=== Methods of reporting problems
+=== Reporting problems
 
 When it comes to reporting problems, we support three different modes:
 
@@ -457,3 +457,11 @@ When it comes to reporting problems, we support three different modes:
 - link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#rethrowing-java.lang.RuntimeException-org.gradle.api.Action-[Rethrowing] a problem is used to wrap an already thrown exception. Otherwise, the behavior is the same as for `Throwing`.
 
 See the link:{javaDocPath}/org/gradle/api/problems/ProblemReporter.html[ProblemReporter] documentation for more details.
+
+=== Problem aggregation
+
+When reporting problems, Gradle will aggregate similar problems when it sends it through the Tooling API, based on the problem's category label.
+
+ - When a problem is reported, the _first_ occurrence is going to be reported as link:{javaDocPath}/org/gradle/tooling/events/problems/ProblemDescriptor.html[ProblemDescriptor], containing the full information about the problem.
+ - Any subsequent occurrences of the same problem will be reported as link:{javaDocPath}org/gradle/tooling/events/problems/ProblemAggregationDescriptor.html[ProblemAggregationDescriptor]. This descriptor will arrive at the _end_ of the build, and will contain the number of occurrences of the problem.
+ - If for any bucket (i.e. category and label pairing), the number of collected occurrences is greater than 10.000, then it will be sent immediately instead of at the end of the build.
