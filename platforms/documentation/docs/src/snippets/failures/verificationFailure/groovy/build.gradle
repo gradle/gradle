@@ -23,7 +23,7 @@ tasks.register("process") {
     doLast {
         logFile << "Step 1 Complete." // <2>
         throw new VerificationException("Process failed!") // <3>
-        logFile << "Step 2 cCmplete." // <4>
+        logFile << "Step 2 Complete." // <4>
     }
 }
 
