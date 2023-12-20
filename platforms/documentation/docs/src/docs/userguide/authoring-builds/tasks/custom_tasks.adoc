@@ -562,7 +562,7 @@ When <<command_line_interface.adoc#sec:continue_build_on_failure, running with t
 However, any tasks that depend on a failed task will be not be executed.
 
 There is a special type of exception that behaves differently.
-A task can throw a subtype of link:{javadocPath}/org/gradle/api/tasks/VerificationException.html--[VerificationException] to indicate that it has failed in a controlled manner such that its output is still valid for consumers.
+A task can throw a subtype of link:{javadocPath}/org/gradle/api/tasks/VerificationException.html[VerificationException] to indicate that it has failed in a controlled manner such that its output is still valid for consumers.
 When Gradle is run with `--continue`, consumer tasks that depend on this output can still run.
 
 A failed unit test, for instance, will cause a failing outcome for the test task.
