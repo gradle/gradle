@@ -174,13 +174,13 @@ class ConfigurationCacheProblems(
             return
         }
 
-        val failure = queryFailure(summary, htmlReportFile)
-        failure?.let {
-            validationFailures.accept(it)
-        } ?: {
-            val logReportAsInfo = hasNoProblems && !startParameter.alwaysLogReportLinkAsWarning
-            val log: (String) -> Unit = if (logReportAsInfo) logger::info else logger::warn
-            log(summary.textForConsole(cacheActionText, htmlReportFile))
+        when (val failure = queryFailure(summary, htmlReportFile)) {
+            null -> {
+                val logReportAsInfo = hasNoProblems && !startParameter.alwaysLogReportLinkAsWarning
+                val log: (String) -> Unit = if (logReportAsInfo) logger::info else logger::warn
+                log(summary.textForConsole(cacheActionText, htmlReportFile))
+            }
+            else -> validationFailures.accept(failure)
         }
     }
 
