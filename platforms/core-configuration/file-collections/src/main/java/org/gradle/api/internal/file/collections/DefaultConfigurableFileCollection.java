@@ -93,13 +93,13 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
-    public ConfigurableFileCollection configure(Action<FileCollectionConfigurer> action) {
+    public ConfigurableFileCollection withActualValue(Action<FileCollectionConfigurer> action) {
         action.execute(getActualValue());
         return this;
     }
 
     @Override
-    public ConfigurableFileCollection configure(Closure<FileCollectionConfigurer> action) {
+    public ConfigurableFileCollection withActualValue(Closure<Void> action) {
         ConfigureUtil.configure(action, getActualValue());
         return this;
     }

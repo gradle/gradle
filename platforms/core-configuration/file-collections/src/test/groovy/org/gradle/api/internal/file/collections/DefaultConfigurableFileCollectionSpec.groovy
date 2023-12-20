@@ -1810,7 +1810,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
     def "can incrementally set paths as convention to the collection"() {
         when:
         collection.convention("src0")
-        collection.configure {
+        collection.withActualValue {
             it.from("src1", "src2")
             it.from("src3")
         }
@@ -1823,7 +1823,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         when:
         collection.setFrom("src1")
         collection.convention("unused-src")
-        collection.configure {
+        collection.withActualValue {
             it.from("src3")
             it.from("src4")
         }
@@ -1834,7 +1834,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
     def "can unset convention"() {
         given:
         collection.convention("src0")
-        collection.configure {
+        collection.withActualValue {
             it.from("src1")
         }
 

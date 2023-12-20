@@ -48,5 +48,5 @@ public interface ConfigurableValue<C extends ConfigurableValue.Configurer> {
      *
      * @since 8.7
      */
-    ConfigurableValue<C> configure(Action<C> action);
+    ConfigurableValue<C> withActualValue(Action<C> action);
 }

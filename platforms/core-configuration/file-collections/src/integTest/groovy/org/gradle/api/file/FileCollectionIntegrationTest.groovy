@@ -44,7 +44,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
             def elements = files.elements
 
             def name = 'a'
-            files.configure { from(name) }
+            files.withActualValue { from(name) }
 
             assert elements.get().asFile == [file('b'), file('a')]
         """
