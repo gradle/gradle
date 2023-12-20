@@ -625,6 +625,11 @@
             <pgp value="015479E1055341431B4545AB72475FD306B9CAB7"/>
          </artifact>
       </component>
+      <component group="com.googlecode.javaewah" name="JavaEWAH" version="1.2.3">
+         <artifact name="JavaEWAH-1.2.3.jar">
+            <pgp value="015479E1055341431B4545AB72475FD306B9CAB7"/>
+         </artifact>
+      </component>
       <component group="com.googlecode.json-simple" name="json-simple" version="1.1">
          <artifact name="json-simple-1.1.jar">
             <sha256 value="2d9484f4c649f708f47f9a479465fc729770ee65617dca3011836602264f6439" reason="Artifact is not signed"/>
