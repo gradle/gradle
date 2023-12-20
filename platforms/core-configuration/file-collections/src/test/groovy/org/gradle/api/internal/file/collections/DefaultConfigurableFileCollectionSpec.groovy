@@ -15,9 +15,11 @@
  */
 package org.gradle.api.internal.file.collections
 
+import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.Transformer
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileCollectionConfigurer
 import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionSpec
@@ -264,6 +266,29 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         files == [file1, file2] as LinkedHashSet
     }
 
+    def "can set another collection as convention to the collection"() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def src = Mock(MinimalFileSet)
+        def srcCollection = TestFiles.fileCollectionFactory().create(src)
+
+        when:
+        collection.convention(srcCollection)
+        def files = collection.files
+
+        then:
+        1 * src.getFiles() >> ([file1] as Set)
+        files as List == [file1]
+
+        when:
+        files = collection.files
+
+        then:
+        1 * src.getFiles() >> ([file1, file2] as LinkedHashSet)
+        files == [file1, file2] as LinkedHashSet
+    }
+
     def "can use a callable to specify the contents of the collection"() {
         given:
         def file1 = new File("1")
@@ -272,6 +297,23 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         when:
         collection.from(callable)
+        def files = collection.files
+
+        then:
+        1 * callable.call() >> ["src1", "src2"]
+        _ * fileResolver.resolve("src1") >> file1
+        _ * fileResolver.resolve("src2") >> file2
+        files as List == [file1, file2]
+    }
+
+    def "can use a callable to specify the convention contents of the collection"() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def callable = Mock(Callable)
+
+        when:
+        collection.convention(callable)
         def files = collection.files
 
         then:
@@ -1757,5 +1799,120 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         0 * filterSpec._
+    }
+
+    def "can set paths as convention to the collection"() {
+        when:
+        collection.convention("src1", "src2")
+        then:
+        collection.from as List == ["src1", "src2"]
+        !collection.explicit
+    }
+
+    def "can incrementally set paths using action"() {
+        when:
+        collection.withActualValue({
+            it.from("src1", "src2")
+            it.from("src3")
+        } as Action<FileCollectionConfigurer>)
+        then:
+        collection.from as List == ["src1", "src2", "src3"]
+    }
+
+    def "can incrementally set paths using closure"() {
+        when:
+        collection.withActualValue {
+            from("src1", "src2")
+            from("src3")
+        }
+        then:
+        collection.from as List == ["src1", "src2", "src3"]
+    }
+
+    def "can incrementally set paths as convention to the collection"() {
+        when:
+        collection.convention("src0")
+        collection.withActualValue {
+            from("src1", "src2")
+            from("src3")
+        }
+        then:
+        collection.from as List == ["src0", "src1", "src2", "src3"]
+        !collection.explicit
+    }
+
+    def "can incrementally set explicit value"() {
+        when:
+        collection.setFrom("src1")
+        collection.convention("unused-src")
+        collection.withActualValue {
+            from("src3")
+            from("src4")
+        }
+        then:
+        collection.from as List == ["src1", "src3", "src4"]
+    }
+
+    def "can unset convention"() {
+        given:
+        collection.convention("src0")
+        collection.withActualValue {
+            from("src1")
+        }
+
+        when:
+        collection.unsetConvention()
+
+        then:
+        collection.from as List == []
+    }
+
+    def "conventions are ignored if a value is already explicitly set using #setFrom"() {
+        when:
+        collection.setFrom("src3")
+        collection.convention("src1", "src2")
+        then:
+        collection.from as List == ["src3"]
+    }
+
+    def "conventions are ignored if a value is already explicitly set using #from"() {
+        when:
+        collection.from("src3")
+        collection.convention("src1", "src2")
+        then:
+        collection.from as List == ["src3"]
+    }
+
+    def "conventions can be overridden with an explicit value using #setFrom"() {
+        when:
+        collection.convention("src1", "src2")
+        collection.setFrom("src3")
+        then:
+        collection.from as List == ["src3"]
+        collection.explicit
+    }
+
+    def "conventions can be overridden with an explicit value using #from"() {
+        when:
+        collection.convention("src1", "src2")
+        collection.from("src3")
+        then:
+        collection.explicit
+        collection.from as List == ["src3"]
+    }
+
+    def "conventions are brought back if explicit value is unset"() {
+        when:
+        collection.from("src3")
+        collection.convention("src1", "src2")
+        then:
+        collection.from as List == ["src3"]
+
+        when:
+        collection.unset()
+
+        then:
+        collection.from as List == ["src1", "src2"]
+        !collection.explicit
     }
 }
