@@ -28,12 +28,9 @@ import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -136,11 +133,9 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
 
     private static String uriDecode(String path) {
         try {
-            return URLDecoder.decode(path, StandardCharsets.UTF_8.name());
-        } catch (IllegalArgumentException e) {
+            return new URI(path).getSchemeSpecificPart();
+        } catch (URISyntaxException e) {
             return fallbackUrlDecode(path);
-        } catch (UnsupportedEncodingException e) {
-            throw new AssertionError(e);
         }
     }
 
