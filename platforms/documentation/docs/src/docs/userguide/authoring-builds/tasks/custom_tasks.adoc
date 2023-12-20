@@ -556,7 +556,8 @@ The same is true for work items submitted via the worker API. If a task does not
 
 == Verification Failures
 
-Exceptions thrown during task execution result in task failure which will cause a build to terminate with a build failure result.
+Exceptions thrown during task execution result in a failure that immediately terminates a build.
+The result of the build will be `FAILED`, and no further tasks will be executed.
 When <<command_line_interface.adoc#sec:continue_build_on_failure, running with the `--continue` flag>> Gradle will continue to run other requested tasks in the build after encountering a task failure.
 However, any tasks that depend on a failed task will be not be executed.
 
