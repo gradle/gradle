@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.utils.doNothing
 
 class GrammarToLightTree(
     private val sourceIdentifier: SourceIdentifier,
+    private val sourceCode: String,
     private val sourceOffset: Int
 ) {
 
@@ -34,13 +35,15 @@ class GrammarToLightTree(
         }
     }
 
-    private fun packageHeader(tree: LightTree, node: LighterASTNode): List<FailingResult> =
+    private
+    fun packageHeader(tree: LightTree, node: LighterASTNode): List<FailingResult> =
         when {
             tree.children(node).isNotEmpty() -> listOf(node.unsupportedNoOffset(PackageHeader))
             else -> listOf()
         }
 
-    private fun import(tree: LightTree, node: LighterASTNode): ElementResult<Import> =
+    private
+    fun import(tree: LightTree, node: LighterASTNode): ElementResult<Import> =
         elementOrFailure {
             val children = tree.children(node)
 
@@ -65,18 +68,20 @@ class GrammarToLightTree(
                     }
 
                 val nameParts = checked(content!!).flatten()
-                Element(Import(AccessChain(nameParts), node.dataNoOffset)) //TODO
+                Element(Import(AccessChain(nameParts), node.dataNoOffset))
             }
         }
 
-    private fun statement(tree: LightTree, node: LighterASTNode): ElementResult<DataStatement> =
+    private
+    fun statement(tree: LightTree, node: LighterASTNode): ElementResult<DataStatement> =
         when (node.tokenType) {
             BINARY_EXPRESSION -> binaryExpression(tree, node)
             PROPERTY -> localValue(tree, node)
             else -> expression(tree, node)
         }
 
-    private fun expression(tree: LightTree, node: LighterASTNode): ElementResult<Expr> =
+    private
+    fun expression(tree: LightTree, node: LighterASTNode): ElementResult<Expr> =
         when (val tokenType = node.tokenType) {
             LABELED_EXPRESSION -> node.unsupported(LabelledStatement)
             ANNOTATED_EXPRESSION -> node.unsupported(AnnotationUsage)
@@ -92,7 +97,8 @@ class GrammarToLightTree(
         }
 
     @Suppress("UNCHECKED_CAST")
-    private fun propertyAccessStatement(tree: LightTree, node: LighterASTNode): ElementResult<PropertyAccess> =
+    private
+    fun propertyAccessStatement(tree: LightTree, node: LighterASTNode): ElementResult<PropertyAccess> =
         when (val tokenType = node.tokenType) {
             REFERENCE_EXPRESSION -> Element(PropertyAccess(null, referenceExpression(node).value, node.data))
             in QUALIFIED_ACCESS -> qualifiedExpression(tree, node) as ElementResult<PropertyAccess>
@@ -100,7 +106,8 @@ class GrammarToLightTree(
             else -> error("Unexpected tokenType in property access statement: $tokenType")
         }
 
-    private fun localValue(tree: LightTree, node: LighterASTNode): ElementResult<LocalValue> =
+    private
+    fun localValue(tree: LightTree, node: LighterASTNode): ElementResult<LocalValue> =
         elementOrFailure {
             val children = tree.children(node)
 
@@ -129,14 +136,15 @@ class GrammarToLightTree(
             }
 
             collectingFailure(identifier ?: node.parsingError("Local value without identifier"))
-            collectingFailure(expression ?: node.unsupported(UnsupportedLanguageFeature.UninitializedProperty))
+            collectingFailure(expression ?: node.unsupported(UninitializedProperty))
 
             elementIfNoFailures {
                 Element(LocalValue(identifier!!.value, checked(expression!!), node.data))
             }
         }
 
-    private fun qualifiedExpression(tree: LightTree, node: LighterASTNode): ElementResult<Expr> =
+    private
+    fun qualifiedExpression(tree: LightTree, node: LighterASTNode): ElementResult<Expr> =
         elementOrFailure {
             val children = tree.children(node)
 
@@ -149,7 +157,7 @@ class GrammarToLightTree(
                 when (val tokenType = it.tokenType) {
                     DOT -> isSelector = true
                     SAFE_ACCESS -> {
-                        collectingFailure(node.unsupported(UnsupportedLanguageFeature.SafeNavigation))
+                        collectingFailure(it.unsupportedIn(node, SafeNavigation))
                     }
                     else -> {
                         val isEffectiveSelector = isSelector && tokenType != TokenType.ERROR_ELEMENT
@@ -183,7 +191,8 @@ class GrammarToLightTree(
             }
         }
 
-    private fun stringTemplate(tree: LightTree, node: LighterASTNode): ElementResult<Expr> {
+    private
+    fun stringTemplate(tree: LightTree, node: LighterASTNode): ElementResult<Expr> {
         val children = tree.children(node)
         val sb = StringBuilder()
         children.forEach {
@@ -196,7 +205,8 @@ class GrammarToLightTree(
         return Element(Literal.StringLiteral(sb.toString(), node.data))
     }
 
-    private fun constantExpression(node: LighterASTNode): ElementResult<Expr> {
+    private
+    fun constantExpression(node: LighterASTNode): ElementResult<Expr> {
         val type = node.tokenType
         val text: String = node.asText
 
@@ -240,7 +250,8 @@ class GrammarToLightTree(
         }
     }
 
-    private fun callExpression(tree: LightTree, node: LighterASTNode): ElementResult<FunctionCall> {
+    private
+    fun callExpression(tree: LightTree, node: LighterASTNode): ElementResult<FunctionCall> {
         val children = tree.children(node)
 
         var name: String? = null
@@ -271,7 +282,8 @@ class GrammarToLightTree(
         }
     }
 
-    private fun valueArguments(tree: LightTree, node: LighterASTNode): List<SyntacticResult<FunctionArgument>> {
+    private
+    fun valueArguments(tree: LightTree, node: LighterASTNode): List<SyntacticResult<FunctionArgument>> {
         val children = tree.children(node)
 
         val list = mutableListOf<SyntacticResult<FunctionArgument>>()
@@ -286,7 +298,8 @@ class GrammarToLightTree(
         return list
     }
 
-    private fun lambda(tree: LightTree, node: LighterASTNode): SyntacticResult<FunctionArgument.Lambda> =
+    private
+    fun lambda(tree: LightTree, node: LighterASTNode): SyntacticResult<FunctionArgument.Lambda> =
         syntacticOrFailure {
             val functionalLiteralNode = tree.firstChild(node) { it.isKind(FUNCTION_LITERAL) }
 
@@ -297,7 +310,7 @@ class GrammarToLightTree(
                 val children = tree.children(functionalLiteralNode)
                 children.forEach {
                     when (it.tokenType) {
-                        VALUE_PARAMETER_LIST -> collectingFailure(node.unsupported(LambdaWithParameters))
+                        VALUE_PARAMETER_LIST -> collectingFailure(it.unsupportedIn(node, LambdaWithParameters))
                         BLOCK -> block = it
                         ARROW -> doNothing()
                     }
@@ -319,7 +332,8 @@ class GrammarToLightTree(
             }
         }
 
-    private fun valueArgument(tree: LightTree, node: LighterASTNode): SyntacticResult<FunctionArgument.ValueArgument> =
+    private
+    fun valueArgument(tree: LightTree, node: LighterASTNode): SyntacticResult<FunctionArgument.ValueArgument> =
         syntacticOrFailure {
             val children = tree.children(node)
 
@@ -348,7 +362,8 @@ class GrammarToLightTree(
 
         }
 
-    private fun binaryExpression(tree: LightTree, node: LighterASTNode): ElementResult<Assignment> {
+    private
+    fun binaryExpression(tree: LightTree, node: LighterASTNode): ElementResult<Assignment> {
         val children = tree.children(node)
 
         var isLeftArgument = true
@@ -374,7 +389,7 @@ class GrammarToLightTree(
 
         val operationToken = operationTokenName.getOperationSymbol()
 
-        if (operationToken != EQ) return node.unsupported(UnsupportedLanguageFeature.UnsupportedOperationInBinaryExpression)
+        if (operationToken != EQ) return node.unsupported(UnsupportedOperationInBinaryExpression)
         if (leftArg == null) return node.parsingError("Missing left hand side in binary expression")
         if (rightArg == null) return node.parsingError("Missing right hand side in binary expression")
 
@@ -388,15 +403,19 @@ class GrammarToLightTree(
         }
     }
 
-    private fun referenceExpression(node: LighterASTNode): Syntactic<String> = Syntactic(node.asText)
+    private
+    fun referenceExpression(node: LighterASTNode): Syntactic<String> = Syntactic(node.asText)
 
-    private fun packageNode(tree: LightTree): LighterASTNode =
+    private
+    fun packageNode(tree: LightTree): LighterASTNode =
         toplevelNode(tree, PACKAGE_DIRECTIVE)
 
-    private fun importNodes(tree: LightTree): List<LighterASTNode> =
+    private
+    fun importNodes(tree: LightTree): List<LighterASTNode> =
         tree.children(toplevelNode(tree, IMPORT_LIST))
 
-    private fun scriptNodes(tree: LightTree): List<LighterASTNode> {
+    private
+    fun scriptNodes(tree: LightTree): List<LighterASTNode> {
         // the actual script we want to parse is wrapped into a class initializer block, we need to extract it
 
         val childrenOfWrappingClass = tree.children(toplevelNode(tree, CLASS))
@@ -410,13 +429,15 @@ class GrammarToLightTree(
         return extractBlockContent(childrenOfWrappingClassInitializerBlock)
     }
 
-    private fun toplevelNode(tree: LightTree, parentNode: IElementType): LighterASTNode {
+    private
+    fun toplevelNode(tree: LightTree, parentNode: IElementType): LighterASTNode {
         val root = tree.root
         val childrenOfRoot = tree.children(root)
         return childrenOfRoot.expectSingleOfKind(parentNode)
     }
 
-    private fun extractBlockContent(blockNodes: List<LighterASTNode>): List<LighterASTNode> {
+    private
+    fun extractBlockContent(blockNodes: List<LighterASTNode>): List<LighterASTNode> {
         check(blockNodes.size >= 2) // first and last nodes are the opening an¡¡d closing braces
 
         val openBrace = blockNodes.first()
@@ -428,44 +449,33 @@ class GrammarToLightTree(
         return blockNodes.slice(1..blockNodes.size - 2)
     }
 
-    private val LighterASTNode.data get() = sourceData(sourceIdentifier, sourceOffset)
-    private val LighterASTNode.dataNoOffset get() = sourceData(sourceIdentifier, 0) // TODO: again a hack, due to script wrapping
+    private
+    val LighterASTNode.data get() = sourceData(sourceIdentifier, sourceCode, sourceOffset)
+    private
+    val LighterASTNode.dataNoOffset get() = sourceData(sourceIdentifier, sourceCode, 0) // TODO: again a hack, due to script wrapping
 
-    private fun LighterASTNode.unsupported(feature: UnsupportedLanguageFeature) =
-        UnsupportedConstruct(
-            this.data,
-            this.data,
-            feature
-        ) // TODO: two sources are identical, not like in the other parser
+    private
+    fun LighterASTNode.unsupported(feature: UnsupportedLanguageFeature) =
+        UnsupportedConstruct(this.data, this.data, feature)
 
-    private fun LighterASTNode.unsupportedNoOffset(feature: UnsupportedLanguageFeature) = // TODO: again a hack, due to script wrapping
-        UnsupportedConstruct(
-            this.dataNoOffset,
-            this.dataNoOffset,
-            feature
-        ) // TODO: two sources are identical, not like in the other parser
+    private
+    fun LighterASTNode.unsupportedNoOffset(feature: UnsupportedLanguageFeature) = // TODO: again a hack, due to script wrapping
+        UnsupportedConstruct(this.dataNoOffset, this.dataNoOffset, feature)
 
-    private fun LighterASTNode.unsupportedIn(
+    private
+    fun LighterASTNode.unsupportedIn(
         outer: LighterASTNode,
         feature: UnsupportedLanguageFeature
-    ) =
-        UnsupportedConstruct(
-            outer.data,
-            this.data,
-            feature
-        ) // TODO: two sources are identical, not like in the other parser
+    ) = UnsupportedConstruct(outer.data, this.data, feature)
 
-    private fun LighterASTNode.unsupportedInNoOffset( // TODO: again a hack, due to script wrapping
+    private
+    fun LighterASTNode.unsupportedInNoOffset( // TODO: again a hack, due to script wrapping
         outer: LighterASTNode,
         feature: UnsupportedLanguageFeature
-    ) =
-        UnsupportedConstruct(
-            outer.dataNoOffset,
-            this.dataNoOffset,
-            feature
-        ) // TODO: two sources are identical, not like in the other parser
+    ) = UnsupportedConstruct(outer.dataNoOffset, this.dataNoOffset, feature)
 
-    private fun LighterASTNode.parsingError(message: String) =
+    private
+    fun LighterASTNode.parsingError(message: String) =
         ParsingError(this.data, message)
 
 }

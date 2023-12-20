@@ -15,13 +15,23 @@ import org.jetbrains.kotlin.lexer.KtTokens.*
 
 typealias LightTree = FlyweightCapableTreeStructure<LighterASTNode>
 
-fun FlyweightCapableTreeStructure<LighterASTNode>.sourceData(sourceIdentifier: SourceIdentifier, sourceOffset: Int) =
-    LightTreeSourceData(sourceIdentifier, sourceOffset, this.root) // TODO: not ok to use the root here, due to the artificial wrapping of the script as a class initializer
+fun FlyweightCapableTreeStructure<LighterASTNode>.sourceData(
+    sourceIdentifier: SourceIdentifier,
+    sourceCode: String,
+    sourceOffset: Int
+) =
+    LightTreeSourceData(
+        sourceIdentifier,
+        sourceCode,
+        sourceOffset,
+        this.root
+    ) // TODO: not ok to use the root here, due to the artificial wrapping of the script as a class initializer
 
 class LightTreeSourceData(
     override val sourceIdentifier: SourceIdentifier,
-    val sourceOffset: Int,
-    val node: LighterASTNode
+    private val sourceCode: String,
+    private val sourceOffset: Int,
+    private val node: LighterASTNode
 ) : SourceData {
     override val indexRange: IntRange
         get() {
@@ -31,10 +41,86 @@ class LightTreeSourceData(
             return first..last
         }
 
-    override fun text(): String = node.asText
+    private
+    val lineColumnInfo: LineColumnInfo
+        get() = LineColumnInfo.fromIndexRange(sourceCode, sourceOffset, indexRange)
+    override
+    val lineRange: IntRange
+        get() = lineColumnInfo.startLine..lineColumnInfo.endLine
+    override
+    val startColumn: Int
+        get() = lineColumnInfo.startColumn
+    override
+    val endColumn: Int
+        get() = lineColumnInfo.endColumn
+
+    override
+    fun text(): String = node.asText
+
+    private
+    class LineColumnInfo(val startLine: Int, val startColumn: Int, val endLine: Int, val endColumn: Int) {
+        companion object Factory {
+            fun fromIndexRange(text: String, offset: Int, offsetRelativeIndexRange: IntRange): LineColumnInfo {
+                fun String.newLineLength(index: Int): Int =
+                    when (this[index]) {
+                        '\n' -> 1
+                        '\r' -> {
+                            if (index + 1 < length && this[index + 1] == '\n') 2 else 1
+                        }
+                        else -> 0
+                    }
+
+                fun String.isValidIndex(index: Int) = index in indices
+
+                check(text.isValidIndex(offset))
+
+                val realStartIndex = offset + offsetRelativeIndexRange.first
+                check(text.isValidIndex(realStartIndex))
+
+                val realEndIndex = offset + offsetRelativeIndexRange.last
+                check(text.isValidIndex(realEndIndex))
+
+                check(realStartIndex <= realEndIndex)
+
+                var startLine = -1
+                var startColumn = -1
+                var endLine = -1
+                var endColumn = -1
+
+                var i = offset
+                var line = 1
+                var column = 1
+                while (i < text.length) {
+                    if (i == realStartIndex) {
+                        startLine = line
+                        startColumn = column
+                    } else if (i == realEndIndex) {
+                        endLine = line
+                        endColumn = column
+                        break
+                    }
+
+                    val newLineLength = text.newLineLength(i)
+                    if (newLineLength > 0) {
+                        i += newLineLength
+                        line++
+                        column = 1
+                    } else {
+                        i++
+                        column++
+                    }
+                }
+
+                check(startLine >= 0 && startColumn >= 0 && endLine >= 0 && endColumn >= 0)
+                return LineColumnInfo(startLine, startColumn, endLine, endColumn)
+            }
+        }
+    }
 }
 
-internal fun FlyweightCapableTreeStructure<LighterASTNode>.print(
+
+internal
+fun FlyweightCapableTreeStructure<LighterASTNode>.print(
     node: LighterASTNode = root,
     indent: String = ""
 ) {
@@ -50,7 +136,8 @@ internal fun FlyweightCapableTreeStructure<LighterASTNode>.print(
     }
 }
 
-internal fun FlyweightCapableTreeStructure<LighterASTNode>.children(
+internal
+fun FlyweightCapableTreeStructure<LighterASTNode>.children(
     node: LighterASTNode
 ): List<LighterASTNode> {
     val ref = Ref<Array<LighterASTNode?>>()
@@ -60,8 +147,9 @@ internal fun FlyweightCapableTreeStructure<LighterASTNode>.children(
         .filter { it.isUseful }
 }
 
-internal fun FlyweightCapableTreeStructure<LighterASTNode>.getFirstChildExpressionUnwrapped(node: LighterASTNode): LighterASTNode? {
-    val filter: (LighterASTNode) -> Boolean = { it -> it.isExpression()}
+internal
+fun FlyweightCapableTreeStructure<LighterASTNode>.getFirstChildExpressionUnwrapped(node: LighterASTNode): LighterASTNode? {
+    val filter: (LighterASTNode) -> Boolean = { it -> it.isExpression() }
     val firstChild = firstChild(node, filter) ?: return null
     return if (firstChild.tokenType == PARENTHESIZED) {
         getFirstChildExpressionUnwrapped(firstChild)
@@ -70,39 +158,49 @@ internal fun FlyweightCapableTreeStructure<LighterASTNode>.getFirstChildExpressi
     }
 }
 
-internal fun FlyweightCapableTreeStructure<LighterASTNode>.firstChild(
+internal
+fun FlyweightCapableTreeStructure<LighterASTNode>.firstChild(
     node: LighterASTNode,
     filter: (LighterASTNode) -> Boolean
 ): LighterASTNode? {
     return children(node).firstOrNull(filter)
 }
 
-internal val LighterASTNode.asText: String
+internal
+val LighterASTNode.asText: String
     get() = this.toString()
 
-internal val LighterASTNode.isUseful: Boolean
+internal
+val LighterASTNode.isUseful: Boolean
     get() = !(COMMENTS.contains(tokenType) || tokenType == WHITE_SPACE || tokenType == SEMICOLON || tokenType == ERROR_ELEMENT)
 
-internal fun LighterASTNode.expectKind(expected: IElementType) {
+internal
+fun LighterASTNode.expectKind(expected: IElementType) {
     check(isKind(expected)) // TODO: sucky String matching, but don't have a better idea atm
 }
 
-internal fun List<LighterASTNode>.expectSingleOfKind(expected: IElementType): LighterASTNode =
+internal
+fun List<LighterASTNode>.expectSingleOfKind(expected: IElementType): LighterASTNode =
     this.single { it.isKind(expected) }
 
-internal fun LighterASTNode.isKind(expected: IElementType) =
+internal
+fun LighterASTNode.isKind(expected: IElementType) =
     this.tokenType.debugName == expected.debugName
 
-internal fun LighterASTNode.sourceData(sourceIdentifier: SourceIdentifier, sourceOffset: Int) =
-    LightTreeSourceData(sourceIdentifier, sourceOffset, this)
+internal
+fun LighterASTNode.sourceData(sourceIdentifier: SourceIdentifier, sourceCode: String, sourceOffset: Int) =
+    LightTreeSourceData(sourceIdentifier, sourceCode, sourceOffset, this)
 
-private fun LighterASTNode.print(indent: String) {
+private
+fun LighterASTNode.print(indent: String) {
     println("$indent${tokenType} (${range()}): ${content()}")
 }
 
-internal fun LighterASTNode.range() = startOffset..endOffset
+internal
+fun LighterASTNode.range() = startOffset..endOffset
 
-private fun LighterASTNode.content(): String? =
+private
+fun LighterASTNode.content(): String? =
     when (tokenType) {
         BLOCK -> ""
         SCRIPT -> ""

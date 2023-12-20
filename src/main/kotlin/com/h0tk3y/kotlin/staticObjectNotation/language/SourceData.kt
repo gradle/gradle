@@ -19,6 +19,9 @@ package com.h0tk3y.kotlin.staticObjectNotation.language
 interface SourceData {
     val sourceIdentifier: SourceIdentifier
     val indexRange: IntRange
+    val lineRange: IntRange
+    val startColumn: Int
+    val endColumn: Int
 
     fun text(): String
 }
@@ -26,6 +29,7 @@ interface SourceData {
 internal fun SourceData.prettyPrint(): String =
     buildString {
         append("indexes: $indexRange, ")
+        append("line/column: ${lineRange.first}/$startColumn..${lineRange.last}/$endColumn, ")
         append("file: ${sourceIdentifier.fileIdentifier}")
     }
 

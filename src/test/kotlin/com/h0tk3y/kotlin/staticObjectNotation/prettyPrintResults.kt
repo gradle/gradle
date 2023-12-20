@@ -23,8 +23,13 @@ import com.h0tk3y.kotlin.staticObjectNotation.language.*
 fun prettyPrintFailingResult(failure: FailingResult): String {
     fun StringBuilder.recurse(current: FailingResult, depth: Int) {
         fun indent() = "    ".repeat(depth)
+        fun nextIndent() = "    ".repeat(depth + 1)
         fun appendIndented(value: Any) {
             append(indent())
+            append(value)
+        }
+        fun appendNextIndented(value: Any) {
+            append(nextIndent())
             append(value)
         }
         fun recurseDeeper(next: FailingResult) = recurse(next, depth + 1)
@@ -40,10 +45,14 @@ fun prettyPrintFailingResult(failure: FailingResult): String {
             is ParsingError -> TODO()
             is UnsupportedConstruct -> {
                 appendIndented("UnsupportedConstruct(")
-                append("languageFeature = ${current.languageFeature.javaClass.simpleName}, ")
-                append("potentialElementSource = ${current.potentialElementSource.prettyPrint()}, ")
-                append("erroneousSource = ${current.erroneousSource.prettyPrint()}")
-                append(")")
+                appendLine()
+                appendNextIndented("languageFeature = ${current.languageFeature.javaClass.simpleName}, ")
+                appendLine()
+                appendNextIndented("potentialElementSource = ${current.potentialElementSource.prettyPrint()}, ")
+                appendLine()
+                appendNextIndented("erroneousSource = ${current.erroneousSource.prettyPrint()}")
+                appendLine()
+                appendIndented(")")
             }
         }
     }

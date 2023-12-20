@@ -22,35 +22,35 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
         )
 
         val expected = """
-                Assignment [indexes: 0..5, file: test] (
-                    lhs = PropertyAccess [indexes: 0..1, file: test] (
+                Assignment [indexes: 0..5, line/column: 1/1..1/6, file: test] (
+                    lhs = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
                         name = a
                     )
-                    rhs = IntLiteral [indexes: 4..5, file: test] (1)
+                    rhs = IntLiteral [indexes: 4..5, line/column: 1/5..1/6, file: test] (1)
                 )
-                Assignment [indexes: 6..16, file: test] (
-                    lhs = PropertyAccess [indexes: 6..7, file: test] (
+                Assignment [indexes: 6..16, line/column: 2/1..2/11, file: test] (
+                    lhs = PropertyAccess [indexes: 6..7, line/column: 2/1..2/2, file: test] (
                         name = b
                     )
-                    rhs = StringLiteral [indexes: 10..16, file: test] (test)
+                    rhs = StringLiteral [indexes: 10..16, line/column: 2/5..2/11, file: test] (test)
                 )
-                Assignment [indexes: 17..31, file: test] (
-                    lhs = PropertyAccess [indexes: 17..18, file: test] (
+                Assignment [indexes: 17..31, line/column: 3/1..3/15, file: test] (
+                    lhs = PropertyAccess [indexes: 17..18, line/column: 3/1..3/2, file: test] (
                         name = c
                     )
-                    rhs = StringLiteral [indexes: 21..31, file: test] (test)
+                    rhs = StringLiteral [indexes: 21..31, line/column: 3/5..3/15, file: test] (test)
                 )
-                Assignment [indexes: 32..40, file: test] (
-                    lhs = PropertyAccess [indexes: 32..33, file: test] (
+                Assignment [indexes: 32..40, line/column: 4/1..4/9, file: test] (
+                    lhs = PropertyAccess [indexes: 32..33, line/column: 4/1..4/2, file: test] (
                         name = e
                     )
-                    rhs = BooleanLiteral [indexes: 36..40, file: test] (true)
+                    rhs = BooleanLiteral [indexes: 36..40, line/column: 4/5..4/9, file: test] (true)
                 )
-                Assignment [indexes: 41..50, file: test] (
-                    lhs = PropertyAccess [indexes: 41..42, file: test] (
+                Assignment [indexes: 41..50, line/column: 5/1..5/10, file: test] (
+                    lhs = PropertyAccess [indexes: 41..42, line/column: 5/1..5/2, file: test] (
                         name = d
                     )
-                    rhs = BooleanLiteral [indexes: 45..50, file: test] (false)
+                    rhs = BooleanLiteral [indexes: 45..50, line/column: 5/5..5/10, file: test] (false)
                 )
             """.trimIndent()
         assertResult(expected, results)
@@ -67,13 +67,13 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
         )
 
         val expected = """
-                Import [indexes: 0..12, file: test (
+                Import [indexes: 0..12, line/column: 1/1..1/13, file: test (
                     name parts = [a, b, c]
                 )
-                Import [indexes: 13..30, file: test (
+                Import [indexes: 13..30, line/column: 2/1..2/18, file: test (
                     name parts = [a, b, MyData]
                 )
-                Import [indexes: 31..49, file: test (
+                Import [indexes: 31..49, line/column: 3/1..3/19, file: test (
                     name parts = [MyOtherData]
                 )
             """.trimIndent()
@@ -90,22 +90,22 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
         )
 
         val expected = """
-                FunctionCall [indexes: 0..8, file: test] (
+                FunctionCall [indexes: 0..8, line/column: 1/1..1/9, file: test] (
                     name = f
                     args = [
-                        FunctionArgument.Named [indexes: 2..7, file: test] (
+                        FunctionArgument.Named [indexes: 2..7, line/column: 1/3..1/8, file: test] (
                             name = x,
-                            expr = PropertyAccess [indexes: 6..7, file: test] (
+                            expr = PropertyAccess [indexes: 6..7, line/column: 1/7..1/8, file: test] (
                                 name = y
                             )
                         )
                     ]
                 )
-                FunctionCall [indexes: 9..13, file: test] (
+                FunctionCall [indexes: 9..13, line/column: 2/1..2/5, file: test] (
                     name = f
                     args = [
-                        FunctionArgument.Positional [indexes: 11..12, file: test] (
-                            expr = IntLiteral [indexes: 11..12, file: test] (1)
+                        FunctionArgument.Positional [indexes: 11..12, line/column: 2/3..2/4, file: test] (
+                            expr = IntLiteral [indexes: 11..12, line/column: 2/3..2/4, file: test] (1)
                         )
                     ]
                 )
@@ -121,13 +121,13 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
             """.trimIndent())
 
         val expected = """
-            FunctionCall [indexes: 10..17, file: test] (
+            FunctionCall [indexes: 10..17, line/column: 1/11..1/18, file: test] (
                 name = k
-                receiver = PropertyAccess [indexes: 8..9, file: test] (
-                    receiver = PropertyAccess [indexes: 6..7, file: test] (
-                        receiver = PropertyAccess [indexes: 4..5, file: test] (
-                            receiver = PropertyAccess [indexes: 2..3, file: test] (
-                                receiver = PropertyAccess [indexes: 0..1, file: test] (
+                receiver = PropertyAccess [indexes: 8..9, line/column: 1/9..1/10, file: test] (
+                    receiver = PropertyAccess [indexes: 6..7, line/column: 1/7..1/8, file: test] (
+                        receiver = PropertyAccess [indexes: 4..5, line/column: 1/5..1/6, file: test] (
+                            receiver = PropertyAccess [indexes: 2..3, line/column: 1/3..1/4, file: test] (
+                                receiver = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
                                     name = f
                                 )
                                 name = g
@@ -139,8 +139,8 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
                     name = j
                 )
                 args = [
-                    FunctionArgument.Positional [indexes: 12..16, file: test] (
-                        expr = PropertyAccess [indexes: 12..16, file: test] (
+                    FunctionArgument.Positional [indexes: 12..16, line/column: 1/13..1/17, file: test] (
+                        expr = PropertyAccess [indexes: 12..16, line/column: 1/13..1/17, file: test] (
                             name = test
                         )
                     )
@@ -159,19 +159,19 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
         )
 
         val expected = """
-            FunctionCall [indexes: 0..12, file: test] (
+            FunctionCall [indexes: 0..12, line/column: 1/1..1/13, file: test] (
                 name = f
                 args = [
-                    FunctionArgument.Positional [indexes: 2..3, file: test] (
-                        expr = IntLiteral [indexes: 2..3, file: test] (1)
+                    FunctionArgument.Positional [indexes: 2..3, line/column: 1/3..1/4, file: test] (
+                        expr = IntLiteral [indexes: 2..3, line/column: 1/3..1/4, file: test] (1)
                     )
-                    FunctionArgument.Positional [indexes: 5..6, file: test] (
-                        expr = PropertyAccess [indexes: 5..6, file: test] (
+                    FunctionArgument.Positional [indexes: 5..6, line/column: 1/6..1/7, file: test] (
+                        expr = PropertyAccess [indexes: 5..6, line/column: 1/6..1/7, file: test] (
                             name = x
                         )
                     )
-                    FunctionArgument.Positional [indexes: 8..11, file: test] (
-                        expr = FunctionCall [indexes: 8..11, file: test] (
+                    FunctionArgument.Positional [indexes: 8..11, line/column: 1/9..1/12, file: test] (
+                        expr = FunctionCall [indexes: 8..11, line/column: 1/9..1/12, file: test] (
                             name = g
                             args = []
                         )
@@ -191,18 +191,18 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
         )
 
         val expected = """
-            FunctionCall [indexes: 0..15, file: test] (
+            FunctionCall [indexes: 0..15, line/column: 1/1..1/16, file: test] (
                 name = f
                 args = [
-                    FunctionArgument.Named [indexes: 2..7, file: test] (
+                    FunctionArgument.Named [indexes: 2..7, line/column: 1/3..1/8, file: test] (
                         name = a,
-                        expr = PropertyAccess [indexes: 6..7, file: test] (
+                        expr = PropertyAccess [indexes: 6..7, line/column: 1/7..1/8, file: test] (
                             name = b
                         )
                     )
-                    FunctionArgument.Named [indexes: 9..14, file: test] (
+                    FunctionArgument.Named [indexes: 9..14, line/column: 1/10..1/15, file: test] (
                         name = c,
-                        expr = PropertyAccess [indexes: 13..14, file: test] (
+                        expr = PropertyAccess [indexes: 13..14, line/column: 1/14..1/15, file: test] (
                             name = d
                         )
                     )
@@ -221,17 +221,17 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
         )
 
         val expected = """
-            Assignment [indexes: 0..9, file: test] (
-                lhs = PropertyAccess [indexes: 4..5, file: test] (
-                    receiver = PropertyAccess [indexes: 2..3, file: test] (
-                        receiver = PropertyAccess [indexes: 0..1, file: test] (
+            Assignment [indexes: 0..9, line/column: 1/1..1/10, file: test] (
+                lhs = PropertyAccess [indexes: 4..5, line/column: 1/5..1/6, file: test] (
+                    receiver = PropertyAccess [indexes: 2..3, line/column: 1/3..1/4, file: test] (
+                        receiver = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
                             name = a
                         )
                         name = b
                     )
                     name = c
                 )
-                rhs = IntLiteral [indexes: 8..9, file: test] (1)
+                rhs = IntLiteral [indexes: 8..9, line/column: 1/9..1/10, file: test] (1)
             )
             """.trimIndent()
         assertResult(expected, results)
@@ -242,9 +242,9 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
         val results = parse("val a = 1")
 
         val expected = """
-            LocalValue [indexes: 0..9, file: test] (
+            LocalValue [indexes: 0..9, line/column: 1/1..1/10, file: test] (
                 name = a
-                rhs = IntLiteral [indexes: 8..9, file: test] (1)
+                rhs = IntLiteral [indexes: 8..9, line/column: 1/9..1/10, file: test] (1)
             )
             """.trimIndent()
         assertResult(expected, results)
@@ -255,13 +255,13 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
         val results = parse("a = b.c.d")
 
         val expected = """
-            Assignment [indexes: 0..9, file: test] (
-                lhs = PropertyAccess [indexes: 0..1, file: test] (
+            Assignment [indexes: 0..9, line/column: 1/1..1/10, file: test] (
+                lhs = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
                     name = a
                 )
-                rhs = PropertyAccess [indexes: 8..9, file: test] (
-                    receiver = PropertyAccess [indexes: 6..7, file: test] (
-                        receiver = PropertyAccess [indexes: 4..5, file: test] (
+                rhs = PropertyAccess [indexes: 8..9, line/column: 1/9..1/10, file: test] (
+                    receiver = PropertyAccess [indexes: 6..7, line/column: 1/7..1/8, file: test] (
+                        receiver = PropertyAccess [indexes: 4..5, line/column: 1/5..1/6, file: test] (
                             name = b
                         )
                         name = c
@@ -281,16 +281,16 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
             """.trimIndent())
 
         val expected = """
-            FunctionCall [indexes: 0..11, file: test] (
+            FunctionCall [indexes: 0..11, line/column: 1/1..1/12, file: test] (
                 name = a
                 args = [
-                    FunctionArgument.Lambda [indexes: 2..11, file: test] (
-                        block = Block [indexes: 4..9, file: test] (
-                            Assignment [indexes: 4..9, file: test] (
-                                lhs = PropertyAccess [indexes: 4..5, file: test] (
+                    FunctionArgument.Lambda [indexes: 2..11, line/column: 1/3..1/12, file: test] (
+                        block = Block [indexes: 4..9, line/column: 1/5..1/10, file: test] (
+                            Assignment [indexes: 4..9, line/column: 1/5..1/10, file: test] (
+                                lhs = PropertyAccess [indexes: 4..5, line/column: 1/5..1/6, file: test] (
                                     name = b
                                 )
-                                rhs = IntLiteral [indexes: 8..9, file: test] (1)
+                                rhs = IntLiteral [indexes: 8..9, line/column: 1/9..1/10, file: test] (1)
                             )
                         )
                     )
@@ -305,27 +305,27 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
         val results = parse("f(1).g(2).h(3)")
 
         val expected = """
-            FunctionCall [indexes: 10..14, file: test] (
+            FunctionCall [indexes: 10..14, line/column: 1/11..1/15, file: test] (
                 name = h
-                receiver = FunctionCall [indexes: 5..9, file: test] (
+                receiver = FunctionCall [indexes: 5..9, line/column: 1/6..1/10, file: test] (
                     name = g
-                    receiver = FunctionCall [indexes: 0..4, file: test] (
+                    receiver = FunctionCall [indexes: 0..4, line/column: 1/1..1/5, file: test] (
                         name = f
                         args = [
-                            FunctionArgument.Positional [indexes: 2..3, file: test] (
-                                expr = IntLiteral [indexes: 2..3, file: test] (1)
+                            FunctionArgument.Positional [indexes: 2..3, line/column: 1/3..1/4, file: test] (
+                                expr = IntLiteral [indexes: 2..3, line/column: 1/3..1/4, file: test] (1)
                             )
                         ]
                     )
                     args = [
-                        FunctionArgument.Positional [indexes: 7..8, file: test] (
-                            expr = IntLiteral [indexes: 7..8, file: test] (2)
+                        FunctionArgument.Positional [indexes: 7..8, line/column: 1/8..1/9, file: test] (
+                            expr = IntLiteral [indexes: 7..8, line/column: 1/8..1/9, file: test] (2)
                         )
                     ]
                 )
                 args = [
-                    FunctionArgument.Positional [indexes: 12..13, file: test] (
-                        expr = IntLiteral [indexes: 12..13, file: test] (3)
+                    FunctionArgument.Positional [indexes: 12..13, line/column: 1/13..1/14, file: test] (
+                        expr = IntLiteral [indexes: 12..13, line/column: 1/13..1/14, file: test] (3)
                     )
                 ]
             )

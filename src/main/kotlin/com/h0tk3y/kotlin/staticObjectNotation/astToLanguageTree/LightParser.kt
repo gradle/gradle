@@ -19,9 +19,13 @@ private val psiBuilderFactory by lazy {
     PsiBuilderFactoryImpl()
 }
 
-fun parseToLightTree(@Language("kts") code: String): Pair<LightTree, Int> {
+fun parseToLightTree(@Language("kts") code: String): Triple<LightTree, String, Int> {
     val (wrappedCode, codeOffset) = wrapScriptIntoClassInitializerBlock(code)
-    return KotlinLightParser.parse(psiBuilderFactory.createBuilder(parserDefinition, lexer, wrappedCode)) to codeOffset
+    return Triple(
+        KotlinLightParser.parse(psiBuilderFactory.createBuilder(parserDefinition, lexer, wrappedCode)),
+        wrappedCode,
+        codeOffset
+    )
 }
 
 fun main() {

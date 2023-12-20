@@ -72,6 +72,12 @@ class AstSourceData(
 ) : SourceData {
     override val indexRange: IntRange
         get() = currentAst.astInfoOrNull?.let { it.start.index..it.stop.index } ?: -1..-1
+    override val lineRange: IntRange
+        get() = currentAst.astInfoOrNull?.let { it.start.line..it.stop.line } ?: -1..-1
+    override val startColumn: Int
+        get() = currentAst.astInfoOrNull?.start?.row ?: -1
+    override val endColumn: Int
+        get() = currentAst.astInfoOrNull?.stop?.row ?: -1
 
     override fun text(): String = currentAst.text
 }

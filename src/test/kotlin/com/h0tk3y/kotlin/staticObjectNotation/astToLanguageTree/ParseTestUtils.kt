@@ -12,8 +12,8 @@ class ParseTestUtil {
         }
 
         fun parseWithLightParser(@Language("kts") code: String): List<ElementResult<*>> {
-            val (tree, sourceOffset) = parseToLightTree(code)
-            return DefaultLanguageTreeBuilder().build(tree, sourceOffset, SourceIdentifier("test")).results
+            val (tree, sourceCode, sourceOffset) = parseToLightTree(code)
+            return DefaultLanguageTreeBuilder().build(tree, sourceCode, sourceOffset, SourceIdentifier("test")).results
         }
     }
 
