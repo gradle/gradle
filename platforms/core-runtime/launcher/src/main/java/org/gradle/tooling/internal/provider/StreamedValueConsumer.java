@@ -17,21 +17,17 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.internal.event.ListenerNotificationException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
-import org.gradle.tooling.internal.provider.serialization.IntermediateModel;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.StreamedValue;
 
-import java.util.Collections;
-
-public class IntermediateModelListenerAdapter implements BuildEventConsumer {
+public class StreamedValueConsumer implements BuildEventConsumer {
 
     private final ProviderOperationParameters providerParameters;
     private final PayloadSerializer payloadSerializer;
     private final BuildEventConsumer delegate;
-    private Throwable failure;
 
-    public IntermediateModelListenerAdapter(ProviderOperationParameters providerParameters, PayloadSerializer payloadSerializer, BuildEventConsumer delegate) {
+    public StreamedValueConsumer(ProviderOperationParameters providerParameters, PayloadSerializer payloadSerializer, BuildEventConsumer delegate) {
         this.providerParameters = providerParameters;
         this.payloadSerializer = payloadSerializer;
         this.delegate = delegate;
@@ -39,25 +35,12 @@ public class IntermediateModelListenerAdapter implements BuildEventConsumer {
 
     @Override
     public void dispatch(Object message) {
-        if (message instanceof IntermediateModel) {
-            if (failure != null) {
-                return;
-            }
-            IntermediateModel intermediateModel = (IntermediateModel) message;
-            Object deserializedMessage = payloadSerializer.deserialize(intermediateModel.getSerializedModel());
-            try {
-                providerParameters.sendIntermediate(deserializedMessage);
-            } catch (Throwable e) {
-                failure = e;
-            }
+        if (message instanceof StreamedValue) {
+            StreamedValue value = (StreamedValue) message;
+            Object deserializedValue = payloadSerializer.deserialize(value.getSerializedModel());
+            providerParameters.onStreamedValue(deserializedValue);
         } else {
             delegate.dispatch(message);
-        }
-    }
-
-    public void rethrowErrors() {
-        if (failure != null) {
-            throw new ListenerNotificationException(null, "Intermediate model listener failed with an exception.", Collections.singletonList(failure));
         }
     }
 }

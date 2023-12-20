@@ -14,14 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.api.problems.internal
 
-/**
- * @since 8.6
- */
-public interface InternalIntermediateModelRelay {
-    /**
-     * @since 8.6
-     */
-    void sendIntermediate(Object model);
+import spock.lang.Specification
+
+class DefaultProblemsTest extends Specification {
+
+    def "using org.gradle core namespace is not allowed on the public API"() {
+        def emitter = Mock(ProblemEmitter)
+
+        given:
+        def p = new DefaultProblems(emitter)
+
+        when:
+        p.forNamespace(DefaultProblemCategory.GRADLE_CORE_NAMESPACE)
+
+        then:
+        thrown(IllegalStateException)
+    }
 }
