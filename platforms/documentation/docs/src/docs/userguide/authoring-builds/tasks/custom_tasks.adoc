@@ -566,7 +566,7 @@ A task can throw a subtype of link:{javadocPath}/org/gradle/api/tasks/Verificati
 When Gradle is run with `--continue`, consumer tasks that depend on this output can still run.
 
 A failed unit test, for instance, will cause a failing outcome for the test task.
-However, this doesn't prevent another task from reading and processing the (valid) test results output files the task produced.
+However, this doesn't prevent another task from reading and processing the (valid) test results the task produced.
 Verification failures are used in exactly this manner by the <<test_report_aggregation_plugin.adoc#test_report_aggregation_plugin, `Test Report Aggregation Plugin`>>.
 
 Verification failures are also useful for tasks that produce output piece by piece that is consumable after any number of pieces.
