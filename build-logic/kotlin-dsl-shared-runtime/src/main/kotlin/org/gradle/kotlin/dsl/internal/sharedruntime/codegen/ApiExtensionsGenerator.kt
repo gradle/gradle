@@ -127,12 +127,27 @@ fun Sequence<KotlinExtensionFunction>.groupedByTarget(): Map<ApiType, List<Kotli
 private
 fun writeExtensionsTo(outputFile: File, packageName: String, targetType: ApiType, extensions: List<KotlinExtensionFunction>): Unit =
     outputFile.bufferedWriter().use { writer ->
-        writer.write(fileHeaderFor(packageName, targetType.isIncubating))
+        writer.write(fileHeaderFor(packageName, isIncubatingFileClass(targetType, extensions)))
         writer.write("\n")
         extensions.forEach {
             writer.write("\n${it.toKotlinString()}")
         }
     }
+
+
+/**
+ * An implicit file class like `AbcKt` that Kotlin generates is also part of the public API,
+ * and it should be appropriately marked with `@file:Incubating`.
+ *
+ * When the target method of an extension functions is de-incubated, removing at a later point is a breaking change.
+ * The corresponding extension function gets automatically de-incubated during source generation.
+ * But the same applies to the implicit file class, and it has to be de-incubated when any
+ * extension function it contains is de-incubated.
+ */
+private
+fun isIncubatingFileClass(targetType: ApiType, extensions: List<KotlinExtensionFunction>): Boolean {
+    return targetType.isIncubating || extensions.all { it.isIncubating }
+}
 
 
 private
