@@ -15,9 +15,11 @@
  */
 package org.gradle.api.internal.file.collections
 
+import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.Transformer
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileCollectionConfigurer
 import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionSpec
@@ -1807,12 +1809,32 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         !collection.explicit
     }
 
+    def "can incrementally set paths using action"() {
+        when:
+        collection.withActualValue({
+            it.from("src1", "src2")
+            it.from("src3")
+        } as Action<FileCollectionConfigurer>)
+        then:
+        collection.from as List == ["src1", "src2", "src3"]
+    }
+
+    def "can incrementally set paths using closure"() {
+        when:
+        collection.withActualValue {
+            from("src1", "src2")
+            from("src3")
+        }
+        then:
+        collection.from as List == ["src1", "src2", "src3"]
+    }
+
     def "can incrementally set paths as convention to the collection"() {
         when:
         collection.convention("src0")
         collection.withActualValue {
-            it.from("src1", "src2")
-            it.from("src3")
+            from("src1", "src2")
+            from("src3")
         }
         then:
         collection.from as List == ["src0", "src1", "src2", "src3"]
@@ -1824,8 +1846,8 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.setFrom("src1")
         collection.convention("unused-src")
         collection.withActualValue {
-            it.from("src3")
-            it.from("src4")
+            from("src3")
+            from("src4")
         }
         then:
         collection.from as List == ["src1", "src3", "src4"]
@@ -1835,7 +1857,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         given:
         collection.convention("src0")
         collection.withActualValue {
-            it.from("src1")
+            from("src1")
         }
 
         when:
