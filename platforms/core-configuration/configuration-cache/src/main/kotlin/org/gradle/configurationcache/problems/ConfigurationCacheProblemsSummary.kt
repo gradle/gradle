@@ -154,8 +154,10 @@ class Summary private constructor(
             if (uniqueProblemCount > maxConsoleProblems) {
                 appendLine("plus ${uniqueProblemCount - maxConsoleProblems} more problems. Please see the report for details.")
             }
-            appendLine()
-            htmlReportFile?.let { append(buildSummaryReportLink(it)) }
+            htmlReportFile?.let {
+                appendLine()
+                append(buildSummaryReportLink(it))
+            }
         }.toString()
     }
 
