@@ -75,12 +75,14 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
                 @Override
                 public void execute() {
+                    Exception wrappedException = new Exception("Wrapped cause");
                     // Create and report a problem
                     // This needs to be Java 6 compatible, as we are in a worker
                      getProblems().forNamespace("org.example.plugin").reporting(problem -> problem
                             .label("label")
                             .stackLocation()
                             .category("type")
+                            .withException(new RuntimeException("Exception message", wrappedException))
                     );
 
                     // Write the current build operation id to a file
@@ -129,6 +131,8 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
         collectedProblems.size() == 1
         def problem = collectedProblems[0]
         problem.operationId == Long.parseLong(buildOperationIdFile.text)
+        problem.exception.message == "Exception message"
+        problem.exception.stackTrace.contains("Caused by: java.lang.Exception: Wrapped cause")
 
         where:
         isolationMode << WorkerExecutorFixture.ISOLATION_MODES
