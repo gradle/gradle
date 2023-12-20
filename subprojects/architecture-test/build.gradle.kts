@@ -51,10 +51,12 @@ tasks.test {
     // Only use one fork, so freezing doesn't have concurrency issues
     maxParallelForks = 1
 
+    val ruleStoreDir = project.file("src/changes/archunit_store")
+
     systemProperty("org.gradle.public.api.includes", (PublicApi.includes + PublicKotlinDslApi.includes).joinToString(":"))
     systemProperty("org.gradle.public.api.excludes", (PublicApi.excludes + PublicKotlinDslApi.excludes).joinToString(":"))
     jvmArgumentProviders.add(ArchUnitFreezeConfiguration(
-        project.file("src/changes/archunit_store"),
+        ruleStoreDir,
         providers.gradleProperty("archunitRefreeze").map { true })
     )
 
@@ -65,6 +67,24 @@ tasks.test {
         // PTS doesn't work well with architecture tests which scan all classes
         enabled = false
     }
+
+    doLast {
+        resortStoredRules(ruleStoreDir)
+    }
+}
+
+/**
+ * Sorts the stored rules, so we keep a deterministic order when we add new rules.
+ */
+fun resortStoredRules(store: File) {
+    val storedRules = store.resolve("stored.rules")
+
+    val lines = storedRules.readLines()
+    val sortedLines = lines.sortedBy {
+        // We sort by the rule name
+        it.substringBefore("=")
+    }
+    storedRules.writeText(sortedLines.joinToString("\n"))
 }
 
 class ArchUnitFreezeConfiguration(
