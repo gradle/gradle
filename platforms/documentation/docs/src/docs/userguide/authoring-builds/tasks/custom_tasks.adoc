@@ -563,13 +563,14 @@ However, any tasks that depend on a failed task will be not be executed.
 
 There is a special type of exception that behaves differently.
 A task can throw a subtype of link:{javadocPath}/org/gradle/api/tasks/VerificationException.html[VerificationException] to indicate that it has failed in a controlled manner such that its output is still valid for consumers.
-When Gradle is run with `--continue`, consumer tasks that depend on this output can still run.
+A task depends on the *outcome* of another task when it directly depends on it using `dependsOn`.
+When Gradle is run with `--continue`, consumer tasks that depend on a producer task's output (via a relationship between task inputs and outputs) can still run after the consumer fails.
 
 A failed unit test, for instance, will cause a failing outcome for the test task.
 However, this doesn't prevent another task from reading and processing the (valid) test results the task produced.
 Verification failures are used in exactly this manner by the <<test_report_aggregation_plugin.adoc#test_report_aggregation_plugin, `Test Report Aggregation Plugin`>>.
 
-Verification failures are also useful for tasks that produce output piece by piece that is consumable after any number of pieces.
+Verification failures are also useful for tasks that need to report a failure even after producing useful output consumable by other tasks.
 
 .Example of a verification failure allowing a consumer task to run
 ====
