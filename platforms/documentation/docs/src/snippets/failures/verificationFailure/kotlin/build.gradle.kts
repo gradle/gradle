@@ -15,7 +15,7 @@
  */
 
 // tag::verification-failure[]
-val logFile = file("build/processed.log")
+val logFile = layout.buildDirectory.file("processed.log")
 
 val process = tasks.register("process") {
     outputs.files(logFile) // <1>
