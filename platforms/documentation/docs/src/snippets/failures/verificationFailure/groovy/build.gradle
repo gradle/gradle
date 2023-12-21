@@ -15,12 +15,12 @@
  */
 
 // tag::verification-failure[]
-def logFile = layout.buildDirectory.file("build/processed.log").get().asFile
-
 tasks.register("process") {
-    outputs.files(logFile) // <1>
+    def outputFile = layout.buildDirectory.file("processed.log")
+    outputs.files(outputFile) // <1>
 
     doLast {
+        def logFile = outputFile.get().asFile
         logFile << "Step 1 Complete." // <2>
         throw new VerificationException("Process failed!") // <3>
         logFile << "Step 2 Complete." // <4>
