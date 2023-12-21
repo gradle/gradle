@@ -8,7 +8,26 @@ Additionally, this release comes with more helpful [error and warning messages](
 See the full release notes for details.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
-[Mel Arthurs](https://github.com/arthursmel)
+[Baptiste Decroix](https://github.com/bdecroix-spiria),
+[Björn Kautler](https://github.com/Vampire),
+[Daniel Lacasse](https://github.com/lacasseio),
+[Danny Thomas](https://github.com/DanielThomas),
+[Hyeonmin Park](https://github.com/KENNYSOFT),
+[jeffalder](https://github.com/jeffalder),
+[Jendrik Johannes](https://github.com/jjohannes),
+[John Jiang](https://github.com/johnshajiang),
+[Kaiyao Ke](https://github.com/kaiyaok2),
+[Kevin Mark](https://github.com/kmark),
+[king-tyler](https://github.com/king-tyler),
+[Marcin Dąbrowski](https://github.com/marcindabrowski),
+[Marcin Laskowski](https://github.com/ILikeYourHat),
+[Markus Gaisbauer](https://github.com/quijote),
+[Mel Arthurs](https://github.com/arthursmel),
+[Ryan Schmitt](https://github.com/rschmitt),
+[Surya K N](https://github.com/Surya-KN),
+[Vladislav Golubtsov](https://github.com/Shmuser),
+[Yanshun Li](https://github.com/Chaoba),
+[​Andrzej Ressel](https://github.com/andrzejressel)
 
 Be sure to check out the [Public Roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
 
