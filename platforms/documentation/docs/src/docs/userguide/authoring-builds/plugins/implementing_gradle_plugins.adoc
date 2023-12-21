@@ -430,23 +430,26 @@ include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files
 
 == Reporting problems
 
-Plugins can report problems through Gradle's problem reporting APIs, which allows reporting rich, structured information about problems happening during the build.
-This information could be used by different user interfaces like Gradle's console output, build scans, or IDEs to communicate problems to the user in the most appropriate way.
+Plugins can report problems through Gradle's problem-reporting APIs.
+The APIs report rich, structured information about problems happening during the build.
+This information can be used by different user interfaces such as Gradle's console output, Build Scans, or IDEs to communicate problems to the user in the most appropriate way.
 
-The following brief example shows an example issue reported from a plugin. For a full example, see our link:../samples/sample_problems_api_usage.html[end-to-end sample].
+The following example shows an issue reported from a plugin:
 
 ====
 include::sample[dir="snippets/developingPlugins/problemReporting/kotlin/buildSrc/src/main/java/org/myorg",files="ProblemReportingPlugin.java[tags=snippet]"]
 ====
 
 <1> The `Problem` service is injected into the plugin.
-<2> A problem reporter, is created for the plugin. Meanwhile the namespace is up to the plugin author, it is recommended to use the plugin ID.
-<3> A problem is reported. This problem is recoverable, so the build will continue.
+<2> A problem reporter, is created for the plugin. While the namespace is up to the plugin author, it is recommended to use the plugin ID.
+<3> A problem is reported. This problem is recoverable so that the build will continue.
+
+For a full example, see our link:../samples/sample_problems_api_usage.html[end-to-end sample].
 
 === Problem building
 
 When reporting a problem, a wide variety of information can be provided.
-The documentation provided in link:{javaDocPath}/org/gradle/api/problems/ProblemSpec.html[ProblemSpec] describes all the information that can be provided.
+The link:{javaDocPath}/org/gradle/api/problems/ProblemSpec.html[ProblemSpec] describes all the information that can be provided.
 
 === Reporting problems
 
@@ -454,14 +457,14 @@ When it comes to reporting problems, we support three different modes:
 
 - link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#reporting-org.gradle.api.Action-[Reporting] a problem is used for reporting problems that are recoverable, and the build should continue.
 - link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#throwing-org.gradle.api.Action-[Throwing] a problem is used for reporting problems that are not recoverable, and the build should fail.
-- link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#rethrowing-java.lang.RuntimeException-org.gradle.api.Action-[Rethrowing] a problem is used to wrap an already thrown exception. Otherwise, the behavior is the same as for `Throwing`.
+- link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#rethrowing-java.lang.RuntimeException-org.gradle.api.Action-[Rethrowing] a problem is used to wrap an already thrown exception. Otherwise, the behavior is the same as `Throwing`.
 
 See the link:{javaDocPath}/org/gradle/api/problems/ProblemReporter.html[ProblemReporter] documentation for more details.
 
 === Problem aggregation
 
-When reporting problems, Gradle will aggregate similar problems when it sends it through the Tooling API, based on the problem's category label.
+When reporting problems, Gradle will aggregate similar problems when it sends them through the Tooling API based on the problem's category label.
 
- - When a problem is reported, the _first_ occurrence is going to be reported as link:{javaDocPath}/org/gradle/tooling/events/problems/ProblemDescriptor.html[ProblemDescriptor], containing the full information about the problem.
- - Any subsequent occurrences of the same problem will be reported as link:{javaDocPath}org/gradle/tooling/events/problems/ProblemAggregationDescriptor.html[ProblemAggregationDescriptor]. This descriptor will arrive at the _end_ of the build, and will contain the number of occurrences of the problem.
- - If for any bucket (i.e. category and label pairing), the number of collected occurrences is greater than 10.000, then it will be sent immediately instead of at the end of the build.
+ - When a problem is reported, the _first_ occurrence is going to be reported as a link:{javaDocPath}/org/gradle/tooling/events/problems/ProblemDescriptor.html[ProblemDescriptor], containing the complete information about the problem.
+ - Any subsequent occurrences of the same problem will be reported as a link:{javaDocPath}org/gradle/tooling/events/problems/ProblemAggregationDescriptor.html[ProblemAggregationDescriptor]. This descriptor will arrive at the _end_ of the build and contain the number of occurrences of the problem.
+ - If for any bucket (i.e., category and label pairing), the number of collected occurrences is greater than 10.000, then it will be sent immediately instead of at the end of the build.
