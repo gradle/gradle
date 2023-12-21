@@ -15,7 +15,7 @@
  */
 
 // tag::verification-failure[]
-def logFile = file("build/processed.log")
+def logFile = layout.buildDirectory.file("build/processed.log").get().asFile
 
 tasks.register("process") {
     outputs.files(logFile) // <1>
@@ -28,7 +28,7 @@ tasks.register("process") {
 }
 
 tasks.register("postProcess") {
-    inputs.files(tasks.named("process").map { it.outputs.files }) // <5>
+    inputs.files(tasks.named("process")) // <5>
 
     doLast {
         println("Results: ${inputs.files.singleFile.text}") // <6>
