@@ -1691,19 +1691,11 @@ div.screenshot {
 /* Side Navigation styles */
 /* Docs Navigation */
 .docs-navigation {
-    padding-left: 5px;
-    padding: 20px 20px 20px 26px;
-    background: var(--nav-color);
     border-right: 1px solid #e7e7e9;
-    overflow: scroll;
 }
 @media (prefers-color-scheme: dark) {
     .docs-navigation {
-        padding-left: 5px;
-        padding: 20px 20px 20px 26px;
-        background: var(--nav-color);
         border-right: 1px solid #242526;
-        overflow: scroll;
     }
 }
 
@@ -2272,18 +2264,8 @@ div.screenshot {
     width: 18rem;
     padding: 20px 20px 20px 26px;
     background: var(--nav-color);
-    border-right: 1px solid #e7e7e9;
     overflow-y: scroll;
     overflow-x: auto;
-}
-@media (prefers-color-scheme: dark) {
-    .docs-navigation {
-        width: 18rem;
-        padding: 20px 20px 20px 26px;
-        background: var(--nav-color);
-        overflow-y: scroll;
-        overflow-x: auto;
-    }
 }
 
 .layout {
