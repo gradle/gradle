@@ -25,8 +25,8 @@ import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.Element
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.FailingResult
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeBuilderWithTopLevelBlock
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.parseToAst
-import com.h0tk3y.kotlin.staticObjectNotation.language.AstSourceIdentifier
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.parseToLightTree
+import com.h0tk3y.kotlin.staticObjectNotation.language.SourceIdentifier
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.CompositeFunctionResolver
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.CompositePropertyResolver
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.MemberFunctionResolver
@@ -39,8 +39,6 @@ import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.ReflectionContext
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.reflect
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.plus
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.treatInterfaceAsConfigureLambda
-import kotlinx.ast.common.ast.Ast
-import org.antlr.v4.kotlinruntime.misc.ParseCancellationException
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
@@ -52,7 +50,6 @@ import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluat
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.FailuresInLanguageTree
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.FailuresInResolution
-import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.NoParseResult
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.NoSchemaAvailable
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.UnassignedValuesUsed
 import org.gradle.internal.restricteddsl.plugins.RuntimeTopLevelPluginsReceiver
@@ -136,12 +133,9 @@ class DefaultRestrictedKotlinScriptEvaluator(
         val evaluationSchema = step.evaluationSchemaForStep()
 
         val resolver = defaultCodeResolver(evaluationSchema.analysisStatementFilter)
-        val ast = astFromScript(scriptSource).singleOrNull()
-            ?: run {
-                failureReasons += (NoParseResult)
-                return NotEvaluated(failureReasons)
-            }
-        val languageModel = languageModelFromAst(ast, scriptSource)
+
+        val languageModel = languageModelFromLightParser(scriptSource)
+
         val failures = languageModel.results.filterIsInstance<FailingResult>()
         if (failures.isNotEmpty()) {
             failureReasons += FailuresInLanguageTree(failures)
@@ -181,16 +175,10 @@ class DefaultRestrictedKotlinScriptEvaluator(
         AssignmentTracer { AssignmentResolver() }.produceAssignmentTrace(result)
 
     private
-    fun astFromScript(scriptSource: ScriptSource): List<Ast> =
-        try {
-            parseToAst(scriptSource.resource.text)
-        } catch (e: ParseCancellationException) {
-            emptyList()
-        }
-
-    private
-    fun languageModelFromAst(ast: Ast, scriptSource: ScriptSource): LanguageTreeResult =
-        languageTreeBuilder.build(ast, AstSourceIdentifier(ast, scriptSource.fileName))
+    fun languageModelFromLightParser(scriptSource: ScriptSource): LanguageTreeResult {
+        val (tree, code, codeOffset) = parseToLightTree(scriptSource.resource.text)
+        return languageTreeBuilder.build(tree, code, codeOffset, SourceIdentifier(scriptSource.fileName))
+    }
 
     private
     val languageTreeBuilder = LanguageTreeBuilderWithTopLevelBlock(DefaultLanguageTreeBuilder())
