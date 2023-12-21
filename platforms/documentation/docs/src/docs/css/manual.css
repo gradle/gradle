@@ -68,7 +68,7 @@
         --text-color: #aaa;
         --title-color: #fff;
         --header-color: rgba(255, 255, 255, 0.85);
-        --footer-color: #121212;
+        --footer-color: #242526;
         --code-color: #1f1f1f;
         --code-text-color: rgba(255, 255, 255, 0.9);
         --code-link-color: #15768a;
@@ -508,6 +508,63 @@ table.tableblock > caption.title { white-space: nowrap; overflow: visible; max-w
 
 table.tableblock #preamble > .sectionbody > .paragraph:first-of-type p { font-size: inherit; }
 
+/* Custom SVG logos coloring */
+path {
+    fill="#02303A";
+}
+@media (prefers-color-scheme: dark) {
+    path {
+        fill: white;
+    }
+}
+
+/* Custom scroll bar */
+@media (prefers-color-scheme: light) {
+    /* Works on Firefox */
+    .docs-navigation {
+        scrollbar-width: auto;
+        scrollbar-color: #686868 #e7e7e9;
+    }
+
+    /* Works on Chrome, Edge, and Safari */
+    .docs-navigation::-webkit-scrollbar {
+        width: 12px;
+    }
+
+    .docs-navigation::-webkit-scrollbar-track {
+        background: #e7e7e9;
+    }
+
+    .docs-navigation::-webkit-scrollbar-thumb {
+        background-color: #686868;
+            border-radius: 20px;
+            border: 3px #686868;
+    }
+}
+@media (prefers-color-scheme: dark) {
+    /* Works on Firefox */
+    .docs-navigation {
+        scrollbar-width: auto;
+        overflow-y: scroll;
+        scrollbar-color: #686868 #242526;
+    }
+
+    /* Works on Chrome, Edge, and Safari */
+    .docs-navigation::-webkit-scrollbar {
+        width: 12px;
+    }
+
+    .docs-navigation::-webkit-scrollbar-track {
+        background: #242526;
+    }
+
+    .docs-navigation::-webkit-scrollbar-thumb {
+        background-color: #686868;
+            border-radius: 20px;
+            border: 3px #686868;
+    }
+}
+
 /* Custom Admonition Blocks - Icons from https://github.com/primer/octicons */
 .admonitionblock {
     margin: 1.4rem 0 0
@@ -647,7 +704,7 @@ details summary {
 
 details summary:after {
   content: "+";
-  color: black;
+  color: var(--black-color);
   position: absolute;
   font-size: 1.75rem;
   line-height: 0;
@@ -1649,12 +1706,23 @@ div.screenshot {
 
 /* Side Navigation styles */
 /* Docs Navigation */
-.docs-navigation {
-    padding-left: 5px;
-    padding: 20px 20px 20px 26px;
-    background: var(--nav-color);
-    border-right: 1px solid #e7e7e9;
-    overflow: scroll;
+@media (prefers-color-scheme: light) {
+    .docs-navigation {
+        padding-left: 5px;
+        padding: 20px 20px 20px 26px;
+        background: var(--nav-color);
+        border-right: 1px solid #e7e7e9;
+        overflow: scroll;
+    }
+}
+@media (prefers-color-scheme: dark) {
+    .docs-navigation {
+        padding-left: 5px;
+        padding: 20px 20px 20px 26px;
+        background: var(--nav-color);
+        border-right: 1px solid #242526;
+        overflow: scroll;
+    }
 }
 
 .docs-navigation .search-container {
@@ -2009,7 +2077,7 @@ div.screenshot {
 }
 
 .site-footer__subscribe-newsletter .newsletter-form__header h5 {
-    color: var(--footer-color);
+    color: var(--footer-text-color);
     margin-top: 0;
 }
 
@@ -2221,13 +2289,24 @@ div.screenshot {
   float: right;
 }
 
-.docs-navigation {
-    width: 18rem;
-    padding: 20px 20px 20px 26px;
-    background: var(--nav-color);
-    border-right: 1px solid #e7e7e9;
-    overflow-y: scroll;
-    overflow-x: auto;
+@media (prefers-color-scheme: light) {
+    .docs-navigation {
+        width: 18rem;
+        padding: 20px 20px 20px 26px;
+        background: var(--nav-color);
+        border-right: 1px solid #e7e7e9;
+        overflow-y: scroll;
+        overflow-x: auto;
+    }
+}
+@media (prefers-color-scheme: dark) {
+    .docs-navigation {
+        width: 18rem;
+        padding: 20px 20px 20px 26px;
+        background: var(--nav-color);
+        overflow-y: scroll;
+        overflow-x: auto;
+    }
 }
 
 .layout {
