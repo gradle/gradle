@@ -237,7 +237,7 @@ public abstract class InitBuild extends DefaultTask {
     @Incubating
     @Input
     @Optional
-    @Option(option = "comments", description = "Include clarifying comments in files")
+    @Option(option = "comments", description = "Include clarifying comments in files.")
     public abstract Property<Boolean> getComments();
 
     public ProjectLayoutSetupRegistry getProjectLayoutRegistry() {
