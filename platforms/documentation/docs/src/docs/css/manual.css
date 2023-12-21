@@ -47,22 +47,10 @@
     --footer-white-color: #fff;
     --footer-text-color: #fff;
 }
-
 @media (prefers-color-scheme: dark) {
     :root {
         /* Dark mode variables go here */
-        --caution-color: #e40046;
-        --caution-on-color: #fff;
-        --important-color: #802392;
-        --important-on-color: #fff;
-        --note-color: #2d7dd2;
-        --note-on-color: #fff;
-        --tip-color: #43b929;
-        --tip-on-color: #fff;
-        --warning-color: #f70;
-        --warning-on-color: #fff;
         --admonition-background: #2a2929;
-
         --black-color: #fff;
         --white-color: #121212;
         --text-color: #aaa;
@@ -519,28 +507,27 @@ path {
 }
 
 /* Custom scroll bar */
-@media (prefers-color-scheme: light) {
-    /* Works on Firefox */
-    .docs-navigation {
-        scrollbar-width: auto;
-        scrollbar-color: #686868 #e7e7e9;
-    }
-
-    /* Works on Chrome, Edge, and Safari */
-    .docs-navigation::-webkit-scrollbar {
-        width: 12px;
-    }
-
-    .docs-navigation::-webkit-scrollbar-track {
-        background: #e7e7e9;
-    }
-
-    .docs-navigation::-webkit-scrollbar-thumb {
-        background-color: #686868;
-            border-radius: 20px;
-            border: 3px #686868;
-    }
+/* Works on Firefox */
+.docs-navigation {
+    scrollbar-width: auto;
+    scrollbar-color: #686868 #e7e7e9;
 }
+
+/* Works on Chrome, Edge, and Safari */
+.docs-navigation::-webkit-scrollbar {
+    width: 12px;
+}
+
+.docs-navigation::-webkit-scrollbar-track {
+    background: #e7e7e9;
+}
+
+.docs-navigation::-webkit-scrollbar-thumb {
+    background-color: #686868;
+        border-radius: 20px;
+        border: 3px #686868;
+}
+
 @media (prefers-color-scheme: dark) {
     /* Works on Firefox */
     .docs-navigation {
@@ -1423,7 +1410,7 @@ div.screenshot {
     display: block;
     width: 22px;
     height: 2px;
-    background-color: black;
+    background-color: var(--black-color);
     border-radius: 1px;
 }
 
@@ -1608,15 +1595,12 @@ div.screenshot {
 
 /* Top navigation desktop styles */
 @media (min-width: 1024px) {
-    @media (prefers-color-scheme: light) {
-        .site-header {
-            -webkit-box-shadow: 0 2px 4px 0 var(--box-shadow-color);
-            -moz-box-shadow: 0 2px 4px 0 var(--box-shadow-color);
-            box-shadow: 0 2px 4px 0 var(--box-shadow-color);
-            z-index: 1;
-        }
+    .site-header {
+        -webkit-box-shadow: 0 2px 4px 0 var(--box-shadow-color);
+        -moz-box-shadow: 0 2px 4px 0 var(--box-shadow-color);
+        box-shadow: 0 2px 4px 0 var(--box-shadow-color);
+        z-index: 1;
     }
-
     @media (prefers-color-scheme: dark) {
         .site-header {
             -webkit-box-shadow: none;
@@ -1706,14 +1690,12 @@ div.screenshot {
 
 /* Side Navigation styles */
 /* Docs Navigation */
-@media (prefers-color-scheme: light) {
-    .docs-navigation {
-        padding-left: 5px;
-        padding: 20px 20px 20px 26px;
-        background: var(--nav-color);
-        border-right: 1px solid #e7e7e9;
-        overflow: scroll;
-    }
+.docs-navigation {
+    padding-left: 5px;
+    padding: 20px 20px 20px 26px;
+    background: var(--nav-color);
+    border-right: 1px solid #e7e7e9;
+    overflow: scroll;
 }
 @media (prefers-color-scheme: dark) {
     .docs-navigation {
@@ -2131,15 +2113,12 @@ div.screenshot {
 }
 
 /* Secondary footer (below) */
-@media (prefers-color-scheme: light) {
-    .site-footer-secondary {
-        background-color: var(--footer-white-color);
-        border-top: 1px solid #e7e7e9;
-        width: 100%;
-        z-index: 1;
-    }
+.site-footer-secondary {
+    background-color: var(--footer-white-color);
+    border-top: 1px solid #e7e7e9;
+    width: 100%;
+    z-index: 1;
 }
-
 @media (prefers-color-scheme: dark) {
     .site-footer-secondary {
         background-color: var(--footer-white-color);
@@ -2289,15 +2268,13 @@ div.screenshot {
   float: right;
 }
 
-@media (prefers-color-scheme: light) {
-    .docs-navigation {
-        width: 18rem;
-        padding: 20px 20px 20px 26px;
-        background: var(--nav-color);
-        border-right: 1px solid #e7e7e9;
-        overflow-y: scroll;
-        overflow-x: auto;
-    }
+.docs-navigation {
+    width: 18rem;
+    padding: 20px 20px 20px 26px;
+    background: var(--nav-color);
+    border-right: 1px solid #e7e7e9;
+    overflow-y: scroll;
+    overflow-x: auto;
 }
 @media (prefers-color-scheme: dark) {
     .docs-navigation {
