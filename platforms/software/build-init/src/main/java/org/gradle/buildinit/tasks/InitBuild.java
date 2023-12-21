@@ -227,6 +227,19 @@ public abstract class InitBuild extends DefaultTask {
         return insecureProtocol;
     }
 
+    /**
+     * Should clarifying comments be added to files?
+     * <p>
+     * This property can be set via the command-line options '--comments' and '--no-comments'.
+     *
+     * @since 8.7
+     */
+    @Incubating
+    @Input
+    @Optional
+    @Option(option = "comments", description = "Include clarifying comments in files")
+    public abstract Property<Boolean> getComments();
+
     public ProjectLayoutSetupRegistry getProjectLayoutRegistry() {
         if (projectLayoutRegistry == null) {
             projectLayoutRegistry = getServices().get(ProjectLayoutSetupRegistry.class);
@@ -257,6 +270,7 @@ public abstract class InitBuild extends DefaultTask {
         JavaLanguageVersion javaLanguageVersion = getJavaLanguageVersion(inputHandler, initDescriptor);
 
         boolean useIncubatingAPIs = shouldUseIncubatingAPIs(inputHandler);
+        boolean generateComments = getComments().get();
 
         List<String> subprojectNames = initDescriptor.getComponentType().getDefaultProjectNames();
         InitSettings settings = new InitSettings(
@@ -269,7 +283,8 @@ public abstract class InitBuild extends DefaultTask {
             testFramework,
             insecureProtocol.get(),
             projectDir,
-            javaLanguageVersion
+            javaLanguageVersion,
+            generateComments
         );
 
         boolean userInterrupted = inputHandler.interrupted();

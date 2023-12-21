@@ -30,13 +30,17 @@ public class GitAttributesGenerator implements BuildContentGenerator {
         File file = settings.getTarget().file(".gitattributes").getAsFile();
         try {
             try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
-                writer.println("#");
-                writer.println("# https://help.github.com/articles/dealing-with-line-endings/");
-                writer.println("#");
-                writer.println("# Linux start script should use lf");
+                if (settings.isWithComments()) {
+                    writer.println("#");
+                    writer.println("# https://help.github.com/articles/dealing-with-line-endings/");
+                    writer.println("#");
+                    writer.println("# Linux start script should use lf");
+                }
                 writer.println("/gradlew        text eol=lf");
                 writer.println();
-                writer.println("# These are Windows script files and should use crlf");
+                if (settings.isWithComments()) {
+                    writer.println("# These are Windows script files and should use crlf");
+                }
                 writer.println("*.bat           text eol=crlf");
                 writer.println();
             }

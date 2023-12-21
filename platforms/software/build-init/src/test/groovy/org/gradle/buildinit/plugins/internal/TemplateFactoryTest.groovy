@@ -118,7 +118,7 @@ class TemplateFactoryTest extends Specification {
 
     private createInitSettings(String packageName) {
         new InitSettings("project", false, ["app"], ModularizationOption.SINGLE_PROJECT, BuildInitDsl.KOTLIN, packageName,
-            BuildInitTestFramework.NONE, InsecureProtocolOption.WARN, targetDir, null)
+            BuildInitTestFramework.NONE, InsecureProtocolOption.WARN, targetDir, null, true)
     }
 
     def "whenNoSourcesAvailable creates template operation checking for sources"() {
