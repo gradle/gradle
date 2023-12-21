@@ -41,6 +41,8 @@ import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProj
 @NonNullApi
 public class IsolatedProjectsSafeGradleProjectBuilder implements GradleProjectBuilderInternal {
 
+    private static final String MODEL_NAME = "org.gradle.tooling.model.GradleProject";
+
     private final IntermediateToolingModelProvider intermediateToolingModelProvider;
 
     public IsolatedProjectsSafeGradleProjectBuilder(IntermediateToolingModelProvider intermediateToolingModelProvider) {
@@ -49,7 +51,7 @@ public class IsolatedProjectsSafeGradleProjectBuilder implements GradleProjectBu
 
     @Override
     public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.GradleProject");
+        return modelName.equals(MODEL_NAME);
     }
 
     @Override
@@ -59,14 +61,17 @@ public class IsolatedProjectsSafeGradleProjectBuilder implements GradleProjectBu
 
     @Override
     public DefaultGradleProject buildForRoot(Project project) {
-        ProjectInternal rootProject = (ProjectInternal) project.getRootProject();
+        requireRootProject(project);
+        ProjectInternal rootProject = (ProjectInternal) project;
         IsolatedGradleProjectParameter parameter = createParameter(GradleProjectBuilderOptions.shouldRealizeTasks());
-
-        // We must request isolated root model instead of building it directly,
-        // because the target project given to the builder may not have been a root project
         IsolatedGradleProjectInternal rootIsolatedModel = getRootIsolatedModel(rootProject, parameter);
-
         return build(rootProject, rootProject, rootIsolatedModel, parameter);
+    }
+
+    private static void requireRootProject(Project project) {
+        if (!project.equals(project.getRootProject())) {
+            throw new IllegalArgumentException(String.format("%s can only be requested on the root project, got %s", MODEL_NAME, project));
+        }
     }
 
     private IsolatedGradleProjectInternal getRootIsolatedModel(ProjectInternal rootProject, IsolatedGradleProjectParameter parameter) {

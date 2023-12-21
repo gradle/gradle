@@ -21,7 +21,6 @@ import org.gradle.api.problems.ProblemSpec;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public class DefaultProblemReporter implements InternalProblemReporter {
@@ -93,7 +92,6 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      * Reports a problem.
      * <p>
      * The current build operation is used as the operation identifier.
-     * <p>
      * If there is no current build operation, the problem is not reported.
      *
      * @param problem The problem to report.
@@ -101,21 +99,22 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     @Override
     public void report(Problem problem) {
         OperationIdentifier id = CurrentBuildOperationRef.instance().getId();
-        report(problem, id);
+        if (id != null) {
+            report(problem, id);
+        }
     }
 
     /**
      * Reports a problem with an explicit operation identifier.
      * <p>
-     * If the operation identifier is null, the problem is not reported.
+     * The operation identifier should not be null,
+     * otherwise the behavior will be defined by the used {@link ProblemEmitter}.
      *
      * @param problem The problem to report.
      * @param id The operation identifier to associate with the problem.
      */
     @Override
-    public void report(Problem problem, @Nullable OperationIdentifier id) {
-        if (id != null) {
-            emitter.emit(transformProblem(problem), id);
-        }
+    public void report(Problem problem, OperationIdentifier id) {
+        emitter.emit(transformProblem(problem), id);
     }
 }
