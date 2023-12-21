@@ -273,10 +273,8 @@ Configuration 'bar':
 
     def "fails to select target configuration when not present in the target component"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), "to", [] as List, [], false, false, true, false, false, null)
-        def toComponent = Stub(ComponentGraphResolveMetadata)
-        toComponent.id >> Stub(ComponentIdentifier) { getDisplayName() >> "thing b" }
         def toState = Stub(ComponentGraphResolveState) {
-            getMetadata() >> toComponent
+            getId() >> Stub(ComponentIdentifier) { getDisplayName() >> "thing b" }
         }
 
         given:

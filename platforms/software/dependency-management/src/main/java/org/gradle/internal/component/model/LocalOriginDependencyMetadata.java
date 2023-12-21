@@ -26,8 +26,6 @@ import java.util.List;
  */
 public interface LocalOriginDependencyMetadata extends ForcingDependencyMetadata {
 
-    String getDependencyConfiguration();
-
     @Override
     LocalOriginDependencyMetadata withTarget(ComponentSelector target);
 

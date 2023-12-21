@@ -25,15 +25,17 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.DefaultProjectDependencyMetadata;
-import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
-import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.GraphVariantSelectionResult;
+import org.gradle.internal.component.model.GraphVariantSelector;
+import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -103,11 +105,23 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
      */
     @Override
     public GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
-        // This is a slight different condition than that used for a dependency declared in a Gradle project,
-        // which is (targetHasVariants || consumerHasAttributes), relying on the fallback to 'default' for consumer attributes without any variants.
-        if (alwaysUseAttributeMatching || targetComponentState.getCandidatesForGraphVariantSelection().isUseVariants()) {
-            return variantSelector.selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, getArtifacts());
+        if (targetComponentState.getCandidatesForGraphVariantSelection().isUseVariants()) {
+            VariantGraphResolveState selected = variantSelector.selectByAttributeMatching(
+                consumerAttributes,
+                explicitRequestedCapabilities,
+                targetComponentState,
+                consumerSchema,
+                getArtifacts()
+            );
+            return new GraphVariantSelectionResult(Collections.singletonList(selected), true);
         }
+
+        // Fallback to legacy variant selection for target components without variants.
+        if (alwaysUseAttributeMatching) {
+            VariantGraphResolveState selected = variantSelector.selectLegacyConfiguration(consumerAttributes, targetComponentState, consumerSchema);
+            return new GraphVariantSelectionResult(Collections.singletonList(selected), false);
+        }
+
         return dependencyDescriptor.selectLegacyConfigurations(componentId, configuration, targetComponentState, variantSelector.getFailureProcessor());
     }
 
