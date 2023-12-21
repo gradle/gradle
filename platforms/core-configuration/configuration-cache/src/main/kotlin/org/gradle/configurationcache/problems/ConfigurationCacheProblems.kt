@@ -138,14 +138,31 @@ class ConfigurationCacheProblems(
         return "configuration-cache"
     }
 
+    fun queryFailure(summary: Summary = summarizer.get(), htmlReportFile: File? = null): Throwable? {
+        val failDueToProblems = summary.failureCount > 0 && isFailOnProblems
+        val hasTooManyProblems = hasTooManyProblems(summary)
+        val summaryText = { summary.textForConsole(cacheAction.summaryText(), htmlReportFile) }
+        return when {
+            // TODO - always include this as a build failure;
+            //  currently it is disabled when a serialization problem happens
+            failDueToProblems -> {
+                ConfigurationCacheProblemsException(summary.causes, summaryText)
+            }
+
+            hasTooManyProblems -> {
+                TooManyConfigurationCacheProblemsException(summary.causes, summaryText)
+            }
+
+            else -> null
+        }
+    }
+
     /**
      * Writes the report to the given [reportDir] if any [diagnostics][DiagnosticKind] have
      * been reported in which case a warning is also logged with the location of the report.
      */
     override fun report(reportDir: File, validationFailures: ProblemConsumer) {
         val summary = summarizer.get()
-        val failDueToProblems = summary.failureCount > 0 && isFailOnProblems
-        val hasTooManyProblems = hasTooManyProblems(summary)
         val hasNoProblems = summary.problemCount == 0
         val outputDirectory = outputDirectoryFor(reportDir)
         val cacheActionText = cacheAction.summaryText()
@@ -157,30 +174,13 @@ class ConfigurationCacheProblems(
             return
         }
 
-        when {
-            failDueToProblems -> {
-                // TODO - always include this as a build failure;
-                //  currently it is disabled when a serialization problem happens
-                validationFailures.accept(
-                    ConfigurationCacheProblemsException(summary.causes) {
-                        summary.textForConsole(cacheActionText, htmlReportFile)
-                    }
-                )
-            }
-
-            hasTooManyProblems -> {
-                validationFailures.accept(
-                    TooManyConfigurationCacheProblemsException(summary.causes) {
-                        summary.textForConsole(cacheActionText, htmlReportFile)
-                    }
-                )
-            }
-
-            else -> {
+        when (val failure = queryFailure(summary, htmlReportFile)) {
+            null -> {
                 val logReportAsInfo = hasNoProblems && !startParameter.alwaysLogReportLinkAsWarning
                 val log: (String) -> Unit = if (logReportAsInfo) logger::info else logger::warn
                 log(summary.textForConsole(cacheActionText, htmlReportFile))
             }
+            else -> validationFailures.accept(failure)
         }
     }
 
