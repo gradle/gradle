@@ -1,15 +1,16 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [1](), [2](), ... [n](), and more.
+This release features [improvements for build authors](#build-authors), including the new [Problems API](#problems-api), a new method on the [NamedDomainObject API](#enhanced-filtering), improvements to the [ConfigurableFileCollection API](#provider-capabilities), and updates to the [Artifacts APIs](#update-api).
 
-<!-- 
-Include only their name, impactful features should be called out separately below.
- [Some person](https://github.com/some-person)
+This release features a security enhancement to the [configuration cache](#configuration-cache) for [encryption keys](#encryption-key).
 
- THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
--->
+Additionally, this release comes with more helpful [error and warning messages](#error-improvements) and improvements to [build init](#build-init).
+See the full release notes for details.
+
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Mel Arthurs](https://github.com/arthursmel)
+
+Be sure to check out the [Public Roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
 
 ## Upgrade instructions
 
@@ -23,74 +24,13 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 ## New features and usability improvements
 
-<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
+<a name="build-authors"></a>
+### Build authoring improvements
 
-<!--
+Gradle provides rich APIs for plugin authors and build engineers to develop custom build logic.
 
-================== TEMPLATE ==============================
-
-<a name="FILL-IN-KEY-AREA"></a>
-### FILL-IN-KEY-AREA improvements
-
-<<<FILL IN CONTEXT FOR KEY AREA>>>
-Example:
-> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
-> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
-> nothing that affects the build configuration has changed.
-
-#### FILL-IN-FEATURE
-> HIGHLIGHT the usecase or existing problem the feature solves
-> EXPLAIN how the new release addresses that problem or use case
-> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
-> LINK to the full documentation for more details
-
-================== END TEMPLATE ==========================
-
-
-==========================================================
-ADD RELEASE FEATURES BELOW
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
-
-### Public API improvements
-
-#### Enhanced name-based filtering on NamedDomainObject containers
-
-A new [`named(Spec<String>)` method](javadoc/org/gradle/api/NamedDomainObjectCollection.html#named-org.gradle.api.specs.Spec-) has been added to all NamedDomainObject containers, which simplifies name-based filtering and eliminates the need to touch any of the values, may they be realized or unrealized.
-
-#### Allow Providers to be used with capabilities
-
-[`Providers`](javadoc/org/gradle/api/provider/Provider.html) can now be passed to capability methods
-[`ConfigurationPublications#capability(Object)`](javadoc/org/gradle/api/artifacts/ConfigurationPublications.html#capability-java.lang.Object-),
-[`ModuleDependencyCapabilitiesHandler#requireCapability(Object)`](javadoc/org/gradle/api/artifacts/ModuleDependencyCapabilitiesHandler.html#requireCapability-java.lang.Object-),
-and [`CapabilitiesResolution#withCapability(Object, Action)`](javadoc/org/gradle/api/artifacts/CapabilitiesResolution.html#withCapability-java.lang.Object-org.gradle.api.Action-).
-
-#### New `update()` API allows safe self-referencing lazy properties
-
-Historically, Gradle did not support circular references when evaluating lazy properties:
-
-```
-def property = objects.property(String)
-property.set("some value")
-property.set(property.map { "$it and more" })
-
-// Circular evaluation detected (or StackOverflowError, before 8.6)
-println(property.get()) 
-```
-
-[`Property`](javadoc/org/gradle/api/provider/Property.html#update-org.gradle.api.Transformer-) and [`ConfigurableFileCollection`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#update-org.gradle.api.Transformer-) now provide their respective `update(Transformer<...>)` methods which allow self-referencing updates in a safe way:
-
-```
-def property = objects.property(String)
-property.set("some value")
-property.update { it.map { "$it and more" } }
-
-println(property.get()) // "some value and more"
-```
-
-Please refer to the javadoc for [`Property.update(Transformer<>)`](javadoc/org/gradle/api/provider/Property.html#update-org.gradle.api.Transformer-) and [`ConfigurableFileCollection.update(Transformer<>)`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#update-org.gradle.api.Transformer-) for more details, including limitations.
-
-
-### Problems API
+<a name="problems-api"></a>
+#### Problems API
 
 Gradle now has a new incubating API that allows build engineers and plugin authors to consume and report problems that occur during a build.
 
@@ -100,16 +40,94 @@ The reported problems carry location information; therefore, IDEs can easily int
 
 Gradle already emits problems from many components, including (but not limited to) deprecation warnings, dependency version catalog errors, task validation errors, and Java toolchain problems.
 
-The current release focuses on reporting problems in the IDE. 
+The current release focuses on reporting problems in the IDE.
+Check out the [Problems API](userguide/implementing_gradle_plugins.html#reporting-problems) documentation to learn more.
 Users can expect further enhancements to the Problems API aimed at console reporting in future releases.
 
+<a name="enhanced-filtering"></a>
+#### Enhanced name-based filtering on NamedDomainObject containers
+
+A new [`named(Spec<String>)` method](javadoc/org/gradle/api/NamedDomainObjectCollection.html#named-org.gradle.api.specs.Spec-) has been added to all `NamedDomainObject` containers, simplifying name-based filtering and eliminating the need to touch any of the values, whether they be realized or unrealized.
+
+Instead of:
+```
+    tasks.matching { it.name.contains("pack")
+```
+
+You can use:
+```
+    tasks.named { it.contains("pack") }
+```
+
+Using `named` will not cause registered tasks to be eagerly created as was the case with `matching`.
+
+<a name="provider-capabilities"></a>
+#### Allow Providers to be used with capabilities
+
+[`Providers`](javadoc/org/gradle/api/provider/Provider.html) can now be passed to capability methods
+[`ConfigurationPublications#capability(Object)`](javadoc/org/gradle/api/artifacts/ConfigurationPublications.html#capability-java.lang.Object-),
+[`ModuleDependencyCapabilitiesHandler#requireCapability(Object)`](javadoc/org/gradle/api/artifacts/ModuleDependencyCapabilitiesHandler.html#requireCapability-java.lang.Object-),
+and [`CapabilitiesResolution#withCapability(Object, Action)`](javadoc/org/gradle/api/artifacts/CapabilitiesResolution.html#withCapability-java.lang.Object-org.gradle.api.Action-).
+
+```
+dependencies {
+    implementation("org.foo:bar:1.0") {
+        capabilities {
+            requireCapability(value)  // project.provider(() -> value
+        }
+    }
+}
+```
+
+<a name="update-api"></a>
+#### New `update()` API allows safe self-referencing lazy properties
+
+Historically, Gradle did not support circular references when evaluating lazy properties:
+
+```
+var property = objects.property<String>()
+property.set("some value")
+property.set(property.map { "$it and more" })
+
+// Circular evaluation detected (or StackOverflowError, before 8.6)
+println(property.get()) // "some value and more"
+```
+
+[`Property`](javadoc/org/gradle/api/provider/Property.html#update-org.gradle.api.Transformer-) and [`ConfigurableFileCollection`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#update-org.gradle.api.Transformer-) now provide their respective `update(Transformer<...>)` methods which allow self-referencing updates safely:
+
+```
+var property = objects.property<String>()
+property.set("some value")
+property.update { it.map { "$it and more" } }
+
+println(property.get()) // "some value and more"
+```
+
+Please refer to the javadoc for [`Property.update(Transformer<>)`](javadoc/org/gradle/api/provider/Property.html#update-org.gradle.api.Transformer-) and [`ConfigurableFileCollection.update(Transformer<>)`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#update-org.gradle.api.Transformer-) for more details, including limitations.
+
+<a name="configuration-cache"></a>
+### Configuration cache
+
+The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing it for subsequent builds. This feature can significantly improve build performance.
+
+<a name="encryption-key"></a>
+#### Gradle encryption key via an environment variable
+
+You may now provide Gradle with the key used to encrypt cached configuration data via the `GRADLE_ENCRYPTION_KEY` environment variable.
+By default, Gradle creates and manages the key automatically, storing it in a keystore under the Gradle User Home.
+This may be inappropriate in some environments.
+
+More details can be found in the dedicated section of the [configuration cache](userguide/configuration_cache.html#config_cache:secrets:configuring_encryption_key) user manual chapter.
+
+<a name="error-improvements"></a>
 ### Error and warning reporting improvements
 
 Gradle provides a rich set of error and warning messages to help you understand and resolve problems in your build.
 
+<a name="dependency-locking"></a>
 #### Dependency locking now separates the error from the possible action to try
 
-[Dependency locking](userguide/dependency_locking.html) is a mechanism for ensuring reproducible builds when using dynamic dependency versions.
+[Dependency locking](userguide/dependency_locking.html) is a mechanism that ensures reproducible builds when using dynamic dependency versions.
 
 This release improves error messages by separating the error from the possible action to fix the issue in the console output.
 Errors from invalid [lock file format](userguide/dependency_locking.html#lock_state_location_and_format) or [missing lock state when strict mode is enabled](userguide/dependency_locking.html#fine_tuning_dependency_locking_behaviour_with_lock_mode) are now displayed as illustrated below:
@@ -129,10 +147,11 @@ Execution failed for task ':dependencies'.
 > Get more help at https://help.gradle.org.
 ```
 
-#### Better handling of circular references in providers
+<a name="error-reporting"></a>
+#### Better error reporting of circular references in providers
 
-Before this release, evaluating a provider that contained a cycle in its value assignment would lead to a `StackOverflowError`. 
-Starting with this release, circular references are properly detected and reported.
+Before this release, evaluating a provider with a cycle in its value assignment would lead to a `StackOverflowError`.
+With this release, circular references are properly detected and reported.
 
 For instance, the following code:
 
@@ -173,10 +192,12 @@ A problem occurred evaluating root project 'test'.
    -> property(java.lang.String, map(java.lang.String map(<CIRCULAR REFERENCE>) check-type()))
 ```
 
-### Gradle init
+<a name="build-init"></a>
+### Build init improvements
 
-This update brings cleaner and more idiomatic projects generated by `gradle init`.
+The [build init plugin](userguide/build_init_plugin.html) allows users to create a new Gradle build, supporting various types of projects.
 
+<a name="simpler-packaging"></a>
 #### Simpler source package handling
 
 You no longer have to answer an interactive question about the source package.
@@ -192,11 +213,12 @@ org.gradle.buildinit.source.package=my.corp.domain
 
 Names of the generated convention plugins now start with `buildlogic` instead of the package name, making them shorter and cleaner.
 
+<a name="interactive"></a>
 #### Generating without interactive questions
 
 A new `--use-defaults` option applies default values for options that were not explicitly configured.
 It also ensures the init command can be completed without interactive user input.
-This is handy to use in shell scripts to ensure they do not accidentally hang.
+This is handy in shell scripts to ensure they do not accidentally hang.
 
 For example, here is how you can generate a Kotlin library without answering any questions:
 
@@ -204,6 +226,7 @@ For example, here is how you can generate a Kotlin library without answering any
 gradle init --use-defaults --type kotlin-library
 ```
 
+<a name="kotlin-syntax"></a>
 #### Assignment syntax in Kotlin DSL
 
 Projects generated with Kotlin DSL scripts now use [simple property assignment](/8.4/release-notes.html#assign-stable) syntax with the `=` operator.
@@ -212,28 +235,9 @@ For instance, setting `mainClass` of an application looks like this:
 
 ```
 application {
-    mainClass = "org.example.AppKt"
+	mainClass = "org.example.AppKt"
 }
 ```
-
-<a name="other-improvements"></a>
-
-### Other improvements
-
-#### Gradle encryption key via an environment variable
-
-You may now provide Gradle with the key used to encrypt cached configuration data via the `GRADLE_ENCRYPTION_KEY` environment variable.
-By default, Gradle creates and manages the key automatically, storing it in a keystore under the Gradle User Home.
-This may be inappropriate in some environments.
-
-More details can be found in the dedicated section of the [configuration cache](userguide/configuration_cache.html#config_cache:secrets:configuring_encryption_key) user manual chapter.
-
-
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-==========================================================
-
--->
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
