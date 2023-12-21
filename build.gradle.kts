@@ -22,7 +22,7 @@ dependencies {
     api("kotlinx.ast:parser-antlr-kotlin:0.1.0")
     implementation("kotlinx.ast:grammar-kotlin-parser-antlr-kotlin:0.1.0")
 
-    implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.9.21")
+    api("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.9.20")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
 
     testImplementation(kotlin("test-junit5"))
