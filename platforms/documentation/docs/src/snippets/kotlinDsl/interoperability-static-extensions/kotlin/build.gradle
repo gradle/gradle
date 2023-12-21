@@ -8,4 +8,4 @@ def aReference = ""
 TheTargetTypeKt.kotlinExtensionFunction(receiver, "parameters", 42, aReference)
 // end::kotlin-from-groovy[]
 
-apply from: 'build.gradle'
+apply from: 'build.gradle.kts'

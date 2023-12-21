@@ -515,7 +515,7 @@ See the <<plugins#sec:plugin_management,Plugin Management>> section of the Gradl
 //
 // 1. what is buildSrc -> link
 // 2. apply the `kotlin-dsl` plugin, see below for the details
-// 3. all dependencies added to `buildSrc/build.gradle` will be available to all build scripts
+// 3. all dependencies added to `buildSrc/build.gradle.kts` will be available to all build scripts
 // 3. all members from `buildSrc/src/main/kotlin` will be available to all build scripts
 // 4. handy for constants, objects, functions, extension functions
 // 5. perfect for Gradle Tasks, Gradle Plugins and DSL Extensions
@@ -592,7 +592,7 @@ include::sample[dir="snippets/kotlinDsl/containers-scope/kotlin",files="build.gr
 //
 // .The container scope string invoke extension
 // ====
-// include::sample[dir="snippets/kotlinDsl/containers-string-invoke/kotlin",files="build.gradle[tags=string-invoke]"]
+// include::sample[dir="snippets/kotlinDsl/containers-string-invoke/kotlin",files="build.gradle.kts[tags=string-invoke]"]
 // ====
 
 
