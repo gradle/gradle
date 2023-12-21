@@ -75,7 +75,7 @@ class GrammarToLightTree(
     private
     fun statement(tree: LightTree, node: LighterASTNode): ElementResult<DataStatement> =
         when (node.tokenType) {
-            BINARY_EXPRESSION -> binaryExpression(tree, node)
+            BINARY_EXPRESSION -> binaryStatement(tree, node)
             PROPERTY -> localValue(tree, node)
             else -> expression(tree, node)
         }
@@ -83,10 +83,11 @@ class GrammarToLightTree(
     private
     fun expression(tree: LightTree, node: LighterASTNode): ElementResult<Expr> =
         when (val tokenType = node.tokenType) {
+            BINARY_EXPRESSION -> binaryExpression(tree, node)
             LABELED_EXPRESSION -> node.unsupported(LabelledStatement)
             ANNOTATED_EXPRESSION -> node.unsupported(AnnotationUsage)
             in QUALIFIED_ACCESS, REFERENCE_EXPRESSION -> propertyAccessStatement(tree, node)
-            is KtConstantExpressionElementType -> constantExpression(node)
+            is KtConstantExpressionElementType, INTEGER_LITERAL -> constantExpression(node)
             STRING_TEMPLATE -> stringTemplate(tree, node)
             CALL_EXPRESSION -> callExpression(tree, node)
             in QUALIFIED_ACCESS -> qualifiedExpression(tree, node)
@@ -216,16 +217,16 @@ class GrammarToLightTree(
 
 
         val convertedText: Any? = when (type) {
-            INTEGER_CONSTANT, FLOAT_CONSTANT -> when {
+            INTEGER_CONSTANT, INTEGER_LITERAL -> when {
                 hasIllegalUnderscore(text, type) -> return reportIncorrectConstant("illegal underscore")
-                else -> parseNumericLiteral(text, type)
+                else -> parseNumericLiteral(text, INTEGER_CONSTANT)
             }
             BOOLEAN_CONSTANT -> parseBoolean(text)
             else -> null
         }
 
         when (type) {
-            INTEGER_CONSTANT -> {
+            INTEGER_CONSTANT, INTEGER_LITERAL -> {
                 when {
                     convertedText == null -> {
                         return reportIncorrectConstant("missing value")
@@ -335,10 +336,21 @@ class GrammarToLightTree(
     private
     fun valueArgument(tree: LightTree, node: LighterASTNode): SyntacticResult<FunctionArgument.ValueArgument> =
         syntacticOrFailure {
-            val children = tree.children(node)
-
-            var identifier: String? = null
             var expression: CheckedResult<ElementResult<Expr>>? = null
+
+            when (node.tokenType) {
+                INTEGER_LITERAL, INTEGER_CONSTANT, BOOLEAN_CONSTANT -> expression = checkForFailure(constantExpression(node))
+                STRING_TEMPLATE -> expression = checkForFailure(stringTemplate(tree, node))
+            }
+
+            if (expression != null) {
+                return@syntacticOrFailure syntacticIfNoFailures {
+                    Syntactic(FunctionArgument.Positional(checked(expression!!), node.data))
+                }
+            }
+
+            val children = tree.children(node)
+            var identifier: String? = null
             children.forEach {
                 when (val tokenType = it.tokenType) {
                     VALUE_ARGUMENT_NAME -> identifier = it.asText
@@ -362,8 +374,17 @@ class GrammarToLightTree(
 
         }
 
+    @Suppress("UNCHECKED_CAST")
     private
-    fun binaryExpression(tree: LightTree, node: LighterASTNode): ElementResult<Assignment> {
+    fun binaryExpression(tree: LightTree, node: LighterASTNode): ElementResult<Expr> =
+        when (val binaryStatement = binaryStatement(tree, node)) {
+            is FailingResult -> binaryStatement
+            is Element -> if (binaryStatement.element is Expr) binaryStatement as ElementResult<Expr>
+            else node.unsupported(UnsupportedOperationInBinaryExpression)
+        }
+
+    private
+    fun binaryStatement(tree: LightTree, node: LighterASTNode): ElementResult<DataStatement> {
         val children = tree.children(node)
 
         var isLeftArgument = true
@@ -389,17 +410,28 @@ class GrammarToLightTree(
 
         val operationToken = operationTokenName.getOperationSymbol()
 
-        if (operationToken != EQ) return node.unsupported(UnsupportedOperationInBinaryExpression)
         if (leftArg == null) return node.parsingError("Missing left hand side in binary expression")
         if (rightArg == null) return node.parsingError("Missing right hand side in binary expression")
 
-        return elementOrFailure {
-            val lhs = checkForFailure(propertyAccessStatement(tree, leftArg!!))
-            val expr = checkForFailure(expression(tree, rightArg!!))
+        return when (operationToken) {
+            EQ -> elementOrFailure {
+                val lhs = checkForFailure(propertyAccessStatement(tree, leftArg!!))
+                val expr = checkForFailure(expression(tree, rightArg!!))
 
-            elementIfNoFailures {
-                Element(Assignment(checked(lhs), checked(expr), node.data))
+                elementIfNoFailures {
+                    Element(Assignment(checked(lhs), checked(expr), node.data))
+                }
             }
+
+            IDENTIFIER -> elementOrFailure {
+                val receiver = checkForFailure(expression(tree, leftArg!!))
+                val argument = checkForFailure(valueArgument(tree, rightArg!!))
+                elementIfNoFailures {
+                    Element(FunctionCall(checked(receiver), operationTokenName, listOf(checked(argument)), node.data))
+                }
+            }
+
+            else -> node.unsupported(UnsupportedOperationInBinaryExpression)
         }
     }
 
