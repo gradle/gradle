@@ -28,7 +28,7 @@ val process = tasks.register("process") {
 }
 
 tasks.register("postProcess") {
-    inputs.files(process.map { it.outputs.files }) // <5>
+    inputs.files(process) // <5>
 
     doLast {
         println("Results: ${inputs.files.singleFile.readText()}") // <6>
