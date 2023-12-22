@@ -340,18 +340,18 @@ class BasicAstDataTest: AbstractBasicDataTest() {
     fun `parses infix call chain`() {
         val results = parse(
             """
-            f(1) g "string" h true i 2L j 3
+            f(1) g "string" h true i 2L j 3.apply(4)
             """.trimIndent()
         )
 
         val expected = """
-            FunctionCall [indexes: 0..31, line/column: 1/1..1/32, file: test] (
+            FunctionCall [indexes: 0..40, line/column: 1/1..1/41, file: test] (
                 name = j
-                receiver = FunctionCall [indexes: 0..31, line/column: 1/1..1/32, file: test] (
+                receiver = FunctionCall [indexes: 0..40, line/column: 1/1..1/41, file: test] (
                     name = i
-                    receiver = FunctionCall [indexes: 0..31, line/column: 1/1..1/32, file: test] (
+                    receiver = FunctionCall [indexes: 0..40, line/column: 1/1..1/41, file: test] (
                         name = h
-                        receiver = FunctionCall [indexes: 0..31, line/column: 1/1..1/32, file: test] (
+                        receiver = FunctionCall [indexes: 0..40, line/column: 1/1..1/41, file: test] (
                             name = g
                             receiver = FunctionCall [indexes: 1..4, line/column: 1/2..1/5, file: test] (
                                 name = f
@@ -362,26 +362,34 @@ class BasicAstDataTest: AbstractBasicDataTest() {
                                 ]
                             )
                             args = [
-                                FunctionArgument.Positional [indexes: 0..31, line/column: 1/1..1/32, file: test] (
+                                FunctionArgument.Positional [indexes: 0..40, line/column: 1/1..1/41, file: test] (
                                     expr = StringLiteral [indexes: 7..15, line/column: 1/8..1/16, file: test] (string)
                                 )
                             ]
                         )
                         args = [
-                            FunctionArgument.Positional [indexes: 0..31, line/column: 1/1..1/32, file: test] (
+                            FunctionArgument.Positional [indexes: 0..40, line/column: 1/1..1/41, file: test] (
                                 expr = BooleanLiteral [indexes: 18..22, line/column: 1/19..1/23, file: test] (true)
                             )
                         ]
                     )
                     args = [
-                        FunctionArgument.Positional [indexes: 0..31, line/column: 1/1..1/32, file: test] (
+                        FunctionArgument.Positional [indexes: 0..40, line/column: 1/1..1/41, file: test] (
                             expr = LongLiteral [indexes: 25..27, line/column: 1/26..1/28, file: test] (2)
                         )
                     ]
                 )
                 args = [
-                    FunctionArgument.Positional [indexes: 0..31, line/column: 1/1..1/32, file: test] (
-                        expr = IntLiteral [indexes: 30..31, line/column: 1/31..1/32, file: test] (3)
+                    FunctionArgument.Positional [indexes: 0..40, line/column: 1/1..1/41, file: test] (
+                        expr = FunctionCall [indexes: 37..40, line/column: 1/38..1/41, file: test] (
+                            name = apply
+                            receiver = IntLiteral [indexes: 30..31, line/column: 1/31..1/32, file: test] (3)
+                            args = [
+                                FunctionArgument.Positional [indexes: 38..39, line/column: 1/39..1/40, file: test] (
+                                    expr = IntLiteral [indexes: 38..39, line/column: 1/39..1/40, file: test] (4)
+                                )
+                            ]
+                        )
                     )
                 ]
             )

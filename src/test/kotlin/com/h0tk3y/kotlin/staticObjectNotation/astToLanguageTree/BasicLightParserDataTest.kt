@@ -340,12 +340,12 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
     fun `parses infix call chain`() {
         val results = parse(
             """
-            f(1) g "string" h true i 2L j 3
+            f(1) g "string" h true i 2L j 3.apply(4)
             """.trimIndent()
         )
 
         val expected = """
-            FunctionCall [indexes: 0..31, line/column: 1/1..1/32, file: test] (
+            FunctionCall [indexes: 0..40, line/column: 1/1..1/41, file: test] (
                 name = j
                 receiver = FunctionCall [indexes: 0..27, line/column: 1/1..1/28, file: test] (
                     name = i
@@ -380,8 +380,16 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
                     ]
                 )
                 args = [
-                    FunctionArgument.Positional [indexes: 30..31, line/column: 1/31..1/32, file: test] (
-                        expr = IntLiteral [indexes: 30..31, line/column: 1/31..1/32, file: test] (3)
+                    FunctionArgument.Positional [indexes: 30..40, line/column: 1/31..1/41, file: test] (
+                        expr = FunctionCall [indexes: 32..40, line/column: 1/33..1/41, file: test] (
+                            name = apply
+                            receiver = IntLiteral [indexes: 30..31, line/column: 1/31..1/32, file: test] (3)
+                            args = [
+                                FunctionArgument.Positional [indexes: 38..39, line/column: 1/39..1/40, file: test] (
+                                    expr = IntLiteral [indexes: 38..39, line/column: 1/39..1/40, file: test] (4)
+                                )
+                            ]
+                        )
                     )
                 ]
             )

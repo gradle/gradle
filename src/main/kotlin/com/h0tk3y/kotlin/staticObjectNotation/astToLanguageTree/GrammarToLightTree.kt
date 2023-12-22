@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.parsing.*
 import org.jetbrains.kotlin.psi.stubs.elements.KtConstantExpressionElementType
 import org.jetbrains.kotlin.psi.stubs.elements.KtNameReferenceExpressionElementType
 import org.jetbrains.kotlin.utils.doNothing
+import kotlin.math.exp
 
 class GrammarToLightTree(
     private val sourceIdentifier: SourceIdentifier,
@@ -345,6 +346,7 @@ class GrammarToLightTree(
             when (node.tokenType) {
                 INTEGER_LITERAL, INTEGER_CONSTANT, BOOLEAN_CONSTANT -> expression = checkForFailure(constantExpression(node))
                 STRING_TEMPLATE -> expression = checkForFailure(stringTemplate(tree, node))
+                DOT_QUALIFIED_EXPRESSION -> expression = checkForFailure(propertyAccessStatement(tree, node))
             }
 
             if (expression != null) {
