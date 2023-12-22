@@ -27,9 +27,12 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import java.util.regex.Pattern
+import kotlin.io.path.createDirectories
+
 
 abstract class GenerateSnippetTests : DefaultTask() {
-    private val SAMPLE_START = Pattern.compile("""<pre class=['"]autoTested(.*?)['"].*?>""")
+    private
+    val SAMPLE_START = Pattern.compile("""<pre class=['"]autoTested(.*?)['"].*?>""")
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.NONE)
@@ -51,7 +54,9 @@ abstract class GenerateSnippetTests : DefaultTask() {
     fun generateTestFile() {
         val testFile = output.file("org/gradle/samples/${testClassName.get()}.groovy").get().asFile
 
-        testFile.writeText("""
+        testFile.parentFile.toPath().createDirectories()
+        testFile.writeText(
+            """
             package org.gradle.samples
 
             import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
@@ -63,16 +68,18 @@ abstract class GenerateSnippetTests : DefaultTask() {
                     runSamplesFrom("src/main")
                 }
             }
-        """.trimIndent())
+            """.trimIndent()
+        )
     }
 
-    private fun hasTestableSnippets(): Boolean {
+    private
+    fun hasTestableSnippets(): Boolean {
         var hasTestableSnippets = false
         sources.asFileTree.matching {
             include("**/*.java")
             include("**/*.groovy")
         }.visit {
-            if (SAMPLE_START.matcher(this.file.readText()).find()) {
+            if (!isDirectory && SAMPLE_START.matcher(file.readText()).find()) {
                 hasTestableSnippets = true
                 stopVisiting()
             }
