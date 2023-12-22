@@ -36,5 +36,5 @@ jobs:
           stale-pr-label: 'pending:dco'
           close-pr-label: 'closed:missing-dco'
           close-pr-message: >
-            While we asked sign your commits, it has not been done. If you sign your commits, we will consider this pull request again.
+            While we asked to sign your commits, it has not been done. If you sign your commits, we will consider this pull request again.
             In the meantime, closing as missing DCO (see the [Developer Certificate of Origin](https://probot.github.io/apps/dco/) GitHub app).
