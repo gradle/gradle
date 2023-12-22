@@ -38,3 +38,30 @@ jobs:
           close-pr-message: >
             While we asked to sign your commits, it has not been done. If you sign your commits, we will consider this pull request again.
             In the meantime, closing as missing DCO (see the [Developer Certificate of Origin](https://probot.github.io/apps/dco/) GitHub app).
+
+  close-pending-feedback:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v8
+        with:
+          # GLOBAL ------------------------------------------------------------
+          operations-per-run: 30
+          exempt-all-milestones: true
+          days-before-stale: -1
+          only-labels: 'pending:feedback'
+
+          # ISSUES ------------------------------------------------------------
+          days-before-issue-close: 7
+          stale-issue-label: 'pending:feedback'
+          close-issue-label: 'closed:missing-feedback'
+          close-issue-message: >
+            While we asked for feedback, none was provided. If you provide the requested feedback, we will consider this issue again.
+            In the meantime, closing as missing issue feedback.
+
+          # PULL REQUESTS -----------------------------------------------------
+          days-before-pr-close: 14
+          stale-pr-label: 'pending:feedback'
+          close-pr-label: 'closed:missing-feedback'
+          close-pr-message: >
+            While we asked for changes to this pr, we received no reaction. If you provide the requested changes, we will consider this pull request again.
+            In the meantime, closing as missing PR feedback.
