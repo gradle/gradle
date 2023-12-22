@@ -44,8 +44,11 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.process.CommandLineArgumentProvider
 import java.util.concurrent.Callable
 
+
 // Android Studio Iguana 2023.2.1.16 Canary 16
-private const val defaultAndroidStudioVersion = "2023.2.1.16"
+private
+const val defaultAndroidStudioVersion = "2023.2.1.16"
+
 
 class AndroidStudioProvisioningPlugin : Plugin<Project> {
     override fun apply(target: Project) {
@@ -107,6 +110,7 @@ class AndroidStudioProvisioningPlugin : Plugin<Project> {
     }
 }
 
+
 abstract class AndroidStudioProvisioningExtension {
 
     abstract val androidStudioVersion: Property<String>
@@ -126,7 +130,3 @@ abstract class AndroidStudioProvisioningExtension {
         )
     }
 }
-
-
-
-

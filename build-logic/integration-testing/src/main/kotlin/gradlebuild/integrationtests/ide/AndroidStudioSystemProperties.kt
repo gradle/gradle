@@ -27,11 +27,14 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.process.CommandLineArgumentProvider
 
+
 abstract class AndroidStudioInstallation {
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val studioInstallLocation: DirectoryProperty
 }
+
+
 class AndroidStudioSystemProperties(
     @get:Internal
     val studioInstallation: AndroidStudioInstallation,
