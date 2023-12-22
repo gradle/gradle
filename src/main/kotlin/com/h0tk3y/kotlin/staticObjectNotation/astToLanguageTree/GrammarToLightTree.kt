@@ -8,6 +8,7 @@ import org.jetbrains.kotlin.ElementTypeUtils.isExpression
 import org.jetbrains.kotlin.KtNodeTypes.*
 import org.jetbrains.kotlin.com.intellij.lang.LighterASTNode
 import org.jetbrains.kotlin.com.intellij.psi.TokenType
+import org.jetbrains.kotlin.com.intellij.psi.TokenType.ERROR_ELEMENT
 import org.jetbrains.kotlin.com.intellij.psi.tree.IElementType
 import org.jetbrains.kotlin.lexer.KtSingleValueToken
 import org.jetbrains.kotlin.lexer.KtTokens.*
@@ -94,6 +95,7 @@ class GrammarToLightTree(
             CLASS, TYPEALIAS -> node.unsupported(TypeDeclaration)
             ARRAY_ACCESS_EXPRESSION -> node.unsupported(Indexing)
             FUN -> node.unsupported(FunctionDeclaration)
+            ERROR_ELEMENT -> node.parsingError("Unparsable expression: \"${node.asText}\"")
             else -> error("Unexpected tokenType in expression: $tokenType")
         }
 
@@ -211,9 +213,8 @@ class GrammarToLightTree(
         val type = node.tokenType
         val text: String = node.asText
 
-        fun reportIncorrectConstant(cause: String): ParsingError {
-            return ParsingError(node.data, "Incorrect constant expression, $cause: ${node.asText}")
-        }
+        fun reportIncorrectConstant(cause: String): ParsingError =
+            node.parsingError("Incorrect constant expression, $cause: ${node.asText}")
 
 
         val convertedText: Any? = when (type) {
@@ -293,6 +294,7 @@ class GrammarToLightTree(
                 VALUE_ARGUMENT -> list.add(valueArgument(tree, it))
                 COMMA, LPAR, RPAR -> doNothing()
                 LAMBDA_EXPRESSION -> list.add(lambda(tree, it))
+                ERROR_ELEMENT -> list.add(node.parsingError("Unparsable value argument: \"${node.asText}\""))
                 else -> error("Unexpected token type in value arguments: $tokenType")
             }
         }

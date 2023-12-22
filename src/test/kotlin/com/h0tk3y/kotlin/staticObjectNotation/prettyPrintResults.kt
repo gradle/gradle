@@ -42,7 +42,15 @@ fun prettyPrintFailingResult(failure: FailingResult): String {
                 }
                 appendIndented(")")
             }
-            is ParsingError -> TODO()
+            is ParsingError -> {
+                appendIndented("ParsingError(")
+                appendLine()
+                appendNextIndented("message = ${current.message}, ")
+                appendLine()
+                appendNextIndented("source = ${current.sourceData.prettyPrint()}, ")
+                appendLine()
+                appendIndented(")")
+            }
             is UnsupportedConstruct -> {
                 appendIndented("UnsupportedConstruct(")
                 appendLine()

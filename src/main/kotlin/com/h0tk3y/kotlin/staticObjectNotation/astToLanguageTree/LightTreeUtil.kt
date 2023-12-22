@@ -172,7 +172,7 @@ val LighterASTNode.asText: String
 
 internal
 val LighterASTNode.isUseful: Boolean
-    get() = !(COMMENTS.contains(tokenType) || tokenType == WHITE_SPACE || tokenType == SEMICOLON || tokenType == ERROR_ELEMENT)
+    get() = !(COMMENTS.contains(tokenType) || tokenType == WHITE_SPACE || tokenType == SEMICOLON)
 
 internal
 fun LighterASTNode.expectKind(expected: IElementType) {
