@@ -365,7 +365,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         then:
         executed(':problems', ':moreProblems', ':ok', ':all')
-        configurationCache.assertStateStored(false)
+        configurationCache.assertStateStoreFailed()
         outputContains("Configuration cache entry discarded with 4 problems.")
         problems.assertFailureHasProblems(failure) {
             totalProblemsCount = 4
@@ -426,7 +426,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         then:
         executed(':all')
-        configurationCache.assertStateStored(false)
+        configurationCache.assertStateStoreFailed()
         outputContains("Configuration cache entry discarded with 2 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("Build file 'build.gradle': line 2: registration of listener on 'Gradle.buildFinished' is unsupported")
@@ -721,7 +721,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         then:
         executed(':problems', ':moreProblems', ':all')
-        configurationCache.assertStateStored(false)
+        configurationCache.assertStateStoreFailed()
         outputContains("Configuration cache entry discarded with 4 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("Build file 'build.gradle': line 8: invocation of 'Task.project' at execution time is unsupported.")
@@ -736,7 +736,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         then:
         executed(':problems', ':moreProblems', ':all')
-        configurationCache.assertStateStored(false)
+        configurationCache.assertStateStoreFailed()
         outputContains("Configuration cache entry discarded with 4 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("Build file 'build.gradle': line 8: invocation of 'Task.project' at execution time is unsupported.")
