@@ -443,7 +443,7 @@ include::sample[dir="snippets/developingPlugins/problemReporting/kotlin/buildSrc
 <1> The `Problem` service is injected into the plugin.
 <2> A problem reporter, is created for the plugin. While the namespace is up to the plugin author, it is recommended to use the plugin ID.
 <3> The plugin creates a handle to the configuration file it needs to read.
-<3> As the configuration file is not found, the plugin reports an unrecoverable problem. This will cause the build to fail.
+<4> As the configuration file is not found, the plugin reports an unrecoverable problem. This will cause the build to fail.
 
 For a full example, see our link:../samples/sample_problems_api_usage.html[end-to-end sample].
 
