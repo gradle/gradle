@@ -7,7 +7,6 @@ import org.jetbrains.kotlin.ElementTypeUtils.getOperationSymbol
 import org.jetbrains.kotlin.ElementTypeUtils.isExpression
 import org.jetbrains.kotlin.KtNodeTypes.*
 import org.jetbrains.kotlin.com.intellij.lang.LighterASTNode
-import org.jetbrains.kotlin.com.intellij.psi.TokenType
 import org.jetbrains.kotlin.com.intellij.psi.TokenType.ERROR_ELEMENT
 import org.jetbrains.kotlin.com.intellij.psi.tree.IElementType
 import org.jetbrains.kotlin.lexer.KtSingleValueToken
@@ -16,7 +15,6 @@ import org.jetbrains.kotlin.parsing.*
 import org.jetbrains.kotlin.psi.stubs.elements.KtConstantExpressionElementType
 import org.jetbrains.kotlin.psi.stubs.elements.KtNameReferenceExpressionElementType
 import org.jetbrains.kotlin.utils.doNothing
-import kotlin.math.exp
 
 class GrammarToLightTree(
     private val sourceIdentifier: SourceIdentifier,
@@ -97,6 +95,8 @@ class GrammarToLightTree(
             ARRAY_ACCESS_EXPRESSION -> node.unsupported(Indexing)
             FUN -> node.unsupported(FunctionDeclaration)
             ERROR_ELEMENT -> node.parsingError("Unparsable expression: \"${node.asText}\"")
+            PREFIX_EXPRESSION -> node.unsupported(PrefixExpression)
+            OPERATION_REFERENCE -> node.unsupported(UnsupportedOperator)
             else -> error("Unexpected tokenType in expression: $tokenType")
         }
 
@@ -164,7 +164,7 @@ class GrammarToLightTree(
                         collectingFailure(it.unsupportedIn(node, SafeNavigation))
                     }
                     else -> {
-                        val isEffectiveSelector = isSelector && tokenType != TokenType.ERROR_ELEMENT
+                        val isEffectiveSelector = isSelector && tokenType != ERROR_ELEMENT
                         if (isEffectiveSelector) {
                             val callExpressionCallee = if (tokenType == CALL_EXPRESSION) tree.getFirstChildExpressionUnwrapped(it) else null
                             if (tokenType is KtNameReferenceExpressionElementType) {
@@ -203,6 +203,7 @@ class GrammarToLightTree(
             when (val tokenType = it.tokenType) {
                 OPEN_QUOTE, CLOSING_QUOTE -> {}
                 LITERAL_STRING_TEMPLATE_ENTRY -> sb.append(it.asText)
+                ERROR_ELEMENT -> node.parsingError("Unparsable string template: \"${node.asText}\"")
                 else -> error("Unexpected tokenType in string template: $tokenType")
             }
         }

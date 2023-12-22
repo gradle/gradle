@@ -38,4 +38,37 @@ class ParsingErrorLightParserTest: AbstractRejectedLanguageFeaturesTest() {
             """.trimIndent()
         assertResult(expected, code)
     }
+
+    @Test
+    fun `missing closing parenthesis in function argument`() {
+        val code = "kotlin(\"plugin-id-1) ; kotlin(\"plugin-id-2\")"
+
+        val expected = """
+            MultipleFailures(
+                MultipleFailures(
+                    UnsupportedConstruct(
+                        languageFeature = PrefixExpression, 
+                        potentialElementSource = indexes: 37..40, line/column: 1/38..1/41, file: test, 
+                        erroneousSource = indexes: 37..40, line/column: 1/38..1/41, file: test
+                    )
+                    UnsupportedConstruct(
+                        languageFeature = UnsupportedOperator, 
+                        potentialElementSource = indexes: 40..41, line/column: 1/41..1/42, file: test, 
+                        erroneousSource = indexes: 40..41, line/column: 1/41..1/42, file: test
+                    )
+                )
+                ParsingError(
+                    message = Unparsable value argument: "("plugin-id-1) ; kotlin("plugin-id-2")", 
+                    source = indexes: 6..44, line/column: 1/7..1/45, file: test, 
+                )
+                ParsingError(
+                    message = Unparsable value argument: "("plugin-id-1) ; kotlin("plugin-id-2")", 
+                    source = indexes: 6..44, line/column: 1/7..1/45, file: test, 
+                )
+            )
+            """.trimIndent()
+        assertResult(expected, code)
+
+        // TODO: identical parsing errors because we can't make sense of the nodes; they are of type PsiBuilderImpl$ErrorItem, which is private
+    }
 }

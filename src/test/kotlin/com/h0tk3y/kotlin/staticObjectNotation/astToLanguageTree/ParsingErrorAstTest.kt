@@ -29,4 +29,13 @@ class ParsingErrorAstTest: AbstractRejectedLanguageFeaturesTest() {
         }
     }
 
+    @Test
+    fun `missing closing parenthesis in function argument`() {
+        val code = "kotlin(\"plugin-id-1) ; kotlin(\"plugin-id-2\")"
+
+        assertThrows<ParseCancellationException> {
+            parse(code)
+        }
+    }
+
 }

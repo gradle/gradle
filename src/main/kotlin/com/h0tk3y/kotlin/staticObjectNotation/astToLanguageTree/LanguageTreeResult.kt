@@ -77,6 +77,7 @@ sealed interface UnsupportedLanguageFeature {
     data object ValModifierNotSupported : UnsupportedLanguageFeature
     data object Indexing : UnsupportedLanguageFeature
     data object InvalidLanguageConstruct : UnsupportedLanguageFeature
+    data object PrefixExpression : UnsupportedLanguageFeature
     data object UnsupportedOperationInBinaryExpression: UnsupportedLanguageFeature
 
     data object SafeNavigation : UnsupportedLanguageFeature
