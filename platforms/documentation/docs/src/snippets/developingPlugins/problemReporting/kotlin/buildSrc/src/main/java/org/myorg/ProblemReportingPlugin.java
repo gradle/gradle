@@ -19,13 +19,21 @@ public class ProblemReportingPlugin implements Plugin<Project> {
     }
 
     public void apply(Project project) {
-        this.problemReporter.reporting(builder -> builder // <3>
-            .category("deprecation", "plugin")
-            .label("Plugin 'x' is deprecated")
-            .details("The plugin 'x' is deprecated since version 2.5")
-            .solution("Please use plugin 'y'")
-            .severity(Severity.WARNING)
-        );
+        // Get the root directory of the project
+        File rootDir = project.getRootDir();
+        // Define the path to your config file
+        File configFile = new File(rootDir, "config.yaml"); // <3>
+
+        if (!configFile.exists()) {
+            // Report a problem if the config file does not exist
+            this.problemReporter.throwing(builder -> builder // <4>
+                .category("configuration", "missing-file")
+                .label("Configuration file does not exist")
+                .details(String.format("The configuration file '%s' does not exist.", configFile))
+                .solution("Please create the configuration file.")
+                .severity(Severity.ERROR)
+            );
+        }
     }
 }
 // end::snippet[]
