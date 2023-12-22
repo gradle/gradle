@@ -336,6 +336,8 @@ class GrammarToLightTree(
     private
     fun valueArgument(tree: LightTree, node: LighterASTNode): SyntacticResult<FunctionArgument.ValueArgument> =
         syntacticOrFailure {
+            if (node.tokenType == PARENTHESIZED) return@syntacticOrFailure valueArgument(tree, tree.getFirstChildExpressionUnwrapped(node)!!)
+
             var expression: CheckedResult<ElementResult<Expr>>? = null
 
             when (node.tokenType) {

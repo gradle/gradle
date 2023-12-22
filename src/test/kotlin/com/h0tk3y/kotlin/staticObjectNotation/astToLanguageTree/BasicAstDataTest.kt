@@ -388,4 +388,33 @@ class BasicAstDataTest: AbstractBasicDataTest() {
             """.trimIndent()
         assertResult(expected, results)
     }
+
+    @Test
+    fun `parse infix function call with regular arguments`() {
+        val results = parse(
+            """
+            f("a") g("b")
+            """.trimIndent()
+        )
+
+        val expected = """
+            FunctionCall [indexes: 0..13, line/column: 1/1..1/14, file: test] (
+                name = g
+                receiver = FunctionCall [indexes: 1..6, line/column: 1/2..1/7, file: test] (
+                    name = f
+                    args = [
+                        FunctionArgument.Positional [indexes: 2..5, line/column: 1/3..1/6, file: test] (
+                            expr = StringLiteral [indexes: 2..5, line/column: 1/3..1/6, file: test] (a)
+                        )
+                    ]
+                )
+                args = [
+                    FunctionArgument.Positional [indexes: 0..13, line/column: 1/1..1/14, file: test] (
+                        expr = StringLiteral [indexes: 9..12, line/column: 1/10..1/13, file: test] (b)
+                    )
+                ]
+            )
+            """.trimIndent()
+        assertResult(expected, results)
+    }
 }
