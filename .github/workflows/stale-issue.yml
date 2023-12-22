@@ -14,7 +14,7 @@ jobs:
   close-pending:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v8
+      - uses: actions/stale@v9
         with:
           # GLOBAL ------------------------------------------------------------
           operations-per-run: 30
@@ -42,7 +42,7 @@ jobs:
   close-pending-feedback:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v8
+      - uses: actions/stale@v9
         with:
           # GLOBAL ------------------------------------------------------------
           operations-per-run: 30
