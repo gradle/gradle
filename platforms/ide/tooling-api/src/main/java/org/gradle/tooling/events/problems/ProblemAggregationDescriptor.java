@@ -21,7 +21,8 @@ import org.gradle.api.Incubating;
 import java.util.List;
 
 /**
- * Describes a problem aggregation.
+ * Describes the problem aggregations sent at the end of the build.
+ * Note: They can also be sent during the build if the total number of problems exceeds 10,000.
  *
  * @since 8.6
  */
@@ -30,6 +31,7 @@ public interface ProblemAggregationDescriptor extends BaseProblemDescriptor {
 
     /**
      * Returns the list of problem aggregations.
+     * All Problems that occurred more than once during the build are aggregated and sent as a {@link ProblemAggregation}.
      *
      * @return The list of problem aggregations.
      * @since 8.6
