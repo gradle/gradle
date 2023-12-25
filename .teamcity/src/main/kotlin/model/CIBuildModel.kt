@@ -338,7 +338,7 @@ enum class PerformanceTestType(
 }
 
 enum class Trigger {
-    never, eachCommit, daily, weekly
+    never, eachCommit, eachCommitWithMergeQueue, daily, weekly
 }
 
 const val GRADLE_BUILD_SMOKE_TEST_NAME = "gradleBuildSmokeTest"
