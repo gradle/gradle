@@ -39,7 +39,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
                 branchFilter = model.branch.branchFilter()
                 enabled = enableTriggers
             }
-        } else if (stage.trigger == Trigger.eachCommit) {
+        } else if (stage.trigger == Trigger.eachCommitWithMergeQueue) {
             triggers.vcs {
                 quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
                 quietPeriod = 60
@@ -47,7 +47,6 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
     +:${model.branch.branchName}
     +:gh-readonly-queue/*
 """.trimIndent()
-                enabled = enableTriggers
             }
         } else if (stage.trigger != Trigger.never) {
             triggers.schedule {

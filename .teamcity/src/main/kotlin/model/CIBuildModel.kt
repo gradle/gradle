@@ -96,7 +96,7 @@ data class CIBuildModel(
         ),
         Stage(
             StageName.READY_FOR_NIGHTLY,
-            trigger = Trigger.eachCommit,
+            trigger = Trigger.eachCommitWithMergeQueue,
             specificBuilds = listOf(
                 SpecificBuild.SmokeTestsMinJavaVersion
             ),
