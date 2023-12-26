@@ -57,7 +57,7 @@ abstract class AbstractSmokeTest extends Specification {
          */
 
         // https://plugins.gradle.org/plugin/biz.aQute.bnd
-        static bnd = "6.4.0"
+        static bnd = "7.0.0"
 
         // https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-recommender
         static nebulaDependencyRecommender = "12.2.0"
