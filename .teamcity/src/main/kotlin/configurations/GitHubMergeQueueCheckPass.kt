@@ -1,0 +1,43 @@
+package configurations
+
+import common.VersionedSettingsBranch
+import jetbrains.buildServer.configs.kotlin.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.CheckoutMode
+import jetbrains.buildServer.configs.kotlin.FailureAction
+import jetbrains.buildServer.configs.kotlin.RelativeId
+import jetbrains.buildServer.configs.kotlin.triggers.VcsTrigger
+import jetbrains.buildServer.configs.kotlin.triggers.vcs
+import model.CIBuildModel
+import model.StageName
+
+class GitHubMergeQueueCheckPass(model: CIBuildModel) : BaseGradleBuildType(init = {
+    uuid = "GitHubMergeQueueCheckPass"
+    id(uuid)
+    name = "GitHub Merge Queue Check Pass"
+    type = Type.COMPOSITE
+
+    vcs {
+        root(AbsoluteId(VersionedSettingsBranch.fromDslContext().vcsRootId()))
+        checkoutMode = CheckoutMode.ON_AGENT
+    }
+
+    features {
+        enablePullRequestFeature()
+        publishBuildStatusToGithub(model)
+    }
+
+    triggers.vcs {
+        quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
+        quietPeriod = 60
+        branchFilter = """
++:gh-readonly-queue/${model.branch.branchName}/*
+"""
+    }
+
+    dependencies {
+        snapshot(RelativeId(stageTriggerId(model, StageName.QUICK_FEEDBACK_LINUX_ONLY))) {
+            onDependencyFailure = FailureAction.FAIL_TO_START
+            onDependencyCancel = FailureAction.FAIL_TO_START
+        }
+    }
+})
