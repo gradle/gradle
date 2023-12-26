@@ -1,11 +1,8 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [improvements for build authors](#build-authors), including the new [Problems API](#problems-api), a new method on the [NamedDomainObject API](#enhanced-filtering), improvements to the [ConfigurableFileCollection API](#provider-capabilities), and updates to the [Artifacts APIs](#update-api).
+This release features support for [custom encryption keys](#encryption-key) for the [configuration cache](#configuration-cache) as well as more helpful [error and warning messages](#error-improvements).
 
-This release features a security enhancement to the [configuration cache](#configuration-cache) for [encryption keys](#encryption-key).
-
-Additionally, this release comes with more helpful [error and warning messages](#error-improvements) and improvements to [build init](#build-init).
-See the full release notes for details.
+Additionally, this release comes with several improvements to [build init](#build-init) and to [build authoring](#build-authors) for build engineers and plugin authors.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Baptiste Decroix](https://github.com/bdecroix-spiria),
@@ -27,7 +24,7 @@ We would like to thank the following community members for their contributions t
 [Surya K N](https://github.com/Surya-KN),
 [Vladislav Golubtsov](https://github.com/Shmuser),
 [Yanshun Li](https://github.com/Chaoba),
-[​Andrzej Ressel](https://github.com/andrzejressel)
+[Andrzej Ressel](https://github.com/andrzejressel)
 
 Be sure to check out the [Public Roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
 
@@ -43,100 +40,22 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 ## New features and usability improvements
 
-<a name="build-authors"></a>
-### Build authoring improvements
-
-Gradle provides rich APIs for plugin authors and build engineers to develop custom build logic.
-
-<a name="problems-api"></a>
-#### Problems API
-
-Gradle now has a new incubating API that allows build engineers and plugin authors to consume and report problems that occur during a build.
-
-The [`Problems`](javadoc/org/gradle/api/problems/Problems.html) service can be used to describe problems with details (description, location information, link to documentation, etc.) and report them.
-Reported problems are then exposed via the Tooling API, allowing Gradle IDE providers - IntelliJ IDEA, Visual Studio Code, Eclipse - to display details in the UI.
-The reported problems carry location information; therefore, IDEs can easily integrate them into the developer experience, providing error markers, problem views, and more.
-
-Gradle already emits problems from many components, including (but not limited to) deprecation warnings, dependency version catalog errors, task validation errors, and Java toolchain problems.
-
-The current release focuses on reporting problems in the IDE.
-Check out the [Problems API](userguide/implementing_gradle_plugins.html#reporting-problems) documentation to learn more.
-Users can expect further enhancements to the Problems API aimed at console reporting in future releases.
-
-<a name="enhanced-filtering"></a>
-#### Enhanced name-based filtering on NamedDomainObject containers
-
-A new [`named(Spec<String>)` method](javadoc/org/gradle/api/NamedDomainObjectCollection.html#named-org.gradle.api.specs.Spec-) has been added to all `NamedDomainObject` containers, simplifying name-based filtering and eliminating the need to touch any of the values, whether they be realized or unrealized.
-
-Instead of:
-```
-    tasks.matching { it.name.contains("pack")
-```
-
-You can use:
-```
-    tasks.named { it.contains("pack") }
-```
-
-Using `named` will not cause registered tasks to be eagerly created as was the case with `matching`.
-
-<a name="provider-capabilities"></a>
-#### Allow Providers to be used with capabilities
-
-[`Providers`](javadoc/org/gradle/api/provider/Provider.html) can now be passed to capability methods
-[`ConfigurationPublications#capability(Object)`](javadoc/org/gradle/api/artifacts/ConfigurationPublications.html#capability-java.lang.Object-),
-[`ModuleDependencyCapabilitiesHandler#requireCapability(Object)`](javadoc/org/gradle/api/artifacts/ModuleDependencyCapabilitiesHandler.html#requireCapability-java.lang.Object-),
-and [`CapabilitiesResolution#withCapability(Object, Action)`](javadoc/org/gradle/api/artifacts/CapabilitiesResolution.html#withCapability-java.lang.Object-org.gradle.api.Action-).
-
-```
-dependencies {
-    implementation("org.foo:bar:1.0") {
-        capabilities {
-            requireCapability(value)  // project.provider(() -> value
-        }
-    }
-}
-```
-
-<a name="update-api"></a>
-#### New `update()` API allows safe self-referencing lazy properties
-
-Historically, Gradle did not support circular references when evaluating lazy properties:
-
-```
-var property = objects.property<String>()
-property.set("some value")
-property.set(property.map { "$it and more" })
-
-// Circular evaluation detected (or StackOverflowError, before 8.6)
-println(property.get()) // "some value and more"
-```
-
-[`Property`](javadoc/org/gradle/api/provider/Property.html#update-org.gradle.api.Transformer-) and [`ConfigurableFileCollection`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#update-org.gradle.api.Transformer-) now provide their respective `update(Transformer<...>)` methods which allow self-referencing updates safely:
-
-```
-var property = objects.property<String>()
-property.set("some value")
-property.update { it.map { "$it and more" } }
-
-println(property.get()) // "some value and more"
-```
-
-Please refer to the javadoc for [`Property.update(Transformer<>)`](javadoc/org/gradle/api/provider/Property.html#update-org.gradle.api.Transformer-) and [`ConfigurableFileCollection.update(Transformer<>)`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#update-org.gradle.api.Transformer-) for more details, including limitations.
-
 <a name="configuration-cache"></a>
-### Configuration cache
+### Configuration cache improvements
 
-The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing it for subsequent builds. This feature can significantly improve build performance.
+The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
+This feature can significantly improve build performance.
 
 <a name="encryption-key"></a>
-#### Gradle encryption key via an environment variable
+#### Custom encryption key
+
+The configuration cache is encrypted to mitigate the risk of accidental exposure of sensitive data.
+By default, Gradle automatically creates and manages the key, storing it in a keystore in the Gradle User Home directory.
+While convenient, this may be inappropriate in some environments.
 
 You may now provide Gradle with the key used to encrypt cached configuration data via the `GRADLE_ENCRYPTION_KEY` environment variable.
-By default, Gradle creates and manages the key automatically, storing it in a keystore under the Gradle User Home.
-This may be inappropriate in some environments.
 
-More details can be found in the dedicated section of the [configuration cache](userguide/configuration_cache.html#config_cache:secrets:configuring_encryption_key) user manual chapter.
+More details can be found in the [configuration cache](userguide/configuration_cache.html#config_cache:secrets:configuring_encryption_key) section of the Gradle User Manual.
 
 <a name="error-improvements"></a>
 ### Error and warning reporting improvements
@@ -144,7 +63,7 @@ More details can be found in the dedicated section of the [configuration cache](
 Gradle provides a rich set of error and warning messages to help you understand and resolve problems in your build.
 
 <a name="dependency-locking"></a>
-#### Dependency locking now separates the error from the possible action to try
+#### Clearer suggested actions in case of dependency locking errors
 
 [Dependency locking](userguide/dependency_locking.html) is a mechanism that ensures reproducible builds when using dynamic dependency versions.
 
@@ -246,7 +165,7 @@ gradle init --use-defaults --type kotlin-library
 ```
 
 <a name="kotlin-syntax"></a>
-#### Assignment syntax in Kotlin DSL
+#### Simpler assignment syntax in Kotlin DSL
 
 Projects generated with Kotlin DSL scripts now use [simple property assignment](/8.4/release-notes.html#assign-stable) syntax with the `=` operator.
 
@@ -258,15 +177,95 @@ application {
 }
 ```
 
-## Promoted features
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+<a name="build-authors"></a>
+### Build authoring improvements
 
-The following are the features that have been promoted in this Gradle release.
+Gradle provides rich APIs for plugin authors and build engineers to develop custom build logic.
 
-<!--
-### Example promoted
--->
+<a name="enhanced-filtering"></a>
+#### Lazy name-based filtering of tasks
+
+Previously, filtering tasks by name required using the `matching` method using the following pattern:
+```
+tasks.matching { it.name.contains("pack") }
+```
+
+The problem was that it triggered the creation of the tasks, even when the task was not part of the build execution.
+
+Starting from this release, you can use:
+```
+tasks.named { it.contains("pack") }
+```
+
+Using `named` will not cause the registered tasks to be eagerly created.
+
+This new method is available on all Gradle containers that extend [`NamedDomainObjectSet`](userguide/custom_gradle_types.html#nameddomainobjectset).
+
+<a name="provider-capabilities"></a>
+#### Allow Providers to be used with dependency capabilities
+
+Gradle supports [declaring capabilities](userguide/component_capabilities.html) for components to better manage dependencies by allowing Gradle to detect and resolve conflicts between dependencies at build time.
+
+Previously, capability methods only accepted inputs with the capability notation:
+
+```
+dependencies {
+    implementation("org.foo:bar:1.0") {
+        capabilities {
+            requireCapability("org.foo:module-variant") // capability notation
+        }
+    }
+}
+```
+
+[`Providers`](javadoc/org/gradle/api/provider/Provider.html) can now be passed to capability methods
+[`ConfigurationPublications#capability(Object)`](javadoc/org/gradle/api/artifacts/ConfigurationPublications.html#capability-java.lang.Object-),
+[`ModuleDependencyCapabilitiesHandler#requireCapability(Object)`](javadoc/org/gradle/api/artifacts/ModuleDependencyCapabilitiesHandler.html#requireCapability-java.lang.Object-), and [`CapabilitiesResolution#withCapability(Object, Action)`](javadoc/org/gradle/api/artifacts/CapabilitiesResolution.html#withCapability-java.lang.Object-org.gradle.api.Action-).
+This allows computing the capability coordinates using values that may change after calling these methods, for example:
+
+```
+dependencies {
+    implementation("org.foo:bar:1.0") {
+        capabilities {
+	// Values in the interpolated String below are lazily evaluated, allowing them to be set after this block
+            requireCapability(project.provider(() -> "${project.group}:${project.name}-platform:${project.version}"))
+        }
+    }
+}
+
+// Later, the version of the project is set.
+// Without the provider above, this change would not be reflected in the capability.
+project.version = "1.0.0"
+```
+
+<a name="update-api"></a>
+#### New `update()` API allows safe self-referencing lazy properties
+
+[Lazy configuration](userguide/lazy_configuration.html) delays calculating a property’s value until it is required for the build.
+This can lead to accidental recursions when assigning property values of an object to itself:
+
+```
+var property = objects.property<String>()
+property.set("some value")
+property.set(property.map { "$it and more" })
+
+// Circular evaluation detected (or StackOverflowError, before 8.6)
+println(property.get()) // "some value and more"
+```
+
+Previously, Gradle did not support circular references when evaluating lazy properties.
+
+[`Property`](javadoc/org/gradle/api/provider/Property.html#update-org.gradle.api.Transformer-) and [`ConfigurableFileCollection`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#update-org.gradle.api.Transformer-) now provide their respective `update(Transformer<...>)` methods which allow self-referencing updates safely:
+
+```
+var property = objects.property<String>()
+property.set("some value")
+property.update { it.map { "$it and more" } }
+
+println(property.get()) // "some value and more"
+```
+
+Refer to the javadoc for [`Property.update(Transformer<>)`](javadoc/org/gradle/api/provider/Property.html#update-org.gradle.api.Transformer-) and [`ConfigurableFileCollection.update(Transformer<>)`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#update-org.gradle.api.Transformer-) for more details, including limitations.
 
 ## Fixed issues
 
