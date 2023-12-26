@@ -127,21 +127,22 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         "from property with empty value"        | null               | ""                 | ""
     }
 
-    def "creates multi-project application sample without comments"() {
+    def "creates multi-project application sample without comments configured via #description"() {
         given:
         def dsl = buildDsl
         def language = jvmLanguage.name
         def settingsFile = dsl.fileNameFor('settings')
         def buildFile = dsl.fileNameFor('build')
 
+        def commentsOption = option == null ? [] : [option ? '--comments' : '--no-comments']
+        def commentsProperty = property == null ? [] : ['-Porg.gradle.buildinit.comments=' + property]
+
         when:
-        def tasks = [
+        run([
             'init', '--use-defaults', '--dsl', dsl.id,
-            '--type', "${language}-application".toString(),
-            '--split-project',
-            '--no-comments'
-        ]
-        run(tasks)
+            '--type', language + '-application',
+            '--split-project'
+        ] + commentsOption + commentsProperty)
 
         then:
         targetDir.file(settingsFile).exists()
@@ -169,6 +170,12 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
 
         then:
         outputContains("Hello World!")
+
+        where:
+        description            | option | property
+        "option"               | false  | null
+        "property"             | null   | false
+        "option over property" | false  | true
     }
 
     def getAllFiles(File dir) {
