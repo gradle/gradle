@@ -51,6 +51,7 @@ class TemplateFactoryTest extends Specification {
         1 * templateOperationBuilder.withBinding("basePackagePrefix", "") >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("packageDecl", "") >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("className", "") >> templateOperationBuilder
+        1 * templateOperationBuilder.withBinding("fileComment", _) >> templateOperationBuilder
         1 * templateOperationBuilder.create() >> Mock(TemplateOperation)
 
         where:
@@ -78,6 +79,7 @@ class TemplateFactoryTest extends Specification {
         1 * templateOperationBuilder.withBinding("basePackagePrefix", "my.lib.") >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("packageDecl", "package my.lib") >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("className", "") >> templateOperationBuilder
+        1 * templateOperationBuilder.withBinding("fileComment", _) >> templateOperationBuilder
         1 * templateOperationBuilder.create() >> Mock(TemplateOperation)
 
         where:
@@ -108,6 +110,7 @@ class TemplateFactoryTest extends Specification {
         1 * templateOperationBuilder.withBinding("basePackagePrefix", _) >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("packageDecl", _) >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("className", className) >> templateOperationBuilder
+        1 * templateOperationBuilder.withBinding("fileComment", _) >> templateOperationBuilder
         1 * templateOperationBuilder.create() >> Mock(TemplateOperation)
 
         where:
