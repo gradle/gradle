@@ -96,7 +96,7 @@ data class CIBuildModel(
         ),
         Stage(
             StageName.READY_FOR_NIGHTLY,
-            trigger = Trigger.eachCommitWithMergeQueue,
+            trigger = Trigger.eachCommit,
             specificBuilds = listOf(
                 SpecificBuild.SmokeTestsMinJavaVersion
             ),
@@ -338,7 +338,7 @@ enum class PerformanceTestType(
 }
 
 enum class Trigger {
-    never, eachCommit, eachCommitWithMergeQueue, daily, weekly
+    never, eachCommit, daily, weekly
 }
 
 const val GRADLE_BUILD_SMOKE_TEST_NAME = "gradleBuildSmokeTest"

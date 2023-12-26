@@ -17,74 +17,64 @@ import model.StageName
 import model.Trigger
 import projects.StageProject
 
-class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stageProject: StageProject) :
-    BaseGradleBuildType(init = {
-        id(stageTriggerId(model, stage))
-        uuid = stageTriggerUuid(model, stage)
-        name = stage.stageName.stageName + " (Trigger)"
-        type = Type.COMPOSITE
+class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stageProject: StageProject) : BaseGradleBuildType(init = {
+    id(stageTriggerId(model, stage))
+    uuid = stageTriggerUuid(model, stage)
+    name = stage.stageName.stageName + " (Trigger)"
+    type = Type.COMPOSITE
 
-        applyDefaultSettings()
+    applyDefaultSettings()
 
-        features {
-            publishBuildStatusToGithub(model)
+    features {
+        publishBuildStatusToGithub(model)
+    }
+
+    val enableTriggers = model.branch.enableVcsTriggers
+    if (stage.trigger == Trigger.eachCommit) {
+        triggers.vcs {
+            quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
+            quietPeriod = 90
+            triggerRules = triggerExcludes
+            branchFilter = model.branch.branchFilter()
+            enabled = enableTriggers
         }
-
-        val enableTriggers = model.branch.enableVcsTriggers
-        if (stage.trigger == Trigger.eachCommit) {
-            triggers.vcs {
-                quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
-                quietPeriod = 90
-                triggerRules = triggerExcludes
-                branchFilter = model.branch.branchFilter()
-                enabled = enableTriggers
-            }
-        } else if (stage.trigger == Trigger.eachCommitWithMergeQueue) {
-            triggers.vcs {
-                quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
-                quietPeriod = 60
-                branchFilter = """
-    +:${model.branch.branchName}
-    +:gh-readonly-queue/*
-""".trimIndent()
-            }
-        } else if (stage.trigger != Trigger.never) {
-            triggers.schedule {
-                if (stage.trigger == Trigger.weekly) {
-                    schedulingPolicy = weekly {
-                        dayOfWeek = ScheduleTrigger.DAY.Saturday
-                        hour = 1
-                    }
-                } else {
-                    schedulingPolicy = daily {
-                        hour = 0
-                        minute = 30
-                    }
+    } else if (stage.trigger != Trigger.never) {
+        triggers.schedule {
+            if (stage.trigger == Trigger.weekly) {
+                schedulingPolicy = weekly {
+                    dayOfWeek = ScheduleTrigger.DAY.Saturday
+                    hour = 1
                 }
-                triggerBuild = always()
-                withPendingChangesOnly = true
-                param("revisionRule", "lastFinished")
-                branchFilter = model.branch.branchFilter()
-                enabled = enableTriggers
-            }
-        }
-
-        dependencies {
-            if (!stage.runsIndependent && prevStage != null) {
-                dependency(RelativeId(stageTriggerId(model, prevStage))) {
-                    snapshot {
-                        onDependencyFailure = FailureAction.FAIL_TO_START
-                        onDependencyCancel = FailureAction.FAIL_TO_START
-                    }
+            } else {
+                schedulingPolicy = daily {
+                    hour = 0
+                    minute = 30
                 }
             }
-
-            snapshotDependencies(stageProject.specificBuildTypes)
-            snapshotDependencies(stageProject.performanceTests)
-            snapshotDependencies(stageProject.functionalTests)
-            snapshotDependencies(stageProject.docsTestTriggers)
+            triggerBuild = always()
+            withPendingChangesOnly = true
+            param("revisionRule", "lastFinished")
+            branchFilter = model.branch.branchFilter()
+            enabled = enableTriggers
         }
-    })
+    }
+
+    dependencies {
+        if (!stage.runsIndependent && prevStage != null) {
+            dependency(RelativeId(stageTriggerId(model, prevStage))) {
+                snapshot {
+                    onDependencyFailure = FailureAction.FAIL_TO_START
+                    onDependencyCancel = FailureAction.FAIL_TO_START
+                }
+            }
+        }
+
+        snapshotDependencies(stageProject.specificBuildTypes)
+        snapshotDependencies(stageProject.performanceTests)
+        snapshotDependencies(stageProject.functionalTests)
+        snapshotDependencies(stageProject.docsTestTriggers)
+    }
+})
 
 fun stageTriggerId(model: CIBuildModel, stage: Stage) = stageTriggerId(model, stage.stageName)
 
@@ -92,13 +82,9 @@ fun stageTriggerUuid(model: CIBuildModel, stage: Stage) = stageTriggerUuid(model
 
 fun stageTriggerId(model: CIBuildModel, stageName: StageName) = "${model.projectId}_Stage_${stageName.id}_Trigger"
 
-fun stageTriggerUuid(model: CIBuildModel, stageName: StageName) =
-    "${DslContext.uuidPrefix}_${model.projectId}_Stage_${stageName.uuid}_Trigger"
+fun stageTriggerUuid(model: CIBuildModel, stageName: StageName) = "${DslContext.uuidPrefix}_${model.projectId}_Stage_${stageName.uuid}_Trigger"
 
-fun <T : BaseGradleBuildType> Dependencies.snapshotDependencies(
-    buildTypes: Iterable<T>,
-    snapshotConfig: SnapshotDependency.(T) -> Unit = {}
-) {
+fun <T : BaseGradleBuildType> Dependencies.snapshotDependencies(buildTypes: Iterable<T>, snapshotConfig: SnapshotDependency.(T) -> Unit = {}) {
     buildTypes.forEach { buildType ->
         dependency(buildType.id!!) {
             snapshot {

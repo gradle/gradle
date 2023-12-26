@@ -3,6 +3,7 @@ package projects
 import common.cleanupRule
 import common.hiddenArtifactDestination
 import common.isSecurityFork
+import configurations.GitHubMergeQueueCheckPass
 import configurations.PerformanceTestsPass
 import configurations.StagePasses
 import jetbrains.buildServer.configs.kotlin.ParameterDisplay
@@ -67,6 +68,8 @@ class CheckProject(
         prevStage = stage
         previousPerformanceTestPasses.addAll(stageProject.performanceTests)
     }
+
+    buildType(GitHubMergeQueueCheckPass(model))
 
     buildTypesOrder = buildTypes
     subProjectsOrder = subProjects
