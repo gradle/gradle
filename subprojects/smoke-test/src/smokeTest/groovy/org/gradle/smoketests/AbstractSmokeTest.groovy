@@ -172,6 +172,9 @@ abstract class AbstractSmokeTest extends Specification {
         // https://plugins.gradle.org/plugin/org.jlleitschuh.gradle.ktlint
         static ktlint = Versions.of("12.0.3")
 
+        // https://plugins.gradle.org/plugin/org.jlleitschuh.gradle.ktlint-idea
+        static ktlintIdea = Versions.of("11.6.1")
+
         // https://github.com/davidmc24/gradle-avro-plugin/releases
         static avro = Versions.of("1.9.1")
 
