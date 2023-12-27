@@ -47,8 +47,8 @@ public class GitIgnoreGenerator implements BuildContentGenerator {
                     writer.println();
                 }
                 Spliterator<String> it = gitignoresToAppend.spliterator();
-                if (it.tryAdvance(e -> withComment(settings, e).forEach(writer::println))) {
-                    StreamSupport.stream(it, false).forEach(e -> withSeparator(withComment(settings, e)).forEach(writer::println));
+                if (it.tryAdvance(e -> withComment(e).forEach(writer::println))) {
+                    StreamSupport.stream(it, false).forEach(e -> withSeparator(withComment(e)).forEach(writer::println));
                 }
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
@@ -59,7 +59,7 @@ public class GitIgnoreGenerator implements BuildContentGenerator {
     private static Set<String> getGitignoresToAppend(File gitignoreFile) {
         Set<String> result = Sets.newLinkedHashSet(Arrays.asList(".gradle", "build"));
         if (gitignoreFile.exists()) {
-            try (BufferedReader reader = new BufferedReader(new FileReader(gitignoreFile))) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(gitignoreFile))){
                 result.removeAll(reader.lines().filter(it -> result.contains(it)).collect(Collectors.toSet()));
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
@@ -68,18 +68,15 @@ public class GitIgnoreGenerator implements BuildContentGenerator {
         return result;
     }
 
-    private static List<String> withComment(InitSettings settings, String entry) {
+    private static List<String> withComment(String entry) {
         List<String> result = new ArrayList<>();
-
-        if (settings.isWithComments()) {
-            if (entry.startsWith(".gradle")) {
-                result.add("# Ignore Gradle project-specific cache directory");
-            } else if (entry.startsWith("build")) {
-                result.add("# Ignore Gradle build output directory");
-            }
+        if (entry.startsWith(".gradle")) {
+            result.add("# Ignore Gradle project-specific cache directory");
+        } else if (entry.startsWith("build")) {
+            result.add("# Ignore Gradle build output directory");
         }
-
         result.add(entry);
+
         return result;
     }
 
