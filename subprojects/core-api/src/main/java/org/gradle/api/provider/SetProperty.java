@@ -66,6 +66,30 @@ public interface SetProperty<T> extends Provider<Set<T>>, HasMultipleValues<T> {
     SetProperty<T> convention(Provider<? extends Iterable<? extends T>> provider);
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    SetProperty<T> unset();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    SetProperty<T> unsetConvention();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    SetProperty<T> setToConvention();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    SetProperty<T> setToConventionIfUnset();
+
+    /**
      * Applies an eager transformation to the current value of the property "in place", without explicitly obtaining it.
      * The provided transformer is applied to the provider of the current value, and the returned provider is used as a new value.
      * The provider of the value can be used to derive the new value, but doesn't have to.

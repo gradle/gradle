@@ -36,7 +36,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     @Override
     AbstractCollectionProperty<String, C> propertyWithNoValue() {
         def p = property()
-        p.set((Iterable) null)
+        p.unset()
         return p
     }
 
@@ -95,6 +95,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     def "has empty collection as value by default"() {
         expect:
         assertValueIs([])
+        !property.explicit
     }
 
     def "can change value to empty collection"() {
@@ -103,6 +104,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
         expect:
         assertValueIs([])
+        property.explicit
     }
 
     def "can set value using empty collection"() {
@@ -1262,5 +1264,42 @@ The value of this property is derived from: <source>""")
             where:
             consumer << safeConsumers()
         }
+    }
+
+    def "can add to convention value"() {
+        given:
+        property.convention([])
+        property.withActualValue {
+            it.addAll(Providers.of(["1", "2"]))
+            it.addAll(Providers.of(["3", "4"]))
+        }
+        expect:
+        assertValueIs toImmutable(["1", "2", "3", "4"])
+        !property.explicit
+    }
+
+    def "can add to explicit value"() {
+        given:
+        property.set([])
+        property.withActualValue {
+            it.addAll(Providers.of(["1", "2"]))
+            it.addAll(Providers.of(["3", "4"]))
+        }
+
+        expect:
+        assertValueIs toImmutable(["1", "2", "3", "4"])
+        property.explicit
+    }
+
+    def "can add to actual value without previous configuration"() {
+        given:
+        property.withActualValue {
+            it.addAll(Providers.of(["1", "2"]))
+            it.addAll(Providers.of(["3", "4"]))
+        }
+
+        expect:
+        assertValueIs toImmutable(["1", "2", "3", "4"])
+        property.explicit
     }
 }

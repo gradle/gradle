@@ -26,6 +26,8 @@ import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
+
 public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>> implements SetProperty<T> {
     private static final Supplier<ImmutableCollection.Builder<Object>> FACTORY = new Supplier<ImmutableCollection.Builder<Object>>() {
         @Override
@@ -80,5 +82,24 @@ public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>>
     public SetProperty<T> convention(Provider<? extends Iterable<? extends T>> provider) {
         super.convention(provider);
         return this;
+    }
+    @Override
+    public SetProperty<T> unset() {
+        return uncheckedNonnullCast(super.unset());
+    }
+
+    @Override
+    public SetProperty<T> unsetConvention() {
+        return uncheckedNonnullCast(super.unsetConvention());
+    }
+
+    @Override
+    public SetProperty<T> setToConvention() {
+        return uncheckedNonnullCast(super.setToConvention());
+    }
+
+    @Override
+    public SetProperty<T>  setToConventionIfUnset() {
+        return uncheckedNonnullCast(super.setToConventionIfUnset());
     }
 }

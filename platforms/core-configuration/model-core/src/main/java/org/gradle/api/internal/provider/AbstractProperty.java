@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Task;
+import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
@@ -52,6 +53,10 @@ public abstract class AbstractProperty<T, S extends AbstractMinimalProvider.Guar
     @Override
     public boolean isFinalized() {
         return state.isFinalized();
+    }
+
+    protected boolean isExplicit() {
+        return state.isExplicit();
     }
 
     @Override
@@ -117,6 +122,10 @@ public abstract class AbstractProperty<T, S extends AbstractMinimalProvider.Guar
 
     protected S getSupplier() {
         return value;
+    }
+
+    protected S getConventionSupplier() {
+        return state.convention();
     }
 
     protected Value<? extends T> calculateOwnValueNoProducer(ValueConsumer consumer) {
@@ -262,6 +271,26 @@ public abstract class AbstractProperty<T, S extends AbstractMinimalProvider.Guar
         assertCanMutate();
         value = state.implicitValue();
     }
+
+    /**
+     * Discards the convention of this property.
+     */
+    protected void discardConvention() {
+        assertCanMutate();
+        value = state.applyConvention(value, getDefaultConvention());
+    }
+
+    public SupportsConvention setToConvention() {
+        this.value = state.setToConvention();
+        return this;
+    }
+
+    public SupportsConvention setToConventionIfUnset() {
+        this.value = state.setToConventionIfUnset(value);
+        return this;
+    }
+
+    protected abstract S getDefaultConvention();
 
     protected void assertCanMutate() {
         state.beforeMutate(this.getDisplayName());

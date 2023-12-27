@@ -1202,6 +1202,55 @@ The value of this property is derived from: <source>""")
         "getOrElse" | _
     }
 
+    def "may configure convention value incrementally"() {
+        given:
+        property.convention([:])
+        property.withActualValue {
+            it.put('k0', '1')
+            it.putAll(['k1': '2', 'k2': '3'])
+            it.put('k2', '4')
+        }
+        expect:
+        assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
+        assert !property.explicit
+    }
+
+    def "may configure explicit value incrementally"() {
+        given:
+        property.set([:])
+        property.withActualValue {
+            it.put('k0', '1')
+            it.putAll(['k1': '2', 'k2': '3'])
+            it.put('k2', '4')
+        }
+        expect:
+        assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
+        assert property.explicit
+    }
+
+    def "may configure actual value incrementally"() {
+        given:
+        property.withActualValue {
+            it.put('k0', '1')
+            it.putAll(['k1': '2', 'k2': '3'])
+            it.put('k2', '4')
+        }
+        expect:
+        assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
+        assert property.explicit
+    }
+
+    def "may replace convention values"() {
+        given:
+        property.convention(['k0': '1', 'k1': '2', 'k2': '3'])
+        property.withActualValue {
+            it.put('k1', '4')
+        }
+        expect:
+        assertValueIs(['k0': '1', 'k1': '4', 'k2': '3'])
+        !property.explicit
+    }
+
     private ProviderInternal<String> brokenValueSupplier() {
         return brokenSupplier(String)
     }
