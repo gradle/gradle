@@ -71,6 +71,7 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
                         expectForUseAtConfigurationTimeDeprecation(kotlinPluginVersionNumber)
                     }
                     expectBasePluginExtensionArchivesBaseNameDeprecation(kotlinPluginVersionNumber, androidPluginVersionNumber)
+                    expectClientModuleDeprecationWarning(androidPluginVersion)
                 }.build()
 
         then:
