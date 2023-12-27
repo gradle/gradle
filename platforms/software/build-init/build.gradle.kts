@@ -39,11 +39,8 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.commonsLang)
     implementation(libs.maven3SettingsBuilder)
-    implementation(libs.maven3Artifact)
     implementation(libs.maven3Model)
-    implementation(libs.mavenResolverApi)
     implementation(libs.slf4jApi)
-    implementation(libs.plexusClassworlds)
     implementation(libs.plexusUtils)
 
     // We need to handle the Maven dependencies specially otherwise it breaks some cross version tests
@@ -52,6 +49,13 @@ dependencies {
         exclude(module = "cdi-api") // To respect the Maven exclusion
     }
     compileOnly(libs.maven3Compat)
+
+    // 3 dependencies below are recommended as implementation but doing so adds them to the distribution
+    // TODO Check why we reference them and if so, why they don't need to be in the distribution
+    compileOnly(libs.maven3Artifact)
+    compileOnly(libs.mavenResolverApi)
+    compileOnly(libs.plexusClassworlds)
+
     compileOnly(libs.maven3Core)
     compileOnly(libs.maven3PluginApi)
 

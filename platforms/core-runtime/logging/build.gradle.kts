@@ -30,8 +30,11 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.guava)
 
-    runtimeOnly(libs.log4jToSlf4j)
+    // GSon is not strictly required here but removing it moves the dependency in the distribution from lib to lib/plugins
+    // TODO Check if this is an issue
+    runtimeOnly(libs.gson)
     runtimeOnly(libs.jclToSlf4j)
+    runtimeOnly(libs.log4jToSlf4j)
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":testing-jvm")))
