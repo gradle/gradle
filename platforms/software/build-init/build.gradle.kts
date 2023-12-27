@@ -10,7 +10,6 @@ This project should NOT be used as an implementation dependency anywhere (except
 dependencies {
     api(libs.inject)
     api(libs.jsr305)
-    api(libs.maven3Core)
     api(libs.maven3Settings)
 
     api(project(":base-annotations"))
@@ -46,11 +45,14 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.plexusClassworlds)
     implementation(libs.plexusUtils)
-    implementation(libs.eclipseSisuPlexus) {
-        exclude(module = "cdi-api")
-    }
 
+    // We need to handle the Maven dependencies specially otherwise it breaks some cross version tests
+    // TODO Figure out why and fix it - Move the two deps below to implementation and api and run ProjectTheExtensionCrossVersionSpec
+    compileOnly(libs.eclipseSisuPlexus) {
+        exclude(module = "cdi-api") // To respect the Maven exclusion
+    }
     compileOnly(libs.maven3Compat)
+    compileOnly(libs.maven3Core)
     compileOnly(libs.maven3PluginApi)
 
     compileOnly(project(":platform-base"))
