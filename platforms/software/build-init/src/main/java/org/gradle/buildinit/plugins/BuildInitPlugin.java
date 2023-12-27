@@ -22,6 +22,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.tasks.InitBuild;
@@ -36,6 +37,8 @@ import java.io.File;
  * @see <a href="https://docs.gradle.org/current/userguide/build_init_plugin.html">Build Init plugin reference</a>
  */
 public abstract class BuildInitPlugin implements Plugin<Project> {
+
+    private static final String COMMENTS_PROPERTY = "org.gradle.buildinit.comments";
 
     @Override
     public void apply(Project project) {
@@ -63,8 +66,13 @@ public abstract class BuildInitPlugin implements Plugin<Project> {
 
                 initBuild.getUseDefaults().convention(false);
                 initBuild.getInsecureProtocol().convention(InsecureProtocolOption.WARN);
+                initBuild.getComments().convention(getCommentsProperty(project).orElse(true));
             });
         }
+    }
+
+    private static Provider<Boolean> getCommentsProperty(Project project) {
+        return project.getProviders().gradleProperty(COMMENTS_PROPERTY).map(Boolean::parseBoolean);
     }
 
     private static class InitBuildOnlyIfSpec implements Spec<Task> {
