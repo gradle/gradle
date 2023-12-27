@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
+import org.gradle.api.internal.artifacts.RepositoriesSupplier;
 import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
@@ -70,7 +71,8 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
-        TaskDependencyFactory taskDependencyFactory
+        TaskDependencyFactory taskDependencyFactory,
+        RepositoriesSupplier repositoriesSupplier
     ) {
         super(
             domainObjectContext,
@@ -98,6 +100,7 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
             calculatedValueContainerFactory,
             defaultConfigurationFactory,
             taskDependencyFactory,
+            repositoriesSupplier,
             ConfigurationRoles.RESOLVABLE,
             true
         );

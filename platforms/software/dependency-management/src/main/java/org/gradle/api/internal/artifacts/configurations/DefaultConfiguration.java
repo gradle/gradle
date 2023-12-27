@@ -65,6 +65,8 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.artifacts.Module;
+import org.gradle.api.internal.artifacts.RepositoriesSupplier;
+import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
@@ -79,6 +81,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Selec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
+import org.gradle.api.internal.artifacts.repositories.ContentFilteringRepository;
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolverFactory;
@@ -189,6 +193,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private ResolutionStrategyInternal resolutionStrategy;
     private final FileCollectionFactory fileCollectionFactory;
     private final ResolveExceptionContextualizer exceptionContextualizer;
+    private final RepositoriesSupplier repositoriesSupplier;
 
     private final Set<MutationValidator> childMutationValidators = new HashSet<>();
     private final MutationValidator parentMutationValidator = DefaultConfiguration.this::validateParentMutation;
@@ -276,6 +281,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
         TaskDependencyFactory taskDependencyFactory,
+        RepositoriesSupplier repositoriesSupplier,
         ConfigurationRole roleAtCreation,
         boolean lockUsage
     ) {
@@ -308,6 +314,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         this.intrinsicFiles = fileCollectionFromSpec(Specs.satisfyAll());
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
+        this.repositoriesSupplier = repositoriesSupplier;
 
         this.ownDependencies = (DefaultDomainObjectSet<Dependency>) domainObjectCollectionFactory.newDomainObjectSet(Dependency.class);
         this.ownDependencies.beforeCollectionChanges(validateMutationType(this, MutationType.DEPENDENCIES));
@@ -689,7 +696,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      * Must be called from {@link #resolveExclusivelyIfRequired} only.
      */
     private ResolverResults resolveGraphInBuildOperation() {
-        return buildOperationExecutor.call(new CallableBuildOperation<ResolverResults>() {
+        List<? extends ResolutionAwareRepository> repositories = repositoriesSupplier.get().stream()
+            .filter(repository -> !shouldSkipRepository(repository, getName(), getAttributes()))
+            .collect(Collectors.toList());
+
+        return buildOperationExecutor.call(new CallableBuildOperation<ResolveState>() {
             @Override
             public ResolverResults call(BuildOperationContext context) {
                 runDependencyActions();
@@ -697,7 +708,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
                 ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) getIncoming();
                 performPreResolveActions(incoming);
-                ResolverResults results = resolver.resolveGraph(DefaultConfiguration.this);
+                ResolverResults results = resolver.resolveGraph(DefaultConfiguration.this, repositories);
                 dependenciesModified = false;
 
                 // Make the new state visible in case a dependency resolution listener queries the result, which requires the new state
@@ -753,10 +764,62 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                         projectPathString,
                         isVisible(),
                         isTransitive(),
-                        resolver.getRepositories()
+                        repositories
                     ));
             }
         });
+    }
+
+    /**
+     * Determines if the repository should not be used to resolve this configuration.
+     */
+    private static boolean shouldSkipRepository(
+        ResolutionAwareRepository repository,
+        String resolveContextName,
+        AttributeContainer consumerAttributes
+    ) {
+        if (!(repository instanceof ContentFilteringRepository)) {
+            return false;
+        }
+
+        ContentFilteringRepository cfr = (ContentFilteringRepository) repository;
+
+        Set<String> includedConfigurations = cfr.getIncludedConfigurations();
+        Set<String> excludedConfigurations = cfr.getExcludedConfigurations();
+
+        if ((includedConfigurations != null && !includedConfigurations.contains(resolveContextName)) ||
+            (excludedConfigurations != null && excludedConfigurations.contains(resolveContextName))
+        ) {
+            return true;
+        }
+
+        Map<Attribute<Object>, Set<Object>> requiredAttributes = cfr.getRequiredAttributes();
+        return hasNonRequiredAttribute(requiredAttributes, consumerAttributes);
+    }
+
+    /**
+     * Accepts a map of attribute types to the set of values that are allowed for that attribute type.
+     * If the request attributes of the resolve context being resolved do not match the allowed values,
+     * then the repository is skipped.
+     */
+    private static boolean hasNonRequiredAttribute(
+        @Nullable Map<Attribute<Object>, Set<Object>> requiredAttributes,
+        AttributeContainer consumerAttributes
+    ) {
+        if (requiredAttributes == null) {
+            return false;
+        }
+
+        for (Map.Entry<Attribute<Object>, Set<Object>> entry : requiredAttributes.entrySet()) {
+            Attribute<Object> key = entry.getKey();
+            Set<Object> allowedValues = entry.getValue();
+            Object value = consumerAttributes.getAttribute(key);
+            if (!allowedValues.contains(value)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override

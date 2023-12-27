@@ -57,11 +57,6 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
     }
 
     @Override
-    public List<ResolutionAwareRepository> getRepositories() {
-        return delegate.getRepositories();
-    }
-
-    @Override
     public ResolverResults resolveBuildDependencies(ResolveContext resolveContext) {
         try {
             return delegate.resolveBuildDependencies(resolveContext);
@@ -71,10 +66,10 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
     }
 
     @Override
-    public ResolverResults resolveGraph(ResolveContext resolveContext) throws ResolveException {
+    public ResolverResults resolveGraph(ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories) throws ResolveException {
         ResolverResults results;
         try {
-            results = delegate.resolveGraph(resolveContext);
+            results = delegate.resolveGraph(resolveContext, repositories);
         } catch (Exception e) {
             return new BrokenResolverResults(exceptionMapper.contextualize(e, resolveContext));
         }
