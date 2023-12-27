@@ -19,18 +19,26 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.javaPoet)
+    api(project(":internal-instrumentation-api"))
 
-    implementation(project(":internal-instrumentation-api"))
+    api(libs.asm)
+    api(libs.javaPoet)
+    api(libs.jsr305)
+
+    implementation(libs.asmTree)
+    implementation(libs.jacksonAnnotations)
+    implementation(libs.jacksonDatabind)
+
     implementation(project(":base-services"))
+    implementation(project(":core-api"))
     implementation(project(":model-core"))
 
-    implementation(libs.asm)
-    implementation(libs.asmCommons)
-    implementation(libs.jacksonDatabind)
+    testCompileOnly(libs.jetbrainsAnnotations)
 
     testImplementation(libs.compileTesting)
     testImplementation(project(":core"))
+    // TODO remove this
+    testImplementation(libs.jetbrainsAnnotations)
 }
 
 tasks.named<Test>("test").configure {

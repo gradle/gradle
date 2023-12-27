@@ -80,22 +80,17 @@ val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
 
         // Gradle Doctor plugin
         task.name in listOf(
-            "buildHealth",
-            "projectHealth",
             "graph", "graphMain",
             "projectGraphReport",
             "ripples",
             "aggregateAdvice",
         ) -> true
         task.name.startsWithAnyOf(
-            "abiAnalysis",
             "advice",
             "analyzeClassUsage",
             "analyzeJar",
-            "artifactsReport",
             "constantUsageDetector",
             "createVariantFiles",
-            "findDeclaredProcs",
             "findUnusedProcs",
             "generalsUsageDetector",
             "importFinder",
@@ -105,7 +100,6 @@ val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
             "reason",
             "redundantKaptCheck",
             "redundantPluginAlert",
-            "serviceLoader",
         ) -> true
 
         else -> false

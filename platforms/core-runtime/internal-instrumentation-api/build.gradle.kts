@@ -19,12 +19,10 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":model-core"))
-    implementation(project(":base-annotations"))
-    implementation(project(":base-services"))
+    api(project(":base-annotations"))
 
-    implementation(libs.groovy)
-    implementation(libs.asm)
-    implementation(libs.asmTree)
-    implementation(libs.asmCommons)
+    api(libs.asm)
+    api(libs.asmTree)
+
+    runtimeOnly(libs.groovy)
 }
