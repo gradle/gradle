@@ -90,7 +90,11 @@ public class TemplateValue {
         StringBuilder sb = new StringBuilder();
         sb.append("/*").append(getPlatformLineSeparator());
         for (String line : value.split("\n")) {
-            sb.append(" * ").append(line).append(getPlatformLineSeparator());
+            sb.append(" *");
+            if (!line.isEmpty()) {
+                sb.append(" ").append(line);
+            }
+            sb.append(getPlatformLineSeparator());
         }
         sb.append(" */").append(getPlatformLineSeparator());
         return sb.toString();
