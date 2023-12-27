@@ -81,7 +81,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private boolean verifyDependencies = true;
     private final Property<Boolean> useGlobalDependencySubstitutionRules;
     private boolean returnAllVariants = false;
-    private boolean resolutionShouldBeFinal = true;
+    private boolean keepStateRequiredForGraphResolution = true;
 
     public DefaultResolutionStrategy(
         DependencySubstitutionRules globalDependencySubstitutionRules,
@@ -123,8 +123,8 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
-    public void discardStateRequiredForGraphResolution() {
-        if (resolutionShouldBeFinal) {
+    public void maybeDiscardStateRequiredForGraphResolution() {
+        if (keepStateRequiredForGraphResolution) {
             dependencySubstitutions.discard();
         }
     }
@@ -415,7 +415,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
-    public void setResolutionShouldBeFinal(boolean resolutionShouldBeFinal) {
-        this.resolutionShouldBeFinal = resolutionShouldBeFinal;
+    public void setKeepStateRequiredForGraphResolution(boolean keepStateRequiredForGraphResolution) {
+        this.keepStateRequiredForGraphResolution = keepStateRequiredForGraphResolution;
     }
 }
