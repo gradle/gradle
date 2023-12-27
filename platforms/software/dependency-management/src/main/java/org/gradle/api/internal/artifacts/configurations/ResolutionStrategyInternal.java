@@ -31,6 +31,14 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
     void discardStateRequiredForGraphResolution();
 
     /**
+     * Sets whether or not any configuration resolution is final and the state required for resolution can be
+     * discarded.  Setting this to false implies that the configuration may be re-resolved again in the future.
+     *
+     * Defaults to true.
+     */
+    void setResolutionShouldBeFinal(boolean resolutionShouldBeFinal);
+
+    /**
      * Gets the current expiry policy for dynamic revisions.
      *
      * @return the expiry policy

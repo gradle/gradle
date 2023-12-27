@@ -100,18 +100,18 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         succeeds('help')
 
         where:
-        methodName                         | role              | methodCall                         || allowed
-        'setExcludeRules(Set)'             | 'consumable'      | "setExcludeRules([] as Set)"       || [ProperMethodUsage.DECLARABLE_AGAINST, ProperMethodUsage.RESOLVABLE]
-        'getConsistentResolutionSource()'  | 'consumable'      | "getConsistentResolutionSource()"  || [ProperMethodUsage.RESOLVABLE]
-        'getConsistentResolutionSource()'  | 'dependencyScope' | "getConsistentResolutionSource()"  || [ProperMethodUsage.RESOLVABLE]
-        'getDependenciesResolverFactory()' | 'consumable'      | "getDependenciesResolverFactory()" || [ProperMethodUsage.RESOLVABLE]
-        'getDependenciesResolverFactory()' | 'dependencyScope' | "getDependenciesResolverFactory()" || [ProperMethodUsage.RESOLVABLE]
-        'getSyntheticDependencies()'       | 'consumable'      | "getSyntheticDependencies()"       || [ProperMethodUsage.RESOLVABLE]
-        'getSyntheticDependencies()'       | 'dependencyScope' | "getSyntheticDependencies()"       || [ProperMethodUsage.RESOLVABLE]
-        'resetResolutionState()'           | 'consumable'      | "resetResolutionState()"           || [ProperMethodUsage.RESOLVABLE]
-        'resetResolutionState()'           | 'dependencyScope' | "resetResolutionState()"           || [ProperMethodUsage.RESOLVABLE]
-        'toRootComponent()'                | 'consumable'      | "toRootComponent()"                || [ProperMethodUsage.RESOLVABLE]
-        'toRootComponent()'                | 'dependencyScope' | "toRootComponent()"                || [ProperMethodUsage.RESOLVABLE]
+        methodName                         | role              | methodCall                           || allowed
+        'setExcludeRules(Set)'             | 'consumable'      | "setExcludeRules([] as Set)"         || [ProperMethodUsage.DECLARABLE_AGAINST, ProperMethodUsage.RESOLVABLE]
+        'getConsistentResolutionSource()'  | 'consumable'      | "getConsistentResolutionSource()"    || [ProperMethodUsage.RESOLVABLE]
+        'getConsistentResolutionSource()'  | 'dependencyScope' | "getConsistentResolutionSource()"    || [ProperMethodUsage.RESOLVABLE]
+        'getDependenciesResolverFactory()' | 'consumable'      | "getDependenciesResolverFactory()"   || [ProperMethodUsage.RESOLVABLE]
+        'getDependenciesResolverFactory()' | 'dependencyScope' | "getDependenciesResolverFactory()"   || [ProperMethodUsage.RESOLVABLE]
+        'getSyntheticDependencies()'       | 'consumable'      | "getSyntheticDependencies()"         || [ProperMethodUsage.RESOLVABLE]
+        'getSyntheticDependencies()'       | 'dependencyScope' | "getSyntheticDependencies()"         || [ProperMethodUsage.RESOLVABLE]
+        'resetResolutionState()'           | 'consumable'      | "withResetResolutionState { 'foo' }" || [ProperMethodUsage.RESOLVABLE]
+        'resetResolutionState()'           | 'dependencyScope' | "withResetResolutionState { 'foo' }" || [ProperMethodUsage.RESOLVABLE]
+        'toRootComponent()'                | 'consumable'      | "toRootComponent()"                  || [ProperMethodUsage.RESOLVABLE]
+        'toRootComponent()'                | 'dependencyScope' | "toRootComponent()"                  || [ProperMethodUsage.RESOLVABLE]
     }
 
     def "forcing resolve of a non-resolvable configuration via calling invalid internal API method #methodName for role #role warns and then throws an exception"() {

@@ -864,9 +864,19 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
-    public void resetResolutionState() {
+    public <T> T withResetResolutionState(Factory<T> factory) {
         warnOnInvalidInternalAPIUsage("resetResolutionState()", ProperMethodUsage.RESOLVABLE);
-        currentResolveState.set(ResolveState.NOT_RESOLVED);
+        try {
+            // Prevent the state required for resolution from being discarded if anything in the
+            // factory resolves this configuration
+            getResolutionStrategy().setResolutionShouldBeFinal(false);
+
+            return factory.create();
+        } finally {
+            // Reset this configuration to an unresolved state
+            getResolutionStrategy().setResolutionShouldBeFinal(true);
+            currentResolveState.set(ResolveState.NOT_RESOLVED);
+        }
     }
 
     private ResolverResults getResultsForBuildDependencies() {
