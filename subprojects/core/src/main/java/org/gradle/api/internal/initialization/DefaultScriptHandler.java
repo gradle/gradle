@@ -105,7 +105,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
                 if (getBoolean(DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY)) {
                     resolvedClasspath = classPathFactory.create();
                 } else {
-                    resolvedClasspath = ((ResettableConfiguration) classpathConfiguration).withResetResolutionState(classPathFactory);
+                    resolvedClasspath = ((ResettableConfiguration) classpathConfiguration).callAndResetResolutionState(classPathFactory);
                 }
             } else {
                 resolvedClasspath = ClassPath.EMPTY;

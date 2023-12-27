@@ -53,6 +53,6 @@ public interface ResettableConfiguration extends Configuration {
      * called on a configuration that does not permit this usage.
      */
     @Nullable
-    <T> T withResetResolutionState(Factory<T> factory);
+    <T> T callAndResetResolutionState(Factory<T> factory);
 
 }

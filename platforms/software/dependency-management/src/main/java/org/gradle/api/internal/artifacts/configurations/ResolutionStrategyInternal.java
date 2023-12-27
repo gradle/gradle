@@ -28,7 +28,7 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
     /**
      * Discard any configuration state that is not required after graph resolution has been attempted.
      */
-    void discardStateRequiredForGraphResolution();
+    void maybeDiscardStateRequiredForGraphResolution();
 
     /**
      * Sets whether or not any configuration resolution is final and the state required for resolution can be
@@ -36,7 +36,7 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      *
      * Defaults to true.
      */
-    void setResolutionShouldBeFinal(boolean resolutionShouldBeFinal);
+    void setKeepStateRequiredForGraphResolution(boolean keepStateRequiredForGraphResolution);
 
     /**
      * Gets the current expiry policy for dynamic revisions.
