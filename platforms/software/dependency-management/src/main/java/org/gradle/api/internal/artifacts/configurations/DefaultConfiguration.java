@@ -865,7 +865,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public <T> T withResetResolutionState(Factory<T> factory) {
-        warnOnInvalidInternalAPIUsage("resetResolutionState()", ProperMethodUsage.RESOLVABLE);
+        warnOnInvalidInternalAPIUsage("withResetResolutionState()", ProperMethodUsage.RESOLVABLE);
         try {
             // Prevent the state required for resolution from being discarded if anything in the
             // factory resolves this configuration
