@@ -32,17 +32,20 @@ public class DefaultResolverResults implements ResolverResults {
     private final VisitedGraphResults graphResults;
     private final VisitedArtifactSet visitedArtifacts;
     private final ResolvedConfiguration resolvedConfiguration;
+    private final boolean fullyResolved;
 
     public DefaultResolverResults(
         ResolvedLocalComponentsResult resolvedLocalComponentsResult,
         VisitedGraphResults graphResults,
         VisitedArtifactSet visitedArtifacts,
-        @Nullable ResolvedConfiguration resolvedConfiguration
+        @Nullable ResolvedConfiguration resolvedConfiguration,
+        boolean fullyResolved
     ) {
         this.resolvedLocalComponentsResult = resolvedLocalComponentsResult;
         this.graphResults = graphResults;
         this.visitedArtifacts = visitedArtifacts;
         this.resolvedConfiguration = resolvedConfiguration;
+        this.fullyResolved = fullyResolved;
     }
 
     @Override
@@ -68,6 +71,11 @@ public class DefaultResolverResults implements ResolverResults {
         return visitedArtifacts;
     }
 
+    @Override
+    public boolean isFullyResolved() {
+        return fullyResolved;
+    }
+
     /**
      * Create a new result representing the result of resolving build dependencies.
      */
@@ -80,7 +88,8 @@ public class DefaultResolverResults implements ResolverResults {
             resolvedLocalComponentsResult,
             graphResults,
             visitedArtifacts,
-            null
+            null,
+            false
         );
     }
 
@@ -97,7 +106,8 @@ public class DefaultResolverResults implements ResolverResults {
             resolvedLocalComponentsResult,
             graphResults,
             visitedArtifacts,
-            resolvedConfiguration
+            resolvedConfiguration,
+            true
         );
     }
 }
