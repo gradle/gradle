@@ -11,7 +11,7 @@ import model.CIBuildModel
 import model.StageName
 
 class GitHubMergeQueueCheckPass(model: CIBuildModel) : BaseGradleBuildType(init = {
-    uuid = "GitHubMergeQueueCheckPass"
+    uuid = "Check_GitHubMergeQueueCheckPass"
     id(uuid)
     name = "GitHub Merge Queue Check Pass"
     type = Type.COMPOSITE
