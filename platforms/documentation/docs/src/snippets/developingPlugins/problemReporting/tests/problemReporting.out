@@ -1,0 +1,3 @@
+* What went wrong:
+Execution failed for task ':reportProblem'.
+> The configuration file '/home/user/gradle/samples/config.yaml' does not exist.
