@@ -77,4 +77,7 @@ packageCycles {
     excludePatterns.add("org/gradle/model/internal/manage/schema/**")
     excludePatterns.add("org/gradle/model/internal/type/**")
     excludePatterns.add("org/gradle/api/internal/plugins/*")
+    // cycle between org.gradle.api.internal.provider and org.gradle.util.internal
+    // (api.internal.provider -> ConfigureUtil, DeferredUtil -> api.internal.provider)
+    excludePatterns.add("org/gradle/util/internal/*")
 }
