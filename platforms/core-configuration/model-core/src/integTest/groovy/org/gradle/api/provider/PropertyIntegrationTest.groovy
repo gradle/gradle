@@ -159,6 +159,10 @@ task thing(type: SomeTask) {
         failure.assertHasCause("Cannot query the value of task ':thing' property 'prop' because it has no value available.")
     }
 
+    @Requires(
+        value = IntegTestPreconditions.NotConfigCached,
+        reason = "Config cache does not support extensions during execution, so cause does not include any provenance information"
+    )
     def "fails when property with no value because source property has no value is queried"() {
         given:
         buildFile << """
@@ -373,6 +377,10 @@ assert custom.prop.get() == "value 4"
         succeeds()
     }
 
+    @Requires(
+        value = IntegTestPreconditions.NotConfigCached,
+        reason = "Config cache does not support extensions during execution, leading to 'Could not get unknown property 'custom' for task ':wrongValueTypeDsl' of type org.gradle.api.DefaultTask."
+    )
     def "reports failure to set property value using incompatible type"() {
         given:
         buildFile << """
@@ -708,6 +716,7 @@ project.extensions.create("some", SomeExtension)
                 output = layout.projectDirectory.file("foo.txt")
             }
             tasks.register("consumer", Consumer) {
+                def layout = layout
                 def filtered = files(producer.map { it.output }).elements.map {
                     it.collect { it.asFile }
                         .findAll { it.isFile() }
