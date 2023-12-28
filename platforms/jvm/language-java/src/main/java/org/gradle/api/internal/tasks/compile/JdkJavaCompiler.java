@@ -68,11 +68,11 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         JavaCompiler compiler = javaHomeBasedJavaCompilerFactory.create();
         MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
         Charset charset = compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null;
-        StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(null, null, charset);
+        StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(diagnosticListener, null, charset);
         Iterable<? extends JavaFileObject> compilationUnits = standardFileManager.getJavaFileObjectsFromFiles(spec.getSourceFiles());
         boolean hasEmptySourcepaths = JavaVersion.current().isJava9Compatible() && emptySourcepathIn(options);
         JavaFileManager fileManager = GradleStandardJavaFileManager.wrap(standardFileManager, DefaultClassPath.of(spec.getAnnotationProcessorPath()), hasEmptySourcepaths);
-        JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, options, spec.getClassesToProcess(), compilationUnits);
+        JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnosticListener, options, spec.getClassesToProcess(), compilationUnits);
         if (compiler instanceof IncrementalCompilationAwareJavaCompiler) {
             task = ((IncrementalCompilationAwareJavaCompiler) compiler).makeIncremental(
                 task,
