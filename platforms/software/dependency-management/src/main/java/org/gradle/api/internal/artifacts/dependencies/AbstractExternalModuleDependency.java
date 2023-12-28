@@ -49,7 +49,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
             throw new InvalidUserDataException("Module must not be null!");
         }
         this.moduleIdentifier = module;
-        this.versionConstraint = (DefaultMutableVersionConstraint) version;
+        this.versionConstraint = new DefaultMutableVersionConstraint(version);
     }
 
     protected void copyTo(AbstractExternalModuleDependency target) {
