@@ -84,8 +84,9 @@ fun Project.git(vararg args: String): String {
 
 // pre-test/master/queue/alice/feature -> master
 // pre-test/release/current/bob/bugfix -> release
-fun toPreTestedCommitBaseBranch(actualBranch: String): String = when {
-    actualBranch.startsWith("pre-test/") -> actualBranch.substringAfter("/").substringBefore("/")
+// gh-readonly-queue/master/pr-1234-5678abcdef -> master
+fun toMergeQueueBaseBranch(actualBranch: String): String = when {
+    actualBranch.startsWith("pre-test/") || actualBranch.startsWith("gh-readonly-queue/") -> actualBranch.substringAfter("/").substringBefore("/")
     else -> actualBranch
 }
 
