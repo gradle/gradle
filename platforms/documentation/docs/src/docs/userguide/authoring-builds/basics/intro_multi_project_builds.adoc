@@ -70,7 +70,7 @@ image::multi-project-standards.png[]
 
 Multi-project builds allow you to organize projects with many modules, wire dependencies between those modules, and easily share common build logic amongst them.
 
-For example, a build that has many modules called `mobile-app`, `web-app`, `api`, `lib`, and `documentation` should be structured as follows:
+For example, a build that has many modules called `mobile-app`, `web-app`, `api`, `lib`, and `documentation` could be structured as follows:
 
 [source]
 ----
@@ -111,7 +111,7 @@ It is a good place to define and maintain shared configuration or imperative bui
 
 `buildSrc` is automatically included in your build as a special subproject if a `build.gradle(.kts)` file is found under `buildSrc`.
 
-If the `java` plugin is applied to the `buildSrc` project, the compiled code from `buildSrc/src/main/java` is put in the classpath of the root build script, making it available to any subproject (`web-app`, `mobile-app, `lib`, etc...) in the build.
+If the `java` plugin is applied to the `buildSrc` project, the compiled code from `buildSrc/src/main/java` is put in the classpath of the root build script, making it available to any subproject (`web-app`, `mobile-app`, `lib`, etc...) in the build.
 
 Consult how to declare <<multi_project_builds.adoc#sec:multibuild_buildSrc, dependencies between subprojects>> to learn more.
 
@@ -122,7 +122,7 @@ Composite Builds, also referred to as _included builds_, are best for sharing lo
 Let's take the previous example.
 The logic in `buildSrc` has been turned into a project that contains plugins and can be published and worked on independently of the root project build.
 
-The plugin is now its own build called `build-logic` with its own build script and settings file:
+The plugin is moved to its own build called `build-logic` with a build script and settings file:
 
 [source]
 ----
