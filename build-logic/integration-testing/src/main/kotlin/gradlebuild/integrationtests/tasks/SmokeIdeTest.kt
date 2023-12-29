@@ -18,6 +18,7 @@ package gradlebuild.integrationtests.tasks
 
 import org.gradle.api.tasks.CacheableTask
 
+
 /**
  * A test that provides an IDE as environment for checking IDE and Gradle behavior during synchronization process.
  * These tests are running using `forking` executor, since current Gradle distribution has to be used as a Gradle version for IDE.

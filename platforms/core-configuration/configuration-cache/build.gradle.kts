@@ -121,7 +121,7 @@ dependencies {
 
     smokeIdeTestImplementation(libs.gradleProfiler)
     smokeIdeTestDistributionRuntimeOnly(project(":distributions-full")) {
-        because("Includes tests for builds with the enterprise plugin and TestKit involved; ConfigurationCacheJacocoIntegrationTest requires JVM distribution")
+        because("Tests starts IDE with using current Gradle distribution")
     }
 }
 

@@ -27,6 +27,7 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.process.CommandLineArgumentProvider
 
+
 class SmokeIdeTestPlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {
         configureIdeProvisioning()
