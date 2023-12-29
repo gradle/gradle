@@ -54,6 +54,7 @@ public class ScalaCompileOptionsConfigurer {
 
     private static final VersionNumber PLAIN_TARGET_FORMAT_SINCE_VERSION = VersionNumber.parse("2.13.1");
     private static final VersionNumber RELEASE_REPLACES_TARGET_SINCE_VERSION = VersionNumber.parse("2.13.9");
+    private static final VersionNumber TARGET_RENAMED_TO_XTARGET_SINCE_VERSION = VersionNumber.parse("3.0.0");
 
     public static void configure(ScalaCompileOptions scalaCompileOptions, JavaInstallationMetadata toolchain, Set<File> scalaClasspath) {
         if (toolchain == null) {
@@ -99,18 +100,10 @@ public class ScalaCompileOptionsConfigurer {
     private static String determineTargetParameter(VersionNumber scalaVersion, JavaToolchain javaToolchain) {
         boolean explicitToolchain = !javaToolchain.isFallbackToolchain();
         int effectiveTarget = !explicitToolchain ? FALLBACK_JVM_TARGET : javaToolchain.getLanguageVersion().asInt();
-        if (scalaVersion.compareTo(VersionNumber.parse("3.0.0")) >= 0) {
-            if (explicitToolchain) {
-                return String.format("-release:%s", effectiveTarget);
-            } else {
-                return String.format("-Xtarget:%s", effectiveTarget);
-            }
-        } else if (scalaVersion.compareTo(RELEASE_REPLACES_TARGET_SINCE_VERSION) >= 0) {
-            if (explicitToolchain) {
-                return String.format("-release:%s", effectiveTarget);
-            } else {
-                return String.format("-target:%s", effectiveTarget);
-            }
+        if (explicitToolchain && scalaVersion.compareTo(RELEASE_REPLACES_TARGET_SINCE_VERSION) >= 0) {
+            return String.format("-release:%s", effectiveTarget);
+        } else if (scalaVersion.compareTo(TARGET_RENAMED_TO_XTARGET_SINCE_VERSION) >= 0) {
+            return String.format("-Xtarget:%s", effectiveTarget);
         } else if (scalaVersion.compareTo(PLAIN_TARGET_FORMAT_SINCE_VERSION) >= 0) {
             return String.format("-target:%s", effectiveTarget);
         } else {
