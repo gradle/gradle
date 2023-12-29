@@ -230,8 +230,9 @@ public abstract class ScalaRuntime {
      * @param scalaVersion version of scala to download the scaladoc for
      * @return scaladoc dependency to download
      */
+    @Nullable
     private DefaultExternalModuleDependency getScaladocDependency(String scalaVersion) {
-        if (scalaVersion.startsWith("3.")) {
+        if (ScalaRuntimeHelper.isScala3(scalaVersion)) {
             return new DefaultExternalModuleDependency("org.scala-lang", "scaladoc_3", scalaVersion);
         } else {
             return null;
