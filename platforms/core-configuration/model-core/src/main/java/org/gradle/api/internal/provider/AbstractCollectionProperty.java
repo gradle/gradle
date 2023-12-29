@@ -123,30 +123,29 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
 
     @Override
     public void add(final T element) {
-        Preconditions.checkNotNull(element, "Cannot add a null element to a property of type %s.", collectionType.getSimpleName());
-        addCollector(new SingleElement<>(element));
+        getExplicitValue().add(element);
     }
 
     @Override
     public void add(final Provider<? extends T> providerOfElement) {
-        addCollector(new ElementFromProvider<>(Providers.internal(providerOfElement)));
+        getExplicitValue().add(providerOfElement);
     }
 
     @Override
     @SafeVarargs
     @SuppressWarnings("varargs")
     public final void addAll(T... elements) {
-        addCollector(new ElementsFromArray<>(elements));
+        getExplicitValue().addAll(elements);
     }
 
     @Override
     public void addAll(Iterable<? extends T> elements) {
-        addCollector(new ElementsFromCollection<>(elements));
+        getExplicitValue().addAll(elements);
     }
 
     @Override
     public void addAll(Provider<? extends Iterable<? extends T>> provider) {
-        addCollector(new ElementsFromCollectionProvider<>(Providers.internal(provider)));
+        getExplicitValue().addAll(provider);
     }
 
     @Override
@@ -154,7 +153,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
         return calculateOwnPresentValue().getWithoutSideEffect().size();
     }
 
-    private void addCollector(Collector<T> collector) {
+    private void addExplicitCollector(Collector<T> collector) {
         assertCanMutate();
         setSupplier(getExplicitValue(defaultValue).plus(collector));
     }
@@ -641,62 +640,49 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
         }
     }
 
-    private class ConventionConfigurer implements CollectionPropertyConfigurer<T> {
+    private abstract class Configurer implements CollectionPropertyConfigurer<T> {
+        protected abstract void addCollector(Collector<T> collector);
+
         @Override
-        public void add(T element) {
+        public void add(final T element) {
             Preconditions.checkNotNull(element, "Cannot add a null element to a property of type %s.", collectionType.getSimpleName());
-            addConventionCollector(new SingleElement<>(element));
+            addCollector(new SingleElement<>(element));
         }
 
         @Override
-        public void add(Provider<? extends T> provider) {
-            addConventionCollector(new ElementFromProvider<>(Providers.internal(provider)));
+        public void add(final Provider<? extends T> providerOfElement) {
+            addCollector(new ElementFromProvider<>(Providers.internal(providerOfElement)));
         }
 
         @Override
         @SafeVarargs
         @SuppressWarnings("varargs")
         public final void addAll(T... elements) {
-            addConventionCollector(new ElementsFromArray<>(elements));
+            addCollector(new ElementsFromArray<>(elements));
         }
 
         @Override
         public void addAll(Iterable<? extends T> elements) {
-            addConventionCollector(new ElementsFromCollection<>(elements));
+            addCollector(new ElementsFromCollection<>(elements));
         }
 
         @Override
         public void addAll(Provider<? extends Iterable<? extends T>> provider) {
-            addConventionCollector(new ElementsFromCollectionProvider<>(Providers.internal(provider)));
+            addCollector(new ElementsFromCollectionProvider<>(Providers.internal(provider)));
         }
     }
 
-    private class ExplicitValueConfigurer implements CollectionPropertyConfigurer<T> {
+    private class ConventionConfigurer extends Configurer {
         @Override
-        public void add(T element) {
-            AbstractCollectionProperty.this.add(element);
+        protected void addCollector(Collector<T> collector) {
+            addConventionCollector(collector);
         }
+    }
 
+    private class ExplicitValueConfigurer extends Configurer {
         @Override
-        public void add(Provider<? extends T> provider) {
-            AbstractCollectionProperty.this.add(provider);
-        }
-
-        @Override
-        @SafeVarargs
-        @SuppressWarnings("varargs")
-        public final void addAll(T... elements) {
-            AbstractCollectionProperty.this.addAll(elements);
-        }
-
-        @Override
-        public void addAll(Iterable<? extends T> elements) {
-            AbstractCollectionProperty.this.addAll(elements);
-        }
-
-        @Override
-        public void addAll(Provider<? extends Iterable<? extends T>> provider) {
-            AbstractCollectionProperty.this.addAll(provider);
+        protected void addCollector(Collector<T> collector) {
+            addExplicitCollector(collector);
         }
     }
 }
