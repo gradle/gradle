@@ -32,9 +32,9 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
 
     /**
      * Sets whether or not any configuration resolution is final and the state required for resolution can be
-     * discarded.  Setting this to false implies that the configuration may be re-resolved again in the future.
+     * discarded.  Setting this to true implies that the configuration may be re-resolved again in the future.
      *
-     * Defaults to true.
+     * Defaults to false.
      */
     void setKeepStateRequiredForGraphResolution(boolean keepStateRequiredForGraphResolution);
 

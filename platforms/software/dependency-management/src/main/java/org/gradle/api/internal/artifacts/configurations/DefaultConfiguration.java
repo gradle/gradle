@@ -869,12 +869,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         try {
             // Prevent the state required for resolution from being discarded if anything in the
             // factory resolves this configuration
-            getResolutionStrategy().setKeepStateRequiredForGraphResolution(false);
+            getResolutionStrategy().setKeepStateRequiredForGraphResolution(true);
 
             return factory.create();
         } finally {
             // Reset this configuration to an unresolved state
-            getResolutionStrategy().setKeepStateRequiredForGraphResolution(true);
+            getResolutionStrategy().setKeepStateRequiredForGraphResolution(false);
             currentResolveState.set(ResolveState.NOT_RESOLVED);
         }
     }
