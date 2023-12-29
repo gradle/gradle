@@ -47,8 +47,8 @@ abstract class AbstractIdeSyncSmokeTest extends AbstractIntegrationSpec {
     protected StudioBuildInvocationResult syncResult
 
     protected void androidStudioSync() {
-        assert System.getenv("ANDROID_SDK_ROOT") != null
-        String androidSdkRootPath = System.getenv("ANDROID_SDK_ROOT")
+        assert System.getenv("ANDROID_HOME") != null
+        String androidHomePath = System.getenv("ANDROID_HOME")
 
         def invocationSettings =
             syncInvocationSettingsBuilder()
@@ -58,7 +58,7 @@ abstract class AbstractIdeSyncSmokeTest extends AbstractIntegrationSpec {
         sync(
             "Android Studio sync",
             invocationSettings,
-            [new LocalPropertiesMutator(invocationSettings, androidSdkRootPath)]
+            [new LocalPropertiesMutator(invocationSettings, androidHomePath)]
         )
     }
 
@@ -76,12 +76,11 @@ abstract class AbstractIdeSyncSmokeTest extends AbstractIntegrationSpec {
     }
 
     private InvocationSettings.InvocationSettingsBuilder syncInvocationSettingsBuilder() {
-        // TODO it would be nice not to have it in test dir, to avoid it's indexing during a sync
-        def gradleUserHome = file("gradle-user-home")
+        // Storing `guh` outside of test dir to avoid it's indexing during a sync
+        def gradleUserHome = new File(testDirectory.parent, "gradle-user-home")
         def ideSandbox = file("ide-sandbox")
         def profilerOutput = file('profiler-output')
 
-        // TODO -Dstudio.tests.headless=true check headless mode possibility
         return new InvocationSettings.InvocationSettingsBuilder()
             .setProjectDir(testDirectory)
             .setProfiler(Profiler.NONE)

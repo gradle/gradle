@@ -36,7 +36,7 @@ class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerforman
 
     /**
      * To run this test locally you should have Android Studio installed in /Applications/Android Studio.*.app folder,
-     * or you should set "studioHome" system property with the Android Studio installation path,
+     * or you should set "studio.home" system property with the Android Studio installation path,
      * or you should enable automatic download of Android Studio with the -PautoDownloadAndroidStudio=true.
      *
      * Additionally, you should also have ANDROID_SDK_ROOT env. variable set with Android SDK (normally on MacOS it's installed in "$HOME/Library/Android/sdk").

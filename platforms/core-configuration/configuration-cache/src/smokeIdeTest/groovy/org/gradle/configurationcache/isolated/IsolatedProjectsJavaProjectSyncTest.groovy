@@ -23,10 +23,10 @@ class IsolatedProjectsJavaProjectSyncTest extends AbstractIdeSyncSmokeTest {
 
     /**
      * To run this test locally you should have Android Studio installed in /Applications/Android Studio.*.app folder,
-     * or you should set "studioHome" system property with the Android Studio installation path,
+     * or you should set "studio.home" system property with the Android Studio installation path,
      * or you should enable automatic download of Android Studio with the -PautoDownloadAndroidStudio=true.
      *
-     * Additionally, you should also have ANDROID_SDK_ROOT env. variable set with Android SDK (normally on MacOS it's installed in "$HOME/Library/Android/sdk").
+     * Additionally, you should also have ANDROID_HOME env. variable set with Android SDK (normally on MacOS it's installed in "$HOME/Library/Android/sdk").
      *
      * To enable headless mode run with -PrunAndroidStudioInHeadlessMode=true.
      */
@@ -39,7 +39,7 @@ class IsolatedProjectsJavaProjectSyncTest extends AbstractIdeSyncSmokeTest {
 
         then:
         fixture.assertHtmlReportHasProblems {
-            totalProblemsCount = 78
+            totalProblemsCount = 66
             withLocatedProblem(new StringContains("sync.studio.tooling"), "Cannot access project ':app' from project ':'")
             withLocatedProblem(new StringContains("sync.studio.tooling"), "Cannot access project ':lib' from project ':'")
             withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':app' from project ':'")
