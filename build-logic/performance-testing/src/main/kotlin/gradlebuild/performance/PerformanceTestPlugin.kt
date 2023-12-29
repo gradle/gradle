@@ -183,6 +183,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             channel.convention(branchName.map { "commits-$it" })
             channelPatterns.add(logicalBranch)
             channelPatterns.add(logicalBranch.map { "commits-pre-test/$it/%" })
+            channelPatterns.add(logicalBranch.map { "commits-gh-readonly-queue/$it/%" })
             commitId.set(buildCommitId)
             projectName.set(project.name)
         }
