@@ -160,7 +160,7 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
      * Lenient legacy behavior to fall back to when URI cannot be normally parsed.
      */
     private static String fallbackUrlDecode(String path) {
-        DeprecationLogger.deprecateBehaviour("legacy URL decoding for invalid URLs")
+        DeprecationLogger.deprecateBehaviour("Passing invalid URIs to URI or File converting methods.")
             .withAdvice("Use a valid URL or a file path instead.")
             .willBecomeAnErrorInGradle9()
             .withUpgradeGuideSection(8, "deprecated_legacy_url_decoding")

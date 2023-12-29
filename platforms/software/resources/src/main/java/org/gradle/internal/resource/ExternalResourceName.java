@@ -94,9 +94,9 @@ public class ExternalResourceName implements Describable {
      */
     public String getDecoded() {
         if (encodedRoot == null) {
-            return path;
+            return encode(path, false);
         }
-        return encodedRoot + path;
+        return encodedRoot + encode(path, true);
     }
 
     /**

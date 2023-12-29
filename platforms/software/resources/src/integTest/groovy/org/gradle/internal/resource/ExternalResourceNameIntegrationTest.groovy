@@ -50,6 +50,6 @@ Searched in the following locations:
   - file:${expectLeadingSlashes}MISSING/folder/ivy/org/name/1.0/ivy-1.0.xml
 """
          where:
-         hostPrefix << ['//', 'file://', 'file:////']
+         hostPrefix << ['//', 'file:/', 'file:////']
     }
 }

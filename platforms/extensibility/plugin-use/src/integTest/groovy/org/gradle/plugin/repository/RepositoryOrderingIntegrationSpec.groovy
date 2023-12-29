@@ -61,7 +61,7 @@ class RepositoryOrderingIntegrationSpec extends AbstractIntegrationSpec {
         when:
         settingsFile << """
             pluginManagement {
-                repositories { maven { url = "$pluginManagementRepoUri" } }
+                repositories { maven { url = "pluginManagementRepo" } }
             }
         """.stripIndent()
 
@@ -79,7 +79,7 @@ class RepositoryOrderingIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     private String normalizedUriOf(String path) {
-        file(path).toURI().toString().replace("%20", " ")
+        file(path).toURI().toASCIIString()
     }
 
     private void overridePluginPortalUri(String uri) {
