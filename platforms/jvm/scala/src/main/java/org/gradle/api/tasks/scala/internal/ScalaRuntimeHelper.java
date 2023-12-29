@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 
 public class ScalaRuntimeHelper {
 
-    private static final Pattern SCALA_JAR_PATTERN = Pattern.compile("scala3?-(\\w.*?)-(\\d.*).jar");
+    private static final Pattern SCALA_JAR_PATTERN = Pattern.compile("scala3?-(\\w.*?)-(\\d.*)\\.jar");
 
     /**
      * Searches the specified class path for a Scala Jar file (scala-compiler, scala-library,
