@@ -17,7 +17,6 @@
 package gradlebuild.basics
 
 import gradlebuild.basics.BuildParams.CI_ENVIRONMENT_VARIABLE
-import gradlebuild.basics.toLowerCase
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
@@ -84,8 +83,9 @@ fun Project.git(vararg args: String): String {
 
 // pre-test/master/queue/alice/feature -> master
 // pre-test/release/current/bob/bugfix -> release
-fun toPreTestedCommitBaseBranch(actualBranch: String): String = when {
-    actualBranch.startsWith("pre-test/") -> actualBranch.substringAfter("/").substringBefore("/")
+// gh-readonly-queue/master/pr-1234-5678abcdef -> master
+fun toMergeQueueBaseBranch(actualBranch: String): String = when {
+    actualBranch.startsWith("pre-test/") || actualBranch.startsWith("gh-readonly-queue/") -> actualBranch.substringAfter("/").substringBefore("/")
     else -> actualBranch
 }
 
