@@ -27,8 +27,7 @@ class GitHubMergeQueueCheckPass(model: CIBuildModel) : BaseGradleBuildType(init 
     }
 
     triggers.vcs {
-        quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
-        quietPeriod = 60
+        quietPeriodMode = VcsTrigger.QuietPeriodMode.DO_NOT_USE
         branchFilter = """
 +:gh-readonly-queue/${model.branch.branchName}/*
 """
