@@ -48,7 +48,9 @@ The directory structure should look as follows:
 ├── settings.gradle.kts  // <1>
 ├── sub-project-1
 │   └── build.gradle.kts // <2>
-└── sub-project-2
+├── sub-project-2
+│   └── build.gradle.kts // <2>
+└── sub-project-3
     └── build.gradle.kts // <2>
 ----
 <1> The `settings.gradle.kts` file should include all subprojects.
@@ -60,13 +62,13 @@ The directory structure should look as follows:
 The Gradle community has two standards for multi-project build structures:
 
 1. **<<multi_project_builds.adoc#sec:multibuild_buildSrc,Multi-Project Builds using buildSrc>>** - where `buildSrc` is a subproject-like directory at the Gradle project root containing all the build logic.
-2. **<<composite_builds.adoc#composite_builds,Composite Builds>>** - a build that includes other builds where `build-logic` is a build directory at the Gradle project root containing all the build logic.
+2. **<<composite_builds.adoc#composite_builds,Composite Builds>>** - a build that includes other builds where `build-logic` is a build directory at the Gradle project root containing reusable build logic.
 
 image::multi-project-standards.png[]
 
 === 1. Multi-Project Builds using `buildSrc`
 
-Multi-project builds are great for organizing projects with many modules.
+Multi-project builds allow you to organize projects with many modules, wire dependencies between those modules, and easily share common build logic amongst them.
 
 For example, a build that has many modules called `mobile-app`, `web-app`, `api`, `lib`, and `documentation` should be structured as follows:
 
@@ -102,21 +104,23 @@ In this example, the root settings file will look as follows:
 include("mobile-app", "web-app", "api", "lib", "documentation")
 ----
 
-The `buildSrc` directory is automatically recognized and compiled by Gradle.
+NOTE: The order in which the subprojects (modules) are included does not matter.
+
+The `buildSrc` directory is automatically recognized by Gradle.
 It is a good place to define and maintain shared configuration or imperative build logic, such as custom tasks or plugins.
 
-The compiled code from the `buildSrc` is put in the classpath of the root build script, making it available to any subproject (`web-app`, `mobile-app, `lib`, etc...) in the build.
+`buildSrc` is automatically included in your build as a special subproject if a `build.gradle(.kts)` file is found under `buildSrc`.
 
-The `buildSrc` directory is treated as a subproject and follows the same structure including a build script and common logic written in Groovy or Kotlin.
+If the `java` plugin is applied to the `buildSrc` project, the compiled code from `buildSrc/src/main/java` is put in the classpath of the root build script, making it available to any subproject (`web-app`, `mobile-app, `lib`, etc...) in the build.
 
-Consult how to declare <<multi_project_builds.adoc#sec:multibuild_buildSrc, dependencies between subprojects>> using `include` to learn more.
+Consult how to declare <<multi_project_builds.adoc#sec:multibuild_buildSrc, dependencies between subprojects>> to learn more.
 
 === 2. Composite Builds
 
-Composite Builds, also referred to as _include builds_, are best for sharing logic between projects (_not subprojects_) or isolating access to shared build logic (i.e., convention plugins).
+Composite Builds, also referred to as _included builds_, are best for sharing logic between builds (_not subprojects_) or isolating access to shared build logic (i.e., convention plugins).
 
 Let's take the previous example.
-The logic in `buildSrc` has been turned into a plugin that can be published and worked on independently.
+The logic in `buildSrc` has been turned into a project that contains plugins and can be published and worked on independently of the root project build.
 
 The plugin is now its own build called `build-logic` with its own build script and settings file:
 
@@ -143,7 +147,9 @@ The plugin is now its own build called `build-logic` with its own build script a
     └── build.gradle.kts
 ----
 
-The root settings file includes the `build-logic` build:
+NOTE: The fact that `build-logic` is located in a subdirectory of the root project is irrelevant. The folder could be located outside the root project if desired.
+
+The root settings file includes the entire `build-logic` *build*:
 
 .settings.gradle.kts
 [source]

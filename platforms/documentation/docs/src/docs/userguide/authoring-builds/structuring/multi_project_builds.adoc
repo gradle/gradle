@@ -105,7 +105,7 @@ include::{snippetsPath}/multiproject/basic-multiproject/tests/run.out[]
 [[sub:building_the_tree]]
 == Building the tree
 
-In the settings file, you can use the `include` method to build the project tree:
+In the settings file, you can use the `include` method to define the project tree:
 
 ====
 include::sample[dir="snippets/multiproject/standardLayouts/kotlin",files="settings.gradle.kts[tags=hierarchical-layout]"]
@@ -120,6 +120,24 @@ You only need to specify the leaves of the tree.
 This means that including the path `services:hotels:api` will create 3 projects: `services`, `services:hotels`, and `services:hotels:api`.
 
 More examples of how to work with the project path can be found in the DSL documentation of link:{groovyDslPath}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[Settings.include(java.lang.String[\])].
+
+== Logical vs. Physical paths
+
+You should avoid creating intermediate projects by changing the directory of included projects as needed:
+
+```
+include("/my/custom/path/subproject")
+```
+
+The physical and logical structure and location of projects (i.e, subprojects, modules) do not have to be identical.
+
+A subproject located on disk at `subs/web/my-web-module` can have a logical name of `:my-web-module` or `:subs:web:my-web-module` depending on the `settings.gradle(.kts)` file:
+
+[source,kotlin]
+----
+include("my-web-module")        // :my-web-module
+include("subs/my-web-module")   // :subs:web:my-web-module
+----
 
 [[sec:adding_subprojects]]
 == Adding subprojects
@@ -170,13 +188,15 @@ Complex build logic is a good candidate for being encapsulated as a custom task 
 Custom tasks and plugin implementations should not live in the build script.
 
 `buildSrc` is a Gradle-recognized and protected directory for managing custom build logic and shared configuration among subprojects.
-It is ideal for custom plugins, custom tasks, and shared dependencies.
+It is ideal for custom plugins and custom tasks.
 It's also great for keeping build scripts clean and implementation separate from declaration.
 
 The `buildSrc` directory is treated as an <<composite_builds.adoc#composite_build_intro,included build>>.
 Upon discovering the directory, Gradle automatically compiles and tests this code and puts it in the classpath of your build script.
 
 For multi-project builds, there can be only one `buildSrc` directory, which has to sit in the root project directory.
+
+NOTE: The downside of using `buildSrc` is that any change to it will cause every task in your project to be invalidated and have to rerun.
 
 `buildSrc` uses the same <<java_plugin.adoc#javalayout,source code conventions>> applicable to Java, Groovy, and Kotlin projects.
 It also provides direct access to the Gradle API.
@@ -338,10 +358,8 @@ To keep your builds maintainable, we recommend the following:
 It is possible to configure custom project names in the settings file.
 However, it’s an unnecessary extra effort for the developers to track which projects belong to what folders.
 
-2. *Use kebab case formatting for all project names*:
-A kebab case formatting is when all letters are lowercase, and words are separated with a dash (`-`) character (e.g., `kebab-case-formatting`).
-This is already the de facto pattern for many large projects.
-Gradle supports <<command_line_interface.adoc#sec:name_abbreviation,name abbreviation for kebab case names>>.
+2. *Use lower case hyphenation for all project names*:
+All letters are lowercase, and words are separated with a dash (`-`) character.
 
 3. *Define the root project name in the settings file*:
 The `rootProject.name` effectively assigns a name to the build, which is used in reports like build scans.

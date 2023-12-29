@@ -25,7 +25,7 @@ A composite build is similar to a Gradle multi-project build, except that instea
 Composite builds allow you to:
 
 * Combine builds that are usually developed independently, for instance, when trying out a bug fix in a library that your application uses
-* Decompose a large multi-project build into smaller, more isolated chunks that can be worked in independently or together as needed
+* Decompose a large multi-project build into smaller, more isolated chunks that can be worked on independently or together as needed
 
 A build that is included in a composite build is referred to as an *included build*.
 Included builds do not share any configuration with the composite build or the other included builds.
@@ -35,6 +35,28 @@ Each included build is configured and executed in isolation.
 == Defining a composite build
 
 The following examples demonstrate how two Gradle builds, normally developed separately, can be combined into a composite build.
+
+[source]
+----
+my-composite
+├── gradle
+├── gradlew
+├── settings.gradle.kts
+├── build.gradle.kts
+├── my-app
+│   ├── settings.gradle.kts
+│   └── app
+│       ├── build.gradle.kts
+│       └── src/main/java/org/sample/my-app/Main.java
+└── my-utils
+    ├── settings.gradle.kts
+    ├── number-utils
+    │   ├── build.gradle.kts
+    │   └── src/main/java/org/sample/numberutils/Numbers.java
+    └── string-utils
+        ├── build.gradle.kts
+        └── src/main/java/org/sample/stringutils/Strings.java
+----
 
 For these examples, the `my-utils` multi-project build produces two different Java libraries, `number-utils` and `string-utils`.
 The `my-app` build produces an executable using functions from those libraries.
@@ -52,7 +74,7 @@ include::sample[dir="samples/build-organization/composite-builds/basic/groovy",f
 
 The `--include-build` command-line argument turns the executed build into a composite, substituting dependencies from the included build into the executed build.
 
-For example, the output of `gradle run --include-build ../my-utils`:
+For example, the output of `gradle run --include-build ../my-utils` run from `my-app`:
 
 ----
 $ gradle --include-build ../my-utils run

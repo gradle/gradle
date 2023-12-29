@@ -15,13 +15,13 @@
 [[declaring_dependencies_between_subprojects]]
 = Declaring Dependencies between Subprojects
 
-What if one project needs the JAR produced by another project on its compile classpath?
+What if one project needs the artifact produced by another project on its compile classpath?
 
 image::structuring-builds-2.png[]
 
 What if it also requires the transitive dependencies of the other project?
 
-This is a common use case for Java multi-project builds.
+This is a common use case for multi-project builds.
 Gradle offers <<declaring_dependencies.adoc#sub:project_dependencies,project dependencies>> for this.
 
 [[sec:project_jar_dependencies]]
@@ -83,22 +83,22 @@ A typical multi-project build has the following layout:
 In this example, there are three projects called `shared`, `api`, and `person-service`:
 
 1. The `person-service` project depends on the other two projects, `shared` and `api`.
-2. The `api` project depends on the `shared` project. It has no build script and gets nothing injected by another build script.
-3. Shared build logic is used by `shared`, `api`, and `person-service` in `buildSrc`.
+2. The `api` project depends on the `shared` project.
+3. Shared build logic used by `shared`, `api`, and `person-service` is provided by `buildSrc`.
 
 We use the `:` separator to define a <<intro_multi_project_builds#sec:project_path,project path>> such as `services:person-service` or `:shared`.
 Consult the DSL documentation of link:{groovyDslPath}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[Settings.include(java.lang.String[\])] for more information about defining project paths.
 
-Shared build logic is extracted into a _convention plugin_ in `buildSrc` that is applied in the subprojects' build scripts that also define project dependencies:
+Shared build logic is extracted into a <<sharing_build_logic_between_subprojects.adoc#sec:convention_plugins,_convention plugin_>> in `buildSrc` that is applied in the subprojects' build scripts that also define project dependencies:
 
 [[javadependencies_2]]
 ====
-include::sample[dir="snippets/multiproject/dependencies-java/kotlin",files="settings.gradle.kts[];buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[];api/build.gradle.kts[];shared/build.gradle.kts[];services/person-service/build.gradle.kts[]"]
-include::sample[dir="snippets/multiproject/dependencies-java/groovy",files="settings.gradle[];buildSrc/src/main/groovy/myproject.java-conventions.gradle[];api/build.gradle[];shared/build.gradle[];services/person-service/build.gradle[]"]
+include::sample[dir="snippets/multiproject/dependencies-java/kotlin",files="settings.gradle.kts[];buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[];buildSrc/build.gradle.kts[];api/build.gradle.kts[];shared/build.gradle.kts[];services/person-service/build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies-java/groovy",files="settings.gradle[];buildSrc/src/main/groovy/myproject.java-conventions.gradle[];buildSrc/build.gradle[];api/build.gradle[];shared/build.gradle[];services/person-service/build.gradle[]"]
 ====
 
-A project dependency is a special form of an execution dependency.
-It causes the other project to be built first and adds the JAR with the classes of the other project to the classpath.
+A project dependency affects execution order.
+It causes the other project to be built first and adds the output with the classes of the other project to the classpath.
 It also adds the dependencies of the other project to the classpath.
 
 If you execute `gradle :api:compile`, first the `shared` project is built, and then the `api` project is built.
@@ -118,36 +118,5 @@ As such, you want to ensure the task is executed first in order to produce that 
 Declaring a task dependency from one project to another is a poor way to model this relationship and introduces unnecessary coupling.
 
 The recommended way to model such a dependency is to produce the output and mark it as an "outgoing" artifact.
-
-Let's say you are working in a multi-project build with the two subprojects, `producer` and `consumer`.
-
-The subproject `producer` defines a task named `buildInfo` that generates a properties file containing build information (e.g., the project version):
-
-====
-include::sample[dir="snippets/multiproject/dependencies-outgoingArtifact/kotlin/",files="producer/build.gradle.kts[]"]
-include::sample[dir="snippets/multiproject/dependencies-outgoingArtifact/groovy/",files="producer/build.gradle[]"]
-====
-
-You can then map the task provider to its output file, and Gradle will automatically establish a task dependency:
-
-.buildSrc/src/main/java/BuildInfo.java
-[source, java]
-----
-include::{snippetsPath}/multiproject/dependencies-outgoingArtifact/groovy/buildSrc/src/main/java/BuildInfo.java[tags=task]
-----
-
-Declaring a project dependency on the producing project involves creating the properties beforehand and making them available to the runtime classpath:
-
-====
-include::sample[dir="snippets/multiproject/dependencies-outgoingArtifact/kotlin/",files="consumer/build.gradle.kts[tags=producer-project-dependency]"]
-include::sample[dir="snippets/multiproject/dependencies-outgoingArtifact/groovy/",files="consumer/build.gradle[tags=producer-project-dependency]"]
-====
-
-The `consumer` now declares a dependency on the outputs of the `producer` project.
-The consuming project can read the properties file at runtime.
-
-Depending on the main output artifact from another project is only one example.
-You could also add `producer` outputs to the `main` source set, which you can depend on in the consuming project.
-
-Gradle has one of the most powerful <<core_dependency_management#sec:dependency-mgmt-in-gradle,dependency management engines>> that allows you to share arbitrary artifacts between projects and let Gradle build them on demand.
+Gradle's <<core_dependency_management#sec:dependency-mgmt-in-gradle,dependency management engine>> allows you to share arbitrary artifacts between projects and build them on demand.
 Consult the <<cross_project_publications#cross_project_publications,Sharing outputs between projects>> section to learn more.

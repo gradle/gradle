@@ -85,7 +85,7 @@ Let's look at the architecture of the sample.
 Each _component_ is a separate _Gradle build_.
 Each Gradle build has its own folder.
 
-Since each folder is a separate build, it has its own `settings.gradle(.kts)` file:
+Since each folder is a separate build, each one has its own `settings.gradle(.kts)` file:
 
 [source.multi-language-sample,kotlin]
 ----
