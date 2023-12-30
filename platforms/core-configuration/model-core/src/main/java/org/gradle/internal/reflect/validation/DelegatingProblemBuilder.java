@@ -17,19 +17,19 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.internal.ProblemBuilder;
-import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.internal.DocLink;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.InternalProblemBuilder;
 
 import javax.annotation.Nullable;
 
 @NonNullApi
-class DelegatingProblemBuilder implements ProblemBuilder {
+class DelegatingProblemBuilder implements InternalProblemBuilder {
 
-    private final ProblemBuilder delegate;
+    private final InternalProblemBuilder delegate;
 
-    DelegatingProblemBuilder(ProblemBuilder delegate) {
+    DelegatingProblemBuilder(InternalProblemBuilder delegate) {
         this.delegate = delegate;
     }
 
@@ -39,62 +39,87 @@ class DelegatingProblemBuilder implements ProblemBuilder {
     }
 
     @Override
-    public ProblemBuilder label(String label, Object... args) {
-        return validateDelegate(delegate).label(label, args);
+    public InternalProblemBuilder label(String label) {
+        return validateDelegate(delegate).label(label);
     }
 
     @Override
-    public ProblemBuilder documentedAt(DocLink doc) {
+    public InternalProblemBuilder documentedAt(DocLink doc) {
         return validateDelegate(delegate.documentedAt(doc));
     }
 
     @Override
-    public ProblemBuilder documentedAt(String url) {
+    public InternalProblemBuilder documentedAt(String url) {
         return validateDelegate(delegate.documentedAt(url));
     }
 
     @Override
-    public ProblemBuilder fileLocation(String path, @Nullable Integer line, @Nullable Integer column, @Nullable Integer length) {
-        return validateDelegate(delegate.fileLocation(path, line, column, length));
+    public InternalProblemBuilder fileLocation(String path) {
+        return validateDelegate(delegate.fileLocation(path));
     }
 
     @Override
-    public ProblemBuilder pluginLocation(String pluginId) {
+    public InternalProblemBuilder lineInFileLocation(String path, int line) {
+        return validateDelegate(delegate.lineInFileLocation(path, line));
+    }
+
+    @Override
+    public InternalProblemBuilder lineInFileLocation(String path, int line, int column) {
+        return validateDelegate(delegate.offsetInFileLocation(path, line, column));
+    }
+
+    @Override
+    public InternalProblemBuilder lineInFileLocation(String path, int line, int column, int length) {
+        return validateDelegate(delegate.lineInFileLocation(path, line, column, length));
+    }
+
+    @Override
+    public InternalProblemBuilder offsetInFileLocation(String path, int offset, int length) {
+        return validateDelegate(delegate.offsetInFileLocation(path, offset, length));
+    }
+
+    @Override
+    public InternalProblemBuilder pluginLocation(String pluginId) {
         return validateDelegate(delegate.pluginLocation(pluginId));
     }
 
     @Override
-    public ProblemBuilder stackLocation() {
+    public InternalProblemBuilder stackLocation() {
         return validateDelegate(delegate.stackLocation());
     }
 
     @Override
-    public ProblemBuilder category(String category, String... details){
+    public InternalProblemBuilder category(String category, String... details) {
         return validateDelegate(delegate.category(category, details));
     }
 
     @Override
-    public ProblemBuilder details(String details) {
+    public InternalProblemBuilder details(String details) {
         return validateDelegate(delegate.details(details));
     }
 
     @Override
-    public ProblemBuilder solution(@Nullable String solution) {
+    public InternalProblemBuilder solution(@Nullable String solution) {
         return validateDelegate(delegate.solution(solution));
     }
 
     @Override
-    public ProblemBuilder additionalData(String key, Object value) {
+    public InternalProblemBuilder taskPathLocation(String buildTreePath) {
+        return validateDelegate(delegate.solution(buildTreePath));
+    }
+
+    @Override
+    public InternalProblemBuilder additionalData(String key, Object value) {
         return validateDelegate(delegate.additionalData(key, value));
     }
 
     @Override
-    public ProblemBuilder withException(RuntimeException e) {
+    public InternalProblemBuilder withException(RuntimeException e) {
         return validateDelegate(delegate.withException(e));
     }
 
     @Override
-    public ProblemBuilder severity(Severity severity) {
+    public InternalProblemBuilder severity(Severity severity) {
         return validateDelegate(delegate.severity(severity));
     }
 

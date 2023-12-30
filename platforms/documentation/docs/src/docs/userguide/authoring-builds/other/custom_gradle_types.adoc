@@ -76,6 +76,7 @@ The property type must be one of the following:
 - `DomainObjectSet<T>`
 - `NamedDomainObjectContainer<T>`
 - `ExtensiblePolymorphicDomainObjectContainer<T>`
+- `DependencyCollector`
 
 Gradle creates values for managed properties in the same way as link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory].
 

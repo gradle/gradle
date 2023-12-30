@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
@@ -45,7 +44,9 @@ import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -117,13 +118,13 @@ public class IvyModuleDescriptorConverter {
             configMappings.putAll(entry.getKey(), entry.getValue());
         }
 
-        List<Artifact> artifacts = Lists.newArrayList();
+        List<Artifact> artifacts = new ArrayList<>();
         for (DependencyArtifactDescriptor ivyArtifact : dependencyDescriptor.getAllDependencyArtifacts()) {
             IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(ivyArtifact.getName(), ivyArtifact.getType(), ivyArtifact.getExt(), ivyArtifact.getExtraAttributes().get(CLASSIFIER));
             artifacts.add(new Artifact(ivyArtifactName, Sets.newHashSet(ivyArtifact.getConfigurations())));
         }
 
-        List<Exclude> excludes = Lists.newArrayList();
+        List<Exclude> excludes = new ArrayList<>();
         for (ExcludeRule excludeRule : dependencyDescriptor.getAllExcludeRules()) {
             excludes.add(forIvyExclude(excludeRule));
         }
@@ -167,7 +168,7 @@ public class IvyModuleDescriptorConverter {
         }
 
         String[] modConfs = dependencyDescriptor.getModuleConfigurations();
-        Map<String, List<String>> results = Maps.newLinkedHashMap();
+        Map<String, List<String>> results = new LinkedHashMap<>();
         for (String modConf : modConfs) {
             results.put(modConf, Arrays.asList(dependencyDescriptor.getDependencyConfigurations(modConfs)));
         }

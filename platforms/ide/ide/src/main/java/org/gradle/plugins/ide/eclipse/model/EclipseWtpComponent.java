@@ -17,8 +17,6 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
@@ -33,7 +31,10 @@ import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -142,16 +143,16 @@ public abstract class EclipseWtpComponent {
     private final XmlFileContentMerger file;
 
     private Set<File> sourceDirs;
-    private Set<Configuration> rootConfigurations = Sets.newLinkedHashSet();
-    private Set<Configuration> libConfigurations = Sets.newLinkedHashSet();
-    private Set<Configuration> minusConfigurations = Sets.newLinkedHashSet();
+    private Set<Configuration> rootConfigurations = new LinkedHashSet<>();
+    private Set<Configuration> libConfigurations = new LinkedHashSet<>();
+    private Set<Configuration> minusConfigurations = new LinkedHashSet<>();
     private String deployName;
-    private List<WbResource> resources = Lists.newArrayList();
-    private List<WbProperty> properties = Lists.newArrayList();
+    private List<WbResource> resources = new ArrayList<>();
+    private List<WbProperty> properties = new ArrayList<>();
     private String contextPath;
     private String classesDeployPath = "/WEB-INF/classes";
     private String libDeployPath;
-    private Map<String, File> pathVariables = Maps.newHashMap();
+    private Map<String, File> pathVariables = new HashMap<>();
 
     @Inject
     public EclipseWtpComponent(org.gradle.api.Project project, XmlFileContentMerger file) {

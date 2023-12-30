@@ -216,8 +216,8 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         String message = String.format("Could not compile %s.", source.getDisplayName());
         throw ((InternalProblems) getProblemsService()).getInternalReporter().throwing(builder -> builder
             .label(message)
-            .fileLocation(source.getFileName(), lineNumber, null, null)
-            .category("compiler", "groovy-dsl", "compilation-failed")
+            .lineInFileLocation(source.getFileName(), lineNumber)
+            .category("compilation", "groovy-dsl", "compilation-failed")
             .severity(Severity.ERROR)
             .withException(new ScriptCompilationException(message, e, source, lineNumber))
         );

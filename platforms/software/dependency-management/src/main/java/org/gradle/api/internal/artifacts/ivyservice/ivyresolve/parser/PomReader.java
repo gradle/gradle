@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.io.IOUtils;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -576,7 +575,7 @@ public class PomReader implements PomParent {
             Element exclusionsElement = getFirstChildElement(depElement, EXCLUSIONS);
             if (exclusionsElement != null) {
                 NodeList childs = exclusionsElement.getChildNodes();
-                List<ModuleIdentifier> exclusions = Lists.newArrayList();
+                List<ModuleIdentifier> exclusions = new ArrayList<>();
                 for (int i = 0; i < childs.getLength(); i++) {
                     Node node = childs.item(i);
                     if (node instanceof Element && EXCLUSION.equals(node.getNodeName())) {

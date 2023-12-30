@@ -16,17 +16,11 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemCategory;
-import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
-import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
-import org.gradle.internal.operations.OperationIdentifier;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,20 +29,19 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     private final String namespace;
     private String label;
-    private ProblemCategory problemCategory;
+    private ProblemCategory category;
     private Severity severity;
-    private List<ProblemLocation> locations;
+    private final List<ProblemLocation> locations;
     private String details;
     private DocLink docLink;
     private List<String> solutions;
     private RuntimeException exception;
     private final Map<String, Object> additionalData;
     private boolean collectLocation = false;
-    @Nullable private OperationIdentifier currentOperationId = null;
 
     public DefaultProblemBuilder(Problem problem) {
         this.label = problem.getLabel();
-        this.problemCategory = problem.getProblemCategory();
+        this.category = problem.getCategory();
         this.severity = problem.getSeverity();
         this.locations = new ArrayList<ProblemLocation>(problem.getLocations());
         this.details = problem.getDetails();
@@ -56,11 +49,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         this.solutions = new ArrayList<String>(problem.getSolutions());
         this.exception = problem.getException();
         this.additionalData = new HashMap<String, Object>(problem.getAdditionalData());
-
-        if (problem instanceof DefaultProblem) {
-            this.currentOperationId = ((DefaultProblem) problem).getBuildOperationId();
-        }
-        this.namespace = problem.getProblemCategory().getNamespace();
+        this.namespace = problem.getCategory().getNamespace();
     }
 
     public DefaultProblemBuilder(String namespace) {
@@ -71,50 +60,41 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     @Override
     public Problem build() {
+        // Label is mandatory
         if (label == null) {
-            throw new IllegalStateException("Label must be specified");
-        } else if (problemCategory == null) {
-            throw new IllegalStateException("Category must be specified");
+            return missingLabelProblem();
         }
-        return new DefaultProblem(
-            label,
-            getSeverity(getSeverity()),
-            locations,
-            docLink,
-            details,
-            solutions,
-            getExceptionForProblemInstantiation(), // TODO: don't create exception if already reported often
-            problemCategory,
-            additionalData,
-            getCurrentOperationId()
-        );
-    }
 
-    @Nullable
-    public OperationIdentifier getCurrentOperationId() {
-        if (currentOperationId != null) {
-            // If we have a carried over operation id, use it
-            return currentOperationId;
-        } else {
-            // Otherwise, try to get the current operation id
-            BuildOperationRef buildOperationRef = CurrentBuildOperationRef.instance().get();
-            if (buildOperationRef == null) {
-                return null;
-            } else {
-                return buildOperationRef.getId();
+        // Description is mandatory
+        if (category == null) {
+            return missingCategoryProblem();
+        }
+
+        // We need to explicitly manage serializing the data from the daemon to the tooling API client, hence the restriction.
+        for (Object value : additionalData.values()) {
+            if (!(value instanceof String)) {
+                return invalidProblem("ProblemBuilder.additionalData() supports values of type String, but " + value.getClass().getName() + " as given.", "invalid-additional-data");
             }
         }
+
+        return new DefaultProblem(label, getSeverity(), locations, docLink, details, solutions, getExceptionForProblemInstantiation(), category, additionalData);
+    }
+
+    private Problem missingLabelProblem() {
+        return invalidProblem("problem label must be specified", "missing-label");
+    }
+
+    private Problem missingCategoryProblem() {
+        return invalidProblem("problem category must be specified", "missing-category");
+    }
+
+    private Problem invalidProblem(String label, String subcategory) {
+        category("validation", "problems-api", subcategory).stackLocation();
+        return new DefaultProblem(label, Severity.WARNING, Collections.<ProblemLocation>emptyList(), null, null, null, getExceptionForProblemInstantiation(), category, Collections.<String, Object>emptyMap());
     }
 
     public RuntimeException getExceptionForProblemInstantiation() {
         return getException() == null && collectLocation ? new RuntimeException() : getException();
-    }
-
-    protected Severity getSeverity(@Nullable Severity severity) {
-        if (severity != null) {
-            return severity;
-        }
-        return getSeverity();
     }
 
     protected Severity getSeverity() {
@@ -125,8 +105,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder label(String label, Object... args) {
-        this.label = String.format(label, args);
+    public InternalProblemBuilder label(String label) {
+        this.label = label;
         return this;
     }
 
@@ -141,19 +121,33 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         return this;
     }
 
-    public InternalProblemBuilder location(String path, @javax.annotation.Nullable Integer line) {
-        location(path, line, null);
-        return this;
-    }
-
-    public InternalProblemBuilder location(String path, @javax.annotation.Nullable Integer line, @javax.annotation.Nullable Integer column) {
-        this.addLocation(new DefaultFileLocation(path, line, column, 0));
+    @Override
+    public InternalProblemBuilder fileLocation(String path) {
+        this.addLocation(DefaultFileLocation.from(path));
         return this;
     }
 
     @Override
-    public InternalProblemBuilder fileLocation(String path, @javax.annotation.Nullable Integer line, @javax.annotation.Nullable Integer column, @javax.annotation.Nullable Integer length) {
-        this.addLocation(new DefaultFileLocation(path, line, column, length));
+    public InternalProblemBuilder lineInFileLocation(String path, int line) {
+        this.addLocation(DefaultLineInFileLocation.from(path, line));
+        return this;
+    }
+
+    @Override
+    public InternalProblemBuilder lineInFileLocation(String path, int line, int column) {
+        this.addLocation(DefaultLineInFileLocation.from(path, line, column));
+        return this;
+    }
+
+    @Override
+    public InternalProblemBuilder offsetInFileLocation(String path, int offset, int length) {
+        this.addLocation(DefaultOffsetInFileLocation.from(path, offset, length));
+        return this;
+    }
+
+    @Override
+    public InternalProblemBuilder lineInFileLocation(String path, int line, int column, int length) {
+        this.addLocation(DefaultLineInFileLocation.from(path, line, column, length));
         return this;
     }
 
@@ -189,7 +183,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     @Override
     public InternalProblemBuilder category(String category, String... details) {
-        this.problemCategory = DefaultProblemCategory.create(namespace, category, details);
+        this.category = DefaultProblemCategory.create(namespace, category, details);
         return this;
     }
 
@@ -204,15 +198,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     @Override
     public InternalProblemBuilder additionalData(String key, Object value) {
-        validateAdditionalDataValueType(value);
         this.additionalData.put(key, value);
         return this;
-    }
-
-    private void validateAdditionalDataValueType(Object value) {
-        if (!(value instanceof String)) {
-            throw new RuntimeException("ProblemBuilder.additionalData() supports values of type String, but " + value.getClass().getName() + " as given.");
-        }
     }
 
     @Override

@@ -195,7 +195,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             return Collections.singleton("pmd:pmd:" + versionString);
         } else if (toolVersion.compareTo(VersionNumber.parse("5.2.0")) < 0) {
             return Collections.singleton("net.sourceforge.pmd:pmd:" + versionString);
-        } else if (toolVersion.compareTo(VersionNumber.version(7)) < 0) {
+        } else if (toolVersion.getMajor() < 7) {
             return Collections.singleton("net.sourceforge.pmd:pmd-java:" + versionString);
         }
 

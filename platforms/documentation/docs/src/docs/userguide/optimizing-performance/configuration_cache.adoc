@@ -1120,12 +1120,12 @@ or else Gradle will not be able to reuse existing cached configurations.
 === Generating an encryption key that is compatible with GRADLE_ENCRYPTION_KEY
 
 For Gradle to encrypt the configuration cache using a user-specified encryption key,
-you must run Gradle while having the GRADLE_ENCRYPTION_KEY environment variable set with a valid AES 128-bit key, encoded as a Base64 string.
+you must run Gradle while having the GRADLE_ENCRYPTION_KEY environment variable set with a valid AES key, encoded as a Base64 string.
 
-One way of generating a Base64-encoded AES-128 key is by using a command like this:
+One way of generating a Base64-encoded AES-compatible key is by using a command like this:
 
 ```
-❯ openssl enc -aes-128-cbc -P -base64 -pbkdf2 -nosalt -k YOUR-PASSPHRASE | grep key | cut -f 2 -d =
+❯ openssl rand -base64 16
 ```
 
 This command should work on Linux, Mac OS, or on Windows, if using a tool like Cygwin.

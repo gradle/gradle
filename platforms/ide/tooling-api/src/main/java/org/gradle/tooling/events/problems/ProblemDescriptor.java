@@ -17,29 +17,19 @@
 package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.OperationDescriptor;
 
 import java.util.List;
 
 /**
- * Describes a problem operation.
+ * Describes a problem event.
  * <p>
- * The Problems API in an incubating stage and the associated classes are likely to change in a non-compatible way.
- * Consequently, the Tooling API only exposes problem instances with dynamic data in json format without any guarantees.
+ *
+ * Provides all details provided for problem events. The events are generated via the Problems API.
  *
  * @since 8.4
  */
 @Incubating
-public interface ProblemDescriptor extends OperationDescriptor {
-
-    /**
-     * Mock for the problem properties in JSON format.
-     * <p>
-     * Note: This method is not functional anymore and will not return anything useful.
-     *
-     * @return the problem properties.
-     */
-    String getJson(); // TODO https://github.com/gradle/gradle/issues/27125
+public interface ProblemDescriptor extends BaseProblemDescriptor {
 
     /**
      * Returns the problem category.
@@ -98,19 +88,10 @@ public interface ProblemDescriptor extends OperationDescriptor {
     List<Solution> getSolutions();
 
     /**
-     * Additional data associated with this problem.
-     *
-     * @return a map of additional data
-     * @since 8.6
-     */
-    AdditionalData getAdditionalData();
-
-    /**
      * Returns the exception associated with this problem.
      *
      * @return the exception
      * @since 8.6
      */
-    @Incubating
     ExceptionContainer getException();
 }

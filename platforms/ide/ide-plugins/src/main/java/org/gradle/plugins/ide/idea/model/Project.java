@@ -17,7 +17,6 @@ package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
 import groovy.util.NodeList;
@@ -28,6 +27,8 @@ import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObje
 
 import java.io.File;
 import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,11 +44,11 @@ public class Project extends XmlPersistableConfigurationObject {
     private List<IdeaModule> modules;
     private JavaVersion bytecodeVersion;
 
-    private Set<Path> modulePaths = Sets.newLinkedHashSet();
-    private Set<String> wildcards = Sets.newLinkedHashSet();
+    private Set<Path> modulePaths = new LinkedHashSet<>();
+    private Set<String> wildcards = new LinkedHashSet<>();
     private Jdk jdk;
     private String vcs;
-    private Set<ProjectLibrary> projectLibraries = Sets.newLinkedHashSet();
+    private Set<ProjectLibrary> projectLibraries = new LinkedHashSet<>();
 
     public Project(XmlTransformer xmlTransformer, Object pathFactory) {
         super(xmlTransformer);
@@ -199,7 +200,7 @@ public class Project extends XmlPersistableConfigurationObject {
     }
 
     private Set<File> collectRootUrlAsFiles(List<Node> nodes) {
-        Set<File> files = Sets.newLinkedHashSet();
+        Set<File> files = new LinkedHashSet<>();
         for (Node node : nodes) {
             for (Node root : getChildren(node, "root")) {
                 String url = (String) root.attribute("url");
@@ -212,7 +213,7 @@ public class Project extends XmlPersistableConfigurationObject {
     private void storeModulePaths() {
         Node modulesNode = new Node(null, "modules");
         for (Path modulePath : modulePaths) {
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("fileurl", modulePath.getUrl());
             attributes.put("filepath", modulePath.getRelPath());
             modulesNode.appendNode("module", attributes);
@@ -225,7 +226,7 @@ public class Project extends XmlPersistableConfigurationObject {
         Node existingNode = findOrCreateFirstChildNamed(compilerConfigNode, "wildcardResourcePatterns");
         Node wildcardsNode = new Node(null, "wildcardResourcePatterns");
         for (String wildcard : wildcards) {
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("name", wildcard);
             wildcardsNode.appendNode("entry", attributes);
         }
@@ -300,7 +301,7 @@ public class Project extends XmlPersistableConfigurationObject {
     private Node findOrCreateBytecodeLevelConfiguration() {
         Node compilerConfiguration = findCompilerConfiguration();
         if (compilerConfiguration == null) {
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("name", "CompilerConfiguration");
             compilerConfiguration = getXml().appendNode("component", attributes);
         }
@@ -315,7 +316,7 @@ public class Project extends XmlPersistableConfigurationObject {
     private Node findOrCreateLibraryTable() {
         Node libraryTable = findFirstWithAttributeValue(getChildren(getXml(), "component"), "name", "libraryTable");
         if (libraryTable == null) {
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("name", "libraryTable");
             libraryTable = getXml().appendNode("component", attributes);
         }

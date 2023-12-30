@@ -180,7 +180,7 @@ class ConfigurationCacheRepository(
             }
         }
 
-        override fun useForStore(action: (Layout) -> Unit) {
+        override fun <T> useForStore(action: (Layout) -> T): T =
             withExclusiveAccessToCache(baseDir) { cacheDir ->
                 // TODO GlobalCache require(!cacheDir.isDirectory)
                 Files.createDirectories(cacheDir.toPath())
@@ -198,7 +198,6 @@ class ConfigurationCacheRepository(
                         }
                 }
             }
-        }
     }
 
     private

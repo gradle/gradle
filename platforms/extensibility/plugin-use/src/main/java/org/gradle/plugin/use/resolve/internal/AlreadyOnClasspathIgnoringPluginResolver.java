@@ -18,8 +18,10 @@ package org.gradle.plugin.use.resolve.internal;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.plugins.PluginDescriptorLocator;
+import org.gradle.plugin.management.internal.PluginCoordinates;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
-import org.gradle.plugin.use.PluginId;
+
+import javax.annotation.Nullable;
 
 @NonNullApi
 public class AlreadyOnClasspathIgnoringPluginResolver implements PluginResolver {
@@ -36,16 +38,17 @@ public class AlreadyOnClasspathIgnoringPluginResolver implements PluginResolver 
 
     @Override
     public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) {
-        PluginId pluginId = pluginRequest.getId();
-        if (!isPresentOnClasspath(pluginId)) {
+        PluginCoordinates primaryCoordinates = PluginCoordinates.from(pluginRequest);
+        PluginCoordinates alternativeCoordinates = pluginRequest.getAlternativeCoordinates().orElse(null);
+        if (isNotPresentOnClasspath(primaryCoordinates) && isNotPresentOnClasspath(alternativeCoordinates)) {
             delegate.resolve(pluginRequest, result);
         } else {
             result.alreadyApplied();
         }
     }
 
-    private boolean isPresentOnClasspath(PluginId pluginId) {
-        return pluginDescriptorLocator.findPluginDescriptor(pluginId.toString()) != null;
+    private boolean isNotPresentOnClasspath(@Nullable PluginCoordinates pluginCoordinates) {
+        return pluginCoordinates == null || pluginDescriptorLocator.findPluginDescriptor(pluginCoordinates.getId().toString()) == null;
     }
 
 }

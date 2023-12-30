@@ -17,10 +17,10 @@
 package org.gradle.internal.reflect;
 
 import org.gradle.api.Action;
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.internal.DefaultProblemReporter;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 import org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeAwareProblemBuilder;
@@ -47,7 +47,7 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
 
     @Override
     public void visitTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
-        InternalProblems problems = (InternalProblems) ProblemsProgressEventEmitterHolder.get();
+        InternalProblems problems = ProblemsProgressEventEmitterHolder.get();
         InternalProblemReporter reporter = problems.getInternalReporter();
         DefaultTypeAwareProblemBuilder problemBuilder = new DefaultTypeAwareProblemBuilder(((DefaultProblemReporter) reporter).createProblemBuilder());
         problemSpec.execute(problemBuilder);
@@ -61,8 +61,7 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
 
     @Override
     public void visitPropertyProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
-        InternalProblems internalProblems = (InternalProblems) ProblemsProgressEventEmitterHolder.get();
-        InternalProblemReporter reporter = internalProblems.getInternalReporter();
+        InternalProblemReporter reporter = ProblemsProgressEventEmitterHolder.get().getInternalReporter();
         DefaultTypeAwareProblemBuilder problemBuilder = new DefaultTypeAwareProblemBuilder(((DefaultProblemReporter) reporter).createProblemBuilder());
         problemSpec.execute(problemBuilder);
         problemBuilder.withAnnotationType(rootType);

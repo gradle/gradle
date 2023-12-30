@@ -18,11 +18,11 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.GeneratedSubclasses;
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
@@ -84,7 +84,6 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         }
 
         Map<Severity, ImmutableList<Problem>> problemsMap = problems.stream()
-
             .collect(
                 groupingBy(Problem::getSeverity,
                     mapping(identity(), toImmutableList())));

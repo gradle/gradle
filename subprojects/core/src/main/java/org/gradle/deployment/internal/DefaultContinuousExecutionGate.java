@@ -16,9 +16,9 @@
 
 package org.gradle.deployment.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.internal.UncheckedException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -27,7 +27,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultContinuousExecutionGate implements ContinuousExecutionGate {
     private final Lock lock = new ReentrantLock();
     private final Condition opened = lock.newCondition();
-    private final List<GateKeeper> gatekeepers = Lists.newArrayList();
+    private final List<GateKeeper> gatekeepers = new ArrayList<>();
     private GateKeeper openedBy;
 
     @Override

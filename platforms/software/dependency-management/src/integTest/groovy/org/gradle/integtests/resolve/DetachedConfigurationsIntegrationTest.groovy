@@ -25,6 +25,10 @@ import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 @FluidDependenciesResolveTest
 class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        enableProblemsApiCheck()
+    }
+
     @Issue("GRADLE-2889")
     def "detached configurations may have separate dependencies"() {
         given:

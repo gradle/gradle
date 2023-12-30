@@ -33,7 +33,6 @@ dependencies {
     implementation(project(":persistent-cache"))
 
     implementation(libs.guava)
-    implementation(libs.jsr305)
 
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":core"))
@@ -50,6 +49,7 @@ dependencies {
     integTestImplementation(project(":persistent-cache"))
 
     crossVersionTestImplementation(project(":jvm-services"))
+    crossVersionTestImplementation(testFixtures(project(":problems-api")))
     crossVersionTestImplementation(libs.jettyWebApp)
     crossVersionTestImplementation(libs.commonsIo)
     crossVersionTestRuntimeOnly(libs.cglib) {

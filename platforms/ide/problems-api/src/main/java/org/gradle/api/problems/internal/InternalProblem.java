@@ -16,13 +16,10 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.Problem;
-
 public interface InternalProblem extends Problem {
 
     /**
      * Returns a problem builder with fields initialized with values from this instance.
-     *
      */
     InternalProblemBuilder toBuilder();
 }

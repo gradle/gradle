@@ -17,6 +17,7 @@
 package org.gradle.api.problems
 
 import org.gradle.api.problems.internal.DefaultProblemCategory
+import org.gradle.api.problems.internal.ProblemCategory
 import spock.lang.Specification
 
 class ProblemCategoryTest extends Specification {
@@ -28,7 +29,7 @@ class ProblemCategoryTest extends Specification {
         expect:
         pc.namespace == namespace
         pc.category == category
-        pc.subCategories == subcategory
+        pc.subcategories == subcategory
         pc.toString() == expectedToString
 
         where:

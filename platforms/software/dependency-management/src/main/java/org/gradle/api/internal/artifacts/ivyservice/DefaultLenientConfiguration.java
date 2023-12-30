@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
@@ -325,8 +324,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     private static class LenientArtifactCollectingVisitor implements ArtifactVisitor {
-        final Set<ResolvedArtifact> artifacts = Sets.newLinkedHashSet();
-        final Set<File> files = Sets.newLinkedHashSet();
+        final Set<ResolvedArtifact> artifacts = new LinkedHashSet<>();
+        final Set<File> files = new LinkedHashSet<>();
 
         @Override
         public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {

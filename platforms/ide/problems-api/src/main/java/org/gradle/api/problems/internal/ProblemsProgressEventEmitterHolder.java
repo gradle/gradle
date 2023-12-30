@@ -16,19 +16,18 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.Problems;
 import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter;
 
 import java.util.Collections;
 
 public class ProblemsProgressEventEmitterHolder {
-    private static Problems problemsService = new DefaultProblems(new NoOpProblemEmitter(), Collections.<ProblemTransformer>emptyList());
+    private static InternalProblems problemsService = new DefaultProblems(new NoOpProblemEmitter(), Collections.<ProblemTransformer>emptyList());
 
-    public static void init(Problems problemsService) {
+    public static void init(InternalProblems problemsService) {
         ProblemsProgressEventEmitterHolder.problemsService = problemsService;
     }
 
-    public static Problems get() {
+    public static InternalProblems get() {
         if (problemsService == null) {
             throw new IllegalStateException("Problems service was null. At the same time, the event emitter is: " + new NoOpBuildOperationProgressEventEmitter());
         }

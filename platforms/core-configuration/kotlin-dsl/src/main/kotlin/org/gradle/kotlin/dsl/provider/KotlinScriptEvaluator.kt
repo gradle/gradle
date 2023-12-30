@@ -136,7 +136,7 @@ class StandardKotlinScriptEvaluator(
     private
     inline fun withOptions(options: EvalOptions, action: () -> Unit) {
         if (EvalOption.IgnoreErrors in options)
-            classPathModeExceptionCollector.ignoringErrors(action)
+            classPathModeExceptionCollector.runCatching(action)
         else
             action()
     }

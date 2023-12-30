@@ -18,10 +18,9 @@ package org.gradle.model.internal.typeregistration;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.internal.Cast;
 import org.gradle.internal.MutableReference;
+import org.gradle.internal.reflect.Types.TypeVisitResult;
 import org.gradle.internal.reflect.Types.TypeVisitor;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.core.MutableModelNode;
@@ -31,6 +30,8 @@ import org.gradle.model.internal.type.ModelTypes;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,8 +40,8 @@ import static org.gradle.internal.reflect.Types.walkTypeHierarchy;
 
 public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
     private final ModelType<PUBLIC> baseInterface;
-    private final Map<ModelType<? extends PUBLIC>, TypeRegistration<? extends PUBLIC>> registrations = Maps.newLinkedHashMap();
-    private final Map<Class<?>, ImplementationFactory<? extends PUBLIC, ?>> factories = Maps.newLinkedHashMap();
+    private final Map<ModelType<? extends PUBLIC>, TypeRegistration<? extends PUBLIC>> registrations = new LinkedHashMap<>();
+    private final Map<Class<?>, ImplementationFactory<? extends PUBLIC, ?>> factories = new LinkedHashMap<>();
 
     public BaseInstanceFactory(Class<PUBLIC> baseInterface) {
         this.baseInterface = ModelType.of(baseInterface);
@@ -197,7 +198,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
         private final ModelType<S> publicType;
         private final boolean managedPublicType;
         private ImplementationRegistration<S> implementationRegistration;
-        private final List<InternalViewRegistration<?>> internalViewRegistrations = Lists.newArrayList();
+        private final List<InternalViewRegistration<?>> internalViewRegistrations = new ArrayList<>();
 
         public TypeRegistration(ModelType<S> publicType) {
             this.publicType = publicType;
@@ -257,7 +258,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
         private <V> void validateManagedInternalView(final InternalViewRegistration<V> internalViewRegistration, final ModelType<?> delegateType) {
             walkTypeHierarchy(internalViewRegistration.getInternalView().getConcreteClass(), new TypeVisitor<V>() {
                 @Override
-                public void visitType(Class<? super V> type) {
+                public TypeVisitResult visitType(Class<? super V> type) {
                     if (!type.isAnnotationPresent(Managed.class)
                         && !type.isAssignableFrom(delegateType.getConcreteClass())) {
                         throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because the default implementation type '%s' does not implement unmanaged internal view '%s', "
@@ -265,6 +266,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
                             publicType, delegateType, ModelType.of(type),
                             internalViewRegistration.getSource()));
                     }
+                    return TypeVisitResult.CONTINUE;
                 }
             });
         }
@@ -388,9 +390,9 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
 
     private abstract class RegistrationHierarchyVisitor<S> implements TypeVisitor<S> {
         @Override
-        public void visitType(Class<? super S> type) {
+        public TypeVisitResult visitType(Class<? super S> type) {
             if (!baseInterface.getConcreteClass().isAssignableFrom(type)) {
-                return;
+                return TypeVisitResult.CONTINUE;
             }
             Class<? extends PUBLIC> superTypeClassAsBaseType = type.asSubclass(baseInterface.getConcreteClass());
             ModelType<? extends PUBLIC> superTypeAsBaseType = ModelType.of(superTypeClassAsBaseType);
@@ -399,6 +401,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
             if (registration != null) {
                 visitRegistration(registration);
             }
+            return TypeVisitResult.CONTINUE;
         }
 
         protected abstract void visitRegistration(TypeRegistration<? extends PUBLIC> registration);

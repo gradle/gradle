@@ -473,4 +473,24 @@ task wrongPropertyElementTypeApi {
         failure.assertHasCause("Cannot query the value of task ':thing' property 'prop' because it has no value available.")
     }
 
+    def "circular evaluation of #collection property is detected"() {
+        buildFile """
+            def myCollection = objects.${initializer}(String)
+            def p = myCollection.map { it.join(", ") }
+            myCollection.add(p)
+
+            myCollection.get()
+        """
+
+        when:
+        fails "help"
+
+        then:
+        failureCauseContains("Circular evaluation detected")
+
+        where:
+        collection | initializer
+        "list" | "listProperty"
+        "set" | "setProperty"
+    }
 }

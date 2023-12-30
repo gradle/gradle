@@ -44,10 +44,14 @@ The previous step will help you identify potential problems by issuing deprecati
 
 JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.11].
 
+==== `DependencyAdder` renamed to `DependencyCollector`
+
+The incubating `DependencyAdder` interface has been renamed to link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyCollector.html[`DependencyCollector`].
+A `getDependencies` method has been added to the interface that returns all declared dependencies.
 
 === Deprecations
 
-[[register_feature_main_source_set]]
+[[deprecate_register_feature_main_source_set]]
 ==== Deprecated calling `registerFeature` using the `main` source set
 
 Calling `link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html#registerFeature-java.lang.String-org.gradle.api.Action-[registerFeature]` on the `link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html[java]` extension using the `main` source set is deprecated and will change behavior in Gradle 9.0.
@@ -135,6 +139,71 @@ java {
     registerFeature("feature") {
         usingSourceSet(sourceSets.feature)
     }
+}
+----
+======
+=====
+
+[[publishing_artifact_name_different_from_artifact_id_maven]]
+==== Deprecated publishing artifact dependencies with explicit name to Maven repositories
+
+Publishing dependencies with an explicit artifact with a name different from the dependency's `artifactId` to Maven repositories has been deprecated.
+This behavior is still permitted when publishing to Ivy repositories.
+It will result in an error in Gradle 9.0.
+
+Currently, when publishing to Maven repositories, Gradle will interpret the dependency below as if it were declared with coordinates `org:notfoo:1.0`.
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    implementation("org:foo:1.0") {
+        artifact {
+            name = "notfoo"
+        }
+    }
+}
+----
+======
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+dependencies {
+    implementation("org:foo:1.0") {
+        artifact {
+            name = "notfoo"
+        }
+    }
+}
+----
+======
+=====
+
+Instead, this dependency should be declared as:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    implementation("org:notfoo:1.0")
+}
+----
+======
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+dependencies {
+    implementation("org:notfoo:1.0")
 }
 ----
 ======

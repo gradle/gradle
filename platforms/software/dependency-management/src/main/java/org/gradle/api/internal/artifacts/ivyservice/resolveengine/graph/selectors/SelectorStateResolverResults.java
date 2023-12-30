@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -64,7 +65,7 @@ class SelectorStateResolverResults {
                 if (idResolveResult.getFailure() == null) {
                     T componentState = componentForIdResolveResult(componentFactory, idResolveResult, selectorState);
                     if (resolved == null) {
-                        resolved = Lists.newArrayList();
+                        resolved = new ArrayList<>();
                     }
                     resolved.add(componentState);
                 } else {

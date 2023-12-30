@@ -16,7 +16,6 @@
 
 package org.gradle.api.problems.internal
 
-
 import org.gradle.api.problems.Severity
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.operations.OperationIdentifier
@@ -24,11 +23,11 @@ import spock.lang.Specification
 
 class DefaultProblemTest extends Specification {
     def "unbound builder result is equal to original"() {
-        def problem = createTestProblem(severity, additionalData, Mock(InternalProblemReporter))
+        def problem = createTestProblem(severity, additionalData)
 
         def newProblem = problem.toBuilder().build()
         expect:
-        newProblem.problemCategory == problem.problemCategory
+        newProblem.category == problem.category
         newProblem.label == problem.label
         newProblem.additionalData == problem.additionalData
         newProblem.details == problem.details
@@ -36,7 +35,7 @@ class DefaultProblemTest extends Specification {
         newProblem.locations == problem.locations
         newProblem.severity == problem.severity
         newProblem.solutions == problem.solutions
-        newProblem.equals(problem)
+        newProblem == problem
 
         where:
         severity         | additionalData
@@ -48,18 +47,21 @@ class DefaultProblemTest extends Specification {
         given:
         def emitter = Mock(ProblemEmitter)
         def problemReporter = new DefaultProblemReporter(emitter, [], "core")
-        def problem = createTestProblem(Severity.WARNING, [:], problemReporter)
+        def problem = createTestProblem(Severity.WARNING, [:])
         def builder = problem.toBuilder()
         def newProblem = builder
             .solution("solution")
             .build()
+        def operationId = new OperationIdentifier(1000L)
 
         when:
-        problemReporter.report(newProblem)
+        problemReporter.report(newProblem, operationId)
 
         then:
-        1 * emitter.emit(newProblem)
-        newProblem.problemCategory == problem.problemCategory
+        // We are not running this test as an integration test, so we won't have a BuildOperationId available,
+        // i.e. the OperationId will be null
+        1 * emitter.emit(newProblem, operationId)
+        newProblem.category == problem.category
         newProblem.label == problem.label
         newProblem.additionalData == problem.additionalData
         newProblem.details == problem.details
@@ -70,9 +72,8 @@ class DefaultProblemTest extends Specification {
         newProblem.class == DefaultProblem
     }
 
-    private createTestProblem(Severity severity, Map<String, String> additionalData, InternalProblemReporter internalProblems) {
-        new DefaultProblem(
-            "message",
+    private static createTestProblem(Severity severity, Map<String, String> additionalData) {
+        new DefaultProblem("message",
             severity,
             [],
             Documentation.userManual("id"),
@@ -80,15 +81,12 @@ class DefaultProblemTest extends Specification {
             [],
             new RuntimeException("cause"),
             DefaultProblemCategory.create('a', 'b', 'c'),
-            additionalData,
-            new OperationIdentifier(1)
-        )
+            additionalData)
     }
 
     def "unbound basic builder result is DefaultProblem"() {
         given:
-        def problem = new DefaultProblem(
-            "message",
+        def problem = new DefaultProblem("message",
             Severity.WARNING,
             [],
             Documentation.userManual("id"),
@@ -96,9 +94,7 @@ class DefaultProblemTest extends Specification {
             [],
             new RuntimeException("cause"),
             DefaultProblemCategory.create('a', 'b', 'c'),
-            [:],
-            new OperationIdentifier(1)
-        )
+            [:])
 
 
         when:

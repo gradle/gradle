@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Describable;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
@@ -43,6 +42,7 @@ import org.gradle.internal.properties.StaticValue;
 import org.gradle.internal.properties.bean.PropertyWalker;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -58,7 +58,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final TaskMutator taskMutator;
     private final PropertyWalker propertyWalker;
     private final FileCollectionFactory fileCollectionFactory;
-    private final List<TaskInputPropertyRegistration> registeredProperties = Lists.newArrayList();
+    private final List<TaskInputPropertyRegistration> registeredProperties = new ArrayList<>();
     private final FilePropertyContainer<TaskInputFilePropertyRegistration> registeredFileProperties = FilePropertyContainer.create();
     private final TaskInputs deprecatedThis;
 

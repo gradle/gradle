@@ -35,7 +35,7 @@ class ConfigurationCacheAwareBuildTreeWorkController(
     private val startParameter: ConfigurationCacheStartParameter,
 ) : BuildTreeWorkController {
 
-    override fun scheduleAndRunRequestedTasks(taskSelector: EntryTaskSelector?, isModelBuildingRequested: Boolean): ExecutionResult<Void> {
+    override fun scheduleAndRunRequestedTasks(taskSelector: EntryTaskSelector?): ExecutionResult<Void> {
         val scheduleTaskSelectorPostProcessing: BuildTreeWorkGraphBuilder? = taskSelector?.let { selector ->
             { rootBuildState ->
                 addFinalization(rootBuildState, selector::postProcessExecutionPlan)
@@ -44,10 +44,8 @@ class ConfigurationCacheAwareBuildTreeWorkController(
         val executionResult = workGraph.withNewWorkGraph { graph ->
             val result = cache.loadOrScheduleRequestedTasks(
                 graph = graph,
-                scheduler = { workPreparer.scheduleRequestedTasks(graph, taskSelector) },
-                graphBuilder = scheduleTaskSelectorPostProcessing,
-                isModelBuildingRequested = isModelBuildingRequested
-            )
+                graphBuilder = scheduleTaskSelectorPostProcessing
+            ) { workPreparer.scheduleRequestedTasks(graph, taskSelector) }
             if (!result.wasLoadedFromCache && !result.entryDiscarded && startParameter.loadAfterStore) {
                 // Load the work graph from cache instead
                 null

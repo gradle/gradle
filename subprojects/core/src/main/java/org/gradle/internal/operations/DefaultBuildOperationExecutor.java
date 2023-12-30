@@ -16,7 +16,6 @@
 
 package org.gradle.internal.operations;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.concurrent.ParallelismConfiguration;
@@ -30,6 +29,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.time.Clock;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -131,7 +131,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         ManagedExecutor executor = managedExecutors.get(buildOperationConstraint);
         BuildOperationQueue<O> queue = buildOperationQueueFactory.create(executor, allowAccessToProjectState, worker);
 
-        List<GradleException> failures = Lists.newArrayList();
+        List<GradleException> failures = new ArrayList<>();
         try {
             queueAction.execute(queue);
         } catch (Exception e) {

@@ -151,9 +151,6 @@ dependencies {
     testFixturesApi(testFixtures(project(":snapshots"))) {
         because("test fixtures expose file snapshot related functionality")
     }
-    testFixturesApi(testFixtures(project(":problems-api"))) {
-
-    }
     testFixturesImplementation(project(":build-option"))
     testFixturesImplementation(project(":functional"))
     testFixturesImplementation(project(":messaging"))

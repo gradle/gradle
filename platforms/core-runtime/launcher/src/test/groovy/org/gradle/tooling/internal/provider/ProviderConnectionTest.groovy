@@ -19,10 +19,12 @@ package org.gradle.tooling.internal.provider
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
 class ProviderConnectionTest extends Specification {
+    def payloadSerializer = Mock(PayloadSerializer)
 
     def "ignores unknown operation types"() {
         given:
@@ -33,7 +35,7 @@ class ProviderConnectionTest extends Specification {
         }
 
         when:
-        def configuration = ProviderConnection.ProgressListenerConfiguration.from(parameters, GradleVersion.version("12.7"))
+        def configuration = ProviderConnection.ProgressListenerConfiguration.from(parameters, GradleVersion.version("12.7"), payloadSerializer)
 
         then:
         !configuration.clientSubscriptions.anyOperationTypeRequested
@@ -48,7 +50,7 @@ class ProviderConnectionTest extends Specification {
         }
 
         when:
-        def configuration = ProviderConnection.ProgressListenerConfiguration.from(parameters, GradleVersion.version("5.0"))
+        def configuration = ProviderConnection.ProgressListenerConfiguration.from(parameters, GradleVersion.version("5.0"), payloadSerializer)
 
         then:
         configuration.clientSubscriptions.anyOperationTypeRequested

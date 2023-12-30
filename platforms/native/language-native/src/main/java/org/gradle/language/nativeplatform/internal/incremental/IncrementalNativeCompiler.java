@@ -16,7 +16,6 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.tasks.WorkResult;
@@ -31,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -82,7 +82,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
             for (File sourceFile : spec.getSourceFiles()) {
                 SourceFileState state = incrementalCompilation.getFinalState().getState(sourceFile);
                 final HashCode hash = state.getHash();
-                List<String> headers = Lists.newArrayList();
+                List<String> headers = new ArrayList<>();
                 for (IncludeFileEdge edge : state.getEdges()) {
                     if (hash.equals(edge.getIncludedBy())) {
                         headers.add(edge.getIncludePath());

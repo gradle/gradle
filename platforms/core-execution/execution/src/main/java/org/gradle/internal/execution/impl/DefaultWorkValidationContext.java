@@ -18,8 +18,8 @@ package org.gradle.internal.execution.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext;
@@ -47,7 +47,7 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
 
     @Override
     public InternalProblems getProblemsService() {
-        return (InternalProblems) ProblemsProgressEventEmitterHolder.get();
+        return ProblemsProgressEventEmitterHolder.get();
     }
 
     @Override
@@ -57,7 +57,7 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
         return new ProblemRecordingTypeValidationContext(type, pluginId) {
             @Override
             protected void recordProblem(Problem problem) {
-                if (onlyAffectsCacheableWork(problem.getProblemCategory()) && !cacheable) {
+                if (onlyAffectsCacheableWork(problem.getCategory()) && !cacheable) {
                     return;
                 }
                 problems.add(problem);

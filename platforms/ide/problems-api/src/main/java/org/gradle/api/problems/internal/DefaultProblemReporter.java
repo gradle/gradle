@@ -17,8 +17,9 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemSpec;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.operations.OperationIdentifier;
 
 import java.util.List;
 
@@ -68,7 +69,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Override
-    public Problem create(Action<ProblemSpec> action) {
+    public Problem create(Action<InternalProblemSpec> action) {
         DefaultProblemBuilder defaultProblemBuilder = createProblemBuilder();
         action.execute(defaultProblemBuilder);
         return defaultProblemBuilder.build();
@@ -80,13 +81,40 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         return new DefaultProblemBuilder(namespace);
     }
 
-    @Override
-    public void report(Problem problem) {
-        // Transform the problem with all registered transformers
+    private Problem transformProblem(Problem problem) {
         for (ProblemTransformer transformer : transformers) {
             problem = transformer.transform((InternalProblem) problem);
         }
+        return problem;
+    }
 
-        emitter.emit(problem);
+    /**
+     * Reports a problem.
+     * <p>
+     * The current build operation is used as the operation identifier.
+     * If there is no current build operation, the problem is not reported.
+     *
+     * @param problem The problem to report.
+     */
+    @Override
+    public void report(Problem problem) {
+        OperationIdentifier id = CurrentBuildOperationRef.instance().getId();
+        if (id != null) {
+            report(problem, id);
+        }
+    }
+
+    /**
+     * Reports a problem with an explicit operation identifier.
+     * <p>
+     * The operation identifier should not be null,
+     * otherwise the behavior will be defined by the used {@link ProblemEmitter}.
+     *
+     * @param problem The problem to report.
+     * @param id The operation identifier to associate with the problem.
+     */
+    @Override
+    public void report(Problem problem, OperationIdentifier id) {
+        emitter.emit(transformProblem(problem), id);
     }
 }

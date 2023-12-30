@@ -20,8 +20,6 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Enums;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
@@ -38,7 +36,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -63,7 +64,7 @@ public class AnnotationProcessorDetector {
     }
 
     public Map<String, AnnotationProcessorDeclaration> detectProcessors(Iterable<File> processorPath) {
-        Map<String, AnnotationProcessorDeclaration> processors = Maps.newLinkedHashMap();
+        Map<String, AnnotationProcessorDeclaration> processors = new LinkedHashMap<>();
         for (File jarOrClassesDir : processorPath) {
             for (AnnotationProcessorDeclaration declaration : cache.get(jarOrClassesDir)) {
                 String className = declaration.getClassName();
@@ -176,7 +177,7 @@ public class AnnotationProcessorDetector {
         }
 
         private Map<String, IncrementalAnnotationProcessorType> parseIncrementalProcessors(List<String> lines) {
-            Map<String, IncrementalAnnotationProcessorType> types = Maps.newHashMap();
+            Map<String, IncrementalAnnotationProcessorType> types = new HashMap<>();
             for (String line : lines) {
                 List<String> parts = Splitter.on(',').splitToList(line);
                 IncrementalAnnotationProcessorType type = parseProcessorType(parts);
@@ -203,7 +204,7 @@ public class AnnotationProcessorDetector {
         }
 
         private class MetadataLineProcessor implements LineProcessor<List<String>> {
-            private List<String> lines = Lists.newArrayList();
+            private List<String> lines = new ArrayList<>();
 
             @Override
             public boolean processLine(String line) {

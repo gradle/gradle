@@ -93,7 +93,7 @@ tasks.withType(AsciidoctorTask).configureEach { task ->
 gradleDocumentation {
     javadocs {
         javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
-        groovyApi = project.uri("http://docs.groovy-lang.org/docs/groovy-${libs.groovyVersion}/html/gapi")
+        groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-${libs.groovyVersion}/html/gapi")
     }
 }
 
@@ -196,6 +196,7 @@ samples {
             sourceDirectory = precompiledScriptPluginUtils.sourceDirectory
             target = "buildSrc"
         }
+        problemsApiUsage
     }
 
     // TODO: Do this lazily so we don't need to walk the filesystem during configuration
@@ -553,6 +554,16 @@ samples {
             displayName = "Sharing task outputs across projects in a multi-project build"
             description = "Sharing a file made by a task in one Gradle project, with a task in another Gradle project."
             category = "Build organization"
+        }
+
+        problemsApiUsage {
+            sampleDirectory = samplesRoot.dir("ide/problems-api-usage")
+            displayName = "Reporting and receiving problems via the Problems API"
+            description = "Reporting problems from plugins and consuming it in IDE integrations"
+            category = "IDE integration"
+            common {
+                from(templates.problemsApiUsage)
+            }
         }
     }
 }

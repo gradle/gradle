@@ -26,8 +26,13 @@ import java.util.function.Consumer;
  * A service that collects problems of some type during the execution of Gradle for a build tree and reports them to the user
  * in some form.
  */
+
 @ServiceScope(Scopes.BuildTree.class)
 public interface ProblemReporter {
+    interface ProblemConsumer {
+        void accept(Throwable throwable);
+    }
+
     /**
      * A stable identifier for this reporter. Reporters are ordered by id before {@link #report(File, Consumer)} is called, so
      * that the output is generated in a stable order rather than in an order based on the order that implementations
@@ -42,5 +47,5 @@ public interface ProblemReporter {
      * @param reportDir The base directory that reports can be generated into.
      * @param validationFailures Collects any validation failures.
      */
-    void report(File reportDir, Consumer<? super Throwable> validationFailures);
+    void report(File reportDir, ProblemConsumer validationFailures);
 }

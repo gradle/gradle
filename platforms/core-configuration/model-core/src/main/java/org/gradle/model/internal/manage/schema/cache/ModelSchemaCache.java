@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.manage.schema.cache;
 
-import com.google.common.collect.Maps;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
@@ -41,7 +40,7 @@ import java.util.Map;
  * All keys (and associated entries) are removed from the map by the {@link #cleanUp()} method, which should be invoked periodically to trim the cache of no longer needed data.
  */
 public class ModelSchemaCache {
-    private final HashMap<WeakClassSet, Map<ModelType<?>, ModelSchema<?>>> cache = Maps.newHashMap();
+    private final HashMap<WeakClassSet, Map<ModelType<?>, ModelSchema<?>>> cache = new HashMap<>();
 
     @Nullable
     public <T> ModelSchema<T> get(ModelType<T> type) {
@@ -57,7 +56,7 @@ public class ModelSchemaCache {
         WeakClassSet cacheKey = WeakClassSet.of(type);
         Map<ModelType<?>, ModelSchema<?>> typeCache = cache.get(cacheKey);
         if (typeCache == null) {
-            typeCache = Maps.newHashMap();
+            typeCache = new HashMap<>();
             cache.put(cacheKey, typeCache);
         }
         typeCache.put(type, schema);

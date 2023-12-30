@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.collections;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
@@ -303,6 +304,41 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     public void visitDependencies(TaskDependencyResolveContext context) {
         context.add(buildDependency);
         super.visitDependencies(context);
+    }
+
+    /**
+     * Creates a shallow copy of this file collection. Further changes to this file collection (via {@link #from(Object...)}, {@link #setFrom(Object...)}, or {@link #builtBy(Object...)}) do not
+     * change the copy. However, the copy still reflects changes to the underlying file collections that constitute this one. Consider the following snippet:
+     * <pre>
+     *     def innerCollection = files("foo.txt")
+     *     def collection = files().from(innerCollection)
+     *     def copy = collection.shallowCopy()
+     *     collection.from("bar.txt")  // does not affect contents of the copy
+     *     innerCollection.from("qux.txt")  // does affect the content of the copy
+     *
+     *     println(copy.files)  // prints foo.txt, qux.txt
+     * </pre>
+     * <p>
+     * The copy inherits the current set of tasks that build this collection.
+     *
+     * @return the shallow copy of this collection
+     */
+    public FileCollectionInternal shallowCopy() {
+        DefaultConfigurableFileCollection result = new DefaultConfigurableFileCollection(null, resolver, taskDependencyFactory, patternSetFactory, host);
+        result.buildDependency.setValues(buildDependency.getMutableValues());
+        // getFrom returns a live view of the current structure, but here we need a snapshot.
+        result.setFrom(new ArrayList<>(getFrom()));
+        return result;
+    }
+
+    @Override
+    public void update(Transformer<? extends @org.jetbrains.annotations.Nullable FileCollection, ? super FileCollection> transform) {
+        FileCollection newValue = transform.transform(shallowCopy());
+        if (newValue != null) {
+            setFrom(newValue);
+        } else {
+            setFrom();
+        }
     }
 
     private interface ValueCollector {
