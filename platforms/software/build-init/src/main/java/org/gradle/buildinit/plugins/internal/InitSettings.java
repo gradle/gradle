@@ -45,6 +45,7 @@ public class InitSettings {
     private final InsecureProtocolOption insecureProtocolOption;
     @Nullable
     private final JavaLanguageVersion javaLanguageVersion;
+    private final boolean comments;
 
     /**
      * Temporary constructor until we upgrade gradle/gradle to a nightly.
@@ -58,20 +59,20 @@ public class InitSettings {
         String projectName, List<String> subprojects, ModularizationOption modularizationOption,
         BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, Directory target
     ) {
-        this(projectName, false, subprojects, modularizationOption, dsl, packageName, testFramework, InsecureProtocolOption.WARN, target, null);
+        this(projectName, false, subprojects, modularizationOption, dsl, packageName, testFramework, InsecureProtocolOption.WARN, target, null, true);
     }
 
     public InitSettings(
         String projectName, boolean useIncubatingAPIs, List<String> subprojects, ModularizationOption modularizationOption,
         BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, Directory target
     ) {
-        this(projectName, useIncubatingAPIs, subprojects, modularizationOption, dsl, packageName, testFramework, InsecureProtocolOption.WARN, target, null);
+        this(projectName, useIncubatingAPIs, subprojects, modularizationOption, dsl, packageName, testFramework, InsecureProtocolOption.WARN, target, null, true);
     }
 
     public InitSettings(
         String projectName, boolean useIncubatingAPIs, List<String> subprojects, ModularizationOption modularizationOption,
         BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, InsecureProtocolOption insecureProtocolOption, Directory target,
-        @Nullable JavaLanguageVersion javaLanguageVersion
+        @Nullable JavaLanguageVersion javaLanguageVersion, boolean comments
     ) {
         this.projectName = projectName;
         this.useIncubatingAPIs = useIncubatingAPIs;
@@ -83,6 +84,7 @@ public class InitSettings {
         this.insecureProtocolOption = insecureProtocolOption;
         this.target = target;
         this.javaLanguageVersion = javaLanguageVersion;
+        this.comments = comments;
     }
 
     private static List<String> getSubprojects(List<String> subprojects, ModularizationOption modularizationOption) {
@@ -138,5 +140,10 @@ public class InitSettings {
     @Incubating
     public Optional<JavaLanguageVersion> getJavaLanguageVersion() {
         return Optional.ofNullable(javaLanguageVersion);
+    }
+
+    @Incubating
+    public boolean isWithComments() {
+        return comments;
     }
 }

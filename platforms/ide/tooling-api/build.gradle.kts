@@ -25,6 +25,7 @@ dependencies {
 
     implementation(project(":base-services"))
     implementation(project(":enterprise-operations"))
+    implementation(project(":enterprise-workers"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":core-api"))

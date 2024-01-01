@@ -9,6 +9,7 @@ dependencies {
     implementation(project(":base-services"))
     implementation(project(":functional"))
     implementation(project(":enterprise-operations"))
+    implementation(project(":enterprise-workers"))
     implementation(project(":cli"))
     implementation(project(":messaging"))
     implementation(project(":build-option"))

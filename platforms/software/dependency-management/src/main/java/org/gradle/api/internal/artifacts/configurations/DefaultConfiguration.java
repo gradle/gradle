@@ -732,7 +732,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 // Discard State
                 dependencyResolutionListeners.removeAll();
                 if (resolutionStrategy != null) {
-                    resolutionStrategy.discardStateRequiredForGraphResolution();
+                    resolutionStrategy.maybeDiscardStateRequiredForGraphResolution();
                 }
 
                 captureBuildOperationResult(context, results);
@@ -864,9 +864,19 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
-    public void resetResolutionState() {
-        warnOnInvalidInternalAPIUsage("resetResolutionState()", ProperMethodUsage.RESOLVABLE);
-        currentResolveState.set(ResolveState.NOT_RESOLVED);
+    public <T> T callAndResetResolutionState(Factory<T> factory) {
+        warnOnInvalidInternalAPIUsage("callAndResetResolutionState()", ProperMethodUsage.RESOLVABLE);
+        try {
+            // Prevent the state required for resolution from being discarded if anything in the
+            // factory resolves this configuration
+            getResolutionStrategy().setKeepStateRequiredForGraphResolution(true);
+
+            return factory.create();
+        } finally {
+            // Reset this configuration to an unresolved state
+            getResolutionStrategy().setKeepStateRequiredForGraphResolution(false);
+            currentResolveState.set(ResolveState.NOT_RESOLVED);
+        }
     }
 
     private ResolverResults getResultsForBuildDependencies() {

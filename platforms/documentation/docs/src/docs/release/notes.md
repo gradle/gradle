@@ -53,6 +53,19 @@ ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 
+### Other improvements
+
+#### Generating tidy projects with Gradle init
+
+Using the new `--no-comments` option allows generating projects that contain only code without clarifying comments.
+The resulting build files and source files are smaller and less noisy.
+
+```
+gradle init --use-defaults --type kotlin-library --no-comments
+```
+
+It is possible to persist the preference by setting the `org.gradle.buildinit.comments` property to `false`.
+
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

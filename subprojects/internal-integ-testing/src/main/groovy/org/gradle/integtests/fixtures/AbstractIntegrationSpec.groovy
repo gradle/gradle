@@ -197,7 +197,7 @@ abstract class AbstractIntegrationSpec extends Specification {
         targetBuildFile << script
     }
 
-    String groovyScript(@GroovyBuildScriptLanguage String script) {
+    static String groovyScript(@GroovyBuildScriptLanguage String script) {
         script
     }
 
