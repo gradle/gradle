@@ -1,6 +1,7 @@
 package configurations
 
 import common.VersionedSettingsBranch
+import common.toCapitalized
 import jetbrains.buildServer.configs.kotlin.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.CheckoutMode
 import jetbrains.buildServer.configs.kotlin.FailureAction
@@ -11,7 +12,7 @@ import model.CIBuildModel
 import model.StageName
 
 class GitHubMergeQueueCheckPass(model: CIBuildModel) : BaseGradleBuildType(init = {
-    uuid = "Check_GitHubMergeQueueCheckPass"
+    uuid = "Check_${VersionedSettingsBranch.fromDslContext().branchName.toCapitalized()}_GitHubMergeQueueCheckPass"
     id(uuid)
     name = "GitHub Merge Queue Check Pass"
     type = Type.COMPOSITE
