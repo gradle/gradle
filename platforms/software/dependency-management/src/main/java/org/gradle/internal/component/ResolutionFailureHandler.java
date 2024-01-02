@@ -51,7 +51,6 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.GradleVersion;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -318,19 +317,25 @@ public class ResolutionFailureHandler {
         ComponentGraphResolveMetadata targetComponent,
         GraphSelectionCandidates candidates
     ) {
-        NoMatchingGraphVariantsException e = maybeHandlePluginResolutionFailure(fromConfigurationAttributes, attributeMatcher, targetComponent, candidates);
-        if (null == e) {
-            String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, targetComponent, candidates);
-            e = new NoMatchingGraphVariantsException(message);
-        }
+        return maybeHandlePluginResolutionFailure(fromConfigurationAttributes, attributeMatcher, targetComponent, candidates)
+            .orElse(handleBasicNoMatchingGraphVariantsException(describer, fromConfigurationAttributes, attributeMatcher, targetComponent, candidates));
+    }
 
+    private NoMatchingGraphVariantsException handleBasicNoMatchingGraphVariantsException(
+        AttributeDescriber describer,
+        AttributeContainerInternal fromConfigurationAttributes,
+        AttributeMatcher attributeMatcher,
+        ComponentGraphResolveMetadata targetComponent,
+        GraphSelectionCandidates candidates
+    ) {
+        String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, targetComponent, candidates);
+        NoMatchingGraphVariantsException e = new NoMatchingGraphVariantsException(message);
         suggestReviewAlgorithm(e);
         e.addResolution(NO_MATCHING_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", NO_MATCHING_VARIANTS_SECTION + "."));
         return e;
     }
 
-    @Nullable
-    private NoMatchingGraphVariantsException maybeHandlePluginResolutionFailure(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, ComponentGraphResolveMetadata targetComponent, GraphSelectionCandidates candidates) {
+    private Optional<NoMatchingGraphVariantsException> maybeHandlePluginResolutionFailure(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, ComponentGraphResolveMetadata targetComponent, GraphSelectionCandidates candidates) {
         NoMatchingGraphVariantsException result = null;
         if (resolutionAssessor.isPluginRequestUsingApiVersionAttribute(fromConfigurationAttributes)) {
             Optional<String> minRequiredGradleVersion = resolutionAssessor.findHigherRequiredVersionOfGradle(fromConfigurationAttributes, attributeMatcher, candidates);
@@ -340,8 +345,9 @@ public class ResolutionFailureHandler {
                 suggestUpdateGradle(result, minRequiredGradleVersion.get());
             }
         }
-        return result;
+        return Optional.ofNullable(result);
     }
+
 
     public NoMatchingCapabilitiesException noMatchingCapabilitiesFailure(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> requestedCapabilities, List<? extends VariantGraphResolveState> candidates) {
         String message = buildNoMatchingCapabilitiesFailureMsg(targetComponent, requestedCapabilities, candidates);

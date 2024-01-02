@@ -17,8 +17,10 @@
 package org.gradle.plugin.devel.variants
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.component.PluginNeedsNewerGradleVersionException
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegrationSpec {
@@ -157,7 +159,7 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
     }
 
     @Issue("https://github.com/gradle/gradle/issues/24609")
-    def "clear error message when plugin requests a higher version of Gradle than available"() {
+    def "fails with clear error message when plugin requests a higher version of Gradle than available"() {
         given:
         def producer = file('producer')
         def consumer = file('consumer')
@@ -220,9 +222,16 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
 
         when:
         projectDir(consumer)
-        fails 'greet'
+        fails 'greet', "--stacktrace"
 
         then:
-        failureCauseContains("Could not resolve com.example:producer:1.0.")
+        failure.assertHasErrorOutput("""> Could not resolve all files for configuration ':classpath'.
+   > Could not resolve com.example:producer:1.0.
+     Required by:
+         project : > com.example.greeting:com.example.greeting.gradle.plugin:1.0
+      > Plugin com.example:producer:1.0 requires at least Gradle 1000.0 (this build used Gradle 8.7-20240102050000+0000).
+""")
+        failure.assertHasErrorOutput("Caused by: " + PluginNeedsNewerGradleVersionException.class.getName())
+        failure.assertHasResolution("Upgrade Gradle to at least version 1000.0. See the instructions at https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#sub:updating-gradle.")
     }
 }

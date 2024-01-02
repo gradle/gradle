@@ -80,7 +80,7 @@ import java.util.stream.Collectors;
             Attribute<Object> untyped = Cast.uncheckedCast(attribute);
 
             String attributeName = Objects.requireNonNull(attribute).getName();
-            AttributeValue<Object> consumerValue = immutableConsumer.findEntry(untyped);
+            AttributeValue<?> consumerValue = immutableConsumer.findEntry(attributeName);
             AttributeValue<?> producerValue = immutableProducer.findEntry(attributeName);
 
             if (consumerValue.isPresent() && producerValue.isPresent()) {
@@ -112,7 +112,7 @@ import java.util.stream.Collectors;
 
         for (AssessedCandidate assessedCandidate : variantsWithCategorizedAttributes) {
             Optional<GradleVersion> providedVersion = assessedCandidate.getIncompatibleAttributes().stream()
-                .filter(incompatibleAttribute -> incompatibleAttribute.getAttribute().equals(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE))
+                .filter(incompatibleAttribute -> incompatibleAttribute.getAttribute().getName().equals(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE.getName()))
                 .map(apiVersionAttribute -> GradleVersion.version((String) Objects.requireNonNull(apiVersionAttribute.getProvided())))
                 .findFirst();
 
