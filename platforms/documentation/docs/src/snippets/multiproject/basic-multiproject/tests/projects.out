@@ -1,9 +1,9 @@
 
 ------------------------------------------------------------
-Root project 'my-gradle-project'
+Root project 'basic-multiproject'
 ------------------------------------------------------------
 
-Root project 'my-gradle-project'
+Root project 'basic-multiproject'
 \--- Project ':app'
 
 To see a list of the tasks of a project, run gradle <project-path>:tasks
