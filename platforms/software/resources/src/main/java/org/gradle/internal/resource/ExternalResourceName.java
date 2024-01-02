@@ -62,12 +62,12 @@ public class ExternalResourceName implements Describable {
     }
 
     public String getDisplayName() {
-        return getDecoded();
+        return getDisplayable();
     }
 
     public String getShortDisplayName() {
         int lastSlash = path.lastIndexOf('/');
-        return lastSlash == -1 ? getDecoded() : path.substring(lastSlash + 1);
+        return lastSlash == -1 ? getDisplayable() : path.substring(lastSlash + 1);
     }
 
     @Override
@@ -90,9 +90,9 @@ public class ExternalResourceName implements Describable {
     }
 
     /**
-     * Returns the 'decoded' name, which is the opaque root + the path of the name.
+     * Returns the 'displayable' name, which is the opaque root + the encoded path of the name.
      */
-    public String getDecoded() {
+    public String getDisplayable() {
         if (encodedRoot == null) {
             return encode(path, false);
         }
