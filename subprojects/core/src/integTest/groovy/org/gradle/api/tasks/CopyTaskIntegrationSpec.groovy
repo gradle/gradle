@@ -2240,11 +2240,42 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         "rename(Transformer)"       | "rename(org.gradle.internal.Transformers.noOpTransformer())"
     }
 
+    def "renaming 2 different source files to the same name in the dest dir should give a clear error"() {
+        given: "a directory with a file"
+        def unzippedDir = file("before/files")
+        def unzippedFile = unzippedDir.file("sub/c.txt").touch()
+
+        and: "another directory with the same file"
+        def unzippedDir2 = file("before2/files")
+        def unzippedFile2 = unzippedDir2.file("sub/c2.txt").touch()
+
+        and: "a copy task that copies from both of these, failing on duplicates"
+        buildFile << """
+            task (copy, type: Copy) {
+                from('before/files') {
+                    rename 'c.txt', 'new.txt'
+                }
+                from('before2/files') {
+                    rename 'c2.txt', 'new.txt'
+                }
+                into 'after'
+                duplicatesStrategy = DuplicatesStrategy.FAIL
+            }
+        """
+
+        expect: "success"
+        fails 'copy'
+
+        and: "with a clear failure message"
+        failure.assertHasCause("Cannot copy file '$unzippedFile2' to '${file('after/sub/new.txt').toPath()}' because file '$unzippedFile' has already been copied there.")
+        failure.assertHasDescription("Execution failed for task ':copy'.")
+    }
+
     // region duplicates in compressed files
     def "encountering duplicates in a zipTree vs an unzipped dir with DuplicateStrategy.FAIL should give a clear error"() {
         given: "a directory with a file"
         def unzippedDir = file("before/files")
-        def unzippedFile = unzippedDir.file("sub/c.txt").with { touch() }
+        def unzippedFile = unzippedDir.file("sub/c.txt").touch()
 
         and: "a zip file containing it"
         TestFile zipFile = file("before/files.zip")
@@ -2271,7 +2302,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     def "encountering duplicates in a zipTree vs another zipTree with DuplicateStrategy.FAIL should give a clear error"() {
         given: "a directory with a file"
         def unzippedDir = file("before/files")
-        unzippedDir.file("sub/c.txt").with { touch() }
+        unzippedDir.file("sub/c.txt").touch()
 
         and: "a zip file containing it"
         def zipFile = file("before/files.zip")
@@ -2302,7 +2333,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     def "encountering duplicates in a tarTree vs an uncompressed dir with DuplicateStrategy.FAIL should give a clear error"() {
         given: "a directory with a file"
         def untarredDir = file("before/files")
-        def untarredFile = untarredDir.file("sub/c.txt").with { touch() }
+        def untarredFile = untarredDir.file("sub/c.txt").touch()
 
         and: "a tar file containing it"
         def tarFile = file("before/files.tar")
@@ -2329,7 +2360,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     def "encountering duplicates in a tarTree vs another tarTree with DuplicateStrategy.FAIL should give a clear error"() {
         given: "a directory with a file"
         def untarredDir = file("before/files")
-        untarredDir.file("sub/c.txt").with { touch() }
+        untarredDir.file("sub/c.txt").touch()
 
         and: "a tar file containing it"
         def tarFile = file("before/files.tar")
@@ -2354,6 +2385,41 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
         and: "with a clear failure message"
         failure.assertHasCause("Cannot copy tar entry '$tarFile2!sub/c.txt' to '${file('after/sub/c.txt').toPath()}' because tar entry '$tarFile!sub/c.txt' has already been copied there.")
+        failure.assertHasDescription("Execution failed for task ':copy'.")
+    }
+
+    def "renaming 2 different source files contained in zip files to the same name in the dest dir should give a clear error"() {
+        given: "a directory with a file"
+        def unzippedDir = file("before/files")
+        def unzippedFile = unzippedDir.file("sub/c.txt").touch()
+
+        and: "a zip file containing it"
+        def zipFile = file("before/files.zip")
+        unzippedDir.zipTo(zipFile)
+
+        and: "another zip file containing it"
+        def zipFile2 = file("before/files2.zip")
+        unzippedDir.zipTo(zipFile2)
+
+        and: "a copy task that copies from both of these, failing on duplicates"
+        buildFile << """
+            task (copy, type: Copy) {
+                from(zipTree('before/files.zip')) {
+                    rename 'c.txt', 'new.txt'
+                }
+                from(zipTree('before/files2.zip')) {
+                    rename 'c.txt', 'new.txt'
+                }
+                into 'after'
+                duplicatesStrategy = DuplicatesStrategy.FAIL
+            }
+        """
+
+        expect: "success"
+        fails 'copy'
+
+        and: "with a clear failure message"
+        failure.assertHasCause("Cannot copy zip entry '$zipFile2!sub/c.txt' to '${file('after/sub/new.txt').toPath()}' because zip entry '$zipFile!sub/c.txt' has already been copied there.")
         failure.assertHasDescription("Execution failed for task ':copy'.")
     }
     // endregion duplicates in compressed files
