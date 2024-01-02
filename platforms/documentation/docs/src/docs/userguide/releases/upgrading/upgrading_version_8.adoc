@@ -44,11 +44,10 @@ The previous step will help you identify potential problems by issuing deprecati
 
 [[deprecated_legacy_url_decoding]]
 ==== Deprecated legacy URL decoding behavior
-Prior to Gradle 8.3, Gradle would decode a `CharSequence` given to `link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:uri(java.lang.Object)[Project.uri(Object)]`
-using a flawed algorithm that accepted invalid URLs and improperly decoded others. Gradle now uses the `URI` class to parse and decode URLs,
-but with a fallback to the legacy behavior in the event of an error.
+Prior to Gradle 8.3, Gradle would decode a `CharSequence` given to `link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:uri(java.lang.Object)[Project.uri(Object)]` using an algorithm that accepted invalid URLs and improperly decoded others. 
+Gradle now uses the `URI` class to parse and decode URLs, but with a fallback to the legacy behavior in the event of an error.
 
-Starting in Gradle 9.0, the fallback will be removed, and the error will be thrown instead.
+Starting in Gradle 9.0, the fallback will be removed, and an error will be thrown instead.
 
 To fix a deprecation warning, invalid URLs that require the legacy behavior should be re-encoded to be valid URLs, such as in the following examples:
 
