@@ -643,12 +643,17 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return resolveGraphIfRequired().getResolvedConfiguration();
     }
 
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private static Boolean isFullyResoled(Optional<ResolverResults> currentState) {
+        return currentState.map(ResolverResults::isFullyResolved).orElse(false);
+    }
+
     private ResolverResults resolveGraphIfRequired() {
         assertIsResolvable();
         maybeEmitResolutionDeprecation();
 
         Optional<ResolverResults> currentState = currentResolveState.get();
-        if (currentState.map(ResolverResults::isFullyResolved).orElse(false)) {
+        if (isFullyResoled(currentState)) {
             return currentState.get();
         }
 
@@ -673,7 +678,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private ResolverResults resolveExclusivelyIfRequired() {
         return currentResolveState.update(currentState -> {
-            if (currentState.map(ResolverResults::isFullyResolved).orElse(false)) {
+            if (isFullyResoled(currentState)) {
                 if (dependenciesModified) {
                     throw new InvalidUserDataException(String.format("Attempted to resolve %s that has been resolved previously.", getDisplayName()));
                 }
@@ -886,7 +891,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private ResolverResults getResultsForGraph() {
         Optional<ResolverResults> currentState = currentResolveState.get();
-        if (!currentState.isPresent() || !currentState.get().isFullyResolved()) {
+        if (!isFullyResoled(currentState)) {
             // Do not validate that the current thread holds the project lock
             // Should instead assert that the results are available and fail if not
             return resolveExclusivelyIfRequired();
@@ -1444,7 +1449,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return;
         }
 
-        if (currentResolveState.get().map(ResolverResults::isFullyResolved).orElse(false)) {
+        if (isFullyResoled(currentResolveState.get())) {
             throw new InvalidUserDataException(String.format("Cannot change %s of parent of %s after it has been resolved", type, getDisplayName()));
         }
     }
@@ -1456,7 +1461,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return;
         }
 
-        if (currentResolveState.get().map(ResolverResults::isFullyResolved).orElse(false)) {
+        if (isFullyResoled(currentResolveState.get())) {
             // The public result for the configuration has been calculated.
             // It is an error to change anything that would change the dependencies or artifacts
             throw new InvalidUserDataException(String.format("Cannot change %s of dependency %s after it has been resolved.", type, getDisplayName()));
