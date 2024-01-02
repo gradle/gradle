@@ -148,14 +148,6 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
         }
     }
 
-    private static String uriDecode(String path) {
-        try {
-            return new URI(path).getSchemeSpecificPart();
-        } catch (URISyntaxException e) {
-            return fallbackUrlDecode(path);
-        }
-    }
-
     /**
      * Lenient legacy behavior to fall back to when URI cannot be normally parsed.
      */
