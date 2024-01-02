@@ -245,7 +245,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private List<String> declarationAlternatives = ImmutableList.of();
     private List<String> resolutionAlternatives = ImmutableList.of();
 
-    private final CalculatedModelValue<ResolveState> currentResolveState;
+    private final CalculatedModelValue<Optional<ResolverResults>> currentResolveState;
 
     private ConfigurationInternal consistentResolutionSource;
     private String consistentResolutionReason;
@@ -328,7 +328,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory);
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
-        this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(ResolveState.NOT_RESOLVED);
+        this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(Optional.empty());
         this.defaultConfigurationFactory = defaultConfigurationFactory;
 
         this.canBeConsumed = roleAtCreation.isConsumable();
@@ -357,31 +357,19 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public State getState() {
-        ResolveState currentState = currentResolveState.get();
-        InternalState resolvedState = currentState.getState();
-        if (resolvedState == GRAPH_RESOLVED) {
-            if (currentState.hasError()) {
-                return State.RESOLVED_WITH_FAILURES;
-            } else {
-                return State.RESOLVED;
-            }
+        Optional<ResolverResults> currentState = currentResolveState.get();
+        if (!currentState.isPresent()) {
+            return State.UNRESOLVED;
+        }
+
+        ResolverResults resolvedState = currentState.get();
+        if (resolvedState.getVisitedGraph().hasAnyFailure()) {
+            return State.RESOLVED_WITH_FAILURES;
+        } else if (resolvedState.isFullyResolved()) {
+            return State.RESOLVED;
         } else {
             return State.UNRESOLVED;
         }
-    }
-
-    /**
-     * Get the current resolved state of this configuration.
-     * <p>
-     * Usage: This method should only be called on resolvable configurations and should throw an exception if
-     * called on a configuration that does not permit this usage.
-     *
-     * @return the current resolved state of this configuration
-     */
-    @VisibleForTesting
-    public InternalState getInternalState() {
-        warnOnInvalidInternalAPIUsage("getResolvedState()", ProperMethodUsage.RESOLVABLE);
-        return currentResolveState.get().getState();
     }
 
     @Override
@@ -655,16 +643,21 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return resolveGraphIfRequired().getResolvedConfiguration();
     }
 
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private static Boolean isFullyResoled(Optional<ResolverResults> currentState) {
+        return currentState.map(ResolverResults::isFullyResolved).orElse(false);
+    }
+
     private ResolverResults resolveGraphIfRequired() {
         assertIsResolvable();
         maybeEmitResolutionDeprecation();
 
-        ResolveState currentState = currentResolveState.get();
-        if (currentState.getState() == GRAPH_RESOLVED) {
-            return currentState.getCachedResolverResults();
+        Optional<ResolverResults> currentState = currentResolveState.get();
+        if (isFullyResoled(currentState)) {
+            return currentState.get();
         }
 
-        ResolveState newState;
+        ResolverResults newState;
         if (!domainObjectContext.getModel().hasMutableState()) {
             if (!workerThreadRegistry.isWorkerThread()) {
                 // Error if we are executing in a user-managed thread.
@@ -680,29 +673,29 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             newState = resolveExclusivelyIfRequired();
         }
 
-        return newState.getCachedResolverResults();
+        return newState;
     }
 
-    private ResolveState resolveExclusivelyIfRequired() {
+    private ResolverResults resolveExclusivelyIfRequired() {
         return currentResolveState.update(currentState -> {
-            if (currentState.getState() == GRAPH_RESOLVED) {
+            if (isFullyResoled(currentState)) {
                 if (dependenciesModified) {
                     throw new InvalidUserDataException(String.format("Attempted to resolve %s that has been resolved previously.", getDisplayName()));
                 }
                 return currentState;
             }
 
-            return resolveGraphInBuildOperation();
-        });
+            return Optional.of(resolveGraphInBuildOperation());
+        }).get();
     }
 
     /**
      * Must be called from {@link #resolveExclusivelyIfRequired} only.
      */
-    private ResolveState resolveGraphInBuildOperation() {
-        return buildOperationExecutor.call(new CallableBuildOperation<ResolveState>() {
+    private ResolverResults resolveGraphInBuildOperation() {
+        return buildOperationExecutor.call(new CallableBuildOperation<ResolverResults>() {
             @Override
-            public ResolveState call(BuildOperationContext context) {
+            public ResolverResults call(BuildOperationContext context) {
                 runDependencyActions();
                 preventFromFurtherMutation();
 
@@ -711,10 +704,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 ResolverResults results = resolver.resolveGraph(DefaultConfiguration.this);
                 dependenciesModified = false;
 
-                ResolveState newState = new ResolveState(GRAPH_RESOLVED, results);
-
                 // Make the new state visible in case a dependency resolution listener queries the result, which requires the new state
-                currentResolveState.set(newState);
+                currentResolveState.set(Optional.of(results));
 
                 // Mark all affected configurations as observed
                 markParentsObserved(GRAPH_RESOLVED);
@@ -722,11 +713,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
                 // TODO: Currently afterResolve runs if there is not an non-unresolved-dependency failure
                 //       We should either _always_ run afterResolve, or only run it if _no_ failure occurred
-                if (!newState.getCachedResolverResults().getVisitedGraph().getResolutionFailure().isPresent()) {
+                if (!results.getVisitedGraph().getResolutionFailure().isPresent()) {
                     dependencyResolutionListeners.getSource().afterResolve(incoming);
-
-                    // Use the current state, which may have changed if the listener queried the result
-                    newState = currentResolveState.get();
                 }
 
                 // Discard State
@@ -736,7 +724,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 }
 
                 captureBuildOperationResult(context, results);
-                return newState;
+                return results;
             }
 
             private void captureBuildOperationResult(BuildOperationContext context, ResolverResults results) {
@@ -875,16 +863,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         } finally {
             // Reset this configuration to an unresolved state
             getResolutionStrategy().setKeepStateRequiredForGraphResolution(false);
-            currentResolveState.set(ResolveState.NOT_RESOLVED);
+            currentResolveState.set(Optional.empty());
         }
     }
 
     private ResolverResults getResultsForBuildDependencies() {
-        ResolveState currentState = currentResolveState.get();
-        if (currentState.getState() == UNRESOLVED) {
-            throw new IllegalStateException("Cannot query results until resolution has happened.");
-        }
-        return currentState.getCachedResolverResults();
+        return currentResolveState.get()
+            .orElseThrow(() -> new IllegalStateException("Cannot query results until resolution has happened."));
     }
 
     private ResolverResults resolveGraphForBuildDependenciesIfRequired() {
@@ -894,27 +879,24 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return resolveGraphIfRequired();
         }
 
-        ResolveState currentState = currentResolveState.update(initial -> {
-            if (initial.getState() == UNRESOLVED) {
-                // Traverse graph
-                ResolverResults results = resolver.resolveBuildDependencies(DefaultConfiguration.this);
+        return currentResolveState.update(initial -> {
+            if (!initial.isPresent()) {
+                ResolverResults results = resolver.resolveBuildDependencies(this);
                 markReferencedProjectConfigurationsObserved(BUILD_DEPENDENCIES_RESOLVED, results);
-                return new ResolveState(BUILD_DEPENDENCIES_RESOLVED, results);
+                return Optional.of(results);
             } // Otherwise, already have a result, so reuse it
             return initial;
-        });
-
-        return currentState.getCachedResolverResults();
+        }).get();
     }
 
     private ResolverResults getResultsForGraph() {
-        ResolveState currentState = currentResolveState.get();
-        if (currentState.getState() != GRAPH_RESOLVED) {
+        Optional<ResolverResults> currentState = currentResolveState.get();
+        if (!isFullyResoled(currentState)) {
             // Do not validate that the current thread holds the project lock
             // Should instead assert that the results are available and fail if not
-            currentState = resolveExclusivelyIfRequired();
+            return resolveExclusivelyIfRequired();
         }
-        return currentState.getCachedResolverResults();
+        return currentState.get();
     }
 
     @Override
@@ -1467,8 +1449,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return;
         }
 
-        InternalState resolvedState = currentResolveState.get().getState();
-        if (resolvedState == GRAPH_RESOLVED) {
+        if (isFullyResoled(currentResolveState.get())) {
             throw new InvalidUserDataException(String.format("Cannot change %s of parent of %s after it has been resolved", type, getDisplayName()));
         }
     }
@@ -1480,8 +1461,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return;
         }
 
-        InternalState resolvedState = currentResolveState.get().getState();
-        if (resolvedState == GRAPH_RESOLVED) {
+        if (isFullyResoled(currentResolveState.get())) {
             // The public result for the configuration has been calculated.
             // It is an error to change anything that would change the dependencies or artifacts
             throw new InvalidUserDataException(String.format("Cannot change %s of dependency %s after it has been resolved.", type, getDisplayName()));
@@ -1996,36 +1976,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public ConfigurationRole getRoleAtCreation() {
         return roleAtCreation;
-    }
-
-    private static class ResolveState {
-        public static final ResolveState NOT_RESOLVED = new ResolveState(UNRESOLVED, null);
-
-        private final InternalState state;
-        private final ResolverResults cachedResolverResults;
-
-        public ResolveState(InternalState state, @Nullable ResolverResults cachedResolverResults) {
-            this.state = state;
-            this.cachedResolverResults = cachedResolverResults;
-        }
-
-        public InternalState getState() {
-            return state;
-        }
-
-        public boolean hasError() {
-            if (cachedResolverResults == null) {
-                return false;
-            }
-            return cachedResolverResults.getVisitedGraph().hasAnyFailure();
-        }
-
-        public ResolverResults getCachedResolverResults() {
-            if (cachedResolverResults == null) {
-                throw new IllegalStateException("Configuration has not been resolved.");
-            }
-            return cachedResolverResults;
-        }
     }
 
     private DefaultArtifactCollection artifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
