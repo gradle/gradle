@@ -28,6 +28,13 @@ public interface ImmutableAttributes extends AttributeContainerInternal {
 
     /**
      * Locates the entry for the given attribute. Returns a 'missing' value when not present.
+     *
+     * <strong>WARNING: Attribute type information is often unreliable!</strong>  Attributes of consumers will not
+     * have their type information available.  It will show as {@code String} instead of {@code <T>} and
+     * this method will <strong>NOT</strong> be useful to locate an entry for a consumer attribute when
+     * searching by the constants in the particular attribute interface.
+     *
+     * You should prefer {@link #findEntry(String)} and search by name to avoid these sorts of issues.
      */
     <T> AttributeValue<T> findEntry(Attribute<T> key);
 

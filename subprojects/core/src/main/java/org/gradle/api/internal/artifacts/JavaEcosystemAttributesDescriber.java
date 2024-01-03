@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Bundling;
@@ -32,10 +31,12 @@ import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 class JavaEcosystemAttributesDescriber implements AttributeDescriber {
-    private final static Set<Attribute<?>> ATTRIBUTES = ImmutableSet.of(
+    private final static Set<Attribute<?>> DESCRIBABLE_ATTRIBUTES = ImmutableSet.of(
         Usage.USAGE_ATTRIBUTE,
         Category.CATEGORY_ATTRIBUTE,
         LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
@@ -48,7 +49,7 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
 
     @Override
     public Set<Attribute<?>> getAttributes() {
-        return ATTRIBUTES;
+        return DESCRIBABLE_ATTRIBUTES;
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -112,12 +113,18 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
 
     @Nullable
     private static <T> Object attr(Map<Attribute<?>, ?> attributes, Attribute<T> attribute) {
-        return Cast.uncheckedCast(attributes.get(attribute));
+        return Cast.uncheckedCast(attributes.entrySet().stream()
+            .filter(e -> e.getKey().getName().equals(attribute.getName()))
+            .findFirst()
+            .map(Map.Entry::getValue)
+            .orElse(null));
     }
 
     private void processExtraAttributes(Map<Attribute<?>, ?> attributes, StringBuilder sb) {
-        Set<Attribute<?>> remaining = Sets.newLinkedHashSet(attributes.keySet());
-        remaining.removeAll(ATTRIBUTES);
+        Set<Attribute<?>> remaining = attributes.keySet().stream()
+            .filter(JavaEcosystemAttributesDescriber::isUndescribable)
+            .collect(Collectors.toSet());
+
         if (!remaining.isEmpty()) {
             sb.append(", as well as ");
             boolean comma = false;
@@ -129,6 +136,10 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
                 comma = true;
             }
         }
+    }
+
+    private static boolean isUndescribable(Attribute<?> attribute) {
+        return DESCRIBABLE_ATTRIBUTES.stream().noneMatch(describableAttribute -> Objects.equals(attribute.getName(), describableAttribute.getName()));
     }
 
     @Override
@@ -327,7 +338,7 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
         }
     }
 
-    private static String toName(Object category) {
-        return category instanceof Category ? ((Named) category).getName() : String.valueOf(category);
+    private static String toName(Object attributeValue) {
+        return attributeValue instanceof Category ? ((Named) attributeValue).getName() : String.valueOf(attributeValue);
     }
 }
