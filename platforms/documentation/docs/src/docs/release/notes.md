@@ -26,7 +26,7 @@ We would like to thank the following community members for their contributions t
 [Yanshun Li](https://github.com/Chaoba),
 [Andrzej Ressel](https://github.com/andrzejressel)
 
-Be sure to check out the [Public Roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
+Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
 
 ## Upgrade instructions
 
@@ -57,83 +57,10 @@ You may now provide Gradle with the key used to encrypt cached configuration dat
 
 More details can be found in the [configuration cache](userguide/configuration_cache.html#config_cache:secrets:configuring_encryption_key) section of the Gradle User Manual.
 
-<a name="error-improvements"></a>
-### Error and warning reporting improvements
-
-Gradle provides a rich set of error and warning messages to help you understand and resolve problems in your build.
-
-<a name="dependency-locking"></a>
-#### Clearer suggested actions in case of dependency locking errors
-
-[Dependency locking](userguide/dependency_locking.html) is a mechanism that ensures reproducible builds when using dynamic dependency versions.
-
-This release improves error messages by separating the error from the possible action to fix the issue in the console output.
-Errors from invalid [lock file format](userguide/dependency_locking.html#lock_state_location_and_format) or [missing lock state when strict mode is enabled](userguide/dependency_locking.html#fine_tuning_dependency_locking_behaviour_with_lock_mode) are now displayed as illustrated below:
-
-```
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-Execution failed for task ':dependencies'.
-> Could not resolve all dependencies for configuration ':lockedConf'.
-   > Invalid lock state for lock file specified in '<project>/lock.file'. Line: '<<<<<<< HEAD'
-
-* Try:
-> Verify the lockfile content. For more information on lock file format, please refer to https://docs.gradle.org/@version@/userguide/dependency_locking.html#lock_state_location_and_format in the Gradle documentation.
-> Run with --info or --debug option to get more log output.
-> Run with --scan to get full insights.
-> Get more help at https://help.gradle.org.
-```
-
-<a name="error-reporting"></a>
-#### Better error reporting of circular references in providers
-
-Before this release, evaluating a provider with a cycle in its value assignment would lead to a `StackOverflowError`.
-With this release, circular references are properly detected and reported.
-
-For instance, the following code:
-
-```
-def property = objects.property(String)
-property.set("some value")
-
-// wrong, self-references only supported via #update()
-property.set(property.map { "$it and more" })
-
-println(property.get()) // error when evaluating
-```
-
-Previously failed with a `StackOverflowError` and limited details:
-
-```
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-A problem occurred evaluating root project 'test'.
-> java.lang.StackOverflowError (no error message)
-
-```
-
-Starting with this release, you get a more helpful error message indicating the source of the cycle and a list of the providers in the chain that led to it:
-
-```
-FAILURE: Build failed with an exception.
-
-* Where:
-Build file '<project>/build.gradle' line: 7
-
-* What went wrong:
-A problem occurred evaluating root project 'test'.
-> Circular evaluation detected: property(java.lang.String, map(java.lang.String map(<CIRCULAR REFERENCE>) check-type()))
-   -> map(java.lang.String map(property(java.lang.String, <CIRCULAR REFERENCE>)) check-type())
-   -> map(property(java.lang.String, map(java.lang.String <CIRCULAR REFERENCE> check-type())))
-   -> property(java.lang.String, map(java.lang.String map(<CIRCULAR REFERENCE>) check-type()))
-```
-
 <a name="build-init"></a>
 ### Build init improvements
 
-The [build init plugin](userguide/build_init_plugin.html) allows users to create a new Gradle build, supporting various types of projects.
+The [build init plugin](userguide/build_init_plugin.html) allows users to easily create a new Gradle build, supporting various types of projects.
 
 <a name="simpler-packaging"></a>
 #### Simpler source package handling
@@ -181,11 +108,13 @@ application {
 ### Build authoring improvements
 
 Gradle provides rich APIs for plugin authors and build engineers to develop custom build logic.
+The [task configuration avoidance API](userguide/task_configuration_avoidance.html) avoids configuring tasks if they are not needed for the execution of a build.
 
 <a name="enhanced-filtering"></a>
 #### Lazy name-based filtering of tasks
 
 Previously, filtering tasks by name required using the `matching` method using the following pattern:
+
 ```
 tasks.matching { it.name.contains("pack") }
 ```
@@ -193,6 +122,7 @@ tasks.matching { it.name.contains("pack") }
 The problem was that it triggered the creation of the tasks, even when the task was not part of the build execution.
 
 Starting from this release, you can use:
+
 ```
 tasks.named { it.contains("pack") }
 ```
@@ -206,7 +136,7 @@ This new method is available on all Gradle containers that extend [`NamedDomainO
 
 Gradle supports [declaring capabilities](userguide/component_capabilities.html) for components to better manage dependencies by allowing Gradle to detect and resolve conflicts between dependencies at build time.
 
-Previously, capability methods only accepted inputs with the capability notation:
+Previously, capability methods only accepted inputs as strings using with the capability notation:
 
 ```
 dependencies {
@@ -266,6 +196,99 @@ println(property.get()) // "some value and more"
 ```
 
 Refer to the javadoc for [`Property.update(Transformer<>)`](javadoc/org/gradle/api/provider/Property.html#update-org.gradle.api.Transformer-) and [`ConfigurableFileCollection.update(Transformer<>)`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#update-org.gradle.api.Transformer-) for more details, including limitations.
+
+<a name="error-improvements"></a>
+### Error and warning reporting improvements
+
+Gradle provides a rich set of error and warning messages to help you understand and resolve problems in your build.
+
+<a name="dependency-locking"></a>
+#### Clearer suggested actions in case of dependency locking errors
+
+This release improves error messages in [dependency locking](userguide/dependency_locking.html)  by separating the error from the possible action to fix the issue in the console output.
+Errors from invalid [lock file format](userguide/dependency_locking.html#lock_state_location_and_format) or [missing lock state when strict mode is enabled](userguide/dependency_locking.html#fine_tuning_dependency_locking_behaviour_with_lock_mode) are now displayed as illustrated below:
+
+```
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':dependencies'.
+> Could not resolve all dependencies for configuration ':lockedConf'.
+   > Invalid lock state for lock file specified in '<project>/lock.file'. Line: '<<<<<<< HEAD'
+
+* Try:
+> Verify the lockfile content. For more information on lock file format, please refer to https://docs.gradle.org/@version@/userguide/dependency_locking.html#lock_state_location_and_format in the Gradle documentation.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+```
+
+<a name="error-reporting"></a>
+#### Better error reporting of circular references in providers
+
+Before this release, evaluating a [provider](userguide/lazy_configuration.html) with a cycle in its value assignment would lead to a `StackOverflowError`.
+With this release, circular references are properly detected and reported.
+
+For instance, the following code:
+
+```
+def property = objects.property(String)
+property.set("some value")
+
+// wrong, self-references only supported via #update()
+property.set(property.map { "$it and more" })
+
+println(property.get()) // error when evaluating
+```
+
+Previously failed with a `StackOverflowError` and limited details:
+
+```
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+A problem occurred evaluating root project 'test'.
+> java.lang.StackOverflowError (no error message)
+
+```
+
+Starting with this release, you get a more helpful error message indicating the source of the cycle and a list of the providers in the chain that led to it:
+
+```
+FAILURE: Build failed with an exception.
+
+* Where:
+Build file '<project>/build.gradle' line: 7
+
+* What went wrong:
+A problem occurred evaluating root project 'test'.
+> Circular evaluation detected: property(java.lang.String, map(java.lang.String map(<CIRCULAR REFERENCE>) check-type()))
+   -> map(java.lang.String map(property(java.lang.String, <CIRCULAR REFERENCE>)) check-type())
+   -> map(property(java.lang.String, map(java.lang.String <CIRCULAR REFERENCE> check-type())))
+   -> property(java.lang.String, map(java.lang.String map(<CIRCULAR REFERENCE>) check-type()))
+```
+
+<a name="ide-integration"></a>
+### IDE Integration improvements
+
+Gradle is integrated into many IDEs using the [Tooling API](userguide/third_party_integration.html).
+
+The following improvements are for IDE integrators.
+They will become available to end-users in future IDE releases once IDE vendors adopt them.
+
+#### Problems API
+
+The new [Problems API](userguide/implementing_gradle_plugins.html#reporting_problems) has entered a public incubation phase and is ready for integration.
+
+The Problems API enables plugin and build engineers to report rich, structured information about problems that may occur during a build.
+This information can be received by Tooling API clients, such as IDEs or CI systems, and can be represented in a way that best suits the platform.
+Tooling API clients are encouraged to begin integrating with the API and provide additional feedback.
+
+##### Integrating the Problems API
+
+The integration process for established Tooling API clients should be straightforward. Problems can be received using the same [`ProgressListener`](https://github.com/gradle/gradle/blob/master/platforms/ide/tooling-api/src/main/java/org/gradle/tooling/events/ProgressListener.java) interface used for other progress messages.
+The new [template](https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/samples/templates/problems-api-usage/sample-ide/src/main/java/org/gradle/sample/SampleIde.java) showcases a self-functioning Tooling API client that can receive and present problems.
+Additionally, a new [sample](https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/samples/ide/problems-api-usage) has been introduced to demonstrate various use cases of the API.
 
 ## Fixed issues
 
