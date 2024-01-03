@@ -59,7 +59,6 @@ object SourcePathProvider {
     /**
      * Returns source directories from buildSrc if any.
      */
-    private
     fun buildSrcRootsOf(projectRoot: File): Collection<File> =
         projectRoot.resolve("buildSrc/$buildSrcSourceRootsFilePath")
             .takeIf { it.isFile }
@@ -71,7 +70,6 @@ object SourcePathProvider {
     fun buildSrcRootsFallbackFor(projectRoot: File) =
         subDirsOf(File(projectRoot, "buildSrc/src/main"))
 
-    private
     fun sourceRootsOf(gradleInstallation: File, sourceDistributionResolver: SourceDistributionProvider): Collection<File> =
         gradleInstallationSources(gradleInstallation) ?: downloadedSources(sourceDistributionResolver)
 

@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.attributes.AttributeContainer;
 
 import javax.annotation.Nullable;
 
@@ -68,19 +67,6 @@ public interface ArtifactResolutionDetails {
      */
     @Nullable
     ModuleComponentIdentifier getComponentId();
-
-    /**
-     * The attributes of the consumer looking for this module
-     * @return the consumer attributes
-     */
-    AttributeContainer getConsumerAttributes();
-
-    /**
-     * The name of the consumer. Usually corresponds to the name of the configuration being
-     * resolved.
-     * @return the consumer name
-     */
-    String getConsumerName();
 
     /**
      * Returns true if this details is created for a version listing.

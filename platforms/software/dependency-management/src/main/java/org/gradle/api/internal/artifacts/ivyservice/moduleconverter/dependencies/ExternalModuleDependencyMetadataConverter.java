@@ -42,18 +42,17 @@ public class ExternalModuleDependencyMetadataConverter extends AbstractDependenc
         boolean transitive = externalModuleDependency.isTransitive();
 
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
-                DefaultModuleIdentifier.newId(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName())),
-                ((VersionConstraintInternal) externalModuleDependency.getVersionConstraint()).asImmutable(),
-                dependency.getAttributes(),
-                dependency.getRequestedCapabilities());
+            DefaultModuleIdentifier.newId(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName())),
+            ((VersionConstraintInternal) externalModuleDependency.getVersionConstraint()).asImmutable(),
+            dependency.getAttributes(),
+            dependency.getRequestedCapabilities());
 
         List<ExcludeMetadata> excludes = convertExcludeRules(dependency.getExcludeRules());
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
-                selector,
-                dependency.getAttributes(),
-                dependency.getTargetConfiguration(),
-                convertArtifacts(dependency.getArtifacts()),
-                excludes, force, changing, transitive, false, dependency.isEndorsingStrictVersions(), dependency.getReason());
+            selector,
+            dependency.getTargetConfiguration(),
+            convertArtifacts(dependency.getArtifacts()),
+            excludes, force, changing, transitive, false, dependency.isEndorsingStrictVersions(), dependency.getReason());
         return new DslOriginDependencyMetadataWrapper(dependencyMetaData, dependency);
     }
 

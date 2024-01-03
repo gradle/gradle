@@ -1270,7 +1270,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         run ":help"
 
         then:
-        outputContains "Dependency verification has been disabled for configuration runtimeClasspath"
+        outputContains "Dependency verification has been disabled."
         hasModules(["org:foo"])
     }
 

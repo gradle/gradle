@@ -910,7 +910,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         succeeds ":compileJava"
 
         then:
-        outputContains "Dependency verification has been disabled for configuration compileClasspath"
+        outputContains "Dependency verification has been disabled."
 
         when:
         fails ":resolveRuntime"
@@ -1012,7 +1012,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         succeeds ":resolve", "-PdisableVerification=true"
 
         then:
-        outputContains "Dependency verification has been disabled for configuration detachedConfiguration1"
+        outputContains "Dependency verification has been disabled."
 
         where:
         terse << [true, false]

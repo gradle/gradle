@@ -253,7 +253,7 @@ fun projectScriptModelBuilder(
 )
 
 
-private
+internal
 fun ProjectInternal.accessorsClassPathOf(classPath: ClassPath): AccessorsClassPath {
     val stage1BlocksAccessorClassPathGenerator = serviceOf<Stage1BlocksAccessorClassPathGenerator>()
     val projectAccessorClassPathGenerator = serviceOf<ProjectAccessorsClassPathGenerator>()
@@ -340,7 +340,7 @@ fun projectScriptPluginModelBuilder(scriptFile: File, project: ProjectInternal) 
 }
 
 
-private
+internal
 fun compilationClassPathForScriptPluginOf(
     target: Any,
     scriptFile: File,
@@ -378,7 +378,7 @@ fun scriptHandlerFactoryOf(project: ProjectInternal) =
     project.serviceOf<ScriptHandlerFactory>()
 
 
-private
+internal
 fun scriptHandlerFactoryOf(gradle: Gradle) =
     gradle.serviceOf<ScriptHandlerFactory>()
 
@@ -461,7 +461,7 @@ data class KotlinScriptTargetModelBuilder(
 }
 
 
-private
+internal
 val Settings.scriptCompilationClassPath
     get() = serviceOf<KotlinScriptClassPathProvider>().safeCompilationClassPathOf(classLoaderScope, false) {
         (this as SettingsInternal).gradle
@@ -473,12 +473,12 @@ val Settings.classLoaderScope
     get() = (this as SettingsInternal).classLoaderScope
 
 
-private
+internal
 val Project.settings
     get() = (gradle as GradleInternal).settings
 
 
-private
+internal
 val Project.scriptCompilationClassPath
     get() = compilationClassPathOf((this as ProjectInternal).classLoaderScope)
 
@@ -505,7 +505,7 @@ inline fun KotlinScriptClassPathProvider.safeCompilationClassPathOf(
 }
 
 
-private
+internal
 val Project.scriptImplicitImports
     get() = serviceOf<ImplicitImports>().list
 

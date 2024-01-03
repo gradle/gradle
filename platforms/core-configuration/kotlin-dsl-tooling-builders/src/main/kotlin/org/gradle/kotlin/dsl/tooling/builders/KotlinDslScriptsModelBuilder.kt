@@ -33,7 +33,7 @@ import java.io.File
 import java.io.Serializable
 
 
-private
+internal
 data class StandardKotlinDslScriptsModel(
     private val commonModel: CommonKotlinDslScriptModel,
     private val dehydratedScriptModels: Map<File, KotlinDslScriptModel>
@@ -123,10 +123,12 @@ data class StandardEditorPosition(
 
 
 internal
-object KotlinDslScriptsModelBuilder : ToolingModelBuilder {
+abstract class AbstractKotlinDslScriptsModelBuilder : ToolingModelBuilder {
 
-    private
-    const val MODEL_NAME = "org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel"
+    companion object {
+        private
+        const val MODEL_NAME = "org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel"
+    }
 
     override fun canBuild(modelName: String): Boolean =
         modelName == MODEL_NAME
@@ -134,7 +136,7 @@ object KotlinDslScriptsModelBuilder : ToolingModelBuilder {
     override fun buildAll(modelName: String, project: Project): KotlinDslScriptsModel {
         requireRootProject(project)
         val timer = Time.startTimer()
-        val parameter = project.parameterFromRequest()
+        val parameter = prepareParameter(project)
         try {
             return project.leaseRegistry.allowUncontrolledAccessToAnyProject {
                 buildFor(parameter, project).also {
@@ -147,6 +149,10 @@ object KotlinDslScriptsModelBuilder : ToolingModelBuilder {
         }
     }
 
+    abstract fun prepareParameter(rootProject: Project): KotlinDslScriptsParameter
+
+    abstract fun buildFor(parameter: KotlinDslScriptsParameter, rootProject: Project): KotlinDslScriptsModel
+
     private
     val Project.leaseRegistry: ProjectLeaseRegistry
         get() = serviceOf()
@@ -156,20 +162,26 @@ object KotlinDslScriptsModelBuilder : ToolingModelBuilder {
         require(project == project.rootProject) {
             "$MODEL_NAME can only be requested on the root project, got '$project'"
         }
+}
 
-    private
-    fun buildFor(parameter: KotlinDslScriptsParameter, rootProject: Project): KotlinDslScriptsModel {
+
+internal
+object KotlinDslScriptsModelBuilder : AbstractKotlinDslScriptsModelBuilder() {
+
+    override fun prepareParameter(rootProject: Project) = rootProject.parameterFromRequest()
+
+    override fun buildFor(parameter: KotlinDslScriptsParameter, rootProject: Project): KotlinDslScriptsModel {
         val scriptModels = parameter.scriptFiles.associateWith { scriptFile ->
-            buildScriptModel(parameter, rootProject, scriptFile)
+            buildScriptModel(rootProject, scriptFile, parameter)
         }
         return StandardKotlinDslScriptsModel.from(scriptModels)
     }
 
     private
     fun buildScriptModel(
-        parameter: KotlinDslScriptsParameter,
         rootProject: Project,
-        scriptFile: File
+        scriptFile: File,
+        parameter: KotlinDslScriptsParameter
     ): StandardKotlinDslScriptModel {
 
         val scriptModelParameter = KotlinBuildScriptModelParameter(scriptFile, parameter.correlationId)
@@ -185,7 +197,7 @@ object KotlinDslScriptsModelBuilder : ToolingModelBuilder {
 }
 
 
-private
+internal
 data class CommonKotlinDslScriptModel(
     val classPath: List<File>,
     val sourcePath: List<File>,
@@ -201,7 +213,7 @@ fun Project.parameterFromRequest(): KotlinDslScriptsParameter =
     )
 
 
-private
+internal
 fun Project.resolveCorrelationIdParameter(): String? =
     findProperty(KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME) as? String
 
@@ -229,16 +241,10 @@ private
 fun Project.collectKotlinDslScripts(): List<File> = buildList {
 
     addAll(discoverInitScripts())
-
-    discoverSettingScript()?.let {
-        add(it)
-    }
+    addNotNull(discoverSettingScript())
 
     allprojects.forEach { p ->
-        p.discoverBuildScript()?.let {
-            add(it)
-        }
-
+        addNotNull(p.discoverBuildScript())
         addAll(p.discoverPrecompiledScriptPluginScripts())
     }
 }
@@ -270,7 +276,7 @@ fun Project.discoverPrecompiledScriptPluginScripts() =
         emptyList()
 
 
-private
+internal
 data class KotlinDslScriptsParameter(
     val correlationId: String?,
     val scriptFiles: List<File>
@@ -309,3 +315,11 @@ val File.isKotlinDslFile: Boolean
 internal
 val File.hasKotlinDslExtension: Boolean
     get() = name.endsWith(".gradle.kts")
+
+
+internal
+fun <T> MutableCollection<T>.addNotNull(value: T?) {
+    if (value != null) {
+        add(value)
+    }
+}

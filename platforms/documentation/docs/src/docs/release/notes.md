@@ -9,7 +9,6 @@ Include only their name, impactful features should be called out separately belo
  THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
-[Mel Arthurs](https://github.com/arthursmel)
 
 ## Upgrade instructions
 
@@ -19,7 +18,7 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
+For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
 
 ## New features and usability improvements
 
@@ -51,137 +50,6 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-### Public API improvements
-
-#### Enhanced name-based filtering on NamedDomainObject containers
-
-A new [`named(Spec<String>)` method](javadoc/org/gradle/api/NamedDomainObjectCollection.html#named-org.gradle.api.specs.Spec-) has been added to all NamedDomainObject containers, which simplifies name-based filtering and eliminates the need to touch any of the values, may they be realized or unrealized.
-
-#### Allow Providers to be used with capabilities
-
-[`Providers`](javadoc/org/gradle/api/provider/Provider.html) can now be passed to capability methods
-[`ConfigurationPublications#capability(Object)`](javadoc/org/gradle/api/artifacts/ConfigurationPublications.html#capability-java.lang.Object-),
-[`ModuleDependencyCapabilitiesHandler#requireCapability(Object)`](javadoc/org/gradle/api/artifacts/ModuleDependencyCapabilitiesHandler.html#requireCapability-java.lang.Object-),
-and [`CapabilitiesResolution#withCapability(Object, Action)`](javadoc/org/gradle/api/artifacts/CapabilitiesResolution.html#withCapability-java.lang.Object-org.gradle.api.Action-).
-
-#### New `update()` API allows safe self-referencing lazy properties
-
-Historically, Gradle did not support circular references when evaluating lazy properties:
-
-```
-def property = objects.property(String)
-property.set("some value")
-property.set(property.map { "$it and more" })
-
-println(property.get()) // throws StackOverflowError
-```
-
-[`Property`](javadoc/org/gradle/api/provider/Property.html#update-org.gradle.api.Transformer-) and [`ConfigurableFileCollection`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#update-org.gradle.api.Transformer-) now provide their respective `update(Transformer<...>)` methods which allow self-referencing updates in a safe way:
-
-```
-def property = objects.property(String)
-property.set("some value")
-property.update { it.map { "$it and more" } }
-
-println(property.get()) // "some value and more"
-```
-
-Please refer to the javadoc for [`Property.update(Transformer<>)`](javadoc/org/gradle/api/provider/Property.html#update-org.gradle.api.Transformer-) and [`ConfigurableFileCollection.update(Transformer<>)`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#update-org.gradle.api.Transformer-) for more details, including limitations.
-
-
-### Problems API
-
-Gradle now has a new incubating API that allows build engineers and plugin authors to consume and report problems that occur during a build.
-
-The [`Problems`](javadoc/org/gradle/api/problems/Problems.html) service can be used to describe problems with details (description, location information, link to documentation, etc.) and report them.
-Reported problems are then exposed via the Tooling API, allowing Gradle IDE providers - IntelliJ IDEA, Visual Studio Code, Eclipse - to display details in the UI.
-The reported problems carry location information; therefore, IDEs can easily integrate them into the developer experience, providing error markers, problem views, and more.
-
-Gradle already emits problems from many components, including (but not limited to) deprecation warnings, dependency version catalog errors, task validation errors, and Java toolchain problems.
-
-The current release focuses on reporting problems in the IDE. 
-Users can expect further enhancements to the Problems API aimed at console reporting in future releases.
-
-### Error and warning reporting improvements
-
-Gradle provides a rich set of error and warning messages to help you understand and resolve problems in your build.
-
-#### Dependency locking now separates the error from the possible action to try
-
-[Dependency locking](userguide/dependency_locking.html) is a mechanism for ensuring reproducible builds when using dynamic dependency versions.
-
-This release improves error messages by separating the error from the possible action to fix the issue in the console output.
-Errors from invalid [lock file format](userguide/dependency_locking.html#lock_state_location_and_format) or [missing lock state when strict mode is enabled](userguide/dependency_locking.html#fine_tuning_dependency_locking_behaviour_with_lock_mode) are now displayed as illustrated below:
-
-```
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-Execution failed for task ':dependencies'.
-> Could not resolve all dependencies for configuration ':lockedConf'.
-   > Invalid lock state for lock file specified in '<project>/lock.file'. Line: '<<<<<<< HEAD'
-
-* Try:
-> Verify the lockfile content. For more information on lock file format, please refer to https://docs.gradle.org/@version@/userguide/dependency_locking.html#lock_state_location_and_format in the Gradle documentation.
-> Run with --info or --debug option to get more log output.
-> Run with --scan to get full insights.
-> Get more help at https://help.gradle.org.
-```
-
-### Gradle init
-
-This update brings cleaner and more idiomatic projects generated by `gradle init`.
-
-#### Simpler source package handling
-
-You no longer have to answer an interactive question about the source package.
-Instead, a default value of `org.example` will be used.
-You can override it using an existing option `--package` flag for the `init` task.
-Additionally, you can set the default value by adding a new `org.gradle.buildinit.source.package` property in `gradle.properties` in the Gradle User Home.
-
-```
-// ~/.gradle/gradle.properties
-
-org.gradle.buildinit.source.package=my.corp.domain
-```
-
-Names of the generated convention plugins now start with `buildlogic` instead of the package name, making them shorter and cleaner.
-
-#### Generating without interactive questions
-
-A new `--use-defaults` option applies default values for options that were not explicitly configured.
-It also ensures the init command can be completed without interactive user input.
-This is handy to use in shell scripts to ensure they do not accidentally hang.
-
-For example, here is how you can generate a Kotlin library without answering any questions:
-
-```
-gradle init --use-defaults --type kotlin-library
-```
-
-#### Assignment syntax in Kotlin DSL
-
-Projects generated with Kotlin DSL scripts now use [simple property assignment](/8.4/release-notes.html#assign-stable) syntax with the `=` operator.
-
-For instance, setting `mainClass` of an application looks like this:
-
-```
-application {
-    mainClass = "org.example.AppKt"
-}
-```
-
-<a name="other-improvements"></a>
-
-### Other improvements
-
-#### Gradle encryption key via an environment variable
-
-You may now provide Gradle with the key used to encrypt cached configuration data via the `GRADLE_ENCRYPTION_KEY` environment variable.
-By default, Gradle creates and manages the key automatically, storing it in a keystore under the Gradle User Home.
-This may be inappropriate in some environments.
-
-More details can be found in the dedicated section of the [configuration cache](userguide/configuration_cache.html#config_cache:secrets:configuring_encryption_key) user manual chapter.
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

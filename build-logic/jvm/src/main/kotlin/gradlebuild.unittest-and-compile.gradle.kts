@@ -24,6 +24,8 @@ import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.accessors.kotlin
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.maxParallelForks
+import gradlebuild.basics.maxTestDistributionRemoteExecutors
+import gradlebuild.basics.maxTestDistributionLocalExecutors
 import gradlebuild.basics.maxTestDistributionPartitionSecond
 import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.rerunAllTests
@@ -276,8 +278,8 @@ fun configureTests() {
                 project.maxTestDistributionPartitionSecond?.apply {
                     preferredMaxDuration = Duration.ofSeconds(this)
                 }
-                // No limit; use all available executors
-                distribution.maxRemoteExecutors = if (project.isPerformanceProject()) 0 else null
+                distribution.maxRemoteExecutors = if (project.isPerformanceProject()) 0 else project.maxTestDistributionRemoteExecutors
+                distribution.maxLocalExecutors = project.maxTestDistributionLocalExecutors
 
                 // Test distribution annotation-class filters
                 // See: https://docs.gradle.com/enterprise/test-distribution/#gradle_executor_restrictions_class_matcher
