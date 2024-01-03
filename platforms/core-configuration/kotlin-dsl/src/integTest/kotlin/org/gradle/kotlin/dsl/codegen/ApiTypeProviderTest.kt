@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.codegen
 
 import org.gradle.api.Action
+import org.gradle.api.Incubating
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Plugin
 import org.gradle.api.file.ContentFilterable
@@ -25,18 +26,23 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.PluginCollection
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.AbstractCopyTask
-
+import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
+import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.codegen.GenericsVariance
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.ApiFunctionParameter
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.ApiTypeProvider
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.Variance
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.apiTypeProviderFor
 import org.gradle.kotlin.dsl.support.canonicalNameOf
-
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
-
-import org.junit.Assert.assertFalse
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.objectweb.asm.Type
+import java.io.File
 
 
 class ApiTypeProviderTest : AbstractKotlinIntegrationTest() {
@@ -186,6 +192,15 @@ class ApiTypeProviderTest : AbstractKotlinIntegrationTest() {
             assertTrue(api.type<Spec<*>>().isSAM)
         }
     }
+
+    private
+    fun apiTypeProviderFor(classPath: List<File>) =
+        apiTypeProviderFor(
+            ASM_LEVEL,
+            ClassLoaderUtils.getPlatformClassLoader(),
+            Type.getDescriptor(Incubating::class.java),
+            classPath
+        )
 
     private
     inline fun <reified T> ApiTypeProvider.type() =

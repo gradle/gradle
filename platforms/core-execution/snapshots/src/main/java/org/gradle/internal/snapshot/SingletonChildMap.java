@@ -37,6 +37,11 @@ public class SingletonChildMap<T> implements ChildMap<T> {
     }
 
     @Override
+    public int size() {
+        return 1;
+    }
+
+    @Override
     public Stream<Entry<T>> stream() {
         return Stream.of(entry);
     }

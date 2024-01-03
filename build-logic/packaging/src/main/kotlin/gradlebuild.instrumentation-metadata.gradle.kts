@@ -22,6 +22,7 @@ import gradlebuild.instrumentation.tasks.InstrumentedSuperTypesMergeTask
 import gradlebuild.instrumentation.tasks.UpgradedPropertiesMergeTask
 import gradlebuild.instrumentation.transforms.InstrumentationMetadataTransform
 import gradlebuild.instrumentation.transforms.InstrumentationMetadataTransform.Companion.INSTRUMENTATION_METADATA
+import org.gradle.api.internal.GradleInternal
 
 /**
  * A plugin that configures tasks and transforms to generate metadata that is needed for code instrumentation.
@@ -33,7 +34,10 @@ dependencies {
     }
 }
 
-val extension = extensions.create<InstrumentationMetadataExtension>(INSTRUMENTED_METADATA_EXTENSION)
+val extension = extensions.create<InstrumentationMetadataExtension>(
+    INSTRUMENTED_METADATA_EXTENSION,
+    (gradle as GradleInternal).owner.buildIdentifier,
+)
 
 tasks.register<InstrumentedSuperTypesMergeTask>(INSTRUMENTED_SUPER_TYPES_MERGE_TASK) {
     instrumentationMetadataDirs = extension.classpathToInspect

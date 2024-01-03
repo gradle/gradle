@@ -33,6 +33,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
     }
 
     def "shows progress bar and percent phase completion"() {
+        createDirs("a", "b", "c", "d")
         settingsFile << """
             ${server.callFromBuild('settings')}
             include "a", "b", "c", "d"
@@ -120,6 +121,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
     }
 
     def "shows progress bar and percent phase completion with included build"() {
+        createDirs("child")
         settingsFile << """
             ${server.callFromBuild('settings')}
             includeBuild "child"
@@ -134,6 +136,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
             }
             ${buildFinishedCall('root-build-finished')}
         """
+        createDirs("child/a", "child/b")
         file("child/settings.gradle") << """
             include 'a', 'b'
         """
@@ -213,6 +216,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
             }
             ${buildFinishedCall('root-build-finished')}
         """
+        createDirs("buildSrc", "buildSrc/a", "buildSrc/b")
         file("buildSrc/settings.gradle") << """
             include 'a', 'b'
         """
@@ -365,6 +369,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
     }
 
     def setupTransformBuild() {
+        createDirs("lib", "util")
         settingsFile << """
             include 'lib'
             include 'util'

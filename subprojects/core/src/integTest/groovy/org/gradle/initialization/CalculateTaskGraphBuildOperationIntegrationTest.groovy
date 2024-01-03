@@ -31,6 +31,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
     final operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
     def "requested and filtered tasks are exposed"() {
+        createDirs("a", "b", "a/c")
         settingsFile << """
             include "a"
             include "b"
@@ -81,6 +82,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
     }
 
     def "task plan is exposed"() {
+        createDirs("a", "b", "a/c")
         settingsFile << """
             include "a"
             include "b"
@@ -110,6 +112,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
     }
 
     def "build path for calculated task graph is exposed"() {
+        createDirs("b")
         settingsFile << """
             includeBuild "b"
         """
@@ -161,6 +164,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
             class Library {
             }
         """
+        createDirs("included-build")
         settingsFile << """
             includeBuild 'included-build'
         """
@@ -302,6 +306,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
             }
         """
 
+        createDirs("producer")
         settingsFile << """
             include 'producer'
         """

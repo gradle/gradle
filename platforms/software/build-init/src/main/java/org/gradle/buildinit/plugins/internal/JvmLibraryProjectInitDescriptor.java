@@ -46,9 +46,9 @@ public class JvmLibraryProjectInitDescriptor extends JvmProjectInitDescriptor {
         buildScriptBuilder.dependency(
             "api",
             "This dependency is exported to consumers, that is to say found on their compile classpath.",
-            "org.apache.commons:commons-math3:" + libraryVersionProvider.getVersion("commons-math"));
+            BuildInitDependency.of("org.apache.commons:commons-math3", libraryVersionProvider.getVersion("commons-math")));
         buildScriptBuilder.implementationDependency("This dependency is used internally, and not exposed to consumers on their own compile classpath.",
-            "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
+            BuildInitDependency.of("com.google.guava:guava", libraryVersionProvider.getVersion("guava")));
     }
 
     @Override

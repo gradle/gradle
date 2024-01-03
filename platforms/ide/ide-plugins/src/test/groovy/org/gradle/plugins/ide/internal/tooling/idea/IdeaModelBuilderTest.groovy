@@ -288,7 +288,7 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
 
     private IdeaModelBuilder createIdeaModelBuilder() {
         def gradleProjectBuilder = Mock(GradleProjectBuilder)
-        gradleProjectBuilder.buildAll(_) >> Mock(DefaultGradleProject)
+        gradleProjectBuilder.buildForRoot(_) >> Mock(DefaultGradleProject)
         new IdeaModelBuilder(gradleProjectBuilder)
     }
 

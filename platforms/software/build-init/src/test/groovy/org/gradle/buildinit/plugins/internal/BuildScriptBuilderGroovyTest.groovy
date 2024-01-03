@@ -23,7 +23,8 @@ import org.gradle.test.fixtures.file.TestFile
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 
 class BuildScriptBuilderGroovyTest extends AbstractBuildScriptBuilderTest {
-    def builder = new BuildScriptBuilderFactory(new DocumentationRegistry()).scriptForNewProjects(GROOVY, "build", false)
+    def builder = new BuildScriptBuilderFactory(new DocumentationRegistry()).scriptForNewProjectsWithoutVersionCatalog(GROOVY,
+        new BuildContentGenerationContext(new VersionCatalogDependencyRegistry(true)), "build", false)
 
     TestFile outputFile = tmpDir.file("build.gradle")
 
@@ -61,7 +62,8 @@ java {
     def "generates basic groovy build script with @Incubating APIs warning"() {
         given:
         def builderUsingIncubating = new BuildScriptBuilderFactory(new DocumentationRegistry())
-            .scriptForNewProjects(GROOVY, "build", true)
+            .scriptForNewProjectsWithoutVersionCatalog(GROOVY,
+                new BuildContentGenerationContext(new VersionCatalogDependencyRegistry(true)), "build", true)
 
         when:
         builderUsingIncubating.create(target).generate()
@@ -163,10 +165,10 @@ repositories {
 
     def "can add compile dependencies"() {
         when:
-        builder.implementationDependency("Use slf4j", "org.slf4j:slf4j-api:2.7", "org.slf4j:slf4j-simple:2.7")
-        builder.implementationDependency(null, "a:b:1.2", "a:c:4.5")
-        builder.implementationDependency(null, "a:d:4.5")
-        builder.implementationDependency("Use Scala to compile", "org.scala-lang:scala-library:2.10")
+        builder.implementationDependency("Use slf4j", BuildInitDependency.of("org.slf4j:slf4j-api", "2.7"), BuildInitDependency.of("org.slf4j:slf4j-simple", "2.7"))
+        builder.implementationDependency(null, BuildInitDependency.of("a:b", "1.2"), BuildInitDependency.of("a:c", "4.5"))
+        builder.implementationDependency(null, BuildInitDependency.of("a:d", "4.5"))
+        builder.implementationDependency("Use Scala to compile", BuildInitDependency.of("org.scala-lang:scala-library", "2.10"))
         builder.create(target).generate()
 
         then:
@@ -190,8 +192,8 @@ dependencies {
 
     def "can add test compile and runtime dependencies"() {
         when:
-        builder.testImplementationDependency("use some test kit", "org:test:1.2", "org:test-utils:1.2")
-        builder.testRuntimeOnlyDependency("needs some libraries at runtime", "org:test-runtime:1.2")
+        builder.testImplementationDependency("use some test kit", BuildInitDependency.of("org:test", "1.2"), BuildInitDependency.of("org:test-utils", "1.2"))
+        builder.testRuntimeOnlyDependency("needs some libraries at runtime", BuildInitDependency.of("org:test-runtime", "1.2"))
         builder.create(target).generate()
 
         then:
@@ -211,9 +213,9 @@ dependencies {
 
     def "can add platform dependencies"() {
         given:
-        builder.dependencies().platformDependency("implementation", "use platform", "a:b:2.2")
-        builder.dependencies().platformDependency("testImplementation", null, "a:c:2.0")
-        builder.dependencies().platformDependency("implementation", null, "a:d:1.4")
+        builder.dependencies().platformDependency("implementation", "use platform", BuildInitDependency.of("a:b", "2.2"))
+        builder.dependencies().platformDependency("testImplementation", null, BuildInitDependency.of("a:c", "2.0"))
+        builder.dependencies().platformDependency("implementation", null, BuildInitDependency.of("a:d", "1.4"))
 
         when:
         builder.create(target).generate()

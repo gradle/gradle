@@ -7,9 +7,10 @@ description = "Provides plugins that configure profiling tools (jmh and build sc
 dependencies {
     implementation("com.gradle:gradle-enterprise-gradle-plugin")
 
-    implementation(project(":basics"))
+    implementation("gradlebuild:basics")
+    implementation("gradlebuild:module-identity")
+
     implementation(project(":documentation"))
-    implementation(project(":module-identity"))
 
     implementation("me.champeau.jmh:jmh-gradle-plugin")
 }

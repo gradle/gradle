@@ -1,0 +1,237 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[writing_plugins]]
+= Writing Plugins
+
+Writing custom plugins is the best way to customize and organize your build logic.
+
+== Sample plugin
+
+A plugin is any class that implements the link:{javadocPath}/org/gradle/api/Plugin.html[`Plugin`] interface.
+
+The example below is the most straightforward plugin, a "hello world" *plugin*:
+
+.build.gradle.kts
+[source,kotlin]
+----
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+
+abstract class SamplePlugin : Plugin<Project> {
+    override fun apply(project: Project) {
+        project.tasks.create("SampleTask") {
+            println("Hello world!")
+        }
+    }
+}
+----
+
+== Script plugin
+
+Most plugins start as a script plugin coded in the build script.
+
+Let's take a look at an example:
+
+.build.gradle.kts
+[source,kotlin]
+----
+abstract class CreateFileTask : DefaultTask() {                                     // <1>
+    @get:Input
+    abstract val fileText: Property<String>                                         // <2>
+
+    @Input
+    val fileName = "myfile.txt"
+
+    @OutputFile
+    val myFile: File = File(fileName)
+
+    @TaskAction
+    fun action() {
+        myFile.createNewFile()
+        myFile.writeText(fileText.get())
+    }
+}
+
+abstract class MyPlugin : Plugin<Project> {                                         // <3>
+    override fun apply(project: Project) {
+        tasks {
+            register("createFileTask", CreateFileTask::class) {
+                group = "from my plugin"
+                description = "Create myfile.txt in the current directory"
+                fileText.set("HELLO FROM MY PLUGIN")
+            }
+        }
+    }
+}
+
+apply<MyPlugin>()                                                                   // <4>
+----
+<1> Subclass `DefaultTask()`.
+<2> Use lazy configuration.
+<3> Extend the `org.gradle.api.Plugin` interface.
+<4> Apply the script plugin.
+
+=== Subclass `DefaultTask()`
+First, build a task by subclassing `DefaultTask()`.
+
+[source]
+----
+abstract class CreateFileTask : DefaultTask() { }
+----
+
+This simple task adds a file to our application’s root directory.
+
+=== Use Lazy Configuration
+Gradle has a concept called _lazy configuration_, which allows task inputs and outputs to be referenced before they are actually set.
+This is done via the link:{javadocPath}/org/gradle/api/provider/Property.html[`Property`] class type.
+
+[source,kotlin]
+----
+abstract val fileText: Property<String>
+----
+
+One advantages of this mechanism is that you can link the output file of one task to the input file of another, all before the filename has even been decided.
+The `Property` class also knows which task it’s linked to, enabling Gradle to automatically add the required task dependency.
+
+=== Extend the `org.gradle.api.Plugin` interface
+Next, create a new class that extends the `org.gradle.api.Plugin` interface.
+
+[source]
+----
+abstract class MyPlugin : Plugin<Project> {
+    override fun apply() {}
+}
+----
+
+You can add tasks and other logic in the `apply()` method.
+
+=== Apply the script plugin
+Finally, apply the plugin in the build script.
+
+[source]
+----
+apply<MyPlugin>()
+----
+
+When `MyPlugin` is applied in the build script, Gradle calls the `fun apply() {}` method defined in the custom `MyPlugin` class.
+
+This makes the plugin available to the application.
+
+NOTE: Script plugins are NOT recommended.
+
+The best practice for developing plugins is to create convention plugins or binary plugins.
+
+== Convention Plugins
+
+Convention plugins are a way to encapsulate and reuse common build configuration in Gradle.
+They allow you to define a set of conventions for a project, and then apply those conventions to other projects or modules.
+
+The example above has been re-written as a convention plugin stored in `buildSrc`:
+
+.buildSrc/src/main/kotlin/MyConventionPlugin.kt
+[source,kotlin]
+----
+import org.gradle.api.DefaultTask
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.TaskAction
+import java.io.File
+
+abstract class CreateFileTask : DefaultTask() {
+    @get:Input
+    abstract val fileText: Property<String>
+
+    @Input
+    val fileName = project.rootDir.toString() + "/myfile.txt"
+
+    @OutputFile
+    val myFile: File = File(fileName)
+
+    @TaskAction
+    fun action() {
+        myFile.createNewFile()
+        myFile.writeText(fileText.get())
+    }
+}
+
+class MyConventionPlugin : Plugin<Project> {
+    override fun apply(project: Project) {
+        project.tasks.register("createFileTask", CreateFileTask::class.java) {
+            group = "from my plugin"
+            description = "Create myfile.txt in the current directory"
+            fileText.set("HELLO FROM MY PLUGIN")
+        }
+    }
+}
+----
+
+The plugin can be given an `id` using a `gradlePlugin{}` block so that it can be referenced in the root:
+
+.buildSrc/build.gradle.kts
+[source,kotlin]
+----
+gradlePlugin {
+    plugins {
+        create("my-convention-plugin") {
+            id = "com.gradle.plugin.my-convention-plugin"
+            implementationClass = "com.gradle.plugin.MyConventionPlugin"
+        }
+    }
+}
+----
+
+The `gradlePlugin{}` block defines the plugins being built by the project.
+With the newly created `id`, the plugin can be applied in other build scripts accordingly:
+
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    application
+    id("com.gradle.plugin.my-convention-plugin") // Apply the new plugin
+}
+----
+
+== Binary Plugins
+
+A Gradle plugin resolved as a dependency rather than compiled from source is a binary plugin.
+
+For most use cases, convention plugins must be updated infrequently.
+Having each developer execute the plugin build as part of their development process is wasteful, and we can instead distribute them as binary dependencies.
+
+There are two ways to update the example above into a binary plugin.
+
+1. Use composite builds:
++
+.settings.gradle.kts
+[source,kotlin]
+----
+includeBuild("my-plugin")
+----
+
+2. Publish the plugin to a repository:
++
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("com.gradle.plugin.myconventionplugin") version "1.0.0"
+}
+----
+
+Consult the <<custom_plugins.adoc#custom_plugins,Developing Plugins chapter>> to learn more.

@@ -85,7 +85,7 @@ public interface ConfigurationPublications extends HasConfigurableAttributes<Con
      * @param notation the notation
      *
      * Valid notations are a <i>group:name:version</i> string (e.g: <i>org.test:capability:1.0</i>, or a map
-     * with keys <i>group</i>, <i>name</i> and <i>version</i>.
+     * with keys <i>group</i>, <i>name</i> and <i>version</i>. {@linkplain Provider Providers} are also accepted.
      *
      * @since 4.7.
      */

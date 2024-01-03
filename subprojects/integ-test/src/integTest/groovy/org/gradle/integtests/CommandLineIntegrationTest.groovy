@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.precondition.PreconditionVerifier
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -37,8 +36,6 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
 
     @Rule
     public final TestResources resources = new TestResources(testDirectoryProvider)
-    @Rule
-    public final PreconditionVerifier preconditionVerifier = new PreconditionVerifier()
 
     @Before
     void setup() {
@@ -88,11 +85,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     void failsWhenJavaHomeDoesNotPointToAJavaInstallation() {
         def failure = executer.withJavaHome(testDirectory).withTasks('checkJavaHome').runWithFailure()
-        if (OperatingSystem.current().isWindows()) {
-            assert failure.output.contains('ERROR: JAVA_HOME is set to an invalid directory')
-        } else {
-            assert failure.error.contains('ERROR: JAVA_HOME is set to an invalid directory')
-        }
+        assert failure.error.contains('ERROR: JAVA_HOME is set to an invalid directory')
     }
 
     @Test

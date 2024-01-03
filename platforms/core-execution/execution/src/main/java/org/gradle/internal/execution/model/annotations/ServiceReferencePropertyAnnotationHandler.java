@@ -17,6 +17,7 @@ package org.gradle.internal.execution.model.annotations;
 
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.ServiceReference;
 import org.gradle.api.tasks.Optional;
@@ -27,6 +28,7 @@ import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHand
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.util.internal.TextUtil;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
@@ -66,8 +68,7 @@ public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyA
                     .forProperty(propertyMetadata.getPropertyName())
                     .label(String.format("has @ServiceReference annotation used on property of type '%s' which is not a build service implementation", typeVariables.get(0).getName()))
                     .documentedAt(userManual("validation_problems", SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE.toLowerCase()))
-                    .noLocation()
-                    .type(SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE)
+                    .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE))
                     .severity(Severity.ERROR)
                     .details(String.format("A property annotated with @ServiceReference must be of a type that implements '%s'", BuildService.class.getName()))
                     .solution(String.format("Make '%s' implement '%s'", typeVariables.get(0).getName(), BuildService.class.getName()))

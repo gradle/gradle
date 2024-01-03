@@ -34,4 +34,8 @@ public class AsmConstants {
      * @see <a href="https://asm.ow2.io/versions.html">ASM release notes</a>
      */
     public static final int MAX_SUPPORTED_JAVA_VERSION = 21;
+
+    public static boolean isSupportedVersion(int javaMajorVersion) {
+        return javaMajorVersion <= MAX_SUPPORTED_JAVA_VERSION;
+    }
 }

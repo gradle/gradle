@@ -45,9 +45,9 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class PomProjectInitDescriptor implements BuildConverter {
-    private final static String MAVEN_VERSION = "3.9.3";
+    private final static String MAVEN_VERSION = "3.9.5";
     private final static String MAVEN_WAGON_VERSION = "3.5.3";
-    private final static String MAVEN_RESOLVER_VERSION = "1.9.13";
+    private final static String MAVEN_RESOLVER_VERSION = "1.9.16";
 
     private final MavenSettingsProvider settingsProvider;
     private final DocumentationRegistry documentationRegistry;

@@ -26,6 +26,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -62,7 +63,7 @@ public abstract class AbstractTestLogger {
     }
 
     private String getEventPath(TestDescriptor descriptor) {
-        List<String> names = Lists.newArrayList();
+        List<String> names = new ArrayList<String>();
         TestDescriptor current = descriptor;
         while (current != null) {
             if (isAtomicTestWithNoTestClassInAncestorDescriptors(current)) {

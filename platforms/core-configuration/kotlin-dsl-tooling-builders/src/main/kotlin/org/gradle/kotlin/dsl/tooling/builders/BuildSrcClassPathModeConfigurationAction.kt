@@ -29,9 +29,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.initialization.buildsrc.BuildSrcProjectConfigurationAction
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.provider.inClassPathMode
-import org.gradle.kotlin.dsl.provider.inLenientMode
 import org.gradle.kotlin.dsl.resolver.buildSrcSourceRootsFilePath
-import org.gradle.language.base.plugins.LifecycleBasePlugin
 
 
 internal
@@ -40,19 +38,7 @@ class BuildSrcClassPathModeConfigurationAction : BuildSrcProjectConfigurationAct
     override fun execute(project: ProjectInternal) = project.run {
         if (inClassPathMode()) {
             afterEvaluate {
-                if (inLenientMode()) {
-                    disableVerificationTasks()
-                }
                 configureBuildSrcSourceRootsTask()
-            }
-        }
-    }
-
-    private
-    fun Project.disableVerificationTasks() {
-        allprojects { project ->
-            project.tasks.matching { it.group == LifecycleBasePlugin.VERIFICATION_GROUP }.configureEach { task ->
-                task.enabled = false
             }
         }
     }

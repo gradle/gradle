@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 class EclipseWtpEarAndWebAndEjbProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
     @ToBeFixedForConfigurationCache
     def "generates configuration files for an ear project and ejb and web projects it bundles"() {
+        createDirs("ear", "web", "java")
         settingsFile << "include 'ear', 'web', 'java'"
 
         file('java/src/main/java').mkdirs()

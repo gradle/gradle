@@ -32,15 +32,17 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolvableDependenciesInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.result.ResolutionResultInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -67,6 +69,7 @@ import org.gradle.work.DisableCachingByDefault;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -158,10 +161,18 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
             configurationDescription = configuration.toString();
             zConfigurationAttributes = getProject().provider(configuration::getAttributes);
 
-            ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) configuration.getIncoming();
-            ResolutionResultInternal result = incoming.getLenientResolutionResult();
-            errorHandler.addErrorProvider(result.getExtraFailure());
-            rootComponentProperty.set(result.getRootComponent());
+            ProviderFactory providerFactory = getProject().getProviders();
+            ResolutionResultProvider<VisitedGraphResults> graphResultsProvider =
+                ((ResolvableDependenciesInternal) configuration.getIncoming()).getGraphResultsProvider();
+            errorHandler.addErrorSource(providerFactory.provider(() ->
+                graphResultsProvider.getValue().getResolutionFailure()
+                    .map(Collections::singletonList)
+                    .orElse(Collections.emptyList()))
+            );
+            rootComponentProperty.set(providerFactory.provider(() -> {
+                // We do not use the public resolution result API to avoid throwing exceptions that we visit above
+                return graphResultsProvider.getValue().getResolutionResult().getRootSource().get();
+            }));
         }
         return rootComponentProperty;
     }

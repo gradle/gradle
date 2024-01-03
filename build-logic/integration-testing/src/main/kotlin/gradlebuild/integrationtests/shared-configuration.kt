@@ -17,12 +17,12 @@
 package gradlebuild.integrationtests
 
 import gradlebuild.basics.accessors.groovy
+import gradlebuild.basics.capitalize
 import gradlebuild.basics.repoRoot
 import gradlebuild.basics.testSplitExcludeTestClasses
 import gradlebuild.basics.testSplitIncludeTestClasses
 import gradlebuild.basics.testSplitOnlyTestGradleVersion
 import gradlebuild.basics.testing.TestType
-import gradlebuild.capitalize
 import gradlebuild.integrationtests.extension.IntegrationTestExtension
 import gradlebuild.integrationtests.tasks.DistributionTest
 import gradlebuild.integrationtests.tasks.IntegrationTest

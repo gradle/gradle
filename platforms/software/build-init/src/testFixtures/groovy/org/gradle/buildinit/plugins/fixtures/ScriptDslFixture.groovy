@@ -75,19 +75,34 @@ class ScriptDslFixture {
         parentFolder.file(settingsFileName)
     }
 
+    TestFile getVersionCatalogFile() {
+        rootDir.file("gradle/libs.versions.toml")
+    }
+
     TestFile scriptFile(String filePathWithoutExtension, TestFile parentFolder = rootDir) {
         def fileWithoutExtension = parentFolder.file(filePathWithoutExtension)
         new TestFile(fileWithoutExtension.parentFile, fileNameFor(fileWithoutExtension.name))
     }
 
-    void assertGradleFilesGenerated(TestFile parentFolder = rootDir) {
-        assert getBuildFile(parentFolder).exists()
-        assert getSettingsFile(parentFolder).exists()
-        def gradleVersion = GradleVersion.current().version
+    void assertGradleFilesGenerated(TestFile parentFolder = rootDir, String... pathForBuild) {
+        getBuildFile(parentFolder.file(pathForBuild)).assertExists()
+        getSettingsFile(parentFolder).assertExists()
+        getVersionCatalogFile().assertExists()
+        assertWrapperFilesGenerated(GradleVersion.current().version, parentFolder)
+    }
+
+    void assertWrapperFilesGenerated(String gradleVersion, TestFile parentFolder = rootDir) {
         new WrapperTestFixture(parentFolder).generated(gradleVersion)
     }
 
-    void assertWrapperNotGenerated(TestFile parentFolder = rootDir) {
+    void assertGradleFilesNotGenerated(TestFile parentFolder = rootDir) {
+        getBuildFile(parentFolder).assertDoesNotExist()
+        getSettingsFile(parentFolder).assertDoesNotExist()
+        getVersionCatalogFile().assertDoesNotExist()
+        assertWrapperFilesNotGenerated(parentFolder)
+    }
+
+    void assertWrapperFilesNotGenerated(TestFile parentFolder = rootDir) {
         new WrapperTestFixture(parentFolder).notGenerated()
     }
 
@@ -100,16 +115,12 @@ class ScriptDslFixture {
         }
     }
 
-    Matcher<String> containsConfigurationDependencyNotation(String configuration, String notation, boolean useKotlinAccessors = true) {
+    Matcher<String> containsConfigurationDependencyNotation(String configuration, String notation) {
         switch (scriptDsl) {
             case KOTLIN:
-                if (useKotlinAccessors) {
-                    return containsString("$configuration(\"$notation")
-                } else {
-                    return containsString("\"$configuration\"(\"$notation")
-                }
+                return containsString("$configuration($notation")
             default:
-                return containsString("$configuration '$notation")
+                return containsString("$configuration $notation")
         }
     }
 

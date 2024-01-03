@@ -45,7 +45,7 @@ public class BuildLayoutFactory {
     /**
      * Determines the layout of the build, given a current directory and some other configuration.
      */
-    public BuildLocations getLayoutFor(File currentDir, boolean shouldSearchUpwards) {
+    public BuildLayout getLayoutFor(File currentDir, boolean shouldSearchUpwards) {
         boolean searchUpwards = shouldSearchUpwards && !isBuildSrc(currentDir);
         return getLayoutFor(currentDir, searchUpwards ? null : currentDir.getParentFile());
     }
@@ -57,7 +57,7 @@ public class BuildLayoutFactory {
     /**
      * Determines the layout of the build, given a current directory and some other configuration.
      */
-    public BuildLocations getLayoutFor(BuildLayoutConfiguration configuration) {
+    public BuildLayout getLayoutFor(BuildLayoutConfiguration configuration) {
         if (configuration.isUseEmptySettings()) {
             return buildLayoutFrom(configuration, null);
         }
@@ -69,8 +69,8 @@ public class BuildLayoutFactory {
         return getLayoutFor(configuration.getCurrentDir(), configuration.isSearchUpwards());
     }
 
-    private BuildLocations buildLayoutFrom(BuildLayoutConfiguration configuration, File settingsFile) {
-        return new BuildLocations(configuration.getCurrentDir(), configuration.getCurrentDir(), settingsFile, scriptFileResolver);
+    private BuildLayout buildLayoutFrom(BuildLayoutConfiguration configuration, File settingsFile) {
+        return new BuildLayout(configuration.getCurrentDir(), configuration.getCurrentDir(), settingsFile, scriptFileResolver);
     }
 
     @Nullable
@@ -78,7 +78,7 @@ public class BuildLayoutFactory {
         return scriptFileResolver.resolveScriptFile(directory, DEFAULT_SETTINGS_FILE_BASENAME);
     }
 
-    BuildLocations getLayoutFor(File currentDir, File stopAt) {
+    BuildLayout getLayoutFor(File currentDir, File stopAt) {
         File settingsFile = findExistingSettingsFileIn(currentDir);
         if (settingsFile != null) {
             return layout(currentDir, settingsFile);
@@ -92,7 +92,7 @@ public class BuildLayoutFactory {
         return layout(currentDir, new File(currentDir, Settings.DEFAULT_SETTINGS_FILE));
     }
 
-    private BuildLocations layout(File rootDir, File settingsFile) {
-        return new BuildLocations(rootDir, settingsFile.getParentFile(), FileUtils.canonicalize(settingsFile), scriptFileResolver);
+    private BuildLayout layout(File rootDir, File settingsFile) {
+        return new BuildLayout(rootDir, settingsFile.getParentFile(), FileUtils.canonicalize(settingsFile), scriptFileResolver);
     }
 }

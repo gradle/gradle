@@ -30,6 +30,7 @@ class JavaLibraryOutgoingVariantsIntegrationTest extends AbstractIntegrationSpec
         repo.module("test", "implementation", "1.0").publish()
         repo.module("test", "runtime-only", "1.0").publish()
 
+        createDirs("other-java", "java", "consumer")
         settingsFile << "include 'other-java', 'java', 'consumer'"
         buildFile << """
 def artifactType = Attribute.of('artifactType', String)

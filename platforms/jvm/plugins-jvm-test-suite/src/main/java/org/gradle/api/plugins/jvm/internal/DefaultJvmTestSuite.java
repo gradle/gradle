@@ -16,14 +16,24 @@
 
 package org.gradle.api.plugins.jvm.internal;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.JvmTestSuitePlugin;
+import org.gradle.api.plugins.jvm.JvmComponentDependencies;
+import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.testing.toolchains.internal.FrameworkCachingJvmTestToolchain;
 import org.gradle.api.testing.toolchains.internal.JUnit4TestToolchain;
 import org.gradle.api.testing.toolchains.internal.JUnit4ToolchainParameters;
@@ -38,18 +48,6 @@ import org.gradle.api.testing.toolchains.internal.SpockTestToolchain;
 import org.gradle.api.testing.toolchains.internal.SpockToolchainParameters;
 import org.gradle.api.testing.toolchains.internal.TestNGTestToolchain;
 import org.gradle.api.testing.toolchains.internal.TestNGToolchainParameters;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.JvmTestSuitePlugin;
-import org.gradle.api.plugins.jvm.JvmComponentDependencies;
-import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Actions;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
@@ -58,6 +56,7 @@ import org.gradle.internal.service.ServiceRegistry;
 
 import javax.inject.Inject;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -66,7 +65,6 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> targets;
     private final SourceSet sourceSet;
     private final String name;
-    private final JvmComponentDependencies dependencies;
     private final TaskDependencyFactory taskDependencyFactory;
     private final ToolchainFactory toolchainFactory;
 
@@ -77,21 +75,18 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         this.taskDependencyFactory = taskDependencyFactory;
         this.toolchainFactory = new ToolchainFactory(getObjectFactory(), getParentServices(), getInstantiatorFactory());
 
+        this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
+        this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
+
         Configuration compileOnly = configurations.getByName(sourceSet.getCompileOnlyConfigurationName());
         Configuration implementation = configurations.getByName(sourceSet.getImplementationConfigurationName());
         Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
         Configuration annotationProcessor = configurations.getByName(sourceSet.getAnnotationProcessorConfigurationName());
 
-        this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
-        this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
-
-        this.dependencies = getObjectFactory().newInstance(
-                DefaultJvmComponentDependencies.class,
-                getObjectFactory().newInstance(DefaultDependencyAdder.class, implementation),
-                getObjectFactory().newInstance(DefaultDependencyAdder.class, compileOnly),
-                getObjectFactory().newInstance(DefaultDependencyAdder.class, runtimeOnly),
-                getObjectFactory().newInstance(DefaultDependencyAdder.class, annotationProcessor)
-        );
+        implementation.getDependencies().addAllLater(getDependencies().getImplementation().getDependencies());
+        compileOnly.getDependencies().addAllLater(getDependencies().getCompileOnly().getDependencies());
+        runtimeOnly.getDependencies().addAllLater(getDependencies().getRuntimeOnly().getDependencies());
+        annotationProcessor.getDependencies().addAllLater(getDependencies().getAnnotationProcessor().getDependencies());
 
         if (name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             // for the built-in test suite, we don't express an opinion, so we will not add any dependencies
@@ -110,7 +105,9 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             target.getTestTask().configure(this::initializeTestFramework);
         });
 
-        // This is a workaround for strange behavior from the Kotlin plugin
+        // This is a workaround for strange behavior from the Kotlin plugin.
+        // It seems Kotlin is not doing this anymore in the newest version, so we should re-evaluate
+        // whether we need withDependencies anymore.
         //
         // The Kotlin plugin attempts to look at the declared dependencies to know if it needs to add its own dependencies.
         // We avoid triggering realization of getTestSuiteTestingFramework by only adding our dependencies just before
@@ -296,13 +293,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     }
 
     @Override
-    public JvmComponentDependencies getDependencies() {
-        return dependencies;
-    }
-
-    @Override
     public void dependencies(Action<? super JvmComponentDependencies> action) {
-        action.execute(dependencies);
+        action.execute(getDependencies());
     }
 
     @Override
@@ -320,7 +312,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         private final ObjectFactory objectFactory;
         private final ServiceLookup parentServices;
         private final InstantiatorFactory instantiatorFactory;
-        private final Map<Class<? extends JvmTestToolchain<?>>, JvmTestToolchain<?>> cache = Maps.newHashMap();
+        private final Map<Class<? extends JvmTestToolchain<?>>, JvmTestToolchain<?>> cache = new HashMap<>();
 
         public ToolchainFactory(ObjectFactory objectFactory, ServiceLookup parentServices, InstantiatorFactory instantiatorFactory) {
             this.objectFactory = objectFactory;

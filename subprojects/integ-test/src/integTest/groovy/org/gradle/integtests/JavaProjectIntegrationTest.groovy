@@ -173,6 +173,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void "can recursively build dependent and dependee projects"() {
+        createDirs("a", "b", "c")
         testFile("settings.gradle") << "include 'a', 'b', 'c'"
         testFile("build.gradle") << """
             allprojects { apply plugin: 'java-library' }
@@ -245,6 +246,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void "project dependency does not drag in source jar from target project"() {
+        createDirs("a", "b")
         testFile("settings.gradle") << "include 'a', 'b'"
         testFile("build.gradle") << """
             allprojects {

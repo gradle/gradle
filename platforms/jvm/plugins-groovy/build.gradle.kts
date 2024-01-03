@@ -5,28 +5,34 @@ plugins {
 description = "Contains plugins for building Groovy projects."
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":core-api"))
-    implementation(project(":core"))
+    api(libs.jsr305)
+    api(libs.groovy)
+    api(libs.inject)
+
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":language-java"))
+    api(project(":model-core"))
+
     implementation(project(":file-collections"))
     implementation(project(":language-groovy"))
-    implementation(project(":language-java"))
     implementation(project(":language-jvm"))
     implementation(project(":logging"))
-    implementation(project(":model-core"))
     implementation(project(":platform-jvm"))
     implementation(project(":plugins-java"))
+    implementation(project(":plugins-java-base"))
     implementation(project(":reporting"))
     implementation(project(":toolchains-jvm"))
 
-    implementation(libs.groovy)
     implementation(libs.guava)
-    implementation(libs.inject)
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":language-groovy")))
 
     testRuntimeOnly(project(":distributions-jvm"))
+
+    integTestImplementation(testFixtures(project(":plugins-java-base")))
 
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -42,6 +41,7 @@ import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.component.external.model.ShadowedImmutableCapability;
 
 import javax.inject.Inject;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -126,6 +126,7 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
 
     private Configuration createConsumableRuntime(ProjectInternal project, Configuration apiElements, String name, String platformKind) {
         Configuration runtimeElements = project.getConfigurations().migratingUnlocked(name, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
+        runtimeElements.setVisible(false);
         runtimeElements.extendsFrom(apiElements);
         declareConfigurationUsage(project.getObjects(), runtimeElements, Usage.JAVA_RUNTIME);
         declareConfigurationCategory(project.getObjects(), runtimeElements, platformKind);
@@ -134,6 +135,7 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
 
     private Configuration createConsumableApi(ProjectInternal project, Configuration api, String name, String platformKind) {
         Configuration apiElements = project.getConfigurations().migratingUnlocked(name, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
+        apiElements.setVisible(false);
         apiElements.extendsFrom(api);
         declareConfigurationUsage(project.getObjects(), apiElements, Usage.JAVA_API);
         declareConfigurationCategory(project.getObjects(), apiElements, platformKind);
@@ -163,7 +165,7 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
     }
 
     private void checkNoDependencies(Project project) {
-        checkNoDependencies(project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME), Sets.newHashSet());
+        checkNoDependencies(project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME), new HashSet<>());
     }
 
     private void checkNoDependencies(Configuration configuration, Set<Configuration> visited) {

@@ -36,9 +36,9 @@ public class WindowsFileWatcherRegistryFactory extends AbstractFileWatcherRegist
     private static final int BUFFER_SIZE = 64 * 1024;
 
     public WindowsFileWatcherRegistryFactory(
-        Predicate<String> watchFilter
+        Predicate<String> immutableLocationsFilter
     ) throws NativeIntegrationUnavailableException {
-        super(FileEvents.get(WindowsFileEventFunctions.class), watchFilter);
+        super(FileEvents.get(WindowsFileEventFunctions.class), immutableLocationsFilter);
     }
 
     @Override

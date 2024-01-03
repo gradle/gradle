@@ -25,6 +25,7 @@ import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.Actions;
 
 
 public class DefaultFileSystemOperations implements FileSystemOperations {
@@ -36,6 +37,16 @@ public class DefaultFileSystemOperations implements FileSystemOperations {
     public DefaultFileSystemOperations(ObjectFactory objectFactory, FileOperations fileOperations) {
         this.objectFactory = objectFactory;
         this.fileOperations = fileOperations;
+    }
+
+    @Override
+    public CopySpec copySpec(Action<? super CopySpec> action) {
+        return Actions.with(copySpec(), action);
+    }
+
+    @Override
+    public CopySpec copySpec() {
+        return fileOperations.copySpec();
     }
 
     @Override

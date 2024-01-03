@@ -48,7 +48,7 @@ import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.initialization.layout.BuildLocations;
+import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.initialization.layout.ProjectCacheDir;
@@ -141,22 +141,22 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
         return new BuildOperationCrossProjectConfigurator(buildOperationExecutor);
     }
 
-    BuildLocations createBuildLocations(BuildLayoutFactory buildLayoutFactory, StartParameter startParameter) {
+    BuildLayout createBuildLocations(BuildLayoutFactory buildLayoutFactory, StartParameter startParameter) {
         return buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
     }
 
-    FileResolver createFileResolver(FileLookup fileLookup, BuildLocations buildLocations) {
-        return fileLookup.getFileResolver(buildLocations.getRootDirectory());
+    FileResolver createFileResolver(FileLookup fileLookup, BuildLayout buildLayout) {
+        return fileLookup.getFileResolver(buildLayout.getRootDirectory());
     }
 
     ProjectCacheDir createProjectCacheDir(
         GradleUserHomeDirProvider userHomeDirProvider,
-        BuildLocations buildLocations,
+        BuildLayout buildLayout,
         Deleter deleter,
         ProgressLoggerFactory progressLoggerFactory,
         StartParameter startParameter
     ) {
-        BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildLocations, startParameter);
+        BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildLayout, startParameter);
         return new ProjectCacheDir(cacheDir.getDir(), progressLoggerFactory, deleter);
     }
 

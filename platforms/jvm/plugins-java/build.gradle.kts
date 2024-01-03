@@ -2,39 +2,44 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "Contains a basic JVM plugin used to compile, test, and assemble Java source; often applied by other JVM plugins (though named java-base, jvm-base would be a more proper name); and the Java plugin itself."
+description = "Contains the Java plugin, and its supporting classes.  This plugin is used as the basis for building a Java library or application by more specific plugins, and is sometimes applied by other JVM language projects."
 
 dependencies {
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":language-java"))
+    api(project(":plugins-jvm-test-suite"))
+    api(project(":publish"))
+
+    api(libs.inject)
+
     implementation(project(":base-services"))
-    implementation(project(":core-api"))
-    implementation(project(":core"))
-    implementation(project(":dependency-management"))
     implementation(project(":diagnostics"))
     implementation(project(":execution"))
-    implementation(project(":file-collections"))
-    implementation(project(":language-groovy"))
-    implementation(project(":language-java"))
     implementation(project(":language-jvm"))
-    implementation(project(":logging"))
     implementation(project(":ivy"))
     implementation(project(":maven"))
     implementation(project(":model-core"))
     implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))
-    implementation(project(":plugins-jvm-test-suite-base"))
-    implementation(project(":publish"))
-    implementation(project(":reporting"))
-    implementation(project(":testing-base"))
+    implementation(project(":plugins-java-base"))
     implementation(project(":testing-jvm"))
-    implementation(project(":toolchains-jvm"))
+    implementation(project(":test-suites-base"))
 
-    implementation(libs.ant)
-    implementation(libs.commonsLang)
-    implementation(libs.groovy)
-    implementation(libs.guava)
-    implementation(libs.inject)
+    runtimeOnly(project(":dependency-management"))
+    runtimeOnly(project(":testing-base"))
+    runtimeOnly(project(":toolchains-jvm"))
+
+    runtimeOnly(libs.groovy)
 
     testImplementation(testFixtures(project(":core")))
+
+    integTestImplementation(testFixtures(project(":enterprise-operations")))
+    integTestImplementation(testFixtures(project(":language-java")))
+    integTestImplementation(testFixtures(project(":language-jvm")))
+    integTestImplementation(testFixtures(project(":plugins-java-base")))
+    integTestImplementation(testFixtures(project(":plugins-jvm-test-fixtures")))
+    integTestImplementation(testFixtures(project(":workers")))
 
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
@@ -42,5 +47,3 @@ dependencies {
 packageCycles {
     excludePatterns.add("org/gradle/api/plugins/**")
 }
-
-integTest.usesJavadocCodeSnippets.set(true)

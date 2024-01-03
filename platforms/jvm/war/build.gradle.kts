@@ -21,26 +21,33 @@ plugins {
 description = "Adds support for assembling JVM web application WAR files"
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":core"))
-    implementation(project(":core-api"))
+    api(project(":language-jvm"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+
+    api(libs.groovy)
+    api(libs.inject)
+    api(libs.jsr305)
+
     implementation(project(":dependency-management"))
     implementation(project(":file-collections"))
     implementation(project(":language-java"))
-    implementation(project(":language-jvm"))
     implementation(project(":logging"))
     implementation(project(":model-core"))
     implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))
-    implementation(project(":plugins"))
     implementation(project(":plugins-java"))
-    implementation(project(":plugins-jvm-test-suite-base"))
-    implementation(project(":testing-base"))
+    implementation(project(":plugins-jvm-test-suite"))
 
-    implementation(libs.groovy)
-    implementation(libs.inject)
+    runtimeOnly(project(":plugins"))
+    runtimeOnly(project(":testing-base"))
 
+
+    testImplementation(project(":plugins-java-base"))
     testImplementation(testFixtures(project(":core")))
+    // TODO remove this
+    testImplementation(project(":plugins-java-base"))
 
     testRuntimeOnly(project(":distributions-jvm")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

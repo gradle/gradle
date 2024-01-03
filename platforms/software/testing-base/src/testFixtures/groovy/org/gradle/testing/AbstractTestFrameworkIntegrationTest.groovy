@@ -16,7 +16,7 @@
 
 package org.gradle.testing
 
-import com.google.common.collect.Lists
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
@@ -281,7 +281,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
     }
 
     private String[] toTestArgs(Map<String, List<String>> desiredTestFilters) {
-        def command = Lists.newArrayList()
+        def command = new ArrayList<>()
         command.add(testTaskName)
 
         desiredTestFilters.each { testClass, testCases ->

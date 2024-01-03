@@ -469,6 +469,12 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
                     "This is scheduled to be removed in Gradle 9.0. " +
                     "Consult the upgrading guide for further information: " +
                     "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
+            executer.expectDocumentedDeprecationWarning(
+                "The BasePluginExtension.archivesBaseName property has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Please use the archivesName property instead. " +
+                    "For more information, please refer to https://docs.gradle.org/current/dsl/org.gradle.api.plugins.BasePluginExtension.html#org.gradle.api.plugins.BasePluginExtension:archivesName in the Gradle documentation."
+            )
         }
         if (!isKotlin1dot8) {
             if (GradleContextualExecuter.isConfigCache()) {

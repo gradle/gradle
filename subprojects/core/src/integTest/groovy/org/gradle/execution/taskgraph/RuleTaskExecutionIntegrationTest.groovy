@@ -47,6 +47,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
 
     def "does not create rule based tasks in projects without required tasks"() {
         when:
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         buildFile << """
             allprojects {
@@ -158,6 +159,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
     }
 
     def "task container is self closed for projects of which any tasks are being executed"() {
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
 
         buildScript """

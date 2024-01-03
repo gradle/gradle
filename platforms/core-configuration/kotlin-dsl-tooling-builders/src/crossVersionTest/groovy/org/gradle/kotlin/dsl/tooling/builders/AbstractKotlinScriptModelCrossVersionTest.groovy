@@ -17,8 +17,8 @@
 package org.gradle.kotlin.dsl.tooling.builders
 
 import groovy.transform.CompileStatic
+import org.gradle.integtests.fixtures.build.KotlinDslTestProjectInitiation
 import org.gradle.integtests.fixtures.build.ProjectSourceRoots
-import org.gradle.integtests.fixtures.build.TestProjectInitiation
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiAdditionalClasspath
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -47,7 +47,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 @ToolingApiVersion(">=4.1")
 @ToolingApiAdditionalClasspath(KotlinDslToolingModelsClasspathProvider)
 @CompileStatic
-abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpecification  implements TestProjectInitiation {
+abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpecification implements KotlinDslTestProjectInitiation {
 
     def setup() {
         // Required for the lenient classpath mode
@@ -61,6 +61,9 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         if (GradleVersion.version(releasedGradleVersion) == GradleVersion.version("6.5.1")) {
             toolingApi.requireIsolatedUserHome()
         }
+        // Having this unset is now deprecated, will default to `false` in Gradle 9.0
+        // TODO remove - see https://github.com/gradle/gradle/issues/26810
+        file('gradle.properties') << 'org.gradle.kotlin.dsl.skipMetadataVersionCheck=false'
     }
 
     private String targetKotlinVersion

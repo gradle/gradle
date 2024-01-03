@@ -949,7 +949,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         expect:
         fails 'help'
-        result.assertHasErrorOutput("Could not find method implementation() for arguments [org.apache.commons:commons-lang3:3.11, com.google.guava:guava:30.1.1-jre] on object of type org.gradle.api.plugins.jvm.internal.DefaultJvmComponentDependencies")
+        result.assertHasErrorOutput("Could not find method implementation() for arguments [org.apache.commons:commons-lang3:3.11, com.google.guava:guava:30.1.1-jre] on property 'dependencies' of type java.lang.Object.")
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
@@ -981,7 +981,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         expect:
         fails 'help'
-        result.assertHasErrorOutput("Could not find method implementation() for arguments [org.apache.commons:commons-lang3:3.11, com.google.guava:guava:30.1.1-jre] on object of type org.gradle.api.plugins.jvm.internal.DefaultJvmComponentDependencies")
+        result.assertHasErrorOutput("Could not find method implementation() for arguments [org.apache.commons:commons-lang3:3.11, com.google.guava:guava:30.1.1-jre] on property 'dependencies' of type java.lang.Object.")
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
@@ -1013,7 +1013,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         expect:
         fails 'help'
-        result.assertHasErrorOutput("Could not find method getAt() for arguments [[org.apache.commons:commons-lang3:3.11, com.google.guava:guava:30.1.1-jre]] on DependencyAdder for ${suiteName}Implementation of type org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder_Decorated.")
+        result.assertHasErrorOutput("Could not find method getAt() for arguments [[org.apache.commons:commons-lang3:3.11, com.google.guava:guava:30.1.1-jre]] on property 'dependencies.implementation' of type org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyCollector_Decorated.")
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration

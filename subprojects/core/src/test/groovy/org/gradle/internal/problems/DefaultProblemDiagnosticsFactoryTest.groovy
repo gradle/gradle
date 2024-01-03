@@ -16,13 +16,12 @@
 
 package org.gradle.internal.problems
 
+import com.google.common.base.Supplier
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.problems.Location
 import org.gradle.problems.buildtree.ProblemStream
 import spock.lang.Specification
-
-import java.util.function.Supplier
 
 class DefaultProblemDiagnosticsFactoryTest extends Specification {
     def locationAnalyzer = Mock(ProblemLocationAnalyzer)

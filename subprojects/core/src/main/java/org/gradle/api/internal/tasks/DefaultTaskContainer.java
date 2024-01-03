@@ -58,6 +58,7 @@ import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.util.Path;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GUtil;
 
@@ -464,9 +465,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public Task findByPath(String path) {
-        if (Strings.isNullOrEmpty(path)) {
-            throw new InvalidUserDataException("A path must be specified!");
-        }
+        Path.validatePath(path);
         if (!path.contains(Project.PATH_SEPARATOR)) {
             return findByName(path);
         }
@@ -483,9 +482,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public Task resolveTask(String path) {
-        if (Strings.isNullOrEmpty(path)) {
-            throw new InvalidUserDataException("A path must be specified!");
-        }
         return getByPath(path);
     }
 

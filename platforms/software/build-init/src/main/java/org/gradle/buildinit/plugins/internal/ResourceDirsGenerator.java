@@ -21,7 +21,7 @@ import org.gradle.util.internal.GFileUtils;
 public class ResourceDirsGenerator implements BuildContentGenerator {
 
     @Override
-    public void generate(InitSettings settings) {
+    public void generate(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
         for (String subproject : settings.getSubprojects()) {
             GFileUtils.mkdirs(settings.getTarget().dir(subproject + "/src/main/resources").getAsFile());
             GFileUtils.mkdirs(settings.getTarget().dir(subproject + "/src/test/resources").getAsFile());

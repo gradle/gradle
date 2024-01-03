@@ -66,10 +66,9 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
                 String scalaTestPlusJunitVersion = libraryVersionProvider.getVersion("scalatestplus-junit");
                 String scalaXmlVersion = libraryVersionProvider.getVersion("scala-xml");
                 suiteSpec.implementation("Use Scalatest for testing our library",
-                        "org.scalatest:scalatest_" + scalaVersion + ":" + scalaTestVersion,
-                        "org.scalatestplus:junit-4-13_" + scalaVersion + ":" + scalaTestPlusJunitVersion);
-                suiteSpec.runtimeOnly("Need scala-xml at test runtime",
-                        "org.scala-lang.modules:scala-xml_" + scalaVersion + ":" + scalaXmlVersion);
+                    BuildInitDependency.of("org.scalatest:scalatest_" + scalaVersion, scalaTestVersion),
+                    BuildInitDependency.of("org.scalatestplus:junit-4-13_" + scalaVersion, scalaTestPlusJunitVersion));
+                suiteSpec.runtimeOnly("Need scala-xml at test runtime", BuildInitDependency.of("org.scala-lang.modules:scala-xml_" + scalaVersion, scalaXmlVersion));
                 return suiteSpec;
             default:
                 throw new IllegalArgumentException(testFramework + " is not yet supported.");

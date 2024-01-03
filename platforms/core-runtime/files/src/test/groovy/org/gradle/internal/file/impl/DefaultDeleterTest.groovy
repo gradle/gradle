@@ -188,6 +188,24 @@ class DefaultDeleterTest extends Specification {
         "symlink to directory" | true        | true
     }
 
+    def "reports root cause when failing to delete a file"() {
+        given:
+        deleter = FileTime.deleterWithDeletionAction() { file ->
+            return DeletionAction.EXCEPTION
+        }
+
+        and:
+        def target = tmpDir.createFile("target")
+
+        when:
+        deleter.deleteRecursively(target)
+
+        then:
+        def ex = thrown IOException
+        ex.message == "Unable to delete file '$target'"
+        ex.suppressed.collect { it.message } == ["ROOT CAUSE"]
+    }
+
     def "reports failed to delete child files and reports a reasonable number of retries after failure to delete directory"() {
 
         given:
@@ -342,7 +360,7 @@ class DefaultDeleterTest extends Specification {
         }
 
         when:
-        deleter .deleteRecursively(targetDir)
+        deleter.deleteRecursively(targetDir)
 
         then: 'nothing gets deleted'
         targetDir.assertIsDir()
@@ -382,10 +400,12 @@ class DefaultDeleterTest extends Specification {
                 false
             ) {
                 @Override
-                protected boolean deleteFile(File file) {
+                protected DefaultDeleter.FileDeletionResult deleteFile(File file) {
                     switch (deletionAction.apply(file)) {
+                        case DeletionAction.EXCEPTION:
+                            return DefaultDeleter.FileDeletionResult.withException(new Exception("ROOT CAUSE"))
                         case DeletionAction.FAILURE:
-                            return false
+                            return DefaultDeleter.FileDeletionResult.withoutException(false)
                         case DeletionAction.CONTINUE:
                             return super.deleteFile(file)
                         default:
@@ -412,6 +432,6 @@ class DefaultDeleterTest extends Specification {
     }
 
     private static enum DeletionAction {
-        FAILURE, CONTINUE
+        EXCEPTION, FAILURE, CONTINUE
     }
 }

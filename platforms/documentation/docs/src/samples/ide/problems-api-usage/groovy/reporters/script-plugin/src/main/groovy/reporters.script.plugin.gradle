@@ -1,0 +1,36 @@
+import org.gradle.api.internal.GradleInternal
+import org.gradle.api.problems.Problems
+import org.gradle.api.problems.Severity
+
+def gradleInternal = gradle as GradleInternal
+def problems = gradleInternal.services.get(Problems)
+
+problems.forNamespace('buildscript').reporting {
+    it.label("Deprecated script plugin 'demo-script-plugin'")
+        .category('deprecation', 'plugin')
+        .severity(Severity.WARNING)
+        .solution("Please use 'standard-plugin-2' instead of this plugin")
+}
+
+tasks.register('warningTask') {
+    doLast {
+        problems.forNamespace('buildscript').reporting {
+            it.label("Task 'warningTask' is deprecated")
+                .category('deprecation', 'task')
+                .severity(Severity.WARNING)
+                .solution("Please use 'warningTask2' instead of this task")
+        }
+    }
+}
+
+tasks.register('failingTask') {
+    doLast {
+        problems.forNamespace('buildscript').throwing {
+            it.label("Task 'failingTask' should not be called")
+                .category('deprecation', 'task')
+                .severity(Severity.ERROR)
+                .withException(new RuntimeException("The 'failingTask' should not be called"))
+                .solution("Please use 'successfulTask' instead of this task")
+        }
+    }
+}

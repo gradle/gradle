@@ -19,12 +19,12 @@ package org.gradle.api.provider;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Transformer;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.HasInternalProtocol;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
-import java.util.function.Predicate;
 
 /**
  * A container object that provides a value of a specific type. The value can be retrieved using one of the query methods
@@ -127,19 +127,19 @@ public interface Provider<T> {
     <S> Provider<S> map(Transformer<? extends @org.jetbrains.annotations.Nullable S, ? super T> transformer);
 
     /**
-     * Returns a new {@link Provider} with the value of this provider if the passed predicate is true and no value otherwise.
+     * Returns a new {@link Provider} with the value of this provider if the passed spec is satisfied and no value otherwise.
      *
      * <p>
      * The resulting provider will be live, so that each time it is queried, it queries the original (this) provider
-     * and applies the predicate to the result. Whenever the original provider has no value, the new provider
-     * will also have no value and the predicate will not be called.
+     * and applies the spec to the result. Whenever the original provider has no value, the new provider
+     * will also have no value and the spec will not be called.
      * </p>
      *
-     * @param predicate The predicate to apply to test value.
-     * @since 8.4
+     * @param spec The spec to test the value.
+     * @since 8.5
      */
     @Incubating
-    Provider<T> filter(Predicate<? super T> predicate);
+    Provider<T> filter(Spec<? super T> spec);
 
     /**
      * Returns a new {@link Provider} from the value of this provider transformed using the given function.

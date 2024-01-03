@@ -30,7 +30,8 @@ import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.DirectoryBuildCacheService;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.vfs.FileSystemAccess;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 
@@ -38,12 +39,13 @@ public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheContro
 
     private final TemporaryFileProvider temporaryFileProvider;
     private final BuildCacheEntryPacker packer;
+    private final BuildOperationProgressEventEmitter buildOperationProgressEmitter;
 
     public DefaultBuildCacheControllerFactory(
         StartParameter startParameter,
         BuildOperationExecutor buildOperationExecutor,
+        BuildOperationProgressEventEmitter buildOperationProgressEmitter,
         OriginMetadataFactory originMetadataFactory,
-        FileSystemAccess fileSystemAccess,
         StringInterner stringInterner,
         TemporaryFileProvider temporaryFileProvider,
         BuildCacheEntryPacker packer
@@ -52,19 +54,21 @@ public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheContro
             startParameter,
             buildOperationExecutor,
             originMetadataFactory,
-            fileSystemAccess,
             stringInterner
         );
         this.temporaryFileProvider = temporaryFileProvider;
         this.packer = packer;
+        this.buildOperationProgressEmitter = buildOperationProgressEmitter;
     }
 
     @Override
     protected BuildCacheController doCreateController(
+        Path buildPath,
         @Nullable DescribedBuildCacheService<DirectoryBuildCache, DirectoryBuildCacheService> localDescribedService,
         @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService
     ) {
         BuildCacheServicesConfiguration config = toConfiguration(
+            buildPath,
             localDescribedService,
             remoteDescribedService
         );
@@ -75,11 +79,11 @@ public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheContro
         return new DefaultBuildCacheController(
             config,
             buildOperationExecutor,
+            buildOperationProgressEmitter,
             temporaryFileProvider,
             logStackTraces,
             emitDebugLogging,
             !Boolean.getBoolean(REMOTE_CONTINUE_ON_ERROR_PROPERTY),
-            fileSystemAccess,
             packer,
             originMetadataFactory,
             stringInterner
@@ -87,12 +91,14 @@ public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheContro
     }
 
     private static BuildCacheServicesConfiguration toConfiguration(
+        Path buildPath,
         @Nullable DescribedBuildCacheService<DirectoryBuildCache, DirectoryBuildCacheService> local,
         @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remote
     ) {
         boolean localPush = local != null && local.config.isPush();
         boolean remotePush = remote != null && remote.config.isPush();
         return new BuildCacheServicesConfiguration(
+            buildPath.getPath(),
             local != null ? local.service : null, localPush,
             remote != null ? remote.service : null, remotePush);
     }

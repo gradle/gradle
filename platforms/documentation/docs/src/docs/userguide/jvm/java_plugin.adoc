@@ -1,0 +1,774 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[java_plugin]]
+= The Java Plugin
+
+The Java plugin adds Java compilation along with testing and bundling capabilities to a project.
+It serves as the basis for many of the other JVM language Gradle plugins.
+You can find a comprehensive introduction and overview to the Java Plugin in the <<building_java_projects.adoc#building_java_projects,Building Java Projects>> chapter.
+
+[NOTE]
+====
+As indicated above, this plugin adds basic building blocks for working with JVM projects.
+Its feature set has been superseded by other plugins, offering more features based on your project type.
+Instead of applying it directly to your project, you should look into the `java-library` or `application` plugins or one of the supported alternative JVM language.
+====
+
+[[sec:java_usage]]
+== Usage
+
+To use the Java plugin, include the following in your build script:
+
+.Using the Java plugin
+====
+include::sample[dir="snippets/java/quickstart/kotlin", files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/java/quickstart/groovy", files="build.gradle[tags=use-plugin]"]
+====
+
+[[sec:java_tasks]]
+== Tasks
+
+The Java plugin adds a number of tasks to your project, as shown below.
+
+`compileJava` — link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]::
+_Depends on_: All tasks which contribute to the compilation classpath, including `jar` tasks from projects that are on the classpath via project dependencies
++
+Compiles production Java source files using the JDK compiler.
+
+`processResources` — link:{groovyDslPath}/org.gradle.language.jvm.tasks.ProcessResources.html[ProcessResources]::
+Copies production resources into the production resources directory.
+
+`classes`::
+_Depends on_: `compileJava`, `processResources`
++
+This is an aggregate task that just depends on other tasks. Other plugins may attach additional compilation tasks to it.
+
+`compileTestJava` — link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]::
+_Depends on_: `classes`, and all tasks that contribute to the test compilation classpath
++
+Compiles test Java source files using the JDK compiler.
+
+`processTestResources` — link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]::
+Copies test resources into the test resources directory.
+
+`testClasses`::
+_Depends on_: `compileTestJava`, `processTestResources`
++
+This is an aggregate task that just depends on other tasks. Other plugins may attach additional test compilation tasks to it.
+
+`jar` — link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar]::
+_Depends on_: `classes`
++
+Assembles the production JAR file, based on the classes and resources attached to the `main` source set.
+
+`javadoc` — link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[Javadoc]::
+_Depends on_: `classes`
++
+Generates API documentation for the production Java source using Javadoc.
+
+`test` — link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test]::
+_Depends on_: `testClasses`, and all tasks which produce the test runtime classpath
++
+Runs the unit tests using JUnit or TestNG.
+
+`clean` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
+Deletes the project build directory.
+
+`clean__TaskName__` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
+Deletes files created by the specified task. For example, `cleanJar` will delete the JAR file created by the `jar` task and `cleanTest` will delete the test results created by the `test` task.
+
+[[java_source_set_tasks]]
+=== SourceSet Tasks
+
+For each source set you add to the project, the Java plugin adds the following tasks:
+
+
+`compile__SourceSet__Java` — link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]::
+_Depends on_: All tasks which contribute to the source set's compilation classpath
++
+Compiles the given source set's Java source files using the JDK compiler.
+
+`process__SourceSet__Resources` — link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]::
+Copies the given source set's resources into the resources directory.
+
+`__sourceSet__Classes` — link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
+_Depends on_: `compile__SourceSet__Java`, `process__SourceSet__Resources`
++
+Prepares the given source set's classes and resources for packaging and execution. Some plugins may add additional compilation tasks for the source set.
+
+=== Lifecycle Tasks
+
+The Java plugin attaches some of its tasks to the lifecycle tasks defined by the <<base_plugin.adoc#sec:base_tasks,Base Plugin>> — which the Java Plugin applies automatically — and it also adds a few other lifecycle tasks:
+
+`assemble`::
+_Depends on_: `jar`
++
+Aggregate task that assembles all the archives in the project. This task is added by the Base Plugin.
+
+`check`::
+_Depends on_: `test`
++
+Aggregate task that performs verification tasks, such as running the tests. Some plugins add their own verification tasks to `check`. You should also attach any custom `Test` tasks to this lifecycle task if you want them to execute for a full build. This task is added by the Base Plugin.
+
+`build`::
+_Depends on_: `check`, `assemble`
++
+Aggregate tasks that performs a full build of the project. This task is added by the Base Plugin.
+
+`buildNeeded`::
+_Depends on_: `build`, and `buildNeeded` tasks in all projects that are dependencies in the `testRuntimeClasspath` configuration.
++
+Performs a full build of the project and all projects it depends on.
+
+`buildDependents`::
+_Depends on_: `build`, and `buildDependents` tasks in all projects that have this project as a dependency in their `testRuntimeClasspath` configurations
++
+Performs a full build of the project and all projects which depend upon it.
+
+`build__ConfigName__` — _task rule_::
+_Depends on_: all tasks that generate the artifacts attached to the named — _ConfigName_ — configuration
++
+Assembles the artifacts for the specified configuration. This rule is added by the Base Plugin.
+
+The following diagram shows the relationships between these tasks.
+
+.Java plugin - tasks
+image::javaPluginTasks.png[]
+
+[[sec:java_project_layout]]
+== Project layout
+
+The Java plugin assumes the project layout shown below. None of these directories need to exist or have anything in them. The Java plugin will compile whatever it finds, and handles anything which is missing.
+
+[[javalayout]]
+include::javaProjectMainLayout.adoc[]
+
+include::javaProjectTestLayout.adoc[]
+
+include::javaProjectGenericLayout.adoc[]
+
+[[sec:changing_java_project_layout]]
+=== Changing the project layout
+
+You configure the project layout by configuring the appropriate source set. This is discussed in more detail in the following sections. Here is a brief example which changes the main Java and resource source directories.
+
+.Custom Java source layout
+====
+include::sample[dir="snippets/java/customizedLayout/kotlin", files="build.gradle.kts[tags=define-main]"]
+include::sample[dir="snippets/java/customizedLayout/groovy", files="build.gradle[tags=define-main]"]
+====
+
+[[source_sets]]
+== Source sets
+
+The plugin adds the following <<building_java_projects.adoc#sec:java_source_sets,source sets>>:
+
+`main`::
+Contains the production source code of the project, which is compiled and assembled into a JAR.
+
+`test`::
+Contains your test source code, which is compiled and executed using JUnit or TestNG. These are typically unit tests, but you can include any test in this source set as long as they all share the same compilation and runtime classpaths.
+
+[[sec:source_set_properties]]
+=== Source set properties
+
+The following table lists some of the important properties of a source set. You can find more details in the API documentation for link:{groovyDslPath}/org.gradle.api.tasks.SourceSet.html[SourceSet].
+
+`name` — (read-only) `String`::
+The name of the source set, used to identify it.
+
+`output` — (read-only) link:{groovyDslPath}/org.gradle.api.tasks.SourceSetOutput.html[SourceSetOutput]::
+The output files of the source set, containing its compiled classes and resources.
+
+`output.classesDirs` — (read-only) link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection]::
+_Default value_: `layout.buildDirectory.dir("classes/java/$name")`, e.g. _build/classes/java/main_
++
+The directories to generate the classes of this source set into. May contain directories for other JVM languages, e.g. _build/classes/kotlin/main_.
+
+`output.resourcesDir` — `File`::
+_Default value_: `layout.buildDirectory.dir("resources/$name")`, e.g. _build/resources/main_
++
+The directory to generate the resources of this source set into.
+
+`compileClasspath` — link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection]::
+_Default value_: `${name}CompileClasspath` configuration
++
+The classpath to use when compiling the source files of this source set.
+
+`annotationProcessorPath` — link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection]::
+_Default value_: `${name}AnnotationProcessor` configuration
++
+The processor path to use when compiling the source files of this source set.
+
+`runtimeClasspath` — link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection]::
+_Default value_: `$output`, `${name}RuntimeClasspath` configuration
++
+The classpath to use when executing the classes of this source set.
+
+`java` — (read-only) link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]::
+The Java source files of this source set. Contains only `.java` files found in the Java source directories, and excludes all other files.
+
+`java.srcDirs` — `Set&lt;File&gt;`::
+_Default value_: `src/$name/java`, e.g. _src/main/java_
++
+The source directories containing the Java source files of this source set.  You can set this to any value that is described in <<working_with_files.adoc#sec:specifying_multiple_files,this section>>.
+
+`java.destinationDirectory` — `DirectoryProperty`::
+_Default value_: `layout.buildDirectory.dir("classes/java/$name")`, e.g. _build/classes/java/main_
++
+The directory to generate compiled Java sources into. You can set this to any value that is described in <<working_with_files.adoc#sec:single_file_paths,this section>>.
+
+`resources` — (read-only) link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]::
+The resources of this source set. Contains only resources, and excludes any `.java` files found in the resource directories. Other plugins, such as the <<groovy_plugin.adoc#groovy_plugin,Groovy Plugin>>, exclude additional types of files from this collection.
+
+`resources.srcDirs` — `Set&lt;File&gt;`::
+_Default value_: `[src/$name/resources]`
++
+The directories containing the resources of this source set. You can set this to any type of value that is described in <<working_with_files.adoc#sec:specifying_multiple_files,this section>>.
+
+`allJava` — (read-only) link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]::
+_Default value_: Same as `java` property
++
+All Java files of this source set. Some plugins, such as the Groovy Plugin, add additional Java source files to this collection.
+
+`allSource` — (read-only) link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]::
+_Default value_: Sum of everything in the `resources` and `java` properties
++
+All source files of this source set of any language. This includes all resource files and all Java source files. Some plugins, such as the Groovy Plugin, add additional source files to this collection.
+
+[[sec:defining_new_source_sets]]
+=== Defining new source sets
+
+See the <<java_testing.adoc#sec:configuring_java_integration_tests,integration test example>> in the _Testing in Java & JVM projects_ chapter.
+
+[[sec:some_source_set_examples]]
+=== Some other simple source set examples
+
+Adding a JAR containing the classes of a source set:
+
+.Assembling a JAR for a source set
+====
+include::sample[dir="snippets/java/sourceSets/kotlin", files="build.gradle.kts[tags=jar]"]
+include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=jar]"]
+====
+
+Generating Javadoc for a source set:
+
+.Generating the Javadoc for a source set
+====
+include::sample[dir="snippets/java/sourceSets/kotlin", files="build.gradle.kts[tags=javadoc]"]
+include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=javadoc]"]
+====
+
+Adding a test suite to run the tests in a source set:
+
+.Running tests in a source set
+====
+include::sample[dir="snippets/java/sourceSets/kotlin", files="build.gradle.kts[tags=test]"]
+include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=test]"]
+====
+
+[[sec:java_plugin_and_dependency_management]]
+== Dependency management
+
+The Java plugin adds a number of <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,dependency configurations>> to your project, as shown below.
+Tasks such as `compileJava` and `test` then use one or more of those configurations to get the corresponding files and use them, for example by placing them on a compilation or runtime classpath.
+
+[[tab:configurations]]
+=== Dependency configurations
+
+For information on the `default` and `archives` configurations, please consult the
+<<base_plugin.adoc#sec:base_plugin_configurations,Base Plugin>> reference documentation.
+
+For information on the `api` or `compileOnlyApi` configurations, please consult the
+<<java_library_plugin.adoc#sec:java_library_separation, Java Library Plugin>> reference documentation and
+<<dependency_management_for_java_projects.adoc#dependency_management_for_java_projects, Dependency Management for Java Projects>>.
+
+`implementation`::
+Implementation only dependencies.
+
+`compileOnly`::
+Compile time only dependencies, not used at runtime.
+
+`compileClasspath` extends `compileOnly, implementation`::
+Compile classpath, used when compiling source. Used by task `compileJava`.
+
+`annotationProcessor`::
+Annotation processors used during compilation.
+
+`runtimeOnly`::
+Runtime only dependencies.
+
+`runtimeClasspath` extends `runtimeOnly, implementation`::
+Runtime classpath contains elements of the implementation, as well as runtime only elements.
+
+`testImplementation` extends `implementation`::
+Implementation only dependencies for tests.
+
+`testCompileOnly`::
+Additional dependencies only for compiling tests, not used at runtime.
+
+`testCompileClasspath` extends `testCompileOnly, testImplementation`::
+Test compile classpath, used when compiling test sources. Used by task `compileTestJava`.
+
+`testRuntimeOnly` extends `runtimeOnly`::
+Runtime only dependencies for running tests.
+
+`testRuntimeClasspath` extends `testRuntimeOnly, testImplementation`::
+Runtime classpath for running tests. Used by task `test`.
+
+The following diagrams show the dependency configurations for the _main_ and _test_ source sets respectively. You can use this legend to interpret the colors:
+
+ * Green background — you can declare dependencies against the configuration.
+ * Blue-gray background — the configuration is for consumption by tasks, not for you to declare dependencies.
+ * Light blue background with monospace text — a task.
+
+.Java plugin - _main_ source set dependency configurations
+image::java-main-configurations.png[]
+
+.Java plugin - _test_ source set dependency configurations
+image::java-test-configurations.png[]
+
+For each source set you add to the project, the Java plugins adds the following dependency configurations:
+
+[[java_source_set_configurations]]
+=== SourceSet dependency configurations
+
+`__sourceSet__Implementation`::
+Compile time dependencies for the given source set. Used by `__sourceSet__CompileClasspath, __sourceSet__RuntimeClasspath`.
+
+`__sourceSet__CompileOnly`::
+Compile time only dependencies for the given source set, not used at runtime.
+
+`__sourceSet__CompileClasspath` extends `__sourceSet__CompileOnly, __sourceSet__Implementation`::
+Compile classpath, used when compiling source. Used by `compile__SourceSet__Java`.
+
+`__sourceSet__AnnotationProcessor`::
+Annotation processors used during compilation of this source set.
+
+`__sourceSet__RuntimeOnly`::
+Runtime only dependencies for the given source set.
+
+`__sourceSet__RuntimeClasspath` extends `__sourceSet__RuntimeOnly, __sourceSet__Implementation`::
+Runtime classpath contains elements of the implementation, as well as runtime only elements.
+
+[[sec:java-extension]]
+== Contributed extension
+
+The Java plugin adds the link:{groovyDslPath}/org.gradle.api.plugins.JavaPluginExtension.html[`java` extension] to the project.
+This allows to configure a number of Java related properties inside a dedicated DSL block.
+
+.Using the `java` extension to configure a toolchain
+====
+include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=java-extension]"]
+include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=java-extension]"]
+====
+
+Below is the list of properties and DSL functions with short explanations available inside the `java` extension.
+
+=== Toolchain and compatibility
+
+`toolchain`::
+<<toolchains.adoc#toolchains, Java toolchain>> to be used by tasks using JVM tools, such as compilation and execution. Default value: build JVM toolchain.
+
+`link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] sourceCompatibility`::
+Java version compatibility to use when compiling Java source. Default value: language version of the toolchain from this extension. +
+_Note that using a <<toolchains.adoc#toolchains, toolchain>> is preferred to using a compatibility setting for most cases._
+
+`link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] targetCompatibility`::
+Java version to generate classes for. Default value: `__sourceCompatibility__`. +
+_Note that using a <<toolchains.adoc#toolchains, toolchain>> is preferred to using a compatibility setting for most cases._
+
+=== Packaging
+
+`withJavadocJar()`::
+Automatically packages Javadoc and creates a variant `javadocElements` with an artifact `-javadoc.jar`, which will be part of the publication.
+
+`withSourcesJar()`::
+Automatically packages source code and creates a variant `sourceElements` with an artifact `-sources.jar`, which will be part of the publication.
+
+=== Directory properties
+
+`String reporting.baseDir`::
+The name of the directory to generate reports into, relative to the build directory. Default value: `reports`
+
+`(read-only) File reportsDir`::
+The directory to generate reports into. Default value: `__reporting.baseDirectory__`
+
+`String testResultsDirName`::
+The name of the directory to generate test result .xml files into, relative to the build directory. Default value: `test-results`
+
+`(read-only) File testResultsDir`::
+The directory to generate test result .xml files into. Default value: `layout.buildDirectory.dir(__testResultsDirName__)`
+
+`String testReportDirName`::
+The name of the directory to generate the test report into, relative to the reports directory. Default value: `tests`
+
+`(read-only) File testReportDir`::
+The directory to generate the test report into. Default value: `__reportsDir__/testReportDirName`
+
+`String libsDirName`::
+The name of the directory to generate libraries into, relative to the build directory. Default value: `libs`
+
+`(read-only) File libsDir`::
+The directory to generate libraries into. Default value: `layout.buildDirectory.dir(__libsDirName__)`
+
+`String distsDirName`::
+The name of the directory to generate distributions into, relative to the build directory. Default value: `distributions`
+
+`(read-only) File distsDir`::
+The directory to generate distributions into. Default value: `layout.buildDirectory.dir(__distsDirName__)`
+
+`String docsDirName`::
+The name of the directory to generate documentation into, relative to the build directory. Default value: `docs`
+
+`(read-only) File docsDir`::
+The directory to generate documentation into. Default value: `layout.buildDirectory.dir(__docsDirName__)`
+
+`String dependencyCacheDirName`::
+The name of the directory to cache source dependency information relative to the build directory. Default value: `dependency-cache`.
+
+=== Other properties
+
+`(read-only) link:{javadocPath}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer] sourceSets`::
+Contains the project's source sets. Default value: Not null link:{javadocPath}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer]
+
+`String archivesBaseName`::
+The basename to use for archives, such as JAR or ZIP files. Default value: `__projectName__`
+
+`link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest] manifest`::
+The manifest to include in all JAR files. Default value: an empty manifest.
+
+[[sec:java_convention_properties]]
+== Convention properties (deprecated)
+
+The Java Plugin adds a number of convention properties to the project. You can use these properties in your build script as though they were properties of the project object.
+These are *deprecated* and superseded by the extension described above.
+See the link:{groovyDslPath}/org.gradle.api.plugins.JavaPluginConvention.html[JavaPluginConvention] DSL documentation for information on them.
+
+[[sec:java_test]]
+== Testing
+
+See the <<java_testing.adoc#java_testing,Testing in Java & JVM projects>> chapter for more details.
+
+[[sec:java_plugin_publishing]]
+== Publishing
+
+`components.java`::
+A link:{javadocPath}/org/gradle/api/component/SoftwareComponent.html[SoftwareComponent] for <<publishing_setup.adoc#publishing_overview,publishing>> the production JAR created by the `jar` task.
+This component includes the runtime dependency information for the JAR.
+
+See also the <<#sec:java-extension,`java` extension>>.
+
+[[sec:incremental_compile]]
+== Incremental Java compilation
+
+Gradle comes with a sophisticated incremental Java compiler that is active by default.
+
+This gives you the following benefits
+
+* Incremental builds are much faster.
+* The smallest possible number of class files are changed.
+  Classes that don't need to be recompiled remain unchanged in the output directory.
+  An example scenario when this is really useful is using JRebel — the fewer output classes are changed the quicker the JVM can use refreshed classes.
+
+To help you understand how incremental compilation works, the following provides a high-level overview:
+
+* Gradle will recompile all classes _affected_ by a change.
+* A class is _affected_ if it has been changed or if it depends on another affected class.
+    This works no matter if the other class is defined in the same project, another project or even an external library.
+* A class's dependencies are determined from type references in its bytecode or symbol analysis via a compiler plugin.
+* Since source-retention annotations are not visible in bytecode, changes to a source-retention annotation will result in full recompilation.
+* You can improve incremental compilation performance by applying good software design principles like loose coupling.
+    For instance, if you put an interface between a concrete class and its dependents, the dependent classes are only recompiled when the interface changes, but not when the implementation changes.
+* The class analysis is cached in the project directory, so the first build after a clean checkout can be slower. Consider turning off the incremental compiler on your build server.
+* The class analysis is also an output stored in the build cache, which means that if a compilation output is fetched from the build cache, then the incremental compilation analysis will be too and the next compilation will be incremental.
+
+[[sec:incremental_compilation_known_issues]]
+=== Known issues
+
+* If you are using an annotation processor that reads resources (e.g. a configuration file), you need to declare those resources as an input of the compile task.
+* If a resource file is changed, Gradle will trigger a full recompilation.
+* Using a custom `executable` or `javaHome` deactivates some optimizations.
+    The compile task does not use incremental build immediately after a compile error or if a Java constant changes.
+    Use <<toolchains.adoc#toolchains, toolchains>> instead if possible.
+* Having a source structure that does not match the package names, while legal for compilation, might end up causing trouble in the toolchain.
+    Even more if annotation processing and <<build_cache.adoc#build_cache,caching>> are involved.
+
+[[sec:incremental_annotation_processing]]
+== Incremental annotation processing
+
+Starting with Gradle 4.7, the incremental compiler also supports incremental annotation processing.
+All annotation processors need to opt in to this feature, otherwise they will trigger a full recompilation.
+
+As a user you can see which annotation processors are triggering full recompilations in the `--info` log.
+Incremental annotation processing will be deactivated if a custom `executable` or `javaHome` is configured on the compile task.
+
+=== Making an annotation processor incremental
+
+Please first have a look at <<#sec:incremental_compile,incremental Java compilation>>, as incremental annotation processing builds on top of it.
+
+Gradle supports incremental compilation for two common categories of annotation processors: "isolating" and "aggregating".
+Please consult the information below to decide which category fits your processor.
+
+You can then register your processor for incremental compilation using a file in the processor's META-INF directory.
+The format is one line per processor, with the fully qualified name of the processor class and its case-insensitive category separated by a comma.
+
+=== Example: Registering incremental annotation processors
+
+[listing]
+.processor/src/main/resources/META-INF/gradle/incremental.annotation.processors
+----
+include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/src/main/resources/META-INF/gradle/incremental.annotation.processors[tag=registering-incremental-annotation-processors]
+----
+
+
+If your processor can only decide at runtime whether it is incremental or not, you can declare it as "dynamic" in the META-INF descriptor
+and return its true type at runtime using the link:{javaApi}/javax/annotation/processing/Processor.html#getSupportedOptions--[Processor#getSupportedOptions()] method.
+
+=== Example: Registering incremental annotation processors dynamically
+
+[source,java,indent=0]
+.processor/src/main/java/org/gradle/ServiceRegistryProcessor.java
+----
+include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/src/main/java/org/gradle/ServiceRegistryProcessor.java[tag=options-of-dynamic-processor]
+----
+
+Both categories have the following limitations:
+
+* They can only read `CLASS` or `RUNTIME` retention annotations.
+* They can only read parameter names if the user passes the `-parameters` compiler argument.
+* They must generate their files using the link:{javaApi}/javax/annotation/processing/Filer.html[Filer API].
+    Writing files any other way will result in silent failures later on, as these files won't be cleaned up correctly.
+    If your processor does this, it cannot be incremental.
+* They must not depend on compiler-specific APIs like `com.sun.source.util.Trees`.
+    Gradle wraps the processing APIs, so attempts to cast to compiler-specific types will fail.
+    If your processor does this, it cannot be incremental, unless you have some fallback mechanism.
+* If they use link:{javaApi}/javax/annotation/processing/Filer.html#createResource(javax.tools.JavaFileManager.Location,java.lang.CharSequence,java.lang.CharSequence,javax.lang.model.element.Element++...++)[Filer#createResource],
+    the `location` argument must be one of these values from link:{javaApi}/javax/tools/StandardLocation.html[StandardLocation]: `CLASS_OUTPUT`, `SOURCE_OUTPUT`, or `NATIVE_HEADER_OUTPUT`.
+    Any other argument will disable incremental processing.
+
+=== "Isolating" annotation processors
+
+The fastest category, these look at each annotated element in isolation, creating generated files or validation messages for it.
+For instance an `EntityProcessor` could create a `<TypeName>Repository` for each type annotated  with `@Entity`.
+
+=== Example: An isolated annotation processor
+
+[source,java,indent=0]
+.processor/src/main/java/org/gradle/EntityProcessor.java
+----
+include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/src/main/java/org/gradle/EntityProcessor.java[tag=isolating-annotation-processor]
+----
+
+"Isolating" processors have the following additional limitations:
+
+* They must make all decisions (code generation, validation messages) for an annotated type based on information reachable from its AST.
+    This means you can analyze the types' super-class, method return types, annotations etc., even transitively.
+    But you cannot make decisions based on unrelated elements in the RoundEnvironment.
+    Doing so will result in silent failures because too few files will be recompiled later.
+    If your processor needs to make decisions based on a combination of otherwise unrelated elements, mark it as "aggregating" instead.
+* They must provide exactly one originating element for each file generated with the `Filer` API.
+    If zero or many originating elements are provided, Gradle will recompile all source files.
+
+
+When a source file is recompiled, Gradle will recompile all files generated from it.
+When a source file is deleted, the files generated from it are deleted.
+
+=== "Aggregating" annotation processors
+
+These can aggregate several source files into one or more output files or validation messages.
+For instance, a `ServiceRegistryProcessor` could create a single `ServiceRegistry` with one method for each type annotated with `@Service`.
+
+=== Example: An aggregating annotation processor
+
+[source,java,indent=0]
+.processor/src/main/java/org/gradle/ServiceRegistryProcessor.java
+----
+include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/src/main/java/org/gradle/ServiceRegistryProcessor.java[tag=aggregating-annotation-processor]
+----
+
+Gradle will always reprocess (but not recompile) all annotated files that the processor was registered for.
+Gradle will always recompile any files the processor generates.
+
+=== State of support in popular annotation processors
+
+NOTE: Many popular annotation processors support incremental annotation processing (see the table below).
+Check with the annotation processor project directly for the most up-to-date information and documentation.
+
+[cols="a,a,a", options="header"]
+|===
+| Annotation Processor
+| Supported since
+| Details
+
+| link:https://github.com/google/auto[Auto Value]
+| link:https://github.com/google/auto/releases/tag/auto-value-1.6.3[1.6.3]
+| N/A
+
+| link:https://github.com/google/auto[Auto Service]
+| link:https://github.com/google/auto/releases/tag/auto-value-1.6.3[1.6.3]
+| N/A
+
+| link:https://github.com/google/auto[Auto Value extensions]
+| Partly supported.
+| link:https://github.com/google/auto/issues/673[Details in issue]
+
+| link:https://github.com/JakeWharton/butterknife[Butterknife]
+| link:https://github.com/JakeWharton/butterknife/commit/2acac62c7354fee46a5201d50a4712732f6dd1ed[10.2.0]
+| N/A
+
+| link:https://github.com/rzwitserloot/lombok[Lombok]
+| link:https://github.com/rzwitserloot/lombok/releases/tag/v1.16.22[1.16.22]
+| N/A
+
+| DataBinding
+| link:https://issuetracker.google.com/issues/110061530#comment28[AGP 3.5.0-alpha5]
+| Hidden behind a feature toggle
+
+| Dagger
+| link:https://github.com/google/dagger/issues/1120[2.18]
+| 2.18 Feature toggle support, 2.24 Enabled by default
+
+| kapt
+| link:https://youtrack.jetbrains.com/issue/KT-23880[1.3.30]
+| Hidden behind a feature toggle
+
+| Toothpick
+| link:https://github.com/stephanenicolas/toothpick/pull/320[2.0]
+| N/A
+
+| Glide
+| link:https://github.com/bumptech/glide/releases/tag/v4.9.0[4.9.0]
+| N/A
+
+| Android-State
+| link:https://github.com/evernote/android-state/releases/tag/v1.3.0[1.3.0]
+| N/A
+
+| Parceler
+| link:https://github.com/johncarl81/parceler/releases/tag/parceler-project-1.1.11[1.1.11]
+| N/A
+
+| Dart and Henson
+| link:https://github.com/f2prateek/dart/releases/tag/3.1.0[3.1.0]
+| N/A
+
+| link:https://github.com/mapstruct/mapstruct[MapStruct]
+| link:https://github.com/mapstruct/mapstruct/releases/tag/1.4.0.Beta1[1.4.0.Beta1]
+| N/A
+
+| link:https://github.com/square/AssistedInject[Assisted Inject]
+| link:https://github.com/square/AssistedInject/blob/master/CHANGELOG.md#version-050-2019-08-08[0.5.0]
+| N/A
+
+| link:https://github.com/realm/realm-java[Realm]
+| link:https://github.com/realm/realm-java/blob/v5.11.0/CHANGELOG.md[5.11.0]
+| N/A
+
+| Requery
+| link:https://github.com/requery/requery/issues/773[Open issue]
+| N/A
+
+| link:https://github.com/greenrobot/EventBus[EventBus]
+| link:https://github.com/greenrobot/EventBus/releases/tag/V3.2.0[3.2.0]
+| N/A
+
+| EclipseLink
+| link:https://bugs.eclipse.org/bugs/show_bug.cgi?id=535985[Open issue]
+| N/A
+
+| link:https://github.com/permissions-dispatcher/PermissionsDispatcher[PermissionsDispatcher]
+| link:https://github.com/permissions-dispatcher/PermissionsDispatcher/releases/tag/4.2.0[4.2.0]
+| N/A
+
+| Immutables
+| link:https://github.com/immutables/immutables/issues/804[Open issue]
+| N/A
+
+| link:https://developer.android.com/topic/libraries/architecture/room[Room]
+| link:https://developer.android.com/jetpack/androidx/releases/room#version_220_3[2.2.0]
+| 2.2.0 Feature toggle support, 2.3.0-alpha02 Enabled by default
+
+| link:https://developer.android.com/jetpack/androidx/releases/lifecycle[Lifecycle]
+| link:https://issuetracker.google.com/issues/129115778[2.2.0-alpha02]
+| N/A
+
+| link:https://github.com/androidannotations/androidannotations[AndroidAnnotations]
+| link:https://github.com/androidannotations/androidannotations/wiki/ReleaseNotes#4.7.0[4.7.0]
+| N/A
+
+| DBFlow
+| link:https://github.com/agrosner/DBFlow/issues/1648[Open issue]
+| N/A
+
+| AndServer
+| link:https://github.com/yanzhenjie/AndServer/issues/152[Open issue]
+| N/A
+
+| link:https://github.com/facebook/litho[Litho]
+| link:https://github.com/facebook/litho/blob/master/CHANGELOG.md#version-0250[0.25.0]
+| N/A
+
+| link:https://github.com/moxy-community/Moxy/[Moxy]
+| https://github.com/moxy-community/Moxy/releases/tag/2.0.0[2.0]
+| N/A
+
+| link:https://github.com/airbnb/epoxy[Epoxy]
+| link:https://github.com/airbnb/epoxy/releases/tag/4.0.0-beta1[4.0.0-beta1]
+| N/A
+
+| link:https://docs.jboss.org/hibernate/orm/5.4/topical/html_single/metamodelgen/MetamodelGenerator.html[JPA Static Metamodel Generator]
+| link:https://github.com/hibernate/hibernate-orm/releases/tag/5.4.11[5.4.11]
+| N/A
+
+| link:https://github.com/airbnb/DeepLinkDispatch[DeepLinkDispatch]
+| link:https://github.com/airbnb/DeepLinkDispatch/releases/tag/5.0.0-beta01[5.0.0-beta01]
+| Hidden behind a feature toggle
+
+| link:https://github.com/MatthiasRobbers/shortbread[Shortbread]
+| link:https://github.com/MatthiasRobbers/shortbread/releases/tag/v1.1.0[1.1.0]
+| N/A
+
+|===
+
+[[sec:java_compile_avoidance]]
+== Compilation avoidance
+
+If a dependent project has changed in an https://en.wikipedia.org/wiki/Application_binary_interface[ABI]-compatible way (only its private API has changed), then Java compilation tasks will be up-to-date. This means that if project `A` depends on project `B` and a class in `B` is changed in an ABI-compatible way (typically, changing only the body of a method), then Gradle won't recompile `A`.
+
+Some of the types of changes that do not affect the public API and are ignored:
+
+* Changing a method body
+* Changing a comment
+* Adding, removing or changing private methods, fields, or inner classes
+* Adding, removing or changing a resource
+* Changing the name of jars or directories in the classpath
+* Renaming a parameter
+
+
+Since implementation details matter for annotation processors, they must be declared separately on the annotation processor path.
+Gradle ignores annotation processors on the compile classpath.
+
+.Declaring annotation processors
+====
+include::sample[dir="snippets/java/apt/kotlin", files="build.gradle.kts[tags=annotation-processing]"]
+include::sample[dir="snippets/java/apt/groovy", files="build.gradle[tags=annotation-processing]"]
+====
+
+== Variant aware selection
+
+The whole set of JVM plugins leverage <<variant_model.adoc#understanding-variant-selection,variant aware resolution>> for the dependencies used.
+They also install a set of attributes compatibility and disambiguation rules to <<variant_attributes.adoc#sub:jvm_default_attributes,configure the Gradle attributes>> for the specifics of the JVM ecosystem.

@@ -19,7 +19,7 @@ package org.gradle.internal.deprecation;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.internal.DocLink;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -34,7 +34,7 @@ public abstract class Documentation implements DocLink {
         return new UserGuide(id, section);
     }
 
-    static Documentation userManual(String id) {
+    public static Documentation userManual(String id) {
         return new UserGuide(id, null);
     }
 
@@ -51,7 +51,7 @@ public abstract class Documentation implements DocLink {
         return String.format(RECOMMENDATION, "information", getUrl());
     }
 
-    private static abstract class SerializerableDocumentation extends Documentation {
+    private static abstract class SerializableDocumentation extends Documentation {
         abstract Map<String, String> getProperties();
     }
 
@@ -95,7 +95,7 @@ public abstract class Documentation implements DocLink {
         }
     }
 
-    private static class NullDocumentation extends SerializerableDocumentation {
+    private static class NullDocumentation extends SerializableDocumentation {
 
         private NullDocumentation() {
         }
@@ -116,7 +116,7 @@ public abstract class Documentation implements DocLink {
         }
     }
 
-    private static class UserGuide extends SerializerableDocumentation {
+    private static class UserGuide extends SerializableDocumentation {
         private final String page;
         private final String section;
 
@@ -169,7 +169,7 @@ public abstract class Documentation implements DocLink {
         }
     }
 
-    private static class DslReference extends SerializerableDocumentation {
+    private static class DslReference extends SerializableDocumentation {
         private final Class<?> targetClass;
         private final String property;
 

@@ -2,7 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "Contains some base and shared classes for JVM language support, like AbstractCompile class and BaseForkOptions classes, and JVM-specific dependencies blocks support"
+description = """Contains some base and shared classes for JVM language support, like AbstractCompile class and BaseForkOptions classes,
+JVM-specific dependencies blocks and JVM test suite interfaces."""
 
 dependencies {
     implementation(project(":base-services"))
@@ -17,7 +18,9 @@ dependencies {
     implementation(project(":platform-jvm"))
     implementation(project(":process-services"))
     implementation(project(":process-services"))
+    implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
+    implementation(project(":test-suites-base"))
     implementation(project(":toolchains-jvm"))
     implementation(project(":workers"))
 
@@ -30,6 +33,7 @@ dependencies {
     testImplementation(project(":snapshots"))
     testImplementation(testFixtures(project(":core")))
 
+    integTestImplementation(testFixtures(project(":model-core")))
     integTestImplementation(testFixtures(project(":resources-http")))
 
     testFixturesImplementation(libs.commonsLang)

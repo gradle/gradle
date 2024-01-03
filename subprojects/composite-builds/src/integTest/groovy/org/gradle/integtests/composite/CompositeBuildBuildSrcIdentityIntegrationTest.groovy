@@ -60,6 +60,7 @@ class CompositeBuildBuildSrcIdentityIntegrationTest extends AbstractCompositeBui
     def "includes build identifier in dependency report with #display"() {
         dependency "org.test:buildB:1.0"
 
+        createDirs("buildB", "buildB/buildSrc", "buildB/buildSrc/b1", "buildB/buildSrc/b2")
         buildB.file("buildSrc/settings.gradle") << """
             $settings
             include 'b1', 'b2'
@@ -136,6 +137,7 @@ Required by:
     def "includes build identifier in dependency resolution results with #display"() {
         dependency "org.test:buildB:1.0"
 
+        createDirs("buildB", "buildB/buildSrc", "buildB/buildSrc/a")
         buildB.file("buildSrc/settings.gradle") << """
             ${settings}
             include 'a'

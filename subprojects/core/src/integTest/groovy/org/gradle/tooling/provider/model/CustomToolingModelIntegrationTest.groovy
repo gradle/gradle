@@ -26,6 +26,7 @@ class CustomToolingModelIntegrationTest extends AbstractIntegrationSpec implemen
     // This is not an intended usage, but the Android plugin currently does this
     @UnsupportedWithConfigurationCache(because = "Tooling model builders require access to the project state, and this is not available when loading from cache")
     def "task that use a custom tooling model can run concurrently"() {
+        createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """

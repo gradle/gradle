@@ -46,7 +46,6 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.collect.Lists.newLinkedList;
 import static java.lang.String.format;
 import static org.gradle.execution.plan.NodeSets.sortedListOf;
 
@@ -70,7 +69,7 @@ class DetermineExecutionPlanAction {
     private final Set<Node> entryNodes;
     private final Set<Node> finalizers;
 
-    private final LinkedList<NodeInVisitingSegment> nodeQueue = newLinkedList();
+    private final LinkedList<NodeInVisitingSegment> nodeQueue = new LinkedList<>();
     private final HashMultimap<Node, Integer> visitingNodes = HashMultimap.create();
     private final Deque<GraphEdge> walkedShouldRunAfterEdges = new ArrayDeque<>();
     private final Deque<Node> path = new ArrayDeque<>();

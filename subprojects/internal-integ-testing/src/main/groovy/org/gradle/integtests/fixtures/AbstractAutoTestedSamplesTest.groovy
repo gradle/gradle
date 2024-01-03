@@ -23,6 +23,17 @@ class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
     def util = new AutoTestedSamplesUtil()
 
     void runSamplesFrom(String dir) {
+        // make sure all project directories exist
+        def settingsEvaluatedHook = file("settingsEvaluatedHook.gradle") << """
+            def collectChildren(def obj) {
+                [obj] + obj.getChildren().collectMany { collectChildren(it) }
+            }
+            gradle.settingsEvaluated { settings ->
+                collectChildren(settings.rootProject).each { project ->
+                    project.projectDir.mkdirs()
+                }
+            }
+        """
         util.findSamples(dir) { file, sample, tagSuffix ->
             println "Found sample: ${sample.split("\n")[0]} (...) in $file"
             if (tagSuffix.contains('WithoutCC') && GradleContextualExecuter.configCache) {
@@ -38,7 +49,7 @@ class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
             fileToTest.text = sample
             executer
                 .withTasks('help')
-                .withArguments("--stacktrace")
+                .withArguments("--stacktrace", "--init-script", settingsEvaluatedHook.absolutePath)
             beforeSample(file, tagSuffix)
             executer.run()
             fileToTest.delete()

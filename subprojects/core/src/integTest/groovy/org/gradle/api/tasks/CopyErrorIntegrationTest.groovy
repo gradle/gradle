@@ -19,15 +19,12 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.precondition.PreconditionVerifier
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Assert
-import org.junit.Rule
 import org.junit.Test
 
 class CopyErrorIntegrationTest extends AbstractIntegrationTest {
-    @Rule public PreconditionVerifier verifier = new PreconditionVerifier()
 
     @Test
     void givesReasonableErrorMessageWhenPathCannotBeConverted() {
@@ -102,7 +99,7 @@ The following types/formats are supported:
             failure.assertHasDocumentedCause("Cannot access input property 'rootSpec\$1' of task ':copy'. " +
                 "Accessing unreadable inputs or outputs is not supported. " +
                 "Declare the task as untracked by using Task.doNotTrackState(). " +
-                new DocumentationRegistry().getDocumentationRecommendationFor("information", "incremental_build", "disable-state-tracking")
+                new DocumentationRegistry().getDocumentationRecommendationFor("information", "incremental_build", "sec:disable-state-tracking")
             )
             failure.assertHasCause("java.nio.file.AccessDeniedException: ${dir}")
         } finally {

@@ -24,6 +24,8 @@ import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.hamcrest.CoreMatchers
 import spock.lang.Issue
 
@@ -397,6 +399,37 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'zip'
         then:
         file('build/test.zip').assertDoesNotExist()
+    }
+
+    @Requires(UnitTestPreconditions.Symlinks)
+    def "does not create empty #type array on exception"() {
+        given:
+        def output = "test.${type.toLowerCase()}"
+        createDir('test') {
+            dir1 {
+                file("1_file1.txt").write("abc")
+                link('2_link', "non-existent")
+                file("3_file2.txt").write("abcd")
+            }
+        }
+        and:
+        buildFile << """
+            task pack(type: $type) {
+                from 'test'
+                destinationDirectory = buildDir
+                archiveFileName = '$output'
+            }
+        """
+        when:
+        fails 'pack'
+        failure.assertHasCause("Couldn't follow symbolic link")
+        then:
+        file("build/$output").assertDoesNotExist()
+
+        where:
+        type                 | _
+        Zip.class.simpleName | _
+        Tar.class.simpleName | _
     }
 
     def canCreateAZipArchive() {

@@ -18,12 +18,14 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.util.GradleVersion
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 /**
  * Smoke tests for <a href="https://github.com/bndtools/bnd/blob/master/gradle-plugins/README.md">the BND plugin</a>.
  */
+@Requires(UnitTestPreconditions.Jdk17OrLater)
 class BNDSmokeTest extends AbstractPluginValidatingSmokeTest {
     def setup() {
         settingsFile << """
@@ -32,7 +34,7 @@ pluginManagement {
         id "biz.aQute.bnd.builder" version "${TestedVersions.bnd}"
     }
 }
-    
+
 rootProject.name = 'bnd-smoke-test'
 """
     }
@@ -72,11 +74,6 @@ public class Example {
         when:
         runner("jar")
             .forwardOutput()
-            .expectLegacyDeprecationWarning(
-                "The AbstractTask.getConvention() method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
             .build()
 
         then: "version numbers exist in the manifest"
@@ -159,11 +156,6 @@ public class MyUtil {
         when:
         runner(":jar")
             .forwardOutput()
-            .expectLegacyDeprecationWarning(
-                "The AbstractTask.getConvention() method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
             .build()
 
         then: "version numbers exist in the manifest"
@@ -354,11 +346,6 @@ public class MyUtil {
         expect:
         runner(":resolve")
                 .forwardOutput()
-                .expectLegacyDeprecationWarning(
-                        "The AbstractTask.getConvention() method has been deprecated. " +
-                                "This is scheduled to be removed in Gradle 9.0. " +
-                                "Consult the upgrading guide for further information: " +
-                                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
                 .build()
     }
 
@@ -368,9 +355,6 @@ public class MyUtil {
         def pathToBndbnd = "bnd.bnd"
         def pathToBndrun = "my.bndrun"
 
-        settingsFile << """
-include "direct"
-"""
         buildFile << """
 ${addBNDBuilderPlugin()}
 
@@ -433,11 +417,6 @@ Bundle-Activator: com.example.Activator
         expect:
         def result = runner(":run")
                 .forwardOutput()
-                .expectLegacyDeprecationWarning(
-                        "The AbstractTask.getConvention() method has been deprecated. " +
-                                "This is scheduled to be removed in Gradle 9.0. " +
-                                "Consult the upgrading guide for further information: " +
-                                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
                 .build()
 
         assert result.getOutput().contains("Example project ran.")

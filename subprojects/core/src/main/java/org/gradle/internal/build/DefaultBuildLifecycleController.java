@@ -34,8 +34,8 @@ import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.LocalTaskNode;
-import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.QueryableExecutionPlan;
+import org.gradle.execution.plan.ScheduledWork;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.Describables;
 import org.gradle.internal.Pair;
@@ -412,8 +412,8 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         }
 
         @Override
-        public void setScheduledNodes(List<? extends Node> nodes) {
-            plan.setScheduledNodes(nodes);
+        public void setScheduledWork(ScheduledWork work) {
+            plan.setScheduledWork(work);
         }
     }
 }

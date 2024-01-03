@@ -67,7 +67,13 @@ class ConcurrentTestUtil extends ExternalResource {
         finished()
     }
 
-    //simplistic polling assertion. attempts asserting every x millis up to some max timeout
+    /**
+     * Polls the given assertion until it succeeds, or the timeout expires.
+     * <p>
+     * By default, the assertion is polled every 100ms, and the timeout is 10 seconds.
+     *
+     * @param assertion The assertion to poll.
+     */
     static void poll(
         double timeoutInSeconds = 10,
         double initialDelayInSeconds = 0,

@@ -16,15 +16,17 @@
 
 package org.gradle.internal.featurelifecycle;
 
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
-import org.gradle.api.problems.ProblemBuilder;
-import org.gradle.api.problems.ProblemBuilderDefiningLabel;
-import org.gradle.api.problems.ProblemBuilderDefiningLocation;
-import org.gradle.api.problems.ProblemBuilderDefiningType;
-import org.gradle.api.problems.ProblemBuilderSpec;
+import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.DefaultProblemCategory;
+import org.gradle.api.problems.internal.InternalProblemReporter;
+import org.gradle.api.problems.internal.InternalProblemSpec;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
@@ -35,6 +37,7 @@ import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.util.internal.DefaultGradleVersion;
+import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,27 +90,30 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             }
         }
         if (problemsService != null) {
-            problemsService.createProblem(new ProblemBuilderSpec() {
-                    @Override
-                    public ProblemBuilder apply(ProblemBuilderDefiningLabel builder) {
-                        ProblemBuilderDefiningLocation problemBuilderDefiningLocation = builder.label(usage.formattedMessage())
-                            .documentedAt(usage.getDocumentationUrl());
-                        return addPossibleLocation(diagnostics, problemBuilderDefiningLocation)
-                            .type("generic_deprecation")
-                            .severity(WARNING);
-                    }
-                })
-                .report();
+            InternalProblemReporter reporter = ((InternalProblems) problemsService).getInternalReporter();
+            Problem problem = reporter.create(new Action<InternalProblemSpec>() {
+                @Override
+                public void execute(InternalProblemSpec builder) {
+                    ProblemSpec problemSpec = builder
+                        .label(usage.formattedMessage())
+                        .documentedAt(usage.getDocumentationUrl());
+                    addPossibleLocation(diagnostics, problemSpec);
+                    // TODO (donat) we can further categorize deprecation warnings https://github.com/gradle/gradle/issues/26928
+                    problemSpec.category(DefaultProblemCategory.DEPRECATION, TextUtil.screamingSnakeToKebabCase(usage.getType().name()))
+                        .severity(WARNING);
+                }
+            });
+            reporter.report(problem);
         }
         fireDeprecatedUsageBuildOperationProgress(usage, diagnostics);
     }
 
-    private static ProblemBuilderDefiningType addPossibleLocation(ProblemDiagnostics diagnostics, ProblemBuilderDefiningLocation genericDeprecation) {
+    private static void addPossibleLocation(ProblemDiagnostics diagnostics, ProblemSpec genericDeprecation) {
         Location location = diagnostics.getLocation();
         if (location == null) {
-            return genericDeprecation.noLocation();
+            return;
         }
-        return genericDeprecation.location(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber());
+        genericDeprecation.lineInFileLocation(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber());
     }
 
     private void maybeLogUsage(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {

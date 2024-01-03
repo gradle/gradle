@@ -62,39 +62,21 @@ abstract class InstrumentationMetadataTransform : TransformAction<TransformParam
         }
         val instrumentedClassesFile = File(outputDir, INSTRUMENTED_CLASSES_FILE)
         val upgradedPropertiesFile = File(outputDir, UPGRADED_PROPERTIES_FILE)
-        val oldInstrumentedClassesFile: File? = when {
-            instrumentedClassesFile.exists() -> instrumentedClassesFile
-            else -> null
-        }
-        val oldUpgradedPropertiesFile: File? = when {
-            upgradedPropertiesFile.exists() -> upgradedPropertiesFile
-            else -> null
-        }
 
         // Find changes
-        val (newSuperTypes, newInstrumentedClassesFile, newUpgradedPropertiesFile) = findChanges(
-            oldSuperTypes,
-            oldInstrumentedClassesFile,
-            oldUpgradedPropertiesFile
-        )
+        val (newSuperTypes, instrumentedClassesFileChange, upgradedPropertiesFileChange) = findChanges(oldSuperTypes)
 
         // Print output
         superTypesFile.outputStream().use { newSuperTypes.store(it, null) }
-        when (newInstrumentedClassesFile) {
-            null -> instrumentedClassesFile.writeText("")
-            else -> newInstrumentedClassesFile.copyTo(instrumentedClassesFile, overwrite = true)
-        }
-        when (newUpgradedPropertiesFile) {
-            null -> upgradedPropertiesFile.writeText("[]")
-            else -> newUpgradedPropertiesFile.copyTo(upgradedPropertiesFile, overwrite = true)
-        }
+        instrumentedClassesFileChange.writeChange(instrumentedClassesFile)
+        upgradedPropertiesFileChange.writeChange(upgradedPropertiesFile)
     }
 
     private
-    fun findChanges(oldSuperTypes: Properties, oldInstrumentedClassesFile: File?, oldUpgradedPropertiesFile: File?): Triple<Properties, File?, File?> {
+    fun findChanges(oldSuperTypes: Properties): Triple<Properties, MetadataFileChange, MetadataFileChange> {
         val superTypes = Properties().apply { putAll(oldSuperTypes) }
-        var instrumentedClassesFile = oldInstrumentedClassesFile
-        var upgradedPropertiesFile = oldUpgradedPropertiesFile
+        var instrumentedClassesFile: MetadataFileChange = MetadataNotChanged
+        var upgradedPropertiesFile: MetadataFileChange = MetadataNotChanged
         inputChanges.getFileChanges(classesDir)
             .filter { change -> change.fileType == FileType.FILE }
             .forEach { change ->
@@ -123,10 +105,28 @@ abstract class InstrumentationMetadataTransform : TransformAction<TransformParam
     }
 
     private
-    fun handleInstrumentedMetadataFileChange(change: FileChange): File? {
+    fun handleInstrumentedMetadataFileChange(change: FileChange): MetadataFileChange {
         return when (change.changeType) {
-            ADDED, MODIFIED -> change.file
-            REMOVED -> null
+            ADDED, MODIFIED -> MetadataModified(change.file)
+            REMOVED -> MetadataRemoved
         }
     }
+
+    private
+    fun MetadataFileChange.writeChange(output: File) {
+        when (this) {
+            is MetadataNotChanged -> Unit
+            is MetadataRemoved -> output.delete()
+            is MetadataModified -> this.newFile.copyTo(output, overwrite = true)
+        }
+    }
+
+    private
+    sealed interface MetadataFileChange
+    private
+    object MetadataNotChanged : MetadataFileChange
+    private
+    object MetadataRemoved : MetadataFileChange
+    private
+    data class MetadataModified(val newFile: File) : MetadataFileChange
 }

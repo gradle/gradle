@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.DependencyResolveContext
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
-import org.gradle.internal.exceptions.ConfigurationNotConsumableException
+import org.gradle.internal.component.ConfigurationNotConsumableException
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependencySpec.assertDeepCopy

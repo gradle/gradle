@@ -20,7 +20,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.internal.FeaturePreviewsActivationFixture
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.KillProcessAvailability
-import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.TestPrecondition
 import org.gradle.util.internal.VersionNumber
@@ -126,13 +125,6 @@ class IntegTestPreconditions {
         }
     }
 
-    static final class IsIsolatedProjects implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return GradleContextualExecuter.isIsolatedProjects()
-        }
-    }
-
     static final class NotIsolatedProjects implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
@@ -208,74 +200,11 @@ class IntegTestPreconditions {
         }
     }
 
-    static class Java9HomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getJdk(
-                JavaVersion.toVersion(9)
-            )
-        }
-    }
-
-    static class Java10HomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getJdk(
-                JavaVersion.toVersion(10)
-            )
-        }
-    }
-
     static class Java11HomeAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
             return AvailableJavaHomes.getJdk(
                 JavaVersion.toVersion(11)
-            )
-        }
-    }
-
-    static class Java12HomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getJdk(
-                JavaVersion.toVersion(12)
-            )
-        }
-    }
-
-    static class Java13HomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getJdk(
-                JavaVersion.toVersion(13)
-            )
-        }
-    }
-
-    static class Java14HomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getJdk(
-                JavaVersion.toVersion(14)
-            )
-        }
-    }
-
-    static class Java15HomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getJdk(
-                JavaVersion.toVersion(15)
-            )
-        }
-    }
-
-    static class Java16HomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getJdk(
-                JavaVersion.toVersion(16)
             )
         }
     }
@@ -366,6 +295,17 @@ class IntegTestPreconditions {
         }
     }
 
+    static class Jdk17FromMultipleVendors implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getAvailableJvmMetadatas().stream()
+                .filter(metadata -> JavaVersion.VERSION_17 == metadata.languageVersion)
+                .map {metadata -> metadata.vendor.rawVendor }
+                .distinct()
+                .count() >= 2
+        }
+    }
+
     static class DifferentJdkAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
@@ -386,13 +326,6 @@ class IntegTestPreconditions {
         boolean isSatisfied() {
             // The S3 publish tests require the following
             return satisfied(UnitTestPreconditions.Jdk9OrLater) || notSatisfied(IsEmbeddedExecutor)
-        }
-    }
-
-    static final class AgentInstrumentationDisabled implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return !AbstractGradleExecuter.isAgentInstrumentationEnabled()
         }
     }
 
@@ -420,7 +353,7 @@ class IntegTestPreconditions {
     static final class Groovy3OrEarlier implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return VersionNumber.parse(GroovySystem.version).major < 3
+            return VersionNumber.parse(GroovySystem.version).major <= 3
         }
     }
 }

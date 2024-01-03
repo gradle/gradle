@@ -26,6 +26,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -36,7 +37,7 @@ import java.util.stream.StreamSupport;
 public class GitIgnoreGenerator implements BuildContentGenerator {
 
     @Override
-    public void generate(InitSettings settings) {
+    public void generate(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
         File file = settings.getTarget().file(".gitignore").getAsFile();
         Set<String> gitignoresToAppend = getGitignoresToAppend(file);
         if (!gitignoresToAppend.isEmpty()) {
@@ -68,7 +69,7 @@ public class GitIgnoreGenerator implements BuildContentGenerator {
     }
 
     private static List<String> withComment(String entry) {
-        List<String> result = Lists.newArrayList();
+        List<String> result = new ArrayList<>();
         if (entry.startsWith(".gradle")) {
             result.add("# Ignore Gradle project-specific cache directory");
         } else if (entry.startsWith("build")) {

@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -27,6 +28,7 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.internal.JvmLanguageUtilities;
 import org.gradle.api.provider.Provider;
@@ -42,7 +44,10 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
+
+import java.util.function.Supplier;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
@@ -81,13 +86,21 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
         configureGroovydoc(project, groovyRuntime);
     }
 
-    private static void configureCompileDefaults(Project project, GroovyRuntime groovyRuntime) {
-        project.getTasks().withType(GroovyCompile.class).configureEach(compile ->
+    private void configureCompileDefaults(Project project, GroovyRuntime groovyRuntime) {
+        project.getTasks().withType(GroovyCompile.class).configureEach(compile -> {
             compile.getConventionMapping().map(
                 "groovyClasspath",
                 () -> groovyRuntime.inferGroovyClasspath(compile.getClasspath())
-            )
-        );
+            );
+
+            DefaultJavaPluginExtension javaExtension = (DefaultJavaPluginExtension) project.getExtensions().getByType(JavaPluginExtension.class);
+            JvmPluginsHelper.configureCompileDefaults(compile, javaExtension, (@Nullable JavaVersion rawConvention, Supplier<JavaVersion> javaVersionSupplier) -> {
+                if (rawConvention != null) {
+                    return rawConvention;
+                }
+                return JavaVersion.toVersion(compile.getJavaLauncher().get().getMetadata().getLanguageVersion().toString());
+            });
+        });
     }
 
     private void configureSourceSetDefaults(Project project) {

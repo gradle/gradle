@@ -2,7 +2,7 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "Services and utilities needed by Gradle Enterprise plugin"
+description = "Services and utilities needed by Develocity plugin"
 
 dependencies {
     api(project(":base-services"))

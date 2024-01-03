@@ -22,17 +22,17 @@ import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.classpath.GroovyCallInterceptorsProvider.ClassLoaderSourceGroovyCallInterceptorsProvider;
-import org.gradle.internal.classpath.JvmBytecodeInterceptorSet.ClassLoaderSourceJvmBytecodeInterceptorSet;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
-import org.gradle.internal.classpath.intercept.CallInterceptorResolver;
-import org.gradle.internal.classpath.intercept.CallInterceptorsSet;
-import org.gradle.internal.classpath.intercept.CallSiteDecorator;
 import org.gradle.internal.classpath.intercept.ClassBoundCallInterceptor;
 import org.gradle.internal.classpath.intercept.InterceptScope;
 import org.gradle.internal.classpath.intercept.Invocation;
+import org.gradle.internal.configuration.inputs.AccessTrackingEnvMap;
+import org.gradle.internal.configuration.inputs.AccessTrackingProperties;
+import org.gradle.internal.configuration.inputs.InstrumentedInputs;
+import org.gradle.internal.configuration.inputs.InstrumentedInputsListener;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.InstrumentationInterceptor;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.internal.lazy.Lazy;
 
 import javax.annotation.Nullable;
@@ -48,101 +48,25 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.WeakHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import static org.gradle.internal.classpath.Instrumented.CallInterceptorRegistry.getGroovyCallDecorator;
 import static org.gradle.internal.classpath.MethodHandleUtils.findStaticOrThrowError;
 import static org.gradle.internal.classpath.MethodHandleUtils.lazyKotlinStaticDefaultHandle;
+import static org.gradle.internal.classpath.intercept.CallInterceptorRegistry.getGroovyCallDecorator;
 
 public class Instrumented {
-    private static final Listener NO_OP = new Listener() {
-        @Override
-        public void systemPropertyQueried(String key, @Nullable Object value, String consumer) {
-        }
-
-        @Override
-        public void systemPropertyChanged(Object key, @Nullable Object value, String consumer) {
-        }
-
-        @Override
-        public void systemPropertyRemoved(Object key, String consumer) {
-        }
-
-        @Override
-        public void systemPropertiesCleared(String consumer) {
-        }
-
-        @Override
-        public void envVariableQueried(String key, @Nullable String value, String consumer) {
-        }
-
-        @Override
-        public void externalProcessStarted(String command, String consumer) {
-        }
-
-        @Override
-        public void fileOpened(File file, String consumer) {
-        }
-
-        @Override
-        public void fileObserved(File file, String consumer) {
-        }
-
-        @Override
-        public void fileSystemEntryObserved(File file, String consumer) {
-        }
-
-        @Override
-        public void directoryContentObserved(File file, String consumer) {
-        }
-    };
-
-    @NonNullApi
-    public static class CallInterceptorRegistry {
-        private static final Map<ClassLoader, Boolean> LOADED_FROM_CLASSLOADERS = Collections.synchronizedMap(new WeakHashMap<>());
-        private static volatile CallSiteDecorator currentGroovyCallDecorator = new CallInterceptorsSet(GroovyCallInterceptorsProvider.DEFAULT);
-        private static volatile JvmBytecodeInterceptorSet currentJvmBytecodeInterceptors = JvmBytecodeInterceptorSet.DEFAULT;
-
-        public synchronized static void loadCallInterceptors(ClassLoader classLoader) {
-            if (LOADED_FROM_CLASSLOADERS.put(classLoader, true) != null) {
-                throw new RuntimeException("Cannot load interceptors twice for class loader: " + classLoader);
-            }
-
-            GroovyCallInterceptorsProvider classLoaderGroovyCallInterceptors = new ClassLoaderSourceGroovyCallInterceptorsProvider(classLoader);
-            GroovyCallInterceptorsProvider callInterceptors = GroovyCallInterceptorsProvider.DEFAULT.plus(classLoaderGroovyCallInterceptors);
-            currentGroovyCallDecorator = new CallInterceptorsSet(callInterceptors);
-            ClassLoaderSourceJvmBytecodeInterceptorSet classLoaderJvmBytecodeInterceptors = new ClassLoaderSourceJvmBytecodeInterceptorSet(classLoader);
-            currentJvmBytecodeInterceptors = JvmBytecodeInterceptorSet.DEFAULT.plus(classLoaderJvmBytecodeInterceptors);
-        }
-
-        public static CallSiteDecorator getGroovyCallDecorator() {
-            return currentGroovyCallDecorator;
-        }
-
-        public static JvmBytecodeInterceptorSet getJvmBytecodeInterceptors() {
-            return currentJvmBytecodeInterceptors;
-        }
-    }
-
-    private static final AtomicReference<Listener> LISTENER = new AtomicReference<>(NO_OP);
-
-    public static void setListener(Listener listener) {
-        LISTENER.set(listener);
-    }
-
-    public static void discardListener() {
-        setListener(NO_OP);
+    @SuppressWarnings("deprecation")
+    private static InstrumentedInputsListener listener() {
+        return InstrumentedInputs.listener();
     }
 
     /**
      * This API follows the requirements in {@link org.gradle.internal.classpath.GroovyCallInterceptorsProvider.ClassSourceGroovyCallInterceptorsProvider}.
+     *
      * @deprecated This should not be called from the sources.
      */
     @SuppressWarnings("unused")
@@ -165,49 +89,11 @@ public class Instrumented {
         );
     }
 
-    @NonNullApi
-    private static final class InterceptorResolverImpl implements CallInterceptorResolver {
-        @Nullable
-        @Override
-        public CallInterceptor resolveCallInterceptor(InterceptScope scope) {
-            CallSiteDecorator currentDecorator = getGroovyCallDecorator();
-            if (currentDecorator instanceof CallInterceptorResolver) {
-                return ((CallInterceptorResolver) currentDecorator).resolveCallInterceptor(scope);
-            }
-            return null;
-        }
-
-        @Override
-        public boolean isAwareOfCallSiteName(String name) {
-            CallSiteDecorator currentDecorator = getGroovyCallDecorator();
-            if (currentDecorator instanceof CallInterceptorResolver) {
-                return ((CallInterceptorResolver) currentDecorator).isAwareOfCallSiteName(name);
-            }
-            return false;
-        }
-    }
-
-    public static final CallInterceptorResolver INTERCEPTOR_RESOLVER = new InterceptorResolverImpl();
-
-    // TODO: We can support getting the interceptors in the instrumented code from different locations, not just `Instrumented.currentCallDecorator`,
-    //       so that replacing the call interceptors for tests would instead work by embedding a different location
-    //       than this one in the instrumented code. Doing that adds much more complexity in the instrumentation.
-    @NonNullApi
-    public static class GroovyCallInterceptorInternalTesting {
-        static CallSiteDecorator getCurrentGroovyCallSiteDecorator() {
-            return getGroovyCallDecorator();
-        }
-
-        static void setCurrentGroovyCallSiteDecorator(CallSiteDecorator interceptorsSet) {
-            CallInterceptorRegistry.currentGroovyCallDecorator = interceptorsSet;
-        }
-    }
-
     // Called by generated code
     @SuppressWarnings("unused")
-    public static void groovyCallSites(CallSiteArray array) {
+    public static void groovyCallSites(CallSiteArray array, BytecodeInterceptorFilter interceptorFilter) {
         for (CallSite callSite : array.array) {
-            array.array[callSite.getIndex()] = getGroovyCallDecorator().maybeDecorateGroovyCallSite(callSite);
+            array.array[callSite.getIndex()] = getGroovyCallDecorator(interceptorFilter).maybeDecorateGroovyCallSite(callSite);
         }
     }
 
@@ -224,8 +110,17 @@ public class Instrumented {
      * @return the produced CallSite
      * @see IndyInterface
      */
-    public static java.lang.invoke.CallSite bootstrap(MethodHandles.Lookup caller, String callType, MethodType type, String name, int flags) {
-        return getGroovyCallDecorator().maybeDecorateIndyCallSite(
+    // Called by generated code
+    @SuppressWarnings("unused")
+    public static java.lang.invoke.CallSite bootstrapInstrumentationOnly(MethodHandles.Lookup caller, String callType, MethodType type, String name, int flags) {
+        return getGroovyCallDecorator(BytecodeInterceptorFilter.INSTRUMENTATION_ONLY).maybeDecorateIndyCallSite(
+            IndyInterface.bootstrap(caller, callType, type, name, flags), caller, callType, name, flags);
+    }
+
+    // Called by generated code
+    @SuppressWarnings("unused")
+    public static java.lang.invoke.CallSite bootstrapAll(MethodHandles.Lookup caller, String callType, MethodType type, String name, int flags) {
+        return getGroovyCallDecorator(BytecodeInterceptorFilter.ALL).maybeDecorateIndyCallSite(
             IndyInterface.bootstrap(caller, callType, type, name, flags), caller, callType, name, flags);
     }
 
@@ -570,10 +465,6 @@ public class Instrumented {
         externalProcessStarted(joinCommand(command), consumer);
     }
 
-    private static Listener listener() {
-        return LISTENER.get();
-    }
-
     private static String convertToString(Object arg) {
         if (arg instanceof CharSequence) {
             return ((CharSequence) arg).toString();
@@ -587,73 +478,6 @@ public class Instrumented {
 
     private static String joinCommand(List<?> command) {
         return command.stream().map(String::valueOf).collect(Collectors.joining(" "));
-    }
-
-    public interface Listener {
-        /**
-         * Invoked when the code reads the system property with the String key.
-         *
-         * @param key the name of the property
-         * @param value the value of the property at the time of reading or {@code null} if the property is not present
-         * @param consumer the name of the class that is reading the property value
-         */
-        void systemPropertyQueried(String key, @Nullable Object value, String consumer);
-
-        /**
-         * Invoked when the code updates or adds the system property.
-         *
-         * @param key the name of the property, can be non-string
-         * @param value the new value of the property, can be {@code null} or non-string
-         * @param consumer the name of the class that is updating the property value
-         */
-        void systemPropertyChanged(Object key, @Nullable Object value, String consumer);
-
-        /**
-         * Invoked when the code removes the system property. The property may not be present.
-         *
-         * @param key the name of the property, can be non-string
-         * @param consumer the name of the class that is removing the property value
-         */
-        void systemPropertyRemoved(Object key, String consumer);
-
-        /**
-         * Invoked when all system properties are removed.
-         *
-         * @param consumer the name of the class that is removing the system properties
-         */
-        void systemPropertiesCleared(String consumer);
-
-        /**
-         * Invoked when the code reads the environment variable.
-         *
-         * @param key the name of the variable
-         * @param value the value of the variable
-         * @param consumer the name of the class that is reading the variable
-         */
-        void envVariableQueried(String key, @Nullable String value, String consumer);
-
-        /**
-         * Invoked when the code starts an external process. The command string with all argument is provided for reporting but its value may not be suitable to actually invoke the command because all
-         * arguments are joined together (separated by space) and there is no escaping of special characters.
-         *
-         * @param command the command used to start the process (with arguments)
-         * @param consumer the name of the class that is starting the process
-         */
-        void externalProcessStarted(String command, String consumer);
-
-        /**
-         * Invoked when the code opens a file.
-         *
-         * @param file the absolute file that was open
-         * @param consumer the name of the class that is opening the file
-         */
-        void fileOpened(File file, String consumer);
-
-        void fileObserved(File file, String consumer);
-
-        void fileSystemEntryObserved(File file, String consumer);
-
-        void directoryContentObserved(File file, String consumer);
     }
 
     /**
@@ -827,7 +651,7 @@ public class Instrumented {
     /**
      * The interceptor for all overloads of {@code Runtime.exec}.
      */
-    private static class RuntimeExecInterceptor extends CallInterceptor {
+    private static class RuntimeExecInterceptor extends CallInterceptor implements InstrumentationInterceptor {
         public RuntimeExecInterceptor() {
             super(InterceptScope.methodsNamed("exec"));
         }
@@ -871,7 +695,7 @@ public class Instrumented {
     /**
      * The interceptor for Groovy's {@code String.execute}, {@code String[].execute}, and {@code List.execute}. This also handles {@code ProcessGroovyMethods.execute}.
      */
-    private static class ProcessGroovyMethodsExecuteInterceptor extends CallInterceptor {
+    private static class ProcessGroovyMethodsExecuteInterceptor extends CallInterceptor implements InstrumentationInterceptor {
         protected ProcessGroovyMethodsExecuteInterceptor() {
             super(InterceptScope.methodsNamed("execute"));
         }
@@ -938,7 +762,7 @@ public class Instrumented {
     /**
      * The interceptor for {@link ProcessBuilder#start()}.
      */
-    private static class ProcessBuilderStartInterceptor extends CallInterceptor {
+    private static class ProcessBuilderStartInterceptor extends CallInterceptor implements InstrumentationInterceptor {
         ProcessBuilderStartInterceptor() {
             super(InterceptScope.methodsNamed("start"));
         }

@@ -35,11 +35,13 @@ class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private static String waitForMemoryEventsTask() {
-        return '''
+        return groovyScript('''
             import java.util.concurrent.CountDownLatch
             import org.gradle.process.internal.health.memory.*
 
             task waitForMemoryEvents {
+                def projectDir = project.layout.projectDirectory
+                def logger = logger
                 doLast {
                     final CountDownLatch osNotification = new CountDownLatch(1)
                     final CountDownLatch jvmNotification = new CountDownLatch(1)
@@ -48,22 +50,22 @@ class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
                     manager.addListener(new JvmMemoryStatusListener() {
                         void onJvmMemoryStatus(JvmMemoryStatus memoryStatus) {
                             logger.lifecycle "JVM MemoryStatus notification: $memoryStatus"
-                            file("jvmReceived").createNewFile()
+                            projectDir.file("jvmReceived").asFile.createNewFile()
                             jvmNotification.countDown()
                         }
                     })
                     manager.addListener(new OsMemoryStatusListener() {
                         void onOsMemoryStatus(OsMemoryStatus memoryStatus) {
                             logger.lifecycle "OS MemoryStatus notification: $memoryStatus"
-                            file("osReceived").createNewFile()
+                            projectDir.file("osReceived").asFile.createNewFile()
                             osNotification.countDown()
                         }
                     })
                     logger.warn "Waiting for memory status events..."
-                    jvmNotification.await()
                     osNotification.await()
+                    jvmNotification.await()
                 }
             }
-        '''.stripIndent()
+        ''').stripIndent()
     }
 }

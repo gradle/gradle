@@ -31,6 +31,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 
     def "context travels to transitive dependencies"() {
         given:
+        createDirs("a", "b", "includedBuild")
         file('settings.gradle') << """
             include 'a', 'b'
             includeBuild 'includedBuild'
@@ -138,6 +139,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         mavenRepo.module('com.acme.external', 'external', '1.2')
             .dependsOn('com.acme.external', 'c', '0.1')
             .publish()
+        createDirs("a", "b", "includedBuild")
         file('settings.gradle') << """
             include 'a', 'b'
             includeBuild 'includedBuild'
@@ -252,6 +254,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         ivyRepo.module('com.acme.external', 'external', '1.2')
             .dependsOn('com.acme.external', 'c', '0.1')
             .publish()
+        createDirs("a", "b", "includedBuild")
         file('settings.gradle') << """
             include 'a', 'b'
             includeBuild 'includedBuild'
@@ -363,6 +366,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 
     def "attribute values are matched across builds - #type"() {
         given:
+        createDirs("a", "b", "includedBuild")
         file('settings.gradle') << """
             include 'a', 'b'
             includeBuild 'includedBuild'
@@ -478,6 +482,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 
     def "compatibility and disambiguation rules can be defined by consuming build"() {
         given:
+        createDirs("a", "b", "includedBuild")
         file('settings.gradle') << """
             include 'a', 'b'
             includeBuild 'includedBuild'
@@ -603,6 +608,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 
     def "reports failure to resolve due to incompatible attribute values"() {
         given:
+        createDirs("a", "b", "includedBuild")
         file('settings.gradle') << """
             include 'a', 'b'
             includeBuild 'includedBuild'
@@ -712,6 +718,7 @@ All of them match the consumer attributes:
         buildTypedAttributesPlugin('1.1')
 
         given:
+        createDirs("a", "b", "includedBuild")
         settingsFile.text = """
             pluginManagement {
                 repositories {

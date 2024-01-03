@@ -5,7 +5,9 @@ plugins {
 description = "Provides a plugin for publishing some of Gradle's subprojects to Artifactory or the Plugin Portal"
 
 dependencies {
-    implementation(project(":module-identity"))
+    implementation("gradlebuild:basics")
+    implementation("gradlebuild:module-identity")
+
     implementation(project(":integration-testing"))
 
     implementation("com.gradle.publish:plugin-publish-plugin")

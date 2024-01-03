@@ -20,7 +20,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.NonNullApi;
 
 /**
- * Gradle Enterprise specific extensions of {@link TaskOutputsInternal}.
+ * Develocity specific extensions of {@link TaskOutputsInternal}.
  * <p>
  * This class exists to hide these additional methods from the public API since {@link DefaultTask#getOutputs()}
  * returns {@link TaskOutputsInternal} rather than {@link org.gradle.api.tasks.TaskOutputs}.

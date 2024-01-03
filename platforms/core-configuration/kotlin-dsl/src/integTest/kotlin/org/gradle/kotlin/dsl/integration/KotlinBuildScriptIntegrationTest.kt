@@ -378,7 +378,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
         ).forEach { accessFlavor ->
             withBuildScript(accessFlavor)
             buildAndFail("help").apply {
-                assertHasFailure("Extension of type 'SourceDirectorySet' does not exist. Currently registered extension types: [ExtraPropertiesExtension]") {}
+                assertHasFailure("Extension of type 'SourceDirectorySet' does not exist. Currently registered extension types: [ExtraPropertiesExtension, VersionCatalogsExtension]") {}
             }
         }
     }

@@ -4,7 +4,7 @@ import java.util.jar.Attributes
 
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("com.gradleup.gr8") version "0.9"
+    id("com.gradleup.gr8") version "0.10"
 }
 
 description = "Bootstraps a Gradle build initiated by the gradlew script"
@@ -19,6 +19,8 @@ dependencies {
     testImplementation(project(":base-services"))
     testImplementation(testFixtures(project(":core")))
 
+    integTestImplementation(project(":build-option"))
+    integTestImplementation(project(":launcher"))
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":core-api"))
     integTestImplementation(libs.commonsIo)
@@ -72,6 +74,16 @@ tasks.named<EmbeddedJarTask>("gr8EmbeddedJar") {
     dependsOn(executableJar)
 }
 
+// https://github.com/gradle/gradle/issues/26658
+// Before introducing gr8, wrapper jar is generated as build/libs/gradle-wrapper.jar and used in promotion build
+// After introducing gr8, wrapper jar is generated as build/libs/gradle-wrapper-executable.jar and processed
+//   by gr8, then the processed `gradle-wrapper.jar` need to be copied back to build/libs for promotion build
+val copyGr8OutputJarAsGradleWrapperJar by tasks.registering(Copy::class) {
+    from(tasks.named<Gr8Task>("gr8R8Jar").flatMap { it.outputJar() })
+    into(layout.buildDirectory.dir("libs"))
+}
+
 tasks.jar {
     from(tasks.named<Gr8Task>("gr8R8Jar").flatMap { it.outputJar() })
+    dependsOn(copyGr8OutputJarAsGradleWrapperJar)
 }

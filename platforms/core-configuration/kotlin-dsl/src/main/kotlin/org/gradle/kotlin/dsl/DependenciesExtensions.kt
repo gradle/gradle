@@ -27,7 +27,7 @@ import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.MinimalExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.dsl.Dependencies
-import org.gradle.api.artifacts.dsl.DependencyAdder
+import org.gradle.api.artifacts.dsl.DependencyCollector
 import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.artifacts.dsl.DependencyModifier
 import org.gradle.api.artifacts.dsl.GradleDependencies
@@ -37,13 +37,13 @@ import org.gradle.api.provider.ProviderConvertible
 
 
 /**
- * This file is used to add [Kotlin extension functions](https://kotlinlang.org/docs/extensions.html) to [Dependencies], [DependencyAdder] and [DependencyModifier] to make the Kotlin DSL more idiomatic.
+ * This file is used to add [Kotlin extension functions](https://kotlinlang.org/docs/extensions.html) to [Dependencies], [DependencyCollector] and [DependencyModifier] to make the Kotlin DSL more idiomatic.
  *
  * These extension functions allow an interface to implement a dependencies block in the Kotlin DSL by
- * - exposing an instance of [DependencyAdder] to add dependencies without explicitly calling [DependencyAdder.add]
+ * - exposing an instance of [DependencyCollector] to add dependencies without explicitly calling [DependencyCollector.add]
  * - exposing an instance of [DependencyModifier] to modify dependencies without explicitly calling [DependencyModifier.modify]
  *
- * There are `invoke(...)` equivalents for all the `add(...)` methods in [DependencyAdder].
+ * There are `invoke(...)` equivalents for all the `add(...)` methods in [DependencyCollector].
  *
  * There are `invoke(...)` equivalents for all the `modify(...)` methods in [DependencyModifier].
  *
@@ -51,7 +51,7 @@ import org.gradle.api.provider.ProviderConvertible
  *
  * @see org.gradle.api.internal.artifacts.dsl.dependencies.DependenciesExtensionModule
  * @see Dependencies
- * @see DependencyAdder
+ * @see DependencyCollector
  * @see DependencyModifier
  * @see DependencyFactory
  *
@@ -61,7 +61,7 @@ import org.gradle.api.provider.ProviderConvertible
 private
 class DependenciesExtensions {
     interface MyDependencies : GradleDependencies {
-        val implementation: DependencyAdder
+        val implementation: DependencyCollector
         val testFixtures: DependencyModifier
         operator fun invoke(action: Action<in MyDependencies>)
     }
@@ -138,9 +138,9 @@ operator fun DependencyModifier.invoke(dependency: Provider<out ModuleDependency
  *
  * @param dependencyNotation dependency to add
  * @see DependencyFactory.create
- * @since 8.0
+ * @since 8.6
  */
-operator fun DependencyAdder.invoke(dependencyNotation: CharSequence) = add(dependencyNotation)
+operator fun DependencyCollector.invoke(dependencyNotation: CharSequence) = add(dependencyNotation)
 
 
 /**
@@ -149,18 +149,18 @@ operator fun DependencyAdder.invoke(dependencyNotation: CharSequence) = add(depe
  * @param dependencyNotation dependency to add
  * @param configuration an action to configure the dependency
  * @see DependencyFactory.create
- * @since 8.0
+ * @since 8.6
  */
-operator fun DependencyAdder.invoke(dependencyNotation: CharSequence, configuration: Action<in ExternalModuleDependency>) = add(dependencyNotation, configuration)
+operator fun DependencyCollector.invoke(dependencyNotation: CharSequence, configuration: Action<in ExternalModuleDependency>) = add(dependencyNotation, configuration)
 
 
 /**
  * Add a dependency.
  *
  * @param files files to add as a dependency
- * @since 8.0
+ * @since 8.6
  */
-operator fun DependencyAdder.invoke(files: FileCollection) = add(files)
+operator fun DependencyCollector.invoke(files: FileCollection) = add(files)
 
 
 /**
@@ -168,18 +168,18 @@ operator fun DependencyAdder.invoke(files: FileCollection) = add(files)
  *
  * @param files files to add as a dependency
  * @param configuration an action to configure the dependency
- * @since 8.0
+ * @since 8.6
  */
-operator fun DependencyAdder.invoke(files: FileCollection, configuration: Action<in FileCollectionDependency>) = add(files, configuration)
+operator fun DependencyCollector.invoke(files: FileCollection, configuration: Action<in FileCollectionDependency>) = add(files, configuration)
 
 
 /**
  * Add a dependency.
  *
  * @param externalModule external module to add as a dependency
- * @since 8.0
+ * @since 8.6
  */
-operator fun DependencyAdder.invoke(externalModule: ProviderConvertible<out MinimalExternalModuleDependency>) = add(externalModule)
+operator fun DependencyCollector.invoke(externalModule: ProviderConvertible<out MinimalExternalModuleDependency>) = add(externalModule)
 
 
 /**
@@ -187,37 +187,18 @@ operator fun DependencyAdder.invoke(externalModule: ProviderConvertible<out Mini
  *
  * @param externalModule external module to add as a dependency
  * @param configuration an action to configure the dependency
- * @since 8.0
+ * @since 8.6
  */
-operator fun DependencyAdder.invoke(externalModule: ProviderConvertible<out MinimalExternalModuleDependency>, configuration: Action<in ExternalModuleDependency>) = add(externalModule, configuration)
+operator fun DependencyCollector.invoke(externalModule: ProviderConvertible<out MinimalExternalModuleDependency>, configuration: Action<in ExternalModuleDependency>) = add(externalModule, configuration)
 
 
 /**
  * Add a dependency.
  *
  * @param dependency dependency to add
- * @since 8.0
+ * @since 8.6
  */
-operator fun DependencyAdder.invoke(dependency: Dependency) = add(dependency)
-
-
-/**
- * Add a dependency.
- *
- * @param dependency dependency to add
- * @param configuration an action to configure the dependency
- * @since 8.0
- */
-operator fun <D : Dependency> DependencyAdder.invoke(dependency: D, configuration: Action<in D>) = add(dependency, configuration)
-
-
-/**
- * Add a dependency.
- *
- * @param dependency dependency to add
- * @since 8.0
- */
-operator fun DependencyAdder.invoke(dependency: Provider<out Dependency>) = add(dependency)
+operator fun DependencyCollector.invoke(dependency: Dependency) = add(dependency)
 
 
 /**
@@ -225,6 +206,25 @@ operator fun DependencyAdder.invoke(dependency: Provider<out Dependency>) = add(
  *
  * @param dependency dependency to add
  * @param configuration an action to configure the dependency
- * @since 8.0
+ * @since 8.6
  */
-operator fun <D : Dependency> DependencyAdder.invoke(dependency: Provider<out D>, configuration: Action<in D>) = add(dependency, configuration)
+operator fun <D : Dependency> DependencyCollector.invoke(dependency: D, configuration: Action<in D>) = add(dependency, configuration)
+
+
+/**
+ * Add a dependency.
+ *
+ * @param dependency dependency to add
+ * @since 8.6
+ */
+operator fun DependencyCollector.invoke(dependency: Provider<out Dependency>) = add(dependency)
+
+
+/**
+ * Add a dependency.
+ *
+ * @param dependency dependency to add
+ * @param configuration an action to configure the dependency
+ * @since 8.6
+ */
+operator fun <D : Dependency> DependencyCollector.invoke(dependency: Provider<out D>, configuration: Action<in D>) = add(dependency, configuration)

@@ -29,6 +29,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @ToBeFixedForConfigurationCache
     void buildsCorrectModuleDependencies() {
         def settingsFile = file("settings.gradle")
+        createDirs("api", "shared", "shared/api", "shared/model", "util")
         settingsFile << """
             rootProject.name = "master"
             include 'api'
@@ -83,6 +84,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @Test
     @ToBeFixedForConfigurationCache
     void buildsCorrectModuleDependenciesForDependencyOnRoot() {
+        createDirs("api")
         file("settings.gradle") << """
             rootProject.name = 'root-project-1'
             include 'api'
@@ -117,6 +119,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @ToBeFixedForConfigurationCache
     void respectsApiOfJavaLibraries() {
         def settingsFile = file("settings.gradle")
+        createDirs("api", "impl", "library", "application")
         settingsFile << """
             rootProject.name = "master"
             include 'api'
@@ -168,6 +171,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @Test
     @ToBeFixedForConfigurationCache
     void buildsCorrectModuleDependenciesWhenRootProjectDoesNotApplyIdePlugin() {
+        createDirs("api", "util", "other")
         file("settings.gradle") << """
             rootProject.name = 'root-project-1'
 
@@ -235,6 +239,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
       */
 
         def settingsFile = file("settings.gradle")
+        createDirs("api", "shared", "shared/api", "shared/model", "services", "services/utilities", "util", "contrib", "contrib/services", "contrib/services/util")
         settingsFile << """
             rootProject.name = "master"
             include 'api'
@@ -322,6 +327,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     void allowsFullyReconfiguredModuleNames() {
         //use case from the mailing list
         def settingsFile = file("settings.gradle")
+        createDirs("api", "shared", "shared/model")
         settingsFile << """
             rootProject.name = "master"
             include 'api', 'shared:model'
@@ -363,6 +369,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @ToBeFixedForConfigurationCache
     void handlesModuleDependencyCycles() {
         def settingsFile = file("settings.gradle")
+        createDirs("one", "two", "three")
         settingsFile << """
             rootProject.name = "master"
             include 'one'
@@ -423,6 +430,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         def someLib2Jar= mavenRepo.module('someGroup', 'someLib', '2.0').publish().artifactFile
 
         def settingsFile = file("settings.gradle")
+        createDirs("one", "two")
         settingsFile << """
             rootProject.name = "master"
             include 'one'
@@ -486,6 +494,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @ToBeFixedForConfigurationCache
     void cleansCorrectlyWhenModuleNamesAreChangedOrDeduplicated() {
         def settingsFile = file("settings.gradle")
+        createDirs("api", "shared", "shared/api", "contrib")
         settingsFile << """
             rootProject.name = "master"
             include 'api', 'shared:api', 'contrib'
@@ -521,6 +530,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @ToBeFixedForConfigurationCache
     void handlesInternalDependenciesToNonIdeaProjects() {
         def settingsFile = file("settings.gradle")
+        createDirs("api", "nonIdeaProject")
         settingsFile << """
             rootProject.name = "master"
             include 'api', 'nonIdeaProject'
@@ -552,6 +562,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @ToBeFixedForConfigurationCache
     void doesNotCreateDuplicateEntriesInIpr() {
         def settingsFile = file("settings.gradle")
+        createDirs("api", "iml")
         settingsFile << """
             rootProject.name = "master"
             include 'api', 'iml'
@@ -577,6 +588,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @ToBeFixedForConfigurationCache
     void buildsCorrectModuleDependenciesWithScopes() {
         def settingsFile = file("settings.gradle")
+        createDirs("api", "impl", "app")
         settingsFile << """
             rootProject.name = "master"
             include 'api'

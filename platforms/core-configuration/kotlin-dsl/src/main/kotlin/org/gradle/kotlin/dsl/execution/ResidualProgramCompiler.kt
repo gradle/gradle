@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.execution
 
-import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.internal.classpath.ClassPath
@@ -35,6 +34,7 @@ import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsBuildscriptBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsPluginManagementBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
 import org.gradle.kotlin.dsl.support.ImplicitReceiver
+import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
 import org.gradle.kotlin.dsl.support.bytecode.ARETURN
@@ -59,7 +59,6 @@ import org.gradle.kotlin.dsl.support.bytecode.publicClass
 import org.gradle.kotlin.dsl.support.bytecode.publicDefaultConstructor
 import org.gradle.kotlin.dsl.support.bytecode.publicMethod
 import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
-import org.gradle.kotlin.dsl.support.messageCollectorFor
 import org.gradle.kotlin.dsl.support.scriptDefinitionFromTemplate
 import org.gradle.plugin.management.internal.MultiPluginRequests
 import org.gradle.plugin.use.internal.PluginRequestCollector
@@ -84,8 +83,7 @@ typealias CompileBuildOperationRunner = (String, String, () -> String) -> String
 internal
 class ResidualProgramCompiler(
     private val outputDir: File,
-    private val jvmTarget: JavaVersion,
-    private val allWarningsAsErrors: Boolean,
+    private val compilerOptions: KotlinCompilerOptions,
     private val classPath: ClassPath = ClassPath.EMPTY,
     private val originalSourceHash: HashCode,
     private val programKind: ProgramKind,
@@ -711,15 +709,15 @@ class ResidualProgramCompiler(
         compileBuildOperationRunner(originalPath, stage) {
             compileKotlinScriptToDirectory(
                 outputDir,
-                jvmTarget,
+                compilerOptions,
                 scriptFile,
                 scriptDefinition,
                 compileClassPath.asFiles,
-                messageCollectorFor(logger, allWarningsAsErrors) { path ->
-                    if (path == scriptFile.path) originalPath
-                    else path
-                }
-            )
+                logger
+            ) { path ->
+                if (path == scriptFile.path) originalPath
+                else path
+            }
         }.let { compiledScriptClassName ->
             packageName
                 ?.let { "$it.$compiledScriptClassName" }

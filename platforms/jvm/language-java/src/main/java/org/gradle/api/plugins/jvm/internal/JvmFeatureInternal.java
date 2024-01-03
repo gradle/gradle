@@ -15,12 +15,13 @@
  */
 package org.gradle.api.plugins.jvm.internal;
 
+import org.gradle.api.Named;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 
 import javax.annotation.Nullable;
 
@@ -42,13 +43,13 @@ import javax.annotation.Nullable;
  * SingleTargetJvmFeature now and in the future implement a MultiTargetJvmFeature when we're ready.
  * This would allow us to use the JvmFeature interface as a common parent interface.</p>
  */
-public interface JvmFeatureInternal {
+public interface JvmFeatureInternal extends Named {
 
     /**
      * Get the capabilities of this feature. All variants exposed by this feature must provide at least
      * the same capabilities as this feature.
      */
-    CapabilitiesMetadata getCapabilities();
+    ImmutableCapabilities getCapabilities();
 
     // TODO: Are sources and javadoc also target-specific? Some targets, for example java 8 vs 11, may use
     // separate sources which compile to version-specific APIs. Same for javadoc. They are built from the sources
@@ -70,6 +71,11 @@ public interface JvmFeatureInternal {
      * the sources artifact.
      */
     void withSourcesJar();
+
+    /**
+     * Configures this feature to publish a variant containing a list of this feature's source directories.
+     */
+    void withSourceElements();
 
     /**
      * Adds the {@code api} and {@code compileOnlyApi} dependency configurations to this feature.

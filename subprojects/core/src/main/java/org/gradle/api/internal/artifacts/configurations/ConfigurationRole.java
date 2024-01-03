@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.api.artifacts.Configuration;
+
 /**
  * Defines how a {@link org.gradle.api.artifacts.Configuration} is intended to be used.
  *
@@ -41,5 +43,19 @@ public interface ConfigurationRole {
      */
     default String describeUsage() {
         return UsageDescriber.describeRole(this);
+    }
+
+    /**
+     * Checks that the current allowed usage of a configuration is the same as that specified by this role.
+     *
+     * Does not check deprecation status.
+     *
+     * @param configuration the configuration to check
+     * @return {@code true} if so; {@code false} otherwise
+     */
+    default boolean isUsageConsistentWithRole(Configuration configuration) {
+        return (isConsumable() == configuration.isCanBeConsumed())
+            && (isResolvable() == configuration.isCanBeResolved())
+            && (isDeclarable() == configuration.isCanBeDeclared());
     }
 }

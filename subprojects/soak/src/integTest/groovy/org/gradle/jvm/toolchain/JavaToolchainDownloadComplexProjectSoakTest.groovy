@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmVendor
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Ignore
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJvmInstallationMetadata
@@ -73,6 +75,7 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
         !result.plainTextOutput.matches("(?s).*The existing installation will be replaced by the new download.*")
     }
 
+    @Requires(IntegTestPreconditions.Jdk17FromMultipleVendors)
     def "multiple subprojects with different toolchain definitions"() {
         given:
         def otherJdk = getJdkWithDifferentVendor()

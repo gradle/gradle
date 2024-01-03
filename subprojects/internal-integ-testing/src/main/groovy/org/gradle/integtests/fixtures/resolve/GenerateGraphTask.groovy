@@ -234,6 +234,6 @@ abstract class GenerateGraphTask extends DefaultTask {
     }
 
     protected void writeArtifact(String linePrefix, PrintWriter writer, ResolvedArtifactResult artifact) {
-        writer.println("$linePrefix:${artifact.id}")
+        writer.println("$linePrefix:${artifact.file.name} (${artifact.id.componentIdentifier.displayName})")
     }
 }

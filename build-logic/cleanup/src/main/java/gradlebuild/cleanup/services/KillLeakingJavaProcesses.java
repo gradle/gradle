@@ -30,11 +30,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.util.regex.Pattern.quote;
 
 /**
  * NOTICE: this class is invoked via java command line, so we must NOT DEPEND ON ANY 3RD-PARTY LIBRARIES except JDK 11.
@@ -80,8 +82,8 @@ public class KillLeakingJavaProcesses {
     }
 
     static String generateLeakingProcessKillPattern(String rootProjectDir) {
-        String kotlinCompilerDaemonPattern = "(?:" + Pattern.quote("-Dkotlin.environment.keepalive org.jetbrains.kotlin.daemon.KotlinCompileDaemon") + ")";
-        String quotedRootProjectDir = Pattern.quote(rootProjectDir);
+        String kotlinCompilerDaemonPattern = "(?:" + quote("-Dkotlin.environment.keepalive") + ".+org\\.jetbrains\\.kotlin\\.daemon\\.KotlinCompileDaemon)";
+        String quotedRootProjectDir = quote(rootProjectDir);
         String perfTestClasspathPattern = "(?:-cp.+\\\\build\\\\tmp\\\\performance-test-files.+?" + GRADLE_MAIN_CLASS_PATTERN_STR + ")";
         String buildDirClasspathPattern = "(?:-(classpath|cp) \"?" + quotedRootProjectDir + ".+?" + GRADLE_MAIN_CLASS_PATTERN_STR + ")";
         String playServerPattern = "(?:-classpath.+" + quotedRootProjectDir + ".+?" + PLAY_SERVER_PATTERN_STR + ")";
@@ -106,13 +108,13 @@ public class KillLeakingJavaProcesses {
 
         if (executionMode == ExecutionMode.KILL_ALL_GRADLE_PROCESSES) {
             Pattern commandLineArgsPattern = Pattern.compile(generateAllGradleProcessPattern());
-            forEachJavaProcess(psOutput, commandLineArgsPattern, pid -> {
-                System.out.println("Killing Gradle process with PID " + pid);
+            forEachJavaProcess(psOutput, commandLineArgsPattern, (pid, line) -> {
+                System.out.println("Killing Gradle process with PID " + pid + ": " + line);
                 pkill(pid);
             });
         } else {
-            forEachLeakingJavaProcess(rootProjectDir, pid -> {
-                System.out.println("A process wasn't shutdown properly in a previous Gradle run. Killing process with PID " + pid);
+            forEachLeakingJavaProcess(rootProjectDir, (pid, line) -> {
+                System.out.println("A process wasn't shutdown properly in a previous Gradle run. Killing process with PID " + pid + ": " + line);
                 pkill(pid);
             });
         }
@@ -157,12 +159,12 @@ public class KillLeakingJavaProcesses {
         }
     }
 
-    static void forEachLeakingJavaProcess(File rootProjectDir, Consumer<String> action) {
+    static void forEachLeakingJavaProcess(File rootProjectDir, BiConsumer<String, String> action) {
         Pattern commandLineArgsPattern = Pattern.compile(generateLeakingProcessKillPattern(rootProjectDir.getPath()));
         forEachJavaProcess(ps(rootProjectDir), commandLineArgsPattern, action);
     }
 
-    private static void forEachJavaProcess(List<String> psOutput, Pattern commandLineArgsPattern, Consumer<String> action) {
+    private static void forEachJavaProcess(List<String> psOutput, Pattern commandLineArgsPattern, BiConsumer<String, String> action) {
         Pattern pidPattern = isWindows() ? WINDOWS_PID_PATTERN : UNIX_PID_PATTERN;
 
         psOutput.forEach(line -> {
@@ -171,7 +173,7 @@ public class KillLeakingJavaProcesses {
             if (commandLineArgsMatcher.find() && pidMatcher.find()) {
                 String pid = pidMatcher.group(1);
                 if (!MY_PID.equals(pid)) {
-                    action.accept(pid);
+                    action.accept(pid, line);
                 }
             }
         });

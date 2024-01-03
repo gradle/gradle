@@ -19,6 +19,8 @@ package org.gradle.kotlin.dsl.integration
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
@@ -28,9 +30,9 @@ import org.junit.Test
 class PluginSpecBuilderAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     fun `can use accessors for plugins in the buildSrc classpath`() {
-        assumeNonEmbeddedGradleExecuter()
 
         withKotlinBuildSrc()
         withFile(

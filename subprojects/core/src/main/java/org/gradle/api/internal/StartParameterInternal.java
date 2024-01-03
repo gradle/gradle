@@ -154,6 +154,7 @@ public class StartParameterInternal extends StartParameter {
         return isolatedProjects;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public boolean isConfigurationCacheRequested() {
         return configurationCache.get();

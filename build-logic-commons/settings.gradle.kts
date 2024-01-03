@@ -24,8 +24,19 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version("0.7.0")
 }
 
-include("commons")
+// Shared basics for all
+include("basics")
+
+// Platform: defines shared dependency versions
+include("build-platform")
+
+// Compute the identity/version we are building and related details (like current git commit)
+include("module-identity")
+
+// Code quality rules common to :build-logic and the root build
 include("code-quality-rules")
+
+// Plugins to build :build-logic plugins
 include("gradle-plugin")
 
 rootProject.name = "build-logic-commons"

@@ -36,8 +36,6 @@ abstract class KotlinDslPluginOptions internal constructor(objects: ObjectFactor
     /**
      * Kotlin compilation JVM target.
      *
-     * Defaults to `1.8`.
-     *
      * @see [org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions.jvmTarget]
      */
     @Deprecated("Configure a Java Toolchain instead")

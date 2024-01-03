@@ -164,6 +164,43 @@ public interface ArchUnitFixture {
         return new HaveOnlyArgumentsOrReturnTypesThatAre(types);
     }
 
+    static ArchCondition<JavaClass> overrideMethod(String name, Class<?>[] parameterTypes, Class<?> from) {
+        return new ArchCondition<JavaClass>(" override method " + getMethodDescription(name, parameterTypes)) {
+
+            @Override
+            public void check(JavaClass javaClass, ConditionEvents events) {
+                Optional<JavaMethod> method = getMethodRecursively(javaClass);
+                if (method.isPresent()) {
+                    JavaClass sourceClass = method.get().getSourceCodeLocation().getSourceClass();
+                    if (!sourceClass.getFullName().equals(from.getName())) {
+                        return;
+                    }
+                }
+                events.add(new SimpleConditionEvent(javaClass, false, javaClass.getFullName() + " doesn't override default method " + getMethodDescription(name, parameterTypes)));
+            }
+
+            private Optional<JavaMethod> getMethodRecursively(JavaClass javaClass) {
+                while (true) {
+                    Optional<JavaMethod> method = javaClass.tryGetMethod(name, parameterTypes);
+                    if (method.isPresent()) {
+                        return method;
+                    }
+
+                    Optional<JavaClass> superclass = javaClass.getRawSuperclass();
+                    if (superclass.isPresent()) {
+                        javaClass = superclass.get();
+                    } else {
+                        return Optional.empty();
+                    }
+                }
+            }
+        };
+    }
+
+    static String getMethodDescription(String name, Class<?>[] parameterTypes) {
+        return name + "(" + Arrays.stream(parameterTypes).map(Class::getSimpleName).collect(Collectors.joining()) + ")";
+    }
+
     static ArchCondition<JavaMethod> useJavaxAnnotationNullable() {
         return new ArchCondition<JavaMethod>("use javax.annotation.Nullable") {
             @Override

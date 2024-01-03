@@ -61,19 +61,49 @@ public interface FileLockManager {
      */
     FileLock lock(File target, LockOptions options, String targetDisplayName, String operationDisplayName, @Nullable Action<FileLockReleasedSignal> whenContended) throws LockTimeoutException;
 
+    /**
+     * These modes can be used either with {@link FileLockManager} or when creating {@link PersistentCache} via {@link CacheBuilder#withLockOptions(LockOptions)}
+     */
     enum LockMode {
+
         /**
-         * Support processes asking for access.
+         * On demand, single writer, no readers (on demand exclusive mode).
+         * <br><br>
+         *
+         * Supports processes asking for access. Only one process can access the cache at a time.
+         * <br><br>
+         *
+         * For {@link PersistentCache} the file lock is created with {@link PersistentCache#useCache} or {@link PersistentCache#withFileLock} method.
+         * Lock is released when another process requests it via ping requests, see {@link org.gradle.cache.internal.DefaultFileLockManager.DefaultFileLock#lock(org.gradle.cache.FileLockManager.LockMode)}.
+         * <br><br>
+         *
+         * Not supported by {@link FileLockManager}.
          */
         OnDemand,
+
         /**
          * Multiple readers, no writers.
+         * <br><br>
+         *
+         * Used for read-only file locks/caches, many processes can access the lock target/cache concurrently.
+         * <br><br>
+         *
+         * For {@link PersistentCache} this is the default behaviour and the cache lock is created when cache is opened.
+         * To release a lock a cache has to be closed.
          */
         Shared,
+
         /**
          * Single writer, no readers.
+         * <br><br>
+         *
+         * Used for lock targets/caches that are written to. Only one process can access the lock target/cache at a time.
+         * <br><br>
+         *
+         * For {@link PersistentCache} the cache lock is created when cache is opened. To release a lock a cache has to be closed.
          */
         Exclusive,
+
         /**
          * No locking whatsoever.
          */

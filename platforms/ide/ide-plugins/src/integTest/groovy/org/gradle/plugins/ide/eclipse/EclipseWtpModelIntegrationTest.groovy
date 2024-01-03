@@ -287,6 +287,7 @@ eclipse {
     @ToBeFixedForConfigurationCache
     void "uses eclipse project name for wtp module dependencies"() {
         //given
+        createDirs("impl", "contrib")
         def settings = file('settings.gradle')
         settings << "include 'impl', 'contrib'"
 
@@ -327,6 +328,7 @@ project(':contrib') {
     @ToBeFixedForConfigurationCache
     void "does not explode if dependent project does not have eclipse plugin"() {
         //given
+        createDirs("impl", "contrib")
         def settings = file('settings.gradle')
         settings << "include 'impl', 'contrib'"
 
@@ -445,6 +447,7 @@ project(':contrib') {
         //given
         //adding a little bit more stress with a subproject and some web resources:
         file("src/main/webapp/index.jsp") << "<html>Hey!</html>"
+        createDirs("someCoolLib")
         file("settings.gradle") << "include 'someCoolLib'"
 
         file("build.gradle") << """
@@ -530,6 +533,7 @@ project(':contrib') {
     void "utility project's library and variable classpath entries contain necessary dependency attribute"() {
         //given
         file('libs/myFoo.jar').touch()
+        createDirs("someLib")
         file('settings.gradle') << "include 'someLib'"
 
         file("build.gradle") <<
@@ -562,6 +566,7 @@ project(':contrib') {
     void "web project's library and variable classpath entries contain necessary dependency attribute"() {
         //given
         file('libs/myFoo.jar').touch()
+        createDirs("someLib")
         file('settings.gradle') << "include 'someLib'"
 
         file("build.gradle") <<

@@ -22,8 +22,11 @@ import org.gradle.internal.classanalysis.JavaClassUtil
 import org.gradle.internal.jvm.Jvm
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
+import org.jetbrains.kotlin.config.JvmTarget
 import org.junit.Assume.assumeNotNull
 import org.junit.Test
 
@@ -45,7 +48,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
             $printScriptJavaClassFileMajorVersion
         """)
 
-        assertThat(build("help").output, containsString(outputFor(JavaVersion.current())))
+        assertThat(build("help").output, containsString(outputFor(currentJavaVersionOrLastKotlinSupported())))
     }
 
     @Test
@@ -63,13 +66,12 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
         withFile("buildSrc/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
         withBuildScript("""plugins { id("some") }""")
 
-        assertThat(build("help").output, containsString(outputFor(JavaVersion.current())))
+        assertThat(build("help").output, containsString(outputFor(currentJavaVersionOrLastKotlinSupported())))
     }
 
     @Test
+    @Requires(UnitTestPreconditions.Jdk11OrLater::class)
     fun `can use a different jvmTarget to compile precompiled scripts`() {
-
-        assumeJava11OrHigher()
 
         withClassJar("buildSrc/utils.jar", JavaClassUtil::class.java)
 
@@ -180,4 +182,10 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
     private
     fun outputFor(javaVersion: JavaVersion) =
         "Java Class Major Version = ${JavaClassUtil.getClassMajorVersion(javaVersion)}"
+
+    private
+    fun currentJavaVersionOrLastKotlinSupported(): JavaVersion {
+        val maxVersion = JavaVersion.toVersion(JvmTarget.supportedValues().last().majorVersion)
+        return JavaVersion.current().takeIf { it <= maxVersion } ?: maxVersion
+    }
 }

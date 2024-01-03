@@ -1511,6 +1511,7 @@ org:leaf:[1.5,2.0] FAILED
 
     void "marks project dependencies that cannot be resolved as 'FAILED'"() {
         given:
+        createDirs("A", "B", "C")
         settingsFile << "include 'A', 'B', 'C'; rootProject.name='root'"
 
         buildFile << """
@@ -1602,6 +1603,7 @@ org:leaf2:1.0
 
     def "deals with dependency cycle to root"() {
         given:
+        createDirs("impl")
         settingsFile << "include 'impl'; rootProject.name='root'"
 
         buildFile << """
@@ -1611,7 +1613,7 @@ org:leaf2:1.0
                 version = '1.0'
             }
             base {
-                archivesBaseName = 'root'
+                archivesName = 'root'
             }
             dependencies {
                 implementation project(":impl")
@@ -1665,6 +1667,7 @@ project :
         mavenRepo.module("org", "leaf2").dependsOnModules("leaf3").publish()
         mavenRepo.module("org", "leaf3").publish()
 
+        createDirs("impl")
         settingsFile << "include 'impl'; rootProject.name='root'"
 
         buildFile << """
@@ -1721,6 +1724,7 @@ org:leaf2:1.0
         mavenRepo.module("org", "leaf2").dependsOnModules("leaf3").publish()
         mavenRepo.module("org", "leaf3").publish()
 
+        createDirs("impl")
         settingsFile << "include 'impl'; rootProject.name='root'"
 
         buildFile << """
@@ -1775,6 +1779,7 @@ project :impl
         mavenRepo.module("org", "leaf3").publish()
         mavenRepo.module("org", "leaf4").publish()
 
+        createDirs("api", "impl")
         settingsFile << "include 'api', 'impl'; rootProject.name='root'"
 
         buildFile << """
@@ -1891,6 +1896,7 @@ org:leaf2:1.0
         mavenRepo.module("org", "leaf3").publish()
         mavenRepo.module("org", "leaf4").publish()
 
+        createDirs("api", "impl", "some", "some/deeply", "some/deeply/nested")
         settingsFile << "include 'api', 'impl', 'some:deeply:nested'; rootProject.name='root'"
 
         buildFile << """
@@ -1992,6 +1998,7 @@ project :some:deeply:nested
         mavenRepo.module("org", "leaf2").dependsOnModules("leaf3").publish()
         mavenRepo.module("org", "leaf3").publish()
 
+        createDirs("api", "impl")
         settingsFile << "include 'api', 'impl'; rootProject.name='root'"
 
         buildFile << """

@@ -57,7 +57,7 @@ abstract class DaemonTracker : BuildService<DaemonTracker.Params>, AutoCloseable
             override fun afterTest(test: TestDescriptor, result: TestResult) = Unit
             override fun beforeSuite(suite: TestDescriptor) {
                 if (suite.parent == null) {
-                    forEachJavaProcess { pid ->
+                    forEachJavaProcess { pid, _ ->
                         // processes that exist before the test suite execution should
                         // not trigger a warning
                         daemonPids += pid
@@ -67,7 +67,7 @@ abstract class DaemonTracker : BuildService<DaemonTracker.Params>, AutoCloseable
 
             override fun afterSuite(suite: TestDescriptor, result: TestResult) {
                 if (suite.parent == null) {
-                    forEachJavaProcess { pid ->
+                    forEachJavaProcess { pid, _ ->
                         if (daemonPids.add(pid)) {
                             suspiciousDaemons.getOrPut(suite.toString(), { ConcurrentHashMap.newKeySet() }) += pid
                         }
@@ -79,7 +79,7 @@ abstract class DaemonTracker : BuildService<DaemonTracker.Params>, AutoCloseable
     private
     fun cleanUpDaemons() {
         val alreadyKilled = mutableSetOf<String>()
-        forEachJavaProcess { pid ->
+        forEachJavaProcess { pid, _ ->
             suspiciousDaemons.forEach { (suite, pids) ->
                 if (pid in pids && pid !in alreadyKilled) {
                     logger.warn("A process was created in $suite but wasn't shutdown properly. Killing PID $pid")
@@ -90,7 +90,7 @@ abstract class DaemonTracker : BuildService<DaemonTracker.Params>, AutoCloseable
     }
 
     private
-    fun forEachJavaProcess(action: (pid: String) -> Unit) {
+    fun forEachJavaProcess(action: (pid: String, line: String) -> Unit) {
         KillLeakingJavaProcesses.forEachLeakingJavaProcess(parameters.rootProjectDir.asFile.get(), action)
     }
 }

@@ -26,8 +26,6 @@ import org.gradle.buildinit.plugins.internal.modifiers.Language
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption
 import spock.lang.Specification
 
-import static java.util.Optional.empty
-
 class TemplateFactoryTest extends Specification {
 
     Directory targetDir = Mock()
@@ -50,9 +48,10 @@ class TemplateFactoryTest extends Specification {
         1 * templateOperationFactory.newTemplateOperation() >> templateOperationBuilder
         1 * templateOperationBuilder.withTemplate("someTemplate/SomeClazz.somelang.template") >> templateOperationBuilder
         1 * templateOperationBuilder.withTarget(targetAsFile) >> templateOperationBuilder
-        1 * templateOperationBuilder.withBinding("basePackageName", "") >> templateOperationBuilder
+        1 * templateOperationBuilder.withBinding("basePackagePrefix", "") >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("packageDecl", "") >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("className", "") >> templateOperationBuilder
+        1 * templateOperationBuilder.withBinding("fileComment", _) >> templateOperationBuilder
         1 * templateOperationBuilder.create() >> Mock(TemplateOperation)
 
         where:
@@ -77,9 +76,10 @@ class TemplateFactoryTest extends Specification {
         1 * templateOperationFactory.newTemplateOperation() >> templateOperationBuilder
         1 * templateOperationBuilder.withTemplate("someTemplate/SomeClazz.somelang.template") >> templateOperationBuilder
         1 * templateOperationBuilder.withTarget(targetAsFile) >> templateOperationBuilder
-        1 * templateOperationBuilder.withBinding("basePackageName", "my.lib") >> templateOperationBuilder
+        1 * templateOperationBuilder.withBinding("basePackagePrefix", "my.lib.") >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("packageDecl", "package my.lib") >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("className", "") >> templateOperationBuilder
+        1 * templateOperationBuilder.withBinding("fileComment", _) >> templateOperationBuilder
         1 * templateOperationBuilder.create() >> Mock(TemplateOperation)
 
         where:
@@ -107,9 +107,10 @@ class TemplateFactoryTest extends Specification {
         1 * templateOperationFactory.newTemplateOperation() >> templateOperationBuilder
         1 * templateOperationBuilder.withTemplate("someTemplate/SomeClazz.somelang.template") >> templateOperationBuilder
         1 * templateOperationBuilder.withTarget(targetAsFile) >> templateOperationBuilder
-        1 * templateOperationBuilder.withBinding("basePackageName", _) >> templateOperationBuilder
+        1 * templateOperationBuilder.withBinding("basePackagePrefix", _) >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("packageDecl", _) >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("className", className) >> templateOperationBuilder
+        1 * templateOperationBuilder.withBinding("fileComment", _) >> templateOperationBuilder
         1 * templateOperationBuilder.create() >> Mock(TemplateOperation)
 
         where:
@@ -120,7 +121,7 @@ class TemplateFactoryTest extends Specification {
 
     private createInitSettings(String packageName) {
         new InitSettings("project", false, ["app"], ModularizationOption.SINGLE_PROJECT, BuildInitDsl.KOTLIN, packageName,
-            BuildInitTestFramework.NONE, InsecureProtocolOption.WARN, targetDir, empty())
+            BuildInitTestFramework.NONE, InsecureProtocolOption.WARN, targetDir, null, true)
     }
 
     def "whenNoSourcesAvailable creates template operation checking for sources"() {

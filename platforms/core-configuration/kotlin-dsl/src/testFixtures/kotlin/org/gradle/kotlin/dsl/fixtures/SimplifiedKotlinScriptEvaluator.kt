@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.fixtures
 
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
-import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
@@ -40,6 +39,7 @@ import org.gradle.kotlin.dsl.execution.Interpreter
 import org.gradle.kotlin.dsl.execution.ProgramId
 import org.gradle.kotlin.dsl.execution.ProgramTarget
 import org.gradle.kotlin.dsl.support.ImplicitImports
+import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.plugin.management.internal.PluginRequests
 import java.io.File
@@ -206,11 +206,8 @@ class SimplifiedKotlinScriptEvaluator(
         override val implicitImports: List<String>
             get() = ImplicitImports(DefaultImportsReader()).list
 
-        override val jvmTarget: JavaVersion
-            get() = JavaVersion.current()
-
-        override val allWarningsAsErrors: Boolean
-            get() = false
+        override val compilerOptions: KotlinCompilerOptions
+            get() = KotlinCompilerOptions()
     }
 }
 

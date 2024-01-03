@@ -16,16 +16,10 @@
 
 package org.gradle.caching.internal.origin;
 
-import org.gradle.caching.internal.CacheableEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.time.Duration;
 import java.util.Properties;
 
 public class OriginMetadataFactory {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(OriginMetadataFactory.class);
 
     private static final String BUILD_INVOCATION_ID_KEY = "buildInvocationId";
     private static final String TYPE_KEY = "type";
@@ -56,12 +50,12 @@ public class OriginMetadataFactory {
         this.hostnameLookup = hostnameLookup;
     }
 
-    public OriginWriter createWriter(CacheableEntity entry, Duration elapsedTime) {
+    public OriginWriter createWriter(String identity, Class<?> workType, Duration elapsedTime) {
         return outputStream -> {
             Properties properties = new Properties();
             properties.setProperty(BUILD_INVOCATION_ID_KEY, currentBuildInvocationId);
-            properties.setProperty(TYPE_KEY, entry.getType().getCanonicalName());
-            properties.setProperty(IDENTITY_KEY, entry.getIdentity());
+            properties.setProperty(TYPE_KEY, workType.getCanonicalName());
+            properties.setProperty(IDENTITY_KEY, identity);
             properties.setProperty(CREATION_TIME_KEY, Long.toString(System.currentTimeMillis()));
             properties.setProperty(EXECUTION_TIME_KEY, Long.toString(elapsedTime.toMillis()));
             properties.setProperty(OPERATING_SYSTEM_KEY, operatingSystem);
@@ -72,13 +66,10 @@ public class OriginMetadataFactory {
         };
     }
 
-    public OriginReader createReader(CacheableEntity entry) {
+    public OriginReader createReader() {
         return inputStream -> {
             Properties properties = new Properties();
             properties.load(inputStream);
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Origin for {}: {}", entry.getDisplayName(), properties);
-            }
 
             String originBuildInvocationId = properties.getProperty(BUILD_INVOCATION_ID_KEY);
             String executionTimeAsString = properties.getProperty(EXECUTION_TIME_KEY);

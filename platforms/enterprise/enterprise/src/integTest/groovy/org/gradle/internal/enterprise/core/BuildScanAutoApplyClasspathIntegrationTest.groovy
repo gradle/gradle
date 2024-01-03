@@ -17,20 +17,59 @@
 package org.gradle.internal.enterprise.core
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.enterprise.BaseBuildScanPluginCheckInFixture
+import org.gradle.internal.enterprise.DevelocityPluginCheckInFixture
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
 import org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.util.internal.VersionNumber
 
-class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegrationSpec {
+abstract class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegrationSpec {
 
     private static final VersionNumber PLUGIN_MINIMUM_NON_DEPRECATED_VERSION = DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9
-    private final GradleEnterprisePluginCheckInFixture fixture = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
+
+    protected final GradleEnterprisePluginCheckInFixture autoAppliedPluginFixture = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
+
+    abstract BaseBuildScanPluginCheckInFixture getTransitivePluginFixture()
+
+    abstract void assertNotAutoApplied(String output)
+
+    static class GradleEnterpriseAutoApplyClasspathIntegrationTest extends BuildScanAutoApplyClasspathIntegrationTest {
+
+        @Override
+        BaseBuildScanPluginCheckInFixture getTransitivePluginFixture() {
+            autoAppliedPluginFixture
+        }
+
+        @Override
+        void assertNotAutoApplied(String output) {
+            // GE plugin is transitively applied, but not via auto-application mechanism
+            autoAppliedPluginFixture.assertAutoApplied(output, false)
+        }
+    }
+
+    static class DevelocityAutoApplyClasspathIntegrationTest extends BuildScanAutoApplyClasspathIntegrationTest {
+
+        private final DevelocityPluginCheckInFixture develocityFixture = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
+
+        @Override
+        BaseBuildScanPluginCheckInFixture getTransitivePluginFixture() {
+            // GE plugin is auto-applied but the Develocity plugin is a transitive dependency
+            develocityFixture
+        }
+
+        @Override
+        void assertNotAutoApplied(String output) {
+            // GE plugin is applied neither as a transitive dependency, nor via auto-application mechanism as Develocity plugin is present
+            autoAppliedPluginFixture.notApplied(output)
+        }
+    }
 
     def setup() {
-        fixture.publishDummyPlugin(executer)
-        fixture.runtimeVersion = PLUGIN_MINIMUM_NON_DEPRECATED_VERSION
-        fixture.artifactVersion = PLUGIN_MINIMUM_NON_DEPRECATED_VERSION
+        autoAppliedPluginFixture.publishDummyPlugin(executer)
+
+        transitivePluginFixture.publishDummyPlugin(executer)
+        transitivePluginFixture.runtimeVersion = PLUGIN_MINIMUM_NON_DEPRECATED_VERSION
+        transitivePluginFixture.artifactVersion = PLUGIN_MINIMUM_NON_DEPRECATED_VERSION
 
         file("build-src/my-plugin/build.gradle") << """
             plugins {
@@ -50,7 +89,7 @@ class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegrationSpec
                 }
 
                 dependencies {
-                   implementation '${AutoAppliedGradleEnterprisePlugin.GROUP}:${AutoAppliedGradleEnterprisePlugin.NAME}:${fixture.artifactVersion}'
+                   implementation '${transitivePluginFixture.pluginArtifactGroup}:${transitivePluginFixture.pluginArtifactName}:${transitivePluginFixture.artifactVersion}'
                 }
             }
         """
@@ -63,7 +102,7 @@ class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegrationSpec
             class MyPlugin implements Plugin<Settings> {
                 @Override
                 public void apply(Settings settings) {
-                    settings.getPluginManager().apply("com.gradle.enterprise");
+                    settings.getPluginManager().apply("${transitivePluginFixture.id}");
                 }
             }
         """
@@ -116,8 +155,8 @@ class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegrationSpec
         succeeds "cacheableTask", "--scan"
 
         then:
-        fixture.appliedOnce(output)
-        fixture.assertAutoApplied(output, false)
+        transitivePluginFixture.appliedOnce(output)
+        assertNotAutoApplied(output)
     }
 
     def "task is up-to-date when using --scan"() {
@@ -125,16 +164,16 @@ class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegrationSpec
         succeeds "cacheableTask"
 
         then:
-        fixture.appliedOnce(output)
-        fixture.assertAutoApplied(output, false)
+        transitivePluginFixture.appliedOnce(output)
+        assertNotAutoApplied(output)
         executedAndNotSkipped(":cacheableTask")
 
         when:
         succeeds "cacheableTask", "--scan"
 
         then:
-        fixture.appliedOnce(output)
-        fixture.assertAutoApplied(output, false)
+        transitivePluginFixture.appliedOnce(output)
+        assertNotAutoApplied(output)
         skipped(":cacheableTask")
     }
 }

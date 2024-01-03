@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCo
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.resource.ResourceLocation;
@@ -39,6 +40,8 @@ import org.gradle.util.internal.ConfigureUtil;
 import javax.inject.Inject;
 import java.io.File;
 import java.net.URI;
+
+import static java.lang.Boolean.getBoolean;
 
 @NonExtensible
 public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInternal {
@@ -53,9 +56,9 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
 
     private final ResourceLocation scriptResource;
     private final ClassLoaderScope classLoaderScope;
-    private final ScriptClassPathResolver scriptClassPathResolver;
     private final DependencyResolutionServices dependencyResolutionServices;
     private final DependencyLockingHandler dependencyLockingHandler;
+    private final BuildLogicBuilder buildLogicBuilder;
     // The following values are relatively expensive to create, so defer creation until required
     private ClassPath resolvedClasspath;
     private RepositoryHandler repositoryHandler;
@@ -64,12 +67,17 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private Configuration classpathConfiguration;
 
     @Inject
-    public DefaultScriptHandler(ScriptSource scriptSource, DependencyResolutionServices dependencyResolutionServices, ClassLoaderScope classLoaderScope, ScriptClassPathResolver scriptClassPathResolver) {
+    public DefaultScriptHandler(
+        ScriptSource scriptSource,
+        DependencyResolutionServices dependencyResolutionServices,
+        ClassLoaderScope classLoaderScope,
+        BuildLogicBuilder buildLogicBuilder
+    ) {
         this.dependencyResolutionServices = dependencyResolutionServices;
         this.scriptResource = scriptSource.getResource().getLocation();
         this.classLoaderScope = classLoaderScope;
-        this.scriptClassPathResolver = scriptClassPathResolver;
         this.dependencyLockingHandler = dependencyResolutionServices.getDependencyLockingHandler();
+        this.buildLogicBuilder = buildLogicBuilder;
         JavaEcosystemSupport.configureSchema(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getObjectFactory());
     }
 
@@ -91,9 +99,16 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     @Override
     public ClassPath getInstrumentedScriptClassPath() {
         if (resolvedClasspath == null) {
-            resolvedClasspath = scriptClassPathResolver.resolveClassPath(classpathConfiguration);
-            if (!System.getProperty(DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY, "false").equals("true") && classpathConfiguration != null) {
-                ((ResettableConfiguration) classpathConfiguration).resetResolutionState();
+            if (classpathConfiguration != null) {
+
+                Factory<ClassPath> classPathFactory = () -> buildLogicBuilder.resolveClassPath(classpathConfiguration, dependencyHandler, configContainer);
+                if (getBoolean(DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY)) {
+                    resolvedClasspath = classPathFactory.create();
+                } else {
+                    resolvedClasspath = ((ResettableConfiguration) classpathConfiguration).callAndResetResolutionState(classPathFactory);
+                }
+            } else {
+                resolvedClasspath = ClassPath.EMPTY;
             }
         }
         return resolvedClasspath;
@@ -141,10 +156,11 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         }
         if (dependencyHandler == null) {
             dependencyHandler = dependencyResolutionServices.getDependencyHandler();
+            buildLogicBuilder.prepareDependencyHandler(dependencyHandler);
         }
         if (classpathConfiguration == null) {
             classpathConfiguration = configContainer.migratingUnlocked(CLASSPATH_CONFIGURATION, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE);
-            scriptClassPathResolver.prepareClassPath(classpathConfiguration, dependencyHandler);
+            buildLogicBuilder.prepareClassPath(classpathConfiguration, dependencyHandler);
         }
     }
 

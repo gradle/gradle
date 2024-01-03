@@ -21,6 +21,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.internal.TextUtil
+import spock.lang.Issue
 
 class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
@@ -30,6 +31,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
     String basicType = "1: basic"
     String projectNamePrompt = "Project name (default: some-thing)"
     String convertMavenBuildPrompt = "Found a Maven build. Generate a Gradle build from this?"
+    List<String> languageSelectionOptions = ["Select implementation language:", "1: C++", "2: Groovy", "3: Java", "4: Kotlin", "5: Scala", "6: Swift"]
 
     @Override
     String subprojectName() { 'app' }
@@ -123,7 +125,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // Select 'java'
         ConcurrentTestUtil.poll(60) {
-            ["Select implementation language:","1: C++","2: Groovy","3: Java","4: Kotlin","5: Scala","6: Swift"].each {
+            languageSelectionOptions.each {
                 assert handle.standardOutput.contains(it)
             }
         }
@@ -156,12 +158,6 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // Enter a package name
         ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains("Source package (default: some.thing)")
-        }
-        handle.stdinPipe.write(("org.gradle.test" + TextUtil.platformLineSeparator).bytes)
-
-        // Enter a package name
-        ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains("Enter target version of Java (min. 7) (default: ${Jvm.current().javaVersion.majorVersion})")
         }
         handle.stdinPipe.write(("15" + TextUtil.platformLineSeparator).bytes)
@@ -181,6 +177,56 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         dslFixtureFor(BuildInitDsl.KOTLIN).assertGradleFilesGenerated()
+    }
+
+    def "user can interrupt the build without generating files"() {
+        when:
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks("init")
+        def handle = executer.start()
+
+        // Interrupt input
+        handle.stdinPipe.close()
+
+        def result = handle.waitForFailure()
+
+        then:
+        result.assertHasDescription("Execution failed for task ':init'.")
+        result.assertHasCause("Build cancelled.")
+        rootProjectDslFixtureFor(BuildInitDsl.GROOVY).assertGradleFilesNotGenerated()
+    }
+
+    def "user can interrupt the build after multiple prompts without generating files"() {
+        when:
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks("init")
+        def handle = executer.start()
+
+        // Select 'application'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(projectTypePrompt)
+        }
+        handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'java'
+        ConcurrentTestUtil.poll(60) {
+            languageSelectionOptions.each {
+                assert handle.standardOutput.contains(it)
+            }
+        }
+        handle.stdinPipe.write(("3" + TextUtil.platformLineSeparator).bytes)
+
+        // Interrupt input
+        handle.stdinPipe.close()
+
+        def result = handle.waitForFailure()
+
+        then:
+        result.assertHasDescription("Execution failed for task ':init'.")
+        result.assertHasCause("Build cancelled.")
+        rootProjectDslFixtureFor(BuildInitDsl.GROOVY).assertGradleFilesNotGenerated()
     }
 
     def "prompts user when run from an interactive session and pom.xml present"() {
@@ -275,5 +321,62 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26598")
+    def "user can provide all necessary options to generate java application non-interactively"() {
+        when:
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks(
+            "init",
+            "--type", "java-application",
+            "--dsl", "groovy",
+            "--test-framework", "junit-jupiter",
+            "--package", "my.project",
+            "--project-name", "my-project",
+            "--no-incubating",
+            "--no-split-project",
+            "--java-version", "14"
+        )
+        def handle = executer.start()
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.GROOVY, targetDir, null).assertGradleFilesGenerated("app")
+    }
+
+    def "user can use defaults and provide no options to generate a basic project non-interactively"() {
+        when:
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks(
+            "init",
+            "--use-defaults",
+        )
+        def handle = executer.start()
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
+    }
+
+    def "user can use defaults to generate java application non-interactively"() {
+        when:
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks(
+            "init",
+            "--use-defaults",
+            "--type", "java-application",
+        )
+        def handle = executer.start()
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated("app")
     }
 }

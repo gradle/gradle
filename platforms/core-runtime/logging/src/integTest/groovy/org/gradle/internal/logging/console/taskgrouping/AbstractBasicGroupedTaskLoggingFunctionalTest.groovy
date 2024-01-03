@@ -35,6 +35,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         server.start()
 
         given:
+        createDirs("1", "2", "3")
         settingsFile << "include '1', '2', '3'"
 
         buildFile << """
@@ -172,6 +173,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
             }
         """
 
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """

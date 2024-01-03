@@ -18,6 +18,7 @@ dependencies {
     implementation(project(":model-core"))
     implementation(project(":plugin-development"))
     implementation(project(":plugins-java"))
+    implementation(project(":plugins-java-base"))
     implementation(project(":platform-jvm"))
     implementation(project(":resources"))
     implementation(project(":snapshots"))

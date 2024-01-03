@@ -1,0 +1,393 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[understanding_dependency_resolution]]
+= Understanding dependency resolution
+
+This chapter covers the way dependency resolution works _inside_ Gradle.
+After covering how you can declare <<declaring_repositories.adoc#declaring-repositories,repositories>> and <<declaring_dependencies.adoc#declaring-dependencies,dependencies>>, it makes sense to explain how these declarations come together during dependency resolution.
+
+Dependency resolution is a process that consists of two phases, which are repeated until the dependency graph is complete:
+
+* When a new dependency is added to the graph, perform conflict resolution to determine which version should be added to the graph.
+* When a specific dependency, that is a module with a version, is identified as part of the graph, retrieve its metadata so that its dependencies can be added in turn.
+
+The following section will describe what Gradle identifies as conflicts and how it can resolve them automatically.
+After that, the retrieval of metadata will be covered, explaining how Gradle can <<#sec:how-gradle-downloads-deps,follow dependency links>>.
+
+[[sec:conflict-resolution]]
+== How Gradle handles conflicts?
+
+When doing dependency resolution, Gradle handles two types of conflicts:
+
+Version conflicts::
+That is when two or more dependencies require a given dependency but with different versions.
+
+Implementation conflicts::
+That is when the dependency graph contains multiple modules that provide the same implementation, or capability in Gradle terminology.
+
+The following sections will explain in detail how Gradle attempts to resolve these conflicts.
+
+The dependency resolution process is highly customizable to meet enterprise requirements.
+For more information, see the chapter on <<dependency_constraints.adoc#dependency-constraints,Controlling transitive dependencies>>.
+
+[[sec:version-conflict]]
+== Version conflict resolution
+
+A version conflict occurs when two components:
+
+* Depend on the same module, let's say `com.google.guava:guava`
+* But on different versions, let's say `20.0` and `25.1-android`
+** Our project itself depends on `com.google.guava:guava:20.0`
+** Our project also depends on `com.google.inject:guice:4.2.2` which itself depends on `com.google.guava:guava:25.1-android`
+
+[[sub:resolution-strategy]]
+=== Resolution strategy
+
+Given the conflict above, there exist multiple ways to handle it, either by selecting a version or failing the resolution.
+Different tools that handle dependency management have different ways of handling these type of conflicts.
+
+--
+https://maven.apache.org/[Apache Maven] uses a nearest first strategy.
+
+Maven will take the _shortest_ path to a dependency and use that version.
+In case there are multiple paths of the same length, the first one wins.
+
+This means that in the example above, the version of `guava` will be `20.0` because the direct dependency is _closer_ than the `guice` dependency.
+
+The main drawback of this method is that it is ordering dependent.
+Keeping order in a very large graph can be a challenge.
+For example, what if the new version of a dependency ends up having its own dependency declarations in a different order than the previous version?
+
+With Maven, this could have unwanted impact on resolved versions.
+--
+
+[NOTE]
+====
+https://ant.apache.org/ivy/[Apache Ivy] is a very flexible dependency management tool.
+It offers the possibility to customize dependency resolution, including conflict resolution.
+
+This flexibility comes with the price of making it hard to reason about.
+====
+
+Gradle will consider _all_ requested versions, wherever they appear in the dependency graph.
+Out of these versions, it will select the _highest_ one. More information on version ordering
+<<single_versions#version_ordering,here>>.
+
+As you have seen, Gradle supports a concept of <<rich_versions.adoc#rich-version-constraints,rich version declaration>>, so what is the highest version depends on the way versions were declared:
+
+* If no ranges are involved, then the highest version that is not rejected will be selected.
+** If a version declared as `strictly` is lower than that version, selection will fail.
+* If ranges are involved:
+** If there is a non range version that falls within the specified ranges or is higher than their upper bound, it will be selected.
+** If there are only ranges, the selection will depend on the intersection of ranges:
+*** If all the ranges intersect, then the highest _existing_ version of the intersection will be selected.
+*** If there is no clear intersection between all the ranges, the highest _existing_ version will be selected from the highest range. If there is no version available for the highest range, the resolution will fail.
+** If a version declared as `strictly` is lower than that version, selection will fail.
+
+Note that in the case where ranges come into play, Gradle requires metadata to determine which versions do exist for the considered range.
+This causes an intermediate lookup for metadata, as described in <<#sec:how-gradle-downloads-deps>>.
+
+[[sec:base-version-comparison]]
+=== Qualifiers
+There is a caveat to comparing versions when it comes to selecting the _highest_ one.
+All the rules of <<single_versions#version_ordering,version ordering>> still apply, but the conflict resolver
+has a bias towards versions without qualifiers.
+
+The "qualifier" of a version, if it exists, is the tail end of the version string, starting at the first non-dot separator
+found in it. The other (first) part of the version string is called the "base form" of the version. Here are some examples
+to illustrate:
+
+[cols="1,1,1"]
+|===
+|Original version | Base version | Qualifier
+
+|1.2.3
+|1.2.3
+|<none>
+
+|1.2-3
+|1.2
+|3
+
+|1_alpha
+|1
+|alpha
+
+|abc
+|abc
+|<none>
+
+|1.2b3
+|1.2
+|b3
+
+|abc.1+3
+|abc.1
+|3
+
+|b1-2-3.3
+|b
+|1-2-3.3
+|===
+
+As you can see separators are any of the `.`, `-`, `_`, `+` characters, plus the empty string when a numeric and a non-numeric part of the version are next to each-other.
+
+When resolving the conflict between competing versions, the following logic applies:
+
+* first the versions with the highest base version are selected, the rest are discarded
+* if there are still multiple competing versions left, then one is picked with a preference for not having a qualifier or having release status.
+
+[[sec:implementation-conflict]]
+== Implementation conflict resolution
+
+Gradle uses variants and capabilities to identify what a module _provides_.
+
+This is a unique feature that deserves its <<variant_model.adoc#understanding-variant-selection,own chapter>> to understand what it means and enables.
+
+A conflict occurs the moment two modules either:
+
+* Attempt to select incompatible variants,
+* Declare the same capability
+
+Learn more about handling these type of conflicts in <<dependency_capability_conflict.adoc#sub:selecting-between-candidates,Selecting between candidates>>.
+
+[[sec:how-gradle-downloads-deps]]
+== How Gradle retrieves dependency metadata?
+
+Gradle requires metadata about the modules included in your dependency graph.
+That information is required for two main points:
+
+* Determine the existing versions of a module when the declared version is dynamic.
+* Determine the dependencies of the module for a given version.
+
+=== Discovering versions
+
+Faced with a dynamic version, Gradle needs to identify the concrete matching versions:
+
+* Each repository is inspected, Gradle does not stop on the first one returning some metadata.
+When multiple are defined, they are inspected _in the order they were added_.
+* For Maven repositories, Gradle will use the `maven-metadata.xml` which provides information about the available versions.
+* For Ivy repositories, Gradle will resort to directory listing.
+
+This process results in a list of candidate versions that are then matched to the dynamic version expressed.
+At this point, <<#sub:resolution-strategy,version conflict resolution>> is resumed.
+
+Note that Gradle caches the version information, more information can be found in the section <<dynamic_versions.adoc#sec:controlling-dynamic-version-caching,Controlling dynamic version caching>>.
+
+=== Obtaining module metadata
+
+Given a required dependency, with a version, Gradle attempts to resolve the dependency by searching for the module the dependency points at.
+
+* Each repository is inspected in order.
+** Depending on the type of repository, Gradle looks for metadata files describing the module (`.module`, `.pom` or `ivy.xml` file) or directly for artifact files.
+** Modules that have a module metadata file (`.module`, `.pom` or `ivy.xml` file) are preferred over modules that have an artifact file only.
+** Once a repository returns a _metadata_ result, following repositories are ignored.
+* Metadata for the dependency is retrieved and parsed, if found
+** If the module metadata is a POM file that has a parent POM declared, Gradle will recursively attempt to resolve each of the parent modules for the POM.
+* All of the artifacts for the module are then requested from the _same repository_ that was chosen in the process above.
+* All of that data, including the repository source and potential misses are then stored in the <<#sec:dependency_cache>>.
+
+[NOTE]
+====
+The penultimate point above is what can make the integration with <<declaring_repositories.adoc#sec:case-for-maven-local,Maven Local>> problematic.
+As it is a cache for Maven, it will sometimes miss some artifacts of a given module.
+If Gradle is sourcing such a module from Maven Local, it will consider the missing artifacts to be missing altogether.
+====
+
+=== Repository disabling
+
+When Gradle fails to retrieve information from a repository, it will disable it for the duration of the build and fail all dependency resolution.
+
+That last point is important for reproducibility.
+If the build was allowed to continue, ignoring the faulty repository, subsequent builds could have a different result once the repository is back online.
+
+[[sub:http-retries]]
+==== HTTP Retries
+
+Gradle will make several attempts to connect to a given repository before disabling it.
+If connection fails, Gradle will retry on certain errors which have a chance of being transient, increasing the amount of time waiting between each retry.
+
+Blacklisting happens when the repository cannot be contacted, either because of a permanent error or because the maximum retries was reached.
+
+[[sec:dependency_cache]]
+== The Dependency Cache
+
+Gradle contains a highly sophisticated dependency caching mechanism, which seeks to minimise the number of remote requests made in dependency resolution, while striving to guarantee that the results of dependency resolution are correct and reproducible.
+
+The Gradle dependency cache consists of two storage types located under `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/caches`:
+
+* A file-based store of downloaded artifacts, including binaries like jars as well as raw downloaded meta-data like POM files and Ivy files.
+The storage path for a downloaded artifact includes the SHA1 checksum, meaning that 2 artifacts with the same name but different content can easily be cached.
+* A binary store of resolved module metadata, including the results of resolving dynamic versions, module descriptors, and artifacts.
+
+The Gradle cache does not allow the local cache to hide problems and create other mysterious and difficult to debug behavior.
+Gradle enables reliable and reproducible enterprise builds with a focus on bandwidth and storage efficiency.
+
+[[sub:cache_metadata]]
+=== Separate metadata cache
+
+Gradle keeps a record of various aspects of dependency resolution in binary format in the metadata cache.
+The information stored in the metadata cache includes:
+
+* The result of resolving a dynamic version (e.g. `1.+`) to a concrete version (e.g. `1.2`).
+* The resolved module metadata for a particular module, including module artifacts and module dependencies.
+* The resolved artifact metadata for a particular artifact, including a pointer to the downloaded artifact file.
+* The _absence_ of a particular module or artifact in a particular repository, eliminating repeated attempts to access a resource that does not exist.
+
+Every entry in the metadata cache includes a record of the repository that provided the information as well as a timestamp that can be used for cache expiry.
+
+[[sub:cache_repository_independence]]
+=== Repository caches are independent
+
+As described above, for each repository there is a separate metadata cache.
+A repository is identified by its URL, type and layout.
+If a module or artifact has not been previously resolved from _this repository_, Gradle will attempt to resolve the module against the repository.
+This will always involve a remote lookup on the repository, however in many cases <<#sub:cache_artifact_reuse,no download will be required>>.
+
+Dependency resolution will fail if the required artifacts are not available in any repository specified by the build, even if the local cache has a copy of this artifact which was retrieved from a different repository.
+Repository independence allows builds to be isolated from each other in an advanced way that no build tool has done before.
+This is a key feature to create builds that are reliable and reproducible in any environment.
+
+[[sub:cache_artifact_reuse]]
+=== Artifact reuse
+
+Before downloading an artifact, Gradle tries to determine the checksum of the required artifact by downloading the sha file associated with that artifact.
+If the checksum can be retrieved, an artifact is not downloaded if an artifact already exists with the same id and checksum.
+If the checksum cannot be retrieved from the remote server, the artifact will be downloaded (and ignored if it matches an existing artifact).
+
+As well as considering artifacts downloaded from a different repository, Gradle will also attempt to reuse artifacts found in the local Maven Repository.
+If a candidate artifact has been downloaded by Maven, Gradle will use this artifact if it can be verified to match the checksum declared by the remote server.
+
+[[sub:cache_checksum_storage]]
+=== Checksum based storage
+
+It is possible for different repositories to provide a different binary artifact in response to the same artifact identifier.
+This is often the case with Maven SNAPSHOT artifacts, but can also be true for any artifact which is republished without changing its identifier.
+By caching artifacts based on their SHA1 checksum, Gradle is able to maintain multiple versions of the same artifact.
+This means that when resolving against one repository Gradle will never overwrite the cached artifact file from a different repository.
+This is done without requiring a separate artifact file store per repository.
+
+[[sub:cache_locking]]
+=== Cache Locking
+
+The Gradle dependency cache uses file-based locking to ensure that it can safely be used by multiple Gradle processes concurrently.
+The lock is held whenever the binary metadata store is being read or written, but is released for slow operations such as downloading remote artifacts.
+
+This concurrent access is only supported if the different Gradle processes can communicate together. This is usually _not the case_ for containerized builds.
+
+[[sub:cache_cleanup]]
+==== Cache Cleanup
+
+Gradle keeps track of which artifacts in the dependency cache are accessed.
+Using this information, the cache is periodically (at most every 24 hours) scanned for artifacts that have not been used for more than 30 days.
+Obsolete artifacts are then deleted to ensure the cache does not grow indefinitely.
+
+[[sub:ephemeral-ci-cache]]
+== Dealing with ephemeral builds
+
+It's a common practice to run builds in ephemeral containers.
+A container is typically spawned to only execute a single build before it is destroyed.
+This can become a practical problem when a build depends on a lot of dependencies which each container has to re-download.
+To help with this scenario, Gradle provides a couple of options:
+
+- <<sub:cache_copy,copying the dependency cache>> into each container
+- <<sub:shared-readonly-cache,sharing a read-only dependency cache>> between multiple containers
+
+[[sub:cache_copy]]
+=== Copying and reusing the cache
+
+The dependency cache, both the file and metadata parts, are fully encoded using relative paths.
+This means that it is perfectly possible to copy a cache around and see Gradle benefit from it.
+
+The path that can be copied is `$GRADLE_USER_HOME/caches/modules-<version>`.
+The only constraint is placing it using the same structure at the destination, where the value of `GRADLE_USER_HOME` can be different.
+
+Do not copy the `*.lock` or `gc.properties` files if they exist.
+
+Note that creating the cache and consuming it should be done using compatible Gradle version, as shown in the table below.
+Otherwise, the build might still require some interactions with remote repositories to complete missing information, which might be available in a different version.
+If multiple incompatible Gradle versions are in play, all should be used when seeding the cache.
+
+.Dependency cache compatibility
+[%header%autowidth,compact]
+|===
+| Module cache version  | File cache version    | Metadata cache version    | Gradle version(s)
+
+| `modules-2`           | `files-2.1`           | `metadata-2.95`           | Gradle 6.1 to Gradle 6.3
+
+| `modules-2`           | `files-2.1`           | `metadata-2.96`           | Gradle 6.4 to Gradle 6.7
+
+| `modules-2`           | `files-2.1`           | `metadata-2.97`           | Gradle 6.8 to Gradle 7.4
+| `modules-2`           | `files-2.1`           | `metadata-2.99`           | Gradle 7.5 to Gradle 7.6.1
+| `modules-2`           | `files-2.1`           | `metadata-2.101`          | Gradle 7.6.2
+| `modules-2`           | `files-2.1`           | `metadata-2.100`          | Gradle 8.0
+| `modules-2`           | `files-2.1`           | `metadata-2.105`          | Gradle 8.1
+| `modules-2`           | `files-2.1`           | `metadata-2.106`          | Gradle 8.2 and above
+|===
+
+[[sub:shared-readonly-cache]]
+=== Sharing the dependency cache with other Gradle instances
+
+Instead of <<sub:cache_copy,copying the dependency cache into each container>>, it's possible to mount a shared, read-only directory that will act as a dependency cache for all containers.
+This cache, unlike the classical dependency cache, is accessed without locking, making it possible for multiple builds to read from the cache concurrently. It's important that the read-only cache
+is not written to when other builds may be reading from it.
+
+When using the shared read-only cache, Gradle looks for dependencies (artifacts or metadata) in both the writable cache in the local Gradle User Home directory and the shared read-only cache.
+If a dependency is present in the read-only cache, it will not be downloaded.
+If a dependency is missing from the read-only cache, it will be downloaded and added to the writable cache.
+In practice, this means that the writable cache will only contain dependencies that are unavailable in the read-only cache.
+
+The read-only cache should be sourced from a Gradle dependency cache that already contains some of the required dependencies.
+The cache can be incomplete; however, an empty shared cache will only add overhead.
+
+NOTE: The shared read-only dependency cache is an incubating feature.
+
+The first step in using a shared dependency cache is to create one by copying of an existing _local_ cache.
+For this you need to follow the <<sub:cache_copy,instructions above>>.
+
+Then set the `GRADLE_RO_DEP_CACHE` environment variable to point to the directory containing the cache:
+
+----
+$GRADLE_RO_DEP_CACHE
+   |-- modules-2 : the read-only dependency cache, should be mounted with read-only privileges
+
+$GRADLE_HOME
+   |-- caches
+         |-- modules-2 : the container specific dependency cache, should be writable
+         |-- ...
+   |-- ...
+----
+
+In a CI environment, it's a good idea to have one build which "seeds" a Gradle dependency cache, which is then _copied_ to a different directory.
+This directory can then be used as the read-only cache for other builds.
+You shouldn't use an existing Gradle installation cache as the read-only cache, because this directory may contain locks and may be modified by the seeding build.
+
+[[sec:programmatic_api]]
+== Accessing the resolution result programmatically
+
+While most users only need access to a "flat list" of files, there are cases where it can be interesting to reason on a _graph_ and get more information about the resolution result:
+
+- for tooling integration, where a model of the dependency graph is required
+- for tasks generating a visual representation (image, `.dot` file, ...) of a dependency graph
+- for tasks providing diagnostics (similar to the `dependencyInsight` task)
+- for tasks which need to perform dependency resolution at execution time (e.g, download files on demand)
+
+For those use cases, Gradle provides lazy, thread-safe APIs, accessible by calling the link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#getIncoming--[Configuration.getIncoming()] method:
+
+- the link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#getResolutionResult--[ResolutionResult API] gives access to a resolved dependency graph, whether the resolution was successful or not.
+- the link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#getArtifacts--[artifacts API] provides a simple access to the resolved artifacts, untransformed, but with lazy download of artifacts (they would only be downloaded on demand).
+- the link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#artifactView-org.gradle.api.Action-[artifact view API] provides an advanced, filtered view of artifacts, possibly <<artifact_transforms.adoc#sec:abm_artifact_transforms,transformed>>.
+
+NOTE: See the documentation on <<incremental_build.adoc#sec:task_input_using_dependency_resolution_results, using dependency resolution results>> for more details on how to consume the results in a task.

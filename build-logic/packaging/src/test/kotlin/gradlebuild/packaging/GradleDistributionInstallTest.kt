@@ -227,9 +227,15 @@ class GradleDistributionInstallTest {
         val runtimeClasspath by configurations.creating
         val agentsRuntimeClasspath by configurations.creating
 
-        val runtimeApiInfoJar by tasks.registering(Jar::class){
+        tasks.register("runtimeApiInfoJar", Jar::class){
             archiveVersion.set("8.2")
             archiveBaseName.set("gradle-runtime-api")
+            destinationDirectory.set(layout.buildDirectory.dir("jars"))
+        }
+
+        tasks.register("gradleApiKotlinExtensionsJar", Jar::class){
+            archiveVersion.set("8.2")
+            archiveBaseName.set("gradle-kotlin-dsl-extensions")
             destinationDirectory.set(layout.buildDirectory.dir("jars"))
         }
 

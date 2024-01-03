@@ -17,22 +17,16 @@
 package org.gradle.kotlin.dsl.integration
 
 import com.nhaarman.mockito_kotlin.mock
-import org.gradle.api.JavaVersion
-
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
+import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
-import org.gradle.kotlin.dsl.support.messageCollectorFor
 import org.gradle.kotlin.dsl.support.scriptDefinitionFromTemplate
-
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
-
 import org.junit.Test
-
 import java.io.File
 
 
@@ -94,13 +88,13 @@ class KotlinScriptCompilerTest : TestWithTempFiles() {
     ) {
         compileKotlinScriptToDirectory(
             outputDir,
-            JavaVersion.current(),
+            KotlinCompilerOptions(),
             file("script.kts").apply {
                 writeText(script)
             },
             scriptDefinition,
             testRuntimeClassPath.asFiles,
-            messageCollectorFor(mock())
-        )
+            mock()
+        ) { it }
     }
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.classpath
 
+import groovy.test.NotYetImplemented
+import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
@@ -26,12 +28,14 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import java.nio.file.Files
 import java.util.stream.Collectors
+
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
     static final int MAX_CACHE_AGE_IN_DAYS = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES
@@ -98,9 +102,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         loopNumber << (1..6).toList()
     }
 
-    // Agent-based instrumentation doesn't expose cached JARs
-    @Requires(IntegTestPreconditions.AgentInstrumentationDisabled)
-    def "build script classloader copies jar files to cache"() {
+    def "build script classloader copies only non-cached jar files to cache"() {
         given:
         createBuildFileThatPrintsClasspathURLs("""
             classpath name: 'test', version: '1.3-BUILD-SNAPSHOT'
@@ -120,8 +122,12 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
 
         then:
         succeeds("showBuildscript")
-        inJarCache("test-1.3-BUILD-SNAPSHOT.jar")
-        inJarCache("commons-io-1.4.jar")
+        // A jar coming from some file repo is copied into the transformation cache and served from there.
+        inArtifactTransformCache("test-1.3-BUILD-SNAPSHOT.jar")
+        // A jar coming from remote repo is cached in the global modules cache and served from there.
+        // It isn't copied into the transformation cache.
+        // The transformed counterparts are not visible when printing classpath data.
+        notInArtifactTransformCache("commons-io-1.4.jar")
     }
 
     private void createBuildFileThatPrintsClasspathURLs(String dependencies = '') {
@@ -223,7 +229,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         outputContains("hello again")
     }
 
-    def "cleans up unused cached JARs"() {
+    def "cleans up unused cached JARs in the Jars cache"() {
         given:
         executer.requireIsolatedDaemons() // needs to stop daemon
         requireOwnGradleUserHomeDir() // needs its own journal
@@ -236,12 +242,12 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         succeeds("showBuildscript")
 
         then:
-        def jar = inJarCache("a-1.jar").assertExists()
+        def jar = inJarCache("proj.jar").assertExists()
         journal.assertExists()
 
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
-        gcFile.lastModified = daysAgo(2)
+        jarsCacheGcFile.lastModified = daysAgo(2)
         writeLastFileAccessTimeToJournal(jar.parentFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
 
         and:
@@ -269,7 +275,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
             userHomeCacheDir.createDir("${DefaultClasspathTransformerCacheFactory.CACHE_NAME}-1"),
             userHomeCacheDir.createDir("${DefaultClasspathTransformerCacheFactory.CACHE_NAME}-2")
         ]
-        gcFile.createFile().lastModified = daysAgo(2)
+        jarsCacheGcFile.createFile().lastModified = daysAgo(2)
 
         when:
         succeeds("help")
@@ -462,6 +468,8 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         3200        || 3
     }
 
+    @NotYetImplemented
+    // Instrumentation with artifact transform doesn't support that yet
     def "transformation normalizes input jars before fingerprinting"() {
         requireOwnGradleUserHomeDir() // inspects cached content
 
@@ -486,7 +494,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         }
 
         Closure<String> subprojectSource = {File jarPath -> """
-            buildscript { dependencies { classpath files("${TextUtil.normaliseFileSeparators(jarPath.absolutePath)}") } }
+            buildscript { dependencies { classpath files("${normaliseFileSeparators(jarPath.absolutePath)}") } }
 
             tasks.register("printMessage") { doLast { println (new org.gradle.test.BuildClass().message()) } }
         """}
@@ -499,9 +507,10 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         file("current/build.gradle").text = subprojectSource(currentTimestampJar)
 
         expect:
-        succeeds("printMessage")
+        succeeds("printMessage", "--info")
 
-        getCachedTransformedJarsByName("testClasses.jar").size() == 1
+        getArtifactTransformJarsByName("original/testClasses.jar").size() == 1
+        getArtifactTransformJarsByName("instrumented/testClasses.jar").size() == 1
     }
 
     void notInJarCache(String filename) {
@@ -510,16 +519,31 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
 
     TestFile inJarCache(String filename, boolean shouldBeFound = true) {
         String fullpath = result.output.readLines().find { it.matches(">>>file:.*${filename}") }.replace(">>>", "")
-        assert fullpath.startsWith(cacheDir.toURI().toString()) == shouldBeFound
+        assert fullpath.startsWith(jarsCacheDir.toURI().toString()) == shouldBeFound
         return new TestFile(new File(URI.create(fullpath)))
     }
 
-    TestFile getGcFile() {
-        return cacheDir.file("gc.properties")
+    TestFile notInArtifactTransformCache(String filename) {
+        inArtifactTransformCache(filename, false)
     }
 
-    TestFile getCacheDir() {
+    TestFile inArtifactTransformCache(String filename, boolean shouldBeFound = true) {
+        String fullpath = result.output.readLines().find { it.matches(">>>file:.*${filename}") }.replace(">>>", "")
+        assert fullpath.startsWith(artifactTransformCacheDir.toURI().toString()) == shouldBeFound
+        return new TestFile(new File(URI.create(fullpath)))
+    }
+
+
+    TestFile getJarsCacheGcFile() {
+        return jarsCacheDir.file("gc.properties")
+    }
+
+    TestFile getJarsCacheDir() {
         return userHomeCacheDir.file(DefaultClasspathTransformerCacheFactory.CACHE_KEY)
+    }
+
+    TestFile getArtifactTransformCacheDir() {
+        return userHomeCacheDir.file(CacheLayout.TRANSFORMS.key)
     }
 
     /**
@@ -527,14 +551,10 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
      * @param jarName the name of the JAR to look
      * @return the list of transformed JARs in the cache
      */
-    List<File> getCachedTransformedJarsByName(String jarName) {
-        Arrays.stream(cacheDir.listFiles()).filter {
-            File cacheChild -> isCachedTransformedEntryDir(cacheChild)
-        }.map {
-            File cacheChild -> new File(cacheChild, jarName)
-        }.filter {
-            it.exists()
-        }.collect(Collectors.toList())
+    List<File> getArtifactTransformJarsByName(String jarName) {
+        return Files.find(artifactTransformCacheDir.toPath(), Integer.MAX_VALUE, (path, attributes) -> normaliseFileSeparators(path.toString()).endsWith(jarName))
+            .map { new TestFile(it.toFile()) }
+            .collect(Collectors.toList())
     }
 
     private static boolean isCachedTransformedEntryDir(File cacheChild) {

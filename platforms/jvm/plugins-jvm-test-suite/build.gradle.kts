@@ -21,6 +21,8 @@ plugins {
 description = "Contains the JVM Test Suite plugin"
 
 dependencies {
+    api(project(":test-suites-base"))
+
     implementation(project(":base-services"))
     implementation(project(":core-api"))
     implementation(project(":core"))
@@ -30,8 +32,7 @@ dependencies {
     implementation(project(":model-core"))
     implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))
-    implementation(project(":plugins-java"))
-    implementation(project(":plugins-jvm-test-suite-base"))
+    implementation(project(":plugins-java-base"))
     implementation(project(":reporting"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))

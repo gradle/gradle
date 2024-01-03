@@ -24,6 +24,7 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
     final buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def "multiproject settings with customizations are exposed correctly"() {
+        createDirs("b", "a", "a/c", "d")
         settingsFile << """
         include "b"
         include "a"
@@ -66,8 +67,8 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
     }
 
     def "settings set via cmdline flag are exposed correctly"() {
+        createDirs("custom", "custom/a")
         def customSettingsDir = file("custom")
-        customSettingsDir.mkdirs()
         def customSettingsFile = new File(customSettingsDir, "settings.gradle")
         customSettingsFile << """
         rootProject.name = "root"
@@ -101,6 +102,7 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
     }
 
     def "composite participants expose their project structure"() {
+        createDirs("a", "nested", "nested/b")
         settingsFile << """
         include "a"
         includeBuild "nested"
@@ -145,14 +147,14 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
         verifyProject(project(":b", nestedRootProject), 'b', ':nested:b', [], testDirectory.file('nested/b'))
     }
 
-    private void verifyProject(def project, String name, String identityPath = null, List<String> children = [], File projectDir = testDirectory.file(name), String buildFileName = 'build.gradle') {
+    private void verifyProject(def project, String name, String buildTreePath = null, List<String> children = [], File projectDir = testDirectory.file(name), String buildFileName = 'build.gradle') {
         assert project.name == name
-        assert project.identityPath == identityPath ?: project.path
-        assert project.buildTreePath == identityPath ?: project.path
+        assert project.getBuildTreePath == buildTreePath ?: project.path
+        assert project.buildTreePath == buildTreePath ?: project.path
         assert project.projectDir == projectDir.absolutePath
         assert project.buildFile == new File(projectDir, buildFileName).absolutePath
         assert project.children*.path == children
-        assert project.buildTreePath == identityPath ?: project.path
+        assert project.buildTreePath == buildTreePath ?: project.path
     }
 
     Map project(String path, Map rootProject, Map parent = null) {

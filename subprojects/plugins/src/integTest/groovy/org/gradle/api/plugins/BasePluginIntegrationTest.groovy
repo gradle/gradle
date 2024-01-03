@@ -76,8 +76,10 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("The configuration default was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with this name. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
-        executer.expectDocumentedDeprecationWarning("The configuration archives was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with this name. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+        executer.expectDocumentedDeprecationWarning("The configuration default was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with the name default. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+        executer.expectDocumentedDeprecationWarning("Gradle will mutate the usage of configuration default to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names has been deprecated. This will fail with an error in Gradle 9.0. Do not create a configuration with the name default. For more information, please refer to https://docs.gradle.org/current/userguide/authoring_maintainable_build_scripts.html#sec:dont_anticipate_configuration_creation in the Gradle documentation.")
+        executer.expectDocumentedDeprecationWarning("The configuration archives was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with the name archives. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+        executer.expectDocumentedDeprecationWarning("Gradle will mutate the usage of configuration archives to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names has been deprecated. This will fail with an error in Gradle 9.0. Do not create a configuration with the name archives. For more information, please refer to https://docs.gradle.org/current/userguide/authoring_maintainable_build_scripts.html#sec:dont_anticipate_configuration_creation in the Gradle documentation.")
         succeeds "help"
     }
 
@@ -98,5 +100,87 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         """
         expect:
         succeeds("myJar")
+    }
+
+    def "artifacts on archives and base configurations are built by assemble task"() {
+        buildFile << """
+            plugins {
+                id("base")
+            }
+
+            task jar1(type: Jar) {}
+            task jar2(type: Jar) {}
+
+            configurations {
+                named("default") {
+                    outgoing.artifact(tasks.jar1)
+                }
+                archives {
+                    outgoing.artifact(tasks.jar2)
+                }
+            }
+        """
+
+        expect:
+        succeeds("assemble")
+
+        executedAndNotSkipped(":jar1", ":jar2")
+    }
+
+    def "artifacts on role-locked configurations are not built by the assemble task by default"() {
+        buildFile << """
+            plugins {
+                id("base")
+            }
+
+            task jar1(type: Jar) {}
+            task jar2(type: Jar) {}
+            task jar3(type: Jar) {}
+
+            configurations {
+                consumable("con") {
+                    outgoing.artifact(tasks.jar1)
+                }
+                resolvable("res") {
+                    outgoing.artifact(tasks.jar2)
+                }
+                dependencyScope("dep") {
+                    outgoing.artifact(tasks.jar3)
+                }
+            }
+        """
+
+        expect:
+        succeeds("assemble")
+
+        notExecuted(":jar1", ":jar2", ":jar3")
+    }
+
+    def "artifacts on legacy configurations are built by default if visible"() {
+        buildFile << """
+            plugins {
+                id("base")
+            }
+
+            task jar1(type: Jar) {}
+            task jar2(type: Jar) {}
+
+            configurations {
+                foo {
+                    visible = true
+                    outgoing.artifact(tasks.jar1)
+                }
+                bar {
+                    visible = false
+                    outgoing.artifact(tasks.jar2)
+                }
+            }
+        """
+
+        expect:
+        succeeds("assemble")
+
+        executedAndNotSkipped(":jar1")
+        notExecuted(":jar2")
     }
 }

@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSortedMap
 import groovy.transform.CompileStatic
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.FileCollectionSnapshotter
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 
@@ -43,7 +44,7 @@ trait SnapshotterFixture {
         return builder.build()
     }
 
-    FileSystemSnapshot snapshot(File... files) {
-        snapshotter.snapshot(TestFiles.fixed(files)).snapshot
+    FileSystemLocationSnapshot snapshot(File file) {
+        snapshotter.snapshot(TestFiles.fixed(file)).snapshot as FileSystemLocationSnapshot
     }
 }

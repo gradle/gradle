@@ -29,7 +29,9 @@ class GitIgnoreGeneratorTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    InitSettings settings = Mock()
+    InitSettings settings = Mock(InitSettings) {
+        isWithComments() >> true
+    }
     File gitignoreFile = tmpDir.file(".gitignore")
 
     def setup() {
@@ -45,7 +47,7 @@ class GitIgnoreGeneratorTest extends Specification {
         def generator = new GitIgnoreGenerator()
 
         when:
-        generator.generate(settings)
+        generator.generate(settings, null)
 
         then:
         gitignoreFile.file
@@ -58,7 +60,7 @@ class GitIgnoreGeneratorTest extends Specification {
         gitignoreFile << 'ignoredFolder/'
 
         when:
-        generator.generate(settings)
+        generator.generate(settings, null)
 
         then:
         gitignoreFile.file
@@ -72,7 +74,7 @@ ${getGeneratedGitignoreContent()}""")
         gitignoreFile << entry
 
         when:
-        generator.generate(settings)
+        generator.generate(settings, null)
 
         then:
         gitignoreFile.file

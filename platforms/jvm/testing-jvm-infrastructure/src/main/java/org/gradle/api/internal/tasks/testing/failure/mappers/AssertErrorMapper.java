@@ -40,6 +40,12 @@ public class AssertErrorMapper extends TestFailureMapper {
 
     @Override
     public TestFailure map(Throwable throwable, ThrowableToTestFailureMapper rootMapper) throws Exception {
-        return TestFailure.fromTestAssertionFailure(throwable, null, null);
+        Throwable cause = throwable.getCause();
+        List<TestFailure> causeFailure = null;
+        if (cause != null) {
+            causeFailure = Collections.singletonList(rootMapper.createFailure(cause));
+        }
+
+        return TestFailure.fromTestAssertionFailure(throwable, null, null, causeFailure);
     }
 }

@@ -27,9 +27,9 @@ import static org.hamcrest.CoreMatchers.allOf
 
 class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
-    public static final String SAMPLE_LIBRARY_CLASS = "some/thing/Library.java"
-    public static final String SAMPLE_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.java"
-    public static final String SAMPLE_SPOCK_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.groovy"
+    public static final String SAMPLE_LIBRARY_CLASS = "org/example/Library.java"
+    public static final String SAMPLE_LIBRARY_TEST_CLASS = "org/example/LibraryTest.java"
+    public static final String SAMPLE_SPOCK_LIBRARY_TEST_CLASS = "org/example/LibraryTest.groovy"
 
     def "defaults to Kotlin build scripts"() {
         when:
@@ -57,7 +57,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         run("build")
 
         then:
-        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -80,7 +80,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         when:
         run('test')
         then:
-        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -97,7 +97,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         succeeds('test')
 
         then:
-        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -115,13 +115,13 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         and:
         commonJvmFilesGenerated(scriptDsl)
         def dslFixture = dslFixtureFor(scriptDsl)
-        buildFileSeparatesImplementationAndApi(dslFixture, 'org.spockframework')
+        buildFileSeparatesImplementationAndApi(dslFixture, 'spock.core')
 
         when:
         run("build")
 
         then:
-        assertTestPassed("some.thing.LibraryTest", "someLibraryMethod returns true")
+        assertTestPassed("org.example.LibraryTest", "someLibraryMethod returns true")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -138,13 +138,13 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         and:
         commonJvmFilesGenerated(scriptDsl)
         def dslFixture = dslFixtureFor(scriptDsl)
-        buildFileSeparatesImplementationAndApi(dslFixture, 'org.testng')
+        buildFileSeparatesImplementationAndApi(dslFixture, 'testng')
 
         when:
         run("build")
 
         then:
-        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -161,13 +161,13 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         and:
         commonJvmFilesGenerated(scriptDsl)
         def dslFixture = dslFixtureFor(scriptDsl)
-        buildFileSeparatesImplementationAndApi(dslFixture, 'org.junit.jupiter')
+        buildFileSeparatesImplementationAndApi(dslFixture, 'junit.jupiter')
 
         when:
         run("build")
 
         then:
-        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -312,11 +312,11 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    private static void buildFileSeparatesImplementationAndApi(ScriptDslFixture dslFixture, String testFramework = 'org.junit.jupiter') {
+    private static void buildFileSeparatesImplementationAndApi(ScriptDslFixture dslFixture, String testFramework = 'junit.jupiter') {
         dslFixture.buildFile.assertContents(
             allOf(
-                dslFixture.containsConfigurationDependencyNotation('api', 'org.apache.commons:commons-math3'),
-                dslFixture.containsConfigurationDependencyNotation('implementation', 'com.google.guava:guava:'),
-                dslFixture.containsConfigurationDependencyNotation('testImplementation', testFramework)))
+                dslFixture.containsConfigurationDependencyNotation('api', 'libs.commons.math3'),
+                dslFixture.containsConfigurationDependencyNotation('implementation', 'libs.guava'),
+                dslFixture.containsConfigurationDependencyNotation('testImplementation', 'libs.' + testFramework)))
     }
 }

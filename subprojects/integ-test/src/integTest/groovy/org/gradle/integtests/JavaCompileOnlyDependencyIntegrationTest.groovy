@@ -190,6 +190,7 @@ task checkCompileClasspath{
         mavenRepo.module('org.gradle.test', 'compileOnly', '1.0').publish()
 
         and:
+        createDirs("projectA", "projectB")
         settingsFile << "include 'projectA', 'projectB'"
 
         buildFile << """
@@ -228,6 +229,7 @@ project(':projectB') {
 
     def "correct configurations for compile only project dependency"() {
         given:
+        createDirs("projectA", "projectB")
         settingsFile << "include 'projectA', 'projectB'"
 
         and:

@@ -30,19 +30,23 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGen
         this.documentationRegistry = documentationRegistry;
     }
 
-    public void generateWithoutComments(InitSettings settings) {
-        builder(settings).withExternalComments().create(settings.getTarget()).generate();
+    public void generateWithoutComments(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
+        builder(settings, buildContentGenerationContext)
+            .withComments(settings.isWithComments() ? BuildInitComments.EXTERNAL : BuildInitComments.OFF)
+            .create(settings.getTarget())
+            .generate();
     }
 
     @Override
-    public void generate(InitSettings settings) {
-        builder(settings).create(settings.getTarget()).generate();
+    public void generate(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
+        builder(settings, buildContentGenerationContext).create(settings.getTarget()).generate();
     }
 
-    private BuildScriptBuilder builder(InitSettings settings) {
-        BuildScriptBuilder builder = scriptBuilderFactory.scriptForNewProjects(settings.getDsl(), "settings", settings.isUseIncubatingAPIs());
+    private BuildScriptBuilder builder(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
+        BuildScriptBuilder builder = scriptBuilderFactory.scriptForNewProjectsWithoutVersionCatalog(settings.getDsl(), buildContentGenerationContext, "settings", settings.isUseIncubatingAPIs());
+        builder.withComments(settings.isWithComments() ? BuildInitComments.ON : BuildInitComments.OFF);
         builder.fileComment("The settings file is used to specify which projects to include in your build.\n\n")
-            .fileComment(documentationRegistry.getDocumentationRecommendationFor("detailed information on multi-project builds", "building_swift_projects"));
+            .fileComment(documentationRegistry.getDocumentationRecommendationFor("detailed information on multi-project builds", "multi_project_builds"));
         if (settings.getModularizationOption() == ModularizationOption.WITH_LIBRARY_PROJECTS && settings.isUseIncubatingAPIs()) {
             builder.includePluginsBuild();
         }

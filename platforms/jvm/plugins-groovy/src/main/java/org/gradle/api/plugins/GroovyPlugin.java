@@ -37,6 +37,7 @@ public abstract class GroovyPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(GroovyBasePlugin.class);
         project.getPluginManager().apply(JavaPlugin.class);
+
         configureGroovydoc(project);
     }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import gradlebuild.capitalize
+import gradlebuild.basics.capitalize
 import gradlebuild.pluginpublish.extension.PluginPublishExtension
 import java.time.Year
 
@@ -141,6 +141,22 @@ configurations.create("localLibsRepositoryElements") {
     isVisible = false
     outgoing.artifact(localRepository) {
         builtBy(publishPluginsToTestRepository)
+    }
+}
+
+configurations.create("futureVersion") {
+    isVisible = false
+    isCanBeResolved = false
+    isCanBeConsumed = true
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("future-versions-resource"))
+    }
+    outgoing {
+        artifact(futurePluginVersionsDestDir) {
+            builtBy(writeFuturePluginVersions)
+        }
     }
 }
 

@@ -1,0 +1,272 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[partr5_build_scripts]]
+= Part 5: Writing a Build Script
+
+Learn the basics of authoring Gradle by developing the Build Script.
+
+****
+**In this section, you will:**
+
+- Understand the Project object
+- Update the Build script
+- Update the Plugin
+- Apply the Plugin
+- Run a task from the Plugin
+****
+
+[[part5_begin]]
+== Step 0. Before you Begin
+
+1. You initialized your Java app in <<partr1_gradle_init.adoc#part1_begin,part 1>>.
+2. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
+3. You added a subproject and a separate Build in <<partr3_multi_project_builds#part3_begin, part3>>.
+4. You viewed a Settings file in <<partr4_settings_file.adoc#part4_begin,part 4>>.
+
+== Step 1. The `Project` object
+
+Build scripts invoke Gradle APIs to configure the build.
+
+During the configuration phase, Gradle finds the build script(s) in the root and subproject directories.
+
+When a build script, `build.gradle(.kts)`, is found, Gradle configures a link:{javadocPath}/org/gradle/api/Project.html[Project] object.
+
+The purpose of the link:{javadocPath}/org/gradle/api/Project.html[Project] object is to create a collection of link:{javadocPath}/org/gradle/api/Task.html[Task] objects, apply plugins, and retrieve dependencies.
+
+You can use any of the methods and properties on the link:{javadocPath}/org/gradle/api/Project.html[Project] interface directly in your script.
+
+For example:
+
+[source,kotlin]
+----
+ defaultTasks("some-task")      // Delegates to Project.defaultTasks()
+ reportsDir = file("reports")   // Delegates to Project.file() and the Java Plugin
+----
+
+== Step 2. The Build script
+
+Let's break down the build script for the plugin:
+
+.gradle/license-plugin/plugin/build.gradle.kts
+[source,kotlin]
+----
+plugins {                                                                                           // <1>
+    `java-gradle-plugin`                                                                            // <2>
+    id("org.jetbrains.kotlin.jvm") version "1.9.0"                                                  // <3>
+}
+
+repositories {                                                                                      // <4>
+    mavenCentral()                                                                                  // <5>
+}
+
+dependencies {                                                                                      // <6>
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")                                   // <7>
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+gradlePlugin {                                                                                      // <8>
+    val greeting by plugins.creating {                                                              // <9>
+        id = "com.gradle.greeting"
+        implementationClass = "com.gradle.LicensePlugin"
+    }
+}
+
+val functionalTestSourceSet = sourceSets.create("functionalTest") {}                                // <10>
+
+// Additional lines //
+
+val functionalTest by tasks.registering(Test::class) {
+    testClassesDirs = functionalTestSourceSet.output.classesDirs
+    classpath = functionalTestSourceSet.runtimeClasspath
+    useJUnitPlatform()
+}
+
+// Additional lines //
+----
+<1> Use the `plugins{}` block from link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/index.html[KotlinSettingsScript] in the Kotlin DSL
+<2> Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins
+<3> Apply the Kotlin JVM plugin to add support for Kotlin
+<4> Use link:{kotlinDslPath}/gradle/org.gradle.api/-project/repositories.html[`Project.repositories()`] to configure the repositories for this project
+<5> Use link:https://repo.maven.apache.org/maven2/[Maven Central] for resolving dependencies
+<6> Use link:{kotlinDslPath}/gradle/org.gradle.api/-project/dependencies.html[`Project.dependencies()`] to configure the dependencies for this project
+<7> Use the Kotlin JUnit 5 integration
+<8> Use the `gradlePlugin{}` block from link:{kotlinDslPath}/gradle/org.gradle.plugin.devel/-gradle-plugin-development-extension/index.html[GradlePluginDevelopmentExtension] in the Kotlin DSL
+<9> Define the plugin `id` and `implementationClass`
+<10> Additional test configuration including tasks
+
+Plugins, which enhance your build capabilities, are included like this:
+
+[source,kotlin]
+----
+plugins {
+    id("java")                          // core plugin, no version required
+    id("org.some.plugin") version "2.8" // community plugin, version required
+}
+----
+
+The repositories section lets Gradle know where to pull dependencies from:
+
+[source,kotlin]
+----
+repositories {
+    mavenCentral()  // get dependencies from the Maven central repository
+}
+----
+
+Dependencies are requirements for building your application or library:
+
+[source,kotlin]
+----
+dependencies {
+    implementation("org.apache.commons:commons-lang3:3.13.0")   // group: 'org.apache.commons', name: 'commons-lang3', version: '3.13.0'
+}
+----
+
+In this example, `implementation()` means that the `commons-lang3` library must be added to the Java classpath.
+
+Every dependency declared for a Gradle project must apply to a scope.
+That is, the dependency is either needed at compile time, runtime, or both.
+This is called a configuration and the `implementation` configuration is used when the dependency is only needed in the runtime classpath.
+
+Configuration blocks (not to be confused with dependency configurations above) are typically further configuration required by an applied plugin:
+
+[source,kotlin]
+----
+gradlePlugin {                                                                                      // <8>
+    val greeting by plugins.creating {                                                              // <9>
+        id = "com.gradle.greeting"
+        implementationClass = "com.gradle.LicensePlugin"
+    }
+}
+----
+
+When the `java-gradle-plugin` is applied, users must configure the plugin they are developing using the `gradlePlugin{}` configuration block.
+
+Tasks are units of work executed during your build.
+They can be defined by plugins or inline:
+
+[source,kotlin]
+----
+val functionalTest by tasks.registering(Test::class) {
+    testClassesDirs = functionalTestSourceSet.output.classesDirs
+    classpath = functionalTestSourceSet.runtimeClasspath
+    useJUnitPlatform()
+}
+
+tasks.named<Test>("test") {
+    // Use JUnit Jupiter for unit tests.
+    useJUnitPlatform()
+}
+----
+
+== Step 3. Update the Build scripts
+
+Build init creates a "hello world" plugin when creating a Gradle plugin project:
+
+.gradle/license-plugin/plugin/build.gradle.kts
+[source,kotlin]
+----
+gradlePlugin {
+    val greeting by plugins.creating {
+        id = "com.gradle.greeting"
+        implementationClass = "com.gradle.LicensePlugin"
+    }
+}
+
+----
+
+Over the following sections, we will write a plugin that automatically generates license headers for source code files.
+Let's update the build script with the proper name for our new `license` plugin:
+
+.gradle/license-plugin/plugin/build.gradle.kts
+[source,kotlin]
+----
+gradlePlugin {
+    val license by plugins.creating {   // Update name to license
+        id = "com.gradle.license"       // Update id to com.gradle.license
+        implementationClass = "com.gradle.LicensePlugin"
+    }
+}
+----
+
+== Step 3. Apply the Plugin
+
+Let's apply our `license` plugin to the `app` subproject:
+
+.app/build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    application
+    id("com.gradle.license")    // Apply the license plugin
+}
+----
+
+== Step 4. View Plugin Task
+
+The source code for the `license` plugin is also the "hello world" sample created by Gradle init:
+
+.gradle/license-plugin/plugin/src/main/kotlin/com/gradle/LicensePlugin.kt
+[source,kotlin]
+----
+class LicensePlugin: Plugin<Project> {
+    override fun apply(project: Project) {                          // Apply plugin
+        project.tasks.register("greeting") { task ->                // Register a task
+            task.doLast {
+                println("Hello from plugin 'com.gradle.greeting'")  // Hello world printout
+            }
+        }
+    }
+}
+----
+
+As we can see, the `license` plugin, when applied, contains a `greeting` task with a simple print statement.
+
+== Step 5. View Plugin Tasks
+
+When the `license` plugin is applied to the `app` project, the `greeting` task becomes available:
+
+To view the task in the root directory, run:
+
+[source]
+----
+$ ./gradlew tasks --all
+
+------------------------------------------------------------
+Tasks runnable from root project 'authoring-tutorial'
+------------------------------------------------------------
+
+...
+
+Other tasks
+-----------
+app:greeting
+app:task1
+app:task2
+lib:task3
+----
+
+Finally, run the `greeting` task using `./gradlew greeting` or:
+
+[source]
+----
+$ ./gradlew :app:greeting
+
+> Task :app:greeting
+Hello from plugin 'com.gradle.greeting'
+----
+
+[.text-right]
+**Next Step:** <<partr6_writing_tasks#partr6_writing_tasks,Writing Tasks>> >>

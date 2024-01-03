@@ -29,6 +29,10 @@ class MessageRewritingBuildOperationAwareLogger extends BuildOperationAwareLogge
         this.messageRewriter = messageRewriter;
     }
 
+    ContextAwareTaskLogger.MessageRewriter getMessageRewriter() {
+        return messageRewriter;
+    }
+
     @Override
     void log(LogLevel logLevel, Throwable throwable, String message, OperationIdentifier operationIdentifier) {
         final String rewrittenMessage = messageRewriter.rewrite(logLevel, message);

@@ -25,19 +25,20 @@ moduleIdentity.createBuildReceipt()
 
 dependencies {
     api(project(":base-annotations"))
-    api(project(":worker-services"))
     api(project(":hashing"))
     api(project(":build-operations"))
+    api(libs.jsr305)
+    api(libs.guava)
 
     implementation(libs.asm)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
-    implementation(libs.guava)
     implementation(libs.inject)
     implementation(libs.slf4jApi)
 
     integTestImplementation(project(":logging"))
 
+    testFixturesApi(project(":hashing"))
     testFixturesImplementation(libs.guava)
     testImplementation(testFixtures(project(":core")))
     testImplementation(libs.xerces)
@@ -55,3 +56,4 @@ packageCycles {
 }
 
 jmh.includes = listOf("HashingAlgorithmsBenchmark")
+

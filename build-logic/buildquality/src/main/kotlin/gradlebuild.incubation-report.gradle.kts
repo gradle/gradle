@@ -16,9 +16,9 @@
 
 import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.accessors.kotlin
+import gradlebuild.basics.capitalize
 import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.basics.repoRoot
-import gradlebuild.capitalize
 import gradlebuild.incubation.tasks.IncubatingApiReportTask
 
 plugins {

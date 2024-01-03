@@ -33,11 +33,9 @@ import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.problems.ProblemBuilder;
-import org.gradle.api.problems.ProblemBuilderDefiningLabel;
-import org.gradle.api.problems.ProblemBuilderSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -174,7 +172,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     @Inject
-    protected Problems getProblemService() {
+    protected Problems getProblemsService() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -216,18 +214,13 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         SyntaxException syntaxError = e.getErrorCollector().getSyntaxError(0);
         int lineNumber = syntaxError == null ? -1 : syntaxError.getLine();
         String message = String.format("Could not compile %s.", source.getDisplayName());
-        throw getProblemService().throwing(new ProblemBuilderSpec() {
-            @Override
-            public ProblemBuilder apply(ProblemBuilderDefiningLabel builder) {
-                return builder
-                    .label(message)
-                    .undocumented()
-                    .location(source.getFileName(), lineNumber)
-                    .type("script_compilation_failed")
-                    .severity(Severity.ERROR)
-                    .withException(new ScriptCompilationException(message, e, source, lineNumber));
-            }
-        });
+        throw ((InternalProblems) getProblemsService()).getInternalReporter().throwing(builder -> builder
+            .label(message)
+            .lineInFileLocation(source.getFileName(), lineNumber)
+            .category("compilation", "groovy-dsl", "compilation-failed")
+            .severity(Severity.ERROR)
+            .withException(new ScriptCompilationException(message, e, source, lineNumber))
+        );
     }
 
     private static CompilerConfiguration createBaseCompilerConfiguration(Class<? extends Script> scriptBaseClass) {

@@ -15,6 +15,7 @@
  */
 package gradlebuild
 
+import gradlebuild.basics.capitalize
 import gradlebuild.samples.tasks.GenerateSample
 import org.gradle.buildinit.plugins.internal.modifiers.Language
 import org.gradle.buildinit.plugins.internal.modifiers.Language.CPP

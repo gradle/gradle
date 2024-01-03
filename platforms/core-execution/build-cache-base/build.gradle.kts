@@ -6,7 +6,7 @@ plugins {
 description = "Common shared build cache classes"
 
 dependencies {
+    api(project(":files"))
+
     implementation(project(":base-annotations"))
-    implementation(project(":files"))
-    implementation(libs.slf4jApi)
 }

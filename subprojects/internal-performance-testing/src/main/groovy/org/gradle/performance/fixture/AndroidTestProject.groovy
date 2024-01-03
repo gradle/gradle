@@ -68,24 +68,34 @@ class AndroidTestProject implements TestProject {
     void configure(GradleBuildExperimentSpec.GradleBuilder builder) {
     }
 
-    static void useKotlinLatestStableOrRcVersion(CrossVersionPerformanceTestRunner runner) {
-        runner.args.add("-DkotlinVersion=${KGP_VERSIONS.latestStableOrRC}")
+    static String useKotlinLatestStableOrRcVersion(CrossVersionPerformanceTestRunner runner) {
+        def version = KGP_VERSIONS.latestStableOrRC
+        runner.args.add("-DkotlinVersion=${ version}")
+        version
     }
 
-    static void useKotlinLatestVersion(CrossVersionPerformanceTestRunner runner) {
-        runner.args.add("-DkotlinVersion=${KGP_VERSIONS.latest}")
+    static String useKotlinLatestVersion(CrossVersionPerformanceTestRunner runner) {
+        def version = KGP_VERSIONS.latest
+        runner.args.add("-DkotlinVersion=${ version}")
+        version
     }
 
-    static void useAgpLatestOfMinorVersion(CrossVersionPerformanceTestRunner runner, String lowerBound) {
-        configureForAgpVersion(runner, AGP_VERSIONS.getLatestOfMinor(lowerBound))
+    static String useAgpLatestOfMinorVersion(CrossVersionPerformanceTestRunner runner, String lowerBound) {
+        def version = AGP_VERSIONS.getLatestOfMinor(lowerBound)
+        configureForAgpVersion(runner, version)
+        version
     }
 
-    static void useAgpLatestStableOrRcVersion(CrossVersionPerformanceTestRunner runner) {
-        configureForAgpVersion(runner, AGP_VERSIONS.latestStableOrRC)
+    static String useAgpLatestStableOrRcVersion(CrossVersionPerformanceTestRunner runner) {
+        def version = AGP_VERSIONS.latestStableOrRC
+        configureForAgpVersion(runner, version)
+        version
     }
 
-    static void useAgpLatestVersion(CrossVersionPerformanceTestRunner runner) {
-        configureForAgpVersion(runner, AGP_VERSIONS.latest)
+    static String useAgpLatestVersion(CrossVersionPerformanceTestRunner runner) {
+        def version = AGP_VERSIONS.latest
+        configureForAgpVersion(runner, version)
+        version
     }
 
     static void useJavaVersion(CrossVersionPerformanceTestRunner runner, JavaVersion javaVersion) {

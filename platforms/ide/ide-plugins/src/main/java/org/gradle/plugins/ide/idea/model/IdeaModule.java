@@ -16,7 +16,6 @@
 package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
@@ -26,7 +25,6 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.DefaultGradleApiSourcesResolver;
@@ -34,6 +32,7 @@ import org.gradle.plugins.ide.internal.resolver.DefaultGradleApiSourcesResolver;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -162,15 +161,15 @@ public abstract class IdeaModule {
 
     private String name;
     private Set<File> sourceDirs;
-    private Set<File> generatedSourceDirs = Sets.newLinkedHashSet();
-    private Set<File> resourceDirs = Sets.newLinkedHashSet();
+    private Set<File> generatedSourceDirs = new LinkedHashSet<>();
+    private Set<File> resourceDirs = new LinkedHashSet<>();
     /**
      * <strong>This field is {@code @Deprecated}, please use {@link #testResources} instead.</strong>
      */
     @Deprecated
-    private Set<File> testResourceDirs = Sets.newLinkedHashSet();
+    private Set<File> testResourceDirs = new LinkedHashSet<>();
     private ConfigurableFileCollection testResources;
-    private Map<String, Map<String, Collection<Configuration>>> scopes = Maps.newLinkedHashMap();
+    private Map<String, Map<String, Collection<Configuration>>> scopes = new LinkedHashMap<>();
     private boolean downloadSources = true;
     private boolean downloadJavadoc;
     private File contentRoot;
@@ -184,10 +183,10 @@ public abstract class IdeaModule {
     private Boolean inheritOutputDirs;
     private File outputDir;
     private File testOutputDir;
-    private Map<String, File> pathVariables = Maps.newLinkedHashMap();
+    private Map<String, File> pathVariables = new LinkedHashMap<>();
     private String jdkName;
-    private IdeaLanguageLevel languageLevel;
-    private JavaVersion targetBytecodeVersion;
+    protected IdeaLanguageLevel languageLevel;
+    protected JavaVersion targetBytecodeVersion;
     private final IdeaModuleIml iml;
     private final Project project;
     private PathFactory pathFactory;
@@ -202,9 +201,8 @@ public abstract class IdeaModule {
         this.testSources = project.getObjects().fileCollection();
         this.testResources = project.getObjects().fileCollection();
 
-        // TODO: remove this whileDisabled wrapping for Gradle 8.1
-        testSources.from(project.provider(() -> DeprecationLogger.whileDisabled(() -> getTestSourceDirs())));
-        testResources.from(project.provider(() -> DeprecationLogger.whileDisabled(() -> getTestResourceDirs())));
+        testSources.from(project.provider(this::getTestSourceDirs));
+        testResources.from(project.provider(this::getTestResourceDirs));
     }
 
     /**

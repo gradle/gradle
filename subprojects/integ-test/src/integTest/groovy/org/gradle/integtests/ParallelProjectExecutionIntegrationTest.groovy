@@ -30,6 +30,7 @@ public class ParallelProjectExecutionIntegrationTest extends AbstractIntegration
     def setup() {
         blockingServer.start()
 
+        createDirs("a", "b", "c", "d")
         settingsFile << 'include "a", "b", "c", "d"'
         buildFile << """
 allprojects {

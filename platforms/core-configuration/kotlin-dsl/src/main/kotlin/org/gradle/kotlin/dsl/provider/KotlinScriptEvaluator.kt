@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.provider
 
-import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -35,6 +34,7 @@ import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransfor
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.ImmutableUnitOfWork
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.InputVisitor
@@ -62,8 +62,10 @@ import org.gradle.kotlin.dsl.execution.Interpreter
 import org.gradle.kotlin.dsl.execution.ProgramId
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
+import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
+import org.gradle.kotlin.dsl.support.kotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.use.internal.PluginRequestApplicator
@@ -134,7 +136,7 @@ class StandardKotlinScriptEvaluator(
     private
     inline fun withOptions(options: EvalOptions, action: () -> Unit) {
         if (EvalOption.IgnoreErrors in options)
-            classPathModeExceptionCollector.ignoringErrors(action)
+            classPathModeExceptionCollector.runCatching(action)
         else
             action()
     }
@@ -148,21 +150,16 @@ class StandardKotlinScriptEvaluator(
     }
 
     private
-    val jvmTarget: JavaVersion =
-        JavaVersion.current()
-
-    private
     val interpreter by lazy {
-        Interpreter(InterpreterHost(gradlePropertiesController, jvmTarget))
+        Interpreter(InterpreterHost(gradlePropertiesController))
     }
 
     inner class InterpreterHost(
-        private val gradlePropertiesController: GradlePropertiesController,
-        override val jvmTarget: JavaVersion,
+        gradleProperties: GradlePropertiesController,
     ) : Interpreter.Host {
 
-        override val allWarningsAsErrors: Boolean =
-            gradlePropertiesController.gradleProperties.find("org.gradle.kotlin.dsl.allWarningsAsErrors") == "true"
+        override val compilerOptions: KotlinCompilerOptions =
+            kotlinCompilerOptions(gradleProperties)
 
         override fun stage1BlocksAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
             (scriptHost.target as? ProjectInternal)?.let {
@@ -261,20 +258,22 @@ class StandardKotlinScriptEvaluator(
             accessorsClassPath: ClassPath,
             initializer: (File) -> Unit
         ): File = try {
-            executionEngineFor(scriptHost).createRequest(
-                CompileKotlinScript(
-                    jvmTarget,
-                    allWarningsAsErrors,
-                    programId,
-                    compilationClassPath,
-                    accessorsClassPath,
-                    initializer,
-                    classpathHasher,
-                    workspaceProvider,
-                    fileCollectionFactory,
-                    inputFingerprinter
+            executionEngineFor(scriptHost)
+                .createRequest(
+                    CompileKotlinScript(
+                        programId,
+                        compilationClassPath,
+                        accessorsClassPath,
+                        initializer,
+                        classpathHasher,
+                        workspaceProvider,
+                        fileCollectionFactory,
+                        inputFingerprinter
+                    )
                 )
-            ).execute().execution.get().output as File
+                .execute()
+                .getOutputAs(File::class.java)
+                .get()
         } catch (e: CacheOpenException) {
             throw e.cause as? ScriptCompilationException ?: e
         }
@@ -354,8 +353,6 @@ class StandardKotlinScriptEvaluator(
 
 internal
 class CompileKotlinScript(
-    private val jvmTarget: JavaVersion,
-    private val allWarningsAsErrors: Boolean,
     private val programId: ProgramId,
     private val compilationClassPath: ClassPath,
     private val accessorsClassPath: ClassPath,
@@ -364,23 +361,24 @@ class CompileKotlinScript(
     private val workspaceProvider: KotlinDslWorkspaceProvider,
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter
-) : UnitOfWork {
+) : ImmutableUnitOfWork {
 
     companion object {
         const val JVM_TARGET = "jvmTarget"
         const val ALL_WARNINGS_AS_ERRORS = "allWarningsAsErrors"
+        const val SKIP_METADATA_VERSION_CHECK = "skipMetadataVersionCheck"
         const val TEMPLATE_ID = "templateId"
         const val SOURCE_HASH = "sourceHash"
         const val COMPILATION_CLASS_PATH = "compilationClassPath"
         const val ACCESSORS_CLASS_PATH = "accessorsClassPath"
-        val IDENTITY_HASH__PROPERTIES = listOf(JVM_TARGET, TEMPLATE_ID, SOURCE_HASH, COMPILATION_CLASS_PATH, ACCESSORS_CLASS_PATH)
     }
 
     override fun visitIdentityInputs(
         visitor: InputVisitor
     ) {
-        visitor.visitInputProperty(JVM_TARGET) { jvmTarget.majorVersion }
-        visitor.visitInputProperty(ALL_WARNINGS_AS_ERRORS) { allWarningsAsErrors }
+        visitor.visitInputProperty(JVM_TARGET) { programId.compilerOptions.jvmTarget.majorVersion }
+        visitor.visitInputProperty(ALL_WARNINGS_AS_ERRORS) { programId.compilerOptions.allWarningsAsErrors }
+        visitor.visitInputProperty(SKIP_METADATA_VERSION_CHECK) { programId.compilerOptions.skipMetadataVersionCheck }
         visitor.visitInputProperty(TEMPLATE_ID) { programId.templateId }
         visitor.visitInputProperty(SOURCE_HASH) { programId.sourceHash }
         visitor.visitClassPathProperty(COMPILATION_CLASS_PATH, compilationClassPath)
@@ -404,8 +402,8 @@ class CompileKotlinScript(
         identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>
     ): UnitOfWork.Identity {
         val identityHash = newHasher().let { hasher ->
-            IDENTITY_HASH__PROPERTIES.forEach {
-                requireNotNull(identityInputs[it]).appendToHasher(hasher)
+            identityInputs.values.forEach {
+                requireNotNull(it).appendToHasher(hasher)
             }
             hasher.hash().toString()
         }
@@ -415,15 +413,11 @@ class CompileKotlinScript(
     override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput {
         val workspace = executionRequest.workspace
         compileTo(classesDir(workspace))
-        return workOutputFor(workspace)
-    }
-
-    private
-    fun workOutputFor(workspace: File): UnitOfWork.WorkOutput =
-        object : UnitOfWork.WorkOutput {
+        return object : UnitOfWork.WorkOutput {
             override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
-            override fun getOutput() = loadAlreadyProducedOutput(workspace)
+            override fun getOutput(workspace: File) = loadAlreadyProducedOutput(workspace)
         }
+    }
 
     override fun getDisplayName(): String =
         "Kotlin DSL script compilation (${programId.templateId})"
