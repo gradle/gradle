@@ -45,5 +45,5 @@ public interface DecompressionCache extends Closeable {
      * @param expandedDir The directory in use for the action
      * @param action The action to run while the cache is held for the given key
      */
-    void useCache(File expandedDir, Runnable action);
+    void exclusiveAccessTo(File expandedDir, Runnable action);
 }

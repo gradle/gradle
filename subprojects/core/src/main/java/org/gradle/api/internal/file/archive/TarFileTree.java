@@ -94,7 +94,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
         }
 
         File expandedDir = getExpandedDir();
-        decompressionCache.useCache(expandedDir, () -> {
+        decompressionCache.exclusiveAccessTo(expandedDir, () -> {
             InputStream inputStream;
             try {
                 inputStream = new BufferedInputStream(resource.get().read());

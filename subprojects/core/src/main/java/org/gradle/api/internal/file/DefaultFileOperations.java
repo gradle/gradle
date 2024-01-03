@@ -193,7 +193,7 @@ public class DefaultFileOperations implements FileOperations {
             }
 
             @Override
-            public void useCache(File expandedDir, Runnable action) {
+            public void exclusiveAccessTo(File expandedDir, Runnable action) {
                 action.run();
             }
         };

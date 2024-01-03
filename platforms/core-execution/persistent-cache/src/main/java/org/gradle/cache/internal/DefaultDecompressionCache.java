@@ -47,7 +47,7 @@ public class DefaultDecompressionCache implements DecompressionCache {
     }
 
     @Override
-    public void useCache(File expandedDir, Runnable action) {
+    public void exclusiveAccessTo(File expandedDir, Runnable action) {
         // withFileLock prevents other processes from extracting into the expandedDir at the same time
         // but multiple threads in this process could still try to extract into the same directory.
         cache.withFileLock(() -> {

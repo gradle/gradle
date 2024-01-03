@@ -93,7 +93,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         }
 
         File expandedDir = getExpandedDir();
-        decompressionCache.useCache(expandedDir, () -> {
+        decompressionCache.exclusiveAccessTo(expandedDir, () -> {
             AtomicBoolean stopFlag = new AtomicBoolean();
             try (ZipFile zip = new ZipFile(zipFile)) {
                 // The iteration order of zip.getEntries() is based on the hash of the zip entry. This isn't much use
