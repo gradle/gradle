@@ -71,10 +71,14 @@ public class GraphVariantSelector {
     }
 
     public GraphVariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts) {
-        return selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, AttributeMatchingExplanationBuilder.logging());
+        return selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, false, AttributeMatchingExplanationBuilder.logging());
     }
 
-    private GraphVariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts, AttributeMatchingExplanationBuilder explanationBuilder) {
+    public GraphVariantSelectionResult selectVariantsLenient(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts) {
+        return selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, true, AttributeMatchingExplanationBuilder.logging());
+    }
+
+    private GraphVariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts, boolean allowNoMatchingVariants, AttributeMatchingExplanationBuilder explanationBuilder) {
         ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
         GraphSelectionCandidates candidates = targetComponentState.getCandidatesForGraphVariantSelection();
         AttributeMatcher attributeMatcher = consumerSchema.withProducer(targetComponent.getAttributesSchema());
@@ -131,9 +135,13 @@ public class GraphVariantSelector {
                 throw failureProcessor.ambiguousGraphVariantsFailure(describer, consumerAttributes, attributeMatcher, matches, targetComponent, true, discarded);
             } else {
                 // Perform a second resolution with tracing
-                return selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, new TraceDiscardedConfigurations());
+                return selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, allowNoMatchingVariants, new TraceDiscardedConfigurations());
             }
         } else {
+            if (allowNoMatchingVariants) {
+                return new GraphVariantSelectionResult(Collections.emptyList(), true);
+            }
+
             AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
             throw failureProcessor.noMatchingGraphVariantFailure(describer, consumerAttributes, attributeMatcher, targetComponent, candidates);
         }
