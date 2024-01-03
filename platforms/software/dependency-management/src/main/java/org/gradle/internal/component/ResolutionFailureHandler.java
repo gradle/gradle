@@ -530,7 +530,7 @@ public class ResolutionFailureHandler {
         for (Attribute<?> attribute : allAttributes.values()) {
             Attribute<Object> untyped = Cast.uncheckedCast(attribute);
             String attributeName = attribute.getName();
-            AttributeValue<Object> consumerValue = immutableConsumer.findEntry(untyped);
+            AttributeValue<?> consumerValue = immutableConsumer.findEntry(untyped.getName());
             AttributeValue<?> producerValue = immutableProducer.findEntry(attributeName);
             if (consumerValue.isPresent() && producerValue.isPresent()) {
                 if (attributeMatcher.isMatching(untyped, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
@@ -567,7 +567,7 @@ public class ResolutionFailureHandler {
         for (Attribute<?> attribute : allAttributes.values()) {
             Attribute<Object> untyped = Cast.uncheckedCast(attribute);
             String attributeName = attribute.getName();
-            AttributeValue<Object> consumerValue = immutableConsumer.findEntry(untyped);
+            AttributeValue<?> consumerValue = immutableConsumer.findEntry(untyped.getName());
             AttributeValue<?> producerValue = immutableProducer.findEntry(attributeName);
             if (consumerValue.isPresent() && producerValue.isPresent()) {
                 if (attributeMatcher.isMatching(untyped, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
