@@ -246,8 +246,8 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     @SuppressWarnings("rawtypes")
     public Dependency module(Object notation, @Nullable Closure configureClosure) {
 
-        DeprecationLogger.deprecate("Declaring client module dependencies")
-            .withAdvice("Use component metadata rules instead.")
+        DeprecationLogger.deprecateAction("Declaring client module dependencies")
+            .replaceWith("component metadata rules")
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "declaring_client_module_dependencies")
             .nagUser();
