@@ -68,9 +68,6 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     // The variants to use for variant selection during graph resolution
     private final Lazy<Optional<List<? extends VariantGraphResolveState>>> allVariantsForGraphResolution;
 
-    // The variants of this component to use for artifact selection when variant reselection is enabled
-    private final Lazy<Optional<List<VariantArtifactResolveState>>> allVariantsForArtifactSelection;
-
     // The public view of all selectable variants of this component
     private final Lazy<List<ResolvedVariantResult>> selectableVariantResults;
 
@@ -79,11 +76,6 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         allVariantsForGraphResolution = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().map(variants ->
             variants.stream()
                 .map(variant -> getConfiguration(variant.getName()).asVariant())
-                .collect(Collectors.toList())
-        ));
-        allVariantsForArtifactSelection = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().map(variants ->
-            variants.stream()
-                .map(variant -> getConfiguration(variant.getName()).asVariant().prepareForArtifactResolution())
                 .collect(Collectors.toList())
         ));
         this.idGenerator = idGenerator;
@@ -141,11 +133,6 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     @Override
     protected Optional<List<? extends VariantGraphResolveState>> getVariantsForGraphTraversal() {
         return allVariantsForGraphResolution.get();
-    }
-
-    @Override
-    public Optional<List<VariantArtifactResolveState>> getVariantsForArtifactSelection() {
-        return allVariantsForArtifactSelection.get();
     }
 
     @Nullable

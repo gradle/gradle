@@ -176,7 +176,7 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      *
      *     println(collection.files) // ["b.md", "c.md"]
      * </pre>
-     * The provided transformation runs <b>eagerly</b>, so it can capture any objects without introducing memory leaks and breaking configuration cache.
+     * The provided transformation runs <b>eagerly</b>, so it can capture any objects without introducing memory leaks and without breaking configuration caching.
      * However, transformations applied to the current contents collection (like {@link FileCollection#filter(Closure)}) are subject to the usual constraints.
      * <p>
      * The current contents collection inherits dependencies of this collection specified by {@link #builtBy(Object...)}.

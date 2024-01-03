@@ -6,14 +6,17 @@ plugins {
 description = "API extraction for Java"
 
 dependencies {
+    api(project(":hashing"))
+    api(project(":files"))
+    api(project(":snapshots"))
+
+    api(libs.jsr305)
+    api(libs.asm)
+    api(libs.guava)
+
     implementation(project(":base-annotations"))
-    implementation(project(":hashing"))
-    implementation(project(":files"))
-    implementation(project(":snapshots"))
     implementation(project(":functional"))
 
-    implementation(libs.asm)
-    implementation(libs.guava)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
 

@@ -294,6 +294,11 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         public ResolvedLocalComponentsResult getResolvedLocalComponents() {
             throw failure;
         }
+
+        @Override
+        public boolean isFullyResolved() {
+            return false;
+        }
     }
 
     private static class BrokenMinimalResolutionResult implements MinimalResolutionResult {

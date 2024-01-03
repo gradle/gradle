@@ -305,6 +305,10 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         outputContains("""Options
+     --comments     Include clarifying comments in files.
+
+     --no-comments     Disables option --comments.
+
      --dsl     Set the build script DSL to be used in generated scripts.
                Available values are:
                     groovy

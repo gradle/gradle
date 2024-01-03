@@ -21,18 +21,20 @@ plugins {
 description = """Provides the version catalog plugin."""
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":core-api"))
-    implementation(project(":core"))
-    implementation(project(":dependency-management"))
-    implementation(project(":logging"))
-    implementation(project(":model-core"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":dependency-management"))
+
+    api(libs.guava)
+    api(libs.inject)
+
+    implementation(project(":base-annotations"))
+    implementation(project(":logging-api"))
     implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))
 
-    implementation(libs.groovy)
-    implementation(libs.guava)
-    implementation(libs.inject)
+    runtimeOnly(libs.groovy)
 
     integTestImplementation(testFixtures(project(":core")))
     integTestImplementation(testFixtures(project(":jvm-services")))

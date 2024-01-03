@@ -7,10 +7,11 @@ description = "The Gradle build option parser."
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    implementation(project(":cli"))
-    implementation(project(":base-services"))
+    api(libs.jsr305)
 
-    implementation(project(":base-annotations"))
-    implementation(project(":messaging"))
-    implementation(libs.commonsLang)
+    api(project(":cli"))
+    api(project(":base-annotations"))
+    api(project(":messaging"))
+
+    implementation(project(":base-services"))
 }

@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 /**
- * Defines different ways problems can be reported.
+ * Defines different ways to report problems.
  *
  * @since 8.6
  */

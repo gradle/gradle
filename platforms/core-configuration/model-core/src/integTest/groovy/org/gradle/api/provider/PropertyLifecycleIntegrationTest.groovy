@@ -17,6 +17,8 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
     def "can finalize the value of a property using API"() {
@@ -131,13 +133,6 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
             afterEvaluate {
                 thing.prop = "value 2"
             }
-
-            task before {
-                doLast {
-                    thing.prop = providers.provider { "value 3" }
-                }
-            }
-            thing.dependsOn before
         """
 
         when:
@@ -148,6 +143,7 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("The value for task ':thing' property 'prop' is final and cannot be changed any further.")
     }
 
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "https://github.com/gradle/gradle/issues/25516")
     def "task ad hoc input property is implicitly finalized when task starts execution"() {
         given:
         buildFile """
@@ -207,6 +203,7 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task show {
+                def thing = thing
                 // Task graph calculation is ok
                 dependsOn {
                     println("value = " + thing.prop.get())
@@ -246,6 +243,7 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
             thing.prop.disallowUnsafeRead()
 
             task show {
+                def thing = thing
                 dependsOn {
                     thing.prop.set("123")
                     println("value = " + thing.prop.get())
@@ -290,6 +288,7 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
             thing.prop = "value 1"
 
             task show {
+                def thing = thing
                 dependsOn {
                     thing.prop.finalizeValue()
                     println("value = " + thing.prop.get())
@@ -348,6 +347,8 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task show {
+                def one = one
+                def two = two
                 // Task graph calculation is ok
                 dependsOn {
                     println("value = " + two.prop.get())
@@ -415,6 +416,9 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task show {
+                def one = one
+                def two = two
+                def three = three
                 doLast {
                     println("three = " + three.prop.get())
                     println("two = " + two.prop.get())

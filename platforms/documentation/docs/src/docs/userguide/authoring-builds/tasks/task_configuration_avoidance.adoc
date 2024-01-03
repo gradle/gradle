@@ -465,7 +465,9 @@ It is highly recommended to have cross-version test coverage using <<test_kit.ad
 
 | link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#matching-groovy.lang.Closure-[TaskCollection.matching(groovy.lang.Closure)]
 | _OK_, with issues.
-2+| `matching(Spec)` requires all tasks to be created, so try to limit the impact by restricting the type of task, like `withType(java.lang.Class).matching(Spec)`.
+2+| If you are matching based on the name, use `named(Spec<String>)` instead which will be lazy.
+    `matching(Spec)` requires all tasks to be created, so try to limit the impact by restricting the type of task, like `withType(java.lang.Class).matching(Spec)`.
+
 
 | link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#getAt-java.lang.String-[TaskCollection.getAt(java.lang.String)]
 | link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#named-java.lang.String-[TaskCollection.named(java.lang.String)]
