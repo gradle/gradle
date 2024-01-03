@@ -17,7 +17,6 @@
 package org.gradle.api.internal.file.archive;
 
 import org.apache.commons.io.FileUtils;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.test.fixtures.file.TestFile;
@@ -55,7 +54,7 @@ public abstract class AbstractArchiveFileTreeTest {
     protected final TestFile rootDir = tempDirProvider.getTestDirectory().file("root");
 
     protected abstract TestFile getArchiveFile();
-    protected abstract FileTree getTree();
+    protected abstract AbstractArchiveFileTree getTree();
     protected abstract void archiveFileToRoot(TestFile file);
 
     @Issue("https://github.com/gradle/gradle/issues/22685")

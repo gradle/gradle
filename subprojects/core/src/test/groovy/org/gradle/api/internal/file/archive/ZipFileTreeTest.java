@@ -18,24 +18,36 @@ package org.gradle.api.internal.file.archive;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.EmptyFileVisitor;
-import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.TestFiles;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.cache.internal.TestCaches;
 import org.gradle.test.fixtures.file.TestFile;
 import org.junit.Test;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.gradle.api.file.FileVisitorUtil.assertVisitsPermissions;
+import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory;
+import static org.gradle.api.internal.file.TestFiles.fileHasher;
+import static org.gradle.api.internal.file.TestFiles.fileSystem;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
 public class ZipFileTreeTest extends AbstractArchiveFileTreeTest {
     private final TestFile archiveFile = tempDirProvider.getTestDirectory().file("test.zip");
-    private final FileOperations fileOperations = TestFiles.fileOperations(tempDirProvider.createDir("tmp"));
-    private final FileTree tree = fileOperations.zipTree(archiveFile);
+    private final ZipFileTree tree = zipTree(archiveFile);
+
+    private ZipFileTree zipTree(File archiveFile) {
+        return new ZipFileTree(Providers.of(archiveFile),
+            fileSystem(),
+            directoryFileTreeFactory(),
+            fileHasher(),
+            TestCaches.decompressionCache(tempDirProvider.getTestDirectory().createDir("cache-dir")),
+            TestFiles.tmpDirTemporaryFileProvider(tempDirProvider.getTestDirectory()));
+    }
 
     @Override
     protected void archiveFileToRoot(TestFile file) {
@@ -48,7 +60,7 @@ public class ZipFileTreeTest extends AbstractArchiveFileTreeTest {
     }
 
     @Override
-    protected FileTree getTree() {
+    protected ZipFileTree getTree() {
         return tree;
     }
 
