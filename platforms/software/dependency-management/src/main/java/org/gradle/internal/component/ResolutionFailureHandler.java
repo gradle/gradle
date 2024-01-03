@@ -36,10 +36,9 @@ import org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVari
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDescriber;
-import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.problems.Problems;
-import org.gradle.internal.Cast;
+import org.gradle.internal.component.ResolutionAssessor.AssessedCandidate;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
@@ -54,7 +53,6 @@ import org.gradle.util.GradleVersion;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -176,7 +174,7 @@ public class ResolutionFailureHandler {
         formatter.startChildren();
         for (ResolvedVariant variant : candidates) {
             formatter.node(variant.asDescribable().getCapitalizedDisplayName());
-            formatAttributeMatchesForIncompatibility(formatter, consumer.asImmutable(), matcher, variant.getAttributes().asImmutable(), describer);
+            formatAttributeMatchesForIncompatibility(formatter, consumer.asImmutable(), matcher, variant.asDescribable().getDisplayName(), variant.getAttributes().asImmutable(), describer);
         }
         formatter.endChildren();
         return formatter.toString();
@@ -192,7 +190,7 @@ public class ResolutionFailureHandler {
         formatter.startChildren();
         for (ResolvedVariant variant : variants) {
             formatter.node(variant.asDescribable().getCapitalizedDisplayName());
-            formatAttributeMatchesForAmbiguity(formatter, consumer.asImmutable(), matcher, variant.getAttributes().asImmutable(), describer);
+            formatAttributeMatchesForAmbiguity(variant.asDescribable().getDisplayName(), formatter, consumer.asImmutable(), matcher, variant.getAttributes().asImmutable(), describer);
         }
         formatter.endChildren();
         if (!discarded.isEmpty()) {
@@ -202,7 +200,7 @@ public class ResolutionFailureHandler {
                 .sorted(Comparator.comparing(v -> v.asDescribable().getCapitalizedDisplayName()))
                 .forEach(discardedVariant -> {
                     formatter.node(discardedVariant.asDescribable().getCapitalizedDisplayName());
-                    formatAttributeMatchesForIncompatibility(formatter, consumer.asImmutable(), matcher, discardedVariant.getAttributes().asImmutable(), describer);
+                    formatAttributeMatchesForIncompatibility(formatter, consumer.asImmutable(), matcher, discardedVariant.asDescribable().getDisplayName(), discardedVariant.getAttributes().asImmutable(), describer);
                 });
             formatter.endChildren();
         }
@@ -509,9 +507,9 @@ public class ResolutionFailureHandler {
             formatter.append(" " + CapabilitiesSupport.prettifyCapabilities(targetComponent, variant.getCapabilities().asSet()));
         }
         if (ambiguous) {
-            formatAttributeMatchesForAmbiguity(formatter, consumerAttributes.asImmutable(), attributeMatcher, producerAttributes.asImmutable(), describer);
+            formatAttributeMatchesForAmbiguity(variant.getName(), formatter, consumerAttributes.asImmutable(), attributeMatcher, producerAttributes.asImmutable(), describer);
         } else {
-            formatAttributeMatchesForIncompatibility(formatter, consumerAttributes.asImmutable(), attributeMatcher, producerAttributes.asImmutable(), describer);
+            formatAttributeMatchesForIncompatibility(formatter, consumerAttributes.asImmutable(), attributeMatcher, variant.getName(), producerAttributes.asImmutable(), describer);
         }
     }
 
@@ -519,30 +517,22 @@ public class ResolutionFailureHandler {
         TreeFormatter formatter,
         ImmutableAttributes immutableConsumer,
         AttributeMatcher attributeMatcher,
-        ImmutableAttributes immutableProducer,
+        String candidateName,
+        ImmutableAttributes producerAttributes,
         AttributeDescriber describer
     ) {
-        Map<String, Attribute<?>> allAttributes = ImmutableAttributes.mapOfAll(immutableConsumer, immutableProducer);
-        List<String> otherValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
-        Map<Attribute<?>, ?> compatibleAttrs = new LinkedHashMap<>();
-        Map<Attribute<?>, ?> incompatibleAttrs = new LinkedHashMap<>();
-        Map<Attribute<?>, ?> incompatibleConsumerAttrs = new LinkedHashMap<>();
-        for (Attribute<?> attribute : allAttributes.values()) {
-            Attribute<Object> untyped = Cast.uncheckedCast(attribute);
-            String attributeName = attribute.getName();
-            AttributeValue<?> consumerValue = immutableConsumer.findEntry(untyped.getName());
-            AttributeValue<?> producerValue = immutableProducer.findEntry(attributeName);
-            if (consumerValue.isPresent() && producerValue.isPresent()) {
-                if (attributeMatcher.isMatching(untyped, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
-                    compatibleAttrs.put(attribute, Cast.uncheckedCast(producerValue.get()));
-                } else {
-                    incompatibleAttrs.put(attribute, Cast.uncheckedCast(producerValue.get()));
-                    incompatibleConsumerAttrs.put(attribute, Cast.uncheckedCast(consumerValue.get()));
-                }
-            } else if (consumerValue.isPresent()) {
-                otherValues.add("Doesn't say anything about " + describer.describeMissingAttribute(attribute, consumerValue.get()));
-            }
-        }
+        AssessedCandidate assessedCandidate = resolutionAssessor.assessCandidate(candidateName, immutableConsumer, producerAttributes, attributeMatcher);
+
+        Map<Attribute<?>, ?> compatibleAttrs = assessedCandidate.getCompatibleAttributes().stream()
+            .collect(Collectors.toMap(ResolutionAssessor.AssessedAttribute::getAttribute, ResolutionAssessor.AssessedAttribute::getProvided, (a, b) -> a));
+        Map<Attribute<?>, ?> incompatibleAttrs = assessedCandidate.getIncompatibleAttributes().stream()
+            .collect(Collectors.toMap(ResolutionAssessor.AssessedAttribute::getAttribute, ResolutionAssessor.AssessedAttribute::getProvided, (a, b) -> a));
+        Map<Attribute<?>, ?> incompatibleConsumerAttrs = assessedCandidate.getIncompatibleAttributes().stream()
+            .collect(Collectors.toMap(ResolutionAssessor.AssessedAttribute::getAttribute, ResolutionAssessor.AssessedAttribute::getRequested, (a, b) -> a));
+        List<String> otherValues = assessedCandidate.getOnlyOnConsumerAttributes().stream()
+            .map(assessedAttribute -> "Doesn't say anything about " + describer.describeMissingAttribute(assessedAttribute.getAttribute(), assessedAttribute.getRequested()))
+            .collect(Collectors.toList());
+
         if (!compatibleAttrs.isEmpty()) {
             formatter.append(" declares ").append(style(StyledTextOutput.Style.SuccessHeader, describer.describeAttributeSet(compatibleAttrs)));
         }
@@ -555,35 +545,34 @@ public class ResolutionFailureHandler {
     }
 
     private void formatAttributeMatchesForAmbiguity(
+        String candidateName,
         TreeFormatter formatter,
         ImmutableAttributes immutableConsumer,
         AttributeMatcher attributeMatcher,
         ImmutableAttributes immutableProducer,
         AttributeDescriber describer
     ) {
-        Map<String, Attribute<?>> allAttributes = ImmutableAttributes.mapOfAll(immutableConsumer, immutableProducer);
-        Map<Attribute<?>, ?> compatibleAttrs = new LinkedHashMap<>();
-        List<String> otherValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
-        for (Attribute<?> attribute : allAttributes.values()) {
-            Attribute<Object> untyped = Cast.uncheckedCast(attribute);
-            String attributeName = attribute.getName();
-            AttributeValue<?> consumerValue = immutableConsumer.findEntry(untyped.getName());
-            AttributeValue<?> producerValue = immutableProducer.findEntry(attributeName);
-            if (consumerValue.isPresent() && producerValue.isPresent()) {
-                if (attributeMatcher.isMatching(untyped, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
-                    compatibleAttrs.put(attribute, Cast.uncheckedCast(producerValue.get()));
-                }
-            } else if (consumerValue.isPresent()) {
-                otherValues.add("Doesn't say anything about " + describer.describeMissingAttribute(attribute, consumerValue.get()));
-            } else {
-                otherValues.add("Provides " + describer.describeExtraAttribute(attribute, producerValue.get()) + " but the consumer didn't ask for it");
-            }
-        }
+        AssessedCandidate assessedCandidate = resolutionAssessor.assessCandidate(candidateName, immutableConsumer, immutableProducer, attributeMatcher);
+
+        Map<Attribute<?>, ?> compatibleAttrs = assessedCandidate.getCompatibleAttributes().stream()
+            .collect(Collectors.toMap(ResolutionAssessor.AssessedAttribute::getAttribute, ResolutionAssessor.AssessedAttribute::getProvided, (a, b) -> a));
+        List<String> onlyOnProducer = assessedCandidate.getOnlyOnProducerAttributes().stream()
+            .map(assessedAttribute -> "Provides " + describer.describeExtraAttribute(assessedAttribute.getAttribute(), assessedAttribute.getProvided()) + " but the consumer didn't ask for it")
+            .collect(Collectors.toList());
+        List<String> onlyOnConsumer = assessedCandidate.getOnlyOnConsumerAttributes().stream()
+            .map(assessedAttribute -> "Doesn't say anything about " + describer.describeMissingAttribute(assessedAttribute.getAttribute(), assessedAttribute.getRequested()))
+            .collect(Collectors.toList());
+
+        List<String> other = new ArrayList<>(onlyOnProducer.size() + onlyOnConsumer.size());
+        other.addAll(onlyOnProducer);
+        other.addAll(onlyOnConsumer);
+        other.sort(String::compareTo);
+
         if (!compatibleAttrs.isEmpty()) {
             formatter.append(" declares ").append(style(StyledTextOutput.Style.SuccessHeader, describer.describeAttributeSet(compatibleAttrs)));
         }
         formatter.startChildren();
-        formatAttributeSection(formatter, "Unmatched attribute", otherValues);
+        formatAttributeSection(formatter, "Unmatched attribute", other);
         formatter.endChildren();
     }
 

@@ -52,7 +52,7 @@ public interface AttributeValue<T> {
 
     /**
      * Tells if this attribute value is present.
-     * @return true if this attribute value is present, implying not <code>null</code>.
+     * @return true if this attribute value is present, implying not <code>null</code> or {@link AttributeValue#MISSING}.
      */
     boolean isPresent();
 
