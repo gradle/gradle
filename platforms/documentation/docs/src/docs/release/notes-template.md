@@ -10,6 +10,8 @@ Include only their name, impactful features should be called out separately belo
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
 
+Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
+
 ## Upgrade instructions
 
 Switch your build to use Gradle @version@ by updating your wrapper:
