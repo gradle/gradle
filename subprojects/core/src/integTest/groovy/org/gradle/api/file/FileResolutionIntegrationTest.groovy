@@ -67,6 +67,38 @@ The following types/formats are supported:
   - A URI or URL instance.""")
     }
 
+    def "produces deprecation warning for relative file URLs"() {
+        buildFile """
+def f = file("file:testdir")
+assert f == project.layout.projectDirectory.dir("testdir").asFile
+"""
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Passing invalid URIs to URI or File converting methods. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Use a valid URL or a file path instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_legacy_url_decoding")
+        succeeds()
+    }
+
+    def "produces deprecation warning for invalid URLs"() {
+        buildFile """
+def f = file("file:///home/user/test%%20dir")
+assert f == new File("/home/user/test% dir")
+"""
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Passing invalid URIs to URI or File converting methods. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Use a valid URL or a file path instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_legacy_url_decoding")
+        succeeds()
+    }
+
+    def "produces no deprecation warning for valid URLs"() {
+        buildFile """
+def f = file("file:///home/user/test%25%20dir")
+assert f == new File("/home/user/test% dir")
+"""
+
+        expect:
+        succeeds()
+    }
+
     def "can construct file collection using java.nio.file.Path"() {
         buildFile """
 java.nio.file.Path fAsPath = buildDir.toPath().resolve('testdir').toAbsolutePath()
