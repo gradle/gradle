@@ -159,7 +159,7 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
     }
 
     @Issue("https://github.com/gradle/gradle/issues/24609")
-    def "fails with clear error message when plugin requests a higher version of Gradle than available"() {
+    def "fails with clear error message when plugin requires a higher version of Gradle is running"() {
         given:
         def producer = file('producer')
         def consumer = file('consumer')
@@ -229,8 +229,7 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
    > Could not resolve com.example:producer:1.0.
      Required by:
          project : > com.example.greeting:com.example.greeting.gradle.plugin:1.0
-      > Plugin com.example:producer:1.0 requires at least Gradle 1000.0 (this build used Gradle 8.7-20240102050000+0000).
-""")
+      > Plugin com.example:producer:1.0 requires at least Gradle 1000.0 (this build used Gradle ${GradleVersion.current().version}).""")
         failure.assertHasErrorOutput("Caused by: " + PluginNeedsNewerGradleVersionException.class.getName())
         failure.assertHasResolution("Upgrade Gradle to at least version 1000.0. See the instructions at https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#sub:updating-gradle.")
     }
