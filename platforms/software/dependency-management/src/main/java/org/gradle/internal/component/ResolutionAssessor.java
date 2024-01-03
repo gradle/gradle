@@ -114,7 +114,7 @@ import java.util.stream.Collectors;
         for (AssessedCandidate candidate : candidates) {
             Optional<GradleVersion> providedVersion = candidate.getIncompatibleAttributes().stream()
                 .filter(incompatibleAttribute -> incompatibleAttribute.getAttribute().getName().equals(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE.getName()))
-                .map(apiVersionAttribute -> GradleVersion.version((String) Objects.requireNonNull(apiVersionAttribute.getProvided())))
+                .map(apiVersionAttribute -> GradleVersion.version(String.valueOf(apiVersionAttribute.getRequested())))
                 .findFirst();
 
             if (providedVersion.isPresent()) {
