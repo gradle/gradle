@@ -48,7 +48,7 @@ include::sample[dir="snippets/bestPractices/conditionalLogic-dont/groovy", files
 
 Let's compare the build script with the same logic implemented as a binary plugin.
 The code might look more involved at first but clearly looks more like typical application code.
-This particular plugin class lives in the <<organizing_gradle_projects.adoc#sec:build_sources,`buildSrc` directory>> which makes it available to the build script automatically.
+This particular plugin class lives in the <<multi_project_builds.adoc#sec:multiproject_buildsrc,`buildSrc` directory>> which makes it available to the build script automatically.
 
 .A binary plugin implementing imperative logic
 ====
@@ -224,7 +224,7 @@ The appropriate approach depends on the problem at hand. Here're some options:
 == Avoid inter-project configuration
 
 Gradle does not restrict build script authors from reaching into the domain model from one project into another one in a <<multi_project_builds.adoc#multi_project_builds,multi-project build>>.
-Strongly-coupled projects hurts <<multi_project_configuration_and_execution.adoc#sec:parallel_execution,build execution performance>> as well as readability and maintainability of code.
+Strongly-coupled projects hurts <<structuring_software_products_details.adoc#sec:parallel_execution,build execution performance>> as well as readability and maintainability of code.
 
 The following practices should be avoided:
 
