@@ -45,6 +45,10 @@ import java.util.Set;
         this.attributeMatcher = attributeMatcher;
     }
 
+    public ImmutableAttributes getRequestedAttributes() {
+        return requestedAttributes;
+    }
+
     public AssessedCandidate assessCandidate(
         String candidateName,
         ImmutableAttributes candidateAttributes
