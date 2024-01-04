@@ -37,7 +37,15 @@ import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.attributes.AttributeContainerInternal.haveSameName;
 
-class JavaEcosystemAttributesDescriber implements AttributeDescriber {
+/**
+ * Describes JVM ecosystem related attributes.
+ *
+ * Methods on this class that accept {@link Attribute}s and attempt to match them against known values,
+ * such as the {@link #getDescribableAttributes()} used by this class, <strong>MUST match on
+ * attribute name only, NOT type</strong>.  This allows "desugared" attributes to be described
+ * in the same manner.
+ */
+/* package */ final class JavaEcosystemAttributesDescriber implements AttributeDescriber {
     private final ImmutableSet<Attribute<?>> describableAttributes = ImmutableSet.of(
         Usage.USAGE_ATTRIBUTE,
         Category.CATEGORY_ATTRIBUTE,
@@ -155,35 +163,35 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
     @Nullable
     public String describeMissingAttribute(Attribute<?> attribute, Object consumerValue) {
         StringBuilder sb = new StringBuilder();
-        if (Usage.USAGE_ATTRIBUTE.equals(attribute)) {
+        if (haveSameName(Usage.USAGE_ATTRIBUTE, attribute)) {
             sb.append("its usage (required ");
             describeUsage(consumerValue, sb);
             sb.append(")");
-        } else if (TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE.equals(attribute)) {
+        } else if (haveSameName(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE, attribute)) {
             sb.append("its target Java environment (preferred optimized for ");
             describeTargetJvmEnvironment(consumerValue, sb);
             sb.append(")");
-        } else if (TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE.equals(attribute)) {
+        } else if (haveSameName(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, attribute)) {
             sb.append("its target Java version (required compatibility with ");
             describeTargetJvm(consumerValue, sb);
             sb.append(")");
-        } else if (Category.CATEGORY_ATTRIBUTE.equals(attribute)) {
+        } else if (haveSameName(Category.CATEGORY_ATTRIBUTE, attribute)) {
             sb.append("its component category (required ");
             describeCategory(consumerValue, sb);
             sb.append(")");
-        } else if (Bundling.BUNDLING_ATTRIBUTE.equals(attribute)) {
+        } else if (haveSameName(Bundling.BUNDLING_ATTRIBUTE, attribute)) {
             sb.append("how its dependencies are found (required ");
             describeBundling(consumerValue, sb);
             sb.append(")");
-        } else if (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.equals(attribute)) {
+        } else if (haveSameName(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, attribute)) {
             sb.append("its elements (required them ");
             describeLibraryElements(consumerValue, sb);
             sb.append(")");
-        } else if (DocsType.DOCS_TYPE_ATTRIBUTE.equals(attribute)) {
+        } else if (haveSameName(DocsType.DOCS_TYPE_ATTRIBUTE, attribute)) {
             sb.append("the documentation type (required ");
             describeDocsType(consumerValue, sb);
             sb.append(")");
-        } else if (ProjectInternal.STATUS_ATTRIBUTE.equals(attribute)) {
+        } else if (haveSameName(ProjectInternal.STATUS_ATTRIBUTE, attribute)) {
             sb.append("its status (required ");
             describeStatus(consumerValue, sb);
             sb.append(")");
