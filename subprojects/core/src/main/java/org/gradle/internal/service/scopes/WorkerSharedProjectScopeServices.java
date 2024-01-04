@@ -69,9 +69,11 @@ import java.io.File;
  */
 public class WorkerSharedProjectScopeServices {
     private final File projectDir;
+    private final File rootDir;
 
-    public WorkerSharedProjectScopeServices(File projectDir) {
+    public WorkerSharedProjectScopeServices(File projectDir, File rootDir) {
         this.projectDir = projectDir;
+        this.rootDir = rootDir;
     }
 
     void configure(ServiceRegistration registration) {
@@ -151,7 +153,7 @@ public class WorkerSharedProjectScopeServices {
 
     DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory,
                                              FilePropertyFactory filePropertyFactory, Factory<PatternSet> patternSetFactory, PropertyHost propertyHost, FileFactory fileFactory) {
-        return new DefaultProjectLayout(projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
+        return new DefaultProjectLayout(projectDir, rootDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
     }
 
     protected ProjectScopedCacheBuilderFactory createProjectScopedCache(TemporaryFileProvider temporaryFileProvider, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {

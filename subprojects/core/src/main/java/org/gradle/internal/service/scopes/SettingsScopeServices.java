@@ -35,6 +35,7 @@ import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.internal.LegacyCacheCleanupEnablement;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
+import org.gradle.initialization.layout.BuildLocations;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -57,8 +58,8 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
         });
     }
 
-    protected BuildLayout createBuildLayout(FileFactory fileFactory) {
-        return new DefaultBuildLayout(settings, fileFactory);
+    protected BuildLayout createBuildLayout(FileFactory fileFactory, BuildLocations buildLocations) {
+        return new DefaultBuildLayout(buildLocations, fileFactory);
     }
 
     protected FileResolver createFileResolver(FileLookup fileLookup) {

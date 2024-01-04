@@ -19,14 +19,21 @@ package org.gradle.workers.internal;
 import java.io.File;
 
 public abstract class AbstractWorkerRequirement implements WorkerRequirement {
-    private final File workerDirectory;
+    private final File projectDirectory;
+    private final File rootDirectory;
 
-    public AbstractWorkerRequirement(File workerDirectory) {
-        this.workerDirectory = workerDirectory;
+    public AbstractWorkerRequirement(File projectDirectory, File rootDirectory) {
+        this.projectDirectory = projectDirectory;
+        this.rootDirectory = rootDirectory;
     }
 
     @Override
-    public File getWorkerDirectory() {
-        return workerDirectory;
+    public File getProjectDirectory() {
+        return projectDirectory;
+    }
+
+    @Override
+    public File getRootDirectory() {
+        return rootDirectory;
     }
 }

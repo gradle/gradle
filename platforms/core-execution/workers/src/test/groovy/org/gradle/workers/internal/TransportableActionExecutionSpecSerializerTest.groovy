@@ -30,7 +30,7 @@ class TransportableActionExecutionSpecSerializerTest extends Specification {
     def usesInternalServices = true
 
     def "can serialize and deserialize a spec with a hierarchical classloader structure"() {
-        def spec = new TransportableActionExecutionSpec(Runnable.class.name, bytes, classLoaderStructure(), new File("/foo"), usesInternalServices)
+        def spec = new TransportableActionExecutionSpec(Runnable.class.name, bytes, classLoaderStructure(), new File("/foo"), new File("/bar"), usesInternalServices)
 
         when:
         serializer.write(encoder, spec)
@@ -44,12 +44,12 @@ class TransportableActionExecutionSpecSerializerTest extends Specification {
         decodedSpec.implementationClassName == spec.implementationClassName
         decodedSpec.serializedParameters == spec.serializedParameters
         decodedSpec.classLoaderStructure == spec.classLoaderStructure
-        decodedSpec.baseDir.canonicalPath == spec.baseDir.canonicalPath
+        decodedSpec.projectDir.canonicalPath == spec.projectDir.canonicalPath
         decodedSpec.internalServicesRequired
     }
 
     def "can serialize and deserialize a spec with a flat classloader structure"() {
-        def spec = new TransportableActionExecutionSpec(Runnable.class.name, bytes, flatClassLoaderStructure(), new File("/foo"), usesInternalServices)
+        def spec = new TransportableActionExecutionSpec(Runnable.class.name, bytes, flatClassLoaderStructure(), new File("/foo"), new File("/bar"), usesInternalServices)
 
         when:
         serializer.write(encoder, spec)
@@ -64,7 +64,7 @@ class TransportableActionExecutionSpecSerializerTest extends Specification {
         decodedSpec.serializedParameters == spec.serializedParameters
         decodedSpec.classLoaderStructure instanceof FlatClassLoaderStructure
         decodedSpec.classLoaderStructure.spec == null
-        decodedSpec.baseDir.canonicalPath == spec.baseDir.canonicalPath
+        decodedSpec.projectDir.canonicalPath == spec.projectDir.canonicalPath
         decodedSpec.internalServicesRequired
     }
 

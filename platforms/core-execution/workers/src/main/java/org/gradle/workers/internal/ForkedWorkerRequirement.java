@@ -21,9 +21,14 @@ import java.io.File;
 public class ForkedWorkerRequirement extends IsolatedClassLoaderWorkerRequirement {
     private final DaemonForkOptions forkOptions;
 
-    public ForkedWorkerRequirement(File workerDirectory, DaemonForkOptions forkOptions) {
-        super(workerDirectory, forkOptions.getClassLoaderStructure());
+    public ForkedWorkerRequirement(File projectDirectory, File rootDirectory, DaemonForkOptions forkOptions) {
+        super(projectDirectory, rootDirectory, forkOptions.getClassLoaderStructure());
         this.forkOptions = forkOptions;
+    }
+
+    public ForkedWorkerRequirement(File projectDirectory, DaemonForkOptions forkOptions) {
+        // TODO-RC what to do about the root directory?
+        this(projectDirectory, projectDirectory, forkOptions);
     }
 
     public DaemonForkOptions getForkOptions() {
