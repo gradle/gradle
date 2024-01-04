@@ -36,7 +36,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 class JavaEcosystemAttributesDescriber implements AttributeDescriber {
-    private final static ImmutableSet<Attribute<?>> DESCRIBABLE_ATTRIBUTES = ImmutableSet.of(
+    private final ImmutableSet<Attribute<?>> describableAttributes = ImmutableSet.of(
         Usage.USAGE_ATTRIBUTE,
         Category.CATEGORY_ATTRIBUTE,
         LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
@@ -47,22 +47,32 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
         ProjectInternal.STATUS_ATTRIBUTE
     );
 
+    /**
+     * Checks if the given attribute is describable by this describer.
+     *
+     * @param attribute the attribute to check
+     * @return {@code true} if the given attribute is describable by this describer; {@code false} otherwise
+     */
+    public boolean isDescribable(Attribute<?> attribute) {
+        return describableAttributes.stream().anyMatch(describableAttribute -> AttributeContainerInternal.haveSameName(attribute, describableAttribute));
+    }
+
     @Override
     public ImmutableSet<Attribute<?>> getDescribableAttributes() {
-        return DESCRIBABLE_ATTRIBUTES;
+        return describableAttributes;
     }
 
     @SuppressWarnings("ConstantConditions")
     @Override
     public String describeAttributeSet(Map<Attribute<?>, ?> attributes) {
-        Object category = attr(attributes, Category.CATEGORY_ATTRIBUTE);
-        Object usage = attr(attributes, Usage.USAGE_ATTRIBUTE);
-        Object le = attr(attributes, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
-        Object bundling = attr(attributes, Bundling.BUNDLING_ATTRIBUTE);
-        Object targetJvmEnvironment = attr(attributes, TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE);
-        Object targetJvm = attr(attributes, TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
-        Object docsType = attr(attributes, DocsType.DOCS_TYPE_ATTRIBUTE);
-        Object status = attr(attributes, ProjectInternal.STATUS_ATTRIBUTE);
+        Object category = extractAttributeValue(attributes, Category.CATEGORY_ATTRIBUTE);
+        Object usage = extractAttributeValue(attributes, Usage.USAGE_ATTRIBUTE);
+        Object le = extractAttributeValue(attributes, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
+        Object bundling = extractAttributeValue(attributes, Bundling.BUNDLING_ATTRIBUTE);
+        Object targetJvmEnvironment = extractAttributeValue(attributes, TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE);
+        Object targetJvm = extractAttributeValue(attributes, TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
+        Object docsType = extractAttributeValue(attributes, DocsType.DOCS_TYPE_ATTRIBUTE);
+        Object status = extractAttributeValue(attributes, ProjectInternal.STATUS_ATTRIBUTE);
 
         StringBuilder sb = new StringBuilder();
 
@@ -112,7 +122,7 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
     }
 
     @Nullable
-    private <T> Object attr(Map<Attribute<?>, ?> attributes, Attribute<T> attribute) {
+    private static <T> Object extractAttributeValue(Map<Attribute<?>, ?> attributes, Attribute<T> attribute) {
         return Cast.uncheckedCast(attributes.entrySet().stream()
             .filter(e -> AttributeContainerInternal.haveSameName(e.getKey(), attribute))
             .findFirst()
@@ -132,20 +142,10 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
                 if (comma) {
                     sb.append(", ");
                 }
-                describeGenericAttribute(sb, attribute, attr(attributes, attribute));
+                describeGenericAttribute(sb, attribute, extractAttributeValue(attributes, attribute));
                 comma = true;
             }
         }
-    }
-
-    /**
-     * Checks if the given attribute is describable by this describer.
-     *
-     * @param attribute the attribute to check
-     * @return {@code true} if the given attribute is describable by this describer; {@code false} otherwise
-     */
-    private boolean isDescribable(Attribute<?> attribute) {
-        return DESCRIBABLE_ATTRIBUTES.stream().anyMatch(describableAttribute -> AttributeContainerInternal.haveSameName(attribute, describableAttribute));
     }
 
     @Override
@@ -190,7 +190,7 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
         return sb.toString();
     }
 
-    private void describeGenericAttribute(StringBuilder sb, Attribute<?> attribute, @Nullable Object value) {
+    private static void describeGenericAttribute(StringBuilder sb, Attribute<?> attribute, @Nullable Object value) {
         sb.append("attribute '").append(attribute.getName()).append("' with value '").append(value).append("'");
     }
 
