@@ -81,20 +81,22 @@ import java.util.stream.Collectors;
     private static void assessAttribute(ImmutableAttributes immutableConsumer, ImmutableAttributes immutableProducer, AttributeMatcher attributeMatcher, Attribute<?> attribute, AssessedCandidate assessedCandidate) {
         Attribute<Object> untyped = Cast.uncheckedCast(attribute);
 
-        String attributeName = Objects.requireNonNull(attribute).getName();
-        AttributeValue<?> consumerValue = immutableConsumer.findEntry(attributeName);
-        AttributeValue<?> producerValue = immutableProducer.findEntry(attributeName);
+        if (!assessedCandidate.alreadyAssessed(untyped)) {
+            String attributeName = Objects.requireNonNull(attribute).getName();
+            AttributeValue<?> consumerValue = immutableConsumer.findEntry(attributeName);
+            AttributeValue<?> producerValue = immutableProducer.findEntry(attributeName);
 
-        if (consumerValue.isPresent() && producerValue.isPresent()) {
-            if (attributeMatcher.isMatching(untyped, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
-                assessedCandidate.addCompatible(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), Cast.uncheckedCast(producerValue.get())));
-            } else {
-                assessedCandidate.addIncompatible(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), Cast.uncheckedCast(producerValue.get())));
+            if (consumerValue.isPresent() && producerValue.isPresent()) {
+                if (attributeMatcher.isMatching(untyped, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
+                    assessedCandidate.addCompatible(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), Cast.uncheckedCast(producerValue.get())));
+                } else {
+                    assessedCandidate.addIncompatible(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), Cast.uncheckedCast(producerValue.get())));
+                }
+            } else if (consumerValue.isPresent()) {
+                assessedCandidate.addOnlyOnConsumer(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), null));
+            } else if (producerValue.isPresent()) {
+                assessedCandidate.addOnlyOnProducer(new AssessedAttribute<>(attribute, null, Cast.uncheckedCast(producerValue.get())));
             }
-        } else if (consumerValue.isPresent()) {
-            assessedCandidate.addOnlyOnConsumer(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), null));
-        } else if (producerValue.isPresent()) {
-            assessedCandidate.addOnlyOnProducer(new AssessedAttribute<>(attribute, null, Cast.uncheckedCast(producerValue.get())));
         }
     }
 
@@ -199,6 +201,15 @@ import java.util.stream.Collectors;
         boolean isPluginRequestUsingApiVersionAttribute(AttributeContainerInternal consumerAttributes) {
             return consumerAttributes.contains(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
         }
+
+        // TODO: Making this into a map would possibly make this faster
+        // TODO: Also extract the name comparison into a method to reference
+        public boolean alreadyAssessed(Attribute<Object> attribute) {
+            return getCompatibleAttributes().stream().anyMatch(e -> Objects.equals(e.getAttribute().getName(), attribute.getName())) ||
+                getIncompatibleAttributes().stream().anyMatch(e -> Objects.equals(e.getAttribute().getName(), attribute.getName())) ||
+                getOnlyOnConsumerAttributes().stream().anyMatch(e -> Objects.equals(e.getAttribute().getName(), attribute.getName())) ||
+                getOnlyOnProducerAttributes().stream().anyMatch(e -> Objects.equals(e.getAttribute().getName(), attribute.getName()));
+        }
     }
 
     /**
@@ -229,6 +240,15 @@ import java.util.stream.Collectors;
         @Nullable
         public T getProvided() {
             return provided;
+        }
+
+        @Override
+        public String toString() {
+            return "{name=" + attribute.getName() +
+                ", type=" + attribute.getType() +
+                ", requested=" + requested +
+                ", provided=" + provided +
+                '}';
         }
     }
 }
