@@ -25,15 +25,17 @@ import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.gradle.api.internal.attributes.AttributeContainerInternal.haveSameName;
 
 class JavaEcosystemAttributesDescriber implements AttributeDescriber {
     private final ImmutableSet<Attribute<?>> describableAttributes = ImmutableSet.of(
@@ -54,7 +56,7 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
      * @return {@code true} if the given attribute is describable by this describer; {@code false} otherwise
      */
     public boolean isDescribable(Attribute<?> attribute) {
-        return describableAttributes.stream().anyMatch(describableAttribute -> AttributeContainerInternal.haveSameName(attribute, describableAttribute));
+        return describableAttributes.stream().anyMatch(describableAttribute -> haveSameName(attribute, describableAttribute));
     }
 
     @Override
@@ -124,16 +126,17 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
     @Nullable
     private static <T> Object extractAttributeValue(Map<Attribute<?>, ?> attributes, Attribute<T> attribute) {
         return Cast.uncheckedCast(attributes.entrySet().stream()
-            .filter(e -> AttributeContainerInternal.haveSameName(e.getKey(), attribute))
+            .filter(e -> haveSameName(e.getKey(), attribute))
             .findFirst()
             .map(Map.Entry::getValue)
             .orElse(null));
     }
 
     private void processExtraAttributes(Map<Attribute<?>, ?> attributes, StringBuilder sb) {
-        Set<Attribute<?>> describableAttributes = attributes.keySet().stream()
+        List<Attribute<?>> describableAttributes = attributes.keySet().stream()
             .filter(a -> !isDescribable(a))
-            .collect(Collectors.toSet());
+            .sorted(Comparator.comparing(Attribute::getName))
+            .collect(Collectors.toList());
 
         if (!describableAttributes.isEmpty()) {
             sb.append(", as well as ");
@@ -197,31 +200,26 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
     @Override
     public String describeExtraAttribute(Attribute<?> attribute, Object producerValue) {
         StringBuilder sb = new StringBuilder();
-        if (sameAttribute(Usage.USAGE_ATTRIBUTE, attribute)) {
+        if (haveSameName(Usage.USAGE_ATTRIBUTE, attribute)) {
             describeUsage(producerValue, sb);
-        } else if (sameAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, attribute)) {
+        } else if (haveSameName(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, attribute)) {
             sb.append("compatibility with ");
             describeTargetJvm(producerValue, sb);
-        } else if (sameAttribute(Category.CATEGORY_ATTRIBUTE, attribute)) {
+        } else if (haveSameName(Category.CATEGORY_ATTRIBUTE, attribute)) {
             describeCategory(producerValue, sb);
-        } else if (sameAttribute(DocsType.DOCS_TYPE_ATTRIBUTE, attribute)) {
+        } else if (haveSameName(DocsType.DOCS_TYPE_ATTRIBUTE, attribute)) {
             describeDocsType(producerValue, sb);
-        } else if (sameAttribute(ProjectInternal.STATUS_ATTRIBUTE, attribute)) {
+        } else if (haveSameName(ProjectInternal.STATUS_ATTRIBUTE, attribute)) {
             describeStatus(producerValue, sb);
-        } else if (sameAttribute(Bundling.BUNDLING_ATTRIBUTE, attribute)) {
+        } else if (haveSameName(Bundling.BUNDLING_ATTRIBUTE, attribute)) {
             describeBundling(producerValue, sb);
-        } else if (sameAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, attribute)) {
+        } else if (haveSameName(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, attribute)) {
             sb.append("its elements ");
             describeLibraryElements(producerValue, sb);
         } else {
             describeGenericAttribute(sb, attribute, producerValue);
         }
         return sb.toString();
-    }
-
-    // A type independent comparator, because of desugaring
-    private static boolean sameAttribute(Attribute<?> first, Attribute<?> second) {
-        return first.equals(second) || first.getName().equals(second.getName());
     }
 
     private static void describeBundling(Object bundling, StringBuilder sb) {

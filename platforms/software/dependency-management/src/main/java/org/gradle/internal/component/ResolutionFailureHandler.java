@@ -523,6 +523,7 @@ public class ResolutionFailureHandler {
             .collect(Collectors.toMap(ResolutionCandidateAssessor.AssessedAttribute::getAttribute, ResolutionCandidateAssessor.AssessedAttribute::getRequested, (a, b) -> a));
         List<String> otherValues = assessedCandidate.getOnlyOnConsumerAttributes().stream()
             .map(assessedAttribute -> "Doesn't say anything about " + describer.describeMissingAttribute(assessedAttribute.getAttribute(), assessedAttribute.getRequested()))
+            .sorted()
             .collect(Collectors.toList());
 
         if (!compatibleAttrs.isEmpty()) {

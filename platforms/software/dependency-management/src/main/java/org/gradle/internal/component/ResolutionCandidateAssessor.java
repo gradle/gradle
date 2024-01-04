@@ -91,7 +91,7 @@ import java.util.Set;
     }
 
     /**
-     * A data class that holds information about a single variant which was a candidate for matching during resolution.
+     * An immutable data class that holds information about a single variant which was a candidate for matching during resolution.
      *
      * This includes classifying its attributes into lists of compatible, incompatible, and absent attributes.  Each candidate
      * is assessed within the context of a resolution, so this is a non-{@code static} class implicitly linked to the assessor
@@ -146,7 +146,8 @@ import java.util.Set;
     }
 
     /**
-     * A data class that records a single attribute, its requested value, and its provided value.
+     * An immutable data class that records a single attribute, its requested value, and its provided value
+     * for a given resolution attempt.
      */
     public static final class AssessedAttribute<T> {
         private final Attribute<T> attribute;
