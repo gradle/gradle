@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -33,7 +32,6 @@ import org.gradle.internal.component.ArtifactVariantSelectionException;
 import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
-import org.gradle.internal.component.model.DescriberSelector;
 
 import java.util.ArrayList;
 import java.util.HashSet;
