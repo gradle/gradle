@@ -41,13 +41,19 @@ public class AsmClassGeneratorUtils {
     public static String signature(Constructor<?> constructor, boolean addNameParameter) {
         StringBuilder builder = new StringBuilder();
         visitFormalTypeParameters(constructor.getTypeParameters(), builder);
-        if (addNameParameter) {
-            visitType(String.class, builder);
-        }
-        visitParameters(constructor.getGenericParameterTypes(), builder);
-        builder.append("V");
+        visitConstructorParameters(constructor.getGenericParameterTypes(), addNameParameter, builder);
+        builder.append('V');
         visitExceptions(constructor.getGenericExceptionTypes(), builder);
         return builder.toString();
+    }
+
+    private static void visitConstructorParameters(Type[] parameterTypes, boolean addNameParameter, StringBuilder builder) {
+        builder.append('(');
+        if (addNameParameter) {
+            visitClass(String.class, builder);
+        }
+        visitTypes(parameterTypes, builder);
+        builder.append(')');
     }
 
     public static String getterSignature(java.lang.reflect.Type returnType) {
