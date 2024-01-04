@@ -37,11 +37,11 @@ class IvyFileRepository implements IvyRepository {
     }
 
     String getIvyPattern() {
-        return "${uri}/${baseIvyPattern}"
+        return "${uri}${baseIvyPattern}"
     }
 
     String getArtifactPattern() {
-        return "${uri}/${baseArtifactPattern}"
+        return "${uri}${baseArtifactPattern}"
     }
 
     String getBaseIvyPattern() {

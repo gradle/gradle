@@ -1,6 +1,6 @@
 repositories {
     ivy {
-        url = uri("file://${projectDir}/repo")
+        url = uri("${projectDir.toURI().toASCIIString()}/repo")
     }
 }
 

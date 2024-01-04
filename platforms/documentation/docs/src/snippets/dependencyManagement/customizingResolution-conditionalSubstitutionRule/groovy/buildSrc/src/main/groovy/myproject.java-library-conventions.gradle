@@ -3,5 +3,5 @@ plugins {
 }
 
 repositories {
-    ivy { url "file://${rootProject.projectDir}/repo" }
+    ivy { url "${rootProject.projectDir.toURI().toASCIIString()}/repo" }
 }

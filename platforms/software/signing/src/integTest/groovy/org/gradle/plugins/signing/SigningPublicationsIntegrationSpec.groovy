@@ -276,7 +276,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 repositories {
                     maven {
                         name "m2"
-                        url "file://\$buildDir/m2Repo/"
+                        url "\$buildDir/m2Repo/"
                     }
                 }
             }
@@ -328,7 +328,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 }
                 repositories {
                     ivy {
-                        url "file://\$buildDir/ivyRepo/"
+                        url "\$buildDir/ivyRepo/"
                         $declaration
                     }
                 }
@@ -455,7 +455,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 repositories {
                     maven {
                         name "m2"
-                        url "file://\$buildDir/m2Repo/"
+                        url "\$buildDir/m2Repo/"
                     }
                 }
             }
@@ -573,10 +573,10 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 }
                 repositories {
                     maven {
-                        url "file://\$buildDir/m2Repo/"
+                        url "\$buildDir/m2Repo/"
                     }
                     ivy {
-                        url "file://\$buildDir/ivyRepo/"
+                        url "\$buildDir/ivyRepo/"
                         patternLayout {
                             artifact "[artifact]-[revision](-[classifier])(.[ext])"
                             ivy "[artifact]-[revision](-[classifier])(.[ext])"
@@ -637,10 +637,10 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 }
                 repositories {
                     maven {
-                        url "file://\$buildDir/m2Repo/"
+                        url "\$buildDir/m2Repo/"
                     }
                     ivy {
-                        url "file://\$buildDir/ivyRepo/"
+                        url "\$buildDir/ivyRepo/"
                         patternLayout {
                             artifact "[artifact]-[revision](-[classifier])(.[ext])"
                             ivy "[artifact]-[revision](-[classifier])(.[ext])"
@@ -784,7 +784,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 repositories {
                     maven {
                         name "m2"
-                        url "file://\$buildDir/m2Repo/"
+                        url "\$buildDir/m2Repo/"
                     }
                 }
             }

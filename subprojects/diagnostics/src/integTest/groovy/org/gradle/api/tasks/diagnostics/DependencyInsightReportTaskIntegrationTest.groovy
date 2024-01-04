@@ -1358,7 +1358,7 @@ org:middle:1.0 FAILED
    Failures:
       - Could not find org:middle:2.0.
         Searched in the following locations:
-          - ${mavenRepoURL}/org/middle/2.0/middle-2.0.pom
+          - ${mavenRepoURL}org/middle/2.0/middle-2.0.pom
         ${repositoryHint("Maven POM")}
 
 org:middle:1.0 -> 2.0 FAILED
@@ -1440,7 +1440,7 @@ org:middle:2.0+ (selected by rule) FAILED
       - Could not find any version that matches org:middle:2.0+.
         Versions that do not match: 1.0
         Searched in the following locations:
-          - ${mavenRepoURL}/org/middle/maven-metadata.xml
+          - ${mavenRepoURL}org/middle/maven-metadata.xml
 
 org:middle:1.0 -> 2.0+ FAILED
 \\--- org:top:1.0
@@ -1482,7 +1482,7 @@ org:leaf:1.0 FAILED
    Failures:
       - Could not find org:leaf:1.0.
         Searched in the following locations:
-          - ${ivyRepoURL}/org/leaf/1.0/ivy-1.0.xml
+          - ${ivyRepoURL}org/leaf/1.0/ivy-1.0.xml
         ${repositoryHint("ivy.xml")}
 
 org:leaf:1.0 FAILED
@@ -1501,7 +1501,7 @@ org:leaf:[1.5,2.0] FAILED
    Failures:
       - Could not find any matches for org:leaf:[1.5,2.0] as no versions of org:leaf are available.
         Searched in the following locations:
-          - ${ivyRepoURL}/org/leaf/
+          - ${ivyRepoURL}org/leaf/
 
 org:leaf:[1.5,2.0] FAILED
 \\--- org:top:1.0
@@ -3079,23 +3079,13 @@ org:foo:1.2 -> 1.5
 """)
     }
 
-
-    @CompileStatic
-    static String decodeURI(URI uri) {
-        def url = URLDecoder.decode(uri.toASCIIString(), 'utf-8')
-        if (url.endsWith('/')) {
-            url = url.substring(0, url.length() - 1)
-        }
-        url
-    }
-
     @CompileStatic
     String getMavenRepoURL() {
-        decodeURI(mavenRepo.uri)
+        mavenRepo.uri.toASCIIString()
     }
 
     @CompileStatic
     String getIvyRepoURL() {
-        decodeURI(ivyRepo.uri)
+        ivyRepo.uri.toASCIIString()
     }
 }
