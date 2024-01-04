@@ -15,13 +15,13 @@
  */
 package org.gradle.internal.component;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.exceptions.StyledException;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.util.Map;
-import java.util.Set;
 
 class StyledDescriber implements AttributeDescriber {
 
@@ -32,7 +32,7 @@ class StyledDescriber implements AttributeDescriber {
     }
 
     @Override
-    public Set<Attribute<?>> getDescribableAttributes() {
+    public ImmutableSet<Attribute<?>> getDescribableAttributes() {
         return delegate.getDescribableAttributes();
     }
 

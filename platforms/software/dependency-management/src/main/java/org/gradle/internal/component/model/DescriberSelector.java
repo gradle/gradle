@@ -15,13 +15,13 @@
  */
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,7 +55,7 @@ public class DescriberSelector {
 
 
         @Override
-        public Set<Attribute<?>> getDescribableAttributes() {
+        public ImmutableSet<Attribute<?>> getDescribableAttributes() {
             return delegate.getDescribableAttributes();
         }
 
@@ -82,8 +82,8 @@ public class DescriberSelector {
         private final static DefaultDescriber INSTANCE = new DefaultDescriber();
 
         @Override
-        public Set<Attribute<?>> getDescribableAttributes() {
-            return Collections.emptySet();
+        public ImmutableSet<Attribute<?>> getDescribableAttributes() {
+            return ImmutableSet.of();
         }
 
         @Override

@@ -18,6 +18,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.groovy)
     api(libs.groovyAnt)
+    api(libs.guava)
     api(libs.ant)
     api(libs.inject)
 
@@ -27,7 +28,6 @@ dependencies {
     implementation(project(":logging"))
 
     implementation(libs.commonsLang)
-    implementation(libs.guava)
     implementation(libs.slf4jApi)
 
     testImplementation(libs.asm)

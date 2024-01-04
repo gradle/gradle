@@ -36,7 +36,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 class JavaEcosystemAttributesDescriber implements AttributeDescriber {
-    private final static Set<Attribute<?>> DESCRIBABLE_ATTRIBUTES = ImmutableSet.of(
+    private final static ImmutableSet<Attribute<?>> DESCRIBABLE_ATTRIBUTES = ImmutableSet.of(
         Usage.USAGE_ATTRIBUTE,
         Category.CATEGORY_ATTRIBUTE,
         LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
@@ -48,7 +48,7 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
     );
 
     @Override
-    public Set<Attribute<?>> getDescribableAttributes() {
+    public ImmutableSet<Attribute<?>> getDescribableAttributes() {
         return DESCRIBABLE_ATTRIBUTES;
     }
 
