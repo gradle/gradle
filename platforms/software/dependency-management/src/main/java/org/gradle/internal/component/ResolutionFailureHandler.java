@@ -590,7 +590,7 @@ public class ResolutionFailureHandler {
                 .map(VariantGraphResolveState::getMetadata)
                 .collect(Collectors.toList());
         } else {
-            variants = candidates.getCandidateConfigurations();
+            variants = new ArrayList<>(candidates.getCandidateConfigurations()); // Need non-immutable copy to sort
         }
 
         variants.sort(Comparator.comparing(VariantGraphResolveMetadata::getName));
