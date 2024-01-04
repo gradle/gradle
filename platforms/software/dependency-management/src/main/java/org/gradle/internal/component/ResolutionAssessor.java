@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Describable;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
@@ -71,10 +72,10 @@ import java.util.stream.Collectors;
         ImmutableAttributes candidateAttributes,
         AttributeMatcher attributeMatcher
     ) {
-        // Must assess consumer first, to get proper attribute type if its present (it will just be string on the Producer)
         AssessedCandidate assessedCandidate = new AssessedCandidate(name);
-        consumerAttributes.getAttributes().keySet().forEach(attribute -> assessAttribute(consumerAttributes, candidateAttributes, attributeMatcher, attribute, assessedCandidate));
-        candidateAttributes.getAttributes().keySet().forEach(attribute -> assessAttribute(consumerAttributes, candidateAttributes, attributeMatcher, attribute, assessedCandidate));
+        Sets.union(consumerAttributes.getAttributes().keySet(), candidateAttributes.getAttributes().keySet()).stream()
+            .sorted(Comparator.comparing(Attribute::getName))
+            .forEach(attribute -> assessAttribute(consumerAttributes, candidateAttributes, attributeMatcher, attribute, assessedCandidate));
         return assessedCandidate;
     }
 
