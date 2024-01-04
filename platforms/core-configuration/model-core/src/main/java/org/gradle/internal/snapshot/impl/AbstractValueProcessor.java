@@ -171,7 +171,9 @@ abstract class AbstractValueProcessor {
             return visitor.emptyArray(componentType);
         }
         if (componentType.isPrimitive()) {
-            throw new IsolationException(value);
+            // Use Java serialization as a simple implementation mechanism to isolate primitive arrays
+            // https://github.com/gradle/gradle/issues/26596
+            return javaSerialization(value, visitor);
         }
         return visitor.array(processArrayElements(value, length, visitor), componentType);
     }

@@ -36,7 +36,8 @@ class WorkerExecutorParametersKotlinIntegrationTest extends AbstractIntegrationS
 
             abstract class ParameterWorkAction : WorkAction<TestParameters> {
                 override fun execute() {
-                    println(parameters.array.get().joinToString(",", "[", "]"))
+                    val array = parameters.array.get()
+                    println(array.javaClass.componentType.toString() + "ArrayOf" + array.joinToString(",", "(", ")"))
                 }
             }
 
@@ -60,12 +61,10 @@ class WorkerExecutorParametersKotlinIntegrationTest extends AbstractIntegrationS
         """
 
         when:
-        //succeeds 'runWork'
-        fails 'runWork'
+        succeeds 'runWork'
 
         then:
-        //outputContains '[1,2,3]'
-        failureCauseContains 'Could not isolate value ['
+        outputContains "${type}ArrayOf(1,2,3)"
 
         where:
         [isolationMode, type] << [

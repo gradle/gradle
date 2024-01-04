@@ -86,6 +86,20 @@ public abstract class ClassLoaderUtils {
 
     public static Class<?> classFromContextLoader(String className) {
         try {
+            if (className.startsWith("[")) {
+                if (className.equals("[B")) {
+                    return byte[].class;
+                }
+                if (className.equals("[S")) {
+                    return short[].class;
+                }
+                if (className.equals("[I")) {
+                    return int[].class;
+                }
+                if (className.equals("[J")) {
+                    return long[].class;
+                }
+            }
             return Thread.currentThread().getContextClassLoader().loadClass(className);
         } catch (ClassNotFoundException e) {
             throw UncheckedException.throwAsUncheckedException(e);
