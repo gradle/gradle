@@ -22,6 +22,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -89,13 +90,15 @@ public class DescriberSelector {
         @Override
         public String describeAttributeSet(Map<Attribute<?>, ?> attributes) {
             StringBuilder sb = new StringBuilder();
-            for (Map.Entry<Attribute<?>, ?> entry : attributes.entrySet()) {
-                Attribute<?> attribute = entry.getKey();
-                if (sb.length() > 0) {
-                    sb.append(", ");
-                }
-                sb.append("attribute '").append(attribute.getName()).append("' with value '").append(entry.getValue()).append("'");
-            }
+            attributes.entrySet().stream()
+                .sorted(Comparator.comparing(e -> e.getKey().getName()))
+                .forEach(entry -> {
+                    Attribute<?> attribute = entry.getKey();
+                    if (sb.length() > 0) {
+                        sb.append(", ");
+                    }
+                    sb.append("attribute '").append(attribute.getName()).append("' with value '").append(entry.getValue()).append("'");
+                });
             return sb.toString();
         }
 
