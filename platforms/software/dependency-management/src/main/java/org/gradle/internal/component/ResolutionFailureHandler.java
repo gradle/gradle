@@ -55,7 +55,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -314,38 +313,12 @@ public class ResolutionFailureHandler {
         ComponentGraphResolveMetadata targetComponent,
         GraphSelectionCandidates candidates
     ) {
-        return maybeHandlePluginResolutionFailure(fromConfigurationAttributes, attributeMatcher, targetComponent, candidates)
-            .orElse(handleBasicNoMatchingGraphVariantsException(describer, fromConfigurationAttributes, attributeMatcher, targetComponent, candidates));
-    }
-
-    private NoMatchingGraphVariantsException handleBasicNoMatchingGraphVariantsException(
-        AttributeDescriber describer,
-        AttributeContainerInternal fromConfigurationAttributes,
-        AttributeMatcher attributeMatcher,
-        ComponentGraphResolveMetadata targetComponent,
-        GraphSelectionCandidates candidates
-    ) {
         String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, targetComponent, candidates);
         NoMatchingGraphVariantsException e = new NoMatchingGraphVariantsException(message);
         suggestReviewAlgorithm(e);
         e.addResolution(NO_MATCHING_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", NO_MATCHING_VARIANTS_SECTION + "."));
         return e;
     }
-
-    private Optional<NoMatchingGraphVariantsException> maybeHandlePluginResolutionFailure(AttributeContainerInternal requestedAttributes, AttributeMatcher attributeMatcher, ComponentGraphResolveMetadata targetComponent, GraphSelectionCandidates candidates) {
-        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, attributeMatcher);
-        NoMatchingGraphVariantsException result = null;
-        if (resolutionCandidateAssessor.isPluginRequestUsingApiVersionAttribute(requestedAttributes)) {
-            Optional<String> minRequiredGradleVersion = resolutionCandidateAssessor.findHigherRequiredVersionOfGradle(candidates);
-            if (minRequiredGradleVersion.isPresent()) {
-                String message = buildPluginNeedsNewerGradleVersionFailureMsg(targetComponent.getId().getDisplayName(), minRequiredGradleVersion.get());
-                result = new PluginNeedsNewerGradleVersionException(message);
-                suggestUpdateGradle(result, minRequiredGradleVersion.get());
-            }
-        }
-        return Optional.ofNullable(result);
-    }
-
 
     public NoMatchingCapabilitiesException noMatchingCapabilitiesFailure(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> requestedCapabilities, List<? extends VariantGraphResolveState> candidates) {
         String message = buildNoMatchingCapabilitiesFailureMsg(targetComponent, requestedCapabilities, candidates);
@@ -446,8 +419,7 @@ public class ResolutionFailureHandler {
 
     private String buildNoMatchingGraphVariantSelectionFailureMsg(AttributeDescriber describer, AttributeContainerInternal requestedAttributes, AttributeMatcher attributeMatcher, final ComponentGraphResolveMetadata targetComponent, GraphSelectionCandidates candidates) {
         boolean variantAware = candidates.isUseVariants();
-        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, attributeMatcher);
-        List<? extends VariantGraphResolveMetadata> variants = resolutionCandidateAssessor.extractVariants(candidates);
+       List<? extends VariantGraphResolveMetadata> variants = extractVariants(candidates);
 
         TreeFormatter formatter = new TreeFormatter();
         String targetVariantText = style(StyledTextOutput.Style.Info, targetComponent.getId().getDisplayName());
@@ -590,6 +562,26 @@ public class ResolutionFailureHandler {
             values.forEach(formatter::node);
             formatter.endChildren();
         }
+    }
+
+    /**
+     * Extracts variant metadata from the given {@link GraphSelectionCandidates}.
+     *
+     * @param candidates the candidates to extract variants from
+     * @return the extracted variants, sorted by name
+     */
+    private List<? extends VariantGraphResolveMetadata> extractVariants(GraphSelectionCandidates candidates) {
+        final List<? extends VariantGraphResolveMetadata> variants;
+        if (candidates.isUseVariants()) {
+            variants = candidates.getVariants().stream()
+                .map(VariantGraphResolveState::getMetadata)
+                .collect(Collectors.toList());
+        } else {
+            variants = candidates.getCandidateConfigurations();
+        }
+
+        variants.sort(Comparator.comparing(VariantGraphResolveMetadata::getName));
+        return variants;
     }
     // endregion Graph Variant Selection Failures
 }

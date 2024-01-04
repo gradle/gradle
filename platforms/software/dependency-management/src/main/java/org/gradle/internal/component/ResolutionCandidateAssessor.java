@@ -16,32 +16,25 @@
 
 package org.gradle.internal.component;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.gradle.api.Describable;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
-import org.gradle.internal.component.model.GraphSelectionCandidates;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
-import org.gradle.internal.component.model.VariantGraphResolveState;
-import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * A utility class used by {@link ResolutionFailureHandler} to assess and classify
- * how the attributes of candidate variants during dependency resolution align with the
- * requested attributes.
+ * how the attributes of candidate variants during a single attempt at dependency resolution
+ * align with the requested attributes.
  */
 /* package */ final class ResolutionCandidateAssessor {
     private final ImmutableAttributes requestedAttributes;
@@ -52,138 +45,70 @@ import java.util.stream.Collectors;
         this.attributeMatcher = attributeMatcher;
     }
 
-    /**
-     * Extracts variant metadata from the given {@link GraphSelectionCandidates}.
-     *
-     * @param candidates the candidates to extract variants from
-     * @return the extracted variants, sorted by name
-     */
-    public List<? extends VariantGraphResolveMetadata> extractVariants(GraphSelectionCandidates candidates) {
-        final List<? extends VariantGraphResolveMetadata> variants;
-        if (candidates.isUseVariants()) {
-            variants = candidates.getVariants().stream()
-                .map(VariantGraphResolveState::getMetadata)
-                .collect(Collectors.toList());
-        } else {
-            variants = candidates.getCandidateConfigurations();
-        }
-
-        variants.sort(Comparator.comparing(VariantGraphResolveMetadata::getName));
-        return variants;
-    }
-
-    public List<AssessedCandidate> assessCandidates(List<? extends VariantGraphResolveMetadata> candidates) {
-        return candidates.stream()
-            .map(variantMetadata -> assessCandidate(variantMetadata.getName(), variantMetadata.getAttributes().asImmutable()))
-            .collect(Collectors.toList());
-    }
-
     public AssessedCandidate assessCandidate(
         String candidateName,
         ImmutableAttributes candidateAttributes
     ) {
-        AssessedCandidate assessedCandidate = new AssessedCandidate(candidateName);
+        Set<String> alreadyAssessed = new HashSet<>(candidateAttributes.keySet().size());
+        ImmutableList.Builder<AssessedAttribute<?>> compatible = ImmutableList.builder();
+        ImmutableList.Builder<AssessedAttribute<?>> incompatible = ImmutableList.builder();
+        ImmutableList.Builder<AssessedAttribute<?>> onlyOnConsumer = ImmutableList.builder();
+        ImmutableList.Builder<AssessedAttribute<?>> onlyOnProducer = ImmutableList.builder();
+
         Sets.union(requestedAttributes.getAttributes().keySet(), candidateAttributes.getAttributes().keySet()).stream()
             .sorted(Comparator.comparing(Attribute::getName))
-            .forEach(attribute -> assessAttribute(candidateAttributes, attribute, assessedCandidate));
-        return assessedCandidate;
+            .forEach(attribute -> classifyAttribute(requestedAttributes, candidateAttributes, attributeMatcher, attribute, alreadyAssessed, compatible, incompatible, onlyOnConsumer, onlyOnProducer));
+
+        return new AssessedCandidate(candidateName, candidateAttributes, compatible.build(), incompatible.build(), onlyOnConsumer.build(), onlyOnProducer.build());
     }
 
-    private void assessAttribute(ImmutableAttributes immutableProducer, Attribute<?> attribute, AssessedCandidate assessedCandidate) {
-        Attribute<Object> untyped = Cast.uncheckedCast(attribute);
-
-        if (!assessedCandidate.alreadyAssessed(untyped)) {
-            String attributeName = Objects.requireNonNull(attribute).getName();
+    private void classifyAttribute(ImmutableAttributes requestedAttributes, ImmutableAttributes candidateAttributes, AttributeMatcher attributeMatcher,
+                                   Attribute<?> attribute, Set<String> alreadyAssessed,
+                                   ImmutableList.Builder<AssessedAttribute<?>> compatible, ImmutableList.Builder<AssessedAttribute<?>> incompatible,
+                                   ImmutableList.Builder<AssessedAttribute<?>> onlyOnConsumer, ImmutableList.Builder<AssessedAttribute<?>> onlyOnProducer) {
+        if (alreadyAssessed.add(attribute.getName())) {
+            Attribute<Object> untyped = Cast.uncheckedCast(attribute);
+            String attributeName = attribute.getName();
             AttributeValue<?> consumerValue = requestedAttributes.findEntry(attributeName);
-            AttributeValue<?> producerValue = immutableProducer.findEntry(attributeName);
+            AttributeValue<?> producerValue = candidateAttributes.findEntry(attributeName);
 
             if (consumerValue.isPresent() && producerValue.isPresent()) {
                 if (attributeMatcher.isMatching(untyped, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
-                    assessedCandidate.addCompatible(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), Cast.uncheckedCast(producerValue.get())));
+                    compatible.add(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), Cast.uncheckedCast(producerValue.get())));
                 } else {
-                    assessedCandidate.addIncompatible(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), Cast.uncheckedCast(producerValue.get())));
+                    incompatible.add(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), Cast.uncheckedCast(producerValue.get())));
                 }
             } else if (consumerValue.isPresent()) {
-                assessedCandidate.addOnlyOnConsumer(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), null));
+                onlyOnConsumer.add(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), null));
             } else if (producerValue.isPresent()) {
-                assessedCandidate.addOnlyOnProducer(new AssessedAttribute<>(attribute, null, Cast.uncheckedCast(producerValue.get())));
+                onlyOnProducer.add(new AssessedAttribute<>(attribute, null, Cast.uncheckedCast(producerValue.get())));
             }
         }
-    }
-
-    public boolean isPluginRequestUsingApiVersionAttribute(AttributeContainerInternal consumerAttributes) {
-        return consumerAttributes.contains(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
-    }
-
-    public Optional<String> findHigherRequiredVersionOfGradle(GraphSelectionCandidates candidates) {
-        List<? extends VariantGraphResolveMetadata> candidateMetadatas = extractVariants(candidates);
-        List<AssessedCandidate> categorizedAttributes = assessCandidates(candidateMetadatas);
-        return findIncompatibleRequiredMinimumVersionOfGradle(categorizedAttributes);
-    }
-
-    private Optional<String> findIncompatibleRequiredMinimumVersionOfGradle(List<AssessedCandidate> candidates) {
-        String requiredMinimumVersionOfGradle = null;
-
-        for (AssessedCandidate candidate : candidates) {
-            Optional<GradleVersion> providedVersion = candidate.getIncompatibleAttributes().stream()
-                .filter(incompatibleAttribute -> incompatibleAttribute.getAttribute().getName().equals(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE.getName()))
-                .map(apiVersionAttribute -> GradleVersion.version(String.valueOf(apiVersionAttribute.getRequested())))
-                .findFirst();
-
-            if (providedVersion.isPresent()) {
-                GradleVersion version = providedVersion.get();
-                if (requiredMinimumVersionOfGradle == null || version.compareTo(GradleVersion.version(requiredMinimumVersionOfGradle)) > 0) {
-                    requiredMinimumVersionOfGradle = version.getVersion();
-                }
-            }
-        }
-
-        return Optional.ofNullable(requiredMinimumVersionOfGradle);
     }
 
     /**
      * A data class that holds information about a single variant which was a candidate for matching during resolution.
      *
-     * This includes classifying its attributes into lists of compatible, incompatible, and absent attributes.
+     * This includes classifying its attributes into lists of compatible, incompatible, and absent attributes.  Each candidate
+     * is assessed within the context of a resolution, so this is a non-{@code static} class implicitly linked to the assessor
+     * that produced it.
      */
-    /* package */ static final class AssessedCandidate implements Describable {
+    public final class AssessedCandidate implements Describable {
         private final String name;
-        // TODO: Turn this into a single multimap
-        private final List<AssessedAttribute<?>> compatibleAttributes = new ArrayList<>();
-        private final List<AssessedAttribute<?>> incompatibleAttributes = new ArrayList<>();
-        private final List<AssessedAttribute<?>> onlyOnConsumer = new ArrayList<>();
-        private final List<AssessedAttribute<?>> onlyOnProducer = new ArrayList<>();
+        private final ImmutableAttributes candidateAttributes;
 
-        private AssessedCandidate(String name) {
+        private final ImmutableList<AssessedAttribute<?>> compatible;
+        private final ImmutableList<AssessedAttribute<?>> incompatible;
+        private final ImmutableList<AssessedAttribute<?>> onlyOnConsumer;
+        private final ImmutableList<AssessedAttribute<?>> onlyOnProducer;
+
+        private AssessedCandidate(String name, ImmutableAttributes attributes, ImmutableList<AssessedAttribute<?>> compatible, ImmutableList<AssessedAttribute<?>> incompatible, ImmutableList<AssessedAttribute<?>> onlyOnConsumer, ImmutableList<AssessedAttribute<?>> onlyOnProducer) {
             this.name = name;
-        }
-
-        public void addCompatible(AssessedAttribute<?> attribute) {
-            if (notAlreadyInThere(attribute, compatibleAttributes)) {
-                compatibleAttributes.add(attribute);
-            }
-        }
-
-        private boolean notAlreadyInThere(AssessedAttribute<?> attribute, List<AssessedAttribute<?>> listToCheck) {
-            return listToCheck.stream().noneMatch(e -> Objects.equals(e.getAttribute().getName(), attribute.getAttribute().getName()));
-        }
-
-        public void addIncompatible(AssessedAttribute<?> attribute) {
-            if (notAlreadyInThere(attribute, incompatibleAttributes)) {
-                incompatibleAttributes.add(attribute);
-            }
-        }
-
-        public void addOnlyOnConsumer(AssessedAttribute<?> attribute) {
-            if (notAlreadyInThere(attribute, onlyOnConsumer)) {
-                onlyOnConsumer.add(attribute);
-            }
-        }
-
-        public void addOnlyOnProducer(AssessedAttribute<?> attribute) {
-            if (notAlreadyInThere(attribute, onlyOnProducer)) {
-                onlyOnProducer.add(attribute);
-            }
+            this.candidateAttributes = attributes;
+            this.compatible = compatible;
+            this.incompatible = incompatible;
+            this.onlyOnConsumer = onlyOnConsumer;
+            this.onlyOnProducer = onlyOnProducer;
         }
 
         @Override
@@ -191,43 +116,37 @@ import java.util.stream.Collectors;
             return name;
         }
 
-        public List<AssessedAttribute<?>> getCompatibleAttributes() {
-            return compatibleAttributes;
+        public ImmutableAttributes getAllCandidateAttributes() {
+            return candidateAttributes;
         }
 
-        public List<AssessedAttribute<?>> getIncompatibleAttributes() {
-            return incompatibleAttributes;
+        public ImmutableAttributes getAllRequestedAttributes() {
+            return requestedAttributes;
         }
 
-        // TODO: make these copies
-        public List<AssessedAttribute<?>> getOnlyOnConsumerAttributes() {
+        public ImmutableList<AssessedAttribute<?>> getCompatibleAttributes() {
+            return compatible;
+        }
+
+        public ImmutableList<AssessedAttribute<?>> getIncompatibleAttributes() {
+            return incompatible;
+        }
+
+        public ImmutableList<AssessedAttribute<?>> getOnlyOnConsumerAttributes() {
             return onlyOnConsumer;
         }
 
-        public List<AssessedAttribute<?>> getOnlyOnProducerAttributes() {
+        public ImmutableList<AssessedAttribute<?>> getOnlyOnProducerAttributes() {
             return onlyOnProducer;
-        }
-
-        // TODO: MOVE THIS INTO FAILURE DESCRIBER
-        boolean isPluginRequestUsingApiVersionAttribute(AttributeContainerInternal consumerAttributes) {
-            return consumerAttributes.contains(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
-        }
-
-        // TODO: Making this into a map would possibly make this faster
-        // TODO: Also extract the name comparison into a method to reference
-        public boolean alreadyAssessed(Attribute<Object> attribute) {
-            return getCompatibleAttributes().stream().anyMatch(e -> Objects.equals(e.getAttribute().getName(), attribute.getName())) ||
-                getIncompatibleAttributes().stream().anyMatch(e -> Objects.equals(e.getAttribute().getName(), attribute.getName())) ||
-                getOnlyOnConsumerAttributes().stream().anyMatch(e -> Objects.equals(e.getAttribute().getName(), attribute.getName())) ||
-                getOnlyOnProducerAttributes().stream().anyMatch(e -> Objects.equals(e.getAttribute().getName(), attribute.getName()));
         }
     }
 
     /**
      * A data class that records a single attribute, its requested value, and its provided value.
      */
-    /* package */ static final class AssessedAttribute<T> {
+    public static final class AssessedAttribute<T> {
         private final Attribute<T> attribute;
+
         @Nullable
         private final T requested;
         @Nullable
