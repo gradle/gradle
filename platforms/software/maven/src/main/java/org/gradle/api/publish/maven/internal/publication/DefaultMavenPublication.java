@@ -83,6 +83,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
     private final String name;
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final TaskDependencyFactory taskDependencyFactory;
+    private final String projectDisplayName;
     private final Directory buildDir;
 
     private final VersionMappingStrategyInternal versionMappingStrategy;
@@ -121,6 +122,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.versionMappingStrategy = versionMappingStrategy;
         this.taskDependencyFactory = taskDependencyFactory;
+        this.projectDisplayName = project.getDisplayName();
         this.buildDir = project.getLayout().getProjectDirectory();
 
         MavenComponentParser mavenComponentParser = objectFactory.newInstance(MavenComponentParser.class, mavenArtifactParser);
@@ -512,7 +514,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         populateFromComponent();
         if (getComponent().isPresent()) {
             MavenPublicationErrorChecker.checkThatArtifactIsPublishedUnmodified(
-                buildDir.getAsFile().toPath().toAbsolutePath(), getComponent().get().getName(),
+                projectDisplayName, buildDir.getAsFile().toPath().toAbsolutePath(), getComponent().get().getName(),
                 source, mainArtifacts
             );
         }
