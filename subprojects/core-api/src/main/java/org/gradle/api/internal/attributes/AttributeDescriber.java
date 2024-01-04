@@ -18,6 +18,7 @@ package org.gradle.api.internal.attributes;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.attributes.Attribute;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 public interface AttributeDescriber {
@@ -29,6 +30,9 @@ public interface AttributeDescriber {
     ImmutableSet<Attribute<?>> getDescribableAttributes();
 
     String describeAttributeSet(Map<Attribute<?>, ?> attributes);
+
+    @Nullable
     String describeMissingAttribute(Attribute<?> attribute, Object consumerValue);
+
     String describeExtraAttribute(Attribute<?> attribute, Object producerValue);
 }

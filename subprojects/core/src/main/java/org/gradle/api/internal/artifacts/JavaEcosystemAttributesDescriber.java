@@ -25,13 +25,13 @@ import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -112,23 +112,23 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
     }
 
     @Nullable
-    private static <T> Object attr(Map<Attribute<?>, ?> attributes, Attribute<T> attribute) {
+    private <T> Object attr(Map<Attribute<?>, ?> attributes, Attribute<T> attribute) {
         return Cast.uncheckedCast(attributes.entrySet().stream()
-            .filter(e -> e.getKey().getName().equals(attribute.getName()))
+            .filter(e -> AttributeContainerInternal.haveSameName(e.getKey(), attribute))
             .findFirst()
             .map(Map.Entry::getValue)
             .orElse(null));
     }
 
     private void processExtraAttributes(Map<Attribute<?>, ?> attributes, StringBuilder sb) {
-        Set<Attribute<?>> remaining = attributes.keySet().stream()
-            .filter(JavaEcosystemAttributesDescriber::isUndescribable)
+        Set<Attribute<?>> describableAttributes = attributes.keySet().stream()
+            .filter(a -> !isDescribable(a))
             .collect(Collectors.toSet());
 
-        if (!remaining.isEmpty()) {
+        if (!describableAttributes.isEmpty()) {
             sb.append(", as well as ");
             boolean comma = false;
-            for (Attribute<?> attribute : remaining) {
+            for (Attribute<?> attribute : describableAttributes) {
                 if (comma) {
                     sb.append(", ");
                 }
@@ -138,11 +138,18 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
         }
     }
 
-    private static boolean isUndescribable(Attribute<?> attribute) {
-        return DESCRIBABLE_ATTRIBUTES.stream().noneMatch(describableAttribute -> Objects.equals(attribute.getName(), describableAttribute.getName()));
+    /**
+     * Checks if the given attribute is describable by this describer.
+     *
+     * @param attribute the attribute to check
+     * @return {@code true} if the given attribute is describable by this describer; {@code false} otherwise
+     */
+    private boolean isDescribable(Attribute<?> attribute) {
+        return DESCRIBABLE_ATTRIBUTES.stream().anyMatch(describableAttribute -> AttributeContainerInternal.haveSameName(attribute, describableAttribute));
     }
 
     @Override
+    @Nullable
     public String describeMissingAttribute(Attribute<?> attribute, Object consumerValue) {
         StringBuilder sb = new StringBuilder();
         if (Usage.USAGE_ATTRIBUTE.equals(attribute)) {
@@ -183,7 +190,7 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
         return sb.toString();
     }
 
-    public void describeGenericAttribute(StringBuilder sb, Attribute<?> attribute, Object value) {
+    private void describeGenericAttribute(StringBuilder sb, Attribute<?> attribute, @Nullable Object value) {
         sb.append("attribute '").append(attribute.getName()).append("' with value '").append(value).append("'");
     }
 
