@@ -25,19 +25,27 @@ public interface ImmutableAttributes extends AttributeContainerInternal {
     /**
      * Locates the entry for the given attribute. Returns a 'missing' value when not present.
      *
-     * <strong>WARNING: Attribute type information is often unreliable!</strong>  Attributes of consumers will not
-     * have their type information available.  It will show as {@code String} instead of {@code <T>} and
-     * this method will <strong>NOT</strong> be useful to locate an entry for a consumer attribute when
-     * searching by the constants in the particular attribute interface.
+     * <strong>WARNING: {@link Attribute} type information is often unreliable.</strong>  Attributes created
+     * from external variants that are selection candidates during resolution will <strong>NOT</strong>
+     * have their type information available.  These attributes will use {@code String} as their type.
+     * As type is part of attribute equality, this method will in many cases <strong>NOT</strong> be useful to
+     * locate these attributes within an {@link org.gradle.api.attributes.AttributeContainer} that was created
+     * using the strong type information present on attribute constants such as {@link org.gradle.api.attributes.Category#CATEGORY_ATTRIBUTE}.
      *
-     * You should prefer {@link #findEntry(String)} and search by name to avoid these sorts of issues.
+     * You should usually prefer searching by name using {@link #findEntry(String)} to avoid these sorts of issues.
+     *
+     * @param key the attribute to locate in this container (name <strong>and type</strong> much match)
+     * @return the value for the attribute in this container, or {@link AttributeValue#MISSING} if not present
      */
     <T> AttributeValue<T> findEntry(Attribute<T> key);
 
     /**
-     * Locates the entry for the attribute with the given name. Returns a 'missing' value when not present.
+     * Locates the entry for the attribute with the given name.
+     *
+     * @param name the name of an attribute to locate in this container
+     * @return the value for the attribute in this container, or {@link AttributeValue#MISSING} if not present
      */
-    AttributeValue<?> findEntry(String key);
+    AttributeValue<?> findEntry(String name);
 
     @Override
     ImmutableSet<Attribute<?>> keySet();

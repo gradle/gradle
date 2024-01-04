@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 public interface AttributeDescriber {
-    Set<Attribute<?>> getAttributes();
+    Set<Attribute<?>> getDescribableAttributes();
     String describeAttributeSet(Map<Attribute<?>, ?> attributes);
     String describeMissingAttribute(Attribute<?> attribute, Object consumerValue);
     String describeExtraAttribute(Attribute<?> attribute, Object producerValue);

@@ -912,7 +912,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
             configuration.dependencies.add(dependency("group2", "name2", "version2"))
         }
 
-        configuration.getAttributes().attribute(Attribute.of('key', String.class), 'value')
+        configuration.getDescribableAttributes().attribute(Attribute.of('key', String.class), 'value')
         configuration.resolutionStrategy
 
         def otherConf = conf("other")

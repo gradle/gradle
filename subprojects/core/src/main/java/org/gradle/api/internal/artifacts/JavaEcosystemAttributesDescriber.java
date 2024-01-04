@@ -48,7 +48,7 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
     );
 
     @Override
-    public Set<Attribute<?>> getAttributes() {
+    public Set<Attribute<?>> getDescribableAttributes() {
         return DESCRIBABLE_ATTRIBUTES;
     }
 

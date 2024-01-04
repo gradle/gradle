@@ -33,7 +33,7 @@ public class DescriberSelector {
         AttributeDescriber current = null;
         int maxSize = 0;
         for (AttributeDescriber consumerDescriber : consumerDescribers) {
-            int size = Sets.intersection(consumerDescriber.getAttributes(), consumerAttributeSet).size();
+            int size = Sets.intersection(consumerDescriber.getDescribableAttributes(), consumerAttributeSet).size();
             if (size > maxSize) {
                 // Select the describer which handles the maximum number of attributes
                 current = consumerDescriber;
@@ -55,8 +55,8 @@ public class DescriberSelector {
 
 
         @Override
-        public Set<Attribute<?>> getAttributes() {
-            return delegate.getAttributes();
+        public Set<Attribute<?>> getDescribableAttributes() {
+            return delegate.getDescribableAttributes();
         }
 
         @Override
@@ -82,7 +82,7 @@ public class DescriberSelector {
         private final static DefaultDescriber INSTANCE = new DefaultDescriber();
 
         @Override
-        public Set<Attribute<?>> getAttributes() {
+        public Set<Attribute<?>> getDescribableAttributes() {
             return Collections.emptySet();
         }
 

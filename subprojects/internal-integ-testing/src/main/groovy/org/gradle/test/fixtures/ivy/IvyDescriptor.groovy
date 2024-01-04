@@ -65,7 +65,7 @@ class IvyDescriptor {
                     name: artifact.@name, type: artifact.@type,
                     ext: artifact.@ext,
                     conf: artifact.@conf == null ? null : artifact.@conf.split(",") as List,
-                    mavenAttributes: artifact.attributes().findAll { it.key instanceof QName && it.key.namespaceURI == "http://ant.apache.org/ivy/maven" }.collectEntries { [it.key.localPart, it.value] }
+                    mavenAttributes: artifact.getDescribableAttributes().findAll { it.key instanceof QName && it.key.namespaceURI == "http://ant.apache.org/ivy/maven" }.collectEntries { [it.key.localPart, it.value] }
             )
 
             artifacts.add(ivyArtifact)

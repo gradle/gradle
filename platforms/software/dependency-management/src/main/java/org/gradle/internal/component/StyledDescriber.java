@@ -32,8 +32,8 @@ class StyledDescriber implements AttributeDescriber {
     }
 
     @Override
-    public Set<Attribute<?>> getAttributes() {
-        return delegate.getAttributes();
+    public Set<Attribute<?>> getDescribableAttributes() {
+        return delegate.getDescribableAttributes();
     }
 
     @Override
