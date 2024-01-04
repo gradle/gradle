@@ -38,7 +38,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.problems.Problems;
-import org.gradle.internal.component.ResolutionAssessor.AssessedCandidate;
+import org.gradle.internal.component.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
@@ -92,7 +92,6 @@ public class ResolutionFailureHandler {
     private static final String NEEDS_NEWER_GRADLE_SECTION = "sub:updating-gradle";
 
     private final DocumentationRegistry documentationRegistry;
-    private final ResolutionAssessor resolutionAssessor = new ResolutionAssessor();
 
     public ResolutionFailureHandler(DocumentationRegistry documentationRegistry) {
         this.documentationRegistry = documentationRegistry;
@@ -333,10 +332,11 @@ public class ResolutionFailureHandler {
         return e;
     }
 
-    private Optional<NoMatchingGraphVariantsException> maybeHandlePluginResolutionFailure(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, ComponentGraphResolveMetadata targetComponent, GraphSelectionCandidates candidates) {
+    private Optional<NoMatchingGraphVariantsException> maybeHandlePluginResolutionFailure(AttributeContainerInternal requestedAttributes, AttributeMatcher attributeMatcher, ComponentGraphResolveMetadata targetComponent, GraphSelectionCandidates candidates) {
+        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, attributeMatcher);
         NoMatchingGraphVariantsException result = null;
-        if (resolutionAssessor.isPluginRequestUsingApiVersionAttribute(fromConfigurationAttributes)) {
-            Optional<String> minRequiredGradleVersion = resolutionAssessor.findHigherRequiredVersionOfGradle(fromConfigurationAttributes, attributeMatcher, candidates);
+        if (resolutionCandidateAssessor.isPluginRequestUsingApiVersionAttribute(requestedAttributes)) {
+            Optional<String> minRequiredGradleVersion = resolutionCandidateAssessor.findHigherRequiredVersionOfGradle(candidates);
             if (minRequiredGradleVersion.isPresent()) {
                 String message = buildPluginNeedsNewerGradleVersionFailureMsg(targetComponent.getId().getDisplayName(), minRequiredGradleVersion.get());
                 result = new PluginNeedsNewerGradleVersionException(message);
@@ -444,16 +444,17 @@ public class ResolutionFailureHandler {
         return formatter.toString();
     }
 
-    private String buildNoMatchingGraphVariantSelectionFailureMsg(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, final ComponentGraphResolveMetadata targetComponent, GraphSelectionCandidates candidates) {
+    private String buildNoMatchingGraphVariantSelectionFailureMsg(AttributeDescriber describer, AttributeContainerInternal requestedAttributes, AttributeMatcher attributeMatcher, final ComponentGraphResolveMetadata targetComponent, GraphSelectionCandidates candidates) {
         boolean variantAware = candidates.isUseVariants();
-        List<VariantGraphResolveMetadata> variants = resolutionAssessor.extractVariantsConsideredForSelection(candidates);
+        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, attributeMatcher);
+        List<? extends VariantGraphResolveMetadata> variants = resolutionCandidateAssessor.extractVariants(candidates);
 
         TreeFormatter formatter = new TreeFormatter();
         String targetVariantText = style(StyledTextOutput.Style.Info, targetComponent.getId().getDisplayName());
-        if (fromConfigurationAttributes.isEmpty()) {
+        if (requestedAttributes.isEmpty()) {
             formatter.node("Unable to find a matching " + (variantAware ? "variant" : "configuration") + " of " + targetVariantText);
         } else {
-            formatter.node("No matching " + (variantAware ? "variant" : "configuration") + " of " + targetVariantText + " was found. The consumer was configured to find " + describer.describeAttributeSet(fromConfigurationAttributes.asMap()) + " but:");
+            formatter.node("No matching " + (variantAware ? "variant" : "configuration") + " of " + targetVariantText + " was found. The consumer was configured to find " + describer.describeAttributeSet(requestedAttributes.asMap()) + " but:");
         }
         formatter.startChildren();
         if (variants.isEmpty()) {
@@ -462,7 +463,7 @@ public class ResolutionFailureHandler {
             // We're sorting the names of the configurations and later attributes
             // to make sure the output is consistently the same between invocations
             for (VariantGraphResolveMetadata variant : variants) {
-                formatUnselectable(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, variant, variantAware, false, describer);
+                formatUnselectable(formatter, targetComponent, requestedAttributes, attributeMatcher, variant, variantAware, false, describer);
             }
         }
         formatter.endChildren();
@@ -521,14 +522,15 @@ public class ResolutionFailureHandler {
         ImmutableAttributes producerAttributes,
         AttributeDescriber describer
     ) {
-        AssessedCandidate assessedCandidate = resolutionAssessor.assessCandidate(candidateName, immutableConsumer, producerAttributes, attributeMatcher);
+        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(immutableConsumer, attributeMatcher);
+        AssessedCandidate assessedCandidate = resolutionCandidateAssessor.assessCandidate(candidateName, producerAttributes);
 
         Map<Attribute<?>, ?> compatibleAttrs = assessedCandidate.getCompatibleAttributes().stream()
-            .collect(Collectors.toMap(ResolutionAssessor.AssessedAttribute::getAttribute, ResolutionAssessor.AssessedAttribute::getProvided, (a, b) -> a));
+            .collect(Collectors.toMap(ResolutionCandidateAssessor.AssessedAttribute::getAttribute, ResolutionCandidateAssessor.AssessedAttribute::getProvided, (a, b) -> a));
         Map<Attribute<?>, ?> incompatibleAttrs = assessedCandidate.getIncompatibleAttributes().stream()
-            .collect(Collectors.toMap(ResolutionAssessor.AssessedAttribute::getAttribute, ResolutionAssessor.AssessedAttribute::getProvided, (a, b) -> a));
+            .collect(Collectors.toMap(ResolutionCandidateAssessor.AssessedAttribute::getAttribute, ResolutionCandidateAssessor.AssessedAttribute::getProvided, (a, b) -> a));
         Map<Attribute<?>, ?> incompatibleConsumerAttrs = assessedCandidate.getIncompatibleAttributes().stream()
-            .collect(Collectors.toMap(ResolutionAssessor.AssessedAttribute::getAttribute, ResolutionAssessor.AssessedAttribute::getRequested, (a, b) -> a));
+            .collect(Collectors.toMap(ResolutionCandidateAssessor.AssessedAttribute::getAttribute, ResolutionCandidateAssessor.AssessedAttribute::getRequested, (a, b) -> a));
         List<String> otherValues = assessedCandidate.getOnlyOnConsumerAttributes().stream()
             .map(assessedAttribute -> "Doesn't say anything about " + describer.describeMissingAttribute(assessedAttribute.getAttribute(), assessedAttribute.getRequested()))
             .collect(Collectors.toList());
@@ -552,10 +554,11 @@ public class ResolutionFailureHandler {
         ImmutableAttributes immutableProducer,
         AttributeDescriber describer
     ) {
-        AssessedCandidate assessedCandidate = resolutionAssessor.assessCandidate(candidateName, immutableConsumer, immutableProducer, attributeMatcher);
+        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(immutableConsumer, attributeMatcher);
+        AssessedCandidate assessedCandidate = resolutionCandidateAssessor.assessCandidate(candidateName, immutableProducer);
 
         Map<Attribute<?>, ?> compatibleAttrs = assessedCandidate.getCompatibleAttributes().stream()
-            .collect(Collectors.toMap(ResolutionAssessor.AssessedAttribute::getAttribute, ResolutionAssessor.AssessedAttribute::getProvided, (a, b) -> a));
+            .collect(Collectors.toMap(ResolutionCandidateAssessor.AssessedAttribute::getAttribute, ResolutionCandidateAssessor.AssessedAttribute::getProvided, (a, b) -> a));
         List<String> onlyOnProducer = assessedCandidate.getOnlyOnProducerAttributes().stream()
             .map(assessedAttribute -> "Provides " + describer.describeExtraAttribute(assessedAttribute.getAttribute(), assessedAttribute.getProvided()) + " but the consumer didn't ask for it")
             .collect(Collectors.toList());

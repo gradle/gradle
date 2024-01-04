@@ -39,52 +39,62 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * A utility class used by {@link ResolutionFailureHandler} to examine failures for specific scenarios and to generate human-readable error messages.
- *
- * It does this by categorizing attributes for a variant request into lists of compatible, incompatible, and other.  These categorized lists can
- * be used for messaging, or to assess whether a particular failure scenario occurred.
+ * A utility class used by {@link ResolutionFailureHandler} to assess and classify
+ * how the attributes of candidate variants during dependency resolution align with the
+ * requested attributes.
  */
-/* package */ final class ResolutionAssessor {
-    public List<VariantGraphResolveMetadata> extractVariantsConsideredForSelection(GraphSelectionCandidates candidates) {
-        boolean variantAware = candidates.isUseVariants();
-        final List<VariantGraphResolveMetadata> variants;
-        if (variantAware) {
-            variants = new ArrayList<>(candidates.getVariants().size());
-            for (VariantGraphResolveState variant : candidates.getVariants()) {
-                variants.add(variant.getMetadata());
-            }
+/* package */ final class ResolutionCandidateAssessor {
+    private final ImmutableAttributes requestedAttributes;
+    private final AttributeMatcher attributeMatcher;
+
+    public ResolutionCandidateAssessor(AttributeContainerInternal requestedAttributes, AttributeMatcher attributeMatcher) {
+        this.requestedAttributes = requestedAttributes.asImmutable();
+        this.attributeMatcher = attributeMatcher;
+    }
+
+    /**
+     * Extracts variant metadata from the given {@link GraphSelectionCandidates}.
+     *
+     * @param candidates the candidates to extract variants from
+     * @return the extracted variants, sorted by name
+     */
+    public List<? extends VariantGraphResolveMetadata> extractVariants(GraphSelectionCandidates candidates) {
+        final List<? extends VariantGraphResolveMetadata> variants;
+        if (candidates.isUseVariants()) {
+            variants = candidates.getVariants().stream()
+                .map(VariantGraphResolveState::getMetadata)
+                .collect(Collectors.toList());
         } else {
-            variants = new ArrayList<>(candidates.getCandidateConfigurations());
+            variants = candidates.getCandidateConfigurations();
         }
+
         variants.sort(Comparator.comparing(VariantGraphResolveMetadata::getName));
         return variants;
     }
 
-    public List<AssessedCandidate> assessCandidates(List<VariantGraphResolveMetadata> variantMetadatas, AttributeContainerInternal consumerAttributes, AttributeMatcher attributeMatcher) {
-        return variantMetadatas.stream()
-            .map(variantMetadata -> assessCandidate(variantMetadata.getName(), variantMetadata.getAttributes().asImmutable(), consumerAttributes.asImmutable(), attributeMatcher))
+    public List<AssessedCandidate> assessCandidates(List<? extends VariantGraphResolveMetadata> candidates) {
+        return candidates.stream()
+            .map(variantMetadata -> assessCandidate(variantMetadata.getName(), variantMetadata.getAttributes().asImmutable()))
             .collect(Collectors.toList());
     }
 
     public AssessedCandidate assessCandidate(
-        String name,
-        ImmutableAttributes consumerAttributes,
-        ImmutableAttributes candidateAttributes,
-        AttributeMatcher attributeMatcher
+        String candidateName,
+        ImmutableAttributes candidateAttributes
     ) {
-        AssessedCandidate assessedCandidate = new AssessedCandidate(name);
-        Sets.union(consumerAttributes.getAttributes().keySet(), candidateAttributes.getAttributes().keySet()).stream()
+        AssessedCandidate assessedCandidate = new AssessedCandidate(candidateName);
+        Sets.union(requestedAttributes.getAttributes().keySet(), candidateAttributes.getAttributes().keySet()).stream()
             .sorted(Comparator.comparing(Attribute::getName))
-            .forEach(attribute -> assessAttribute(consumerAttributes, candidateAttributes, attributeMatcher, attribute, assessedCandidate));
+            .forEach(attribute -> assessAttribute(candidateAttributes, attribute, assessedCandidate));
         return assessedCandidate;
     }
 
-    private static void assessAttribute(ImmutableAttributes immutableConsumer, ImmutableAttributes immutableProducer, AttributeMatcher attributeMatcher, Attribute<?> attribute, AssessedCandidate assessedCandidate) {
+    private void assessAttribute(ImmutableAttributes immutableProducer, Attribute<?> attribute, AssessedCandidate assessedCandidate) {
         Attribute<Object> untyped = Cast.uncheckedCast(attribute);
 
         if (!assessedCandidate.alreadyAssessed(untyped)) {
             String attributeName = Objects.requireNonNull(attribute).getName();
-            AttributeValue<?> consumerValue = immutableConsumer.findEntry(attributeName);
+            AttributeValue<?> consumerValue = requestedAttributes.findEntry(attributeName);
             AttributeValue<?> producerValue = immutableProducer.findEntry(attributeName);
 
             if (consumerValue.isPresent() && producerValue.isPresent()) {
@@ -105,9 +115,9 @@ import java.util.stream.Collectors;
         return consumerAttributes.contains(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
     }
 
-    public Optional<String> findHigherRequiredVersionOfGradle(AttributeContainerInternal consumerAttributes, AttributeMatcher attributeMatcher, GraphSelectionCandidates candidates) {
-        List<VariantGraphResolveMetadata> candidateMetadatas = extractVariantsConsideredForSelection(candidates);
-        List<AssessedCandidate> categorizedAttributes = assessCandidates(candidateMetadatas, consumerAttributes, attributeMatcher);
+    public Optional<String> findHigherRequiredVersionOfGradle(GraphSelectionCandidates candidates) {
+        List<? extends VariantGraphResolveMetadata> candidateMetadatas = extractVariants(candidates);
+        List<AssessedCandidate> categorizedAttributes = assessCandidates(candidateMetadatas);
         return findIncompatibleRequiredMinimumVersionOfGradle(categorizedAttributes);
     }
 
