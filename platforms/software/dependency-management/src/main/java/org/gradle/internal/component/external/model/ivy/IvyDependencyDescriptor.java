@@ -204,7 +204,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
 
         ConfigurationGraphResolveState configuration = targetComponent.getConfiguration(targetPattern);
         if (configuration == null) {
-            throw resolutionFailureHandler.externalConfigurationNotFoundFailure(fromComponent, fromConfiguration, targetPattern, targetComponent.getId());
+            throw resolutionFailureHandler.externalConfigurationNotFoundFailure(fromComponent, fromConfiguration, targetComponent.getId(), targetPattern);
         }
         maybeAddConfiguration(targetConfigurations, configuration);
     }

@@ -98,8 +98,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
             matches = matcher.matches(variants, componentRequested, newExpBuilder);
 
             Set<ResolvedVariant> discarded = Cast.uncheckedCast(newExpBuilder.discarded);
-            AttributeDescriber describer = DescriberSelector.selectDescriber(componentRequested, schema);
-            throw failureProcessor.ambiguousArtifactVariantsFailure(schema, producer.asDescribable().getDisplayName(), componentRequested, matches, matcher, discarded, describer);
+            throw failureProcessor.ambiguousArtifactVariantsFailure(schema, matcher, producer.asDescribable().getDisplayName(), componentRequested, matches, discarded);
         }
 
         // We found no matches. Attempt to construct artifact transform chains which produce matching variants.
@@ -116,14 +115,14 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         }
 
         if (!transformedVariants.isEmpty()) {
-            throw failureProcessor.ambiguousArtifactTransformationFailure(schema, producer.asDescribable().getDisplayName(), componentRequested, transformedVariants, schema.withProducer(producer.getSchema()));
+            throw failureProcessor.ambiguousArtifactTransformationFailure(schema, matcher, producer.asDescribable().getDisplayName(), componentRequested, transformedVariants);
         }
 
         if (allowNoMatchingVariants) {
             return ResolvedArtifactSet.EMPTY;
         }
 
-        throw failureProcessor.noMatchingArtifactVariantFailure(schema, producer.asDescribable().getDisplayName(), componentRequested, variants, matcher, DescriberSelector.selectDescriber(componentRequested, schema));
+        throw failureProcessor.noMatchingArtifactVariantFailure(schema, matcher, producer.asDescribable().getDisplayName(), componentRequested, variants);
     }
 
     /**
