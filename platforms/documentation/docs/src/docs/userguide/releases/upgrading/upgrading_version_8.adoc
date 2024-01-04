@@ -648,6 +648,7 @@ output.map { it.asFile.path }
 ======
 =====
 
+[[declaring_client_module_dependencies]]
 ==== Deprecated `ClientModule` dependencies
 
 `link:{javadocPath}/org/gradle/api/artifacts/ClientModule.html[ClientModule]` dependencies are deprecated and will be removed in Gradle 9.0.
