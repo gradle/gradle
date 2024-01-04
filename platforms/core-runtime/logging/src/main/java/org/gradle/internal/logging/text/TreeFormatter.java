@@ -24,6 +24,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 
 /**
  * Constructs a tree of diagnostic messages.
@@ -172,7 +173,12 @@ public class TreeFormatter implements DiagnosticsVisitor {
         if (value == null) {
             append("null");
         } else if (value.getClass().isArray()) {
-            appendValues((Object[]) value);
+            Class<?> componentType = value.getClass().getComponentType();
+            if (componentType.isPrimitive()) {
+                append(value.toString());
+            } else {
+                appendValues((Object[]) value);
+            }
         } else if (value instanceof String) {
             append("'");
             append(value.toString());
