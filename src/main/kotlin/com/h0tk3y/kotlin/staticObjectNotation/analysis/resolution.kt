@@ -9,7 +9,7 @@ data class ResolutionResult(
     val topLevelReceiver: ObjectOrigin.TopLevelReceiver,
     val assignments: List<AssignmentRecord>,
     val additions: List<DataAddition>,
-    val errors: List<ResolutionError>
+    val errors: List<ResolutionError>,
 )
 
 data class DataAddition(val container: ObjectOrigin, val dataObject: ObjectOrigin)

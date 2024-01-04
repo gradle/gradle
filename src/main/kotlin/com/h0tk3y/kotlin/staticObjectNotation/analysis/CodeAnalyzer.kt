@@ -7,116 +7,24 @@ interface CodeAnalyzer {
 }
 
 class CodeAnalyzerImpl(
-    private val analysisStatementFilter: AnalysisStatementFilter,
-    private val expressionResolver: ExpressionResolver,
-    private val propertyAccessResolver: PropertyAccessResolver,
-    // TODO: get rid of this in favor of just expressionResolver?
-    private val functionCallResolver: FunctionCallResolver
+    private val analysisStatementFilter: AnalysisStatementFilter, private val statementResolver: StatementResolver
 ) : CodeAnalyzer {
-
     override fun analyzeStatementsInProgramOrder(
-        context: AnalysisContext,
-        elements: List<DataStatement>
-    ) = with(context) {
+        context: AnalysisContext, elements: List<DataStatement>
+    ) {
         for (element in elements) {
-            if (!analysisStatementFilter.shouldAnalyzeStatement(element, currentScopes)) {
-                continue
-            }
-
-            when (element) {
-                is Assignment -> doAnalyzeAssignment(element)
-                is FunctionCall -> {
-                    functionCallResolver.doResolveFunctionCall(context, element).also { result ->
-                        if (result != null && isDanglingPureExpression(result))
-                            errorCollector(ResolutionError(element, ErrorReason.DanglingPureExpression))
-                    }
-                }
-
-                is LocalValue -> doAnalyzeLocal(element)
-
-                is Expr -> {
-                    errorCollector(ResolutionError(element, ErrorReason.DanglingPureExpression))
-                    expressionResolver.doResolveExpression(context, element)
-                }
+            if (analysisStatementFilter.shouldAnalyzeStatement(element, context.currentScopes)) {
+                doResolveStatement(context, element)
             }
         }
     }
 
-    private fun AnalysisContext.doAnalyzeAssignment(assignment: Assignment) {
-        val lhsResolution =
-            propertyAccessResolver.doResolvePropertyAccessToAssignable(this, assignment.lhs)
-        if (lhsResolution == null) {
-            errorCollector(ResolutionError(assignment.lhs, ErrorReason.UnresolvedAssignmentLhs))
-        } else {
-            var hasErrors = false
-            if (lhsResolution.property.isReadOnly) {
-                errorCollector(ResolutionError(assignment.rhs, ErrorReason.ReadOnlyPropertyAssignment))
-                hasErrors = true
-            }
-            val rhsResolution = expressionResolver.doResolveExpression(this, assignment.rhs)
-            if (rhsResolution == null) {
-                errorCollector(ResolutionError(assignment.rhs, ErrorReason.UnresolvedAssignmentRhs))
-            } else {
-                val rhsType = getDataType(rhsResolution)
-                val lhsExpectedType = resolveRef(lhsResolution.property.type)
-                if (rhsType == DataType.UnitType) {
-                    errorCollector(ResolutionError(assignment, ErrorReason.UnitAssignment))
-                    hasErrors = true
-                }
-                if (!checkIsAssignable(rhsType, lhsExpectedType)) {
-                    errorCollector(
-                        ResolutionError(assignment, ErrorReason.AssignmentTypeMismatch(lhsExpectedType, rhsType))
-                    )
-                    hasErrors = true
-                }
-
-                if (!hasErrors) {
-                    recordAssignment(lhsResolution, rhsResolution, AssignmentMethod.Property)
-                }
-            }
+    private fun doResolveStatement(context: AnalysisContext, statement: DataStatement) {
+        when (statement) {
+            is Assignment -> statementResolver.doResolveAssignment(context, statement)
+            is LocalValue -> statementResolver.doResolveLocalValue(context, statement)
+            is Expr -> statementResolver.doResolveExpressionStatement(context, statement)
         }
     }
 
-    private fun AnalysisContext.doAnalyzeLocal(localValue: LocalValue) {
-        val rhs = expressionResolver.doResolveExpression(this, localValue.rhs)
-        if (rhs == null) {
-            errorCollector(ResolutionError(localValue, ErrorReason.UnresolvedAssignmentRhs))
-        } else {
-            if (getDataType(rhs) == DataType.UnitType) {
-                errorCollector(ResolutionError(localValue, ErrorReason.UnitAssignment))
-            }
-            currentScopes.last().declareLocal(localValue, rhs, errorCollector)
-        }
-    }
-
-    // If we can trace the function invocation back to something that is not transient, we consider it not dangling
-    private fun isDanglingPureExpression(obj: ObjectOrigin.FunctionOrigin): Boolean {
-        fun isPotentiallyPersistentReceiver(objectOrigin: ObjectOrigin): Boolean = when (objectOrigin) {
-            is ObjectOrigin.ConfigureReceiver -> true
-            is ObjectOrigin.ConstantOrigin -> false
-            is ObjectOrigin.External -> true
-            is ObjectOrigin.BuilderReturnedReceiver -> isPotentiallyPersistentReceiver(objectOrigin.receiver)
-            is ObjectOrigin.FunctionOrigin -> {
-                val semantics = objectOrigin.function.semantics
-                when (semantics) {
-                    is FunctionSemantics.Builder -> error("should be impossible?")
-                    is FunctionSemantics.AccessAndConfigure -> true
-                    is FunctionSemantics.AddAndConfigure -> true
-                    is FunctionSemantics.Pure -> false
-                }
-            }
-
-            is ObjectOrigin.FromLocalValue -> true // TODO: also check for unused val?
-            is ObjectOrigin.NullObjectOrigin -> false
-            is ObjectOrigin.PropertyReference -> true
-            is ObjectOrigin.TopLevelReceiver -> true
-            is ObjectOrigin.PropertyDefaultValue -> true
-        }
-
-        return when {
-            obj.function.semantics is FunctionSemantics.Pure -> true
-            obj is ObjectOrigin.BuilderReturnedReceiver -> !isPotentiallyPersistentReceiver(obj.receiver)
-            else -> false
-        }
-    }
 }

@@ -14,7 +14,8 @@ data class AssignmentRecord(
     val lhs: PropertyReferenceResolution,
     val rhs: ObjectOrigin,
     val assignmentOrder: Long,
-    val assignmentMethod: AssignmentMethod
+    val assignmentMethod: AssignmentMethod,
+    val originElement: LanguageTreeElement
 )
 
 sealed interface AssignmentMethod {

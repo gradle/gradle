@@ -1,9 +1,13 @@
 package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisContext
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataType
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.ErrorCollectorImpl
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ErrorReason
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.FqName
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionError
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.defaultCodeResolver
 import com.h0tk3y.kotlin.staticObjectNotation.language.AccessChain
 import com.h0tk3y.kotlin.staticObjectNotation.language.Import
 import com.h0tk3y.kotlin.staticObjectNotation.language.SourceIdentifier
@@ -14,8 +18,9 @@ import kotlin.test.assertTrue
 
 class ImportTest {
     private val resolver = defaultCodeResolver()
+    private val errorCollector = ErrorCollectorImpl()
 
-    private fun testContext(errors: MutableList<ResolutionError>): AnalysisContext {
+    private fun testContext(): AnalysisContext {
         return AnalysisContext(
             AnalysisSchema(
                 DataType.DataClass(FqName("", ""), emptySet(), emptyList(), emptyList(), emptyList()),
@@ -25,7 +30,7 @@ class ImportTest {
                 emptySet()
             ),
             emptyMap(),
-            errors::add
+            errorCollector
         )
     }
 
@@ -35,8 +40,8 @@ class ImportTest {
             importOf("a", "b", "C"),
             importOf("a", "b", "c", "d")
         )
-        val errors = mutableListOf<ResolutionError>()
-        val result = defaultCodeResolver().collectImports(imports, testContext(errors))
+        val analysisContext = testContext()
+        val result = defaultCodeResolver().collectImports(imports, analysisContext)
 
         assertEquals(
             mapOf(
@@ -45,7 +50,7 @@ class ImportTest {
             ),
             result
         )
-        assertTrue(errors.isEmpty())
+        assertTrue(analysisContext.errorCollector.errors.isEmpty())
     }
 
     @Test
@@ -55,8 +60,8 @@ class ImportTest {
             importOf("a", "c", "C"),
             importOf("a", "b", "D")
         )
-        val errors = mutableListOf<ResolutionError>()
-        val result = resolver.collectImports(imports, testContext(errors))
+        val analysisContext = testContext()
+        val result = resolver.collectImports(imports, analysisContext)
 
         assertEquals(
             mapOf(
@@ -67,7 +72,7 @@ class ImportTest {
         )
         assertEquals(
             listOf(ResolutionError(imports[1], ErrorReason.AmbiguousImport(FqName("a.c", "C")))),
-            errors
+            analysisContext.errorCollector.errors
         )
     }
 
@@ -78,8 +83,8 @@ class ImportTest {
             importOf("a", "b", "C"),
             importOf("a", "b", "C")
         )
-        val errors = mutableListOf<ResolutionError>()
-        val result = resolver.collectImports(imports, testContext(errors))
+        val analysisContext = testContext()
+        val result = resolver.collectImports(imports, analysisContext)
 
         assertEquals(
             mapOf(
@@ -87,7 +92,7 @@ class ImportTest {
             ),
             result
         )
-        assertTrue(errors.isEmpty())
+        assertTrue(analysisContext.errorCollector.errors.isEmpty())
     }
 
     private fun importOf(vararg nameParts: String) = Import(AccessChain(listOf(*nameParts)), ast.sourceData(sourceIdentifier))

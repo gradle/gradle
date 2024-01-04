@@ -1,42 +1,57 @@
 package com.h0tk3y.kotlin.staticObjectNotation.analysis
 
+import com.h0tk3y.kotlin.staticObjectNotation.language.Assignment
 import com.h0tk3y.kotlin.staticObjectNotation.language.DataStatement
 import com.h0tk3y.kotlin.staticObjectNotation.language.Expr
-import com.h0tk3y.kotlin.staticObjectNotation.language.FunctionCall
+import com.h0tk3y.kotlin.staticObjectNotation.language.LocalValue
 import com.h0tk3y.kotlin.staticObjectNotation.language.PropertyAccess
 
 fun defaultCodeResolver(elementFilter: AnalysisStatementFilter = analyzeEverything): ResolverImpl {
     return ResolverServicesContainer().run {
         analysisStatementFilter = elementFilter
-        codeAnalyzer = CodeAnalyzerImpl(analysisStatementFilter, this, this, this)
-        expressionResolver = ExpressionResolverImpl(this, this)
-        functionCallResolver = FunctionCallResolverImpl(expressionResolver, codeAnalyzer)
+        functionCallResolver = FunctionCallResolverImpl(this, this)
+        expressionResolver = ExpressionResolverImpl(this, functionCallResolver)
         propertyAccessResolver = PropertyAccessResolverImpl(expressionResolver)
+        errorCollector = ErrorCollectorImpl()
+        statementResolver = StatementResolverImpl(propertyAccessResolver, expressionResolver, errorCollector)
+        codeAnalyzer = CodeAnalyzerImpl(analysisStatementFilter, statementResolver)
 
-        ResolverImpl(codeAnalyzer)
+        ResolverImpl(codeAnalyzer, errorCollector)
     }
 }
 
-private class ResolverServicesContainer :
-    PropertyAccessResolver,
-    ExpressionResolver,
-    FunctionCallResolver,
-    CodeAnalyzer
-{
+fun tracingCodeResolver(elementFilter: AnalysisStatementFilter = analyzeEverything): TracingResolver {
+    return ResolverServicesContainer().run {
+        analysisStatementFilter = elementFilter
+        functionCallResolver = FunctionCallResolverImpl(this, this)
+        propertyAccessResolver = PropertyAccessResolverImpl(this)
+
+        val tracer = ResolutionTracer(
+            ExpressionResolverImpl(this, functionCallResolver),
+            StatementResolverImpl(propertyAccessResolver, this, this),
+            ErrorCollectorImpl()
+        )
+        statementResolver = tracer
+        expressionResolver = tracer
+        errorCollector = tracer
+
+        codeAnalyzer = CodeAnalyzerImpl(analysisStatementFilter, statementResolver)
+
+        TracingResolver(ResolverImpl(codeAnalyzer, errorCollector), tracer)
+    }
+}
+
+private class ResolverServicesContainer : StatementResolver, PropertyAccessResolver, ExpressionResolver, CodeAnalyzer, ErrorCollector {
     lateinit var analysisStatementFilter: AnalysisStatementFilter
+    lateinit var statementResolver: StatementResolver
     lateinit var propertyAccessResolver: PropertyAccessResolver
     lateinit var functionCallResolver: FunctionCallResolver
     lateinit var expressionResolver: ExpressionResolver
     lateinit var codeAnalyzer: CodeAnalyzer
+    lateinit var errorCollector: ErrorCollector
 
     override fun doResolveExpression(context: AnalysisContext, expr: Expr): ObjectOrigin? =
         expressionResolver.doResolveExpression(context, expr)
-
-    override fun doResolveFunctionCall(
-        context: AnalysisContext,
-        functionCall: FunctionCall
-    ): ObjectOrigin.FunctionOrigin? =
-        functionCallResolver.doResolveFunctionCall(context, functionCall)
 
     override fun analyzeStatementsInProgramOrder(context: AnalysisContext, elements: List<DataStatement>) {
         codeAnalyzer.analyzeStatementsInProgramOrder(context, elements)
@@ -53,4 +68,18 @@ private class ResolverServicesContainer :
         propertyAccess: PropertyAccess
     ): PropertyReferenceResolution? =
         propertyAccessResolver.doResolvePropertyAccessToAssignable(analysisContext, propertyAccess)
+
+    override fun doResolveAssignment(context: AnalysisContext, assignment: Assignment): AssignmentRecord? =
+        statementResolver.doResolveAssignment(context, assignment)
+
+    override fun doResolveLocalValue(context: AnalysisContext, localValue: LocalValue) =
+        statementResolver.doResolveLocalValue(context, localValue)
+
+    override fun doResolveExpressionStatement(context: AnalysisContext, expr: Expr) =
+        statementResolver.doResolveExpressionStatement(context, expr)
+
+    override fun collect(error: ResolutionError) = errorCollector.collect(error)
+
+    override val errors: List<ResolutionError>
+        get() = errorCollector.errors
 }

@@ -49,12 +49,12 @@ class PropertyAccessResolverImpl(
         return when (val firstMatch = candidates.firstOrNull()) {
             null -> return null
             is ReassignLocalVal -> {
-                errorCollector(ResolutionError(propertyAccess, ErrorReason.ValReassignment(firstMatch.localValue)))
+                errorCollector.collect(ResolutionError(propertyAccess, ErrorReason.ValReassignment(firstMatch.localValue)))
                 null
             }
 
             is ReassignExternal -> {
-                errorCollector(ResolutionError(propertyAccess, ErrorReason.ExternalReassignment(firstMatch.external)))
+                errorCollector.collect(ResolutionError(propertyAccess, ErrorReason.ExternalReassignment(firstMatch.external)))
                 null
             }
 
@@ -77,7 +77,7 @@ class PropertyAccessResolverImpl(
         }
         return candidates.firstOrNull().also {
             if (it == null) {
-                errorCollector(ResolutionError(propertyAccess, ErrorReason.UnresolvedReference(propertyAccess)))
+                errorCollector.collect(ResolutionError(propertyAccess, ErrorReason.UnresolvedReference(propertyAccess)))
             } else {
                 if (it is ObjectOrigin.PropertyReference) {
                     ifPropertyCheckAccessOnCurrentReceiver(it)

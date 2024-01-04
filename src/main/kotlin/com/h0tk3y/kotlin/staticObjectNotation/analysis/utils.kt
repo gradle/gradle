@@ -44,7 +44,7 @@ internal fun AnalysisContext.checkAccessOnCurrentReceiver(
     access: LanguageTreeElement
 ) {
     if (!isCurrentReceiver(this, receiver)) {
-        errorCollector(ResolutionError(access, ErrorReason.AccessOnCurrentReceiverOnlyViolation))
+        errorCollector.collect(ResolutionError(access, ErrorReason.AccessOnCurrentReceiverOnlyViolation))
     }
 }
 

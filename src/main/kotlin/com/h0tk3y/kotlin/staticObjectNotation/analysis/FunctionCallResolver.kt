@@ -42,7 +42,7 @@ class FunctionCallResolverImpl(
                 }
             }
             if (hasErrors) {
-                errorCollector(ResolutionError(functionCall, ErrorReason.UnresolvedFunctionCallArguments(functionCall)))
+                errorCollector.collect(ResolutionError(functionCall, ErrorReason.UnresolvedFunctionCallArguments(functionCall)))
             }
             result
         }
@@ -69,7 +69,7 @@ class FunctionCallResolverImpl(
         argResolutions: Lazy<Map<FunctionArgument.ValueArgument, ObjectOrigin>>
     ) = when (overloads.size) {
         0 -> {
-            errorCollector(ResolutionError(functionCall, ErrorReason.UnresolvedFunctionCallSignature(functionCall)))
+            errorCollector.collect(ResolutionError(functionCall, ErrorReason.UnresolvedFunctionCallSignature(functionCall)))
             null
         }
 
@@ -79,7 +79,7 @@ class FunctionCallResolverImpl(
         }
 
         else -> {
-            errorCollector(ResolutionError(functionCall, ErrorReason.AmbiguousFunctions(overloads)))
+            errorCollector.collect(ResolutionError(functionCall, ErrorReason.AmbiguousFunctions(overloads)))
             null
         }
     }
@@ -117,7 +117,7 @@ class FunctionCallResolverImpl(
                 addAll(findTopLevelFunction(functionCall, argResolutions.value))
             }
             if (isEmpty() && hasErrorInReceiverResolution) {
-                errorCollector(ResolutionError(functionCall, ErrorReason.UnresolvedFunctionCallReceiver(functionCall)))
+                errorCollector.collect(ResolutionError(functionCall, ErrorReason.UnresolvedFunctionCallReceiver(functionCall)))
             }
         }
         return overloads
@@ -139,7 +139,7 @@ class FunctionCallResolverImpl(
             semantics, function, functionCall, valueBinding, newFunctionCallId
         )
 
-        doRecordSemanticsSideEffects(semantics, receiver, result, function, argResolutions)
+        doRecordSemanticsSideEffects(functionCall, semantics, receiver, result, function, argResolutions)
         doAnalyzeConfiguringSemantics(functionCall, semantics, function, result, newFunctionCallId)
 
         return result
@@ -174,14 +174,15 @@ class FunctionCallResolverImpl(
                     codeAnalyzer.analyzeStatementsInProgramOrder(this, lambda.block.statements)
                 }
             } else {
-                errorCollector(ResolutionError(call, ErrorReason.MissingConfigureLambda))
+                errorCollector.collect(ResolutionError(call, ErrorReason.MissingConfigureLambda))
             }
         } else if (lambda != null) {
-            errorCollector(ResolutionError(call, ErrorReason.UnusedConfigureLambda))
+            errorCollector.collect(ResolutionError(call, ErrorReason.UnusedConfigureLambda))
         }
     }
 
     private fun AnalysisContext.doRecordSemanticsSideEffects(
+        call: FunctionCall,
         semantics: FunctionSemantics,
         receiver: ObjectOrigin?,
         result: ObjectOrigin.FunctionOrigin,
@@ -200,7 +201,7 @@ class FunctionCallResolverImpl(
             val paramSemantics = param.semantics
             if (paramSemantics is ParameterSemantics.StoreValueInProperty) {
                 val property = paramSemantics.dataProperty
-                recordAssignment(PropertyReferenceResolution(result, property), argResolutions.getValue(arg), assignmentMethod)
+                recordAssignment(PropertyReferenceResolution(result, property), argResolutions.getValue(arg), assignmentMethod, call)
             }
         }
     }

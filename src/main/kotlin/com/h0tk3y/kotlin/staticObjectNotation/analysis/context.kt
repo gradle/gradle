@@ -27,11 +27,11 @@ class AnalysisScope(
         ownLocalsByName[name] ?: previousScopeView?.findLocal(name)
 
     fun declareLocal(
-        localValue: LocalValue, assignedObjectOrigin: ObjectOrigin, reportError: (ResolutionError) -> Unit
+        localValue: LocalValue, assignedObjectOrigin: ObjectOrigin, reportError: ErrorCollector
     ) {
         val name = localValue.name
         if (name in ownLocalsByName) {
-            reportError(ResolutionError(localValue, ErrorReason.DuplicateLocalValue(name)))
+            reportError.collect(ResolutionError(localValue, ErrorReason.DuplicateLocalValue(name)))
         }
         ownLocalsByName[name] = LocalValueAssignment(localValue, assignedObjectOrigin)
     }
@@ -58,7 +58,7 @@ class SchemaTypeRefContext(val schema: AnalysisSchema) : TypeRefContext {
 class AnalysisContext(
     override val schema: AnalysisSchema,
     override val imports: Map<String, FqName>,
-    val errorCollector: (ResolutionError) -> Unit
+    val errorCollector: ErrorCollector
 ) : AnalysisContextView {
 
     // TODO: thread safety?
@@ -83,8 +83,10 @@ class AnalysisContext(
         mutableScopes.add(newScope)
     }
 
-    fun recordAssignment(resolvedTarget: PropertyReferenceResolution, resolvedRhs: ObjectOrigin, assignmentMethod: AssignmentMethod) {
-        mutableAssignments.add(AssignmentRecord(resolvedTarget, resolvedRhs, nextInstant(), assignmentMethod))
+    fun recordAssignment(resolvedTarget: PropertyReferenceResolution, resolvedRhs: ObjectOrigin, assignmentMethod: AssignmentMethod, originElement: LanguageTreeElement): AssignmentRecord {
+        val result = AssignmentRecord(resolvedTarget, resolvedRhs, nextInstant(), assignmentMethod, originElement)
+        mutableAssignments.add(result)
+        return result
     }
 
     fun recordAddition(container: ObjectOrigin, dataObject: ObjectOrigin) {

@@ -13,7 +13,7 @@ val boolean = DataType.BooleanDataType.ref
 
 fun AnalysisSchema.resolve(
     code: String,
-    resolver: Resolver = defaultCodeResolver()
+    resolver: Resolver = tracingCodeResolver()
 ): ResolutionResult {
     val ast = parseToAst(code)
 
@@ -39,7 +39,8 @@ fun AnalysisSchema.resolve(
         failures.forEach { printFailures(it) }
     }
 
-    return resolver.resolve(this, languageElements)
+    val result = resolver.resolve(this, languageElements)
+    return result
 }
 
 fun printResolutionResults(

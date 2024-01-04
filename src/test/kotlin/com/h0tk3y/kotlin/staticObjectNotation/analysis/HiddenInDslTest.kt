@@ -23,6 +23,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.FqName
 import com.h0tk3y.kotlin.staticObjectNotation.demo.resolve
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.schemaFromTypes
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 private class HasHiddenProperty {
@@ -47,13 +48,11 @@ class HiddenInDslTest {
             """
             x = 1
             y = 2
-        """.trimIndent()
+            """.trimIndent()
         )
 
-        assertTrue {
-            val error = result.errors.single()
-            val reason = error.errorReason
-            reason is ErrorReason.UnresolvedAssignmentLhs && error.element.sourceData.text() == "y"
-        }
+        assertEquals(2, result.errors.size)
+        assertEquals("y = 2", result.errors.single { it.errorReason is ErrorReason.UnresolvedAssignmentLhs }.element.sourceData.text())
+        assertEquals("y", result.errors.single { it.errorReason is ErrorReason.UnresolvedReference }.element.sourceData.text())
     }
 }
