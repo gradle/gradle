@@ -18,6 +18,9 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
+import groovy.lang.Closure;
+import org.gradle.api.Action;
+import org.gradle.api.provider.CollectionPropertyConfigurer;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.Cast;
@@ -83,6 +86,17 @@ public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>>
         super.convention(provider);
         return this;
     }
+
+    @Override
+    public SetProperty<T> withActualValue(Action<CollectionPropertyConfigurer<T>> action) {
+        return uncheckedNonnullCast(super.withActualValue(action));
+    }
+
+    @Override
+    public SetProperty<T> withActualValue(Closure<Void> action) {
+        return uncheckedNonnullCast(super.withActualValue(action));
+    }
+
     @Override
     public SetProperty<T> unset() {
         return uncheckedNonnullCast(super.unset());

@@ -18,9 +18,9 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.provider.CollectionPropertyConfigurer;
-import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -88,7 +88,12 @@ public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T
     }
 
     @Override
-    public HasMultipleValues<T> withActualValue(Action<CollectionPropertyConfigurer<T>> action) {
+    public ListProperty<T> withActualValue(Action<CollectionPropertyConfigurer<T>> action) {
+        return uncheckedNonnullCast(super.withActualValue(action));
+    }
+
+    @Override
+    public ListProperty<T> withActualValue(Closure<Void> action) {
         return uncheckedNonnullCast(super.withActualValue(action));
     }
 
