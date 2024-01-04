@@ -28,12 +28,6 @@ import java.lang.reflect.WildcardType;
 import static org.objectweb.asm.Type.getType;
 
 public class AsmClassGeneratorUtils {
-    /**
-     * Generates the signature for the given constructor
-     */
-    public static String signature(Constructor<?> constructor) {
-        return signature(constructor, false);
-    }
 
     /**
      * Generates the signature for the given constructor, optionally adding a `name` parameter before all other parameters.
