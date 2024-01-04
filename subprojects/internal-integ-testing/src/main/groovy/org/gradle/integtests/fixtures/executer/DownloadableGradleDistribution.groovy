@@ -16,12 +16,12 @@
 
 package org.gradle.integtests.fixtures.executer
 
-
+import org.gradle.internal.file.locking.ExclusiveFileAccessManager
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 
 abstract class DownloadableGradleDistribution extends DefaultGradleDistribution {
-    private TestFile versionDir
+    private final TestFile versionDir
     private final ExclusiveFileAccessManager fileAccessManager = new ExclusiveFileAccessManager(120000, 200)
 
     DownloadableGradleDistribution(String version, TestFile versionDir) {
@@ -40,10 +40,9 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
     }
 
     private downloadIfNecessary() {
-        download(super.getBinDistribution(), super.getGradleHomeDir(), versionDir)
-    }
-
-    private void download(TestFile distributionZip, TestFile gradleHomeDir, TestFile versionDir) {
+        def distributionZip = super.getBinDistribution()
+        def gradleHomeDir = super.getGradleHomeDir()
+        def versionDir = this.versionDir
         fileAccessManager.access(distributionZip) {
             if (!distributionZip.exists()) {
                 URL url = getDownloadURL();
