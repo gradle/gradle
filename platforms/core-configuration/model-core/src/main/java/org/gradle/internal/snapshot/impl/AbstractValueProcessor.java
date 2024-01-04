@@ -61,7 +61,7 @@ abstract class AbstractValueProcessor {
             return processList((List<?>) value, visitor);
         }
         if (value instanceof Enum) {
-            return visitor.enumValue((Enum) value);
+            return visitor.enumValue((Enum<?>) value);
         }
         if (value instanceof Class<?>) {
             return visitor.classValue((Class<?>) value);
@@ -187,12 +187,12 @@ abstract class AbstractValueProcessor {
         return builder.build();
     }
 
-    private <T> T gradleSerialization(Object value, Serializer serializer, ValueVisitor<T> visitor) {
+    private <T> T gradleSerialization(Object value, Serializer<?> serializer, ValueVisitor<T> visitor) {
         return visitor.gradleSerialized(value, gradleSerialized(value, serializer));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private byte[] gradleSerialized(Object value, Serializer serializer) {
+    private static byte[] gradleSerialized(Object value, Serializer serializer) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try (KryoBackedEncoder encoder = new KryoBackedEncoder(outputStream)) {
             serializer.write(encoder, Cast.uncheckedCast(value));
@@ -207,7 +207,7 @@ abstract class AbstractValueProcessor {
         return visitor.javaSerialized(value, javaSerialized(value));
     }
 
-    private byte[] javaSerialized(Object value) {
+    private static byte[] javaSerialized(Object value) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try (ObjectOutputStream oos = new ObjectOutputStream(outputStream)) {
             oos.writeObject(value);
@@ -218,7 +218,7 @@ abstract class AbstractValueProcessor {
         return outputStream.toByteArray();
     }
 
-    private ValueSnapshottingException newValueSerializationException(Class<?> valueType, Throwable cause) {
+    private static ValueSnapshottingException newValueSerializationException(Class<?> valueType, Throwable cause) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("Could not serialize value of type ");
         formatter.appendType(valueType);
@@ -233,7 +233,7 @@ abstract class AbstractValueProcessor {
 
         T booleanValue(Boolean value);
 
-        T enumValue(Enum value);
+        T enumValue(Enum<?> value);
 
         T classValue(Class<?> value);
 
