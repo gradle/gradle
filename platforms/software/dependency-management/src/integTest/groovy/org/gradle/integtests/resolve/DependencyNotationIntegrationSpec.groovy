@@ -27,14 +27,13 @@ class DependencyNotationIntegrationSpec extends AbstractIntegrationSpec {
     def "understands dependency notations"() {
         when:
         buildFile <<  """
-import org.gradle.api.internal.artifacts.dependencies.DefaultFileCollectionDependency
 configurations {
     conf
     gradleStuff
     allowsCollections
 }
 
-def someDependency = new DefaultFileCollectionDependency(files('foo.txt'))
+def someDependency = project.dependencies.create(files('foo.txt'))
 dependencies {
     conf someDependency
     conf "org.mockito:mockito-core:1.8"

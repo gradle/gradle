@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.util.Path;
 
 public interface ProjectDependencyInternal extends ProjectDependency {
@@ -26,9 +25,4 @@ public interface ProjectDependencyInternal extends ProjectDependency {
      * Returns a unique path for the target project within the current build tree.
      */
     Path getIdentityPath();
-
-    /**
-     * Returns the component identifier for the target project.
-     */
-    ProjectComponentIdentifier getProjectComponentIdentifier();
 }

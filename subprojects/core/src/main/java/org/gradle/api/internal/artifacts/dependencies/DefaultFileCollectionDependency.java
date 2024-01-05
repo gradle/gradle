@@ -129,7 +129,7 @@ public class DefaultFileCollectionDependency extends AbstractDependency implemen
         // AGP currently uses these deprecated APIs. An issue has been filed for them to migrate away.
         // This property exists to allow AGP to test whether they have properly resolved this deprecation.
         // This property WILL be removed without warning.
-        return System.getProperty("org.gradle.internal.deprecation.preliminary.DefaultFileCollectionDependency.enabled", "false").equals("true");
+        return Boolean.getBoolean("org.gradle.internal.deprecation.preliminary.DefaultFileCollectionDependency.enabled");
     }
 
     @Override

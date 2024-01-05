@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
@@ -63,11 +62,6 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     @Override
     public Project getDependencyProject() {
         return delegate.getDependencyProject();
-    }
-
-    @Override
-    public ProjectComponentIdentifier getProjectComponentIdentifier() {
-        return delegate.getProjectComponentIdentifier();
     }
 
     @Override
