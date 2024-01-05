@@ -73,6 +73,7 @@ class WorkerExecutorParametersKotlinIntegrationTest extends AbstractIntegrationS
             import org.gradle.workers.WorkerExecutor
 
             interface TestParameters : WorkParameters {
+                @get:Input
                 val array: Property<$kotlinArrayType>
             }
 

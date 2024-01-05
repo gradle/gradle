@@ -31,8 +31,8 @@ public class IsolatedArrayOfPrimitive implements Isolatable<Object>, Hashable {
     private final PrimitiveType primitiveType;
     private final Object array;
 
-    public IsolatedArrayOfPrimitive(Object array, Class<?> arrayType) {
-        this(PrimitiveType.of(arrayType), array);
+    public IsolatedArrayOfPrimitive(Object array) {
+        this(PrimitiveType.of(array.getClass()), array);
     }
 
     private IsolatedArrayOfPrimitive(PrimitiveType primitiveType, Object array) {
@@ -40,8 +40,8 @@ public class IsolatedArrayOfPrimitive implements Isolatable<Object>, Hashable {
         this.array = array;
     }
 
-    public static IsolatedArrayOfPrimitive decode(byte primitiveTypeCode, byte[] bytes) {
-        PrimitiveType primitiveType = PrimitiveType.values()[primitiveTypeCode];
+    public static IsolatedArrayOfPrimitive fromByteArray(byte primitiveTypeCode, byte[] bytes) {
+        PrimitiveType primitiveType = PrimitiveType.fromOrdinal(primitiveTypeCode);
         return new IsolatedArrayOfPrimitive(
             primitiveType,
             fromByteArray(bytes, primitiveType)
@@ -143,6 +143,12 @@ public class IsolatedArrayOfPrimitive implements Isolatable<Object>, Hashable {
                 return C;
             }
             throw new ValueSnapshottingException("Unsupported primitive array type: " + arrayType);
+        }
+
+        public static PrimitiveType fromOrdinal(byte ordinal) {
+            PrimitiveType[] primitiveTypes = values();
+            assert ordinal >= 0 && ordinal < primitiveTypes.length;
+            return primitiveTypes[ordinal];
         }
 
         public Class<?> getArrayClass() {

@@ -144,11 +144,7 @@ public class DefaultValueSnapshotter extends AbstractValueProcessor implements V
 
         @Override
         public ValueSnapshot javaSerialized(Object value, byte[] serializedValue) {
-            return newJavaSerializedValueSnapshot(value.getClass(), serializedValue);
-        }
-
-        private JavaSerializedValueSnapshot newJavaSerializedValueSnapshot(Class<?> valueClass, byte[] serializedValue) {
-            return new JavaSerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(valueClass.getClassLoader()), serializedValue);
+            return new JavaSerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), serializedValue);
         }
 
         @Override
@@ -162,8 +158,8 @@ public class DefaultValueSnapshotter extends AbstractValueProcessor implements V
         }
 
         @Override
-        public ValueSnapshot primitiveArray(Object value, Class<?> arrayType) {
-            return newJavaSerializedValueSnapshot(arrayType, AbstractValueProcessor.javaSerialized(value));
+        public ValueSnapshot primitiveArray(Object value) {
+            return javaSerialized(value, AbstractValueProcessor.javaSerialized(value));
         }
 
         @Override

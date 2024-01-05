@@ -157,8 +157,8 @@ public class DefaultIsolatableFactory extends AbstractValueProcessor implements 
         }
 
         @Override
-        public Isolatable<?> primitiveArray(Object value, Class<?> arrayType) {
-            return new IsolatedArrayOfPrimitive(value, arrayType);
+        public Isolatable<?> primitiveArray(Object value) {
+            return new IsolatedArrayOfPrimitive(value);
         }
 
         @Override

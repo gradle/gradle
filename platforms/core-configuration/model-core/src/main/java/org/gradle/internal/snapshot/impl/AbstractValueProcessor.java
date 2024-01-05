@@ -89,7 +89,7 @@ abstract class AbstractValueProcessor {
             return processMap((Map<?, ?>) value, visitor);
         }
         if (valueClass.isArray()) {
-            return processArray(valueClass, value, visitor);
+            return processArray(value, visitor);
         }
         if (value instanceof Attribute) {
             return visitor.attributeValue((Attribute<?>) value);
@@ -164,14 +164,14 @@ abstract class AbstractValueProcessor {
         return builder.build();
     }
 
-    private <T> T processArray(Class<?> valueClass, Object value, ValueVisitor<T> visitor) {
-        Class<?> componentType = valueClass.getComponentType();
+    private <T> T processArray(Object value, ValueVisitor<T> visitor) {
+        Class<?> componentType = value.getClass().getComponentType();
         int length = Array.getLength(value);
         if (length == 0) {
             return visitor.emptyArray(componentType);
         }
         if (componentType.isPrimitive()) {
-            return visitor.primitiveArray(value, valueClass);
+            return visitor.primitiveArray(value);
         }
         return visitor.array(processArrayElements(value, length, visitor), componentType);
     }
@@ -266,7 +266,7 @@ abstract class AbstractValueProcessor {
 
         T array(ImmutableList<T> elements, Class<?> arrayType);
 
-        T primitiveArray(Object value, Class<?> arrayType);
+        T primitiveArray(Object value);
 
         T emptyList();
 

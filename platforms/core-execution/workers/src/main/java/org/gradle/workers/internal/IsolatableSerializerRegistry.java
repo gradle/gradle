@@ -19,6 +19,7 @@ package org.gradle.workers.internal;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.Cast;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -52,7 +53,7 @@ import org.gradle.internal.state.Managed;
 import org.gradle.internal.state.ManagedFactory;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 
-import java.io.EOFException;
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.HashMap;
@@ -79,7 +80,6 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
     private static final byte ISOLATED_LIST = (byte) 14;
     private static final byte ISOLATED_SET = (byte) 15;
     private static final byte ISOLATED_PROPERTIES = (byte) 16;
-
     private static final byte ISOLATED_ARRAY_OF_PRIMITIVE = (byte) 17;
 
     private static final byte ISOLATABLE_TYPE = (byte) 0;
@@ -155,14 +155,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         } else if (stateType == ISOLATABLE_TYPE) {
             return readIsolatable(decoder);
         } else if (stateType == ARRAY_TYPE) {
-            String stateClassName = decoder.readString();
-            Class<?> stateClass = fromClassName(stateClassName);
-            int size = decoder.readInt();
-            Object state = Array.newInstance(stateClass, size);
-            for (int i = 0; i < size; i++) {
-                Array.set(state, i, readState(decoder));
-            }
-            return state;
+            return readArray(decoder);
         } else {
             String stateClassName = decoder.readString();
             Class<?> stateClass = fromClassName(stateClassName);
@@ -179,17 +172,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
             writeIsolatable(encoder, (Isolatable<?>) state);
         } else if (state.getClass().isArray()) {
             encoder.writeByte(ARRAY_TYPE);
-            Class<?> componentType = state.getClass().getComponentType();
-            if (componentType.isPrimitive()) {
-                throw new IllegalStateException("Unsupported array type: " + state.getClass());
-            }
-            encoder.writeString(componentType.getName());
-            Object[] array = (Object[]) state;
-            int size = array.length;
-            encoder.writeInt(size);
-            for (int i = 0; i < size; i++) {
-                writeState(encoder, array[i]);
-            }
+            writeArray(encoder, state);
         } else {
             encoder.writeByte(OTHER_TYPE);
             encoder.writeString(state.getClass().getName());
@@ -198,11 +181,35 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         }
     }
 
+    private Object readArray(Decoder decoder) throws Exception {
+        String componentTypeName = decoder.readString();
+        Class<?> componentType = fromClassName(componentTypeName);
+        int length = decoder.readInt();
+        Object state = Array.newInstance(componentType, length);
+        for (int i = 0; i < length; i++) {
+            Array.set(state, i, readState(decoder));
+        }
+        return state;
+    }
+
+    private void writeArray(Encoder encoder, Object state) throws Exception {
+        Class<?> componentType = state.getClass().getComponentType();
+        if (componentType.isPrimitive()) {
+            throw new IllegalArgumentException("Unsupported state array type: " + state.getClass());
+        }
+        encoder.writeString(componentType.getName());
+        Object[] array = (Object[]) state;
+        encoder.writeInt(array.length);
+        for (Object o : array) {
+            writeState(encoder, o);
+        }
+    }
+
     private interface IsolatableSerializer<T extends Isolatable<?>> extends Serializer<T> {
         Class<T> getIsolatableClass();
     }
 
-    private Class<?> fromClassName(String className) throws Exception {
+    private static Class<?> fromClassName(String className) {
         return classFromContextLoader(className);
     }
 
@@ -335,6 +342,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
 
             ManagedFactory factory = managedFactoryRegistry.lookup(factoryId);
             Managed managed = Cast.uncheckedCast(factory.fromState(publicClass, readState(decoder)));
+            assert managed != null;
             return new IsolatedImmutableManagedValue(managed, managedFactoryRegistry);
         }
 
@@ -350,8 +358,8 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
             encoder.writeByte(MANAGED_VALUE);
             encoder.writeInt(value.getFactoryId());
             encoder.writeString(value.getTargetType().getName());
-            Object state = value.getState();
-            writeIsolatable(encoder, (Isolatable<?>) state);
+            Isolatable<?> state = value.getState();
+            writeIsolatable(encoder, state);
         }
 
         @Override
@@ -389,7 +397,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         }
     }
 
-    private class IsolatedJavaSerializedValueSnapshotSerializer implements IsolatableSerializer<IsolatedJavaSerializedValueSnapshot> {
+    private static class IsolatedJavaSerializedValueSnapshotSerializer implements IsolatableSerializer<IsolatedJavaSerializedValueSnapshot> {
         @Override
         public void write(Encoder encoder, IsolatedJavaSerializedValueSnapshot value) throws Exception {
             encoder.writeByte(SERIALIZED_VALUE);
@@ -429,7 +437,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         }
 
         @Override
-        public NullValueSnapshot read(Decoder decoder) throws Exception {
+        public NullValueSnapshot read(Decoder decoder) {
             return NullValueSnapshot.INSTANCE;
         }
 
@@ -439,7 +447,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         }
     }
 
-    public class IsolatedEnumValueSnapshotSerializer implements IsolatableSerializer<IsolatedEnumValueSnapshot> {
+    public static class IsolatedEnumValueSnapshotSerializer implements IsolatableSerializer<IsolatedEnumValueSnapshot> {
         @Override
         public void write(Encoder encoder, IsolatedEnumValueSnapshot value) throws Exception {
             encoder.writeByte(ENUM_VALUE);
@@ -525,28 +533,37 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         }
     }
 
-    private class IsolatedPrimitiveArraySerializer implements IsolatableSerializer<IsolatedArrayOfPrimitive> {
+    @NonNullApi
+    private static class IsolatedPrimitiveArraySerializer implements IsolatableSerializer<IsolatedArrayOfPrimitive> {
         @Override
         public Class<IsolatedArrayOfPrimitive> getIsolatableClass() {
             return IsolatedArrayOfPrimitive.class;
         }
 
         @Override
-        public void write(Encoder encoder, IsolatedArrayOfPrimitive value) throws Exception {
-            encoder.writeByte(ISOLATED_ARRAY_OF_PRIMITIVE);
-            encoder.writeByte(value.getPrimitiveTypeCode());
-            byte[] byteArray = value.toByteArray();
-            encoder.writeInt(byteArray.length);
-            encoder.writeBytes(byteArray);
+        public IsolatedArrayOfPrimitive read(Decoder decoder) throws Exception {
+            byte primitiveTypeCode = decoder.readByte();
+            byte[] bytes = readLengthPrefixedByteArray(decoder);
+            return IsolatedArrayOfPrimitive.fromByteArray(primitiveTypeCode, bytes);
         }
 
         @Override
-        public IsolatedArrayOfPrimitive read(Decoder decoder) throws EOFException, Exception {
-            byte primitiveTypeCode = decoder.readByte();
+        public void write(Encoder encoder, IsolatedArrayOfPrimitive value) throws Exception {
+            encoder.writeByte(ISOLATED_ARRAY_OF_PRIMITIVE);
+            encoder.writeByte(value.getPrimitiveTypeCode());
+            writeLengthPrefixedByteArray(encoder, value.toByteArray());
+        }
+
+        private static byte[] readLengthPrefixedByteArray(Decoder decoder) throws IOException {
             int length = decoder.readInt();
             byte[] bytes = new byte[length];
             decoder.readBytes(bytes);
-            return IsolatedArrayOfPrimitive.decode(primitiveTypeCode, bytes);
+            return bytes;
+        }
+
+        private static void writeLengthPrefixedByteArray(Encoder encoder, byte[] bytes) throws IOException {
+            encoder.writeInt(bytes.length);
+            encoder.writeBytes(bytes);
         }
     }
 
