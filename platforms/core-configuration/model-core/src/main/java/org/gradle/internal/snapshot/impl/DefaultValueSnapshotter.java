@@ -95,7 +95,7 @@ public class DefaultValueSnapshotter extends AbstractValueProcessor implements V
         }
 
         @Override
-        public ValueSnapshot enumValue(Enum value) {
+        public ValueSnapshot enumValue(Enum<?> value) {
             return new EnumValueSnapshot(value);
         }
 
