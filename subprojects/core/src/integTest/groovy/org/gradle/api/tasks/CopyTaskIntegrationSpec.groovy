@@ -2251,7 +2251,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
         and: "a copy task that copies from both of these, failing on duplicates"
         buildFile << """
-            task (copy, type: Copy) {
+            task (type: Copy) {
                 from('before/files') {
                     rename 'c.txt', 'new.txt'
                 }
