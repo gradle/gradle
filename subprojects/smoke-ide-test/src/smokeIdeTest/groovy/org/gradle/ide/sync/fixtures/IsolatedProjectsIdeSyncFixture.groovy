@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache
+package org.gradle.ide.sync.fixtures
 
 
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture
@@ -31,12 +31,12 @@ import java.nio.file.attribute.BasicFileAttributes
 
 import static org.hamcrest.CoreMatchers.startsWith
 
-class IdeSyncFixture {
+class IsolatedProjectsIdeSyncFixture {
 
     private final ConfigurationCacheProblemsFixture configurationCacheProblemsFixture
     private final TestFile rootDir
 
-    IdeSyncFixture(TestFile rootDir) {
+    IsolatedProjectsIdeSyncFixture(TestFile rootDir) {
         this.configurationCacheProblemsFixture = new ConfigurationCacheProblemsFixture(rootDir)
         this.rootDir = rootDir
     }
@@ -89,7 +89,7 @@ class IdeSyncFixture {
         })
 
         if (reportDir == null) {
-            throw new RuntimeException()
+            throw new RuntimeException() // TODO
         }
 
         return reportDir

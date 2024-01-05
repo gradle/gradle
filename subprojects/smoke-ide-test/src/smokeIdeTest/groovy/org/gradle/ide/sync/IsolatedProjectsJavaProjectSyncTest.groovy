@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.isolated
+package org.gradle.ide.sync
 
-import org.gradle.configurationcache.AbstractIdeSyncSmokeTest
+import org.gradle.ide.sync.fixtures.IsolatedProjectsIdeSyncFixture
 import org.hamcrest.core.StringContains
 
-class IsolatedProjectsJavaProjectSyncTest extends AbstractIdeSyncSmokeTest {
+class IsolatedProjectsJavaProjectSyncTest extends AbstractSyncSmokeIdeTest {
 
+    private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(testDirectory)
     /**
      * To run this test locally you should have Android Studio installed in /Applications/Android Studio.*.app folder,
-     * or you should set "studio.home" system property with the Android Studio installation path,
+     * or you should set "studioHome" system property with the Android Studio installation path,
      * or you should enable automatic download of Android Studio with the -PautoDownloadAndroidStudio=true.
      *
      * Additionally, you should also have ANDROID_HOME env. variable set with Android SDK (normally on MacOS it's installed in "$HOME/Library/Android/sdk").

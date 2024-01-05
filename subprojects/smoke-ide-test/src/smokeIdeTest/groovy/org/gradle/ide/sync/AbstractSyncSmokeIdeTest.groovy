@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache
+package org.gradle.ide.sync
 
-import com.google.common.collect.ImmutableList
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.UncheckedException
 import org.gradle.internal.jvm.Jvm
@@ -40,9 +39,7 @@ import org.gradle.profiler.studio.tools.StudioFinder
 
 import java.util.function.Consumer
 
-abstract class AbstractIdeSyncSmokeTest extends AbstractIntegrationSpec {
-
-    protected IdeSyncFixture fixture = new IdeSyncFixture(testDirectory)
+abstract class AbstractSyncSmokeIdeTest extends AbstractIntegrationSpec {
 
     protected StudioBuildInvocationResult syncResult
 
@@ -86,7 +83,7 @@ abstract class AbstractIdeSyncSmokeTest extends AbstractIntegrationSpec {
             .setProfiler(Profiler.NONE)
             .setStudioSandboxDir(ideSandbox)
             .setGradleUserHome(gradleUserHome)
-            .setVersions(ImmutableList.of(distribution.version.version))
+            .setVersions([distribution.version.version])
             .setScenarioFile(null)
             .setBenchmark(true)
             .setOutputDir(profilerOutput)
@@ -158,7 +155,7 @@ abstract class AbstractIdeSyncSmokeTest extends AbstractIntegrationSpec {
         }
     }
 
-    private PidInstrumentation createPidInstrumentation() {
+    private static PidInstrumentation createPidInstrumentation() {
         try {
             return new PidInstrumentation()
         } catch (IOException e) {

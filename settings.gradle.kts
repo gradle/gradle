@@ -235,6 +235,7 @@ unassigned {
     subproject("soak")
     subproject("smoke-test")
     subproject("performance")
+    subproject("smoke-ide-test")
 }
 
 rootProject.name = "gradle"

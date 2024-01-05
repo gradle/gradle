@@ -11,12 +11,6 @@ gradlePlugin {
             implementationClass = "gradlebuild.integrationtests.ide.AndroidStudioProvisioningPlugin"
         }
     }
-    plugins {
-        register("smokeIdeTesting") {
-            id = "gradlebuild.smoke-ide-testing"
-            implementationClass = "gradlebuild.integrationtests.ide.SmokeIdeTestPlugin"
-        }
-    }
 }
 
 dependencies {

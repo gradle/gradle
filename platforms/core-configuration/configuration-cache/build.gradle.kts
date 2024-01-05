@@ -1,7 +1,6 @@
 plugins {
     id("gradlebuild.distribution.implementation-kotlin")
     id("gradlebuild.kotlin-dsl-sam-with-receiver")
-    id("gradlebuild.smoke-ide-testing")
 }
 
 description = "Configuration cache implementation"
@@ -118,11 +117,6 @@ dependencies {
         because("Includes tests for builds with the enterprise plugin and TestKit involved; ConfigurationCacheJacocoIntegrationTest requires JVM distribution")
     }
     crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
-
-    smokeIdeTestImplementation(libs.gradleProfiler)
-    smokeIdeTestDistributionRuntimeOnly(project(":distributions-full")) {
-        because("Tests starts IDE with using current Gradle distribution")
-    }
 }
 
 packageCycles {
