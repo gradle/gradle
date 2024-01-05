@@ -37,8 +37,8 @@ import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.resources.TextResourceFactory;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
-import org.gradle.cache.internal.DecompressionCache;
-import org.gradle.cache.internal.DefaultDecompressionCache;
+import org.gradle.cache.internal.DecompressionCoordinator;
+import org.gradle.cache.internal.DefaultDecompressionCoordinator;
 import org.gradle.cache.internal.scopes.DefaultBuildTreeScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.initialization.LegacyTypesSupport;
@@ -195,8 +195,8 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
         BuildTreeScopedCacheBuilderFactory createBuildTreeScopedCache(UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
             return new DefaultBuildTreeScopedCacheBuilderFactory(projectCacheDir, unscopedCacheBuilderFactory);
         }
-        DecompressionCache createDecompressionCacheFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
-            return new DefaultDecompressionCache(cacheBuilderFactory);
+        DecompressionCoordinator createDecompressionCacheFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
+            return new DefaultDecompressionCoordinator(cacheBuilderFactory);
         }
 
         protected DefaultResourceHandler.Factory createResourceHandlerFactory() {

@@ -43,7 +43,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.cache.internal.DecompressionCache;
+import org.gradle.cache.internal.DecompressionCoordinator;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.PathToFileResolver;
@@ -96,7 +96,7 @@ public class WorkerSharedProjectScopeServices {
             DocumentationRegistry documentationRegistry,
             ProviderFactory providers,
             TaskDependencyFactory taskDependencyFactory,
-            DecompressionCache decompressionCache,
+            DecompressionCoordinator decompressionCoordinator,
             TemporaryFileProvider temporaryFileProvider
     ) {
         return new DefaultFileOperations(
@@ -113,7 +113,7 @@ public class WorkerSharedProjectScopeServices {
                 documentationRegistry,
                 taskDependencyFactory,
                 providers,
-                decompressionCache,
+            decompressionCoordinator,
                 temporaryFileProvider
         );
     }

@@ -24,17 +24,17 @@ import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 import java.io.File;
 
 /**
- * The default implementation of {@link DecompressionCache} that can be used to store decompressed data extracted from archive files like zip and tars.
+ * The default implementation of {@link DecompressionCoordinator} that can be used to store decompressed data extracted from archive files like zip and tars.
  *
  * Will manage access to the cache, so that access to the archive's contents are only permitted to one client at a time.
  */
-public class DefaultDecompressionCache implements DecompressionCache {
+public class DefaultDecompressionCoordinator implements DecompressionCoordinator {
     private static final String EXPANSION_CACHE_KEY = "expanded";
     private static final String EXPANSION_CACHE_NAME = "Compressed Files Expansion Cache";
     private final PersistentCache cache;
     private final ProducerGuard<File> guard = ProducerGuard.adaptive();
 
-    public DefaultDecompressionCache(ScopedCacheBuilderFactory cacheBuilderFactory) {
+    public DefaultDecompressionCoordinator(ScopedCacheBuilderFactory cacheBuilderFactory) {
         this.cache = cacheBuilderFactory.createCacheBuilder(EXPANSION_CACHE_KEY)
                 .withDisplayName(EXPANSION_CACHE_NAME)
                 .withInitialLockMode(FileLockManager.LockMode.OnDemand)
@@ -42,7 +42,7 @@ public class DefaultDecompressionCache implements DecompressionCache {
     }
 
     @VisibleForTesting
-    public DefaultDecompressionCache(PersistentCache cache) {
+    public DefaultDecompressionCoordinator(PersistentCache cache) {
         this.cache = cache;
     }
 

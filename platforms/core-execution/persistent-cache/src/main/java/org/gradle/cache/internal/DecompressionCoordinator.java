@@ -20,7 +20,7 @@ import java.io.Closeable;
 import java.io.File;
 
 /**
- * A cache that can be used to store decompressed data extracted from archive files like zip and tars.
+ * A coordinator that can be used to manage access to decompressed data extracted from archive files like zip and tars.
  *
  * <p>
  * For a given build tree, only a single process is allowed write access to extract archives at a time.
@@ -35,10 +35,10 @@ import java.io.File;
  * There currently are no checks on modifications to files in the expanded directory. This can cause problems if the expanded directory is used
  * by multiple tasks and each task expects different modifications to be made to the extracted files.
  */
-public interface DecompressionCache extends Closeable {
+public interface DecompressionCoordinator extends Closeable {
 
     /**
-     * Runs the given action while holding the cache lock for the given key.
+     * Runs the given action while holding the lock for the given key.
      * <p>
      * The key is based on the given expanded directory used to extract the archive file.
      *

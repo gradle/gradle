@@ -27,7 +27,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.provider.Provider;
-import org.gradle.cache.internal.DecompressionCache;
+import org.gradle.cache.internal.DecompressionCoordinator;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.hash.FileHasher;
 
@@ -56,10 +56,10 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         Chmod chmod,
         DirectoryFileTreeFactory directoryFileTreeFactory,
         FileHasher fileHasher,
-        DecompressionCache decompressionCache,
+        DecompressionCoordinator decompressionCoordinator,
         TemporaryFileProvider temporaryExtractionDir
     ) {
-        super(decompressionCache);
+        super(decompressionCoordinator);
         this.fileProvider = zipFile;
         this.chmod = chmod;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
@@ -93,7 +93,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         }
 
         File expandedDir = getExpandedDir();
-        decompressionCache.exclusiveAccessTo(expandedDir, () -> {
+        decompressionCoordinator.exclusiveAccessTo(expandedDir, () -> {
             AtomicBoolean stopFlag = new AtomicBoolean();
             try (ZipFile zip = new ZipFile(zipFile)) {
                 // The iteration order of zip.getEntries() is based on the hash of the zip entry. This isn't much use

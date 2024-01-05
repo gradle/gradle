@@ -51,7 +51,7 @@ import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.cache.internal.DecompressionCache;
+import org.gradle.cache.internal.DecompressionCoordinator;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
@@ -87,7 +87,7 @@ public class DefaultFileOperations implements FileOperations {
     private final TaskDependencyFactory taskDependencyFactory;
     private final ProviderFactory providers;
     private final TemporaryFileProvider temporaryFileProvider;
-    private final DecompressionCache decompressionCache;
+    private final DecompressionCoordinator decompressionCoordinator;
 
     public DefaultFileOperations(
         FileResolver fileResolver,
@@ -103,7 +103,7 @@ public class DefaultFileOperations implements FileOperations {
         DocumentationRegistry documentationRegistry,
         TaskDependencyFactory taskDependencyFactory,
         ProviderFactory providers,
-        DecompressionCache decompressionCache,
+        DecompressionCoordinator decompressionCoordinator,
         TemporaryFileProvider temporaryFileProvider
     ) {
         this.fileCollectionFactory = fileCollectionFactory;
@@ -130,7 +130,7 @@ public class DefaultFileOperations implements FileOperations {
         );
         this.fileSystem = fileSystem;
         this.deleter = deleter;
-        this.decompressionCache = decompressionCache;
+        this.decompressionCoordinator = decompressionCoordinator;
     }
 
     @Override
@@ -180,13 +180,13 @@ public class DefaultFileOperations implements FileOperations {
     @Override
     public FileTreeInternal zipTree(Object zipPath) {
         Provider<File> fileProvider = asFileProvider(zipPath);
-        return new FileTreeAdapter(new ZipFileTree(fileProvider, fileSystem, directoryFileTreeFactory, fileHasher, decompressionCache, temporaryFileProvider), taskDependencyFactory, patternSetFactory);
+        return new FileTreeAdapter(new ZipFileTree(fileProvider, fileSystem, directoryFileTreeFactory, fileHasher, decompressionCoordinator, temporaryFileProvider), taskDependencyFactory, patternSetFactory);
     }
 
     @Override
     public FileTreeInternal zipTreeNoLocking(Object zipPath) {
         Provider<File> fileProvider = asFileProvider(zipPath);
-        DecompressionCache nonLockingCache = new DecompressionCache() {
+        DecompressionCoordinator nonLockingCache = new DecompressionCoordinator() {
             @Override
             public void close() throws IOException {
 
@@ -213,7 +213,7 @@ public class DefaultFileOperations implements FileOperations {
             }
         });
 
-        TarFileTree tarTree = new TarFileTree(fileProvider, resource.map(MaybeCompressedFileResource::new), fileSystem, directoryFileTreeFactory, fileHasher, decompressionCache, temporaryFileProvider);
+        TarFileTree tarTree = new TarFileTree(fileProvider, resource.map(MaybeCompressedFileResource::new), fileSystem, directoryFileTreeFactory, fileHasher, decompressionCoordinator, temporaryFileProvider);
         return new FileTreeAdapter(tarTree, taskDependencyFactory, patternSetFactory);
     }
 
@@ -322,7 +322,7 @@ public class DefaultFileOperations implements FileOperations {
         DocumentationRegistry documentationRegistry = services.get(DocumentationRegistry.class);
         ProviderFactory providers = services.get(ProviderFactory.class);
         TaskDependencyFactory taskDependencyFactory = services.get(TaskDependencyFactory.class);
-        DecompressionCache decompressionCache = services.get(DecompressionCache.class);
+        DecompressionCoordinator decompressionCoordinator = services.get(DecompressionCoordinator.class);
         TemporaryFileProvider temporaryFileProvider = services.get(TemporaryFileProvider.class);
 
         DefaultResourceHandler.Factory resourceHandlerFactory = DefaultResourceHandler.Factory.from(
@@ -347,7 +347,7 @@ public class DefaultFileOperations implements FileOperations {
             documentationRegistry,
             taskDependencyFactory,
             providers,
-            decompressionCache,
+            decompressionCoordinator,
             temporaryFileProvider
         );
     }

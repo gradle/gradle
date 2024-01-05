@@ -36,8 +36,8 @@ import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.BuildOperationCleanupActionDecorator;
 import org.gradle.cache.internal.BuildScopeCacheDir;
 import org.gradle.cache.internal.CleanupActionDecorator;
-import org.gradle.cache.internal.DecompressionCache;
-import org.gradle.cache.internal.DefaultDecompressionCache;
+import org.gradle.cache.internal.DecompressionCoordinator;
+import org.gradle.cache.internal.DefaultDecompressionCoordinator;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.scopes.DefaultBuildTreeScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
@@ -166,8 +166,8 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
         return new DefaultBuildTreeScopedCacheBuilderFactory(projectCacheDir.getDir(), unscopedCacheBuilderFactory);
     }
 
-    DecompressionCache createDecompressionCacheFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
-        return new DefaultDecompressionCache(cacheBuilderFactory);
+    DecompressionCoordinator createDecompressionCacheFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
+        return new DefaultDecompressionCoordinator(cacheBuilderFactory);
     }
 
     BuildSessionScopeFileTimeStampInspector createFileTimeStampInspector(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {

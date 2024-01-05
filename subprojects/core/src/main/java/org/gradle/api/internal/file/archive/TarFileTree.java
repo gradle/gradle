@@ -29,7 +29,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
-import org.gradle.cache.internal.DecompressionCache;
+import org.gradle.cache.internal.DecompressionCoordinator;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
@@ -61,10 +61,10 @@ public class TarFileTree extends AbstractArchiveFileTree {
         Chmod chmod,
         DirectoryFileTreeFactory directoryFileTreeFactory,
         FileHasher fileHasher,
-        DecompressionCache decompressionCache,
+        DecompressionCoordinator decompressionCoordinator,
         TemporaryFileProvider temporaryExtractionDir
         ) {
-        super(decompressionCache);
+        super(decompressionCoordinator);
         this.tarFileProvider = tarFileProvider;
         this.resource = resource;
         this.chmod = chmod;
@@ -94,7 +94,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
         }
 
         File expandedDir = getExpandedDir();
-        decompressionCache.exclusiveAccessTo(expandedDir, () -> {
+        decompressionCoordinator.exclusiveAccessTo(expandedDir, () -> {
             InputStream inputStream;
             try {
                 inputStream = new BufferedInputStream(resource.get().read());

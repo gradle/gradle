@@ -21,13 +21,13 @@ import org.gradle.testfixtures.internal.TestInMemoryCacheFactory;
 import java.io.File;
 
 /**
- * Static util class for obtaining test doubles for a {@link DecompressionCache}.
+ * Static util class for obtaining test doubles for a {@link DecompressionCoordinator}.
  */
 public abstract class TestCaches {
     private TestCaches() {}
 
-    public static DecompressionCache decompressionCache(File cacheDir) {
+    public static DecompressionCoordinator decompressionCache(File cacheDir) {
         final TestInMemoryCacheFactory cacheFactory = new TestInMemoryCacheFactory();
-        return new DefaultDecompressionCache(cacheFactory.open(cacheDir, "test compression cache"));
+        return new DefaultDecompressionCoordinator(cacheFactory.open(cacheDir, "test compression cache"));
     }
 }
