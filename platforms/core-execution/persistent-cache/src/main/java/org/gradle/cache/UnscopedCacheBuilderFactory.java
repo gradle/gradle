@@ -35,10 +35,12 @@ import java.io.File;
 @ServiceScope(Scopes.UserHome.class)
 public interface UnscopedCacheBuilderFactory {
     /**
-     * Returns a builder for the cache with the given base directory. You should prefer one of the other methods over using this method.
+     * Returns a builder for the cache with the given base directory. You should prefer one of the other ways of creating a cache with a scoped builder.
      *
      * <p>By default a cache is opened with a shared lock, so that it can be accessed by multiple processes. It is the caller's responsibility
      * to coordinate access to the cache. The initial lock level can be changed using the provided builder </p>
+     *
+     * <p>Caches created with this method can be inherently cross-version if the path is used by multiple versions of Gradle.</p>
      */
     CacheBuilder cache(File baseDir);
 }

@@ -32,13 +32,6 @@ public interface CacheBuilder {
     CacheBuilder withProperties(Map<String, ?> properties);
 
     /**
-     * This method does not change the behavior of the underlying cache. It exists only as documentation that the cache is intended to be used by multiple versions of Gradle.
-     *
-     * @return this
-     */
-    CacheBuilder withCrossVersionCache();
-
-    /**
      * Specifies the display name for this cache. This display name is used in logging and error messages.
      */
     CacheBuilder withDisplayName(String displayName);

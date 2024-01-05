@@ -61,11 +61,6 @@ public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderF
         }
 
         @Override
-        public CacheBuilder withCrossVersionCache() {
-            return this;
-        }
-
-        @Override
         public CacheBuilder withDisplayName(String displayName) {
             this.displayName = displayName;
             return this;

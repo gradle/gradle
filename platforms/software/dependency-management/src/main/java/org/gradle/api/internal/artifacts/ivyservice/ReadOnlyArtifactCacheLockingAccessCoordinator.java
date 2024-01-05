@@ -47,7 +47,6 @@ public class ReadOnlyArtifactCacheLockingAccessCoordinator implements ArtifactCa
             ArtifactCacheMetadata cacheMetaData) {
         cache = unscopedCacheBuilderFactory
             .cache(cacheMetaData.getCacheDir())
-            .withCrossVersionCache()
             .withDisplayName("read only artifact cache")
             .withInitialLockMode(FileLockManager.LockMode.None) // Don't need to lock anything, it's read-only
             .open();
