@@ -750,7 +750,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':buildC:buildInputs'.")
         failure.assertHasCause("""Could not find org.test:test:1.2.
 Searched in the following locations:
-  - ${m.pom.file.toURI().toASCIIString()}
+  - ${m.pom.file.displayUri}
 Required by:
     project :buildC""")
         failure.assertHasResolutions(REPOSITORY_HINT,

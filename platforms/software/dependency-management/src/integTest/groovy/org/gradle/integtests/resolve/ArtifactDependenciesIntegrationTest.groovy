@@ -244,7 +244,7 @@ task listMissingClassifier {
 
         failure.assertHasCause("""Could not find lib-1.0.zip (org.gradle.test:lib:1.0).
 Searched in the following locations:
-    ${module.artifactFile(type: 'zip').toURI().toASCIIString()}""")
+    ${module.artifactFile(type: 'zip').displayUri}""")
 
         when:
         fails('listMissingClassifier')
@@ -252,7 +252,7 @@ Searched in the following locations:
         then:
         failure.assertHasCause("""Could not find lib-1.0-classifier1.jar (org.gradle.test:lib:1.0).
 Searched in the following locations:
-    ${module.artifactFile(classifier: 'classifier1').toURI().toASCIIString()}""")
+    ${module.artifactFile(classifier: 'classifier1').displayUri}""")
     }
 
     @Issue("GRADLE-1342")

@@ -50,8 +50,8 @@ repositories {
     }
 
     def "resolves artifacts of non-existing component"() {
-        def location1 = file("repo/some-artifact-1.0.jar").toURI().toASCIIString()
-        def location2 = file("repo/some-artifact.jar").toURI().toASCIIString()
+        def location1 = file("repo/some-artifact-1.0.jar").displayUri
+        def location2 = file("repo/some-artifact.jar").displayUri
 
         fixture.expectComponentNotFound().prepare()
 
@@ -86,8 +86,8 @@ Searched in the following locations:
     def "can only resolve component if main artifact exists"() {
         file("repo/some-artifact-1.0-sources.jar").createFile()
         file("repo/some-artifact-1.0-javadoc.jar").createFile()
-        def location1 = file("repo/some-artifact-1.0.jar").toURI().toASCIIString()
-        def location2 = file("repo/some-artifact.jar").toURI().toASCIIString()
+        def location1 = file("repo/some-artifact-1.0.jar").displayUri
+        def location2 = file("repo/some-artifact.jar").displayUri
 
         fixture.expectComponentNotFound().prepare()
 

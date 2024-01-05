@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics
 
-import groovy.transform.CompileStatic
+
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -1328,6 +1328,7 @@ org:middle:1.0 FAILED
         given:
         mavenRepo.module("org", "top").dependsOn("org", "middle", "1.0").publish()
         mavenRepo.module("org", "middle", "1.0").publish()
+        def middleModule2 = mavenRepo.module("org", "middle", "2.0")
 
         buildFile << """
             repositories {
@@ -1358,7 +1359,7 @@ org:middle:1.0 FAILED
    Failures:
       - Could not find org:middle:2.0.
         Searched in the following locations:
-          - ${mavenRepoURL}org/middle/2.0/middle-2.0.pom
+          - ${middleModule2.pomFile.displayUri}
         ${repositoryHint("Maven POM")}
 
 org:middle:1.0 -> 2.0 FAILED
@@ -1407,7 +1408,7 @@ org:middle:1.0 -> 2.0 FAILED
     def "marks modules that can't be resolved after substitution as 'FAILED'"() {
         given:
         mavenRepo.module("org", "top").dependsOn("org", "middle", "1.0").publish()
-        mavenRepo.module("org", "middle", "1.0").publish()
+        def middleModule = mavenRepo.module("org", "middle", "1.0").publish()
 
         buildFile << """
             repositories {
@@ -1440,7 +1441,7 @@ org:middle:2.0+ (selected by rule) FAILED
       - Could not find any version that matches org:middle:2.0+.
         Versions that do not match: 1.0
         Searched in the following locations:
-          - ${mavenRepoURL}org/middle/maven-metadata.xml
+          - ${middleModule.rootMetaData.file.displayUri}
 
 org:middle:1.0 -> 2.0+ FAILED
 \\--- org:top:1.0
@@ -1455,6 +1456,7 @@ org:middle:1.0 -> 2.0+ FAILED
             .dependsOn("org", "leaf", "[1.5,2.0]")
             .dependsOn("org", "leaf", "1.6+")
             .publish()
+        def leafModule = ivyRepo.module("org", "leaf", "1.0")
 
         buildFile << """
             repositories {
@@ -1482,7 +1484,7 @@ org:leaf:1.0 FAILED
    Failures:
       - Could not find org:leaf:1.0.
         Searched in the following locations:
-          - ${ivyRepoURL}org/leaf/1.0/ivy-1.0.xml
+          - ${leafModule.ivyFile.displayUri}
         ${repositoryHint("ivy.xml")}
 
 org:leaf:1.0 FAILED
@@ -1501,7 +1503,7 @@ org:leaf:[1.5,2.0] FAILED
    Failures:
       - Could not find any matches for org:leaf:[1.5,2.0] as no versions of org:leaf are available.
         Searched in the following locations:
-          - ${ivyRepoURL}org/leaf/
+          - ${leafModule.moduleDir.parentFile.displayUriForDir}
 
 org:leaf:[1.5,2.0] FAILED
 \\--- org:top:1.0
@@ -3077,15 +3079,5 @@ org:foo:1.2 -> 1.5
 \\--- org:bar:1.0
      \\--- compileClasspath
 """)
-    }
-
-    @CompileStatic
-    String getMavenRepoURL() {
-        mavenRepo.uri.toASCIIString()
-    }
-
-    @CompileStatic
-    String getIvyRepoURL() {
-        ivyRepo.uri.toASCIIString()
     }
 }

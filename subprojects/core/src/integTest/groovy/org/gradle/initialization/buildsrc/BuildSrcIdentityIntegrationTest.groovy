@@ -102,7 +102,7 @@ runtimeClasspath - Runtime classpath of source set 'main'.
         failure.assertHasCause("Could not resolve all files for configuration ':buildSrc:compileClasspath'.")
         failure.assertHasCause("""Could not find org.test:test:1.2.
 Searched in the following locations:
-  - ${m.pom.file.toURI().toASCIIString()}
+  - ${m.pom.file.displayUri}
 Required by:
     project :buildSrc""")
         failure.assertHasResolutions(repositoryHint("Maven POM"),
