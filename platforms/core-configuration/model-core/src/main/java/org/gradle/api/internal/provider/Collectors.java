@@ -25,6 +25,8 @@ import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
 
+import java.util.Arrays;
+
 import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
 public class Collectors {
@@ -80,6 +82,11 @@ public class Collectors {
         @Override
         public int size() {
             return 1;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("[%s]", element);
         }
     }
 
@@ -150,6 +157,11 @@ public class Collectors {
         public int size() {
             return 1;
         }
+
+        @Override
+        public String toString() {
+            return String.format("item(%s)", provider);
+        }
     }
 
     public static class ElementsFromCollection<T> implements Collector<T> {
@@ -200,6 +212,11 @@ public class Collectors {
         @Override
         public int size() {
             return Iterables.size(value);
+        }
+
+        @Override
+        public String toString() {
+            return value.toString();
         }
     }
 
@@ -266,6 +283,11 @@ public class Collectors {
                 throw new UnsupportedOperationException();
             }
         }
+
+        @Override
+        public String toString() {
+            return String.valueOf(provider);
+        }
     }
 
     public static class ElementsFromArray<T> implements Collector<T> {
@@ -301,6 +323,11 @@ public class Collectors {
         @Override
         public int size() {
             return value.length;
+        }
+
+        @Override
+        public String toString() {
+            return Arrays.toString(value);
         }
     }
 
@@ -370,6 +397,11 @@ public class Collectors {
         @Override
         public int hashCode() {
             return Objects.hashCode(type, delegate);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("(%s as %s)", delegate, type);
         }
     }
 }
