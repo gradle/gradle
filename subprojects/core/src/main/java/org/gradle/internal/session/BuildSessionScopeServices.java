@@ -166,7 +166,7 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
         return new DefaultBuildTreeScopedCacheBuilderFactory(projectCacheDir.getDir(), unscopedCacheBuilderFactory);
     }
 
-    DecompressionCoordinator createDecompressionCacheFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
+    DecompressionCoordinator createDecompressionCoordinator(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
         return new DefaultDecompressionCoordinator(cacheBuilderFactory);
     }
 
