@@ -59,7 +59,7 @@ include::sample[dir="snippets/tasks/defineUsingStringTaskNames/groovy",files="bu
 
 In the example above, the tasks are added to the `tasks` collection using the `register()` method in link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer].
 
-In the Kotlin DSL there is a specific link:https://kotlinlang.org/docs/reference/delegated-properties.html[delegated properties] syntax useful if you need the register a task for further reference:
+In the Kotlin DSL there is a specific link:https://kotlinlang.org/docs/reference/delegated-properties.html[delegated properties] syntax useful if you need to register a task for further reference:
 
 ====
 include::sample[dir="snippets/tasks/defineAsKotlinDelegatedProperty/kotlin",files="build.gradle.kts[]"]
@@ -103,7 +103,8 @@ include::sample[dir="snippets/tasks/accessUsingType/groovy",files="build.gradle[
 [[sec:configuring_tasks]]
 == Configuring tasks
 
-To register a `Copy` task for your build, you can declare in your build script:
+Let’s look at the `Copy` task provided by Gradle as an example.
+To register a `Copy` task for your build, you can declare it in your build script:
 
 ====
 include::sample[dir="snippets/tasks/configureUsingBlock/kotlin",files="build.gradle.kts[tags=declare-task]"]
@@ -171,10 +172,10 @@ include::sample[dir="snippets/tasks/taskConstructorArgs-onTaskContainer/kotlin",
 include::sample[dir="snippets/tasks/taskConstructorArgs-onTaskContainer/groovy",files="build.gradle[tags=on-task-container]"]
 ====
 
-TIP: The <<task_configuration_avoidance.adoc#task_configuration_avoidance,Task Configuration Avoidance>> APIs are recommended as they improve configuration time.
-
 The values passed as constructor arguments must be non-null.
 If you attempt to pass a `null` value, Gradle will throw a `NullPointerException` indicating which runtime value is `null`.
+
+TIP: The <<task_configuration_avoidance.adoc#task_configuration_avoidance,Task Configuration Avoidance>> APIs are recommended as they improve configuration time.
 
 [[sec:adding_dependencies_to_tasks]]
 == Adding dependencies
@@ -183,6 +184,7 @@ There are several ways you can define the dependencies of a task.
 
 Defining dependencies using task names is the simplest way.
 Task names can refer to tasks in the same project as the task, or to tasks in other projects.
+
 To refer to a task in another project, you prefix the name of the task with the path of the project it belongs to.
 
 The following is an example which adds a dependency from `project-a:taskX` to `project-b:taskY`:
@@ -210,6 +212,7 @@ include::{snippetsPath}/tasks/addDependencyUsingTask/tests/addDependencyUsingTas
 ====
 
 You can also define a task dependency using a lazy block.
+
 When evaluated, the block is passed the task whose dependencies are being determined.
 The lazy block should return a single `Task` or collection of `Task` objects, which are then treated as dependencies of the task.
 
@@ -230,7 +233,7 @@ For more information about task dependencies, see the link:{groovyDslPath}/org.g
 [[sec:ordering_tasks]]
 == Ordering tasks
 
-In some cases it is useful to control the _order_ in which 2 tasks will execute, without introducing an explicit dependency between those tasks.
+In some cases it is useful to control the _order_ in which two tasks will execute, without introducing an explicit dependency between those tasks.
 
 The primary difference between a task _ordering_ and a task _dependency_ is that an ordering rule does not influence which tasks will be executed, only the order in which they will be executed.
 
@@ -258,8 +261,8 @@ include::{snippetsPath}/tasks/mustRunAfter/tests/mustRunAfter.out[]
 
 The “should run after” ordering rule is similar but less strict as it will be ignored in two situations:
 
-1. if using that rule introduces an ordering cycle.
-2. when using parallel execution and all dependencies of a task have been satisfied apart from the “should run after” task, then this task will be run regardless of whether its “should run after” dependencies have been run or not.
+1. If using that rule introduces an ordering cycle.
+2. When using parallel execution and all dependencies of a task have been satisfied apart from the “should run after” task, then this task will be run regardless of whether its “should run after” dependencies have been run or not.
 
 You should use “should run after” where the ordering is helpful but not strictly required:
 
@@ -307,16 +310,14 @@ include::{snippetsPath}/tasks/shouldRunAfterWithCycle/tests/shouldRunAfterWithCy
 [[sec:adding_a_description_to_a_task]]
 == Adding a description or group
 
-You can add a description to your task.
-This description is displayed when executing `gradle tasks`.
-
-You can add a group to your task.
-This group is used to classify where the task name and description are displayed when executing `gradle tasks`.
+You can add a description to your task and assign it to a group:
 
 ====
 include::sample[dir="snippets/tasks/defineAndConfigure/kotlin",files="build.gradle.kts[tags=all]"]
 include::sample[dir="snippets/tasks/defineAndConfigure/groovy",files="build.gradle[tags=all]"]
 ====
+
+This name and description is displayed under its assigned group when executing `gradle tasks`:
 
 [source]
 ----
@@ -342,9 +343,9 @@ Gradle offers multiple ways to skip the execution of a task.
 === 1. Using a predicate
 
 You can use link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:onlyIf(org.gradle.api.specs.Spec)[`Task.onlyIf`] to attach a predicate to a task.
-The task's actions will only be executed if the predicate evaluates to true.
+The task's actions will only be executed if the predicate evaluates to `true`.
 
-The predicate is passed to the task as a parameter and returns true if the task will execute and false if the task will be skipped.
+The predicate is passed to the task as a parameter and returns `true` if the task will execute and `false` if the task will be skipped.
 The predicate is evaluated just before the task is executed.
 
 Passing an optional reason string to `onlyIf()` is useful for explaining why the task is skipped:
@@ -462,9 +463,8 @@ If you run `gradle -q tasks` you won't find a task named `pingServer1` or `pingS
 [[sec:finalizer_tasks]]
 == Finalizer tasks
 
-Finalizer tasks are automatically added to the task graph when the finalized task is scheduled to run.
+Finalizer tasks are automatically added to the task graph when the finalized task is scheduled to run:
 
-.Adding a task finalizer
 ====
 include::sample[dir="snippets/tasks/finalizers/kotlin",files="build.gradle.kts[]"]
 include::sample[dir="snippets/tasks/finalizers/groovy",files="build.gradle[]"]
