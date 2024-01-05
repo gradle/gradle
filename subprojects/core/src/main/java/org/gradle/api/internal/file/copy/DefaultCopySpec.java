@@ -242,6 +242,11 @@ public class DefaultCopySpec implements CopySpecInternal {
         return sourcePaths.getFrom();
     }
 
+    @Nullable
+    public String getDestPath() {
+        return destDir == null ? null : PATH_NOTATION_PARSER.parseNotation(destDir);
+    }
+
     @Override
     @Nullable
     public File getDestinationDir() {
@@ -663,17 +668,16 @@ public class DefaultCopySpec implements CopySpecInternal {
                 parentPath = parentResolver.getDestPath();
             }
 
-            File path = DefaultCopySpec.this.getDestinationDir();
+            String path = DefaultCopySpec.this.getDestPath();
             if (path == null) {
                 return parentPath;
             }
 
-            String pathAsString = path.getPath();
-            if (pathAsString.startsWith("/") || pathAsString.startsWith(File.separator)) {
-                return RelativePath.parse(false, pathAsString);
+            if (path.startsWith("/") || path.startsWith(File.separator)) {
+                return RelativePath.parse(false, path);
             }
 
-            return RelativePath.parse(false, parentPath, pathAsString);
+            return RelativePath.parse(false, parentPath, path);
         }
 
         @Override
