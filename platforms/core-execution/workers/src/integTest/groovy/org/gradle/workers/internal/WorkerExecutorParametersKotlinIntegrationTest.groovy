@@ -17,21 +17,40 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.workers.fixtures.WorkerExecutorFixture
+import org.gradle.workers.fixtures.WorkerExecutorFixture.IsolationMode
 import spock.lang.Issue
 
 class WorkerExecutorParametersKotlinIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue('https://github.com/gradle/gradle/issues/26596')
-    def "can provide primitive #type array parameters with #isolationMode isolation"() {
+    def "primitive #type array parameter in #isolationMode isolation fails with reasonable error message"() {
         given:
+        withRunWorkTaskOf isolationMode, type
+
+        when:
+        fails 'runWork'
+
+        then:
+        failureCauseContains "Cannot serialize primitive arrays of type $type[]"
+
+        where:
+        [isolationMode, type] << [
+            WorkerExecutorFixture.IsolationMode.values(),
+            ['byte', 'short', 'int', 'long', 'float', 'double']
+        ].combinations()
+    }
+
+    private TestFile withRunWorkTaskOf(IsolationMode isolationMode, String primitiveType) {
+        def kotlinType = primitiveType.toString().capitalize()
         buildKotlinFile << """
             import org.gradle.workers.WorkAction
             import org.gradle.workers.WorkParameters
             import org.gradle.workers.WorkerExecutor
 
             interface TestParameters : WorkParameters {
-                val array: Property<${type.toString().capitalize()}Array>
+                val array: Property<${kotlinType}Array>
             }
 
             abstract class ParameterWorkAction : WorkAction<TestParameters> {
@@ -49,7 +68,7 @@ class WorkerExecutorParametersKotlinIntegrationTest extends AbstractIntegrationS
                 @TaskAction
                 fun doWork() {
                     workerExecutor.${isolationMode.method}().submit(ParameterWorkAction::class) {
-                        array = ${type}ArrayOf(1, 2, 3)
+                        array = ${primitiveType}ArrayOf(42.to${kotlinType}())
                     }
                 }
             }
@@ -59,17 +78,5 @@ class WorkerExecutorParametersKotlinIntegrationTest extends AbstractIntegrationS
                 }
             }
         """
-
-        when:
-        succeeds 'runWork'
-
-        then:
-        outputContains "${type}ArrayOf(1,2,3)"
-
-        where:
-        [isolationMode, type] << [
-            WorkerExecutorFixture.IsolationMode.values(),
-            ['byte', 'short', 'int', 'long']
-        ].combinations()
     }
 }
