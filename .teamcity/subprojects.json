@@ -840,6 +840,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "smoke-ide-test",
+    "path": "subprojects/smoke-ide-test",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "smoke-test",
     "path": "subprojects/smoke-test",
     "unitTests": false,
