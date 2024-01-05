@@ -80,6 +80,41 @@ public interface HasMultipleValues<T> extends HasConfigurableValue, CollectionPr
     HasMultipleValues<T> empty();
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    void add(T element);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    void add(Provider<? extends T> provider);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 4.10
+     */
+    @SuppressWarnings("unchecked")
+    @Override
+    void addAll(T... elements);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 4.10
+     */
+    @Override
+    void addAll(Iterable<? extends T> elements);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    void addAll(Provider<? extends Iterable<? extends T>> provider);
+
+    /**
      * Specifies the value to use as the convention for this property. The convention is used when no value has been set for this property.
      *
      * @param elements The elements, or {@code null} when the convention is that the property has no value.
