@@ -85,13 +85,40 @@ public class VariantIdentityUniquenessVerifier {
         public GradleException failureFor(ConfigurationInternal configuration, boolean withTaskAdvice) {
             List<ConfigurationInternal> collisions =
                 byIdentity.get(VariantIdentity.from(configuration)).stream()
-                    .filter(it -> it != configuration)
+                    .filter(it -> !it.getName().equals(configuration.getName()))
                     .collect(Collectors.toList());
 
             if (collisions.isEmpty()) {
                 return null;
             }
 
+            return buildFailure(configuration, withTaskAdvice, collisions);
+        }
+
+        /**
+         * Throw an exception if any variants have conflicting identities.
+         */
+        public void assertNoConflicts() {
+            for (VariantIdentity identity : byIdentity.keySet()) {
+                List<ConfigurationInternal> collisions = byIdentity.get(identity);
+                if (collisions.size() > 1) {
+
+                    ConfigurationInternal configuration = collisions.get(0);
+                    List<ConfigurationInternal> filtered =
+                        byIdentity.get(identity).stream()
+                            .filter(it -> !it.getName().equals(configuration.getName()))
+                            .collect(Collectors.toList());
+
+                    throw  buildFailure(configuration, true, filtered);
+                }
+            }
+        }
+
+        private static GradleException buildFailure(
+            ConfigurationInternal configuration,
+            boolean withTaskAdvice,
+            List<ConfigurationInternal> collisions
+        ) {
             DocumentedFailure.Builder builder = DocumentedFailure.builder();
             String advice = "Consider adding an additional attribute to one of the configurations to disambiguate them.";
             if (withTaskAdvice) {
@@ -105,21 +132,6 @@ public class VariantIdentityUniquenessVerifier {
                 .withAdvice(advice)
                 .withUserManual("upgrading_version_7", "unique_attribute_sets")
                 .build();
-        }
-
-        /**
-         * Get a failure that encompasses all configurations.
-         */
-        @Nullable
-        public GradleException aggregateFailure() {
-            for (VariantIdentity identity : byIdentity.keySet()) {
-                List<ConfigurationInternal> collisions = byIdentity.get(identity);
-                if (collisions.size() > 1) {
-                    return failureFor(collisions.get(0), true);
-                }
-            }
-
-            return null;
         }
     }
 

@@ -67,18 +67,14 @@ public class FreezableAttributeContainer implements AttributeContainerInternal {
 
     @Override
     public <T> AttributeContainer attribute(Attribute<T> key, T value) {
-        if (delegate instanceof ImmutableAttributes) {
-            throw new IllegalArgumentException(String.format("Cannot change attributes of dependency %s after it has been resolved", owner.getDisplayName()));
-        }
+        assertMutable();
         delegate.attribute(key, value);
         return this;
     }
 
     @Override
     public <T> AttributeContainer attributeProvider(Attribute<T> key, Provider<? extends T> provider) {
-        if (delegate instanceof ImmutableAttributes) {
-            throw new IllegalArgumentException(String.format("Cannot change attributes of dependency %s after it has been resolved", owner.getDisplayName()));
-        }
+        assertMutable();
         delegate.attributeProvider(key, provider);
         return this;
     }
@@ -102,5 +98,11 @@ public class FreezableAttributeContainer implements AttributeContainerInternal {
     @Override
     public AttributeContainer getAttributes() {
         return this;
+    }
+
+    private void assertMutable() {
+        if (delegate instanceof ImmutableAttributes) {
+            throw new IllegalStateException(String.format("Cannot change attributes of %s after it has been locked for mutation", owner.getDisplayName()));
+        }
     }
 }

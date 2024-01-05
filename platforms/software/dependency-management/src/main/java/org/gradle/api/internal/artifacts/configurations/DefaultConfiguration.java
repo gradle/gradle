@@ -710,7 +710,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 // TODO: Currently afterResolve runs if there is not an non-unresolved-dependency failure
                 //       We should either _always_ run afterResolve, or only run it if _no_ failure occurred
                 if (!results.getVisitedGraph().getResolutionFailure().isPresent()) {
-                    dependencyResolutionListeners.getSource().afterResolve(getIncoming());
+                    dependencyResolutionListeners.getSource().afterResolve(incoming);
                 }
 
                 // Discard State
@@ -815,7 +815,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         DependencyResolutionListener dependencyResolutionListener = dependencyResolutionListeners.getSource();
         insideBeforeResolve = true;
         try {
-            dependencyResolutionListener.beforeResolve(getIncoming());
+            dependencyResolutionListener.beforeResolve(incoming);
         } finally {
             insideBeforeResolve = false;
         }
@@ -1116,7 +1116,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public void outgoing(Action<? super ConfigurationPublications> action) {
-        action.execute(getOutgoing());
+        action.execute(outgoing);
     }
 
     @Override

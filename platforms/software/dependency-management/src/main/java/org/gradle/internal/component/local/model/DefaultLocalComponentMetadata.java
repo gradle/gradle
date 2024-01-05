@@ -18,7 +18,6 @@ package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -329,10 +328,7 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
 
         @Override
         public void visitConfigurations(Consumer<Candidate> visitor) {
-            GradleException failure = VariantIdentityUniquenessVerifier.buildReport(configurationsProvider).aggregateFailure();
-            if (failure != null) {
-                throw failure;
-            }
+            VariantIdentityUniquenessVerifier.buildReport(configurationsProvider).assertNoConflicts();
 
             configurationsProvider.visitAll(configuration -> {
                 visitor.accept(new Candidate() {
