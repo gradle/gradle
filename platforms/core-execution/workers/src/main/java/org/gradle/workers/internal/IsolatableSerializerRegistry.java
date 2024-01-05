@@ -34,6 +34,7 @@ import org.gradle.internal.snapshot.impl.BooleanValueSnapshot;
 import org.gradle.internal.snapshot.impl.FileValueSnapshot;
 import org.gradle.internal.snapshot.impl.IntegerValueSnapshot;
 import org.gradle.internal.snapshot.impl.IsolatedArray;
+import org.gradle.internal.snapshot.impl.IsolatedArrayOfPrimitive;
 import org.gradle.internal.snapshot.impl.IsolatedEnumValueSnapshot;
 import org.gradle.internal.snapshot.impl.IsolatedImmutableManagedValue;
 import org.gradle.internal.snapshot.impl.IsolatedJavaSerializedValueSnapshot;
@@ -51,6 +52,7 @@ import org.gradle.internal.state.Managed;
 import org.gradle.internal.state.ManagedFactory;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 
+import java.io.EOFException;
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.HashMap;
@@ -77,6 +79,8 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
     private static final byte ISOLATED_LIST = (byte) 14;
     private static final byte ISOLATED_SET = (byte) 15;
     private static final byte ISOLATED_PROPERTIES = (byte) 16;
+
+    private static final byte ISOLATED_ARRAY_OF_PRIMITIVE = (byte) 17;
 
     private static final byte ISOLATABLE_TYPE = (byte) 0;
     private static final byte ARRAY_TYPE = (byte) 1;
@@ -109,6 +113,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         isolatableSerializers.put(ISOLATED_LIST, new IsolatedListSerializer());
         isolatableSerializers.put(ISOLATED_SET, new IsolatedSetSerializer());
         isolatableSerializers.put(ISOLATED_PROPERTIES, new IsolatedPropertiesSerializer());
+        isolatableSerializers.put(ISOLATED_ARRAY_OF_PRIMITIVE, new IsolatedPrimitiveArraySerializer());
 
         for (IsolatableSerializer<?> serializer : isolatableSerializers.values()) {
             register(serializer.getIsolatableClass(), Cast.uncheckedCast(serializer));
@@ -174,7 +179,11 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
             writeIsolatable(encoder, (Isolatable<?>) state);
         } else if (state.getClass().isArray()) {
             encoder.writeByte(ARRAY_TYPE);
-            encoder.writeString(state.getClass().getComponentType().getName());
+            Class<?> componentType = state.getClass().getComponentType();
+            if (componentType.isPrimitive()) {
+                throw new IllegalStateException("Unsupported array type: " + state.getClass());
+            }
+            encoder.writeString(componentType.getName());
             Object[] array = (Object[]) state;
             int size = array.length;
             encoder.writeInt(size);
@@ -513,6 +522,31 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         @Override
         public Class<IsolatedProperties> getIsolatableClass() {
             return IsolatedProperties.class;
+        }
+    }
+
+    private class IsolatedPrimitiveArraySerializer implements IsolatableSerializer<IsolatedArrayOfPrimitive> {
+        @Override
+        public Class<IsolatedArrayOfPrimitive> getIsolatableClass() {
+            return IsolatedArrayOfPrimitive.class;
+        }
+
+        @Override
+        public void write(Encoder encoder, IsolatedArrayOfPrimitive value) throws Exception {
+            encoder.writeByte(ISOLATED_ARRAY_OF_PRIMITIVE);
+            encoder.writeByte(value.getPrimitiveTypeCode());
+            byte[] byteArray = value.toByteArray();
+            encoder.writeInt(byteArray.length);
+            encoder.writeBytes(byteArray);
+        }
+
+        @Override
+        public IsolatedArrayOfPrimitive read(Decoder decoder) throws EOFException, Exception {
+            byte primitiveTypeCode = decoder.readByte();
+            int length = decoder.readInt();
+            byte[] bytes = new byte[length];
+            decoder.readBytes(bytes);
+            return IsolatedArrayOfPrimitive.decode(primitiveTypeCode, bytes);
         }
     }
 
