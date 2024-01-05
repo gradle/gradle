@@ -17,13 +17,13 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.internal.ToBeImplemented
 import org.gradle.workers.fixtures.WorkerExecutorFixture
+import spock.lang.Issue
 
 class WorkerExecutorParametersKotlinIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeImplemented('https://github.com/gradle/gradle/issues/26596')
-    def "can provide primitive #type array parameters with isolation mode #isolationMode"() {
+    @Issue('https://github.com/gradle/gradle/issues/26596')
+    def "can provide primitive #type array parameters with #isolationMode isolation"() {
         given:
         buildKotlinFile << """
             import org.gradle.workers.WorkAction
@@ -48,7 +48,7 @@ class WorkerExecutorParametersKotlinIntegrationTest extends AbstractIntegrationS
 
                 @TaskAction
                 fun doWork() {
-                    workerExecutor.${isolationMode}().submit(ParameterWorkAction::class) {
+                    workerExecutor.${isolationMode.method}().submit(ParameterWorkAction::class) {
                         array = ${type}ArrayOf(1, 2, 3)
                     }
                 }

@@ -22,10 +22,27 @@ import org.gradle.util.internal.TextUtil
 class WorkerExecutorFixture {
 
     enum IsolationMode {
-        noIsolation, classLoaderIsolation, processIsolation
+        NO_ISOLATION("no"),
+        CLASSLOADER_ISOLATION("classLoader"),
+        PROCESS_ISOLATION("process");
+
+        private final String prefix
+
+        IsolationMode(String prefix) {
+            this.prefix = prefix
+        }
+
+        String getMethod() {
+            "${prefix}Isolation"
+        }
+
+        @Override
+        String toString() {
+            prefix
+        }
     }
 
-    public static final ISOLATION_MODES = IsolationMode.values().collect { "'$it'" }
+    public static final ISOLATION_MODES = IsolationMode.values().collect { "'${it.method}'" }
 
     def outputFileDir
     def outputFileDirPath
