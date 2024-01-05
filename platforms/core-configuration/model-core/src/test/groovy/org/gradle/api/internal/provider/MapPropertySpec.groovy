@@ -1204,15 +1204,14 @@ The value of this property is derived from: <source>""")
 
     def "may configure convention value incrementally"() {
         given:
-        property.convention([:])
+        property.convention(['k0': '1'])
         property.withActualValue {
-            put('k0', '1')
             putAll(['k1': '2', 'k2': '3'])
             put('k2', '4')
         }
         expect:
         assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
-        assert !property.explicit
+        assert property.explicit
     }
 
     def "may configure explicit value incrementally"() {
@@ -1248,7 +1247,53 @@ The value of this property is derived from: <source>""")
         }
         expect:
         assertValueIs(['k0': '1', 'k1': '4', 'k2': '3'])
+        property.explicit
+    }
+
+    def "can set explicit value to convention"() {
+        given:
+        property.convention(['k0': '1'])
+        property.value(['k1': '4'])
+
+        when:
+        property.setToConvention()
+
+        then:
+        assertValueIs(['k0': '1'])
+        property.explicit
+
+        when:
+        property.put('k2', '3')
+
+        then:
+        assertValueIs(['k0': '1', 'k2': '3'])
+
+        when:
+        property.unset()
+
+        then:
+        assertValueIs(['k0': '1'])
         !property.explicit
+    }
+
+    def "can set explicit value to convention if not set yet"() {
+        given:
+        property.convention(['k0': '1'])
+        property.value(['k1': '4'])
+
+        when:
+        property.setToConventionIfUnset()
+
+        then:
+        assertValueIs(['k1': '4'])
+
+        when:
+        property.unset()
+        property.setToConventionIfUnset()
+
+        then:
+        assertValueIs(['k0': '1'])
+        property.explicit
     }
 
     private ProviderInternal<String> brokenValueSupplier() {

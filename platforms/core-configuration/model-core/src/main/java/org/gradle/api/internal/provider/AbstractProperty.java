@@ -286,11 +286,18 @@ public abstract class AbstractProperty<T, S extends AbstractMinimalProvider.Guar
     }
 
     public SupportsConvention setToConventionIfUnset() {
-        this.value = state.setToConventionIfUnset(value);
+        if (!isDefaultConvention()) {
+            this.value = state.setToConventionIfUnset(value);
+        }
         return this;
     }
 
     protected abstract S getDefaultConvention();
+
+    /**
+     * Is convention set to the initial convention value?
+     */
+    protected abstract boolean isDefaultConvention();
 
     protected void assertCanMutate() {
         state.beforeMutate(this.getDisplayName());

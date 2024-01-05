@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.MapCollectors.EntriesFromMap;
@@ -64,6 +65,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
     @Override
     protected MapSupplierGuard<K, V> getDefaultConvention() {
         return noValueSupplier();
+    }
+
+    @Override
+    protected boolean isDefaultConvention() {
+        return isNoValueSupplier(getConventionSupplier());
     }
 
     private MapSupplierGuard<K, V> emptySupplier() {
@@ -189,39 +195,21 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
         setSupplier(getExplicitValue(defaultValue).plus(collector));
     }
 
-    private void addConventionCollector(MapCollector<K, V> collector) {
-        assertCanMutate();
-        setConvention(getConventionSupplier().plus(collector));
-    }
-
-    private MapPropertyConfigurer<K, V> getConventionValue() {
-        return new ConventionConfigurer();
-    }
-
     private MapPropertyConfigurer<K, V> getExplicitValue() {
         return new ExplicitConfigurer();
     }
 
-    private MapPropertyConfigurer<K, V> getActualValue() {
-        if (isExplicit() || isDefaultConvention()) {
-            return getExplicitValue();
-        }
-        return getConventionValue();
-    }
-
-    private boolean isDefaultConvention() {
-        return isNoValueSupplier(getConventionSupplier());
-    }
-
     @Override
     public MapProperty<K, V> withActualValue(Action<MapPropertyConfigurer<K, V>> action) {
-        action.execute(getActualValue());
+        setToConventionIfUnset();
+        action.execute(getExplicitValue());
         return this;
     }
 
     @Override
-    public MapProperty<K, V> withActualValue(Closure<Void> action) {
-        ConfigureUtil.configure(action, getActualValue());
+    public MapProperty<K, V> withActualValue(@DelegatesTo(MapPropertyConfigurer.class) Closure<Void> action) {
+        setToConventionIfUnset();
+        ConfigureUtil.configure(action, getExplicitValue());
         return this;
     }
 
@@ -672,13 +660,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
         public void putAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
             ProviderInternal<? extends Map<? extends K, ? extends V>> p = checkMapProvider(provider);
             addCollector(new EntriesFromMapProvider<>(Providers.internal(provider)));
-        }
-    }
-
-    private class ConventionConfigurer extends Configurer {
-        @Override
-        void addCollector(MapCollector<K, V> collector) {
-            addConventionCollector(collector);
         }
     }
 

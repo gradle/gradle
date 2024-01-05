@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
@@ -86,34 +87,26 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
      */
     protected abstract C emptyCollection();
 
-    private CollectionPropertyConfigurer<T> getConventionValue() {
-        return new ConventionConfigurer();
-    }
-
     public CollectionPropertyConfigurer<T> getExplicitValue() {
         return new ExplicitValueConfigurer();
     }
 
     @Override
     public HasMultipleValues<T> withActualValue(Action<CollectionPropertyConfigurer<T>> action) {
-        action.execute(getActualValue());
+        setToConventionIfUnset();
+        action.execute(getExplicitValue());
         return this;
     }
 
     @Override
-    public HasMultipleValues<T> withActualValue(Closure<Void> action) {
-        ConfigureUtil.configure(action, getActualValue());
+    public HasMultipleValues<T> withActualValue(@DelegatesTo(CollectionPropertyConfigurer.class) Closure<Void> action) {
+        setToConventionIfUnset();
+        ConfigureUtil.configure(action, getExplicitValue());
         return this;
     }
 
-    private CollectionPropertyConfigurer<T> getActualValue() {
-        if (isExplicit() || isDefaultConvention()) {
-            return getExplicitValue();
-        }
-        return getConventionValue();
-    }
-
-    private boolean isDefaultConvention() {
+    @Override
+    protected boolean isDefaultConvention() {
         return isNoValueSupplier(getConventionSupplier());
     }
 
@@ -156,11 +149,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
     private void addExplicitCollector(Collector<T> collector) {
         assertCanMutate();
         setSupplier(getExplicitValue(defaultValue).plus(collector));
-    }
-
-    private void addConventionCollector(Collector<T> collector) {
-        assertCanMutate();
-        setConvention(getConventionSupplier().plus(collector));
     }
 
     @Nullable
@@ -302,7 +290,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
     public HasMultipleValues<T> setToConventionIfUnset() {
         return uncheckedNonnullCast(super.setToConventionIfUnset());
     }
-
 
     @Override
     protected String describeContents() {
@@ -669,13 +656,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
         @Override
         public void addAll(Provider<? extends Iterable<? extends T>> provider) {
             addCollector(new ElementsFromCollectionProvider<>(Providers.internal(provider)));
-        }
-    }
-
-    private class ConventionConfigurer extends Configurer {
-        @Override
-        protected void addCollector(Collector<T> collector) {
-            addConventionCollector(collector);
         }
     }
 

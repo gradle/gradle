@@ -155,6 +155,11 @@ public class DefaultProperty<T> extends AbstractProperty<T, AbstractMinimalProvi
     }
 
     @Override
+    protected boolean isDefaultConvention() {
+        return getConventionSupplier() == NOT_DEFINED;
+    }
+
+    @Override
     protected String describeContents() {
         // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
         return String.format("property(%s, %s)", type.getName(), getSupplier());
