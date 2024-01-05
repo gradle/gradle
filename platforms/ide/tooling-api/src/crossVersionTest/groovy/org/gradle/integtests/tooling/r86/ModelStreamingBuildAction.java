@@ -21,14 +21,14 @@ import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 
-class IntermediateModelSendingBuildAction implements BuildAction<CustomModel> {
+class ModelStreamingBuildAction implements BuildAction<CustomModel> {
     public CustomModel execute(BuildController controller) {
         EclipseProject eclipseProject = controller.getModel(EclipseProject.class);
         GradleProject gradleProject = controller.getModel(GradleProject.class);
 
         // Intentionally sending models in an order different from requesting models
-        controller.sendIntermediate(gradleProject);
-        controller.sendIntermediate(eclipseProject);
+        controller.send(gradleProject);
+        controller.send(eclipseProject);
 
         return new CustomModel(42);
     }

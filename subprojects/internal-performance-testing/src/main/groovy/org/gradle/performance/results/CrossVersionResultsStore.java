@@ -68,6 +68,8 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
 
     // Only the flakiness detection results within 90 days will be considered.
     private static final int FLAKINESS_DETECTION_DAYS = 90;
+    private static final Pattern PRE_TEST_BRANCH_PATTERN = Pattern.compile("pre-test/([^/]*)/.*");
+    private static final Pattern GH_MERGE_QUEUE_BRANCH_PATTERN = Pattern.compile("gh-readonly-queue/([^/]*)/.*");
     private final Map<String, GradleVersion> gradleVersionCache = new HashMap<>();
 
     public CrossVersionResultsStore() {
@@ -320,7 +322,13 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
             return currentBranch;
         }
         if (vcsBranch.startsWith("pre-test/")) {
-            Matcher matcher = Pattern.compile("pre-test/([^/]*)/.*").matcher(vcsBranch);
+            Matcher matcher = PRE_TEST_BRANCH_PATTERN.matcher(vcsBranch);
+            if (matcher.matches()) {
+                return matcher.group(1);
+            }
+        }
+        if (vcsBranch.startsWith("gh-readonly-queue/")) {
+            Matcher matcher = GH_MERGE_QUEUE_BRANCH_PATTERN.matcher(vcsBranch);
             if (matcher.matches()) {
                 return matcher.group(1);
             }

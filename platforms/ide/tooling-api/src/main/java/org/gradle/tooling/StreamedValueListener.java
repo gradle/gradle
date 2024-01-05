@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.serialization;
+package org.gradle.tooling;
 
-import java.io.Serializable;
+import org.gradle.api.Incubating;
 
 /**
- * A model object sent back to the client from a client provided {@link org.gradle.tooling.BuildAction} running in the build process.
+ * Receives a value sent via {@link BuildController#send(Object)}.
+ *
+ * <p>Objects are received in the order they were sent and all objects are received before the result of the {@link BuildAction} is returned to the application.</p>
+ *
+ * @since 8.6
  */
-public class IntermediateModel implements Serializable {
-    private final SerializedPayload serializedModel;
-
-    public IntermediateModel(SerializedPayload serializedModel) {
-        this.serializedModel = serializedModel;
-    }
-
-    public SerializedPayload getSerializedModel() {
-        return serializedModel;
-    }
+@Incubating
+public interface StreamedValueListener {
+    /**
+     * Handles the next value.
+     *
+     * @since 8.6
+     */
+    void onValue(Object value);
 }

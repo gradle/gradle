@@ -49,18 +49,25 @@ abstract class FindGradleSources : TransformAction<TransformParameters.None> {
 
     private
     fun registerSourceDirectories(outputs: TransformOutputs) {
-        unzippedSubProjectsDir()?.let {
-            subDirsOf(it).flatMap { subProject ->
-                subDirsOf(File(subProject, "src/main"))
-            }.forEach { outputs.dir(it) }
-        }
+        unzippedProjectDirectories()
+            .flatMap { projectDir -> subDirsOf(projectDir.resolve("src/main")) }
+            .forEach { outputs.dir(it) }
     }
 
     private
-    fun unzippedSubProjectsDir(): File? =
-        unzippedDistroDir()?.let {
-            File(it, "subprojects")
-        }
+    fun unzippedProjectDirectories(): Collection<File> =
+        unzippedDistroDir()?.let { distroDir ->
+            unzippedSubprojectsDirectories(distroDir) + unzippedPlatformProjectsDirectories(distroDir)
+        } ?: emptyList()
+
+    private
+    fun unzippedSubprojectsDirectories(distroDir: File): Collection<File> =
+        subDirsOf(distroDir.resolve("subprojects"))
+
+    private
+    fun unzippedPlatformProjectsDirectories(distroDir: File): Collection<File> =
+        subDirsOf(distroDir.resolve("platforms"))
+            .flatMap { platform -> subDirsOf(platform) }
 
     private
     fun unzippedDistroDir(): File? =

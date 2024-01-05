@@ -20,10 +20,12 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.IntermediateModelListener
+import org.gradle.tooling.StreamedValueListener
 import org.gradle.tooling.IntermediateResultHandler
 import org.gradle.tooling.ResultHandler
+import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.junit.Rule
@@ -33,7 +35,7 @@ import java.util.concurrent.CountDownLatch
 
 @ToolingApiVersion(">=8.6")
 @TargetGradleVersion(">=8.6")
-class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpecification {
+class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
@@ -41,20 +43,20 @@ class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpec
         file("settings.gradle") << 'rootProject.name="hello-world"'
     }
 
-    def "build action can send intermediate models and then receive them in the same order"() {
+    def "build action can stream values and client receives them in the same order"() {
         when:
         def models = new CopyOnWriteArrayList<Object>()
         def finished = new CountDownLatch(1)
-        def listener = { model -> models.add(model) } as IntermediateModelListener
+        def listener = { model -> models.add(model) } as StreamedValueListener
         def handler = { model ->
             models.add(model)
             finished.countDown()
         } as ResultHandler
 
         withConnection {
-            def builder = it.action(new IntermediateModelSendingBuildAction())
+            def builder = it.action(new ModelStreamingBuildAction())
             collectOutputs(builder)
-            builder.setIntermediateModelListener(listener)
+            builder.setStreamedValueListener(listener)
             builder.run(handler)
             finished.await()
         }
@@ -75,19 +77,19 @@ class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpec
         result.value == 42
     }
 
-    def "phased build action can send intermediate models and then receive them in the same order"() {
+    def "phased build action can stream values and the client receives them in the same order"() {
         when:
         def models = new CopyOnWriteArrayList<Object>()
-        def listener = { model -> models.add(model) } as IntermediateModelListener
+        def listener = { model -> models.add(model) } as StreamedValueListener
         def handler = { model -> models.add(model) } as IntermediateResultHandler
 
         withConnection {
             def builder = it.action()
-                .projectsLoaded(new CustomIntermediateModelSendingBuildAction(GradleProject, 1), handler)
-                .buildFinished(new CustomIntermediateModelSendingBuildAction(EclipseProject, 2), handler)
+                .projectsLoaded(new CustomModelStreamingBuildAction(GradleProject, 1), handler)
+                .buildFinished(new CustomModelStreamingBuildAction(EclipseProject, 2), handler)
                 .build()
             collectOutputs(builder)
-            builder.setIntermediateModelListener(listener)
+            builder.setStreamedValueListener(listener)
             builder.run()
         }
 
@@ -111,7 +113,7 @@ class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpec
         eclipseModel.gradleProject.name == "hello-world"
     }
 
-    def "client application receives intermediate models before build action completes"() {
+    def "client application receives streamed value before build action completes"() {
         when:
         server.start()
         def request = server.expectAndBlock("action")
@@ -121,7 +123,7 @@ class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpec
         def listener = { model ->
             models.add(model)
             modelReceived.countDown()
-        } as IntermediateModelListener
+        } as StreamedValueListener
         def handler = { model ->
             models.add(model)
             finished.countDown()
@@ -130,7 +132,7 @@ class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpec
         withConnection {
             def builder = it.action(new BlockingModelSendingBuildAction(server.uri("action")))
             collectOutputs(builder)
-            builder.setIntermediateModelListener(listener)
+            builder.setStreamedValueListener(listener)
             builder.run(handler)
 
             modelReceived.await()
@@ -145,22 +147,56 @@ class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpec
         models[1] instanceof CustomModel
     }
 
-    def "intermediate model listener is isolated when it fails with an exception"() {
+    def "listener is isolated when it fails with an exception"() {
         when:
-        def listener = { throw new RuntimeException("broken") } as IntermediateModelListener
+        def listener = { throw new RuntimeException("broken") } as StreamedValueListener
 
         withConnection {
-            def builder = it.action(new IntermediateModelSendingBuildAction())
+            def builder = it.action(new ModelStreamingBuildAction())
             collectOutputs(builder)
-            builder.setIntermediateModelListener(listener)
+            builder.setStreamedValueListener(listener)
             builder.run()
         }
 
         then:
 
         def e = thrown(GradleConnectionException)
-        e.cause.cause.message == "broken"
+        e.cause.message == "broken"
         // Report that the build was successful, as the failure was on the client side
         assertHasConfigureSuccessfulLogging()
+    }
+
+    def "build fails when build action streams value when no listener is registered"() {
+        when:
+        withConnection {
+            def builder = it.action(new ModelStreamingBuildAction())
+            collectOutputs(builder)
+            builder.run()
+        }
+
+        then:
+        def e = thrown(GradleConnectionException)
+        e.cause instanceof IllegalStateException
+        e.cause.message == "No streaming model listener registered."
+        // Report that the build was successful, as the failure was on the client side
+        assertHasConfigureSuccessfulLogging()
+    }
+
+    @TargetGradleVersion(">=3.0 <8.6")
+    def "streaming fails when build action is running in a Gradle version that does not support streaming"() {
+        when:
+        def listener = { } as StreamedValueListener
+
+        withConnection {
+            def builder = it.action(new ModelStreamingBuildAction())
+            collectOutputs(builder)
+            builder.setStreamedValueListener(listener)
+            builder.run()
+        }
+
+        then:
+        def e = thrown(BuildActionFailureException)
+        e.cause instanceof UnsupportedVersionException
+        e.cause.message == "Gradle version $targetVersion.version does not support streaming values to the client."
     }
 }

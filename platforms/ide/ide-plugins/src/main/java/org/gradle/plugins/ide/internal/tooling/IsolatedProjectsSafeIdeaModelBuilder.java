@@ -87,26 +87,19 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
 
     @Override
     public DefaultIdeaProject buildForRoot(Project project, boolean offlineDependencyResolution) {
-        Project root = project.getRootProject();
-        IdeaModelParameter parameter = createParameter(offlineDependencyResolution);
-        if (!root.equals(project)) {
-            return fetchForRoot(root, parameter);
-        }
+        requireRootProject(project);
 
         // Ensure unique module names for dependencies substituted from included builds
-        applyIdeaPluginToBuildTree(root);
+        applyIdeaPluginToBuildTree(project);
 
-        return buildRoot(root, parameter);
+        IdeaModelParameter parameter = createParameter(offlineDependencyResolution);
+        return build(project, parameter);
     }
 
-    private DefaultIdeaProject fetchForRoot(Project root, IdeaModelParameter parameter) {
-        return intermediateToolingModelProvider.getModels(
-            root,
-            Collections.singletonList(root),
-            MODEL_NAME,
-            DefaultIdeaProject.class,
-            parameter
-        ).get(0);
+    private static void requireRootProject(Project project) {
+        if (!project.equals(project.getRootProject())) {
+            throw new IllegalArgumentException(String.format("%s can only be requested on the root project, got %s", MODEL_NAME, project));
+        }
     }
 
     private void applyIdeaPluginToBuildTree(Project root) {
@@ -128,7 +121,7 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
         }
     }
 
-    private DefaultIdeaProject buildRoot(Project rootProject, IdeaModelParameter parameter) {
+    private DefaultIdeaProject build(Project rootProject, IdeaModelParameter parameter) {
         // Currently, applying the plugin here is redundant due to `applyIdeaPluginToBuildTree`.
         // However, the latter should go away in the future, while the application here is inherent to the builder
         rootProject.getPluginManager().apply(IdeaPlugin.class);

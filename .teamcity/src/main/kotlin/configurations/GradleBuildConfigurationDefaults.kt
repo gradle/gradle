@@ -18,7 +18,7 @@ import common.dependsOn
 import common.functionalTestParameters
 import common.gradleWrapper
 import common.killProcessStep
-import common.onlyRunOnPreTestedCommitBuildBranch
+import common.onlyRunOnGitHubMergeQueueBranch
 import jetbrains.buildServer.configs.kotlin.BuildFeatures
 import jetbrains.buildServer.configs.kotlin.BuildStep.ExecutionMode
 import jetbrains.buildServer.configs.kotlin.BuildSteps
@@ -121,7 +121,7 @@ fun BaseGradleBuildType.gradleRunnerStep(
             gradleParams = parameters
             executionMode = stepExecutionMode
             if (isRetry) {
-                onlyRunOnPreTestedCommitBuildBranch()
+                onlyRunOnGitHubMergeQueueBranch()
             }
         }
     }

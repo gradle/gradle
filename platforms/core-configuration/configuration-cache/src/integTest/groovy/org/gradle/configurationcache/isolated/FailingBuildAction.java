@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.configurationcache.isolated;
 
-/**
- * @since 8.6
- */
-public interface InternalIntermediateModelRelay {
-    /**
-     * @since 8.6
-     */
-    void sendIntermediate(Object model);
+import org.gradle.configurationcache.fixtures.SomeToolingModel;
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
+
+public class FailingBuildAction implements BuildAction<SomeToolingModel> {
+    @Override
+    public SomeToolingModel execute(BuildController controller) {
+        controller.getBuildModel();
+        throw new RuntimeException("Build action expectedly failed");
+    }
 }

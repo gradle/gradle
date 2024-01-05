@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling;
+package org.gradle.api.problems.internal
 
-// TODO: Consider renaming to StreamingModelListener
+import spock.lang.Specification
 
-import org.gradle.api.Incubating;
+class DefaultProblemsTest extends Specification {
 
-/**
- * Receives an intermediate result sent via {@link BuildController#sendIntermediate(Object)}.
- *
- * @since 8.6
- */
-@Incubating
-public interface IntermediateModelListener {
-    /**
-     * Handles the next intermediate result.
-     *
-     * @since 8.6
-     */
-    void onModel(Object model);
+    def "using org.gradle core namespace is not allowed on the public API"() {
+        def emitter = Mock(ProblemEmitter)
+
+        given:
+        def p = new DefaultProblems(emitter)
+
+        when:
+        p.forNamespace(DefaultProblemCategory.GRADLE_CORE_NAMESPACE)
+
+        then:
+        thrown(IllegalStateException)
+    }
 }

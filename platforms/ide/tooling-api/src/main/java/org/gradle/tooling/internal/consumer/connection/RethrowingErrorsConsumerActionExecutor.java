@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 public class RethrowingErrorsConsumerActionExecutor implements ConsumerActionExecutor {
-    private ConsumerActionExecutor delegate;
+    private final ConsumerActionExecutor delegate;
 
     public RethrowingErrorsConsumerActionExecutor(ConsumerActionExecutor delegate) {
         this.delegate = delegate;
@@ -37,6 +37,7 @@ public class RethrowingErrorsConsumerActionExecutor implements ConsumerActionExe
     public <T> T run(ConsumerAction<T> action) throws UnsupportedOperationException, IllegalStateException {
         T result = delegate.run(action);
         action.getParameters().getBuildProgressListener().rethrowErrors();
+        action.getParameters().getStreamedValueListener().rethrowErrors();
         return result;
     }
 

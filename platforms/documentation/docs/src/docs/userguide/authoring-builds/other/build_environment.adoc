@@ -221,7 +221,7 @@ Configures the <<configuration_cache.adoc#config_cache:usage:max_problems, maxim
 _Default is `512`._
 
 `org.gradle.configureondemand=(true,false)`::
-Enables incubating <<multi_project_configuration_and_execution.adoc#sec:configuration_on_demand, configuration on demand>>, where Gradle will attempt to configure only necessary projects.
+Enables incubating <<structuring_software_products_details.adoc#sec:configuration_on_demand, configuration on demand>>, where Gradle will attempt to configure only necessary projects.
 +
 _Default is `false`._
 

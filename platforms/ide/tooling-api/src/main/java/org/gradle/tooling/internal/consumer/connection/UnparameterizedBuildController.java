@@ -26,6 +26,7 @@ import org.gradle.tooling.internal.adapter.ObjectGraphAdapter;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
@@ -46,13 +47,15 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
     private final ProtocolToModelAdapter adapter;
     private final ObjectGraphAdapter resultAdapter;
     private final ModelMapping modelMapping;
+    protected final VersionDetails gradleVersion;
     private final File rootDir;
 
-    public UnparameterizedBuildController(ProtocolToModelAdapter adapter, ModelMapping modelMapping, File rootDir) {
+    public UnparameterizedBuildController(ProtocolToModelAdapter adapter, ModelMapping modelMapping, VersionDetails gradleVersion, File rootDir) {
         this.adapter = adapter;
         // Treat all models returned to the action as part of the same object graph
         this.resultAdapter = adapter.newGraph();
         this.modelMapping = modelMapping;
+        this.gradleVersion = gradleVersion;
         this.rootDir = rootDir;
     }
 
@@ -176,7 +179,7 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
     }
 
     @Override
-    public <T> void sendIntermediate(T model) {
-        throw new UnsupportedOperationException();
+    public <T> void send(T value) {
+        throw new UnsupportedVersionException(String.format("Gradle version %s does not support streaming values to the client.", gradleVersion.getVersion()));
     }
 }

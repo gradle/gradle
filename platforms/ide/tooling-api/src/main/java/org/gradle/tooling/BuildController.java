@@ -212,11 +212,17 @@ public interface BuildController {
     boolean getCanQueryProjectModelInParallel(Class<?> modelType);
 
     /**
-     * Sends an intermediate result back to the client application. The client application can receive this result
-     * by registering a {@link IntermediateModelListener}.
+     * <p>Streams an object to the client application.
+     *
+     * <p>The client application can receive objects sent using this method by registering a {@link StreamedValueListener}.
+     * The client application receives objects in the order they were sent, and before it receives the result of the {@link BuildAction}.</p>
+     *
+     * <p>This method sends the object asynchronously and does not block until the client application has received the object.</p>
+     *
+     * <p>The build action will fail if the client application did not register a listener to receive the streamed objects.</p>
      *
      * @since 8.6
      */
     @Incubating
-    <T> void sendIntermediate(T model);
+    <T> void send(T value);
 }

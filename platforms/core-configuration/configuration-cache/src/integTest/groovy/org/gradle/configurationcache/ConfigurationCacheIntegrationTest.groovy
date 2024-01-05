@@ -337,6 +337,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         then:
         outputContains("> Task :init")
         configurationCache.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
             assert totalProblems == 0
         }
         succeeds 'properties'

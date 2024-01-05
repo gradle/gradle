@@ -14,22 +14,5 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r86;
-
-import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.BuildController;
-
-class CustomIntermediateModelSendingBuildAction<T> implements BuildAction<T> {
-    private final Class<T> type;
-    private final int value;
-
-    public CustomIntermediateModelSendingBuildAction(Class<T> type, int value) {
-        this.type = type;
-        this.value = value;
-    }
-
-    public T execute(BuildController controller) {
-        controller.sendIntermediate(new CustomModel(value));
-        return controller.getModel(type);
-    }
-}
+@org.gradle.api.NonNullApi
+package org.gradle.tooling.internal.provider;

@@ -621,4 +621,17 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model4.message == "It works from project :a"
     }
 
+    def "does not cache execution of BuildAction when it fails"() {
+        when:
+        withIsolatedProjects()
+        runBuildActionFails(new FailingBuildAction())
+
+        then:
+        fixture.assertNoConfigurationCache()
+        failureDescriptionContains("Build action expectedly failed")
+
+        // TODO:isolated should not contain this output https://github.com/gradle/gradle/issues/27476
+        failure.assertOutputContains("Configuration cache entry stored.")
+    }
+
 }

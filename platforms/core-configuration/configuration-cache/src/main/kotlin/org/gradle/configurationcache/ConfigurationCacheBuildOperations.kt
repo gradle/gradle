@@ -51,7 +51,10 @@ fun BuildOperationExecutor.withStoreOperation(@Suppress("UNUSED_PARAMETER") cach
             .details(StoreDetails)
 
         override fun run(context: BuildOperationContext) {
-            block().let { context.setResult(it) }
+            block().let {
+                context.setResult(it)
+                it.storeFailure?.let { failure -> context.failed(failure) }
+            }
         }
     })
 
@@ -72,6 +75,6 @@ object StoreDetails : ConfigurationCacheStoreBuildOperationType.Details
 
 
 internal
-data class StoreResult(val stateFile: File) : ConfigurationCacheStoreBuildOperationType.Result {
+data class StoreResult(val stateFile: File, val storeFailure: Throwable?) : ConfigurationCacheStoreBuildOperationType.Result {
     override fun getCacheEntrySize(): Long = stateFile.length()
 }

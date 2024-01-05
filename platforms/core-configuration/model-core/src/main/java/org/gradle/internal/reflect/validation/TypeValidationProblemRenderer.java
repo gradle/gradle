@@ -95,7 +95,10 @@ public class TypeValidationProblemRenderer {
             .map(Object::toString)
             .filter(TypeValidationProblemRenderer::shouldRenderType)
             .orElse(null);
-        DefaultPluginId pluginId = ofNullable(additionalMetadata.get(PLUGIN_ID)).map(Object::toString).map(DefaultPluginId::new).orElse(null);
+        DefaultPluginId pluginId = ofNullable(additionalMetadata.get(PLUGIN_ID))
+            .map(Object::toString)
+            .map(DefaultPluginId::new)
+            .orElse(null);
         boolean typeRelevant = rootType != null && !parseBoolean(additionalMetadata.getOrDefault(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE, "").toString());
         if (typeRelevant) {
             if (pluginId != null) {
