@@ -394,6 +394,9 @@ class Codecs(
         javaTimeTypes()
 
         bind(BuildIdentifierSerializer())
+
+        bind(InputStreamCodec)
+        bind(OutputStreamCodec)
     }
 
     fun workNodeCodecFor(gradle: GradleInternal) =
