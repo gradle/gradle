@@ -16,6 +16,7 @@
 package org.gradle.api.file;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
@@ -146,7 +147,7 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      * @since 8.7
      */
     @Incubating
-    ConfigurableFileCollection withActualValue(Closure<Void> action);
+    ConfigurableFileCollection withActualValue(@DelegatesTo(FileCollectionConfigurer.class) Closure<Void> action);
 
     /**
      * Applies an eager transformation to the current contents of this file collection, without explicitly resolving it.
