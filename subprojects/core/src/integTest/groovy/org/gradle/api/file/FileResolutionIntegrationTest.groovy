@@ -74,7 +74,7 @@ assert f == project.layout.projectDirectory.dir("testdir").asFile
 """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Passing invalid URIs to URI or File converting methods. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Use a valid URL or a file path instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_legacy_url_decoding")
+        executer.expectDocumentedDeprecationWarning("Passing invalid URIs to URI or File converting methods. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Use a valid URL or a file path instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_invalid_url_decoding")
         succeeds()
     }
 
@@ -85,7 +85,7 @@ assert f == new File("/home/user/test% dir")
 """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Passing invalid URIs to URI or File converting methods. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Use a valid URL or a file path instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_legacy_url_decoding")
+        executer.expectDocumentedDeprecationWarning("Passing invalid URIs to URI or File converting methods. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Use a valid URL or a file path instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_invalid_url_decoding")
         succeeds()
     }
 

@@ -155,7 +155,7 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
         DeprecationLogger.deprecateBehaviour("Passing invalid URIs to URI or File converting methods.")
             .withAdvice("Use a valid URL or a file path instead.")
             .willBecomeAnErrorInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_legacy_url_decoding")
+            .withUpgradeGuideSection(8, "deprecated_invalid_url_decoding")
             .nagUser();
         StringBuffer builder = new StringBuffer();
         Matcher matcher = ENCODED_URI.matcher(path);
