@@ -72,7 +72,7 @@ public class PluginRequestCollector {
 
     @VisibleForTesting
     List<PluginRequestInternal> listPluginRequests() {
-        List<PluginRequestInternal> pluginRequests = collect(specs, original -> new DefaultPluginRequest(original.id, original.version, original.apply, original.lineNumber, scriptSource));
+        List<PluginRequestInternal> pluginRequests = collect(specs, original -> new DefaultPluginRequest(original.id, original.version, original.apply, original.lineNumber, scriptSource.getDisplayName()));
 
         Map<PluginId, Collection<PluginRequestInternal>> groupedById = CollectionUtils.groupBy(pluginRequests, PluginRequest::getId);
 

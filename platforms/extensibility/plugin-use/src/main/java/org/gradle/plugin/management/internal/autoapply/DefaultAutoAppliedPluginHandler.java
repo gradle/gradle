@@ -70,10 +70,12 @@ public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler
     private static PluginRequests filterAlreadyAppliedOrRequested(PluginRequests autoAppliedPlugins, final PluginRequests initialRequests, final PluginContainer pluginContainer, final ScriptHandler scriptHandler) {
         return PluginRequests.of(ImmutableList.copyOf(StreamSupport.stream(autoAppliedPlugins.spliterator(), false)
             .filter(autoAppliedPlugin -> !isAlreadyAppliedOrRequested(PluginCoordinates.from(autoAppliedPlugin), initialRequests, pluginContainer, scriptHandler))
-            .filter(autoAppliedPlugin -> autoAppliedPlugin.getAlternativeCoordinates()
-                .map(it -> !isAlreadyAppliedOrRequested(it, initialRequests, pluginContainer, scriptHandler))
-                .orElse(true)
-            )
+            .filter(autoAppliedPlugin -> {
+                if (autoAppliedPlugin.getAlternativeCoordinates() != null) {
+                    return !isAlreadyAppliedOrRequested(autoAppliedPlugin.getAlternativeCoordinates(), initialRequests, pluginContainer, scriptHandler);
+                }
+                return true;
+            })
             .collect(Collectors.toList())
         ));
     }

@@ -17,7 +17,9 @@
 package org.gradle.plugin.use.resolve.internal;
 
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginDescriptorLocator;
+import org.gradle.api.internal.plugins.PluginImplementation;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
@@ -93,8 +95,14 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
     }
 
     private void resolveAlreadyOnClasspath(PluginId pluginId, String pluginVersion, PluginResolutionResult result) {
-        PluginResolution pluginResolution = new ClassPathPluginResolution(pluginId, pluginVersion, parentLoaderScope, pluginInspector);
-        result.found("Already on classpath", pluginResolution);
+        DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry(pluginInspector, parentLoaderScope);
+        PluginImplementation<?> plugin = pluginRegistry.lookup(pluginId);
+        if (plugin != null) {
+            PluginResolution pluginResolution = new ClassPathPluginResolution(pluginId, pluginVersion, plugin);
+            result.found("Already on classpath", pluginResolution);
+        } else {
+            result.notFound("Classpath", "Plugin with id '" + pluginId + "' not found.");
+        }
     }
 
     private boolean isPresentOnClasspath(PluginId pluginId) {

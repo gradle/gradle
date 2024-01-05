@@ -17,13 +17,10 @@
 package org.gradle.plugin.management.internal;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.use.PluginId;
-import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import javax.annotation.Nullable;
-import java.util.Optional;
 
 public class DefaultPluginRequest implements PluginRequestInternal {
 
@@ -37,16 +34,8 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     private final Origin origin;
     private final PluginCoordinates alternativeCoordinates;
 
-    public DefaultPluginRequest(PluginId id, String version, boolean apply, Integer lineNumber, ScriptSource scriptSource) {
-        this(id, version, apply, lineNumber, scriptSource.getDisplayName(), null);
-    }
-
-    public DefaultPluginRequest(String id, String version, boolean apply, Integer lineNumber, String scriptDisplayName) {
-        this(DefaultPluginId.of(id), version, apply, lineNumber, scriptDisplayName, null);
-    }
-
-    public DefaultPluginRequest(PluginId id, String version, boolean apply, Integer lineNumber, String scriptDisplayName, ModuleVersionSelector artifact) {
-        this(id, version, apply, lineNumber, scriptDisplayName, artifact, null, Origin.OTHER, null);
+    public DefaultPluginRequest(PluginId id, String version, boolean apply, Integer lineNumber, String scriptDisplayName) {
+        this(id, version, apply, lineNumber, scriptDisplayName, null, null, Origin.OTHER, null);
     }
 
     public DefaultPluginRequest(
@@ -58,7 +47,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         ModuleVersionSelector artifact,
         PluginRequest originalRequest,
         Origin origin,
-        PluginCoordinates alternativeCoordinates
+        @Nullable PluginCoordinates alternativeCoordinates
     ) {
         this.id = id;
         this.version = version;
@@ -104,6 +93,11 @@ public class DefaultPluginRequest implements PluginRequestInternal {
 
     @Override
     public String toString() {
+        return getDisplayName();
+    }
+
+    @Override
+    public String getDisplayName() {
         StringBuilder b = new StringBuilder();
         b.append("[id: '").append(id).append("'");
         if (version != null) {
@@ -121,11 +115,6 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     }
 
     @Override
-    public String getDisplayName() {
-        return toString();
-    }
-
-    @Override
     public PluginRequest getOriginalRequest() {
         return originalRequest;
     }
@@ -135,8 +124,9 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         return origin;
     }
 
+    @Nullable
     @Override
-    public Optional<PluginCoordinates> getAlternativeCoordinates() {
-        return Optional.ofNullable(alternativeCoordinates);
+    public PluginCoordinates getAlternativeCoordinates() {
+        return alternativeCoordinates;
     }
 }

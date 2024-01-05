@@ -17,6 +17,7 @@
 package org.gradle.plugin.use.resolve.internal;
 
 import org.gradle.api.internal.plugins.PluginImplementation;
+import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.plugin.use.PluginId;
 
 public class SimplePluginResolution implements PluginResolution {
@@ -32,7 +33,7 @@ public class SimplePluginResolution implements PluginResolution {
     }
 
     @Override
-    public void execute(PluginResolveContext pluginResolveContext) {
-        pluginResolveContext.add(plugin);
+    public void applyTo(PluginManagerInternal pluginManagerInternal) {
+        pluginManagerInternal.apply(plugin);
     }
 }

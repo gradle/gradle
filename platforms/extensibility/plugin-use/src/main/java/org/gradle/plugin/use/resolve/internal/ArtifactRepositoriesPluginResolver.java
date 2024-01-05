@@ -27,11 +27,12 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
+import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Iterator;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -59,29 +60,41 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
         }
 
         if (exists(markerDependency)) {
-            handleFound(result, pluginRequest, markerDependency);
+            result.found("Plugin Repositories", new ExternalPluginResolution(pluginRequest.getId(), markerDependency));
         } else {
             handleNotFound(result, "could not resolve plugin artifact '" + getNotation(markerDependency) + "'");
         }
     }
 
-    private void handleFound(PluginResolutionResult result, final PluginRequestInternal pluginRequest, final Dependency markerDependency) {
-        result.found("Plugin Repositories", new PluginResolution() {
-            @Override
-            public PluginId getPluginId() {
-                return pluginRequest.getId();
-            }
+    static class ExternalPluginResolution implements PluginResolution {
+        private final PluginId pluginId;
+        private final Dependency markerDependency;
 
-            @Override
-            public String getPluginVersion() {
-                return markerDependency.getVersion();
-            }
+        public ExternalPluginResolution(PluginId pluginId, Dependency markerDependency) {
+            this.pluginId = pluginId;
+            this.markerDependency = markerDependency;
+        }
 
-            @Override
-            public void execute(@Nonnull PluginResolveContext context) {
-                context.addLegacy(pluginRequest.getId(), markerDependency);
-            }
-        });
+        @Override
+        public PluginId getPluginId() {
+            return pluginId;
+        }
+
+        @Nullable
+        @Override
+        public String getPluginVersion() {
+            return markerDependency.getVersion();
+        }
+
+        @Override
+        public void visitDependencies(PluginResolveContext pluginResolveContext) {
+            pluginResolveContext.visitDependency(markerDependency);
+        }
+
+        @Override
+        public void applyTo(PluginManagerInternal pluginManagerInternal) {
+            pluginManagerInternal.apply(pluginId.getId());
+        }
     }
 
     private void handleNotFound(PluginResolutionResult result, String message) {

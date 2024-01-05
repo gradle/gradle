@@ -18,7 +18,7 @@ package org.gradle.plugin.management.internal;
 
 import org.gradle.plugin.management.PluginRequest;
 
-import java.util.Optional;
+import javax.annotation.Nullable;
 
 public interface PluginRequestInternal extends PluginRequest {
 
@@ -34,7 +34,8 @@ public interface PluginRequestInternal extends PluginRequest {
 
     Origin getOrigin();
 
-    Optional<PluginCoordinates> getAlternativeCoordinates();
+    @Nullable
+    PluginCoordinates getAlternativeCoordinates();
 
     enum Origin {
         AUTO_APPLIED,

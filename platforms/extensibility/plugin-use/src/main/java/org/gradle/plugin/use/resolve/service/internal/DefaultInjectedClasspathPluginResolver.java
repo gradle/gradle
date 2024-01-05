@@ -16,13 +16,11 @@
 
 package org.gradle.plugin.use.resolve.service.internal;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginImplementation;
 import org.gradle.api.internal.plugins.PluginInspector;
+import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
@@ -36,6 +34,7 @@ import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 public class DefaultInjectedClasspathPluginResolver implements ClientInjectedClasspathPluginResolver, PluginResolver {
 
@@ -61,12 +60,7 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
     public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         PluginImplementation<?> plugin = pluginRegistry.lookup(pluginRequest.getId());
         if (plugin == null) {
-            String classpathStr = Joiner.on(File.pathSeparator).join(Iterables.transform(injectedClasspath.getAsFiles(), new Function<File, String>() {
-                @Override
-                public String apply(File input) {
-                    return input.getAbsolutePath();
-                }
-            }));
+            String classpathStr = injectedClasspath.getAsFiles().stream().map(File::getAbsolutePath).collect(Collectors.joining(File.pathSeparator));
             result.notFound(getDescription(), "classpath: " + classpathStr);
         } else {
             result.found(getDescription(), new InjectedClasspathPluginResolution(plugin));
@@ -76,10 +70,6 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
     public String getDescription() {
         // It's true right now that this is always coming from the TestKit, but might not be in the future.
         return "Gradle TestKit";
-    }
-
-    public boolean isClasspathEmpty() {
-        return injectedClasspath.isEmpty();
     }
 
     private static class InjectedClasspathPluginResolution implements PluginResolution {
@@ -95,8 +85,13 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
         }
 
         @Override
-        public void execute(PluginResolveContext pluginResolveContext) {
-            pluginResolveContext.addFromDifferentLoader(plugin);
+        public void visitDependencies(PluginResolveContext visitor) {
+            visitor.visitClassLoader(plugin.asClass().getClassLoader());
+        }
+
+        @Override
+        public void applyTo(PluginManagerInternal pluginManagerInternal) {
+            pluginManagerInternal.apply(plugin);
         }
     }
 }
