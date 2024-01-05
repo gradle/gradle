@@ -175,10 +175,18 @@ sealed interface FunctionSemantics {
     @Serializable
     class AddAndConfigure(
         private val objectType: DataTypeRef,
-        val acceptsConfigureBlock: Boolean
+        val configureBlockRequirement: ConfigureBlockRequirement
     ) : NewObjectFunctionSemantics, ConfigureSemantics {
         override val returnValueType: DataTypeRef
             get() = objectType
+
+        @Serializable
+        enum class ConfigureBlockRequirement {
+            NOT_ALLOWED, OPTIONAL, REQUIRED;
+
+            val allows: Boolean get() = this != NOT_ALLOWED
+            val requires: Boolean get() = this == REQUIRED
+        }
     }
 
     @Serializable

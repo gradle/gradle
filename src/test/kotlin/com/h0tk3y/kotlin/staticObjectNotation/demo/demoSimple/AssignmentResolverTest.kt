@@ -21,7 +21,7 @@ object AssignmentResolverTest {
                 str = c1.d.id
                 """.trimIndent()
             )
-        ).run { 
+        ).run {
             val strAssignment = elements.find { it.lhs.property.name == "str" }
             assertIs<AssignmentTraceElement.RecordedAssignment>(strAssignment)
             val value = resolvedAssignments[strAssignment.lhs]
@@ -31,14 +31,14 @@ object AssignmentResolverTest {
             assertEquals("shared", valueOrigin.literal.value)
         }
     }
-    
+
     @Test
     fun `reports assignment pointing to unassigned property`() {
         assignmentTrace(
             schema.resolve(
                 """
-                val c1 = c(1)
-                val c2 = c(2)
+                val c1 = c(1) { }
+                val c2 = c(2) { }
                 c2.d = c1.d
                 """.trimIndent()
             )
@@ -52,13 +52,13 @@ object AssignmentResolverTest {
             assertEquals("d", propertyReference.property.name)
         }
     }
-    
+
     @Test
     fun `reports unassigned value used in lhs`() {
         assignmentTrace(
             schema.resolve(
                 """
-                val c1 = c(1)
+                val c1 = c(1) { }
                 c1.d.id = "test"
                 """.trimIndent()
             )

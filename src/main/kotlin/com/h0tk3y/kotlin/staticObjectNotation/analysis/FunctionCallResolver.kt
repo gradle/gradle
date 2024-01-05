@@ -128,7 +128,7 @@ class FunctionCallResolverImpl(
         argResolutions: Map<FunctionArgument.ValueArgument, ObjectOrigin>,
         functionCall: FunctionCall,
         receiver: ObjectOrigin?
-    ): ObjectOrigin.FunctionOrigin {
+    ): ObjectOrigin.FunctionOrigin? {
         val newFunctionCallId = nextInstant()
         val valueBinding = function.binding.toValueBinding(argResolutions)
         val semantics = function.schemaFunction.semantics
@@ -140,23 +140,25 @@ class FunctionCallResolverImpl(
         )
 
         doRecordSemanticsSideEffects(functionCall, semantics, receiver, result, function, argResolutions)
-        doAnalyzeConfiguringSemantics(functionCall, semantics, function, result, newFunctionCallId)
+        val isCorrectConfigureLambda = doAnalyzeAndCheckConfiguringSemantics(functionCall, semantics, function, result, newFunctionCallId)
 
-        return result
+        return if (isCorrectConfigureLambda) result else null
     }
 
-    private fun AnalysisContext.doAnalyzeConfiguringSemantics(
+    private fun AnalysisContext.doAnalyzeAndCheckConfiguringSemantics(
         call: FunctionCall,
         semantics: FunctionSemantics,
         function: FunctionResolutionAndBinding,
         result: ObjectOrigin.FunctionOrigin,
         newFunctionCallId: Long
-    ) {
+    ): Boolean {
         if (semantics !is FunctionSemantics.ConfigureSemantics)
-            return
+            return true
 
-        val expectsConfigureLambda = semantics is FunctionSemantics.AccessAndConfigure ||
-            semantics is FunctionSemantics.AddAndConfigure && semantics.acceptsConfigureBlock
+        val (expectsConfigureLambda, requiresConfigureLambda) = when (semantics) {
+            is FunctionSemantics.AccessAndConfigure -> true to true
+            is FunctionSemantics.AddAndConfigure -> semantics.configureBlockRequirement.run { allows to requires }
+        }
 
         val lambda = call.args.filterIsInstance<FunctionArgument.Lambda>().singleOrNull()
         if (expectsConfigureLambda) {
@@ -174,11 +176,16 @@ class FunctionCallResolverImpl(
                     codeAnalyzer.analyzeStatementsInProgramOrder(this, lambda.block.statements)
                 }
             } else {
-                errorCollector.collect(ResolutionError(call, ErrorReason.MissingConfigureLambda))
+                return if (requiresConfigureLambda) {
+                    errorCollector.collect(ResolutionError(call, ErrorReason.MissingConfigureLambda))
+                    false
+                } else true
             }
         } else if (lambda != null) {
             errorCollector.collect(ResolutionError(call, ErrorReason.UnusedConfigureLambda))
+            return false
         }
+        return true
     }
 
     private fun AnalysisContext.doRecordSemanticsSideEffects(

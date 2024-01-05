@@ -27,6 +27,9 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataMemberFunction
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataParameter
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataTopLevelFunction
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.FunctionSemantics
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.FunctionSemantics.AddAndConfigure.ConfigureBlockRequirement.NOT_ALLOWED
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.FunctionSemantics.AddAndConfigure.ConfigureBlockRequirement.OPTIONAL
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.FunctionSemantics.AddAndConfigure.ConfigureBlockRequirement.REQUIRED
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterSemantics
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.SchemaMemberFunction
 import kotlin.reflect.KClass
@@ -222,9 +225,15 @@ class DefaultFunctionExtractor(
 
             function.annotations.any { it is Adding } -> {
                 check(inType != null)
+                val lastParam = function.parameters[function.parameters.lastIndex]
                 val hasConfigureLambda =
-                    configureLambdas.isConfigureLambdaForType(function.returnType, function.parameters[function.parameters.lastIndex].type)
-                FunctionSemantics.AddAndConfigure(returnTypeClassifier.toDataTypeRefOrError(), hasConfigureLambda)
+                    configureLambdas.isConfigureLambdaForType(function.returnType, lastParam.type)
+                val blockRequirement = when {
+                    !hasConfigureLambda -> NOT_ALLOWED
+                    hasConfigureLambda && lastParam.isOptional -> OPTIONAL
+                    else -> REQUIRED
+                }
+                FunctionSemantics.AddAndConfigure(returnTypeClassifier.toDataTypeRefOrError(), blockRequirement)
             }
 
             function.annotations.any { it is Configuring } -> {
