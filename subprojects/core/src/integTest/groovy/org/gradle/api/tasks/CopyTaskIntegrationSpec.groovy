@@ -1655,7 +1655,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     def "duplicate detection works when . is a path segment"() {
         // FAIL
         given:
-        def source1 = file('dir1/path/file.txt').with { touch() } << 'f1'
+        def source1 = file('dir1/path/file.txt') << 'f1'
         def source2 = file('dir2/path/file.txt').with { touch() } << 'f2'
         buildScript '''
             task copy(type: Copy) {
