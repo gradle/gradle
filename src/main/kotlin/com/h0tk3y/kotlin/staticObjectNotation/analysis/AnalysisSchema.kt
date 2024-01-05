@@ -144,7 +144,9 @@ sealed interface ParameterSemantics {
 @Serializable
 sealed interface FunctionSemantics {
     @Serializable
-    sealed interface ConfigureSemantics : FunctionSemantics
+    sealed interface ConfigureSemantics : FunctionSemantics {
+        val configuredType: DataTypeRef
+    }
     @Serializable
     sealed interface NewObjectFunctionSemantics : FunctionSemantics
 
@@ -170,6 +172,9 @@ sealed interface FunctionSemantics {
                 ReturnType.UNIT -> DataType.UnitType.ref
                 ReturnType.CONFIGURED_OBJECT -> accessor.objectType
             }
+
+        override val configuredType: DataTypeRef
+            get() = if (returnType == ReturnType.CONFIGURED_OBJECT) returnValueType else accessor.objectType
     }
 
     @Serializable
@@ -179,6 +184,9 @@ sealed interface FunctionSemantics {
     ) : NewObjectFunctionSemantics, ConfigureSemantics {
         override val returnValueType: DataTypeRef
             get() = objectType
+
+        override val configuredType: DataTypeRef
+            get() = returnValueType
 
         @Serializable
         enum class ConfigureBlockRequirement {

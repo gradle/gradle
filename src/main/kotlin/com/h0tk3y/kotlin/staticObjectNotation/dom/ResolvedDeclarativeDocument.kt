@@ -22,12 +22,13 @@ interface ResolvedDeclarativeDocument : DeclarativeDocument {
     sealed interface ResolvedDocumentNode : DeclarativeDocument.DocumentNode {
         val resolution: DocumentResolution
 
-        interface ResolvedPropertyNode : DeclarativeDocument.DocumentNode.PropertyNode, ResolvedDocumentNode {
+        sealed interface ResolvedPropertyNode : DeclarativeDocument.DocumentNode.PropertyNode, ResolvedDocumentNode {
             override val value: ResolvedValueNode
             override val resolution: DocumentResolution.PropertyResolution
         }
 
-        interface ResolvedElementNode : DeclarativeDocument.DocumentNode.ElementNode, ResolvedDocumentNode {
+        sealed interface ResolvedElementNode : DeclarativeDocument.DocumentNode.ElementNode, ResolvedDocumentNode {
+            override val content: Collection<ResolvedDocumentNode>
             override val resolution: DocumentResolution.ElementResolution
             override val elementValues: Collection<ResolvedValueNode>
         }
@@ -38,11 +39,11 @@ interface ResolvedDeclarativeDocument : DeclarativeDocument {
     sealed interface ResolvedValueNode : DeclarativeDocument.ValueNode {
         val resolution: DocumentResolution.ValueResolution
 
-        interface ResolvedLiteralValueNode : DeclarativeDocument.ValueNode.LiteralValueNode, ResolvedValueNode {
+        sealed interface ResolvedLiteralValueNode : DeclarativeDocument.ValueNode.LiteralValueNode, ResolvedValueNode {
             override val resolution: DocumentResolution.ValueResolution get() = DocumentResolution.ValueResolution.LiteralValueResolved(value)
         }
 
-        interface ResolvedValueFactoryNode : DeclarativeDocument.ValueNode.ValueFactoryNode, ResolvedValueNode {
+        sealed interface ResolvedValueFactoryNode : DeclarativeDocument.ValueNode.ValueFactoryNode, ResolvedValueNode {
             override val resolution: DocumentResolution.ValueResolution.ValueFactoryResolution
             override val values: List<ResolvedValueNode>
         }

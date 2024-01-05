@@ -39,7 +39,6 @@ import kotlin.reflect.KType
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
-import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.javaMethod
 import kotlin.reflect.typeOf
 
@@ -174,13 +173,13 @@ class DefaultFunctionExtractor(
     private fun dataParameter(
         function: KFunction<*>,
         fnParam: KParameter,
-        ownerClass: KClass<*>,
+        returnClass: KClass<*>,
         functionSemantics: FunctionSemantics,
         preIndex: DataSchemaBuilder.PreIndex
     ): DataParameter {
         val paramType = fnParam.type
         checkInScope(paramType, preIndex)
-        val paramSemantics = getParameterSemantics(functionSemantics, function, fnParam, ownerClass, preIndex)
+        val paramSemantics = getParameterSemantics(functionSemantics, function, fnParam, returnClass, preIndex)
         return DataParameter(fnParam.name, paramType.toDataTypeRefOrError(), fnParam.isOptional, paramSemantics)
     }
 
@@ -188,7 +187,7 @@ class DefaultFunctionExtractor(
         functionSemantics: FunctionSemantics,
         function: KFunction<*>,
         fnParam: KParameter,
-        ownerClass: KClass<*>,
+        returnClass: KClass<*>,
         preIndex: DataSchemaBuilder.PreIndex
     ): ParameterSemantics {
         val propertyNamesToCheck = buildList {
@@ -197,13 +196,9 @@ class DefaultFunctionExtractor(
         }
         propertyNamesToCheck.forEach { propertyName ->
             val isPropertyLike =
-                ownerClass.memberProperties.any {
-                    it.visibility == KVisibility.PUBLIC &&
-                        it.name == propertyName &&
-                        it.returnType == fnParam.type
-                }
+                preIndex.getAllProperties(returnClass).any { it.name == propertyName }
             if (isPropertyLike) {
-                val storeProperty = checkNotNull(preIndex.getProperty(ownerClass, propertyName))
+                val storeProperty = checkNotNull(preIndex.getProperty(returnClass, propertyName))
                 return ParameterSemantics.StoreValueInProperty(storeProperty)
             }
         }

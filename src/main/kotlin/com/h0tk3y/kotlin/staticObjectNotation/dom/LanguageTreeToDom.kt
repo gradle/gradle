@@ -182,3 +182,18 @@ private class LanguageTreeBackedDocument(
         ) : DeclarativeDocument.ValueNode.ValueFactoryNode, ExprBackedValueNode
     }
 }
+
+internal fun DeclarativeDocument.topLevelBlock(): Block = when (this) {
+    is LanguageTreeBackedDocument -> block
+    else -> throw IllegalStateException("cannot run document resolution with documents not produced from restricted DSL")
+}
+
+internal fun DeclarativeDocument.DocumentNode.statement(): DataStatement = when (this) {
+    is LanguageTreeBackedDocument.StatementBackedDocumentNode -> statement
+    else -> throw IllegalStateException("cannot run document resolution with documents not produced from restricted DSL")
+}
+
+internal fun DeclarativeDocument.ValueNode.expr(): Expr = when (this) {
+    is LanguageTreeBackedDocument.ExprBackedValueNode -> expr
+    else -> throw IllegalStateException("cannot run document resolution with documents not produced from restricted DSL")
+}

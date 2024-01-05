@@ -28,7 +28,7 @@ sealed interface DocumentResolution {
     }
 
     sealed interface PropertyResolution : DocumentResolution {
-        data class PropertyAssignment(val property: DataProperty) : PropertyResolution, SuccessfulResolution
+        data class PropertyAssignmentResolved(val receiverType: DataType, val property: DataProperty) : PropertyResolution, SuccessfulResolution
         data class PropertyNotAssigned(override val reasons: List<PropertyNotAssignedReason>) : PropertyResolution, UnsuccessfulResolution
     }
 
@@ -36,27 +36,31 @@ sealed interface DocumentResolution {
         sealed interface SuccessfulElementResolution : ElementResolution, SuccessfulResolution {
             val elementType: DataType.DataClass
 
-            data class PropertyConfiguringElementResolution(
+            data class PropertyConfiguringElementResolved(
                 override val elementType: DataType.DataClass
             ) : SuccessfulElementResolution
 
-            data class ContainerElementResolution(
+            data class ContainerElementResolved(
                 override val elementType: DataType.DataClass,
                 val elementFactoryFunction: SchemaMemberFunction,
-                val isKeyValues: List<Boolean>
+                val isKeyArguments: Boolean
             ) : SuccessfulElementResolution
         }
 
-        data class ElementNotResolved(override val reasons: List<PropertyNotAssignedReason>) : ElementResolution, UnsuccessfulResolution
+        data class ElementNotResolved(override val reasons: List<ElementNotResolvedReason>) : ElementResolution, UnsuccessfulResolution
+    }
+
+    data object ErrorResolution : DocumentResolution, UnsuccessfulResolution {
+        override val reasons: Iterable<ResolutionFailureReason> get() = listOf(IsError)
     }
 
     sealed interface ValueResolution : DocumentResolution {
         data class LiteralValueResolved(val value: Any) : ValueResolution, SuccessfulResolution
-        data class ValueNotResolved(override val reasons: List<ValueNotResolvedReason>) : ValueResolution, UnsuccessfulResolution
 
         sealed interface ValueFactoryResolution : ValueResolution {
             data class ValueFactoryResolved(val function: SchemaFunction) : ValueFactoryResolution, SuccessfulResolution
             data class ValueFactoryNotResolved(override val reasons: List<ValueFactoryNotResolvedReason>) : ValueFactoryResolution, UnsuccessfulResolution
         }
     }
+
 }

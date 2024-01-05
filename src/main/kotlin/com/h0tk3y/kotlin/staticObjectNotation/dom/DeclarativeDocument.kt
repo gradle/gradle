@@ -44,7 +44,6 @@ interface DeclarativeDocument {
         sealed interface ValueFactoryNode : ValueNode {
             val factoryName: String
             val values: List<ValueNode> // TODO: restrict to a single value? or even a single literal?
-            // TODO: support functions with receivers?
         }
     }
 }

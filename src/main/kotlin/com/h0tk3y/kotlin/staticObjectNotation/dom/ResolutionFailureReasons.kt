@@ -30,8 +30,16 @@ data object UnresolvedValueUsed : ValueNotResolvedReason, PropertyNotAssignedRea
 
 data object ValueTypeMismatch : PropertyNotAssignedReason
 
+data object BlockMismatch : ElementNotResolvedReason, ValueFactoryNotResolvedReason
+
 data object UnresolvedSignature : ElementNotResolvedReason, ValueFactoryNotResolvedReason
 
 data object UnresolvedName : PropertyNotAssignedReason, ElementNotResolvedReason, ValueFactoryNotResolvedReason
+
+data object NotAssignable : PropertyNotAssignedReason
+
+data object AmbiguousName : ElementNotResolvedReason, ValueFactoryNotResolvedReason
+
+data object IsError : ElementNotResolvedReason, ValueFactoryNotResolvedReason
 
 data object UnresolvedBase : PropertyNotAssignedReason, ElementNotResolvedReason, ValueFactoryNotResolvedReason

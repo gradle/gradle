@@ -33,7 +33,7 @@ internal fun KClassifier.toDataTypeRef(): DataTypeRef =
         String::class -> DataType.StringDataType.ref
         Boolean::class -> DataType.BooleanDataType.ref
         Long::class -> DataType.LongDataType.ref
-        is KClass<*> -> DataTypeRef.Name(FqName.parse(java.name))
+        is KClass<*> -> DataTypeRef.Name(FqName.parse(checkNotNull(qualifiedName)))
         else -> error("unexpected type")
     }
 

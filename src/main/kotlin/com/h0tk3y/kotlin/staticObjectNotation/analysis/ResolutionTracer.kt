@@ -16,7 +16,9 @@
 
 package com.h0tk3y.kotlin.staticObjectNotation.analysis
 
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionTrace.ValueWithErrors
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionTrace.ResolutionOrErrors.Errors
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionTrace.ResolutionOrErrors.NoResolution
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionTrace.ResolutionOrErrors.Resolution
 import com.h0tk3y.kotlin.staticObjectNotation.language.Assignment
 import com.h0tk3y.kotlin.staticObjectNotation.language.Expr
 import com.h0tk3y.kotlin.staticObjectNotation.language.LanguageTreeElement
@@ -24,10 +26,14 @@ import com.h0tk3y.kotlin.staticObjectNotation.language.LocalValue
 import com.strumenta.kotlinmultiplatform.IdentityHashMap
 
 interface ResolutionTrace {
-    data class ValueWithErrors<R>(val result: R?, val errors: List<ResolutionError>?)
+    sealed interface ResolutionOrErrors<out R> {
+        data class Resolution<R>(val result: R) : ResolutionOrErrors<R>
+        data class Errors(val errors: List<ResolutionError>) : ResolutionOrErrors<Nothing>
+        data object NoResolution : ResolutionOrErrors<Nothing>
+    }
 
-    fun assignmentResolution(assignment: Assignment): ValueWithErrors<AssignmentRecord>
-    fun expressionResolution(expr: Expr): ValueWithErrors<ObjectOrigin>
+    fun assignmentResolution(assignment: Assignment): ResolutionOrErrors<AssignmentRecord>
+    fun expressionResolution(expr: Expr): ResolutionOrErrors<ObjectOrigin>
 }
 
 internal class ResolutionTracer(
@@ -40,17 +46,21 @@ internal class ResolutionTracer(
     private val expressionResolution = IdentityHashMap<Expr, ObjectOrigin>()
     private val elementErrors = IdentityHashMap<LanguageTreeElement, MutableList<ResolutionError>>()
 
-    override fun assignmentResolution(assignment: Assignment): ValueWithErrors<AssignmentRecord> {
-        val result = assignmentResolutions[assignment]
-        val errors = elementErrors[assignment]
-        return ValueWithErrors(result, errors)
-    }
+    override fun assignmentResolution(assignment: Assignment): ResolutionTrace.ResolutionOrErrors<AssignmentRecord> =
+        assignmentResolutions[assignment]?.let { resolution ->
+            check(assignment !in elementErrors)
+            Resolution(resolution)
+        } ?: elementErrors[assignment]?.let {errors ->
+            Errors(errors)
+        } ?: NoResolution
 
-    override fun expressionResolution(expr: Expr): ValueWithErrors<ObjectOrigin> {
-        val result = expressionResolution[expr]
-        val errors = elementErrors[expr]
-        return ValueWithErrors(result, errors)
-    }
+    override fun expressionResolution(expr: Expr): ResolutionTrace.ResolutionOrErrors<ObjectOrigin> =
+        expressionResolution[expr]?.let { resolution ->
+            check(expr !in elementErrors)
+            Resolution(resolution)
+        } ?: elementErrors[expr]?.let { errors ->
+            Errors(errors)
+        } ?: NoResolution
 
     override fun doResolveExpression(context: AnalysisContext, expr: Expr): ObjectOrigin? {
         val result = expressionResolver.doResolveExpression(context, expr)
@@ -73,8 +83,6 @@ internal class ResolutionTracer(
 
     override fun doResolveExpressionStatement(context: AnalysisContext, expr: Expr) =
         statementResolver.doResolveExpressionStatement(context, expr)
-
-    private data class ResultWithErrors<R>(val result: R, val errors: IntRange?)
 
     override fun collect(error: ResolutionError) {
         elementErrors.getOrPut(error.element) { mutableListOf() }.add(error)
