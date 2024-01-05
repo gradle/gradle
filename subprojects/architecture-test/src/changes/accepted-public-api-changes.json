@@ -99,6 +99,14 @@
             "changes": [
                 "Method now provides default implementation"
             ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4xzlmchnjfhf5wwk67zexqao1Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4xzlmchnjfhf5wwk67zexqao1Kt.registerIfAbsent(org.gradle.api.services.BuildServiceRegistry,java.lang.String,kotlin.reflect.KClass)",
+            "acceptation": "Add new default method without action",
+            "changes": [
+                "Method added to public class"
+            ]
         }
     ]
 }
