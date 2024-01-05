@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.Describable;
 import org.gradle.api.file.FileCopyDetails;
 
-public interface FileCopyDetailsInternal extends FileCopyDetails, Describable {
+public interface FileCopyDetailsInternal extends FileCopyDetails {
 
     boolean isDefaultDuplicatesStrategy();
 
