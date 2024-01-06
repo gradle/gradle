@@ -61,14 +61,23 @@ class AndroidStudioSystemProperties(
 
     override fun asArguments(): Iterable<String> {
         val systemProperties = mutableListOf<String>()
+        var isStudioHomeProvided = false
+
         if (autoDownloadAndroidStudio) {
             val androidStudioPath = studioInstallation.studioInstallLocation.asFile.get().absolutePath
             systemProperties.add("-Dstudio.home=$androidStudioPath")
+            isStudioHomeProvided = true
         } else {
             if (androidStudioHome.isPresent) {
                 systemProperties.add("-Dstudio.home=${androidStudioHome.get()}")
+                isStudioHomeProvided = true
             }
         }
+
+        if (!isStudioHomeProvided) {
+            throw IllegalArgumentException("Android Studio home must be provided either auto downloading must be enabled")
+        }
+
         if (runAndroidStudioInHeadlessMode) {
             systemProperties.add("-Dstudio.tests.headless=true")
         }
