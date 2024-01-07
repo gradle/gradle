@@ -65,7 +65,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.artifacts.Module;
-import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
@@ -690,7 +689,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      * Must be called from {@link #resolveExclusivelyIfRequired} only.
      */
     private ResolverResults resolveGraphInBuildOperation() {
-        return buildOperationExecutor.call(new CallableBuildOperation<ResolveState>() {
+        return buildOperationExecutor.call(new CallableBuildOperation<ResolverResults>() {
             @Override
             public ResolverResults call(BuildOperationContext context) {
                 runDependencyActions();
@@ -1039,22 +1038,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 parsedExcludeRules.add(parser.parseNotation(excludeRule));
             }
         }
-    }
-
-    /**
-     * Adds exclude rules to this configuration.
-     * <p>
-     * Usage: This method should only be called on resolvable or declarable configurations and should throw an exception if
-     * called on a configuration that does not permit this usage.
-     *
-     * @param excludeRules the exclude rules to add.
-     */
-    public void setExcludeRules(Set<ExcludeRule> excludeRules) {
-        warnOnInvalidInternalAPIUsage("setExcludeRules(Set)", ProperMethodUsage.DECLARABLE_AGAINST, ProperMethodUsage.RESOLVABLE);
-        validateMutation(MutationType.DEPENDENCIES);
-        parsedExcludeRules = null;
-        this.excludeRules.clear();
-        this.excludeRules.addAll(excludeRules);
     }
 
     @Override
