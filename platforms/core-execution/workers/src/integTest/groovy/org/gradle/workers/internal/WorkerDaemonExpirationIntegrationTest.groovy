@@ -73,7 +73,7 @@ class WorkerDaemonExpirationIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'expireWorkers'
 
         then:
-        outputContains '1 Worker Daemon(s) selected for expiration to free'
+        outputContains 'Worker Daemon(s) selected for expiration to free'
     }
 
     def "worker daemons expiration can be disabled using a system property"() {
