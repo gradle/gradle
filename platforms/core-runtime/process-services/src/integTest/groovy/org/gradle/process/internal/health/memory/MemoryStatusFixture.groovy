@@ -30,23 +30,31 @@ trait MemoryStatusFixture {
                     final CountDownLatch jvmNotification = new CountDownLatch(1)
 
                     MemoryManager manager = services.get(MemoryManager.class)
-                    manager.addListener(new JvmMemoryStatusListener() {
+                    def jvmListener = new JvmMemoryStatusListener() {
                         void onJvmMemoryStatus(JvmMemoryStatus memoryStatus) {
                             projectDir.file("jvmReceived").asFile.createNewFile()
                             jvmNotification.countDown()
                             logger.lifecycle "JVM MemoryStatus notification: $memoryStatus"
                         }
-                    })
-                    manager.addListener(new OsMemoryStatusListener() {
+                    }
+
+                    def osListener = new OsMemoryStatusListener() {
                         void onOsMemoryStatus(OsMemoryStatus memoryStatus) {
                             projectDir.file("osReceived").asFile.createNewFile()
                             osNotification.countDown()
                             logger.lifecycle "OS MemoryStatus notification: $memoryStatus"
                         }
-                    })
+                    }
+
+                    manager.addListener(jvmListener)
+                    manager.addListener(osListener)
+
                     logger.warn "Waiting for memory status events..."
                     osNotification.await()
                     jvmNotification.await()
+
+                    manager.removeListener(jvmListener)
+                    manager.removeListener(osListener)
                 }
             }
         ''').stripIndent()
