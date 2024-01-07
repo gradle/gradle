@@ -51,11 +51,7 @@ public class WorkerDaemonFactory implements WorkerFactory {
 
             private WorkerDaemonClient reserveClient() {
                 DaemonForkOptions forkOptions = ((ForkedWorkerRequirement) workerRequirement).getForkOptions();
-                WorkerDaemonClient client = clientsManager.reserveIdleClient(forkOptions);
-                if (client == null) {
-                    client = clientsManager.reserveNewClient(forkOptions);
-                }
-                return client;
+                return clientsManager.reserveIdleOrStartNewClient(forkOptions);
             }
         };
     }

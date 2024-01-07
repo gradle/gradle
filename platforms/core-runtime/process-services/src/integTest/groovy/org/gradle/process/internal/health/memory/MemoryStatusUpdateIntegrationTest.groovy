@@ -19,7 +19,7 @@ package org.gradle.process.internal.health.memory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 
-class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
+class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec implements MemoryStatusFixture {
 
     @IntegrationTestTimeout(60)
     def "can register a listener for JVM and OS memory status update events"() {
@@ -32,40 +32,5 @@ class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
         then:
         file("jvmReceived").exists()
         file("osReceived").exists()
-    }
-
-    private static String waitForMemoryEventsTask() {
-        return groovyScript('''
-            import java.util.concurrent.CountDownLatch
-            import org.gradle.process.internal.health.memory.*
-
-            task waitForMemoryEvents {
-                def projectDir = project.layout.projectDirectory
-                def logger = logger
-                doLast {
-                    final CountDownLatch osNotification = new CountDownLatch(1)
-                    final CountDownLatch jvmNotification = new CountDownLatch(1)
-
-                    MemoryManager manager = services.get(MemoryManager.class)
-                    manager.addListener(new JvmMemoryStatusListener() {
-                        void onJvmMemoryStatus(JvmMemoryStatus memoryStatus) {
-                            logger.lifecycle "JVM MemoryStatus notification: $memoryStatus"
-                            projectDir.file("jvmReceived").asFile.createNewFile()
-                            jvmNotification.countDown()
-                        }
-                    })
-                    manager.addListener(new OsMemoryStatusListener() {
-                        void onOsMemoryStatus(OsMemoryStatus memoryStatus) {
-                            logger.lifecycle "OS MemoryStatus notification: $memoryStatus"
-                            projectDir.file("osReceived").asFile.createNewFile()
-                            osNotification.countDown()
-                        }
-                    })
-                    logger.warn "Waiting for memory status events..."
-                    osNotification.await()
-                    jvmNotification.await()
-                }
-            }
-        ''').stripIndent()
     }
 }

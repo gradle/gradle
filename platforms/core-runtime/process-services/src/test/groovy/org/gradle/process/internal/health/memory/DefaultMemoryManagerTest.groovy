@@ -16,6 +16,8 @@
 
 package org.gradle.process.internal.health.memory
 
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.event.ListenerManager
@@ -281,6 +283,44 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
         new Exception()        | _
         new RuntimeException() | _
         new Error()            | _
+    }
+
+    def "can get diagnostics"() {
+        given:
+        def memoryManager = newMemoryManager()
+        def memoryHolder = Mock(MemoryHolder)
+        memoryManager.addMemoryHolder(memoryHolder)
+        osMemoryInfo.freeMemory =  MemoryAmount.of('2g').bytes
+        osMemoryStatusListener.onOsMemoryStatus(osMemoryInfo.getOsSnapshot())
+
+        when:
+        def json = JsonOutput.toJson(memoryManager.getDiagnostics())
+
+        then:
+        1 * memoryHolder.getDiagnostics() >> [name: "Mock memory holder"]
+
+        and:
+        println JsonOutput.prettyPrint(json)
+        JsonSlurper slurper = new JsonSlurper()
+        slurper.parseText(json) == slurper.parseText("""
+            {
+                "Min free physical memory": "2048.00m",
+                "OS memory status supported": true,
+                "Current OS memory status": {
+                    "physical memory": {
+                        "total memory": "8192.00m",
+                        "free memory": "2048.00m"
+                    },
+                    "virtual memory": "unavailable"
+                },
+                "Memory holder count": 1,
+                "Memory holders": [
+                    {
+                        "name": "Mock memory holder"
+                    }
+                ]
+            }
+        """)
     }
 
     private static class TestOsMemoryInfo implements OsMemoryInfo {

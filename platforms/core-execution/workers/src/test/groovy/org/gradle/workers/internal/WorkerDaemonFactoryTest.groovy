@@ -48,30 +48,12 @@ class WorkerDaemonFactoryTest extends Specification {
         0 * clientsManager._
     }
 
-    def "new client is created when daemon is executed and no idle clients found"() {
+    def "new client is reserved when daemon is executed"() {
         when:
         factory.getWorker(requirement).execute(spec)
 
         then:
-        1 * clientsManager.reserveIdleClient(options) >> null
-
-        then:
-        1 * clientsManager.reserveNewClient(options) >> client
-
-        then:
-        1 * buildOperationExecutor.call(_) >> { args -> args[0].call(Stub(BuildOperationContext)) }
-        1 * client.execute(spec) >> new DefaultWorkResult(true, null)
-
-        then:
-        1 * clientsManager.release(client)
-    }
-
-    def "idle client is reused when daemon is executed"() {
-        when:
-        factory.getWorker(requirement).execute(spec)
-
-        then:
-        1 * clientsManager.reserveIdleClient(options) >> client
+        1 * clientsManager.reserveIdleOrStartNewClient(options) >> client
 
         then:
         1 * buildOperationExecutor.call(_) >> { args -> args[0].call(Stub(BuildOperationContext)) }
@@ -86,7 +68,7 @@ class WorkerDaemonFactoryTest extends Specification {
         factory.getWorker(requirement).execute(spec)
 
         then:
-        1 * clientsManager.reserveIdleClient(options) >> client
+        1 * clientsManager.reserveIdleOrStartNewClient(options) >> client
 
         then:
         1 * buildOperationExecutor.call(_) >> { args -> args[0].call() }
@@ -102,7 +84,7 @@ class WorkerDaemonFactoryTest extends Specification {
         factory.getWorker(requirement).execute(spec)
 
         then:
-        1 * clientsManager.reserveIdleClient(options) >> client
+        1 * clientsManager.reserveIdleOrStartNewClient(options) >> client
         1 * buildOperationExecutor.call(_)
     }
 
@@ -111,7 +93,7 @@ class WorkerDaemonFactoryTest extends Specification {
         factory.getWorker(requirement).execute(spec)
 
         then:
-        1 * clientsManager.reserveIdleClient(options) >> client
+        1 * clientsManager.reserveIdleOrStartNewClient(options) >> client
         1 * buildOperationExecutor.call(_) >> { args -> args[0].call() }
         1 * client.execute(spec) >> { throw new RuntimeException("Boo!") }
 

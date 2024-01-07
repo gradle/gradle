@@ -16,6 +16,8 @@
 
 package org.gradle.process.internal.health.memory;
 
+import java.util.Map;
+
 /**
  * Memory holder.
  */
@@ -30,4 +32,5 @@ public interface MemoryHolder {
      */
     long attemptToRelease(long memoryAmountBytes) throws IllegalArgumentException;
 
+    Map<String, ?> getDiagnostics();
 }

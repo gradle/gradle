@@ -16,24 +16,29 @@
 
 package org.gradle.workers.internal
 
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 import org.gradle.api.logging.LogLevel
+import org.gradle.process.internal.health.memory.JvmMemoryStatus
+import org.gradle.process.internal.health.memory.MemoryAmount
 import org.gradle.process.internal.worker.MultiRequestClient
+import org.gradle.process.internal.worker.WorkerProcess
 import org.gradle.workers.WorkAction
 import org.gradle.workers.WorkParameters
 import spock.lang.Specification
 
 class WorkerDaemonClientTest extends Specification {
     def "underlying worker is executed when client is executed"() {
-        def workerDaemonProcess = Mock(MultiRequestClient)
+        def multiRequestClient = Mock(MultiRequestClient)
 
         given:
-        def client = client(workerDaemonProcess)
+        def client = client(multiRequestClient)
 
         when:
         client.execute(spec())
 
         then:
-        1 * workerDaemonProcess.run(_)
+        1 * multiRequestClient.run(_)
     }
 
     def "use count is incremented when client is executed"() {
@@ -48,17 +53,55 @@ class WorkerDaemonClientTest extends Specification {
         client.uses == 5
     }
 
+    def "can capture diagnostics"() {
+        given:
+        def jvmMemoryStatus = Mock(JvmMemoryStatus) {
+            _ * getMaxMemory() >> MemoryAmount.of('1g').bytes
+            _ * getCommittedMemory() >> MemoryAmount.of('2g').bytes
+        }
+        def workerDaemonProcess = Mock(WorkerProcess) {
+            _ * getDisplayName() >> "worker 1"
+            _ * getJvmMemoryStatus() >> jvmMemoryStatus
+        }
+        def multiRequestClient = Mock(MultiRequestClient) {
+            1 * start() >> workerDaemonProcess
+        }
+        def client = client(multiRequestClient)
+
+        when:
+        def json = JsonOutput.toJson(client.getDiagnostics())
+
+        then:
+        println JsonOutput.prettyPrint(json)
+        JsonSlurper slurper = new JsonSlurper()
+        slurper.parseText(json) == slurper.parseText("""
+            {
+                "name": "worker 1",
+                "use count": 0,
+                "can be expired": true,
+                "has failed": false,
+                "keep alive mode": "DAEMON",
+                "jvm memory status": {
+                    "current max heap size": "1024.00m",
+                    "committed heap size": "2048.00m"
+                }
+            }
+        """)
+    }
+
     WorkerDaemonClient client() {
         return client(Mock(MultiRequestClient))
     }
 
-    WorkerDaemonClient client(MultiRequestClient workerDaemonProcess) {
-        def daemonForkOptions = Mock(DaemonForkOptions)
+    WorkerDaemonClient client(MultiRequestClient multiRequestClient) {
+        def daemonForkOptions = Mock(DaemonForkOptions) {
+            _ * getKeepAliveMode() >> KeepAliveMode.DAEMON
+        }
         def actionExecutionSpecFactory = Stub(ActionExecutionSpecFactory) {
             newTransportableSpec(_) >> { Mock(TransportableActionExecutionSpec) }
         }
-        def workerProcess = workerDaemonProcess.start()
-        return new WorkerDaemonClient(daemonForkOptions, workerDaemonProcess, workerProcess, LogLevel.INFO, actionExecutionSpecFactory)
+        def workerProcess = multiRequestClient.start()
+        return new WorkerDaemonClient(daemonForkOptions, multiRequestClient, workerProcess, LogLevel.INFO, actionExecutionSpecFactory)
     }
 
     def spec() {

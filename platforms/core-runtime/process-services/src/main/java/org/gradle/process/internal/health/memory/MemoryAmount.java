@@ -111,6 +111,10 @@ public class MemoryAmount {
         return notation;
     }
 
+    public String toMegaBytes() {
+        return String.format("%.2fm", bytes / (double) MEGA_FACTOR);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

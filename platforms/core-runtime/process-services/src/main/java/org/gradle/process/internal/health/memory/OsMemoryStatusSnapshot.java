@@ -67,6 +67,6 @@ public class OsMemoryStatusSnapshot implements OsMemoryStatus {
 
     @Override
     public String toString() {
-        return "OS memory {" + physicalMemory + ", " + virtualMemory + '}';
+        return "OS memory {\n\t" + physicalMemory + ",\n\t" + virtualMemory + "\n}";
     }
 }

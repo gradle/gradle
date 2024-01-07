@@ -16,13 +16,18 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.api.Describable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
+import org.gradle.process.internal.health.memory.MemoryAmount;
 import org.gradle.process.internal.worker.MultiRequestClient;
 import org.gradle.process.internal.worker.WorkerProcess;
 
-class WorkerDaemonClient implements Stoppable {
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+class WorkerDaemonClient implements Stoppable, Describable {
     public static final String DISABLE_EXPIRATION_PROPERTY_KEY = "org.gradle.workers.internal.disable-daemons-expiration";
     private final DaemonForkOptions forkOptions;
     private final MultiRequestClient<TransportableActionExecutionSpec, DefaultWorkResult> workerClient;
@@ -31,7 +36,7 @@ class WorkerDaemonClient implements Stoppable {
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
     private int uses;
     private boolean failed;
-    private boolean cannotBeExpired = Boolean.getBoolean(DISABLE_EXPIRATION_PROPERTY_KEY);
+    private final boolean cannotBeExpired = Boolean.getBoolean(DISABLE_EXPIRATION_PROPERTY_KEY);
 
     public WorkerDaemonClient(DaemonForkOptions forkOptions, MultiRequestClient<TransportableActionExecutionSpec, DefaultWorkResult> workerClient, WorkerProcess workerProcess, LogLevel logLevel, ActionExecutionSpecFactory actionExecutionSpecFactory) {
         this.forkOptions = forkOptions;
@@ -92,6 +97,11 @@ class WorkerDaemonClient implements Stoppable {
     }
 
     @Override
+    public String getDisplayName() {
+        return workerProcess.getDisplayName();
+    }
+
+    @Override
     public String toString() {
         return "WorkerDaemonClient{" +
             " log level=" + logLevel +
@@ -101,5 +111,29 @@ class WorkerDaemonClient implements Stoppable {
             ", workerProcess=" + workerProcess +
             ", forkOptions=" + forkOptions +
             '}';
+    }
+
+    Map<String, ?> getDiagnostics() {
+        Map<String, Object> diagnostics = new LinkedHashMap<>();
+        diagnostics.put("name", workerProcess.getDisplayName());
+        diagnostics.put("use count", uses);
+        diagnostics.put("can be expired", !cannotBeExpired);
+        diagnostics.put("has failed", failed);
+        diagnostics.put("keep alive mode", forkOptions.getKeepAliveMode().name());
+        diagnostics.put("jvm memory status", getJvmMemoryStatusDiagnostics(getJvmMemoryStatus()));
+        return diagnostics;
+    }
+
+    private static Map<String, ?> getJvmMemoryStatusDiagnostics(JvmMemoryStatus jvmMemoryStatus) {
+        Map<String, Object> diagnostics = new LinkedHashMap<>();
+        try {
+            diagnostics.put("current max heap size", MemoryAmount.of(jvmMemoryStatus.getMaxMemory()).toMegaBytes());
+            diagnostics.put("committed heap size", MemoryAmount.of(jvmMemoryStatus.getCommittedMemory()).toMegaBytes());
+        } catch (IllegalStateException e) {
+            diagnostics.put("current max heap size", "unavailable");
+            diagnostics.put("committed heap size", "unavailable");
+        }
+        return diagnostics;
+
     }
 }

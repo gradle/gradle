@@ -16,7 +16,9 @@
 
 package org.gradle.process.internal.worker;
 
+import groovy.json.JsonOutput;
 import org.gradle.api.Action;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.jvm.Jvm;
@@ -28,6 +30,7 @@ import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
+import org.gradle.process.internal.ExecHandleListener;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
@@ -237,6 +240,9 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         if (javaCommand.getMaxHeapSize() == null) {
             javaCommand.setMaxHeapSize("512m");
         }
+
+        javaCommand.listener(new DiagnosticsOnKilledProcess(displayName, memoryManager));
+
         ExecHandle execHandle = javaCommand.build();
 
         workerProcess.setExecHandle(execHandle);
@@ -280,6 +286,19 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         public void stopNow() {
             delegate.stopNow();
         }
+
+        @Override
+        public String getDisplayName() {
+            return delegate.getDisplayName();
+        }
+
+        @Override
+        public String toString() {
+            return "MemoryRequestingWorkerProcess{" +
+                "delegate=" + delegate +
+                ", memoryAmount=" + memoryAmount +
+                '}';
+        }
     }
 
     private static class WorkerJvmMemoryStatus implements JvmMemoryStatus, WorkerJvmMemoryInfoProtocol {
@@ -295,6 +314,11 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
                 @Override
                 public long getCommittedMemory() {
                     throw new IllegalStateException("JVM memory status has not been reported yet.");
+                }
+
+                @Override
+                public String toString() {
+                    return "JVM Memory Status unavailable";
                 }
             };
         }
@@ -312,6 +336,48 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         @Override
         public long getCommittedMemory() {
             return snapshot.getCommittedMemory();
+        }
+
+        @Override
+        public String toString() {
+            return "WorkerJvmMemoryStatus{" +
+                "snapshot=" + snapshot +
+                '}';
+        }
+    }
+
+    @NonNullApi
+    private static class DiagnosticsOnKilledProcess implements ExecHandleListener {
+        Logger logger = WorkerDiagnosticsLogging.getLogger(DiagnosticsOnKilledProcess.class);
+        private final String displayName;
+        private final MemoryManager memoryManager;
+
+        public DiagnosticsOnKilledProcess(String displayName, MemoryManager memoryManager) {
+            this.displayName = displayName;
+            this.memoryManager = memoryManager;
+        }
+
+        @Override
+        public void beforeExecutionStarted(ExecHandle execHandle) {
+
+        }
+
+        @Override
+        public void executionStarted(ExecHandle execHandle) {
+
+        }
+
+        @Override
+        public void executionFinished(ExecHandle execHandle, ExecResult execResult) {
+            if (WorkerDiagnosticsLogging.isWorkerDiagnosticsEnabled() && execResult.getExitValue() > 127) {
+                logger.warn("Process '{}' finished with exit value {} (killed by signal {})", displayName, execResult.getExitValue(), execResult.getExitValue() - 128);
+
+                try {
+                    logger.warn(JsonOutput.prettyPrint(JsonOutput.toJson(memoryManager.getDiagnostics())));
+                } catch (Exception e) {
+                    logger.warn("Could not capture memory diagnostics because of an exception", e);
+                }
+            }
         }
     }
 }

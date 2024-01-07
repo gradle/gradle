@@ -26,7 +26,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultMemoryManager implements MemoryManager, Stoppable {
@@ -214,5 +216,51 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     @Override
     public void removeListener(OsMemoryStatusListener listener) {
         listenerManager.removeListener(listener);
+    }
+
+    @Override
+    public Map<String, ?> getDiagnostics() {
+        Map<String, Object> diagnostics = new LinkedHashMap<String, Object>();
+
+        if (currentOsMemoryStatus != null) {
+            diagnostics.put("Min free physical memory", MemoryAmount.of(getMemoryThresholdInBytes(currentOsMemoryStatus.getPhysicalMemory().getTotal())).toMegaBytes());
+            if (currentOsMemoryStatus.getVirtualMemory() instanceof OsMemoryStatusAspect.Available) {
+                diagnostics.put("Min free virtual memory", MemoryAmount.of(getMemoryThresholdInBytes(((OsMemoryStatusAspect.Available) currentOsMemoryStatus.getVirtualMemory()).getTotal())).toMegaBytes());
+            }
+        } else {
+            diagnostics.put("Min free physical memory",  "unavailable");
+            diagnostics.put("Min free virtual memory", "unavailable");
+        }
+        diagnostics.put("OS memory status supported", osMemoryStatusSupported);
+        if (currentOsMemoryStatus != null) {
+            diagnostics.put("Current OS memory status", getOSMemoryStatusDiagnostics(currentOsMemoryStatus));
+        } else {
+            diagnostics.put("Current OS memory status", "unavailable");
+        }
+        diagnostics.put("Memory holder count", holders.size());
+        List<Map<String, ?>> holderDiagnostics = new ArrayList<Map<String, ?>>();
+        for (MemoryHolder holder : holders) {
+            holderDiagnostics.add(holder.getDiagnostics());
+        }
+        diagnostics.put("Memory holders", holderDiagnostics);
+        return diagnostics;
+    }
+
+    private static Map<String, ?> getOSMemoryStatusDiagnostics(OsMemoryStatus osMemoryStatus) {
+        Map<String, Object> diagnostics = new LinkedHashMap<String, Object>();
+        diagnostics.put("physical memory", getOsMemoryStatusAspectDiagnostics(osMemoryStatus.getPhysicalMemory()));
+        if (osMemoryStatus.getVirtualMemory() instanceof OsMemoryStatusAspect.Available) {
+            diagnostics.put("virtual memory", getOsMemoryStatusAspectDiagnostics((OsMemoryStatusAspect.Available)osMemoryStatus.getVirtualMemory()));
+        } else {
+            diagnostics.put("virtual memory", "unavailable");
+        }
+        return diagnostics;
+    }
+
+    private static Map<String, ?> getOsMemoryStatusAspectDiagnostics(OsMemoryStatusAspect.Available aspect) {
+        Map<String, Object> diagnostics = new LinkedHashMap<String, Object>();
+        diagnostics.put("total memory", MemoryAmount.of(aspect.getTotal()).toMegaBytes());
+        diagnostics.put("free memory", MemoryAmount.of(aspect.getFree()).toMegaBytes());
+        return diagnostics;
     }
 }

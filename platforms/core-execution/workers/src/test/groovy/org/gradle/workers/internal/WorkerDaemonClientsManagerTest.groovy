@@ -16,6 +16,8 @@
 
 package org.gradle.workers.internal
 
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 import org.gradle.api.Transformer
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.session.BuildSessionLifecycleListener
@@ -303,5 +305,39 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
 
         then:
         1 * memoryManager.removeMemoryHolder(_) >> { args -> assert args[0] == workerDaemonExpiration }
+    }
+
+    def "can capture diagnostics"() {
+        def client1 = Mock(WorkerDaemonClient) {_ * getDiagnostics() >> [ name: "worker 1" ] }
+        def client2 = Mock(WorkerDaemonClient) {_ * getDiagnostics() >> [ name: "worker 2" ] }
+        def client3 = Mock(WorkerDaemonClient) {_ * getDiagnostics() >> [ name: "worker 3" ] }
+        starter.startDaemon(options, _) >>> [client1, client2, client3]
+        3.times { manager.reserveNewClient(options) }
+        manager.release(client3)
+
+        when:
+        def json = JsonOutput.toJson(manager.getDiagnostics())
+
+        then:
+        println JsonOutput.prettyPrint(json)
+        JsonSlurper slurper = new JsonSlurper()
+        slurper.parseText(json) == slurper.parseText("""
+            {
+                "name": "WorkerDaemonClientManager",
+                "allClients count": 3,
+                "idleClients count": 1,
+                "worker daemons": [
+                    {
+                        "name": "worker 3"
+                    },
+                    {
+                        "name": "worker 2"
+                    },
+                    {
+                        "name": "worker 1"
+                    }
+                ]
+            }
+        """)
     }
 }

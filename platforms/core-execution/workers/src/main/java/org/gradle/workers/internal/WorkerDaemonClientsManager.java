@@ -32,18 +32,25 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.session.BuildSessionLifecycleListener;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.OsMemoryInfo;
+import org.gradle.process.internal.worker.WorkerDiagnosticsLogging;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparingInt;
 
 public class WorkerDaemonClientsManager implements Stoppable {
 
     private static final Logger LOGGER = Logging.getLogger(WorkerDaemonClientsManager.class);
+    private static final Logger DIAGNOSTICS_LOGGER = WorkerDiagnosticsLogging.getLogger(WorkerDaemonClientsManager.class);
 
     private final Object lock = new Object();
     private final List<WorkerDaemonClient> allClients = new ArrayList<WorkerDaemonClient>();
@@ -82,6 +89,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
 
     WorkerDaemonClient reserveIdleClient(DaemonForkOptions forkOptions, List<WorkerDaemonClient> clients) {
         synchronized (lock) {
+            int incompatibleIdleCount = 0;
             Iterator<WorkerDaemonClient> it = clients.iterator();
             while (it.hasNext()) {
                 WorkerDaemonClient candidate = it.next();
@@ -91,10 +99,34 @@ public class WorkerDaemonClientsManager implements Stoppable {
                         // TODO: Send a message to workers to change their log level rather than stopping
                         LOGGER.info("Log level has changed, stopping idle worker daemon with out-of-date log level.");
                         candidate.stop();
+                        incompatibleIdleCount++;
                     } else {
+                        DIAGNOSTICS_LOGGER.warn("Reusing compatible idle worker daemon {}.", candidate.getDisplayName());
                         return candidate;
                     }
+                } else {
+                    incompatibleIdleCount++;
                 }
+            }
+
+            int compatibleInUseCount = 0;
+            int incompatibleInUseCount = 0;
+            if (WorkerDiagnosticsLogging.isWorkerDiagnosticsEnabled()) {
+                Set<WorkerDaemonClient> idleClients = new HashSet<>(this.idleClients);
+                for (WorkerDaemonClient client : allClients) {
+                    if (!idleClients.contains(client)) {
+                        if (client.isCompatibleWith(forkOptions)) {
+                            compatibleInUseCount++;
+                        } else {
+                            incompatibleInUseCount++;
+                        }
+                    }
+                }
+            }
+            if (incompatibleIdleCount > 0) {
+                DIAGNOSTICS_LOGGER.warn("{} incompatible idle worker daemon(s) could not be reused.  {} compatible, {} incompatible workers are in use.", incompatibleIdleCount, compatibleInUseCount, incompatibleInUseCount);
+            } else {
+                DIAGNOSTICS_LOGGER.warn("No idle worker daemons are available, {} compatible, {} incompatible workers are in use.", compatibleInUseCount, incompatibleInUseCount);
             }
             return null;
         }
@@ -105,6 +137,15 @@ public class WorkerDaemonClientsManager implements Stoppable {
         WorkerDaemonClient client = workerDaemonStarter.startDaemon(forkOptions, workerProcessCleanupAction);
         synchronized (lock) {
             allClients.add(client);
+        }
+        return client;
+    }
+
+    public WorkerDaemonClient reserveIdleOrStartNewClient(DaemonForkOptions forkOptions) {
+        WorkerDaemonClient client = reserveIdleClient(forkOptions);
+        if (client == null) {
+            DIAGNOSTICS_LOGGER.warn("No idle worker daemons could be reused, starting a new worker daemon.");
+            client = reserveNewClient(forkOptions);
         }
         return client;
     }
@@ -156,10 +197,11 @@ public class WorkerDaemonClientsManager implements Stoppable {
     private void stopWorkers(List<WorkerDaemonClient> clientsToStop) {
         if (clientsToStop.size() > 0) {
             int clientCount = clientsToStop.size();
-            LOGGER.debug("Stopping {} worker daemon(s).", clientCount);
+            DIAGNOSTICS_LOGGER.warn("Stopping {} worker daemon(s).", clientCount);
             List<Exception> failures = new ArrayList<>();
             for (WorkerDaemonClient client : clientsToStop) {
                 try {
+                    DIAGNOSTICS_LOGGER.warn("Stopping worker daemon {}.", client.getDisplayName());
                     client.stop();
                 } catch (Exception e) {
                     failures.add(e);
@@ -177,6 +219,17 @@ public class WorkerDaemonClientsManager implements Stoppable {
                 LOGGER.info("Stopped {} worker daemon(s).", clientCount);
             }
         }
+    }
+
+    Map<String, ?> getDiagnostics() {
+        Map<String, Object> diagnostics = new LinkedHashMap<>();
+        diagnostics.put("name", "WorkerDaemonClientManager");
+        synchronized (lock) {
+            diagnostics.put("allClients count", allClients.size());
+            diagnostics.put("idleClients count", idleClients.size());
+            diagnostics.put("worker daemons", allClients.stream().map(WorkerDaemonClient::getDiagnostics).collect(Collectors.toSet()));
+        }
+        return diagnostics;
     }
 
     private class StopSessionScopedWorkers implements BuildSessionLifecycleListener {

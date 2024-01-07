@@ -18,17 +18,18 @@ package org.gradle.workers.internal;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.process.internal.health.memory.MaximumHeapHelper;
 import org.gradle.process.internal.health.memory.MemoryAmount;
 import org.gradle.process.internal.health.memory.MemoryHolder;
+import org.gradle.process.internal.worker.WorkerDiagnosticsLogging;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class WorkerDaemonExpiration implements MemoryHolder {
 
-    private static final Logger LOGGER = Logging.getLogger(WorkerDaemonExpiration.class);
+    private static final Logger LOGGER = WorkerDiagnosticsLogging.getLogger(WorkerDaemonExpiration.class);
 
     private final WorkerDaemonClientsManager clientsManager;
     private final long osTotalMemory;
@@ -43,10 +44,15 @@ public class WorkerDaemonExpiration implements MemoryHolder {
         if (memoryAmountBytes < 0) {
             throw new IllegalArgumentException("Negative memory amount");
         }
-        LOGGER.debug("Will attempt to release {} of memory", memoryAmountBytes / 1024 / 1024);
+        LOGGER.warn("Will attempt to release {} of memory", MemoryAmount.of(memoryAmountBytes).toMegaBytes());
         SimpleMemoryExpirationSelector selector = new SimpleMemoryExpirationSelector(memoryAmountBytes);
         clientsManager.selectIdleClientsToStop(selector);
         return selector.getReleasedBytes();
+    }
+
+    @Override
+    public Map<String, ?> getDiagnostics() {
+        return clientsManager.getDiagnostics();
     }
 
     /**
@@ -84,12 +90,12 @@ public class WorkerDaemonExpiration implements MemoryHolder {
                     break;
                 }
             }
-            if (LOGGER.isDebugEnabled() && !toExpire.isEmpty()) {
+            if (!toExpire.isEmpty()) {
                 // TODO Only log expired workers count, log their "identity" once they are nameable/describable
-                LOGGER.debug("Worker Daemon(s) expired to free some system memory {}", toExpire.size());
+                LOGGER.warn("{} Worker Daemon(s) selected for expiration to free {} of system memory", toExpire.size(), MemoryAmount.of(releasedBytes).toMegaBytes());
             }
             if (notExpirable > 0) {
-                LOGGER.debug("{} Worker Daemon(s) had expiration disabled and were skipped", notExpirable);
+                LOGGER.warn("{} Worker Daemon(s) had expiration disabled and were skipped", notExpirable);
             }
             return toExpire;
         }

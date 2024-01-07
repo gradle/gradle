@@ -16,6 +16,8 @@
 
 package org.gradle.process.internal.health.memory;
 
+import java.util.Map;
+
 public interface MemoryManager {
 
     void addListener(JvmMemoryStatusListener listener);
@@ -49,4 +51,6 @@ public interface MemoryManager {
      * @param memoryAmountBytes The requested amount of memory in bytes. If negative, {@literal 0} is assumed.
      */
     void requestFreeMemory(long memoryAmountBytes);
+
+    Map<String, ?> getDiagnostics();
 }

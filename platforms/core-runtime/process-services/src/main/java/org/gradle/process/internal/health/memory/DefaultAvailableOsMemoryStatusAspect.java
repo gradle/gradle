@@ -75,6 +75,6 @@ public class DefaultAvailableOsMemoryStatusAspect implements OsMemoryStatusAspec
 
     @Override
     public String toString() {
-        return "AvailableMemory[" + name + ", total=" + total + ", free=" + free + ']';
+        return "AvailableMemory[" + name + ", total=" + MemoryAmount.of(total).toMegaBytes() + ", free=" + MemoryAmount.of(free).toMegaBytes() + ']';
     }
 }

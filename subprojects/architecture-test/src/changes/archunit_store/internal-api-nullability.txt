@@ -2446,7 +2446,6 @@ Class <org.gradle.internal.logging.slf4j.ContextAwareTaskLogger> is not annotate
 Class <org.gradle.internal.logging.slf4j.DefaultContextAwareTaskLogger> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultContextAwareTaskLogger.java:0)
 Class <org.gradle.internal.logging.slf4j.MessageRewritingBuildOperationAwareLogger> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MessageRewritingBuildOperationAwareLogger.java:0)
 Class <org.gradle.internal.logging.slf4j.OutputEventListenerBackedLogger> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (OutputEventListenerBackedLogger.java:0)
-Class <org.gradle.internal.logging.slf4j.OutputEventListenerBackedLoggerContext$NoOpLogger> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (OutputEventListenerBackedLoggerContext.java:0)
 Class <org.gradle.internal.logging.slf4j.OutputEventListenerBackedLoggerContext> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (OutputEventListenerBackedLoggerContext.java:0)
 Class <org.gradle.internal.logging.slf4j.Slf4jLoggingConfigurer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Slf4jLoggingConfigurer.java:0)
 Class <org.gradle.internal.logging.source.DefaultStdErrLoggingSystem> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultStdErrLoggingSystem.java:0)

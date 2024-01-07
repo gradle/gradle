@@ -82,6 +82,11 @@ public class DefaultWorkerProcess implements WorkerProcess {
         }
     }
 
+    @Override
+    public String getDisplayName() {
+        return execHandle.getDisplayName();
+    }
+
     public void setExecHandle(ExecHandle execHandle) {
         this.execHandle = execHandle;
         execHandle.addListener(new ExecHandleListener() {
