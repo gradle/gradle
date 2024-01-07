@@ -75,7 +75,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         resolveContext.hasDependencies() >> false
 
         when:
-        def results = dependencyResolver.resolveGraph(resolveContext, _)
+        def results = dependencyResolver.resolveGraph(resolveContext)
 
         then:
         results.visitedGraph.resolutionResult.rootSource.get().dependencies.empty
@@ -100,7 +100,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         resolveContext.hasDependencies() >> false
 
         when:
-        def results = dependencyResolver.resolveGraph(resolveContext, _)
+        def results = dependencyResolver.resolveGraph(resolveContext)
 
         then:
         def resolvedConfig = results.resolvedConfiguration
@@ -142,7 +142,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         resolveContext.hasDependencies() >> false
 
         when:
-        dependencyResolver.resolveGraph(resolveContext, _)
+        dependencyResolver.resolveGraph(resolveContext)
 
         then:
 
@@ -165,7 +165,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         resolveContext.hasDependencies() >> false
 
         when:
-        def results = dependencyResolver.resolveGraph(resolveContext, _)
+        def results = dependencyResolver.resolveGraph(resolveContext)
 
         then:
         1 * resolutionStrategy.dependencyLockingEnabled >> true
@@ -173,7 +173,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         1 * lockingProvider.loadLockState('lockedConf') >> lockingState
         1 * lockingState.mustValidateLockState() >> true
         1 * lockingState.lockedDependencies >> [DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org', 'foo'), '1.0')]
-        1 * delegate.resolveGraph(resolveContext, _) >> delegateResults
+        1 * delegate.resolveGraph(resolveContext) >> delegateResults
         results == delegateResults
     }
 
@@ -196,10 +196,10 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         resolveContext.hasDependencies() >> true
 
         when:
-        def results = dependencyResolver.resolveGraph(resolveContext, _)
+        def results = dependencyResolver.resolveGraph(resolveContext)
 
         then:
-        1 * delegate.resolveGraph(resolveContext, _) >> delegateResults
+        1 * delegate.resolveGraph(resolveContext) >> delegateResults
         results == delegateResults
     }
 }

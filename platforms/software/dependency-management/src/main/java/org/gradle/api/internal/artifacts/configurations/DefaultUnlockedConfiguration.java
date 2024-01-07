@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
-import org.gradle.api.internal.artifacts.RepositoriesSupplier;
 import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
@@ -71,7 +70,6 @@ public class DefaultUnlockedConfiguration extends DefaultConfiguration {
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
         TaskDependencyFactory taskDependencyFactory,
-        RepositoriesSupplier repositoriesSupplier,
         ConfigurationRole roleAtCreation
     ) {
         super(
@@ -100,7 +98,6 @@ public class DefaultUnlockedConfiguration extends DefaultConfiguration {
             calculatedValueContainerFactory,
             defaultConfigurationFactory,
             taskDependencyFactory,
-            repositoriesSupplier,
             roleAtCreation,
             false
         );

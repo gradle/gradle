@@ -46,7 +46,6 @@ import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
-import org.gradle.api.internal.artifacts.RepositoriesSupplier
 import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
@@ -119,6 +118,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
     def setup() {
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new AnonymousListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener, Stub(Dispatch)) }
+        _ * resolver.getAllRepositories() >> []
         _ * domainObjectCollectioncallbackActionDecorator.decorate(_) >> { args -> args[0] }
         _ * userCodeApplicationContext.reapplyCurrentLater(_) >> { args -> args[0] }
         _ * rootComponentMetadataBuilder.getValidator() >> Mock(MutationValidator)
@@ -379,7 +379,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def failure = new ResolveException("bad", new RuntimeException())
 
         and:
-        _ * resolver.resolveGraph(_, _) >> new ErrorHandlingConfigurationResolver.BrokenResolverResults(failure)
+        _ * resolver.resolveGraph(_) >> new ErrorHandlingConfigurationResolver.BrokenResolverResults(failure)
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
 
         when:
@@ -498,8 +498,9 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         }
 
         _ * localComponentsResult.resolvedProjectConfigurations >> Collections.emptySet()
+        _ * resolver.getAllRepositories() >> []
 
-        _ * resolver.resolveGraph(_, _) >> DefaultResolverResults.graphResolved(visitedGraphResults, localComponentsResult, Stub(ResolvedConfiguration), visitedArtifactSet)
+        _ * resolver.resolveGraph(_) >> DefaultResolverResults.graphResolved(visitedGraphResults, localComponentsResult, Stub(ResolvedConfiguration), visitedArtifactSet)
     }
 
     private void expectResolved(ResolveException failure) {
@@ -517,7 +518,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         _ * resolvedConfiguration.getLenientConfiguration() >> Stub(LenientConfiguration)
 
         _ * localComponentsResult.resolvedProjectConfigurations >> Collections.emptySet()
-        _ * resolver.resolveGraph(_, _) >> DefaultResolverResults.graphResolved(visitedGraphResults, localComponentsResult, resolvedConfiguration, visitedArtifactSet)
+        _ * resolver.resolveGraph(_) >> DefaultResolverResults.graphResolved(visitedGraphResults, localComponentsResult, resolvedConfiguration, visitedArtifactSet)
     }
 
     def "artifacts have correct build dependencies"() {
@@ -984,6 +985,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
         then:
         interaction { resolveConfig(config) }
+        1 * resolver.getAllRepositories() >> []
         0 * resolver._
     }
 
@@ -1111,7 +1113,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         }
 
         VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
-        resolver.resolveGraph(config, _) >> DefaultResolverResults.graphResolved(graphResults, localComponentsResult, resolvedConfiguration, visitedArtifactSet)
+        resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(graphResults, localComponentsResult, resolvedConfiguration, visitedArtifactSet)
     }
 
     def "resolving configuration marks parent configuration as observed"() {
@@ -1156,8 +1158,10 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
         then:
         config.state == RESOLVED
-        1 * resolver.resolveGraph(config, _) >> graphResolved(config)
-        1 * resolver.getRepositories() >> []
+
+        and:
+        1 * resolver.resolveGraph(config) >> graphResolved(config)
+        1 * resolver.getAllRepositories() >> []
         0 * resolver._
     }
 
@@ -1186,8 +1190,10 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
         then:
         config.state == RESOLVED
-        1 * resolver.resolveGraph(config, _) >> graphResolved(config)
-        1 * resolver.getRepositories() >> []
+
+        and:
+        1 * resolver.resolveGraph(config) >> graphResolved(config)
+        1 * resolver.getAllRepositories() >> []
         0 * resolver._
 
         when:
@@ -1217,8 +1223,10 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
         then:
         config.state == RESOLVED
-        1 * resolver.resolveGraph(config, _) >> graphResolved(config)
-        1 * resolver.getRepositories() >> []
+
+        and:
+        1 * resolver.resolveGraph(config) >> graphResolved(config)
+        1 * resolver.getAllRepositories() >> []
         0 * resolver._
     }
 
@@ -1233,8 +1241,10 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
         then:
         config.state == RESOLVED
-        1 * resolver.resolveGraph(config, _) >> graphResolved(config)
-        1 * resolver.getRepositories() >> []
+
+        and:
+        1 * resolver.resolveGraph(config) >> graphResolved(config)
+        1 * resolver.getAllRepositories() >> []
         0 * resolver._
 
         when:
@@ -1864,11 +1874,6 @@ All Artifacts:
             TestFiles.resolver(),
             TestFiles.taskDependencyFactory(),
         )
-
-        def repos = Mock(RepositoriesSupplier) {
-            get() >> []
-        }
-
         new DefaultConfigurationFactory(
             DirectInstantiator.INSTANCE,
             resolver,
@@ -1887,8 +1892,7 @@ All Artifacts:
             Stub(WorkerThreadRegistry),
             TestUtil.domainObjectCollectionFactory(),
             calculatedValueContainerFactory,
-            TestFiles.taskDependencyFactory(),
-            repos
+            TestFiles.taskDependencyFactory()
         )
     }
 

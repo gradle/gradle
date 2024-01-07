@@ -501,6 +501,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         ConfigurationResolver createDependencyResolver(
             ComponentResolversFactory componentResolversFactory,
             DependencyGraphResolver dependencyGraphResolver,
+            RepositoriesSupplier repositoriesSupplier,
             GlobalDependencyResolutionRules metadataHandler,
             ComponentIdentifierFactory componentIdentifierFactory,
             ResolutionResultsStoreFactory resolutionResultsStoreFactory,
@@ -527,6 +528,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             DefaultConfigurationResolver defaultResolver = new DefaultConfigurationResolver(
                 componentResolversFactory,
                 dependencyGraphResolver,
+                repositoriesSupplier,
                 metadataHandler,
                 resolutionResultsStoreFactory,
                 startParameter.isBuildProjectDependencies(),

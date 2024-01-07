@@ -62,10 +62,10 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
 
     void "delegates to backing service to resolve graph"() {
         when:
-        resolver.resolveGraph(context, _)
+        resolver.resolveGraph(context)
 
         then:
-        1 * delegate.resolveGraph(context, _) >> delegateResults
+        1 * delegate.resolveGraph(context) >> delegateResults
     }
 
     void "wraps build dependency resolve failures"() {
@@ -89,10 +89,10 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
     void "wraps graph resolve failures"() {
         given:
         def failure = new RuntimeException()
-        delegate.resolveGraph(context, _) >> { throw failure }
+        delegate.resolveGraph(context) >> { throw failure }
 
         when:
-        def results = resolver.resolveGraph(context, _)
+        def results = resolver.resolveGraph(context)
 
         then:
         results.resolvedConfiguration.hasError()
@@ -115,10 +115,10 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
         resolvedConfiguration.getResolvedArtifacts() >> { throw failure }
         resolvedConfiguration.getLenientConfiguration() >> { throw failure }
 
-        delegate.resolveGraph(context, _) >> delegateResults
+        delegate.resolveGraph(context) >> delegateResults
 
         when:
-        def results = resolver.resolveGraph(context, _)
+        def results = resolver.resolveGraph(context)
 
         then:
         def result = results.resolvedConfiguration
@@ -142,10 +142,10 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
         lenientConfiguration.getArtifacts(_) >> { throw failure }
         lenientConfiguration.getUnresolvedModuleDependencies() >> { throw failure }
 
-        delegate.resolveGraph(context, _) >> DefaultResolverResults.graphResolved(visitedGraphResults, projectConfigResult, resolvedConfiguration, visitedArtifactSet)
+        delegate.resolveGraph(context) >> DefaultResolverResults.graphResolved(visitedGraphResults, projectConfigResult, resolvedConfiguration, visitedArtifactSet)
 
         when:
-        def results = resolver.resolveGraph(context, _)
+        def results = resolver.resolveGraph(context)
 
         then:
         def result = results.resolvedConfiguration.lenientConfiguration

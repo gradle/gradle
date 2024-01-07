@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
-import org.gradle.api.internal.artifacts.RepositoriesSupplier;
 import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
@@ -71,7 +70,6 @@ public class DefaultConfigurationFactory {
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final TaskDependencyFactory taskDependencyFactory;
-    private final RepositoriesSupplier repositoriesSupplier;
 
     @Inject
     public DefaultConfigurationFactory(
@@ -92,8 +90,7 @@ public class DefaultConfigurationFactory {
         WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
-        TaskDependencyFactory taskDependencyFactory,
-        RepositoriesSupplier repositoriesSupplier
+        TaskDependencyFactory taskDependencyFactory
     ) {
         this.instantiator = instantiator;
         this.resolver = resolver;
@@ -114,7 +111,6 @@ public class DefaultConfigurationFactory {
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.taskDependencyFactory = taskDependencyFactory;
-        this.repositoriesSupplier = repositoriesSupplier;
     }
 
     /**
@@ -156,7 +152,6 @@ public class DefaultConfigurationFactory {
                 calculatedValueContainerFactory,
                 this,
                 taskDependencyFactory,
-                repositoriesSupplier,
                 role
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
@@ -200,8 +195,7 @@ public class DefaultConfigurationFactory {
             domainObjectCollectionFactory,
             calculatedValueContainerFactory,
             this,
-            taskDependencyFactory,
-            repositoriesSupplier
+            taskDependencyFactory
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;
@@ -244,8 +238,7 @@ public class DefaultConfigurationFactory {
             domainObjectCollectionFactory,
             calculatedValueContainerFactory,
             this,
-            taskDependencyFactory,
-            repositoriesSupplier
+            taskDependencyFactory
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;
@@ -288,8 +281,7 @@ public class DefaultConfigurationFactory {
             domainObjectCollectionFactory,
             calculatedValueContainerFactory,
             this,
-            taskDependencyFactory,
-            repositoriesSupplier
+            taskDependencyFactory
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;

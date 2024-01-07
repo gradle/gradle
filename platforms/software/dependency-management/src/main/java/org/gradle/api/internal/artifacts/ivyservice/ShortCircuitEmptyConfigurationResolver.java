@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -68,9 +67,14 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
     }
 
     @Override
+    public List<ResolutionAwareRepository> getAllRepositories() {
+        return delegate.getAllRepositories();
+    }
+
+    @Override
     public ResolverResults resolveBuildDependencies(ResolveContext resolveContext) {
         if (resolveContext.hasDependencies()) {
-            return delegate.resolveBuildDependencies(resolveContext, ImmutableList.of());
+            return delegate.resolveBuildDependencies(resolveContext);
         }
 
         VisitedGraphResults graphResults = emptyGraphResults(resolveContext);
@@ -79,9 +83,9 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
     }
 
     @Override
-    public ResolverResults resolveGraph(ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories) throws ResolveException {
+    public ResolverResults resolveGraph(ResolveContext resolveContext) throws ResolveException {
         if (resolveContext.hasDependencies()) {
-            return delegate.resolveGraph(resolveContext, repositories);
+            return delegate.resolveGraph(resolveContext);
         }
 
         if (resolveContext.getResolutionStrategy().isDependencyLockingEnabled()) {
@@ -89,7 +93,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
             DependencyLockingState lockingState = dependencyLockingProvider.loadLockState(resolveContext.getName());
             if (lockingState.mustValidateLockState() && !lockingState.getLockedDependencies().isEmpty()) {
                 // Invalid lock state, need to do a real resolution to gather locking failures
-                return delegate.resolveGraph(resolveContext, repositories);
+                return delegate.resolveGraph(resolveContext);
             }
             dependencyLockingProvider.persistResolvedDependencies(resolveContext.getName(), Collections.emptySet(), Collections.emptySet());
         }

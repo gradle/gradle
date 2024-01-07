@@ -30,6 +30,11 @@ public interface ConfigurationResolver {
     /**
      * Traverses the full dependency graph of the given resolve context. All failures are packaged in the result.
      */
-    ResolverResults resolveGraph(ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories) throws ResolveException;
+    ResolverResults resolveGraph(ResolveContext resolveContext) throws ResolveException;
+
+    /**
+     * Returns the list of repositories available to resolve a given resolve context. This is used for reporting only.
+     */
+    List<ResolutionAwareRepository> getAllRepositories();
 
 }

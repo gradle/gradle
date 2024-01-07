@@ -51,7 +51,7 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
         @Nullable String projectPath,
         boolean isConfigurationVisible,
         boolean isConfigurationTransitive,
-        List<? extends ResolutionAwareRepository> repositories
+        List<ResolutionAwareRepository> repositories
     ) {
         this.configurationName = configurationName;
         this.isScriptConfiguration = isScriptConfiguration;
@@ -160,7 +160,7 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
 
         private final RepositoryDescriptor descriptor;
 
-        private static List<Repository> transform(List<? extends ResolutionAwareRepository> repositories) {
+        private static List<Repository> transform(List<ResolutionAwareRepository> repositories) {
             return CollectionUtils.collect(repositories, repository -> new RepositoryImpl(repository.getDescriptor()));
         }
 
