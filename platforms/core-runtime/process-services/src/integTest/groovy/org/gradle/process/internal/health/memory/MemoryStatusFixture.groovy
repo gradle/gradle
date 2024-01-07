@@ -32,16 +32,16 @@ trait MemoryStatusFixture {
                     MemoryManager manager = services.get(MemoryManager.class)
                     manager.addListener(new JvmMemoryStatusListener() {
                         void onJvmMemoryStatus(JvmMemoryStatus memoryStatus) {
-                            logger.lifecycle "JVM MemoryStatus notification: $memoryStatus"
                             projectDir.file("jvmReceived").asFile.createNewFile()
                             jvmNotification.countDown()
+                            logger.lifecycle "JVM MemoryStatus notification: $memoryStatus"
                         }
                     })
                     manager.addListener(new OsMemoryStatusListener() {
                         void onOsMemoryStatus(OsMemoryStatus memoryStatus) {
-                            logger.lifecycle "OS MemoryStatus notification: $memoryStatus"
                             projectDir.file("osReceived").asFile.createNewFile()
                             osNotification.countDown()
+                            logger.lifecycle "OS MemoryStatus notification: $memoryStatus"
                         }
                     })
                     logger.warn "Waiting for memory status events..."
