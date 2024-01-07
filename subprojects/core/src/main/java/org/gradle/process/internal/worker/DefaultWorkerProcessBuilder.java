@@ -337,13 +337,6 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         public long getCommittedMemory() {
             return snapshot.getCommittedMemory();
         }
-
-        @Override
-        public String toString() {
-            return "WorkerJvmMemoryStatus{" +
-                "snapshot=" + snapshot +
-                '}';
-        }
     }
 
     @NonNullApi
