@@ -17,12 +17,14 @@
 package org.gradle.process.internal.health.memory
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.process.internal.worker.WorkerDiagnosticsLogging
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
 class MemoryManagerDiagnosticsIntegrationTest extends AbstractIntegrationSpec implements MemoryStatusFixture {
     @Requires(UnitTestPreconditions.NotWindows)
+    @IntegrationTestTimeout(60)
     def "can get memory management diagnostics"() {
         given:
         buildFile << """
