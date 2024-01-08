@@ -690,7 +690,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
 
         when:
         if (expr == "dependencies.project([path: ':', configuration: 'test'])") {
-            executer.expectDocumentedDeprecationWarning("Accessing the build dependencies of a project dependency has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration use the configuration to track task dependencies. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
+            executer.expectDocumentedDeprecationWarning("Accessing the build dependencies of a project dependency has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration and use the configuration to track task dependencies. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
         }
         isolatedProjectsFails(":help")
 

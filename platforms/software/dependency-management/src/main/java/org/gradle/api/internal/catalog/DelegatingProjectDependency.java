@@ -191,21 +191,18 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
 
     @Override
     @Deprecated
-    @SuppressWarnings("deprecation")
     public Set<File> resolve() {
         return delegate.resolve();
     }
 
     @Override
     @Deprecated
-    @SuppressWarnings("deprecation")
     public Set<File> resolve(boolean transitive) {
         return delegate.resolve(transitive);
     }
 
     @Override
     @Deprecated
-    @SuppressWarnings("deprecation")
     public TaskDependency getBuildDependencies() {
         return delegate.getBuildDependencies();
     }

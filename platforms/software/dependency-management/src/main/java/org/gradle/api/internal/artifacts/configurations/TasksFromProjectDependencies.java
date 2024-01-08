@@ -31,7 +31,6 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 class TasksFromProjectDependencies implements TaskDependencyContainerInternal {
-    private final String taskName;
     private final TaskDependencyContainerInternal taskDependencyDelegate;
 
     public TasksFromProjectDependencies(
@@ -40,9 +39,8 @@ class TasksFromProjectDependencies implements TaskDependencyContainerInternal {
         TaskDependencyFactory taskDependencyFactory,
         ProjectStateRegistry projectStateRegistry
     ) {
-        this.taskName = taskName;
         this.taskDependencyDelegate = taskDependencyFactory.visitingDependencies(
-            context -> resolveProjectDependencies(context, projectDependencies.get(), projectStateRegistry)
+            context -> resolveProjectDependencies(context, projectDependencies.get(), projectStateRegistry, taskName)
         );
     }
 
@@ -51,7 +49,12 @@ class TasksFromProjectDependencies implements TaskDependencyContainerInternal {
         taskDependencyDelegate.visitDependencies(context);
     }
 
-    void resolveProjectDependencies(TaskDependencyResolveContext context, Set<ProjectDependency> projectDependencies, ProjectStateRegistry projectStateRegistry) {
+    private static void resolveProjectDependencies(
+        TaskDependencyResolveContext context,
+        Set<ProjectDependency> projectDependencies,
+        ProjectStateRegistry projectStateRegistry,
+        String taskName
+    ) {
         for (ProjectDependency projectDependency : projectDependencies) {
             Path identityPath = ((ProjectDependencyInternal) projectDependency).getIdentityPath();
             ProjectState projectState = projectStateRegistry.stateFor(identityPath);
@@ -62,10 +65,6 @@ class TasksFromProjectDependencies implements TaskDependencyContainerInternal {
                 context.add(nextTask);
             }
         }
-    }
-
-    public String getTaskName() {
-        return taskName;
     }
 
     @Override

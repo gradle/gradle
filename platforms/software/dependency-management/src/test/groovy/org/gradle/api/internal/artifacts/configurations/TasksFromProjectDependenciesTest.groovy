@@ -17,7 +17,6 @@
 
 package org.gradle.api.internal.artifacts.configurations
 
-import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal
 import org.gradle.api.internal.file.TestFiles
@@ -29,14 +28,11 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.Path
 
-import java.util.function.Supplier
-
 /**
  * Tests {@link TasksFromProjectDependencies}
  */
 class TasksFromProjectDependenciesTest extends AbstractProjectBuilderSpec {
 
-    def dependencies = { Mock(DependencySet) } as Supplier<DependencySet>
     def context = Mock(TaskDependencyResolveContext)
     def project1State = Mock(ProjectState)
     def project2State = Mock(ProjectState)

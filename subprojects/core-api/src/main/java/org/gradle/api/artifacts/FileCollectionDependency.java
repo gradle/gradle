@@ -48,6 +48,7 @@ public interface FileCollectionDependency extends SelfResolvingDependency {
      * @deprecated This class will no longer implement {@link SelfResolvingDependency} in Gradle 9.0. Use {@link #getFiles()} instead.
      */
     @Override
+    @Deprecated
     Set<File> resolve();
 
     /**
@@ -56,5 +57,6 @@ public interface FileCollectionDependency extends SelfResolvingDependency {
      * @deprecated This class will no longer implement {@link SelfResolvingDependency} in Gradle 9.0. Use {@link #getFiles()} instead.
      */
     @Override
+    @Deprecated
     Set<File> resolve(boolean transitive);
 }

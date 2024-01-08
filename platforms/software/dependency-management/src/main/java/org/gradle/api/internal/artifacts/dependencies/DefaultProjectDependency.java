@@ -109,7 +109,6 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     @Deprecated
-    @SuppressWarnings("deprecation")
     public Set<File> resolve(boolean transitive) {
 
         DeprecationLogger.deprecate("Directly resolving a project dependency's files")
@@ -145,7 +144,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     public TaskDependencyInternal getBuildDependencies() {
 
         DeprecationLogger.deprecate("Accessing the build dependencies of a project dependency")
-            .withAdvice("Add the dependency to a resolvable configuration use the configuration to track task dependencies.")
+            .withAdvice("Add the dependency to a resolvable configuration and use the configuration to track task dependencies.")
             .willBecomeAnErrorInGradle9()
             .withUpgradeGuideSection(8, "deprecate_self_resolving_dependency")
             .nagUser();

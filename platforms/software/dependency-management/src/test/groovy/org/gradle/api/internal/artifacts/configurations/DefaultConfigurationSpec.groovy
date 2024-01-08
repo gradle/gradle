@@ -1264,14 +1264,6 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         1 * resolver.resolveGraph(copy) >> graphResolved()
     }
 
-    def "provides task dependency from project dependency using 'needed'"() {
-        def conf = conf("conf")
-        when:
-        def dep = conf.getTaskDependencyFromProjectDependency(true, "foo") as TasksFromProjectDependencies
-        then:
-        dep.taskName == "foo"
-    }
-
     def "provides task dependency from project dependency using 'dependents'"() {
         def conf = conf("conf")
         when:
