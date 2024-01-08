@@ -16,6 +16,7 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.hash.Hashable;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.isolation.Isolatable;
@@ -27,6 +28,7 @@ import javax.annotation.Nullable;
 import static org.gradle.internal.snapshot.impl.AbstractValueProcessor.javaSerialized;
 import static org.gradle.internal.snapshot.impl.JavaSerializedValueSnapshot.javaDeserialized;
 
+@NonNullApi
 public class IsolatedArrayOfPrimitive implements Isolatable<Object>, Hashable {
     private final PrimitiveType primitiveType;
     private final Object array;
