@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[lazy_configuration]]
-= Lazy Configuration
+= Configuring Tasks Lazily
 
 As a build grows in complexity, knowing when and where a particular value is configured is difficult to track. Gradle provides several ways to manage this complexity using *lazy configuration*.
 
