@@ -32,10 +32,10 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.BuildContentGenerationContext;
+import org.gradle.buildinit.plugins.internal.BuildInitDependency;
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilder;
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory;
 import org.gradle.buildinit.plugins.internal.DependenciesBuilder;
-import org.gradle.buildinit.plugins.internal.BuildInitDependency;
 import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.ScriptBlockBuilder;
 import org.gradle.buildinit.plugins.internal.VersionCatalogDependencyRegistry;
@@ -187,7 +187,7 @@ public class Maven2Gradle {
 
             scriptBuilder.create(workingDir).generate();
         }
-        VersionCatalogGenerator.create(workingDir).generate(buildContentGenerationContext);
+        VersionCatalogGenerator.create(workingDir).generate(buildContentGenerationContext, true);
     }
 
     private void configurePublishing(BuildScriptBuilder builder, boolean publishesSources, boolean testsJarTaskGenerated, boolean publishesJavadoc) {

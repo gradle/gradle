@@ -5,12 +5,15 @@ plugins {
 description = "Groovy specific adaptations to the model management."
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":base-services-groovy"))
+    api(project(":base-services"))
+    api(project(":model-core"))
+    api(project(":base-services-groovy"))
 
-    implementation(libs.groovy)
+    api(libs.jsr305)
+    api(libs.groovy)
+
+    implementation(project(":core-api"))
+
     implementation(libs.guava)
 
     testImplementation(testFixtures(project(":core")))

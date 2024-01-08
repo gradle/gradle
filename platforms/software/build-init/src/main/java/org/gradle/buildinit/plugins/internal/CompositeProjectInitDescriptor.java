@@ -105,7 +105,7 @@ public class CompositeProjectInitDescriptor implements BuildInitializer {
             generator.generate(settings, buildContentGenerationContext);
         }
         descriptor.generate(settings, buildContentGenerationContext);
-        VersionCatalogGenerator.create(settings.getTarget()).generate(buildContentGenerationContext);
+        VersionCatalogGenerator.create(settings.getTarget()).generate(buildContentGenerationContext, settings.isWithComments());
     }
 
     // This is used by our build-logic to generate samples, see `SamplesGenerator`
@@ -122,7 +122,7 @@ public class CompositeProjectInitDescriptor implements BuildInitializer {
             }
         }
         Map<String, List<String>> comments = ((LanguageSpecificAdaptor) descriptor).generateWithExternalComments(settings, buildContentGenerationContext);
-        VersionCatalogGenerator.create(settings.getTarget()).generate(buildContentGenerationContext);
+        VersionCatalogGenerator.create(settings.getTarget()).generate(buildContentGenerationContext, settings.isWithComments());
         return comments;
     }
 }

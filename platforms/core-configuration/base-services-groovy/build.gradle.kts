@@ -5,10 +5,12 @@ plugins {
 description = "A set of generic services and utilities specific for Groovy."
 
 dependencies {
-    implementation(project(":base-services"))
+    api(project(":base-services"))
+    api(project(":base-annotations"))
 
-    implementation(libs.groovy)
-    implementation(libs.guava)
+    api(libs.jsr305)
+    api(libs.groovy)
+    api(libs.guava)
 
     testImplementation(testFixtures(project(":core")))
 }

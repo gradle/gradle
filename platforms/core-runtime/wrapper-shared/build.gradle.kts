@@ -8,7 +8,8 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
 
-    implementation(project(":base-annotations"))
+    api(project(":base-annotations"))
+
     implementation(project(":files")) {
         because("We need org.gradle.internal.file.PathTraversalChecker")
     }

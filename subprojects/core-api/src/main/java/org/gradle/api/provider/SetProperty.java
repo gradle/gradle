@@ -95,7 +95,7 @@ public interface SetProperty<T> extends Provider<Set<T>>, HasMultipleValues<T> {
      *
      *     println(property.get()) // ["f"]
      * </pre>
-     * The provided transformation runs <b>eagerly</b>, so it can capture any objects without introducing memory leaks and breaking configuration cache.
+     * The provided transformation runs <b>eagerly</b>, so it can capture any objects without introducing memory leaks and without breaking configuration caching.
      * However, transformations applied to the current value provider (like {@link Provider#map(Transformer)}) are subject to the usual constraints.
      * <p>
      * If the property has no explicit value set, then the current value comes from the convention.

@@ -61,6 +61,7 @@ class InitBuildSpec extends Specification {
         init.projectLayoutRegistry = projectLayoutRegistry
         init.insecureProtocol.convention(InsecureProtocolOption.WARN)
         init.useDefaults.convention(false)
+        init.comments.convention(true)
     }
 
     def "creates project with all defaults"() {

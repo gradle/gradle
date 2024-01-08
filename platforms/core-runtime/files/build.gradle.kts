@@ -8,8 +8,11 @@ description = "Base tools to work with files"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    implementation(project(":base-annotations"))
-    implementation(project(":functional"))
+    api(project(":functional"))
+    api(project(":base-annotations"))
+
+    api(libs.jsr305)
+
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 

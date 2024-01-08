@@ -30,6 +30,7 @@ import org.gradle.internal.configurationcache.ConfigurationCacheStoreBuildOperat
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GradleVersion
 
 class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -185,6 +186,31 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         operations.none(ConfigureBuildBuildOperationType)
         operations.none(LoadProjectsBuildOperationType)
         operations.none(ConfigureProjectBuildOperationType)
+    }
+
+    def "captures store failure in build operation"() {
+        given:
+        withLibBuild()
+        file("lib/build.gradle") << """
+            gradle.buildFinished { }
+        """
+
+        when:
+        inDirectory 'lib'
+        configurationCacheFails 'assemble'
+
+        then:
+        operations.none(ConfigurationCacheLoadBuildOperationType)
+        def storeOp = operations.only(ConfigurationCacheStoreBuildOperationType)
+        with(storeOp.result) {
+            cacheEntrySize > 0
+        }
+        storeOp.failure == """org.gradle.configurationcache.ConfigurationCacheProblemsException: Configuration cache problems found in this build.
+
+1 problem was found storing the configuration cache.
+- Build file 'build.gradle': line 6: registration of listener on 'Gradle.buildFinished' is unsupported
+  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/configuration_cache.html#config_cache:requirements:build_listeners
+"""
     }
 
     void hasCompositeWithUnusedBuildIdentified() {

@@ -24,6 +24,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.problems.BaseProblemDescriptor
 import org.gradle.tooling.events.problems.ProblemDescriptor
 import org.gradle.tooling.events.problems.ProblemEvent
 import org.junit.Assume
@@ -96,7 +97,7 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
                 .addProgressListener(listener)
                 .get()
         }
-        def problems = listener.problems
+        def problems = listener.problems.collect{ it as ProblemDescriptor}
 
         then:
         problems.size() == 1
@@ -157,12 +158,12 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
 
     class ProblemProgressListener implements ProgressListener {
 
-        List<ProblemDescriptor> problems = []
+        List<BaseProblemDescriptor> problems = []
 
         @Override
         void statusChanged(ProgressEvent event) {
             if (event instanceof ProblemEvent) {
-                this.problems.addAll(event.getDescriptor())
+                this.problems.add(event.getDescriptor())
             }
         }
     }

@@ -25,12 +25,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.
  * Immutable representation of the state of dependency resolution. Can represent intermediate resolution states after
  * build dependency resolution, graph resolution, and artifact resolution. Results can have attached failures
  * in cases of partial resolution successes.
- *
- * <p>This should eventually be merged with {@link org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ResolveState}</p>
  */
-@SuppressWarnings("JavadocReference")
 public interface ResolverResults {
-
     /**
      * Returns the old model, which has been replaced by {@link VisitedGraphResults} and {@link VisitedArtifactSet}.
      * Using this model directly should be avoided.
@@ -55,4 +51,9 @@ public interface ResolverResults {
      * Returns details of the local components in the resolved dependency graph.
      */
     ResolvedLocalComponentsResult getResolvedLocalComponents();
+
+    /**
+     * Returns true if the full graph was resolved. False if only build dependencies were resolved.
+     */
+    boolean isFullyResolved();
 }

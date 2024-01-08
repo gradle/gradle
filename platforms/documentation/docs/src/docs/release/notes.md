@@ -10,6 +10,8 @@ Include only their name, impactful features should be called out separately belo
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
 
+Be sure to check out the [Public Roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
+
 ## Upgrade instructions
 
 Switch your build to use Gradle @version@ by updating your wrapper:
@@ -50,6 +52,19 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+
+### Other improvements
+
+#### Generating tidy projects with Gradle init
+
+Using the new `--no-comments` option allows generating projects that contain only code without clarifying comments.
+The resulting build files and source files are smaller and less noisy.
+
+```
+gradle init --use-defaults --type kotlin-library --no-comments
+```
+
+It is possible to persist the preference by setting the `org.gradle.buildinit.comments` property to `false`.
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
