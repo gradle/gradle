@@ -105,6 +105,7 @@ object DomResolutionTest {
             complexValueOne = "type mismatch"
             noSuchFunction(two("three"))
             nested {
+                addAndConfigure("cross-scope") { }
                 add("incorrect signature")
             }
             """.trimIndent()
@@ -113,7 +114,7 @@ object DomResolutionTest {
         resolver.resolve(schema, tree.map { (it as Element<*>).element })
 
         val document = convertBlockToDocument((tree.single() as Element).element as Block)
-        val resolved = resolvedDocument(schema, resolver.trace, document)
+        val resolved = resolvedDocument(schema, resolver.trace, document, strictReceiverChecks = true)
         val resolutions = collectResolutions(resolved)
         assertEquals(
             resolutions.map { resolutionPrettyString(it) }.also { println(it.joinToString("\n")) },

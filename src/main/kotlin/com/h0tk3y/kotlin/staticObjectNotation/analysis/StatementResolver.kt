@@ -102,7 +102,7 @@ class StatementResolverImpl(
     // If we can trace the function invocation back to something that is not transient, we consider it not dangling
     private fun isDanglingPureExpression(obj: ObjectOrigin.FunctionOrigin): Boolean {
         fun isPotentiallyPersistentReceiver(objectOrigin: ObjectOrigin): Boolean = when (objectOrigin) {
-            is ObjectOrigin.ConfigureReceiver -> true
+            is ObjectOrigin.AccessAndConfigureReceiver -> true
             is ObjectOrigin.ConstantOrigin -> false
             is ObjectOrigin.External -> true
             is ObjectOrigin.BuilderReturnedReceiver -> isPotentiallyPersistentReceiver(objectOrigin.receiver)
@@ -121,6 +121,7 @@ class StatementResolverImpl(
             is ObjectOrigin.PropertyReference -> true
             is ObjectOrigin.TopLevelReceiver -> true
             is ObjectOrigin.PropertyDefaultValue -> true
+            is ObjectOrigin.ImplicitThisReceiver -> isPotentiallyPersistentReceiver(objectOrigin.resolvedTo)
         }
 
         return when {

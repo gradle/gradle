@@ -35,17 +35,17 @@ internal fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataType = 
     is ObjectOrigin.TopLevelReceiver -> objectOrigin.type
     is ObjectOrigin.FromLocalValue -> getDataType(objectOrigin.assigned)
     is ObjectOrigin.NullObjectOrigin -> DataType.NullType
-    is ObjectOrigin.ConfigureReceiver -> resolveRef(objectOrigin.accessor.objectType)
+    is ObjectOrigin.AccessAndConfigureReceiver -> resolveRef(objectOrigin.accessor.objectType)
     is ObjectOrigin.BuilderReturnedReceiver -> getDataType(objectOrigin.receiver)
+    is ObjectOrigin.ImplicitThisReceiver -> getDataType(objectOrigin.resolvedTo)
+    is ObjectOrigin.AddAndConfigureReceiver -> getDataType(objectOrigin.receiver)
 }
 
 internal fun AnalysisContext.checkAccessOnCurrentReceiver(
     receiver: ObjectOrigin,
     access: LanguageTreeElement
 ) {
-    if (!isCurrentReceiver(this, receiver)) {
+    if (receiver !is ObjectOrigin.ImplicitThisReceiver || !receiver.isCurrentScopeReceiver) {
         errorCollector.collect(ResolutionError(access, ErrorReason.AccessOnCurrentReceiverOnlyViolation))
     }
 }
-
-fun isCurrentReceiver(context: AnalysisContext, objectOrigin: ObjectOrigin) = context.currentScopes.last().receiver == objectOrigin

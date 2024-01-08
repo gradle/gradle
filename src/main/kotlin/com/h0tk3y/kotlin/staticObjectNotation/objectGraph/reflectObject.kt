@@ -106,9 +106,12 @@ fun reflect(
             }
         }
 
-        is ObjectOrigin.ConfigureReceiver,
+        is ObjectOrigin.AccessAndConfigureReceiver,
         is ObjectOrigin.PropertyReference,
         is ObjectOrigin.FromLocalValue -> error("value origin needed")
+
+        is ObjectOrigin.ImplicitThisReceiver -> reflect(objectOrigin.resolvedTo, context)
+        is ObjectOrigin.AddAndConfigureReceiver -> reflect(objectOrigin.receiver, context)
     }
 }
 

@@ -103,7 +103,8 @@ class FunctionCallResolverImpl(
                 }
                 null -> {
                     for (scope in currentScopes.asReversed()) {
-                        addAll(findMemberFunction(scope.receiver, functionCall, argResolutions.value))
+                        val implicitThisReceiver = ObjectOrigin.ImplicitThisReceiver(scope.receiver, isCurrentScopeReceiver = scope === currentScopes.last())
+                        addAll(findMemberFunction(implicitThisReceiver, functionCall, argResolutions.value))
                         if (isNotEmpty()) {
                             break
                         }
@@ -170,7 +171,7 @@ class FunctionCallResolverImpl(
                         call,
                         newFunctionCallId
                     )
-                    is FunctionSemantics.AddAndConfigure -> result
+                    is FunctionSemantics.AddAndConfigure -> ObjectOrigin.AddAndConfigureReceiver(result)
                 }
                 withScope(AnalysisScope(currentScopes.last(), configureReceiver, lambda)) {
                     codeAnalyzer.analyzeStatementsInProgramOrder(this, lambda.block.statements)
@@ -262,7 +263,7 @@ class FunctionCallResolverImpl(
     ) = when (val accessor = semantics.accessor) {
         is ConfigureAccessor.Property -> {
             require(function.receiver != null)
-            ObjectOrigin.ConfigureReceiver(function.receiver, function.schemaFunction, functionCall, newFunctionCallId, accessor)
+            ObjectOrigin.AccessAndConfigureReceiver(function.receiver, function.schemaFunction, functionCall, newFunctionCallId, accessor)
         }
     }
 
@@ -274,7 +275,7 @@ class FunctionCallResolverImpl(
     private fun TypeRefContext.findMemberFunction(
         receiver: ObjectOrigin,
         functionCall: FunctionCall,
-        argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>
+        argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>,
     ): List<FunctionResolutionAndBinding> {
         val receiverType = getDataType(receiver) as? DataType.DataClass
             ?: return emptyList()

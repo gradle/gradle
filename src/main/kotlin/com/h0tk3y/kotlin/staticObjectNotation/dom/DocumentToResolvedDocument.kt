@@ -33,15 +33,17 @@ import com.h0tk3y.kotlin.staticObjectNotation.language.FunctionCall
 fun resolvedDocument(
     schema: AnalysisSchema,
     trace: ResolutionTrace,
-    document: DeclarativeDocument
+    document: DeclarativeDocument,
+    strictReceiverChecks: Boolean = true
 ): ResolvedDeclarativeDocument {
-    val resolver = DocumentResolver(trace, SchemaTypeRefContext(schema))
+    val resolver = DocumentResolver(trace, SchemaTypeRefContext(schema), strictReceiverChecks)
     return ResolvedDeclarativeDocumentImpl(document.content.map(resolver::resolvedNode))
 }
 
 private class DocumentResolver(
     private val trace: ResolutionTrace,
-    private val typeRefContext: SchemaTypeRefContext
+    private val typeRefContext: SchemaTypeRefContext,
+    private val strictReceiverChecks: Boolean
 ) {
     fun resolvedNode(node: DeclarativeDocument.DocumentNode): ResolvedDeclarativeDocumentImpl.ResolvedNode = when (node) {
         is DeclarativeDocument.DocumentNode.ElementNode -> resolvedElement(node)
@@ -52,8 +54,13 @@ private class DocumentResolver(
     private fun resolvedElement(elementNode: DeclarativeDocument.DocumentNode.ElementNode): ResolvedDeclarativeDocumentImpl.ResolvedNode.ResolvedElement {
         val statement = elementNode.statement() as FunctionCall
         val elementResolution = when (val callResolution = trace.expressionResolution(statement)) {
-            is ResolutionTrace.ResolutionOrErrors.Resolution -> {
-                val function = (callResolution.result as ObjectOrigin.FunctionOrigin).function
+            is ResolutionTrace.ResolutionOrErrors.Resolution -> run {
+                val functionOrigin = callResolution.result as ObjectOrigin.FunctionOrigin
+                val receiver = functionOrigin.receiver
+                if (strictReceiverChecks && receiver is ObjectOrigin.ImplicitThisReceiver && !receiver.isCurrentScopeReceiver) {
+                    return@run DocumentResolution.ElementResolution.ElementNotResolved(listOf(CrossScopeAccess))
+                }
+                val function = functionOrigin.function
                 when (val semantics = function.semantics) {
                     is FunctionSemantics.AccessAndConfigure -> {
                         val configuredType = typeRefContext.resolveRef(semantics.accessor.objectType) as DataType.DataClass
@@ -83,8 +90,14 @@ private class DocumentResolver(
     private fun resolvedProperty(propertyNode: DeclarativeDocument.DocumentNode.PropertyNode): ResolvedDeclarativeDocumentImpl.ResolvedNode.ResolvedProperty {
         val statement = propertyNode.statement() as Assignment
         val resolution = when (val assignment = trace.assignmentResolution(statement)) {
-            is ResolutionTrace.ResolutionOrErrors.Resolution ->
-                DocumentResolution.PropertyResolution.PropertyAssignmentResolved(typeRefContext.getDataType(assignment.result.lhs.receiverObject), assignment.result.lhs.property)
+            is ResolutionTrace.ResolutionOrErrors.Resolution -> {
+                val receiver = assignment.result.lhs.receiverObject
+                if (strictReceiverChecks && receiver is ObjectOrigin.ImplicitThisReceiver && !receiver.isCurrentScopeReceiver) {
+                    DocumentResolution.PropertyResolution.PropertyNotAssigned(listOf(CrossScopeAccess))
+                } else {
+                    DocumentResolution.PropertyResolution.PropertyAssignmentResolved(typeRefContext.getDataType(receiver), assignment.result.lhs.property)
+                }
+            }
 
             is ResolutionTrace.ResolutionOrErrors.Errors -> DocumentResolution.PropertyResolution.PropertyNotAssigned(mapPropertyErrors(assignment.errors))
             ResolutionTrace.ResolutionOrErrors.NoResolution -> DocumentResolution.PropertyResolution.PropertyNotAssigned(listOf(UnresolvedBase))

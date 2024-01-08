@@ -1,6 +1,11 @@
 package com.h0tk3y.kotlin.staticObjectNotation.analysis
 
-import com.h0tk3y.kotlin.staticObjectNotation.language.*
+import com.h0tk3y.kotlin.staticObjectNotation.language.FunctionCall
+import com.h0tk3y.kotlin.staticObjectNotation.language.LanguageTreeElement
+import com.h0tk3y.kotlin.staticObjectNotation.language.Literal
+import com.h0tk3y.kotlin.staticObjectNotation.language.LocalValue
+import com.h0tk3y.kotlin.staticObjectNotation.language.Null
+import com.h0tk3y.kotlin.staticObjectNotation.language.PropertyAccess
 
 // TODO: report failures to resolve with potential candidates that could not work
 data class PropertyReferenceResolution(
@@ -31,7 +36,17 @@ sealed interface ObjectOrigin {
         val receiver: ObjectOrigin
     }
 
-    data class TopLevelReceiver(val type: DataType, override val originElement: LanguageTreeElement) : ObjectOrigin {
+    data class ImplicitThisReceiver(
+        val resolvedTo: ReceiverOrigin,
+        val isCurrentScopeReceiver: Boolean
+    ) : ObjectOrigin {
+        override val originElement: LanguageTreeElement
+            get() = resolvedTo.originElement
+    }
+
+    sealed interface ReceiverOrigin : ObjectOrigin
+
+    data class TopLevelReceiver(val type: DataType, override val originElement: LanguageTreeElement) : ReceiverOrigin {
         override fun toString(): String = "(top-level-object)"
     }
 
@@ -93,14 +108,23 @@ sealed interface ObjectOrigin {
         override fun toString(): String = functionInvocationString(function, null, invocationId, parameterBindings)
     }
 
-    data class ConfigureReceiver(
+    data class AccessAndConfigureReceiver(
         override val receiver: ObjectOrigin,
         override val function: SchemaFunction,
         override val originElement: FunctionCall,
         override val invocationId: Long,
         val accessor: ConfigureAccessor,
-    ) : FunctionOrigin {
+    ) : FunctionOrigin, ReceiverOrigin {
         override fun toString(): String = accessor.access(receiver).toString()
+    }
+
+    data class AddAndConfigureReceiver(
+        override val receiver: FunctionOrigin,
+    ) : FunctionOrigin, ReceiverOrigin {
+        override val invocationId: Long get() = receiver.invocationId
+        override val originElement: LanguageTreeElement get() = receiver.originElement
+        override val function: SchemaFunction get() = receiver.function
+        override fun toString(): String = receiver.toString()
     }
 
     data class PropertyReference(

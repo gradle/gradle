@@ -5,7 +5,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.language.LocalValue
 import java.util.concurrent.atomic.AtomicLong
 
 interface AnalysisScopeView {
-    val receiver: ObjectOrigin
+    val receiver: ObjectOrigin.ReceiverOrigin
     val ownLocals: Map<String, LocalValueAssignment>
     val syntacticEnclosure: LanguageTreeElement
 
@@ -16,7 +16,7 @@ data class LocalValueAssignment(val localValue: LocalValue, val assignment: Obje
 
 class AnalysisScope(
     private val previousScopeView: AnalysisScopeView?,
-    override val receiver: ObjectOrigin, override val syntacticEnclosure: LanguageTreeElement
+    override val receiver: ObjectOrigin.ReceiverOrigin, override val syntacticEnclosure: LanguageTreeElement
 ) : AnalysisScopeView {
     private val ownLocalsByName = mutableMapOf<String, LocalValueAssignment>()
 

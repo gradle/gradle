@@ -171,7 +171,8 @@ class PropertyAccessResolverImpl(
                 ?.let(onLocalValue)
 
             findDataProperty(getDataType(scope.receiver), propertyAccess.name)?.let { property ->
-                onProperty(ObjectOrigin.PropertyReference(scope.receiver, property, propertyAccess))
+                val receiver = ObjectOrigin.ImplicitThisReceiver(scope.receiver, isCurrentScopeReceiver = scope === currentScopes.last())
+                onProperty(ObjectOrigin.PropertyReference(receiver, property, propertyAccess))
             }
         }
     }

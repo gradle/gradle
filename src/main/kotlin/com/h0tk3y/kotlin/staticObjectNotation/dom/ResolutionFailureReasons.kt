@@ -24,7 +24,7 @@ sealed interface ValueNotResolvedReason : ResolutionFailureReason
 
 sealed interface ValueFactoryNotResolvedReason : ValueNotResolvedReason
 
-data object CrossScopeAccess : PropertyNotAssignedReason, ValueFactoryNotResolvedReason
+data object CrossScopeAccess : PropertyNotAssignedReason, ValueFactoryNotResolvedReason, ElementNotResolvedReason
 
 data object UnresolvedValueUsed : ValueNotResolvedReason, PropertyNotAssignedReason
 
