@@ -7,6 +7,7 @@ import org.jetbrains.kotlin.ElementTypeUtils.getOperationSymbol
 import org.jetbrains.kotlin.ElementTypeUtils.isExpression
 import org.jetbrains.kotlin.KtNodeTypes.*
 import org.jetbrains.kotlin.com.intellij.lang.LighterASTNode
+import org.jetbrains.kotlin.com.intellij.lang.impl.PsiBuilderImpl
 import org.jetbrains.kotlin.com.intellij.psi.TokenType.ERROR_ELEMENT
 import org.jetbrains.kotlin.com.intellij.psi.tree.IElementType
 import org.jetbrains.kotlin.lexer.KtSingleValueToken
@@ -173,7 +174,7 @@ class GrammarToLightTree(
                             } else if (tokenType == CALL_EXPRESSION && callExpressionCallee?.tokenType != LAMBDA_EXPRESSION) {
                                 functionCallSelector = checkForFailure(callExpression(tree, it))
                             } else {
-                                collectingFailure(node.parsingError("The expression cannot be a selector (occur after a dot)"))
+                                collectingFailure(it.parsingError(node, "The expression cannot be a selector (occur after a dot)"))
                             }
                         } else {
                             receiver = checkForFailure(expression(tree, it))
@@ -203,7 +204,7 @@ class GrammarToLightTree(
             when (val tokenType = it.tokenType) {
                 OPEN_QUOTE, CLOSING_QUOTE -> {}
                 LITERAL_STRING_TEMPLATE_ENTRY -> sb.append(it.asText)
-                ERROR_ELEMENT -> node.parsingError("Unparsable string template: \"${node.asText}\"")
+                ERROR_ELEMENT -> it.parsingError(node, "Unparsable string template: \"${node.asText}\"")
                 else -> error("Unexpected tokenType in string template: $tokenType")
             }
         }
@@ -296,7 +297,7 @@ class GrammarToLightTree(
                 VALUE_ARGUMENT -> list.add(valueArgument(tree, it))
                 COMMA, LPAR, RPAR -> doNothing()
                 LAMBDA_EXPRESSION -> list.add(lambda(tree, it))
-                ERROR_ELEMENT -> list.add(node.parsingError("Unparsable value argument: \"${node.asText}\""))
+                ERROR_ELEMENT -> list.add(it.parsingError(node, "Unparsable value argument: \"${node.asText}\""))
                 else -> error("Unexpected token type in value arguments: $tokenType")
             }
         }
@@ -514,8 +515,14 @@ class GrammarToLightTree(
     ) = UnsupportedConstruct(outer.dataNoOffset, this.dataNoOffset, feature)
 
     private
-    fun LighterASTNode.parsingError(message: String) =
-        ParsingError(this.data, message)
+    fun LighterASTNode.parsingError(outer: LighterASTNode, message: String): ParsingError {
+        val cause = PsiBuilderImpl.getErrorMessage(this)
+        return ParsingError(outer.data, this.data, "$message. $cause")
+    }
+
+    private
+    fun LighterASTNode.parsingError(message: String): ParsingError =
+        ParsingError(this.data, this.data, message)
 
 }
 

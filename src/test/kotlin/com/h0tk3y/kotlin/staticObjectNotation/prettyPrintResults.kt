@@ -47,7 +47,9 @@ fun prettyPrintFailingResult(failure: FailingResult): String {
                 appendLine()
                 appendNextIndented("message = ${current.message}, ")
                 appendLine()
-                appendNextIndented("source = ${current.sourceData.prettyPrint()}, ")
+                appendNextIndented("potentialElementSource = ${current.potentialElementSource.prettyPrint()}, ")
+                appendLine()
+                appendNextIndented("erroneousSource = ${current.erroneousSource.prettyPrint()}")
                 appendLine()
                 appendIndented(")")
             }

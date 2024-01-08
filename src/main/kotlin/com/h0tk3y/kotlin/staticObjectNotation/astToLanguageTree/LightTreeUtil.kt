@@ -42,8 +42,7 @@ class LightTreeSourceData(
         }
 
     private
-    val lineColumnInfo: LineColumnInfo
-        get() = LineColumnInfo.fromIndexRange(sourceCode, sourceOffset, indexRange)
+    val lineColumnInfo: LineColumnInfo by lazy { LineColumnInfo.fromIndexRange(sourceCode, sourceOffset, indexRange) }
     override
     val lineRange: IntRange
         get() = lineColumnInfo.startLine..lineColumnInfo.endLine
@@ -94,7 +93,8 @@ class LightTreeSourceData(
                     if (i == realStartIndex) {
                         startLine = line
                         startColumn = column
-                    } else if (i == realEndIndex) {
+                    }
+                    if (i == realEndIndex) {
                         endLine = line
                         endColumn = column
                         break

@@ -39,7 +39,8 @@ data class UnsupportedConstruct(
 ) : FailingResult
 
 data class ParsingError(
-    val sourceData: SourceData,
+    val potentialElementSource: SourceData,
+    val erroneousSource: SourceData,
     val message: String
 ) : FailingResult
 

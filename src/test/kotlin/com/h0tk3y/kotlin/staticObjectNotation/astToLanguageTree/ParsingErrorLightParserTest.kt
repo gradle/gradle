@@ -16,7 +16,8 @@ class ParsingErrorLightParserTest: AbstractRejectedLanguageFeaturesTest() {
         val expected = """
             ParsingError(
                 message = Unparsable expression: ".", 
-                source = indexes: 0..1, line/column: 1/1..1/2, file: test, 
+                potentialElementSource = indexes: 0..1, line/column: 1/1..1/2, file: test, 
+                erroneousSource = indexes: 0..1, line/column: 1/1..1/2, file: test
             )
             """.trimIndent()
         assertResult(expected, code)
@@ -28,12 +29,14 @@ class ParsingErrorLightParserTest: AbstractRejectedLanguageFeaturesTest() {
 
         val expected = """
             ParsingError(
-                message = Unparsable value argument: "("plugin-id-1"", 
-                source = indexes: 2..16, line/column: 1/3..1/17, file: test, 
+                message = Unparsable value argument: "("plugin-id-1"". Expecting ')', 
+                potentialElementSource = indexes: 2..16, line/column: 1/3..1/17, file: test, 
+                erroneousSource = indexes: 16..16, line/column: 1/17..1/17, file: test
             )
             ParsingError(
                 message = Unparsable expression: ")", 
-                source = indexes: 17..18, line/column: 1/18..1/19, file: test, 
+                potentialElementSource = indexes: 17..18, line/column: 1/18..1/19, file: test, 
+                erroneousSource = indexes: 17..18, line/column: 1/18..1/19, file: test
             )
             """.trimIndent()
         assertResult(expected, code)
@@ -58,17 +61,16 @@ class ParsingErrorLightParserTest: AbstractRejectedLanguageFeaturesTest() {
                     )
                 )
                 ParsingError(
-                    message = Unparsable value argument: "("plugin-id-1) ; kotlin("plugin-id-2")", 
-                    source = indexes: 6..44, line/column: 1/7..1/45, file: test, 
+                    message = Unparsable value argument: "("plugin-id-1) ; kotlin("plugin-id-2")". Expecting ',', 
+                    potentialElementSource = indexes: 6..44, line/column: 1/7..1/45, file: test, 
+                    erroneousSource = indexes: 42..42, line/column: 1/43..1/43, file: test
                 )
                 ParsingError(
-                    message = Unparsable value argument: "("plugin-id-1) ; kotlin("plugin-id-2")", 
-                    source = indexes: 6..44, line/column: 1/7..1/45, file: test, 
+                    message = Unparsable value argument: "("plugin-id-1) ; kotlin("plugin-id-2")". Expecting ')', 
+                    potentialElementSource = indexes: 6..44, line/column: 1/7..1/45, file: test, 
+                    erroneousSource = indexes: 44..44, line/column: 1/45..1/45, file: test
                 )
-            )
-            """.trimIndent()
+            )""".trimIndent()
         assertResult(expected, code)
-
-        // TODO: identical parsing errors because we can't make sense of the nodes; they are of type PsiBuilderImpl$ErrorItem, which is private
     }
 }
