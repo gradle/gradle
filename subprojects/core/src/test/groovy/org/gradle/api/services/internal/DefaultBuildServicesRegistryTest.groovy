@@ -175,6 +175,15 @@ class DefaultBuildServicesRegistryTest extends Specification {
         service != null
     }
 
+    def "service can be create without action"() {
+        when:
+        def provider = registry.registerIfAbsent("service", NoParamsServiceImpl)
+        def service = provider.get()
+
+        then:
+        service != null
+    }
+
     def "can tweak parameters via the registration"() {
         when:
         def initialParameters
@@ -210,6 +219,14 @@ class DefaultBuildServicesRegistryTest extends Specification {
     def "registration for service with no parameters is visible"() {
         when:
         registry.registerIfAbsent("service", NoParamsServiceImpl) {}
+
+        then:
+        registry.registrations.getByName("service") != null
+    }
+
+    def "registration for service with no action is visible"() {
+        when:
+        registry.registerIfAbsent("service", NoParamsServiceImpl)
 
         then:
         registry.registrations.getByName("service") != null

@@ -133,7 +133,7 @@ public class AvailableToolChains {
     }
 
     static private List<ToolChainCandidate> findClangs(boolean mustFind) {
-        List<ToolChainCandidate> toolChains = Lists.newArrayList();
+        List<ToolChainCandidate> toolChains = new ArrayList<>();
 
         // On macOS, we assume co-located Xcode is installed into /opt/xcode and default location at /Applications/Xcode.app
         //   We need to search for Clang differently on macOS because we need to know the Xcode version for x86 support.
@@ -184,7 +184,7 @@ public class AvailableToolChains {
         // Search in the standard installation locations
         final List<? extends VisualStudioInstall> searchResults = VisualStudioLocatorTestFixture.getVisualStudioLocator().locateAllComponents();
 
-        List<ToolChainCandidate> toolChains = Lists.newArrayList();
+        List<ToolChainCandidate> toolChains = new ArrayList<>();
 
         for (VisualStudioInstall install : searchResults) {
             if (isTestableVisualStudioVersion(install.getVersion())) {
@@ -234,7 +234,7 @@ public class AvailableToolChains {
         GccMetadataProvider versionDeterminer = GccMetadataProvider.forGcc(TestFiles.execActionFactory());
 
         Set<File> gppCandidates = ImmutableSet.copyOf(OperatingSystem.current().findAllInPath("g++"));
-        List<ToolChainCandidate> toolChains = Lists.newArrayList();
+        List<ToolChainCandidate> toolChains = new ArrayList<>();
         if (!gppCandidates.isEmpty()) {
             File firstInPath = gppCandidates.iterator().next();
             for (File candidate : gppCandidates) {
@@ -260,7 +260,7 @@ public class AvailableToolChains {
     }
 
     static List<ToolChainCandidate> findSwiftcs() {
-        List<ToolChainCandidate> toolChains = Lists.newArrayList();
+        List<ToolChainCandidate> toolChains = new ArrayList<>();
 
         SwiftcMetadataProvider versionDeterminer = new SwiftcMetadataProvider(TestFiles.execActionFactory());
 

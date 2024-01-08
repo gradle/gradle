@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.internal.provider.serialization;
 
-import com.google.common.collect.Sets;
-
 import javax.annotation.concurrent.ThreadSafe;
 import java.lang.ref.WeakReference;
 import java.net.URL;
@@ -181,7 +179,7 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
     }
 
     private static class LocalClassLoaderMapping {
-        private final Set<WeakReference<ClassLoader>> classLoaders = Sets.newLinkedHashSet();
+        private final Set<WeakReference<ClassLoader>> classLoaders = new LinkedHashSet<>();
         private final ClassLoaderDetails details;
 
         private LocalClassLoaderMapping(ClassLoaderDetails details) {
@@ -194,7 +192,7 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
         }
 
         Set<ClassLoader> getClassLoaders() {
-            Set<ClassLoader> candidates = Sets.newLinkedHashSet();
+            Set<ClassLoader> candidates = new LinkedHashSet<>();
             for (WeakReference<ClassLoader> reference : classLoaders) {
                 ClassLoader classLoader = reference.get();
                 if (classLoader != null) {

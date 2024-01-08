@@ -17,13 +17,13 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 
 
-import com.google.common.collect.Lists;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.os.OperatingSystem;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class SystemPathVersionLocator implements VisualStudioVersionLocator {
@@ -41,7 +41,7 @@ public class SystemPathVersionLocator implements VisualStudioVersionLocator {
     @Nonnull
     @Override
     public List<VisualStudioInstallCandidate> getVisualStudioInstalls() {
-        List<VisualStudioInstallCandidate> installs = Lists.newArrayList();
+        List<VisualStudioInstallCandidate> installs = new ArrayList<>();
 
         File compilerInPath = os.findInPath(LEGACY_COMPILER_FILENAME);
         if (compilerInPath == null) {

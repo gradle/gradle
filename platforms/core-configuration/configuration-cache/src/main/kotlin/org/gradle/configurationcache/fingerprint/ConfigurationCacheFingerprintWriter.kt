@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache.fingerprint
 
-import com.google.common.collect.Maps.newConcurrentMap
 import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.Describable
 import org.gradle.api.artifacts.ModuleVersionIdentifier
@@ -47,6 +46,7 @@ import org.gradle.api.internal.provider.sources.process.ProcessOutputValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.configurationcache.CoupledProjectsListener
+import org.gradle.tooling.provider.model.internal.ToolingModelProjectDependencyListener
 import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.UndeclaredBuildInputListener
 import org.gradle.configurationcache.extensions.fileSystemEntryType
@@ -82,6 +82,7 @@ import org.gradle.util.Path
 import java.io.File
 import java.net.URI
 import java.util.EnumSet
+import java.util.concurrent.ConcurrentHashMap
 
 
 internal
@@ -102,6 +103,7 @@ class ConfigurationCacheFingerprintWriter(
     ChangingValueDependencyResolutionListener,
     ProjectDependencyObservedListener,
     CoupledProjectsListener,
+    ToolingModelProjectDependencyListener,
     FileResourceListener,
     ScriptFileResolvedListener,
     FeatureFlagListener,
@@ -117,6 +119,7 @@ class ConfigurationCacheFingerprintWriter(
         val startParameterProperties: Map<String, Any?>
         val buildStartTime: Long
         val cacheIntermediateModels: Boolean
+        val modelAsProjectDependency: Boolean
         val ignoreInputsInConfigurationCacheTaskGraphWriting: Boolean
         val instrumentationAgentUsed: Boolean
         val ignoredFileSystemCheckInputs: String?
@@ -139,7 +142,7 @@ class ConfigurationCacheFingerprintWriter(
     val projectScopedWriter = ScopedFingerprintWriter<ProjectSpecificFingerprint>(projectScopedContext)
 
     private
-    val sinksForProject = newConcurrentMap<Path, ProjectScopedSink>()
+    val sinksForProject = ConcurrentHashMap<Path, ProjectScopedSink>()
 
     private
     val projectForThread = ThreadLocal<ProjectScopedSink>()
@@ -525,7 +528,7 @@ class ConfigurationCacheFingerprintWriter(
         return simplifyingVisitor.simplify()
     }
 
-    fun <T> collectFingerprintForProject(identityPath: Path, action: () -> T): T {
+    fun <T> runCollectingFingerprintForProject(identityPath: Path, action: () -> T): T {
         val previous = projectForThread.get()
         val projectSink = sinksForProject.computeIfAbsent(identityPath) { ProjectScopedSink(host, identityPath, projectScopedWriter) }
         projectForThread.set(projectSink)
@@ -537,11 +540,8 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun dependencyObserved(consumingProject: ProjectState?, targetProject: ProjectState, requestedState: ConfigurationInternal.InternalState, target: ResolvedProjectConfiguration) {
-        if (host.cacheIntermediateModels && consumingProject != null) {
-            val dependency = ProjectSpecificFingerprint.ProjectDependency(consumingProject.identityPath, targetProject.identityPath)
-            if (projectDependencies.add(dependency)) {
-                projectScopedWriter.write(dependency)
-            }
+        if (consumingProject != null) {
+            onProjectDependency(consumingProject, targetProject)
         }
     }
 
@@ -551,6 +551,22 @@ class ConfigurationCacheFingerprintWriter(
 
         if (host.cacheIntermediateModels) {
             val dependency = ProjectSpecificFingerprint.CoupledProjects(referrer.identityPath, target.identityPath)
+            if (projectDependencies.add(dependency)) {
+                projectScopedWriter.write(dependency)
+            }
+        }
+    }
+
+    override fun onToolingModelDependency(consumer: ProjectState, target: ProjectState) {
+        if (host.modelAsProjectDependency) {
+            onProjectDependency(consumer, target)
+        }
+    }
+
+    private
+    fun onProjectDependency(consumer: ProjectState, target: ProjectState) {
+        if (host.cacheIntermediateModels) {
+            val dependency = ProjectSpecificFingerprint.ProjectDependency(consumer.identityPath, target.identityPath)
             if (projectDependencies.add(dependency)) {
                 projectScopedWriter.write(dependency)
             }

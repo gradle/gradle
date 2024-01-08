@@ -16,11 +16,11 @@
 
 package org.gradle.internal.dispatch;
 
-import com.google.common.collect.Maps;
 import org.gradle.internal.concurrent.AsyncStoppable;
 import org.gradle.internal.concurrent.InterruptibleRunnable;
 import org.gradle.internal.operations.CurrentBuildOperationPreservingRunnable;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -44,7 +44,7 @@ public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
     private final LinkedList<T> queue = new LinkedList<T>();
     private final Executor executor;
     private final int maxQueueSize;
-    private final Map<Dispatch<?>, InterruptibleRunnable> dispatchers = Maps.newHashMap();
+    private final Map<Dispatch<?>, InterruptibleRunnable> dispatchers = new HashMap<Dispatch<?>, InterruptibleRunnable>();
     private State state;
 
     public AsyncDispatch(Executor executor) {

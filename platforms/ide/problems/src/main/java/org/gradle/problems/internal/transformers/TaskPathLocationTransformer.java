@@ -18,8 +18,9 @@ package org.gradle.problems.internal.transformers;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.internal.DefaultBasicProblemBuilder;
+import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.InternalProblemBuilder;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.problems.internal.OperationListener;
 import org.gradle.util.Path;
@@ -36,14 +37,15 @@ public class TaskPathLocationTransformer extends BaseLocationTransformer {
     }
 
     @Override
-    public Problem transform(Problem problem) {
+    public Problem transform(InternalProblem problem) {
         return getExecuteTask(ExecuteTaskBuildOperationDetails.class)
             .map(id -> {
                 try {
                     ExecuteTaskBuildOperationDetails executeTaskDetails = operationListener.getOp(id, ExecuteTaskBuildOperationDetails.class);
                     Objects.requireNonNull(executeTaskDetails, "executeTaskDetails should not be null");
                     Path taskPath = executeTaskDetails.getTask().getIdentityPath();
-                    return ((DefaultBasicProblemBuilder) problem.toBuilder()).taskPathLocation(taskPath).build();
+                    InternalProblemBuilder problemBuilder = problem.toBuilder();
+                    return problemBuilder.taskPathLocation(taskPath.getPath()).build();
                 } catch (Exception ex) {
                     throw new GradleException("Problem while reporting problem", ex);
                 }

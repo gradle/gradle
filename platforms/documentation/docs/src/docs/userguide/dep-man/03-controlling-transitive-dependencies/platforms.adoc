@@ -90,8 +90,7 @@ For example the aliases `groovyCore`, `groovyJson` and `groovyXml` would be mapp
 When declaring aliases, it's worth noting that any of the `-`, `_` and `.` characters can be used as separators, but the generated catalog will have all normalized to `.`:
 for example `foo-bar` as an alias is converted to `foo.bar` automatically.
 
-[WARNING]
-====
+--
 Some keywords are reserved, so they cannot be used as an alias. Next words cannot be used as an alias:
 
 - extensions
@@ -105,7 +104,7 @@ Additional to that next words cannot be used as a first subgroup of an alias for
 - plugins
 
 So for example for dependencies an alias `versions-dependency` is not valid, but `versionsDependency` or `dependency-versions` are valid.
-====
+--
 
 [[sec:common-version-numbers]]
 ==== Dependencies with same version numbers
@@ -229,8 +228,7 @@ As an example, one option is to pick a name that ends with `Libs`.
 In addition to the settings API above, Gradle offers a conventional file to declare a catalog.
 If a `libs.versions.toml` file is found in the `gradle` subdirectory of the root build, then a catalog will be automatically declared with the contents of this file.
 
-[WARNING]
-====
+--
 Declaring a `libs.versions.toml` file doesn't make it the single source of truth for dependencies: it's a conventional location where dependencies can be declared.
 As soon as you start using catalogs, it's strongly recommended to declare all your dependencies in a catalog and not hardcode group/artifact/version strings in build scripts.
 Be aware that it may happen that plugins add dependencies, which are dependencies defined outside of this file.
@@ -239,7 +237,7 @@ Just like `src/main/java` is a convention to find the Java sources, which doesn'
 
 The presence of this file does, however, suggest that most dependencies, if not all, will be declared in this file.
 Therefore, updating a dependency version, for most users, should only consists of changing a line in this file.
-====
+--
 
 By default, the `libs.versions.toml` file will be an input to the `libs` catalog.
 It is possible to change the name of the default catalog, for example if you already have an extension with the same name:
@@ -284,10 +282,7 @@ Supported members of a version declaration are:
 
 Dependency declaration can either be declared as a simple string, in which case they are interpreted as `group:artifact:version` coordinates, or separating the version declaration from the group and name:
 
-[NOTE]
-====
-For aliases, the rules described in the section <<platforms.adoc#sub:mapping-aliases-to-accessors, aliases and their mapping to type safe accessors>> apply as well.
-====
+NOTE: For aliases, the rules described in the section <<platforms.adoc#sub:mapping-aliases-to-accessors, aliases and their mapping to type safe accessors>> apply as well.
 
 .Different dependency notations
 ----
@@ -304,23 +299,28 @@ some = "1.4"
 my-lib = { group = "com.mycompany", name="mylib", version.ref="some" }
 ```
 
-[NOTE]
-====
+--
 The TOML file format is very lenient and lets you write "dotted" properties as shortcuts to full object declarations.
 For example, this:
 
-`a.b.c="d"`
+```
+a.b.c="d"
+```
 
 is equivalent to:
 
-`a.b = { c = "d" }`
+```
+a.b = { c = "d" }
+```
 
 or
 
-`a = { b = { c = "d" } }`
+```
+a = { b = { c = "d" } }
+```
 
 See the https://toml.io[TOML specification] for details.
-====
+--
 
 [[sub:type-unsafe-access-to-catalog]]
 === Type unsafe API
@@ -453,8 +453,7 @@ include::sample[dir="snippets/java-platform/recommender/kotlin/consumer",files="
 include::sample[dir="snippets/java-platform/recommender/groovy/consumer",files="build.gradle[tags=get-recommendations]"]
 ====
 
-[NOTE]
-====
+--
 This `platform` notation is a short-hand notation which actually performs several operations under the hood:
 
 * it sets the link:{javadocPath}/org/gradle/api/attributes/Category.html[org.gradle.category attribute] to `platform`, which means that Gradle will select the _platform_ component of the dependency.
@@ -462,7 +461,7 @@ This `platform` notation is a short-hand notation which actually performs severa
 
 This means that by default, a dependency to a platform triggers the inheritance of all <<rich_versions.adoc#sec:strict-version,strict versions>> defined in that platform, which can be useful for platform authors to make sure that all consumers respect their decisions in terms of versions of dependencies.
 This can be turned off by explicitly calling the `doNotEndorseStrictVersions` method.
-====
+--
 
 [[sub:bom_import]]
 == Importing Maven BOMs
@@ -498,7 +497,6 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 Using `enforcedPlatform` needs to be considered with care if your software component can be consumed by others.
 This declaration is effectively transitive and so will apply to the dependency graph of your consumers.
 Unfortunately they will have to use `exclude` if they happen to disagree with one of the forced versions.
-
 Instead, if your reusable software component has a strong opinion on some third party dependency versions, consider using a <<rich_versions.adoc#sec:strict-version,rich version declaration>> with a `strictly`.
 ====
 

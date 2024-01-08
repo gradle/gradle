@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCo
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.resource.ResourceLocation;
@@ -99,9 +100,12 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     public ClassPath getInstrumentedScriptClassPath() {
         if (resolvedClasspath == null) {
             if (classpathConfiguration != null) {
-                resolvedClasspath = buildLogicBuilder.resolveClassPath(classpathConfiguration);
-                if (!getBoolean(DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY)) {
-                    ((ResettableConfiguration) classpathConfiguration).resetResolutionState();
+
+                Factory<ClassPath> classPathFactory = () -> buildLogicBuilder.resolveClassPath(classpathConfiguration, dependencyHandler, configContainer);
+                if (getBoolean(DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY)) {
+                    resolvedClasspath = classPathFactory.create();
+                } else {
+                    resolvedClasspath = ((ResettableConfiguration) classpathConfiguration).callAndResetResolutionState(classPathFactory);
                 }
             } else {
                 resolvedClasspath = ClassPath.EMPTY;
@@ -152,6 +156,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         }
         if (dependencyHandler == null) {
             dependencyHandler = dependencyResolutionServices.getDependencyHandler();
+            buildLogicBuilder.prepareDependencyHandler(dependencyHandler);
         }
         if (classpathConfiguration == null) {
             classpathConfiguration = configContainer.migratingUnlocked(CLASSPATH_CONFIGURATION, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE);

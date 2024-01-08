@@ -25,4 +25,11 @@ public interface PropertyInternal<T> extends ProviderInternal<T>, HasConfigurabl
      * Associates this property with the task that produces its value.
      */
     void attachProducer(ModelObject owner);
+
+    /**
+     * A simple getter that checks if this property has been finalized.
+     *
+     * @return {@code true} if this property has been finalized, {@code false} otherwise
+     */
+    boolean isFinalized();
 }

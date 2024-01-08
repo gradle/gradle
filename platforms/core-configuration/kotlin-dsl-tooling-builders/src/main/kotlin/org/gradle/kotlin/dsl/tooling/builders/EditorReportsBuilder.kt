@@ -112,6 +112,7 @@ fun Sequence<Exception>.runtimeFailuresLocatedInAndNotCausedScriptCompilation(sc
     mapNotNull { it.runtimeFailureLocatedIn(scriptPath) }.filter { !it.isCausedByScriptCompilationException }
 
 
+internal
 fun Sequence<Exception>.runtimeFailuresLocatedIn(scriptPath: String): Sequence<LocationAwareException> =
     mapNotNull { it.runtimeFailureLocatedIn(scriptPath) }
 

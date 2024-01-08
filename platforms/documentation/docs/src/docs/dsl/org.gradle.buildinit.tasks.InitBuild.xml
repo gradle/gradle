@@ -56,6 +56,18 @@
                 <td>testFramework</td>
                 <td><literal><replaceable>empty</replaceable> (default test framework depends on the requested <replaceable>type</replaceable>)</literal></td>
             </tr>
+            <tr>
+                <td>javaVersion</td>
+                <td>the Java version running Gradle</td>
+            </tr>
+            <tr>
+                <td>useDefaults</td>
+                <td><literal>false</literal></td>
+            </tr>
+            <tr>
+                <td>comments</td>
+                <td><literal>true</literal></td>
+            </tr>
         </table>
     </section>
     <section>

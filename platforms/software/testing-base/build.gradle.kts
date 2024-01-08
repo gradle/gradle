@@ -12,6 +12,8 @@ This project is a implementation dependency of many other testing-related subpro
 """
 
 dependencies {
+    api(project(":reporting"))
+
     implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":native"))
@@ -22,7 +24,6 @@ dependencies {
     implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":base-services-groovy"))
-    implementation(project(":reporting"))
     implementation(project(":platform-base"))
 
     implementation(libs.slf4jApi)

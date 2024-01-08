@@ -18,13 +18,13 @@ package org.gradle.internal.normalization.java.impl;
 
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Sets;
 
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 public abstract class AnnotatableMember extends AccessibleMember {
 
-    private final SortedSet<AnnotationMember> annotations = Sets.newTreeSet();
+    private final SortedSet<AnnotationMember> annotations = new TreeSet<>();
     private final String signature;
 
     public AnnotatableMember(int access, String name, String signature) {

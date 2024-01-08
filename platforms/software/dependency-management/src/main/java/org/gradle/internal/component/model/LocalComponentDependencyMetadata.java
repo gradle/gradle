@@ -20,9 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -49,23 +47,19 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     private final boolean fromLock;
     private final String reason;
 
-    private final ImmutableAttributes dependencyAttributes;
-
     public LocalComponentDependencyMetadata(
         ComponentSelector selector,
-        AttributeContainer dependencyAttributes,
         @Nullable String dependencyConfiguration,
         List<IvyArtifactName> artifactNames,
         List<ExcludeMetadata> excludes,
         boolean force, boolean changing, boolean transitive, boolean constraint, boolean endorsing,
         @Nullable String reason
     ) {
-        this(selector, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, false, reason);
+        this(selector, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, false, reason);
     }
 
     public LocalComponentDependencyMetadata(
         ComponentSelector selector,
-        AttributeContainer dependencyAttributes,
         @Nullable String dependencyConfiguration,
         List<IvyArtifactName> artifactNames,
         List<ExcludeMetadata> excludes,
@@ -74,7 +68,6 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         @Nullable String reason
     ) {
         this.selector = selector;
-        this.dependencyAttributes = ((AttributeContainerInternal) dependencyAttributes).asImmutable();
         this.dependencyConfiguration = dependencyConfiguration;
         this.artifactNames = asImmutable(artifactNames);
         this.excludes = excludes;
@@ -248,19 +241,19 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     private LocalOriginDependencyMetadata copyWithTarget(ComponentSelector selector) {
-        return new LocalComponentDependencyMetadata(selector, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, fromLock, reason);
+        return new LocalComponentDependencyMetadata(selector, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, fromLock, reason);
     }
 
     private LocalOriginDependencyMetadata copyWithTargetAndArtifacts(ComponentSelector selector, List<IvyArtifactName> artifactNames) {
-        return new LocalComponentDependencyMetadata(selector, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, fromLock, reason);
+        return new LocalComponentDependencyMetadata(selector, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, fromLock, reason);
     }
 
     private LocalOriginDependencyMetadata copyWithReason(String reason) {
-        return new LocalComponentDependencyMetadata(selector, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, fromLock, reason);
+        return new LocalComponentDependencyMetadata(selector, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, fromLock, reason);
     }
 
     private LocalOriginDependencyMetadata copyWithForce() {
-        return new LocalComponentDependencyMetadata(selector, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, true, changing, transitive, constraint, endorsing, fromLock, reason);
+        return new LocalComponentDependencyMetadata(selector, dependencyConfiguration, artifactNames, excludes, true, changing, transitive, constraint, endorsing, fromLock, reason);
     }
 
 }

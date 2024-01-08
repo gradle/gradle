@@ -36,6 +36,7 @@ import org.gradle.security.internal.PublicKeyService;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -223,7 +224,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         @Override
         public void missingKey(String keyId) {
             if (missingKeys == null) {
-                missingKeys = Lists.newArrayList();
+                missingKeys = new ArrayList<>();
             }
             missingKeys.add(keyId);
         }
@@ -232,12 +233,12 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         public void verified(PGPPublicKey key, boolean trusted) {
             if (trusted) {
                 if (trustedKeys == null) {
-                    trustedKeys = Lists.newArrayList();
+                    trustedKeys = new ArrayList<>();
                 }
                 trustedKeys.add(key);
             } else {
                 if (validKeys == null) {
-                    validKeys = Lists.newArrayList();
+                    validKeys = new ArrayList<>();
                 }
                 validKeys.add(key);
             }
@@ -246,7 +247,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         @Override
         public void failed(PGPPublicKey pgpPublicKey) {
             if (failedKeys == null) {
-                failedKeys = Lists.newArrayList();
+                failedKeys = new ArrayList<>();
             }
             failedKeys.add(pgpPublicKey);
         }
@@ -254,7 +255,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         @Override
         public void ignored(String keyId) {
             if (ignoredKeys == null) {
-                ignoredKeys = Lists.newArrayList();
+                ignoredKeys = new ArrayList<>();
             }
             ignoredKeys.add(keyId);
         }

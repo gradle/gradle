@@ -34,7 +34,6 @@ import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -353,9 +352,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
 
         @Override
         public byte[] getSecondaryInputValueHashBytes() {
-            Hasher hasher = Hashing.newHasher();
-            transformWorkspaceIdentity.getSecondaryInputsSnapshot().appendToHasher(hasher);
-            return hasher.hash().toByteArray();
+            return Hashing.hashHashable(transformWorkspaceIdentity.getSecondaryInputsSnapshot()).toByteArray();
         }
     }
 }

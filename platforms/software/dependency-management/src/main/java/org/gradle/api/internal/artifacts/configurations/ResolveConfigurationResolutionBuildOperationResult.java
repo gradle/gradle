@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.configurations;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import org.gradle.api.Named;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
@@ -69,7 +68,7 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
     public Object getCustomOperationTraceSerializableModel() {
         Map<String, Object> model = new HashMap<>();
         model.put("resolvedDependenciesCount", getRootComponent().getDependencies().size());
-        final Map<String, Map<String, String>> components = Maps.newHashMap();
+        final Map<String, Map<String, String>> components = new HashMap<>();
         resolutionResult.allComponents(component -> components.put(
             component.getId().getDisplayName(),
             Collections.singletonMap("repoId", getRepositoryId(component))

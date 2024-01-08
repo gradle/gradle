@@ -19,9 +19,9 @@ package org.gradle.api.problems;
 import org.gradle.api.Incubating;
 
 /**
- * Severity.
+ * A problem severity.
  *
- * @since 8.4
+ * @since 8.6
  */
 @Incubating
 public enum Severity {
@@ -37,9 +37,5 @@ public enum Severity {
     @Override
     public String toString() {
         return displayName;
-    }
-
-    public boolean isWarning() {
-        return this == WARNING;
     }
 }

@@ -15,7 +15,6 @@
  */
 package org.gradle.groovy.scripts.internal;
 
-import com.google.common.collect.Maps;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
@@ -23,6 +22,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Cast;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -35,7 +35,7 @@ import java.util.Map;
 public class BuildScopeInMemoryCachingScriptClassCompiler implements ScriptClassCompiler {
     private final CrossBuildInMemoryCachingScriptClassCache cache;
     private final ScriptClassCompiler scriptClassCompiler;
-    private final Map<ScriptCacheKey, CompiledScript<?, ?>> cachedCompiledScripts = Maps.newHashMap();
+    private final Map<ScriptCacheKey, CompiledScript<?, ?>> cachedCompiledScripts = new HashMap<>();
 
     public BuildScopeInMemoryCachingScriptClassCompiler(CrossBuildInMemoryCachingScriptClassCache cache, ScriptClassCompiler scriptClassCompiler) {
         this.cache = cache;

@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Interner;
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.internal.UncheckedException;
@@ -30,6 +29,7 @@ import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.HashMap;
 
 public class ModuleMetadataStore {
 
@@ -55,7 +55,7 @@ public class ModuleMetadataStore {
         if (resource != null) {
             try {
                 try (StringDeduplicatingDecoder decoder = new StringDeduplicatingDecoder(new KryoBackedDecoder(new FileInputStream(resource.getFile())), stringInterner)) {
-                    return moduleMetadataSerializer.read(decoder, moduleIdentifierFactory, Maps.newHashMap());
+                    return moduleMetadataSerializer.read(decoder, moduleIdentifierFactory, new HashMap<>());
                 }
             } catch (Exception e) {
                 throw new RuntimeException("Could not load module metadata from " + resource.getDisplayName(), e);
@@ -69,7 +69,7 @@ public class ModuleMetadataStore {
         return metaDataStore.add(PATH_JOINER.join(filePath), moduleDescriptorFile -> {
             try {
                 try (KryoBackedEncoder encoder = new KryoBackedEncoder(new FileOutputStream(moduleDescriptorFile))) {
-                    moduleMetadataSerializer.write(encoder, metadata, Maps.newHashMap());
+                    moduleMetadataSerializer.write(encoder, metadata, new HashMap<>());
                 }
             } catch (Exception e) {
                 throw UncheckedException.throwAsUncheckedException(e);

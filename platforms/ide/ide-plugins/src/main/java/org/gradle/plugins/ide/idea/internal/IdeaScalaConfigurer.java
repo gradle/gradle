@@ -20,8 +20,6 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
 import org.gradle.api.Action;
@@ -45,7 +43,9 @@ import org.gradle.plugins.ide.idea.model.ProjectLibrary;
 import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -71,7 +71,7 @@ public class IdeaScalaConfigurer {
                 VersionNumber ideaTargetVersion = findIdeaTargetVersion();
                 final boolean useScalaSdk = ideaTargetVersion == null || IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED.compareTo(ideaTargetVersion) <= 0;
                 final Collection<Project> scalaProjects = findProjectsApplyingIdeaAndScalaPlugins();
-                final Map<String, ProjectLibrary> scalaCompilerLibraries = Maps.newLinkedHashMap();
+                final Map<String, ProjectLibrary> scalaCompilerLibraries = new LinkedHashMap<>();
                 rootProject.getTasks().named("ideaProject", new Action<Task>() {
                     @Override
                     public void execute(Task task) {
@@ -107,7 +107,7 @@ public class IdeaScalaConfigurer {
     }
 
     private static Map<String, ProjectLibrary> resolveScalaCompilerLibraries(Collection<Project> scalaProjects, final boolean useScalaSdk) {
-        Map<String, ProjectLibrary> scalaCompilerLibraries = Maps.newLinkedHashMap();
+        Map<String, ProjectLibrary> scalaCompilerLibraries = new LinkedHashMap<>();
         for (final Project scalaProject : scalaProjects) {
             final IdeaModule ideaModule = scalaProject.getExtensions().getByType(IdeaModel.class).getModule();
             final Iterable<File> files = getIdeaModuleLibraryDependenciesAsFiles(ideaModule);
@@ -123,7 +123,7 @@ public class IdeaScalaConfigurer {
     private static Iterable<File> getIdeaModuleLibraryDependenciesAsFiles(IdeaModule ideaModule) {
         // could make resolveDependencies() cache its result for later use by GenerateIdeaModule
         Set<Dependency> dependencies = ideaModule.resolveDependencies();
-        List<File> files = Lists.newArrayList();
+        List<File> files = new ArrayList<>();
         for (ModuleLibrary moduleLibrary : Iterables.filter(dependencies, ModuleLibrary.class)) {
             for (FilePath filePath : Iterables.filter(moduleLibrary.getClasses(), FilePath.class)) {
                 files.add(filePath.getFile());

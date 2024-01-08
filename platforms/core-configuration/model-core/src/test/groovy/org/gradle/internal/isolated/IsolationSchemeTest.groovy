@@ -34,6 +34,9 @@ class IsolationSchemeTest extends Specification {
         scheme.parameterTypeFor(DirectUsage) == CustomParams
         scheme.parameterTypeFor(IndirectUsage) == CustomParams
         scheme.parameterTypeFor(ParameterizedType) == CustomParams
+        scheme.parameterTypeFor(ComplexParameterizedType) == CustomParamsWithType
+        scheme.parameterTypeFor(InheritedParameterizedType) == ExtendedCustomParams
+        scheme.parameterTypeFor(FirstLevelInheritedParameterizedType) == ExtendedCustomParams
 
         scheme.parameterTypeFor(NoParams) == null
         scheme.parameterTypeFor(SomeAction) == null
@@ -176,6 +179,12 @@ interface SomeAction<P extends SomeParams> {
 interface CustomParams extends SomeParams {
 }
 
+interface CustomParamsWithType<T> extends SomeParams {
+}
+
+interface ExtendedCustomParams extends CustomParams {
+}
+
 class DirectUsage implements SomeAction<CustomParams> {
 }
 
@@ -194,5 +203,20 @@ class BaseParams implements SomeAction<SomeParams> {
 class RawActionType implements SomeAction {
 }
 
+class ComplexParameterizedType<A extends CustomParamsWithType<?>, B extends A, C extends B> implements SomeAction<C> {
+}
+
 class ParameterizedType<T extends CustomParams> implements SomeAction<T> {
+}
+
+class InheritedParameterizedType extends ParameterizedType<ExtendedCustomParams> {
+}
+
+class ThirdLevelInheritedParameterizedType<B extends SomeParams> implements SomeAction<B> {
+}
+
+class SecondLevelInheritedParameterizedType<A extends CustomParams> extends ThirdLevelInheritedParameterizedType<A> {
+}
+
+class FirstLevelInheritedParameterizedType extends SecondLevelInheritedParameterizedType<ExtendedCustomParams> {
 }

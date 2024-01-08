@@ -17,9 +17,9 @@
 package org.gradle.ide.xcode.internal.xcodeproj;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,7 +37,7 @@ public abstract class PBXTarget extends PBXProjectItem {
     public PBXTarget(String name, ProductType productType) {
         this.name = Preconditions.checkNotNull(name);
         this.productType = Preconditions.checkNotNull(productType);
-        this.buildPhases = Lists.newArrayList();
+        this.buildPhases = new ArrayList<>();
         this.buildConfigurationList = new XCConfigurationList();
     }
 

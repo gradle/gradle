@@ -21,29 +21,31 @@ plugins {
 description = "Plugins and integration with code quality (Checkstyle, PMD, CodeNarc)"
 
 dependencies {
-    implementation(project(":base-services"))
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":model-core"))
+    api(project(":platform-jvm"))
+    api(project(":plugins-java-base"))
+    api(project(":reporting"))
+    api(project(":toolchains-jvm"))
+    api(project(":workers"))
+
+    api(libs.groovy)
+    api(libs.inject)
+    api(libs.jsr305)
+
     implementation(project(":logging"))
     implementation(project(":native"))
-    implementation(project(":process-services"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":language-jvm"))
     implementation(project(":plugins-groovy"))
-    implementation(project(":plugins-java-base"))
-    implementation(project(":workers"))
-    implementation(project(":reporting"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":file-collections"))
-    implementation(project(":toolchains-jvm"))
     compileOnly(project(":internal-instrumentation-api"))
 
-    implementation(libs.groovy)
-    implementation(libs.groovyAnt)
     implementation(libs.groovyXml)
     implementation(libs.guava)
-    implementation(libs.inject)
-    implementation(libs.ant)
+    implementation(libs.slf4jApi)
+
+    runtimeOnly(project(":language-jvm"))
 
     testImplementation(project(":file-collections"))
     testImplementation(project(":plugins-java"))

@@ -1144,7 +1144,6 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         _ * listenerBroadcaster.getSource() >> listener
         1 * listener.beforeResolve(_) >> { ResolvableDependencies dependencies -> assert dependencies == config.incoming }
         1 * listener.afterResolve(_) >> { ResolvableDependencies dependencies -> assert dependencies == config.incoming }
-        config.internalState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
     }
 
@@ -1158,10 +1157,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.getBuildDependencies().getDependencies(null)
 
         then:
-        config.internalState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
-
-        and:
         1 * resolver.resolveGraph(config) >> graphResolved(config)
         1 * resolver.getRepositories() >> []
         0 * resolver._
@@ -1177,10 +1173,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.getBuildDependencies().getDependencies(null)
 
         then:
-        config.internalState == ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED
         config.state == UNRESOLVED
-
-        and:
         1 * resolver.resolveBuildDependencies(config) >> buildDependenciesResolved(config)
         0 * resolver._
     }
@@ -1194,10 +1187,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.getBuildDependencies().getDependencies(null)
 
         then:
-        config.internalState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
-
-        and:
         1 * resolver.resolveGraph(config) >> graphResolved(config)
         1 * resolver.getRepositories() >> []
         0 * resolver._
@@ -1206,10 +1196,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.incoming.getResolutionResult().root
 
         then:
-        config.internalState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
-
-        and:
         0 * resolver._
     }
 
@@ -1223,10 +1210,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.getBuildDependencies().getDependencies(null)
 
         then:
-        config.internalState == ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED
         config.state == UNRESOLVED
-
-        and:
         1 * resolver.resolveBuildDependencies(config) >> buildDependenciesResolved(config)
         0 * resolver._
 
@@ -1234,10 +1218,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.incoming.getResolutionResult().root
 
         then:
-        config.internalState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
-
-        and:
         1 * resolver.resolveGraph(config) >> graphResolved(config)
         1 * resolver.getRepositories() >> []
         0 * resolver._
@@ -1253,10 +1234,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.incoming.getResolutionResult().root
 
         then:
-        config.internalState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
-
-        and:
         1 * resolver.resolveGraph(config) >> graphResolved(config)
         1 * resolver.getRepositories() >> []
         0 * resolver._
@@ -1265,10 +1243,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.getBuildDependencies()
 
         then:
-        config.internalState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
-
-        and:
         0 * resolver._
 
         where:
@@ -1285,18 +1260,16 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def previousResolvedConfiguration = config.resolvedConfiguration
 
         then:
-        config.internalState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
-
-        when:
         def nextFiles = config.files
         def nextResolutionResult = config.incoming.resolutionResult
         def nextResolvedConfiguration = config.resolvedConfiguration
 
+        when:
+        nextResolutionResult.root // forces lazy resolution
+
         then:
         0 * resolver._
-        nextResolutionResult.root // forces lazy resolution
-        config.internalState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
 
         // We get back the same resolution results
@@ -1317,12 +1290,18 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.incoming.resolutionResult
 
         when:
-        def copy = config.copy() as DefaultConfiguration
+        def copy = config.copy()
 
         then:
         1 * resolutionStrategy.copy() >> Mock(ResolutionStrategyInternal)
-        copy.internalState == ConfigurationInternal.InternalState.UNRESOLVED
+        0 * resolver._
         copy.state == UNRESOLVED
+
+        when:
+        copy.incoming.resolutionResult.root
+
+        then:
+        1 * resolver.resolveGraph(copy) >> graphResolved(copy)
     }
 
     def "provides task dependency from project dependency using 'needed'"() {

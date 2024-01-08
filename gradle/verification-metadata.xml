@@ -173,6 +173,7 @@
          <trusted-key id="6F538074CCEBF35F28AF9B066A0975F8B1127B83" group="org.jetbrains.kotlin"/>
          <trusted-key id="6FCA825C6E85FCB4DF9A96B27A3C11434EC6434E" group="^com[.]trueaccord($|([.].*))" regex="true"/>
          <trusted-key id="70CD19BFD9F6C330027D6F260315BFB7970A144F" group="com.sun.xml.bind"/>
+         <trusted-key id="719F7C29985A8E95F58F47194D8159D6A1159B69" group="dev.zacsweers.moshix"/>
          <trusted-key id="7616EB882DAF57A11477AAF559A252FB1199D873" group="com.google.code.findbugs"/>
          <trusted-key id="76E94E8FF0AB5AF3B6F8366972FEFD1572EB75E1" group="org.spockframework"/>
          <trusted-key id="7B79ADD11F8A779FE90FD3D0893A028475557671">
@@ -272,6 +273,7 @@
          </trusted-key>
          <trusted-key id="D9AA7402BA75F78720D975211D185615D0A84648" group="net.sf.saxon" name="Saxon-HE"/>
          <trusted-key id="DB467D22A2666D061FDD120DB5BD4591883D638C" group="com.tngtech.archunit"/>
+         <trusted-key id="DBD744ACE7ADE6AA50DD591F66B50994442D2D40" group="com.squareup.moshi"/>
          <trusted-key id="DC98224C6421A7A5BB87F346ED2378CD09A08CDE" group="org.jline"/>
          <trusted-key id="DDDEE87612E9FB95F5C8D91E411063A3A0FFD119">
             <trusting group="commons-beanutils"/>
@@ -322,18 +324,18 @@
       </trusted-keys>
    </configuration>
    <components>
-      <component group="android-studio" name="android-studio" version="2022.3.1.18">
-         <artifact name="android-studio-2022.3.1.18.linux.tar.gz">
-            <sha256 value="24215e1324a6ac911810b2cc1afb2d735cf745dfbc06918a42b8d6fbc6bf7433" origin="Verified" reason="Artifact is not signed"/>
+      <component group="android-studio" name="android-studio" version="2023.2.1.16">
+         <artifact name="android-studio-2023.2.1.16.linux.tar.gz">
+            <sha256 value="6bd59abffdd3b68274be54dd104c2a44254a54fa5ad19390c1be2489a66f51d8" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2022.3.1.18.mac.zip">
-            <sha256 value="f6c06282dca0ca9eefe82752c1703f15394aa0fd659a845b75e47a673fbf082f" origin="Verified" reason="Artifact is not signed"/>
+         <artifact name="android-studio-2023.2.1.16.mac_arm.zip">
+            <sha256 value="3a8788bbc4a0f051d86d5a51789a446405764825d16c9d44622232dc110c517d" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2022.3.1.18.mac_arm.zip">
-            <sha256 value="ae39502b86dcb004b7732a6639edc97a4bd501400118e9d0f3441d5079903cac" origin="Verified" reason="Artifact is not signed"/>
+         <artifact name="android-studio-2023.2.1.16.mac.zip">
+            <sha256 value="260898e96f1ec21bbc00ac7d0878f5a1037b024b128caf5c71fe9ef05dd5e0d0" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2022.3.1.18.windows.zip">
-            <sha256 value="ce23ee1647d25f4567895b7ab29aaa844ef02d0aecd218ec775f62be564189b3" origin="Verified" reason="Artifact is not signed"/>
+         <artifact name="android-studio-2023.2.1.16.windows.zip">
+            <sha256 value="dbe764371f40869cf199e02d538b305656f49fb930afe072a1c929b881a035cf" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="antlr" name="antlr" version="2.7.7">
@@ -522,6 +524,11 @@
             <pgp value="635EE627345F3C1DD422B2E207D3516820BCF6B1"/>
          </artifact>
       </component>
+      <component group="com.github.ben-manes.caffeine" name="caffeine" version="3.1.0">
+         <artifact name="caffeine-3.1.0.jar">
+            <pgp value="635EE627345F3C1DD422B2E207D3516820BCF6B1"/>
+         </artifact>
+      </component>
       <component group="com.github.javaparser" name="javaparser-core" version="3.24.9">
          <artifact name="javaparser-core-3.24.9.jar">
             <pgp value="FC2C31FC25FEDE4E7AD0D18C2BFD7825A8984FBE"/>
@@ -559,6 +566,11 @@
       <component group="com.google.errorprone" name="error_prone_annotations" version="2.1.3">
          <artifact name="error_prone_annotations-2.1.3.jar">
             <pgp value="F05E5F90E43E837F9DD8C781BF935C771A8474F8"/>
+         </artifact>
+      </component>
+      <component group="com.google.errorprone" name="error_prone_annotations" version="2.13.1">
+         <artifact name="error_prone_annotations-2.13.1.jar">
+            <pgp value="EE0CA873074092F806F59B65D364ABAA39A47320"/>
          </artifact>
       </component>
       <component group="com.google.errorprone" name="error_prone_annotations" version="2.3.4">
@@ -683,6 +695,11 @@
       <component group="com.squareup" name="javawriter" version="2.5.0">
          <artifact name="javawriter-2.5.0.jar">
             <pgp value="90EE19787A7BCF6FD37A1E9180C08B1C29100955"/>
+         </artifact>
+      </component>
+      <component group="com.squareup" name="kotlinpoet" version="1.12.0">
+         <artifact name="kotlinpoet-1.12.0.jar">
+            <pgp value="C5AA57F4A38EBA7B7F9156DDAB2DA4527F6FFC0B"/>
          </artifact>
       </component>
       <component group="com.sun.activation" name="jakarta.activation" version="2.0.0">

@@ -80,6 +80,7 @@ import org.gradle.cache.internal.BinaryStore;
 import org.gradle.cache.internal.Store;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.locking.DependencyLockingGraphVisitor;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -115,6 +116,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final ComponentDetailsSerializer componentDetailsSerializer;
     private final SelectedVariantSerializer selectedVariantSerializer;
     private final ResolvedVariantCache resolvedVariantCache;
+    private final GraphVariantSelector graphVariantSelector;
 
     public DefaultConfigurationResolver(
         ComponentResolversFactory componentResolversFactory,
@@ -138,7 +140,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ResolveExceptionContextualizer exceptionContextualizer,
         ComponentDetailsSerializer componentDetailsSerializer,
         SelectedVariantSerializer selectedVariantSerializer,
-        ResolvedVariantCache resolvedVariantCache
+        ResolvedVariantCache resolvedVariantCache,
+        GraphVariantSelector graphVariantSelector
     ) {
         this.componentResolversFactory = componentResolversFactory;
         this.dependencyGraphResolver = dependencyGraphResolver;
@@ -163,6 +166,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.componentDetailsSerializer = componentDetailsSerializer;
         this.selectedVariantSerializer = selectedVariantSerializer;
         this.resolvedVariantCache = resolvedVariantCache;
+        this.graphVariantSelector = graphVariantSelector;
     }
 
     @Override
@@ -180,7 +184,9 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             artifactTypeRegistry,
             calculatedValueContainerFactory,
             resolvers.getArtifactResolver(),
-            resolvedVariantCache
+            resolvedVariantCache,
+            graphVariantSelector,
+            consumerSchema
         );
 
         ImmutableList<DependencyGraphVisitor> visitors = ImmutableList.of(failureCollector, resolutionResultBuilder, localComponentsVisitor, artifactsGraphVisitor);
@@ -245,7 +251,9 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             artifactTypeRegistry,
             calculatedValueContainerFactory,
             resolvers.getArtifactResolver(),
-            resolvedVariantCache
+            resolvedVariantCache,
+            graphVariantSelector,
+            consumerSchema
         ));
 
         dependencyGraphResolver.resolveGraph(resolveContext, resolvers, consumerSchema, metadataHandler, Specs.satisfyAll(), true, graphVisitors.build());
@@ -279,7 +287,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         }
 
         TransientConfigurationResultsLoader transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(oldTransientModelBuilder, legacyGraphResults);
-        ArtifactVariantSelector selector = variantSelectorFactory.create(resolveContext.getDependenciesResolverFactory());
+        ArtifactVariantSelector artifactVariantSelector = variantSelectorFactory.create(resolveContext.getDependenciesResolverFactory());
         DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(
             resolveContext,
             graphResults,
@@ -289,7 +297,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             buildOperationExecutor,
             dependencyVerificationOverride,
             workerLeaseService,
-            selector
+            artifactVariantSelector
         );
 
         return DefaultResolverResults.graphResolved(

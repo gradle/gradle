@@ -19,6 +19,7 @@ package org.gradle.api.provider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 
+import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.configCache
 import static org.hamcrest.CoreMatchers.containsString
 
 class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
@@ -120,14 +121,14 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         "Collection<T> = Provider<Iterable<T>>"  | "="       | "List<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | unsupportedWithCause("Cannot cast object")
         "Collection<T> += T"                     | "+="      | "List<MyObject>"        | 'new MyObject("a")'                                      | '[a]'
         "Collection<T> << T"                     | "<<"      | "List<MyObject>"        | 'new MyObject("a")'                                      | '[a]'
-        "Collection<T> += Provider<T>"           | "+="      | "List<MyObject>"        | 'provider { new MyObject("a") }'                         | '[provider(?)]'
-        "Collection<T> << Provider<T>"           | "<<"      | "List<MyObject>"        | 'provider { new MyObject("a") }'                         | '[provider(?)]'
+        "Collection<T> += Provider<T>"           | "+="      | "List<MyObject>"        | 'provider { new MyObject("a") }'                         | ('[fixed(class MyObject, a)]'.find { configCache } ?: '[provider(?)]')
+        "Collection<T> << Provider<T>"           | "<<"      | "List<MyObject>"        | 'provider { new MyObject("a") }'                         | ('[fixed(class MyObject, a)]'.find { configCache } ?: '[provider(?)]')
         "Collection<T> += T[]"                   | "+="      | "List<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | '[[a]]'
         "Collection<T> << T[]"                   | "<<"      | "List<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | unsupportedWithCause("Cannot cast object")
         "Collection<T> += Iterable<T>"           | "+="      | "List<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | '[a]'
         "Collection<T> << Iterable<T>"           | "<<"      | "List<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | '[[a]]'
-        "Collection<T> += Provider<Iterable<T>>" | "+="      | "List<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | '[provider(?)]'
-        "Collection<T> << Provider<Iterable<T>>" | "<<"      | "List<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | '[provider(?)]'
+        "Collection<T> += Provider<Iterable<T>>" | "+="      | "List<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | ('[fixed(class java.util.ArrayList, [a])]'.find { configCache } ?: '[provider(?)]')
+        "Collection<T> << Provider<Iterable<T>>" | "<<"      | "List<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | ('[fixed(class java.util.ArrayList, [a])]'.find { configCache } ?: '[provider(?)]')
         "Map<K, V> = Map<K, V>"                  | "="       | "Map<String, MyObject>" | '["a": new MyObject("b")]'                               | '[a:b]'
         "Map<K, V> = Provider<Map<K, V>>"        | "="       | "Map<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | unsupportedWithCause("Cannot cast object")
         "Map<K, V> += Map<K, V>"                 | "+="      | "Map<String, MyObject>" | '["a": new MyObject("b")]'                               | '[a:b]'
@@ -461,7 +462,7 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
 
         @Override
         void assertHasExpectedFailure(ExecutionFailure failure) {
-            failure.assertThatDescription(containsString(failureDescription));
+            failure.assertThatDescription(containsString(failureDescription))
         }
     }
 }

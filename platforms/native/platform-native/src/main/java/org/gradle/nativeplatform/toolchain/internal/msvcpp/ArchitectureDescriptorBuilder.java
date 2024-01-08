@@ -17,12 +17,12 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -176,7 +176,7 @@ public enum ArchitectureDescriptorBuilder {
     }
 
     Map<String, String> getDefinitions() {
-        return Maps.newHashMap();
+        return new HashMap<>();
     }
 
     ArchitectureSpecificVisualCpp buildDescriptor(VersionNumber compilerVersion, File basePath, File vsPath) {

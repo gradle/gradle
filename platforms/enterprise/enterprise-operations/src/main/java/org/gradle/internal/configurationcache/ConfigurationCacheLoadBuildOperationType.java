@@ -18,6 +18,8 @@ package org.gradle.internal.configurationcache;
 
 import org.gradle.internal.operations.BuildOperationType;
 
+import javax.annotation.Nullable;
+
 /**
  * Details about a configuration cache load build operation.
  *
@@ -29,6 +31,22 @@ public class ConfigurationCacheLoadBuildOperationType implements BuildOperationT
     }
 
     public interface Result {
+        /**
+         * The number of bytes of the stored configuration cache entry.
+         *
+         * @since 8.6
+         */
+        long getCacheEntrySize();
+
+        /**
+         * The ID of the build that store the configuration cache entry.
+         *
+         * `null` when unknown, e.g. when loading models and not a task graph.
+         *
+         * @since 8.6
+         */
+        @Nullable
+        String getOriginBuildInvocationId();
     }
 
 }

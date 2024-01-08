@@ -25,6 +25,7 @@ import org.gradle.util.internal.ConfigureUtil;
 
 import javax.inject.Inject;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -82,7 +83,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
 public abstract class EclipseWtpFacet {
 
     private final XmlFileContentMerger file;
-    private List<Facet> facets = Lists.newArrayList();
+    private List<Facet> facets = new ArrayList<>();
 
     @Inject
     public EclipseWtpFacet(XmlFileContentMerger file) {

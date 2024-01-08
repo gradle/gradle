@@ -235,4 +235,32 @@ org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}
         output.count("prop1=new-value") == 2
         outputContains("prop2=other-value")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/27521")
+    def "buildscript dependencies are resolved properly"() {
+        buildFile << """
+            buildscript {
+                repositories {
+                    mavenCentral()
+                }
+                dependencies {
+                    classpath 'com.github.spotbugs:spotbugs-annotations:4.8.3'
+                }
+                configurations.all { config ->
+                    config.getResolutionStrategy().eachDependency { dep ->
+                        if (dep.getRequested().getName() == "spotbugs-annotations") {
+                            dep.useTarget("com.github.spotbugs:spotbugs-annotations:4.8.1")
+                            dep.because("Because I said so")
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "buildEnvironment"
+
+        then:
+        outputContains("\\--- com.github.spotbugs:spotbugs-annotations:4.8.3 -> 4.8.1")
+    }
 }

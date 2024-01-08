@@ -72,12 +72,10 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
     }
 
     private static ClasspathFileHasher createFileHasherWithConfig(HashCode configHash, ClasspathFileHasher fileHasher) {
-        return sourceSnapshot -> {
-            Hasher hasher = Hashing.defaultFunction().newHasher();
-            hasher.putHash(configHash);
-            hasher.putHash(fileHasher.hashOf(sourceSnapshot));
-            return hasher.hash();
-        };
+        return sourceSnapshot -> Hashing.newHasher()
+            .putHash(configHash)
+            .putHash(fileHasher.hashOf(sourceSnapshot))
+            .hash();
     }
 
     @Override

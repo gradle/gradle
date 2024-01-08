@@ -16,12 +16,12 @@
 
 package org.gradle.workers.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -58,7 +58,7 @@ public class FilteringClassLoaderSpecSerializer implements Serializer<FilteringC
     }
 
     private List<String> decodeStrings(Decoder decoder) throws Exception {
-        List<String> strings = Lists.newArrayList();
+        List<String> strings = new ArrayList<>();
         int size = decoder.readInt();
         for (int i=0; i<size; i++) {
             strings.add(decoder.readString());

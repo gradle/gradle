@@ -18,64 +18,65 @@ package org.gradle.internal.hash;
 
 /**
  * A safe hasher that can be marked as invalid.
- *
- * In order to avoid collisions we prepend the length of the next bytes to the underlying hasher (see this <a href="http://crypto.stackexchange.com/a/10065">answer</a> on stackexchange).
+ * <p>
+ * In order to avoid collisions we prepend the length of the next bytes to the underlying hasher
+ * (see this <a href="http://crypto.stackexchange.com/a/10065">answer</a> on stackexchange).
  */
 public interface Hasher {
     /**
      * Feed a bunch of bytes into the hasher.
      */
-    void putBytes(byte[] bytes);
+    Hasher putBytes(byte[] bytes);
 
     /**
      * Feed a given number of bytes into the hasher from the given offset.
      */
-    void putBytes(byte[] bytes, int off, int len);
+    Hasher putBytes(byte[] bytes, int off, int len);
 
     /**
      * Feed a single byte into the hasher.
      */
-    void putByte(byte value);
+    Hasher putByte(byte value);
 
     /**
      * Feed an integer byte into the hasher.
      */
-    void putInt(int value);
+    Hasher putInt(int value);
 
     /**
      * Feed a long value byte into the hasher.
      */
-    void putLong(long value);
+    Hasher putLong(long value);
 
     /**
      * Feed a double value into the hasher.
      */
-    void putDouble(double value);
+    Hasher putDouble(double value);
 
     /**
      * Feed a boolean value into the hasher.
      */
-    void putBoolean(boolean value);
+    Hasher putBoolean(boolean value);
 
     /**
      * Feed a string into the hasher.
      */
-    void putString(CharSequence value);
+    Hasher putString(CharSequence value);
 
     /**
      * Feed a hash code into the hasher.
      */
-    void putHash(HashCode hashCode);
+    Hasher putHash(HashCode hashCode);
 
     /**
      * Puts a hashable value into the hasher.
      */
-    void put(Hashable hashable);
+    Hasher put(Hashable hashable);
 
     /**
      * Feed a {@code null} value into the hasher.
      */
-    void putNull();
+    Hasher putNull();
 
     /**
      * Returns the combined hash.

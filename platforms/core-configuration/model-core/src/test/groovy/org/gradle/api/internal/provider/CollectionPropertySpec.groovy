@@ -24,6 +24,10 @@ import org.gradle.api.provider.Provider
 import org.gradle.internal.Describables
 import org.gradle.util.internal.TextUtil
 
+import java.util.function.Consumer
+
+import static org.gradle.api.internal.provider.CircularEvaluationSpec.ProviderConsumer.GET_PRODUCER
+
 abstract class CollectionPropertySpec<C extends Collection<String>> extends PropertySpec<C> {
     AbstractCollectionProperty<String, C> propertyWithDefaultValue() {
         return property()
@@ -1064,5 +1068,199 @@ The value of this property is derived from: <source>""")
 
         then:
         0 * _
+    }
+
+    def "update can modify property"() {
+        given:
+        property.set(someValue())
+
+        when:
+        property.update { it.map { someOtherValue() } }
+
+        then:
+        property.get() == someOtherValue()
+    }
+
+    def "update can modify property with convention"() {
+        given:
+        property.convention(someValue())
+
+        when:
+        property.update { it.map { someOtherValue() } }
+
+        then:
+        property.get() == someOtherValue()
+    }
+
+    def "update is not applied to later property modifications"() {
+        given:
+        property.set(someValue())
+
+        when:
+        property.update { it.map { v -> v.collect { s -> s.reverse() } } }
+        property.set(someOtherValue())
+
+        then:
+        property.get() == someOtherValue()
+    }
+
+    def "update argument is live"() {
+        given:
+        def upstream = property().value(someValue()) as AbstractCollectionProperty<String, C>
+        property.set(upstream)
+
+        when:
+        property.update { it.map { v -> v.collect { s -> s.reverse() } } }
+        upstream.set(someOtherValue())
+
+        then:
+        property.get() as Set<String> == someOtherValue().collect { it.reverse() } as Set<String>
+    }
+
+    def "returning null from update unsets the property"() {
+        given:
+        property.set(someValue())
+
+        when:
+        property.update { null }
+
+        then:
+        !property.isPresent()
+    }
+
+    def "returning null from update unsets the property falling back to convention"() {
+        given:
+        property.value(someValue()).convention(someOtherValue())
+
+        when:
+        property.update { null }
+
+        then:
+        property.get() == someOtherValue()
+    }
+
+    def "update transformation runs eagerly"() {
+        given:
+        Transformer<Provider<String>, Provider<String>> transform = Mock()
+        property.set(someValue())
+
+        when:
+        property.update(transform)
+
+        then:
+        1 * transform.transform(_)
+    }
+
+    static abstract class CollectionPropertyCircularChainEvaluationTest<T, C extends Collection<T>> extends PropertySpec.PropertyCircularChainEvaluationSpec<C> {
+        @Override
+        abstract AbstractCollectionProperty<T, C> property()
+
+        def "calling #consumer throws exception if added item provider references the property"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<T> item = property.map { list -> list.iterator().next() }
+            property.add(item)
+
+            when:
+            consumer.accept(property)
+
+            then:
+            thrown(EvaluationContext.CircularEvaluationException)
+
+            where:
+            consumer << throwingConsumers()
+        }
+
+        def "calling #consumer throws exception if added item provider references the property and discards producer"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<T> item = property.map { list -> list.iterator().next() }
+            property.add(new ProducerDiscardingProvider(item))
+
+            when:
+            consumer.accept(property)
+
+            then:
+            thrown(EvaluationContext.CircularEvaluationException)
+
+            where:
+            consumer << throwingConsumers() - [GET_PRODUCER]
+        }
+
+        def "calling #consumer is safe even if added item provider references the property"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<T> item = property.map { items -> items.iterator().next() }
+            property.add(item)
+
+            when:
+            consumer.accept(property)
+
+            then:
+            noExceptionThrown()
+
+            where:
+            consumer << safeConsumers()
+        }
+
+        def "calling #consumer throws exception if added collection provider references the property"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<C> items = property.map { it }
+            property.addAll(items)
+
+            when:
+            consumer.accept(property)
+
+            then:
+            thrown(EvaluationContext.CircularEvaluationException)
+
+            where:
+            consumer << throwingConsumers()
+        }
+
+        def "calling #consumer throws exception if added collection provider references the property and discards producer"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<C> items = property.map { it }
+            property.addAll(new ProducerDiscardingProvider(items))
+
+            when:
+            consumer.accept(property)
+
+            then:
+            thrown(EvaluationContext.CircularEvaluationException)
+
+            where:
+            consumer << throwingConsumers() - [GET_PRODUCER]
+        }
+
+        def "calling #consumer is safe even if added collection provider references the property"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<C> itemsConcat = property.map { it }
+            property.addAll(itemsConcat)
+
+            when:
+            consumer.accept(property)
+
+            then:
+            noExceptionThrown()
+
+            where:
+            consumer << safeConsumers()
+        }
     }
 }

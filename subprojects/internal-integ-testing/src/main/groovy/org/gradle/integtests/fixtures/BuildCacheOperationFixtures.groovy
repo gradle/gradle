@@ -17,8 +17,10 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
-import org.gradle.caching.internal.controller.operations.PackOperationDetails
-import org.gradle.caching.internal.controller.operations.UnpackOperationDetails
+import org.gradle.caching.internal.operations.BuildCacheArchivePackBuildOperationType
+import org.gradle.caching.internal.operations.BuildCacheArchiveUnpackBuildOperationType
+import org.gradle.caching.internal.operations.BuildCacheLocalLoadBuildOperationType
+import org.gradle.caching.internal.operations.BuildCacheLocalStoreBuildOperationType
 import org.gradle.caching.internal.operations.BuildCacheRemoteStoreBuildOperationType
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.operations.trace.BuildOperationRecord
@@ -40,26 +42,47 @@ class BuildCacheOperationFixtures {
         return buildOperations.first(ExecuteTaskBuildOperationType) { it.details["taskPath"] == taskPath }
     }
 
-    List<BuildOperationRecord> getPackOperations(String taskPath) {
+    private List<BuildOperationRecord> getOperations(String taskPath, Class<?> details) {
         def parent = getTaskCacheExecutionBuildOperationRecord(taskPath)
-        return parent == null ? [] : buildOperations.search(parent) { it.hasDetailsOfType(PackOperationDetails) }
+        return parent == null ? [] : buildOperations.search(parent) { it.hasDetailsOfType(details) }
+    }
+
+    private BuildOperationRecord getOnlyOperation(String taskPath, Class<?> details) {
+        def ops = getOperations(taskPath, details)
+        assert ops.size() == 1
+        return ops.first()
+    }
+
+    List<BuildOperationRecord> getPackOperations(String taskPath) {
+        return getOperations(taskPath, BuildCacheArchivePackBuildOperationType.Details)
     }
 
     BuildOperationRecord getOnlyPackOperation(String taskPath) {
-        def ops = getPackOperations(taskPath)
-        assert ops.size() == 1
-        return ops.first()
+        return getOnlyOperation(taskPath, BuildCacheArchivePackBuildOperationType.Details)
+    }
+
+    List<BuildOperationRecord> getLocalLoadOperations(String taskPath) {
+        return getOperations(taskPath, BuildCacheLocalLoadBuildOperationType.Details)
+    }
+
+    BuildOperationRecord getOnlyLocalLoadOperation(String taskPath) {
+        return getOnlyOperation(taskPath, BuildCacheLocalLoadBuildOperationType.Details)
+    }
+
+    List<BuildOperationRecord> getLocalStoreOperations(String taskPath) {
+        return getOperations(taskPath, BuildCacheLocalStoreBuildOperationType.Details)
+    }
+
+    BuildOperationRecord getOnlyLocalStoreOperation(String taskPath) {
+        return getOnlyOperation(taskPath, BuildCacheLocalStoreBuildOperationType.Details)
     }
 
     List<BuildOperationRecord> getUnpackOperations(String taskPath) {
-        def parent = getTaskCacheExecutionBuildOperationRecord(taskPath)
-        return parent == null ? [] : buildOperations.search(parent) { it.hasDetailsOfType(UnpackOperationDetails) }
+        return getOperations(taskPath, BuildCacheArchiveUnpackBuildOperationType.Details)
     }
 
     BuildOperationRecord getOnlyUnpackOperations(String taskPath) {
-        def ops = getUnpackOperations(taskPath)
-        assert ops.size() == 1
-        return ops.first()
+        return getOnlyOperation(taskPath, BuildCacheArchiveUnpackBuildOperationType.Details)
     }
 
     String getTaskCacheKeyOrNull(String taskPath) {

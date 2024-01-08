@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
 import org.gradle.internal.xml.XmlTransformer;
@@ -26,7 +25,10 @@ import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter;
 import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilterMatcher;
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,11 +50,11 @@ public class Project extends XmlPersistableConfigurationObject {
 
     private String name;
     private String comment;
-    private Set<String> referencedProjects = Sets.newLinkedHashSet();
-    private List<String> natures = Lists.newArrayList();
-    private List<BuildCommand> buildCommands = Lists.newArrayList();
-    private Set<Link> linkedResources = Sets.newLinkedHashSet();
-    private Set<ResourceFilter> resourceFilters = Sets.newLinkedHashSet();
+    private Set<String> referencedProjects = new LinkedHashSet<>();
+    private List<String> natures = new ArrayList<>();
+    private List<BuildCommand> buildCommands = new ArrayList<>();
+    private Set<Link> linkedResources = new LinkedHashSet<>();
+    private Set<ResourceFilter> resourceFilters = new LinkedHashSet<>();
 
     public Project(XmlTransformer xmlTransformer) {
         super(xmlTransformer);
@@ -187,7 +189,7 @@ public class Project extends XmlPersistableConfigurationObject {
     private void readBuildCommands() {
         for (Node commandNode : getChildren(findFirstChildNamed(getXml(), "buildSpec"), "buildCommand")) {
             String name = findFirstChildNamed(commandNode, "name").text();
-            Map<String, String> arguments = Maps.newLinkedHashMap();
+            Map<String, String> arguments = new LinkedHashMap<>();
             for (Node dictionaryNode : getChildren(findFirstChildNamed(commandNode, "arguments"), "dictionary")) {
                 String key = findFirstChildNamed(dictionaryNode, "key").text();
                 String value = findFirstChildNamed(dictionaryNode, "value").text();
@@ -382,7 +384,7 @@ public class Project extends XmlPersistableConfigurationObject {
         Node idNode = findFirstChildNamed(matcherNode, "id");
         Node argumentsNode = findFirstChildNamed(matcherNode, "arguments");
         String arguments = null;
-        Set<ResourceFilterMatcher> children = Sets.newLinkedHashSet();
+        Set<ResourceFilterMatcher> children = new LinkedHashSet<>();
         // A matcher may have either a text argument or children matcher nodes, but not both
         if (argumentsNode != null && findFirstChildNamed(argumentsNode, "matcher") != null) {
             for (Node childMatcherNode : getChildren(argumentsNode, "matcher")) {

@@ -17,8 +17,8 @@
 package promotion
 
 import common.VersionedSettingsBranch
-import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.ScheduleTrigger
-import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
+import jetbrains.buildServer.configs.kotlin.triggers.ScheduleTrigger
+import jetbrains.buildServer.configs.kotlin.triggers.schedule
 import vcsroots.gradlePromotionBranches
 
 class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDistributionFullBuild(

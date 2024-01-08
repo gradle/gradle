@@ -44,6 +44,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
     def setup() {
         expectReindentedValidationMessage()
+        enableProblemsApiCheck()
     }
 
     def "task output caching key is exposed when build cache is enabled"() {

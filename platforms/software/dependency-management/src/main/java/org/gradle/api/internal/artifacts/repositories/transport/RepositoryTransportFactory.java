@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
@@ -42,14 +40,17 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 @ServiceScope(Scopes.Build.class)
 public class RepositoryTransportFactory {
-    private final List<ResourceConnectorFactory> registeredProtocols = Lists.newArrayList();
+    private final List<ResourceConnectorFactory> registeredProtocols = new ArrayList<>();
 
     private final TemporaryFileProvider temporaryFileProvider;
     private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
@@ -85,7 +86,7 @@ public class RepositoryTransportFactory {
     }
 
     public Set<String> getRegisteredProtocols() {
-        Set<String> validSchemes = Sets.newLinkedHashSet();
+        Set<String> validSchemes = new LinkedHashSet<>();
         for (ResourceConnectorFactory registeredProtocol : registeredProtocols) {
             validSchemes.addAll(registeredProtocol.getSupportedProtocols());
         }
@@ -136,7 +137,7 @@ public class RepositoryTransportFactory {
     }
 
     private void validateConnectorFactoryCredentials(Set<String> schemes, ResourceConnectorFactory factory, Collection<Authentication> authentications) {
-        Set<Class<? extends Authentication>> configuredAuthenticationTypes = Sets.newHashSet();
+        Set<Class<? extends Authentication>> configuredAuthenticationTypes = new HashSet<>();
 
         for (Authentication authentication : authentications) {
             AuthenticationInternal authenticationInternal = (AuthenticationInternal) authentication;

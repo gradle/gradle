@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
@@ -27,8 +26,8 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.hashing.ConfigurableNormalizer;
-import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContextHasher;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContextHasher;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
@@ -42,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -107,7 +107,7 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
 
     private List<FileSystemLocationFingerprint> fingerprintZipEntries(String zipFile) throws IOException {
         try (ZipInput input = FileZipInput.create(new File(zipFile))) {
-            List<FileSystemLocationFingerprint> fingerprints = Lists.newArrayList();
+            List<FileSystemLocationFingerprint> fingerprints = new ArrayList<>();
             fingerprintZipEntries("", zipFile, fingerprints, input);
             return fingerprints;
         }

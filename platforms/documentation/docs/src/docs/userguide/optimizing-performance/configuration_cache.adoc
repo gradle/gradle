@@ -1083,21 +1083,14 @@ When process isolation is used, the worker action is executed in a separate work
 
 In simple cases, when the libraries also provide command-line entry points (`public static void main()` method), you can also use the link:{javadocPath}/org/gradle/api/tasks/JavaExec.html[JavaExec] task to isolate the library.
 
-[[config_cache:not_yet_implemented]]
-== Not yet implemented
-
-Support for using configuration caching with certain Gradle features is not yet implemented.
-Support for these features will be added in later Gradle releases.
-
-[[config_cache:not_yet_implemented:secrets]]
-=== Handling of credentials and secrets
+[[config_cache:secrets]]
+== Handling of credentials and secrets
 
 The configuration cache has currently no option to prevent storing secrets that are used as inputs, and so they might end up in the serialized configuration cache entry which, by default, is stored under `.gradle/configuration-cache` in your project directory.
 
 To mitigate the risk of accidental exposure, Gradle encrypts the configuration cache.
 Gradle transparently generates a machine-specific secret key as required, caches it under the
 `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory and uses it to encrypt the data in the project specific caches.
-
 
 To enhance security further, make sure to:
 
@@ -1107,6 +1100,45 @@ The content of that file is not part of the configuration cache, only its finger
 If you store secrets in that file, care must be taken to protect access to the file content.
 
 See link:{gradle-issues}22618[gradle/gradle#22618].
+
+[[config_cache:secrets:configuring_encryption_key]]
+=== Providing an encryption key via `GRADLE_ENCRYPTION_KEY` environment variable
+
+By default, Gradle automatically generates and manages the encryption key as a Java keystore stored under the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory.
+
+For environments where this is undesirable (for instance, when the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory is shared across machines),
+you may provide Gradle with the exact encryption key to use when
+reading or writing the cached configuration data via the `GRADLE_ENCRYPTION_KEY` environment variable.
+
+[IMPORTANT]
+====
+You must ensure that the same encryption key is consistently provided across multiple Gradle runs,
+or else Gradle will not be able to reuse existing cached configurations.
+====
+
+[[config_cache:secrets:generating_encryption_key]]
+=== Generating an encryption key that is compatible with GRADLE_ENCRYPTION_KEY
+
+For Gradle to encrypt the configuration cache using a user-specified encryption key,
+you must run Gradle while having the GRADLE_ENCRYPTION_KEY environment variable set with a valid AES key, encoded as a Base64 string.
+
+One way of generating a Base64-encoded AES-compatible key is by using a command like this:
+
+```
+❯ openssl rand -base64 16
+```
+
+This command should work on Linux, Mac OS, or on Windows, if using a tool like Cygwin.
+
+You can then use the Base64-encoded key produced by that command and set it as the value of the
+`GRADLE_ENCRYPTION_KEY` environment variable.
+
+
+[[config_cache:not_yet_implemented]]
+== Not yet implemented
+
+Support for using configuration caching with certain Gradle features is not yet implemented.
+Support for these features will be added in later Gradle releases.
 
 [[config_cache:not_yet_implemented:sharing]]
 === Sharing the configuration cache

@@ -46,9 +46,9 @@ Our build currently consists of a root project called `authoring-tutorial`, whic
 [source]
 ----
 .                           // <1>
-├── app                         // <2>
+├── app                     // <2>
 │   ...                     // <3>
-│   └── build.gradle.kts        // <4>
+│   └── build.gradle.kts    // <4>
 └── settings.gradle.kts     // <5>
 ----
 <1> The `authoring-tutorial` root project
@@ -176,7 +176,7 @@ To add `lib` to the build, update the `settings.gradle.kts` file in the root acc
 [source,kotlin]
 ----
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.4.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.7.0"
 }
 
 rootProject.name = "authoring-tutorial"
@@ -277,29 +277,7 @@ Make sure that you select the `Gradle plugin` project as well as the other optio
 
 [source]
 ----
-$ gradle init
-
-Select type of project to generate:
-  1: basic
-  2: application
-  3: library
-  4: Gradle plugin
-Enter selection (default: basic) [1..4] 4
-
-Select implementation language:
-  1: Groovy
-  2: Java
-  3: Kotlin
-Enter selection (default: Java) [1..3] 3
-
-Select build script DSL:
-  1: Kotlin
-  2: Groovy
-Enter selection (default: Kotlin) [1..2] 1
-
-Project name (default: license-plugin): license
-Source package (default: license): com.gradle
-Generate build using new APIs and behavior (some features may change in the next minor release)? (default: no) [yes, no]
+$ gradle init --use-defaults --type kotlin-gradle-plugin --project-name license
 ----
 
 Your project should look like this:
@@ -345,7 +323,7 @@ To add our `license-plugin` build to the root project, update the root `settings
 [source,kotlin]
 ----
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.4.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.7.0"
 }
 
 rootProject.name = "authoring-tutorial"

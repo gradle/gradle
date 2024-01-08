@@ -17,6 +17,8 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class CollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -153,13 +155,6 @@ task thing(type: SomeTask) {
 afterEvaluate {
     thing.prop = ["value 2"]
 }
-
-task before {
-    doLast {
-        thing.prop = providers.provider { ["value 3"] }
-    }
-}
-thing.dependsOn before
 """
 
         when:
@@ -170,6 +165,7 @@ thing.dependsOn before
         failure.assertHasCause("The value for task ':thing' property 'prop' is final and cannot be changed any further.")
     }
 
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "https://github.com/gradle/gradle/issues/25516")
     def "task ad hoc input property is implicitly finalized when task starts execution"() {
         given:
         buildFile """
@@ -233,8 +229,9 @@ task thing {
         "providers.provider { [ 'a', 'b', 'c' ] }" | _
     }
 
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "https://github.com/gradle/gradle/issues/27528")
     def "can set value for string list property using GString values"() {
-        buildFile << """
+        buildFile """
             def str = "aBc"
             verify {
                 prop = ${value}
@@ -266,6 +263,7 @@ task thing {
         succeeds("verify")
     }
 
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "https://github.com/gradle/gradle/issues/27528")
     def "can add element to string list property using GString value"() {
         buildFile << """
             def str = "aBc"
@@ -284,6 +282,7 @@ task thing {
         'providers.provider { "${str.toLowerCase().substring(1, 2)}" }' | _
     }
 
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "https://github.com/gradle/gradle/issues/27528")
     def "can add elements to string list property using GString value"() {
         buildFile << """
             def str = "aBc"
@@ -306,40 +305,44 @@ task thing {
     def "reports failure to set property value using incompatible type"() {
         given:
         buildFile << """
-task wrongValueTypeDsl {
+task wrongValueTypeDsl(type: MyTask) {
     doLast {
-        verify.prop = 123
+        prop = 123
     }
 }
 
-task wrongRuntimeElementType {
+task wrongRuntimeElementType(type: MyTask) {
     doLast {
-        verify.prop = [123]
-        verify.prop.get()
+        prop = [123]
+        prop.get()
     }
 }
 
-task wrongPropertyTypeDsl {
+task wrongPropertyTypeDsl(type: MyTask) {
+    def objects = objects
     doLast {
-        verify.prop = objects.property(Integer)
+        prop = objects.property(Integer)
     }
 }
 
-task wrongPropertyTypeApi {
+task wrongPropertyTypeApi(type: MyTask) {
+    def objects = objects
     doLast {
-        verify.prop.set(objects.property(Integer))
+        prop.set(objects.property(Integer))
     }
 }
 
-task wrongPropertyElementTypeDsl {
+task wrongPropertyElementTypeDsl(type: MyTask) {
+    def objects = objects
     doLast {
-        verify.prop = objects.listProperty(Integer)
+        prop = objects.listProperty(Integer)
     }
 }
 
-task wrongPropertyElementTypeApi {
+task wrongPropertyElementTypeApi(type: MyTask) {
+    def objects = objects
     doLast {
-        verify.prop.set(objects.listProperty(Integer))
+        prop.set(objects.listProperty(Integer))
     }
 }
 """
@@ -473,4 +476,24 @@ task wrongPropertyElementTypeApi {
         failure.assertHasCause("Cannot query the value of task ':thing' property 'prop' because it has no value available.")
     }
 
+    def "circular evaluation of #collection property is detected"() {
+        buildFile """
+            def myCollection = objects.${initializer}(String)
+            def p = myCollection.map { it.join(", ") }
+            myCollection.add(p)
+
+            myCollection.get()
+        """
+
+        when:
+        fails "help"
+
+        then:
+        failureCauseContains("Circular evaluation detected")
+
+        where:
+        collection | initializer
+        "list" | "listProperty"
+        "set" | "setProperty"
+    }
 }

@@ -82,10 +82,7 @@ include::sample[dir="snippets/ivy-publish/customize-identity/kotlin",files="buil
 include::sample[dir="snippets/ivy-publish/customize-identity/groovy",files="build.gradle[tags=customize-identity]"]
 ====
 
-[TIP]
-====
-Certain repositories are not able to handle all supported characters. For example, the `:` character cannot be used as an identifier when publishing to a filesystem-backed repository on Windows.
-====
+TIP: Certain repositories are not able to handle all supported characters. For example, the `:` character cannot be used as an identifier when publishing to a filesystem-backed repository on Windows.
 
 Gradle will handle any valid Unicode character for `organisation`, `module` and `revision` (as well as the artifact's `name`, `extension` and `classifier`). The only values that are explicitly prohibited are `\`, `/` and any ISO control character. The supplied values are validated early during publication.
 

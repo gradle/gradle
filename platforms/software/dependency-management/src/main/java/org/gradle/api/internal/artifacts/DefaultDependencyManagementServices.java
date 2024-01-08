@@ -550,7 +550,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ResolveExceptionContextualizer resolveExceptionContextualizer,
             ComponentDetailsSerializer componentDetailsSerializer,
             SelectedVariantSerializer selectedVariantSerializer,
-            ResolvedVariantCache resolvedVariantCache
+            ResolvedVariantCache resolvedVariantCache,
+            GraphVariantSelector graphVariantSelector
         ) {
             DefaultConfigurationResolver defaultResolver = new DefaultConfigurationResolver(
                 componentResolversFactory,
@@ -575,7 +576,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 resolveExceptionContextualizer,
                 componentDetailsSerializer,
                 selectedVariantSerializer,
-                resolvedVariantCache
+                resolvedVariantCache,
+                graphVariantSelector
             );
 
             return new ErrorHandlingConfigurationResolver(

@@ -1,0 +1,245 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[test_kit]]
+= Testing Build Logic with TestKit
+
+The Gradle TestKit (a.k.a. just TestKit) is a library that aids in testing Gradle plugins and build logic generally. At this time, it is focused on _functional_ testing. That is, testing build logic by exercising it as part of a programmatically executed build. Over time, the TestKit will likely expand to facilitate other kinds of tests.
+
+[[sec:testkit_usage]]
+== Usage
+
+To use the TestKit, include the following in your plugin's build:
+
+.Declaring the TestKit dependency
+====
+include::sample[dir="snippets/testKit/junitQuickstart/kotlin",files="build.gradle.kts[tags=declare-gradle-testkit-dependency]"]
+include::sample[dir="snippets/testKit/junitQuickstart/groovy",files="build.gradle[tags=declare-gradle-testkit-dependency]"]
+====
+
+The `gradleTestKit()` encompasses the classes of the TestKit, as well as the <<third_party_integration.adoc#embedding,Gradle Tooling API client>>. It does not include a version of https://junit.org[JUnit], https://testng.org[TestNG], or any other test execution framework. Such a dependency must be explicitly declared.
+
+.Declaring the JUnit dependency
+====
+include::sample[dir="snippets/testKit/junitQuickstart/kotlin",files="build.gradle.kts[tags=declare-junit-dependency]"]
+include::sample[dir="snippets/testKit/junitQuickstart/groovy",files="build.gradle[tags=declare-junit-dependency]"]
+====
+
+[[sec:functional_testing_with_the_gradle_runner]]
+== Functional testing with the Gradle runner
+
+The link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html[GradleRunner] facilitates programmatically executing Gradle builds, and inspecting the result.
+
+A contrived build can be created (e.g. programmatically, or from a template) that exercises the “logic under test”. The build can then be executed, potentially in a variety of ways (e.g. different combinations of tasks and arguments). The correctness of the logic can then be verified by asserting the following, potentially in combination:
+
+* The build's output;
+* The build's logging (i.e. console output);
+* The set of tasks executed by the build and their results (e.g. FAILED, UP-TO-DATE etc.).
+
+After creating and configuring a runner instance, the build can be executed via the link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#build--[GradleRunner.build()] or link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#buildAndFail--[GradleRunner.buildAndFail()] methods depending on the anticipated outcome.
+
+The following demonstrates the usage of the Gradle runner in a Java JUnit test:
+
+=== Example: Using GradleRunner with Java and JUnit
+
+[source,java,indent=0]
+.BuildLogicFunctionalTest.java
+----
+include::{snippetsPath}/testKit/junitQuickstart/groovy/src/test/java/org/gradle/sample/BuildLogicFunctionalTest.java[tag=functional-test-junit]
+----
+
+Any test execution framework can be used.
+
+As Gradle build scripts can also be written in the Groovy programming language, it is often a productive choice to write Gradle functional tests in Groovy. Furthermore, it is recommended to use the (Groovy based) https://code.google.com/p/spock/[Spock test execution framework] as it offers many compelling features over the use of JUnit.
+
+The following demonstrates the usage of the Gradle runner in a Groovy Spock test:
+
+=== Example: Using GradleRunner with Groovy and Spock
+
+[source,groovy,indent=0]
+.BuildLogicFunctionalTest.groovy
+----
+include::{snippetsPath}/testKit/spockQuickstart/groovy/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy[tag=functional-test-spock]
+----
+
+It is a common practice to implement any custom build logic (like plugins and task types) that is more complex in nature as external classes in a standalone project. The main driver behind this approach is bundle the compiled code into a JAR file, publish it to a binary repository and reuse it across various projects.
+
+[[sub:test-kit-classpath-injection]]
+== Getting the plugin-under-test into the test build
+
+The GradleRunner uses the <<third_party_integration.adoc#embedding,Tooling API>> to execute builds. An implication of this is that the builds are executed in a separate process (i.e. not the same process executing the tests). Therefore, the test build does not share the same classpath or classloaders as the test process and the code under test is not implicitly available to the test build.
+
+[NOTE]
+====
+GradleRunner supports the same range of Gradle versions as the Tooling API.
+The supported versions are defined in the <<third_party_integration.adoc#sec:embedding_compatibility,compatibility matrix>>.
+
+Builds with older Gradle versions _may_ still work but there are no guarantees.
+====
+
+Starting with version 2.13, Gradle provides a conventional mechanism to inject the code under test into the test build.
+
+[[sub:test-kit-automatic-classpath-injection]]
+=== Automatic injection with the Java Gradle Plugin Development plugin
+
+The <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin development plugin>> can be used to assist in the development of Gradle plugins.
+Starting with Gradle version 2.13, the plugin provides a direct integration with TestKit.
+When applied to a project, the plugin automatically adds the `gradleTestKit()` dependency to the `testApi` configuration.
+Furthermore, it automatically generates the classpath for the code under test and injects it via link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withPluginClasspath--[GradleRunner.withPluginClasspath()] for any `GradleRunner` instance created by the user.
+It's important to note that the mechanism currently _only_ works if the plugin under test is applied using the <<plugins.adoc#sec:plugins_block,plugins DSL>>.
+If the <<#sub:gradle-runner-gradle-version,target Gradle version>> is prior to 2.8, automatic plugin classpath injection is not performed.
+
+The plugin uses the following conventions for applying the TestKit dependency and injecting the classpath:
+
+* Source set containing code under test: `sourceSets.main`
+* Source set used for injecting the plugin classpath: `sourceSets.test`
+
+Any of these conventions can be reconfigured with the help of the class link:{javadocPath}/org/gradle/plugin/devel/GradlePluginDevelopmentExtension.html[GradlePluginDevelopmentExtension].
+
+The following Groovy-based sample demonstrates how to automatically inject the plugin classpath by using the standard conventions applied by the Java Gradle Plugin Development plugin.
+
+.Using the Java Gradle Development plugin for generating the plugin metadata
+====
+include::sample[dir="snippets/testKit/automaticClasspathInjectionQuickstart/kotlin",files="build.gradle.kts[tags=automatic-classpath]"]
+include::sample[dir="snippets/testKit/automaticClasspathInjectionQuickstart/groovy",files="build.gradle[tags=automatic-classpath]"]
+====
+
+
+=== Example: Automatically injecting the code under test classes into test builds
+
+[source,groovy,indent=0]
+.src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy
+----
+include::{snippetsPath}/testKit/automaticClasspathInjectionQuickstart/groovy/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy[tag=functional-test-classpath-setup-automatic]
+----
+
+The following build script demonstrates how to reconfigure the conventions provided by the Java Gradle Plugin Development plugin for a project that uses a custom `Test` source set.
+
+NOTE: A new configuration DSL for modeling the below `functionalTest` suite is available via the incubating <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>> plugin.
+
+.Reconfiguring the classpath generation conventions of the Java Gradle Development plugin
+====
+include::sample[dir="snippets/testKit/automaticClasspathInjectionCustomTestSourceSet/kotlin",files="build.gradle.kts[tags=custom-test-source-set]"]
+include::sample[dir="snippets/testKit/automaticClasspathInjectionCustomTestSourceSet/groovy",files="build.gradle[tags=custom-test-source-set]"]
+====
+
+
+[[sec:controlling_the_build_environment]]
+== Controlling the build environment
+
+The runner executes the test builds in an isolated environment by specifying a dedicated "working directory" in a directory inside the JVM's temp directory (i.e. the location specified by the `java.io.tmpdir` system property, typically `/tmp`). Any configuration in the default Gradle User Home (e.g. `~/.gradle/gradle.properties`) is not used for test execution. The TestKit does not expose a mechanism for fine grained control of all aspects of the environment (e.g., JDK). Future versions of the TestKit will provide improved configuration options.
+
+The TestKit uses dedicated daemon processes that are automatically shut down after test execution.
+
+The dedicated working directory is not deleted by the runner after the build.
+The TestKit provides two ways to specify a location that is regularly cleaned, such as the project's build folder:
+
+* The `org.gradle.testkit.dir` system property;
+* The link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withTestKitDir-java.io.File-[GradleRunner.withTestKitDir(file testKitDir)] method.
+
+[[sub:gradle-runner-gradle-version]]
+== The Gradle version used to test
+
+The Gradle runner requires a Gradle distribution in order to execute the build. The TestKit does not depend on all of Gradle's implementation.
+
+By default, the runner will attempt to find a Gradle distribution based on where the `GradleRunner` class was loaded from. That is, it is expected that the class was loaded from a Gradle distribution, as is the case when using the `gradleTestKit()` dependency declaration.
+
+When using the runner as part of tests _being executed by Gradle_ (e.g. executing the `test` task of a plugin project), the same distribution used to execute the tests will be used by the runner. When using the runner as part of tests _being executed by an IDE_, the same distribution of Gradle that was used when importing the project will be used. This means that the plugin will effectively be tested with the same version of Gradle that it is being built with.
+
+Alternatively, a different and specific version of Gradle to use can be specified by the any of the following `GradleRunner` methods:
+
+* link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withGradleVersion-java.lang.String-[GradleRunner.withGradleVersion(java.lang.String)]
+* link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withGradleInstallation-java.io.File-[GradleRunner.withGradleInstallation(java.io.File)]
+* link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withGradleDistribution-java.net.URI-[GradleRunner.withGradleDistribution(java.net.URI)]
+
+This can potentially be used to test build logic across Gradle versions. The following demonstrates a cross-version compatibility test written as Groovy Spock test:
+
+=== Example: Specifying a Gradle version for test execution
+
+[source,groovy,indent=0]
+.BuildLogicFunctionalTest.groovy
+----
+include::{snippetsPath}/testKit/gradleVersion/groovy/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy[tag=functional-test-spock-gradle-version]
+----
+
+[[sub:test-kit-compatibility]]
+=== Feature support when testing with different Gradle versions
+
+It is possible to use the GradleRunner to execute builds with Gradle 1.0 and later. However, some runner features are not supported on earlier versions. In such cases, the runner will throw an exception when attempting to use the feature.
+
+The following table lists the features that are sensitive to the Gradle version being used.
+
+.Gradle version compatibility
+[%header%autowidth,compact]
+|===
+| Feature | Minimum Version | Description
+
+| Inspecting executed tasks
+| 2.5
+| Inspecting the executed tasks, using link:{javadocPath}/org/gradle/testkit/runner/BuildResult.html#getTasks--[BuildResult.getTasks()] and similar methods.
+
+| <<#sub:test-kit-classpath-injection,Plugin classpath injection>>
+| 2.8
+| Injecting the code under test vialink:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withPluginClasspath-java.lang.Iterable-[GradleRunner.withPluginClasspath(java.lang.Iterable)].
+
+| <<#sub:test-kit-debug,Inspecting build output in debug mode>>
+| 2.9
+| Inspecting the build's text output when run in debug mode, using link:{javadocPath}/org/gradle/testkit/runner/BuildResult.html#getOutput--[BuildResult.getOutput()].
+
+| <<#sub:test-kit-automatic-classpath-injection,Automatic plugin classpath injection>>
+| 2.13
+| Injecting the code under test automatically via link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withPluginClasspath--[GradleRunner.withPluginClasspath()] by applying the Java Gradle Plugin Development plugin.
+
+| Setting environment variables to be used by the build.
+| 3.5
+| The Gradle Tooling API only supports setting environment variables in later versions.
+|===
+
+
+[[sub:test-kit-debug]]
+== Debugging build logic
+
+The runner uses the <<third_party_integration.adoc#embedding,Tooling API>> to execute builds. An implication of this is that the builds are executed in a separate process (i.e. not the same process executing the tests). Therefore, executing your _tests_ in debug mode does not allow you to debug your build logic as you may expect. Any breakpoints set in your IDE will be not be tripped by the code being exercised by the test build.
+
+The TestKit provides two different ways to enable the debug mode:
+
+* Setting “`org.gradle.testkit.debug`” system property to `true` for the JVM _using_ the `GradleRunner` (i.e. not the build being executed with the runner);
+* Calling the link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withDebug-boolean-[GradleRunner.withDebug(boolean)] method.
+
+The system property approach can be used when it is desirable to enable debugging support without making an adhoc change to the runner configuration. Most IDEs offer the capability to set JVM system properties for test execution, and such a feature can be used to set this system property.
+
+[[sub:test-kit-build-cache]]
+== Testing with the Build Cache
+
+To enable the <<build_cache.adoc#build_cache,Build Cache>> in your tests, you can pass the `--build-cache` argument to link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html[GradleRunner] or use one of the other methods described in <<build_cache.adoc#sec:build_cache_enable,Enable the build cache>>. You can then check for the task outcome link:{javadocPath}/org/gradle/testkit/runner/TaskOutcome.html#FROM_CACHE[TaskOutcome.FROM_CACHE] when your plugin's custom task is cached. This outcome is only valid for Gradle 3.5 and newer.
+
+=== Example: Testing cacheable tasks
+
+[source,groovy,indent=0]
+.BuildLogicFunctionalTest.groovy
+----
+include::{snippetsPath}/testKit/testKitFunctionalTestSpockBuildCache/groovy/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy[tag=functional-test-build-cache]
+----
+
+Note that TestKit re-uses a Gradle User Home between tests (see link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withTestKitDir-java.io.File-[GradleRunner.withTestKitDir(java.io.File)]) which contains the default location for the local build cache.
+For testing with the build cache, the build cache directory should be cleaned between tests.
+The easiest way to accomplish this is to configure the local build cache to use a temporary directory.
+
+=== Example: Clean build cache between tests
+
+[source,groovy,indent=0]
+.BuildLogicFunctionalTest.groovy
+----
+include::{snippetsPath}/testKit/testKitFunctionalTestSpockBuildCache/groovy/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy[tag=clean-build-cache]
+----

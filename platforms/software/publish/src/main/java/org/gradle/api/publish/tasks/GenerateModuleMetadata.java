@@ -268,7 +268,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
             checker,
             dependencyCoordinateResolverFactory,
             dependencyAttributeValidators()
-        ).build();
+        ).build().get();
         checker.validate();
         return spec;
     }

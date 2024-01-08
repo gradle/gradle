@@ -1,3 +1,30 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.file.ConfigurableFileCollection",
+            "member": "Class org.gradle.api.file.ConfigurableFileCollection",
+            "acceptation": "ConfigurableFileCollection now supports conventions",
+            "changes": [
+                "org.gradle.api.file.FileCollectionConfigurer",
+                "org.gradle.api.provider.ConfigurableValue",
+                "org.gradle.api.provider.SupportsConvention"
+            ]
+        },
+        {
+            "type": "org.gradle.api.services.BuildServiceRegistry",
+            "member": "Method org.gradle.api.services.BuildServiceRegistry.registerIfAbsent(java.lang.String,java.lang.Class)",
+            "acceptation": "Add new default method without action",
+            "changes": [
+                "Method now provides default implementation"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4xzlmchnjfhf5wwk67zexqao1Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4xzlmchnjfhf5wwk67zexqao1Kt.registerIfAbsent(org.gradle.api.services.BuildServiceRegistry,java.lang.String,kotlin.reflect.KClass)",
+            "acceptation": "Add generated Kotlin DSL extension for new method",
+            "changes": [
+                "Method added to public class"
+            ]
+        }
+    ]
 }

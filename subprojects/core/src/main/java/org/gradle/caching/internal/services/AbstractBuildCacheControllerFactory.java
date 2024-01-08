@@ -76,6 +76,7 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
     }
 
     abstract protected BuildCacheController doCreateController(
+        Path buildIdentityPath,
         @Nullable DescribedBuildCacheService<DirectoryBuildCache, L> localDescribedService,
         @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService
     );
@@ -124,7 +125,7 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
                     LOGGER.warn("Using the build cache is enabled, but no build caches are configured or enabled.");
                     return NoOpBuildCacheController.INSTANCE;
                 } else {
-                    return doCreateController(localDescribedService, remoteDescribedService);
+                    return doCreateController(buildIdentityPath, localDescribedService, remoteDescribedService);
                 }
             }
 

@@ -25,7 +25,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
-import org.gradle.api.internal.provider.BuildableBackedSetProvider;
+import org.gradle.api.internal.provider.BuildableBackedProvider;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -36,6 +36,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.deprecation.DocumentedFailure;
@@ -203,8 +204,9 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public Provider<Set<FileSystemLocation>> getElements() {
-        return new BuildableBackedSetProvider<>(
+        return new BuildableBackedProvider<>(
             this,
+            Cast.uncheckedCast(Set.class),
             new FileCollectionElementsFactory(this)
         );
     }

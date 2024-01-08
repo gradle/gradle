@@ -17,13 +17,11 @@
 package org.gradle.buildinit.tasks
 
 import org.gradle.api.GradleException
-import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler
 import org.gradle.api.internal.tasks.userinput.UserInputHandler
 import org.gradle.buildinit.InsecureProtocolOption
 import org.gradle.buildinit.plugins.internal.BuildConverter
 import org.gradle.buildinit.plugins.internal.BuildInitializer
 import org.gradle.buildinit.plugins.internal.InitSettings
-import org.gradle.buildinit.plugins.internal.PackageNameBuilder
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType
 import org.gradle.buildinit.plugins.internal.modifiers.Language
@@ -37,7 +35,6 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static java.util.Optional.empty
-import static java.util.Optional.of
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT
@@ -63,6 +60,8 @@ class InitBuildSpec extends Specification {
         buildConverter = Mock()
         init.projectLayoutRegistry = projectLayoutRegistry
         init.insecureProtocol.convention(InsecureProtocolOption.WARN)
+        init.useDefaults.convention(false)
+        init.comments.convention(true)
     }
 
     def "creates project with all defaults"() {
@@ -84,7 +83,7 @@ class InitBuildSpec extends Specification {
         init.setupProjectLayout()
 
         then:
-        1 * projectSetupDescriptor.generate({it.dsl == KOTLIN && it.testFramework == NONE})
+        1 * projectSetupDescriptor.generate({ it.dsl == KOTLIN && it.testFramework == NONE })
     }
 
     def "creates project with specified type and dsl and test framework"() {
@@ -103,7 +102,7 @@ class InitBuildSpec extends Specification {
         init.setupProjectLayout()
 
         then:
-        1 * projectSetupDescriptor.generate({it.dsl == KOTLIN && it.testFramework == SPOCK})
+        1 * projectSetupDescriptor.generate({ it.dsl == KOTLIN && it.testFramework == SPOCK })
     }
 
     def "should throw exception if requested test framework is not supported for the specified type"() {
@@ -149,7 +148,7 @@ class InitBuildSpec extends Specification {
         init.projectName = "other"
 
         when:
-        def projectName = init.getProjectName(Mock(UserInputHandler), projectSetupDescriptor)
+        def projectName = init.getEffectiveProjectName(Mock(UserInputHandler), projectSetupDescriptor)
 
         then:
         projectName == "other"
@@ -163,7 +162,7 @@ class InitBuildSpec extends Specification {
 
 
         when:
-        def projectName = init.getProjectName(userInputHandler, projectSetupDescriptor)
+        def projectName = init.getEffectiveProjectName(userInputHandler, projectSetupDescriptor)
 
         then:
         projectName == "newProjectName"
@@ -176,7 +175,7 @@ class InitBuildSpec extends Specification {
         init.projectName = "invalidProjectName"
 
         when:
-        init.getProjectName(Mock(UserInputHandler), projectSetupDescriptor)
+        init.getEffectiveProjectName(Mock(UserInputHandler), projectSetupDescriptor)
 
         then:
         GradleException e = thrown()
@@ -189,26 +188,23 @@ class InitBuildSpec extends Specification {
         init.packageName = "other"
 
         when:
-        init.getPackageName(Mock(UserInputHandler), projectSetupDescriptor, "myProjectName")
+        init.getEffectivePackageName(projectSetupDescriptor)
 
         then:
         GradleException e = thrown()
         e.message == "Package name is not supported for 'some-type' build type."
     }
 
-    def "should use package name from user input"() {
+    def "should use default package name if not specified"() {
         given:
         projectSetupDescriptor.id >> "some-type"
         projectSetupDescriptor.supportsPackage() >> true
-        def userInputHandler = new NonInteractiveUserInputHandler()
-        def myProjectName = "myProjectName"
-        def packageNameFromProject = PackageNameBuilder.toPackageName(myProjectName).toLowerCase(Locale.US)
 
         when:
-        def packageName = init.getPackageName(userInputHandler, projectSetupDescriptor, myProjectName)
+        def packageName = init.getEffectivePackageName(projectSetupDescriptor)
 
         then:
-        packageName == packageNameFromProject
+        packageName == "org.example"
     }
 
     def "should use package name as specified"() {
@@ -217,13 +213,13 @@ class InitBuildSpec extends Specification {
         projectSetupDescriptor.supportsPackage() >> true
         init.packageName = "myPackageName"
         when:
-        def packageName = init.getPackageName(Mock(UserInputHandler), projectSetupDescriptor, "myProjectName")
+        def packageName = init.getEffectivePackageName(projectSetupDescriptor)
 
         then:
         packageName == "myPackageName"
     }
 
-    def "get tool chain for #language"() {
+    def "get java language version for #language"() {
         given:
         def inputHandler = Mock(UserInputHandler)
         inputHandler.askQuestion(_ as String, _ as String) >> "11"
@@ -237,13 +233,13 @@ class InitBuildSpec extends Specification {
         languageVersion == result
 
         where:
-        language        | result                         | isJvmLanguage
-        Language.JAVA   | of(JavaLanguageVersion.of(11)) | true
-        Language.SCALA  | of(JavaLanguageVersion.of(11)) | true
-        Language.KOTLIN | of(JavaLanguageVersion.of(11)) | true
-        Language.GROOVY | of(JavaLanguageVersion.of(11)) | true
-        Language.CPP    | empty()                        | false
-        Language.SWIFT  | empty()                        | false
+        language        | result                     | isJvmLanguage
+        Language.JAVA   | JavaLanguageVersion.of(11) | true
+        Language.SCALA  | JavaLanguageVersion.of(11) | true
+        Language.KOTLIN | JavaLanguageVersion.of(11) | true
+        Language.GROOVY | JavaLanguageVersion.of(11) | true
+        Language.CPP    | null                       | false
+        Language.SWIFT  | null                       | false
     }
 
     def "gets java-version from property"() {
@@ -257,8 +253,7 @@ class InitBuildSpec extends Specification {
         def version = init.getJavaLanguageVersion(inputHandler, buildInitializer)
 
         then:
-        version.isPresent()
-        version.get().asInt() == 11
+        version.asInt() == 11
     }
 
     def "gets useful error when requesting invalid Java target"() {
@@ -340,7 +335,7 @@ class InitBuildSpec extends Specification {
         init.setupProjectLayout()
 
         then:
-        1 * projectSetupDescriptor.generate({it.dsl == GROOVY && it.testFramework == SPOCK})
+        1 * projectSetupDescriptor.generate({ it.dsl == GROOVY && it.testFramework == SPOCK })
 
         where:
         validPackageName << [

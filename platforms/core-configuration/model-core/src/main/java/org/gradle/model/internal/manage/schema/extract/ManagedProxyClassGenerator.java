@@ -23,13 +23,13 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.ReadOnlyPropertyException;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.Types.TypeVisitResult;
 import org.gradle.internal.reflect.Types.TypeVisitor;
 import org.gradle.internal.reflect.UnsupportedPropertyValueException;
 import org.gradle.internal.typeconversion.TypeConversionException;
@@ -66,6 +66,7 @@ import org.objectweb.asm.Type;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -227,11 +228,12 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         if (delegateSchema != null) {
             walkTypeHierarchy(delegateSchema.getType().getConcreteClass(), IGNORED_OBJECT_TYPES, new TypeVisitor<D>() {
                 @Override
-                public void visitType(Class<? super D> type) {
+                public TypeVisitResult visitType(Class<? super D> type) {
                     if (type.isInterface()) {
                         typesToDelegate.add(ModelType.of(type));
                         interfacesToImplement.add(Type.getInternalName(type));
                     }
+                    return TypeVisitResult.CONTINUE;
                 }
             });
         }
@@ -487,7 +489,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         }
 
         Multimap<String, ModelProperty<?>> viewPropertiesByNameBuilder = ArrayListMultimap.create();
-        Set<Wrapper<Method>> viewMethods = Sets.newLinkedHashSet();
+        Set<Wrapper<Method>> viewMethods = new LinkedHashSet<>();
         for (StructSchema<?> viewSchema : bindings.getImplementedViewSchemas()) {
             for (ModelType<?> viewType : viewTypes) {
                 if (viewType.equals(viewSchema.getType())) {

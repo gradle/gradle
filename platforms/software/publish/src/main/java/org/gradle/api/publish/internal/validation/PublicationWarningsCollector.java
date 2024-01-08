@@ -34,10 +34,17 @@ public class PublicationWarningsCollector {
     private final String disableMethod;
     private final Map<String, VariantWarningCollector> variantToWarnings;
 
-    public PublicationWarningsCollector(Logger logger, String unsupportedFeature, String incompatibleFeature, String footer, String disableMethod) {
+    public PublicationWarningsCollector(
+        Map<String, VariantWarningCollector> variantToWarnings,
+        Logger logger,
+        String unsupportedFeature,
+        String incompatibleFeature,
+        String footer,
+        String disableMethod
+    ) {
         this.footer = footer;
         this.disableMethod = disableMethod;
-        this.variantToWarnings = new TreeMap<>();
+        this.variantToWarnings = new TreeMap<>(variantToWarnings);
         this.logger = logger;
         this.unsupportedFeature = unsupportedFeature;
         this.incompatibleFeature = incompatibleFeature;
@@ -74,9 +81,5 @@ public class PublicationWarningsCollector {
             treeFormatter.node(footer);
             logger.lifecycle(treeFormatter.toString());
         }
-    }
-
-    public VariantWarningCollector warningCollectorFor(String name) {
-        return variantToWarnings.computeIfAbsent(name, k -> new VariantWarningCollector());
     }
 }

@@ -17,7 +17,6 @@
 package org.gradle.execution.plan;
 
 
-import com.google.common.collect.Maps;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -45,6 +44,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 @ServiceScope(Scopes.Build.class)
@@ -96,8 +96,8 @@ public class TaskNodeFactory {
     }
 
     private static class DefaultTypeOriginInspectorFactory {
-        private final Map<Project, ProjectScopedTypeOriginInspector> projectToInspector = Maps.newConcurrentMap();
-        private final Map<Class<?>, File> clazzToFile = Maps.newConcurrentMap();
+        private final Map<Project, ProjectScopedTypeOriginInspector> projectToInspector = new ConcurrentHashMap<>();
+        private final Map<Class<?>, File> clazzToFile = new ConcurrentHashMap<>();
 
         public ProjectScopedTypeOriginInspector forTask(Task task) {
             return projectToInspector.computeIfAbsent(task.getProject(), ProjectScopedTypeOriginInspector::new);
@@ -127,7 +127,7 @@ public class TaskNodeFactory {
         private class ProjectScopedTypeOriginInspector implements WorkValidationContext.TypeOriginInspector {
             private final PluginContainer plugins;
             private final PluginManagerInternal pluginManager;
-            private final Map<Class<?>, Optional<PluginId>> classToPlugin = Maps.newConcurrentMap();
+            private final Map<Class<?>, Optional<PluginId>> classToPlugin = new ConcurrentHashMap<>();
 
             private ProjectScopedTypeOriginInspector(Project project) {
                 this.plugins = project.getPlugins();
