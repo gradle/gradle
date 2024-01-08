@@ -1531,8 +1531,8 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         conf.getAttributes().attribute(a1, "a1")
 
         then:
-        IllegalArgumentException t = thrown()
-        t.message == "Cannot change attributes of dependency configuration ':conf' after it has been resolved"
+        IllegalStateException t = thrown()
+        t.message == "Cannot change attributes of configuration ':conf' after it has been locked for mutation"
     }
 
     def "wrapper attribute container behaves similar to the delegatee"() {
