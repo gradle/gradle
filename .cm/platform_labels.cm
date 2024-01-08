@@ -164,6 +164,7 @@ platforms:
       - 'subprojects/distributions-full/'
       - 'subprojects/performance/'
       - 'subprojects/smoke-test/'
+      - 'subprojects/smoke-ide-test/'
       - 'subprojects/soak/'
   - software:
     name: 'software'
