@@ -47,7 +47,6 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepository
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleSourcesSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.SuppliedComponentMetadataSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyGraphResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
@@ -181,8 +180,6 @@ class DependencyManagementBuildScopeServices {
         registration.add(TransformStepNodeDependencyResolver.class);
         registration.add(DefaultProjectPublicationRegistry.class);
         registration.add(FileResourceConnector.class);
-        registration.add(DefaultComponentSelectorConverter.class);
-        registration.add(ProjectDependencyResolver.class);
         registration.add(DependencyGraphResolver.class);
         registration.add(ResolvedArtifactSetResolver.class);
     }

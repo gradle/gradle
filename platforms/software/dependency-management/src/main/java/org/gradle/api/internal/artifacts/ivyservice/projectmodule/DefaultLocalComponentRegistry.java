@@ -16,31 +16,66 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
+import org.gradle.api.internal.artifacts.configurations.ProjectComponentObservationListener;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
+import org.gradle.internal.event.ListenerManager;
+import org.gradle.util.Path;
+
+import javax.annotation.Nullable;
+import javax.inject.Inject;
 
 /**
- * Default implementation of {@link LocalComponentRegistry}. This is a simple build-scoped wrapper
- * around {@link BuildTreeLocalComponentProvider} that contextualizes it to the current build, so that
- * users of this class do not need to keep track of their own build ID.
- *
- * When {@link BuildIdentifier#isCurrentBuild()} is removed, this class can be made build-tree scoped.
+ * A simple dependency-management scoped wrapper around {@link BuildTreeLocalComponentProvider} that
+ * contextualizes tracks which domain object context makes a given project component request. The primary
+ * purpose of this class is to track dependencies between projects as they are resolved. By knowing which
+ * project is making the request, we can determine which projects depend on which other projects.
  */
 public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
-    private final BuildIdentifier thisBuild;
+    private final Path currentProjectPath;
+    private final Path currentBuildPath;
+    private final ProjectComponentObservationListener projectComponentObservationListener;
     private final BuildTreeLocalComponentProvider componentProvider;
 
+    @Inject
     public DefaultLocalComponentRegistry(
-        BuildIdentifier thisBuild,
+        DomainObjectContext domainObjectContext,
+        ListenerManager listenerManager,
         BuildTreeLocalComponentProvider componentProvider
     ) {
-        this.thisBuild = thisBuild;
+        this.currentProjectPath = getProjectIdentityPath(domainObjectContext);
+        this.currentBuildPath = domainObjectContext.getBuildPath();
+        this.projectComponentObservationListener = listenerManager.getBroadcaster(ProjectComponentObservationListener.class);
         this.componentProvider = componentProvider;
     }
 
     @Override
     public LocalComponentGraphResolveState getComponent(ProjectComponentIdentifier projectIdentifier) {
-        return componentProvider.getComponent(projectIdentifier, thisBuild);
+        Path targetProjectPath = ((ProjectComponentIdentifierInternal) projectIdentifier).getIdentityPath();
+        if (!targetProjectPath.equals(currentProjectPath)) {
+
+            // TODO: We should relax this check. For legacy reasons we are not tracking cross-build project
+            // dependencies, but we should be. Removing this condition breaks some Isolated Projects tests,
+            // so we need to investigate why they are failing and then remove this condition.
+            // Specifically, the following test breaks when we remove this check:
+            // IsolatedProjectsToolingApiIdeaProjectIntegrationTest.ensures unique name for all Idea modules in composite
+            if (projectIdentifier.getBuild().getBuildPath().equals(currentBuildPath.getPath())) {
+                projectComponentObservationListener.projectObserved(currentProjectPath, targetProjectPath);
+            }
+
+        }
+
+        return componentProvider.getComponent(projectIdentifier, currentBuildPath);
+    }
+
+    @Nullable
+    private static Path getProjectIdentityPath(DomainObjectContext domainObjectContext) {
+        if (domainObjectContext.getProject() != null) {
+            return domainObjectContext.getProject().getIdentityPath();
+        }
+
+        return null;
     }
 }
