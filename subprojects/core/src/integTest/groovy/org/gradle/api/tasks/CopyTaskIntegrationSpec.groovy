@@ -1656,7 +1656,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         // FAIL
         given:
         def source1 = file('dir1/path/file.txt') << 'f1'
-        def source2 = file('dir2/path/file.txt').with { touch() } << 'f2'
+        def source2 = file('dir2/path/file.txt') << 'f2'
         buildScript '''
             task copy(type: Copy) {
                 into 'dest'
