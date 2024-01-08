@@ -43,6 +43,9 @@ import org.gradle.test.fixtures.file.TestFile
 
 import java.util.function.Predicate
 
+import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.INSTRUMENTED_ATTRIBUTE
+import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.NOT_INSTRUMENTED_ATTRIBUTE_VALUE
+
 class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture {
 
     @EqualsAndHashCode
@@ -1370,8 +1373,9 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 4
         Map<String, List<String>> artifactTransforms = groupArtifactTransformByArtifactName()
         artifactTransforms["buildSrc.jar"] == [ProjectDependencyInstrumentingArtifactTransform.class.name]
-        artifactTransforms["nested-producer.jar"] ==~ ["MakeColor", ProjectDependencyInstrumentingArtifactTransform.class.name]
+        artifactTransforms["nested-producer.jar"] == ["MakeColor"]
         artifactTransforms["nested-producer.jar.red"] == ["MakeColor"]
+        artifactTransforms["nested-producer.jar.red.green"] == [ProjectDependencyInstrumentingArtifactTransform.class.name]
         buildOperations.all(ExecuteWorkBuildOperationType).size() == 4
         buildOperations.all(SnapshotTransformInputsBuildOperationType).size() == 4
         buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 4
@@ -1399,8 +1403,9 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 4
         Map<String, List<String>> artifactTransforms = groupArtifactTransformByArtifactName()
         artifactTransforms["buildSrc.jar"] == [ProjectDependencyInstrumentingArtifactTransform.class.name]
-        artifactTransforms["nested-producer.jar"] ==~ ["MakeColor", ProjectDependencyInstrumentingArtifactTransform.class.name]
+        artifactTransforms["nested-producer.jar"] == ["MakeColor"]
         artifactTransforms["nested-producer.jar.red"] == ["MakeColor"]
+        artifactTransforms["nested-producer.jar.red.green"] == [ProjectDependencyInstrumentingArtifactTransform.class.name]
         buildOperations.all(ExecuteWorkBuildOperationType).size() == 4
         buildOperations.all(SnapshotTransformInputsBuildOperationType).size() == 4
         buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 4
@@ -1475,24 +1480,25 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             : consumerBuildFile
         buildscriptDestination << """
             buildscript {
+                // Build script classpath is resolved via ${INSTRUMENTED_ATTRIBUTE.name} attribute,
+                // so we have to set that attribute too to make transform run
                 def artifactType = Attribute.of('artifactType', String)
+                def instrumented = Attribute.of('${INSTRUMENTED_ATTRIBUTE.name}', String.class)
                 dependencies {
                     classpath("test:test:1.0")
 
                     registerTransform(MakeColor) {
-                        from.attribute(artifactType, 'jar')
-                        to.attribute(artifactType, 'red')
+                        from.attribute(artifactType, 'jar').attribute(instrumented, '${NOT_INSTRUMENTED_ATTRIBUTE_VALUE}')
+                        to.attribute(artifactType, 'red').attribute(instrumented, '${NOT_INSTRUMENTED_ATTRIBUTE_VALUE}')
                         parameters.targetColor.set('red')
                     }
                     registerTransform(MakeColor) {
-                        from.attribute(artifactType, 'red')
-                        to.attribute(artifactType, 'green')
+                        from.attribute(artifactType, 'red').attribute(instrumented, '${NOT_INSTRUMENTED_ATTRIBUTE_VALUE}')
+                        to.attribute(artifactType, 'green').attribute(instrumented, '${NOT_INSTRUMENTED_ATTRIBUTE_VALUE}')
                         parameters.targetColor.set('green')
                     }
                 }
-                configurations.classpath.incoming.artifactView {
-                    attributes.attribute(artifactType, 'green')
-                }.files.files
+                configurations.classpath.attributes.attribute(artifactType, 'green')
             }
         """
         if (inExternalScript) {
