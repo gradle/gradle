@@ -56,9 +56,7 @@ import org.gradle.internal.state.ManagedFactoryRegistry;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.gradle.internal.classloader.ClassLoaderUtils.classFromContextLoader;
 
@@ -87,7 +85,27 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
     private static final byte OTHER_TYPE = (byte) 2;
     private static final byte NULL_TYPE = (byte) 3;
 
-    private final Map<Byte, IsolatableSerializer<?>> isolatableSerializers = new HashMap<>();
+    private final IsolatableSerializer<?>[] isolatableSerializers = {
+        new StringValueSnapshotSerializer(),
+        new BooleanValueSnapshotSerializer(),
+        new ShortValueSnapshotSerializer(),
+        new IntegerValueSnapshotSerializer(),
+        new LongValueSnapshotSerializer(),
+        new AttributeDefinitionSnapshotSerializer(),
+        new IsolatedManagedValueSerializer(),
+        new IsolatedImmutableManagedValueSerializer(),
+        new FileValueSnapshotSerializer(),
+        new NullValueSnapshotSerializer(),
+        new IsolatedJavaSerializedValueSnapshotSerializer(),
+        new IsolatedEnumValueSnapshotSerializer(),
+        new IsolatedMapSerializer(),
+        new IsolatedArraySerializer(),
+        new IsolatedListSerializer(),
+        new IsolatedSetSerializer(),
+        new IsolatedPropertiesSerializer(),
+        new IsolatedPrimitiveArraySerializer()
+    };
+
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ManagedFactoryRegistry managedFactoryRegistry;
 
@@ -95,27 +113,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         super(false);
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.managedFactoryRegistry = managedFactoryRegistry;
-
-        isolatableSerializers.put(STRING_VALUE, new StringValueSnapshotSerializer());
-        isolatableSerializers.put(BOOLEAN_VALUE, new BooleanValueSnapshotSerializer());
-        isolatableSerializers.put(SHORT_VALUE, new ShortValueSnapshotSerializer());
-        isolatableSerializers.put(INTEGER_VALUE, new IntegerValueSnapshotSerializer());
-        isolatableSerializers.put(LONG_VALUE, new LongValueSnapshotSerializer());
-        isolatableSerializers.put(ATTRIBUTE_VALUE, new AttributeDefinitionSnapshotSerializer());
-        isolatableSerializers.put(MANAGED_VALUE, new IsolatedManagedValueSerializer());
-        isolatableSerializers.put(IMMUTABLE_MANAGED_VALUE, new IsolatedImmutableManagedValueSerializer());
-        isolatableSerializers.put(FILE_VALUE, new FileValueSnapshotSerializer());
-        isolatableSerializers.put(SERIALIZED_VALUE, new IsolatedJavaSerializedValueSnapshotSerializer());
-        isolatableSerializers.put(NULL_VALUE, new NullValueSnapshotSerializer());
-        isolatableSerializers.put(ENUM_VALUE, new IsolatedEnumValueSnapshotSerializer());
-        isolatableSerializers.put(ISOLATED_MAP, new IsolatedMapSerializer());
-        isolatableSerializers.put(ISOLATED_ARRAY, new IsolatedArraySerializer());
-        isolatableSerializers.put(ISOLATED_LIST, new IsolatedListSerializer());
-        isolatableSerializers.put(ISOLATED_SET, new IsolatedSetSerializer());
-        isolatableSerializers.put(ISOLATED_PROPERTIES, new IsolatedPropertiesSerializer());
-        isolatableSerializers.put(ISOLATED_ARRAY_OF_PRIMITIVE, new IsolatedPrimitiveArraySerializer());
-
-        for (IsolatableSerializer<?> serializer : isolatableSerializers.values()) {
+        for (IsolatableSerializer<?> serializer : isolatableSerializers) {
             register(serializer.getIsolatableClass(), Cast.uncheckedCast(serializer));
         }
     }
@@ -126,7 +124,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
 
     public Isolatable<?> readIsolatable(Decoder decoder) throws Exception {
         byte type = decoder.readByte();
-        Class<? extends Isolatable<?>> isolatableClass = isolatableSerializers.get(type).getIsolatableClass();
+        Class<? extends Isolatable<?>> isolatableClass = isolatableSerializers[type].getIsolatableClass();
         return build(isolatableClass).read(decoder);
     }
 
