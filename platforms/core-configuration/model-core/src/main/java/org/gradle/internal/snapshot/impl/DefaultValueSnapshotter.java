@@ -158,6 +158,11 @@ public class DefaultValueSnapshotter extends AbstractValueProcessor implements V
         }
 
         @Override
+        public ValueSnapshot primitiveArray(Object value) {
+            return javaSerialized(value, AbstractValueProcessor.javaSerialized(value));
+        }
+
+        @Override
         public ValueSnapshot emptyList() {
             return ListValueSnapshot.EMPTY;
         }

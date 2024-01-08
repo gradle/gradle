@@ -89,7 +89,7 @@ abstract class AbstractValueProcessor {
             return processMap((Map<?, ?>) value, visitor);
         }
         if (valueClass.isArray()) {
-            return processArray(valueClass, value, visitor);
+            return processArray(value, visitor);
         }
         if (value instanceof Attribute) {
             return visitor.attributeValue((Attribute<?>) value);
@@ -164,14 +164,14 @@ abstract class AbstractValueProcessor {
         return builder.build();
     }
 
-    private <T> T processArray(Class<?> valueClass, Object value, ValueVisitor<T> visitor) {
-        Class<?> componentType = valueClass.getComponentType();
+    private <T> T processArray(Object value, ValueVisitor<T> visitor) {
+        Class<?> componentType = value.getClass().getComponentType();
         int length = Array.getLength(value);
         if (length == 0) {
             return visitor.emptyArray(componentType);
         }
         if (componentType.isPrimitive()) {
-            throw cantSerializePrimitiveArray(valueClass);
+            return visitor.primitiveArray(value);
         }
         return visitor.array(processArrayElements(value, length, visitor), componentType);
     }
@@ -205,7 +205,7 @@ abstract class AbstractValueProcessor {
         return visitor.javaSerialized(value, javaSerialized(value));
     }
 
-    private static byte[] javaSerialized(Object value) {
+    public static byte[] javaSerialized(Object value) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try (ObjectOutputStream oos = new ObjectOutputStream(outputStream)) {
             oos.writeObject(value);
@@ -265,6 +265,8 @@ abstract class AbstractValueProcessor {
         T emptyArray(Class<?> arrayType);
 
         T array(ImmutableList<T> elements, Class<?> arrayType);
+
+        T primitiveArray(Object value);
 
         T emptyList();
 
