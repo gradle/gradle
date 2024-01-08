@@ -52,6 +52,7 @@ object DomResolutionTest {
             }
             justAdd("test2")
             complexValueOne = one(two("three"))
+            complexValueOneFromUtils = utils.oneUtil()
             complexValueTwo = two("three")
             nested {
                 number = 456
@@ -66,7 +67,7 @@ object DomResolutionTest {
         val resolved = resolvedDocument(schema, resolver.trace, document)
         val resolutions = collectResolutions(resolved)
         assertEquals(
-            resolutions.map { resolutionPrettyString(it) },
+            resolutions.map { resolutionPrettyString(it) }.joinToString("\n"),
             """
             ContainerElementResolved -> element addAndConfigure(String): TopLevelElement
             LiteralValueResolved -> test
@@ -78,6 +79,8 @@ object DomResolutionTest {
             ValueFactoryResolved -> one(ComplexValueTwo): ComplexValueOne
             ValueFactoryResolved -> two(String): ComplexValueTwo
             LiteralValueResolved -> three
+            PropertyAssignmentResolved -> TopLevelReceiver.complexValueOneFromUtils: ComplexValueOne
+            ValueFactoryResolved -> oneUtil(): ComplexValueOne
             PropertyAssignmentResolved -> TopLevelReceiver.complexValueTwo: ComplexValueTwo
             ValueFactoryResolved -> two(String): ComplexValueTwo
             LiteralValueResolved -> three
@@ -85,7 +88,7 @@ object DomResolutionTest {
             PropertyAssignmentResolved -> NestedReceiver.number: Int
             LiteralValueResolved -> 456
             ContainerElementResolved -> element add(): MyNestedElement
-            """.trimIndent().lines()
+            """.trimIndent()
         )
     }
 
@@ -117,7 +120,7 @@ object DomResolutionTest {
         val resolved = resolvedDocument(schema, resolver.trace, document, strictReceiverChecks = true)
         val resolutions = collectResolutions(resolved)
         assertEquals(
-            resolutions.map { resolutionPrettyString(it) }.also { println(it.joinToString("\n")) },
+            resolutions.map { resolutionPrettyString(it) }.joinToString("\n"),
             """
             ContainerElementResolved -> element addAndConfigure(String): TopLevelElement
             LiteralValueResolved -> correct
@@ -137,9 +140,11 @@ object DomResolutionTest {
             ValueFactoryResolved -> two(String): ComplexValueTwo
             LiteralValueResolved -> three
             PropertyConfiguringElementResolved -> configure NestedReceiver
+            ElementNotResolved(CrossScopeAccess)
+            LiteralValueResolved -> cross-scope
             ElementNotResolved(UnresolvedSignature)
             LiteralValueResolved -> incorrect signature
-            """.trimIndent().lines()
+            """.trimIndent()
         )
     }
 
@@ -212,6 +217,9 @@ object DomResolutionTest {
         lateinit var complexValueOne: ComplexValueOne
 
         @Restricted
+        lateinit var complexValueOneFromUtils: ComplexValueOne
+
+        @Restricted
         lateinit var complexValueTwo: ComplexValueTwo
 
         @Adding
@@ -225,6 +233,9 @@ object DomResolutionTest {
 
         @Restricted
         fun two(name: String): ComplexValueTwo = ComplexValueTwo()
+
+        @Restricted
+        val utils: Utils = Utils()
 
         @Restricted
         @HiddenInRestrictedDsl
@@ -250,6 +261,11 @@ object DomResolutionTest {
 
         @Adding
         fun add(): MyNestedElement = MyNestedElement()
+    }
+
+    private class Utils {
+        @Restricted
+        fun oneUtil(): ComplexValueOne = ComplexValueOne()
     }
 
     private class MyNestedElement
