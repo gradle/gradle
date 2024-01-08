@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+package configurations
+
+import common.requiresNotEc2Agent
+import model.CIBuildModel
+import model.Stage
+
 class SmokeIdeTests(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage = stage, init = {
     id(buildTypeId(model))
     name = "Smoke Ide Tests"
@@ -32,9 +38,7 @@ class SmokeIdeTests(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(sta
         model,
         this,
         ":smoke-ide-test:smokeIdeTest",
-        extraParameters = buildScanTag("SmokeIdeTests") +
-            "-PautoDownloadAndroidStudio=true",
-        "-PrunAndroidStudioInHeadlessMode=true",
+        extraParameters = buildScanTag("SmokeIdeTests") + " -PautoDownloadAndroidStudio=true -PrunAndroidStudioInHeadlessMode=true",
     )
 }) {
     companion object {
