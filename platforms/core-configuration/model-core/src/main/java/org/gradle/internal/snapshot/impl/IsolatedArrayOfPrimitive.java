@@ -17,7 +17,6 @@
 package org.gradle.internal.snapshot.impl;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.internal.hash.Hashable;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -29,7 +28,7 @@ import static org.gradle.internal.snapshot.impl.AbstractValueProcessor.javaSeria
 import static org.gradle.internal.snapshot.impl.JavaSerializedValueSnapshot.javaDeserialized;
 
 @NonNullApi
-public class IsolatedArrayOfPrimitive implements Isolatable<Object>, Hashable {
+public class IsolatedArrayOfPrimitive implements Isolatable<Object> {
     private final PrimitiveType primitiveType;
     private final Object array;
 
@@ -61,28 +60,12 @@ public class IsolatedArrayOfPrimitive implements Isolatable<Object>, Hashable {
     }
 
     private UnsupportedOperationException unsupportedOperation() {
-        return new UnsupportedOperationException("This operation is not supported on primitive arrays of type: " + primitiveType.getArrayClass());
+        return new UnsupportedOperationException("This operation is not supported on primitive arrays of type: " + primitiveType.arrayType);
     }
 
     @Override
     public Object isolate() {
-        switch (primitiveType) {
-            case B:
-                return ((byte[]) array).clone();
-            case S:
-                return ((short[]) array).clone();
-            case I:
-                return ((int[]) array).clone();
-            case J:
-                return ((long[]) array).clone();
-            case F:
-                return ((float[]) array).clone();
-            case D:
-                return ((double[]) array).clone();
-            case C:
-                return ((char[]) array).clone();
-        }
-        throw new IllegalStateException();
+        return primitiveType.clone(array);
     }
 
     @Nullable
@@ -109,40 +92,67 @@ public class IsolatedArrayOfPrimitive implements Isolatable<Object>, Hashable {
             case B:
                 return bytes;
             default:
-                return javaDeserialized(primitiveType.getArrayClass(), bytes);
+                return javaDeserialized(primitiveType.arrayType, bytes);
         }
     }
 
     private enum PrimitiveType {
-        B,
-        S,
-        I,
-        J,
-        F,
-        D,
-        C;
+        B(byte[].class) {
+            @Override
+            public Object clone(Object array) {
+                return ((byte[]) array).clone();
+            }
+        },
+        S(short[].class) {
+            @Override
+            public Object clone(Object array) {
+                return ((short[]) array).clone();
+            }
+        },
+        I(int[].class) {
+            @Override
+            public Object clone(Object array) {
+                return ((int[]) array).clone();
+            }
+        },
+        J(long[].class) {
+            @Override
+            public Object clone(Object array) {
+                return ((long[]) array).clone();
+            }
+        },
+        F(float[].class) {
+            @Override
+            public Object clone(Object array) {
+                return ((float[]) array).clone();
+            }
+        },
+        D(double[].class) {
+            @Override
+            public Object clone(Object array) {
+                return ((double[]) array).clone();
+            }
+        },
+        C(char[].class) {
+            @Override
+            public Object clone(Object array) {
+                return ((char[]) array).clone();
+            }
+        };
+
+        public final Class<?> arrayType;
+
+        PrimitiveType(Class<?> arrayType) {
+            this.arrayType = arrayType;
+        }
+
+        public abstract Object clone(Object array);
 
         public static PrimitiveType of(Class<?> arrayType) {
-            if (byte[].class == arrayType) {
-                return B;
-            }
-            if (short[].class == arrayType) {
-                return S;
-            }
-            if (int[].class == arrayType) {
-                return I;
-            }
-            if (long[].class == arrayType) {
-                return J;
-            }
-            if (float[].class == arrayType) {
-                return F;
-            }
-            if (double[].class == arrayType) {
-                return D;
-            }
-            if (char[].class == arrayType) {
-                return C;
+            for (PrimitiveType primitiveType : values()) {
+                if (primitiveType.arrayType == arrayType) {
+                    return primitiveType;
+                }
             }
             throw new ValueSnapshottingException("Unsupported primitive array type: " + arrayType);
         }
@@ -151,26 +161,6 @@ public class IsolatedArrayOfPrimitive implements Isolatable<Object>, Hashable {
             PrimitiveType[] primitiveTypes = values();
             assert ordinal >= 0 && ordinal < primitiveTypes.length;
             return primitiveTypes[ordinal];
-        }
-
-        public Class<?> getArrayClass() {
-            switch (this) {
-                case B:
-                    return byte[].class;
-                case S:
-                    return short[].class;
-                case I:
-                    return int[].class;
-                case J:
-                    return long[].class;
-                case F:
-                    return float[].class;
-                case D:
-                    return double[].class;
-                case C:
-                    return char[].class;
-            }
-            throw new IllegalStateException();
         }
     }
 }
