@@ -97,9 +97,7 @@ class AssignmentResolver {
 
     fun resolveToObjectOrPropertyReference(objectOrigin: ObjectOrigin): ExpressionResolutionProgress =
         when (objectOrigin) {
-            is ObjectOrigin.AccessAndConfigureReceiver -> resolveToObjectOrPropertyReference(objectOrigin.accessor.access(objectOrigin.receiver))
-            is ObjectOrigin.FromLocalValue -> resolveToObjectOrPropertyReference(objectOrigin.assigned)
-            is ObjectOrigin.BuilderReturnedReceiver -> resolveToObjectOrPropertyReference(objectOrigin.receiver)
+            is ObjectOrigin.DelegatingObjectOrigin -> resolveToObjectOrPropertyReference(objectOrigin.delegate)
 
             is ObjectOrigin.PropertyReference -> {
                 val receiver = objectOrigin.receiver
@@ -143,9 +141,6 @@ class AssignmentResolver {
             is ObjectOrigin.NullObjectOrigin,
             is ObjectOrigin.PropertyDefaultValue, // TODO: is it so?
             is ObjectOrigin.TopLevelReceiver -> Ok(objectOrigin)
-
-            is ObjectOrigin.ImplicitThisReceiver -> resolveToObjectOrPropertyReference(objectOrigin.resolvedTo)
-            is ObjectOrigin.AddAndConfigureReceiver -> resolveToObjectOrPropertyReference(objectOrigin.receiver)
         }
 
     sealed interface ResolutionNode {

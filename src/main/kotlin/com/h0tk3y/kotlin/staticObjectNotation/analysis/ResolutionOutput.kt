@@ -36,10 +36,17 @@ sealed interface ObjectOrigin {
         val receiver: ObjectOrigin
     }
 
+    sealed interface DelegatingObjectOrigin : ObjectOrigin {
+        val delegate: ObjectOrigin
+    }
+
     data class ImplicitThisReceiver(
         val resolvedTo: ReceiverOrigin,
         val isCurrentScopeReceiver: Boolean
-    ) : ObjectOrigin {
+    ) : ObjectOrigin, DelegatingObjectOrigin {
+        override val delegate: ObjectOrigin
+            get() = resolvedTo
+
         override val originElement: LanguageTreeElement
             get() = resolvedTo.originElement
     }
@@ -50,7 +57,10 @@ sealed interface ObjectOrigin {
         override fun toString(): String = "(top-level-object)"
     }
 
-    data class FromLocalValue(val localValue: LocalValue, val assigned: ObjectOrigin) : ObjectOrigin {
+    data class FromLocalValue(val localValue: LocalValue, val assigned: ObjectOrigin) : DelegatingObjectOrigin {
+        override val delegate: ObjectOrigin
+            get() = assigned
+
         override val originElement: LanguageTreeElement
             get() = assigned.originElement
 
@@ -82,8 +92,11 @@ sealed interface ObjectOrigin {
         override val originElement: FunctionCall,
         override val parameterBindings: ParameterValueBinding,
         override val invocationId: Long
-    ) : FunctionInvocationOrigin, HasReceiver {
+    ) : FunctionInvocationOrigin, DelegatingObjectOrigin, HasReceiver {
         override fun toString(): String = receiver.toString()
+
+        override val delegate: ObjectOrigin
+            get() = receiver
     }
 
     data class NewObjectFromMemberFunction(
@@ -114,17 +127,23 @@ sealed interface ObjectOrigin {
         override val originElement: FunctionCall,
         override val invocationId: Long,
         val accessor: ConfigureAccessor,
-    ) : FunctionOrigin, ReceiverOrigin {
+    ) : FunctionOrigin, ReceiverOrigin, DelegatingObjectOrigin {
         override fun toString(): String = accessor.access(receiver).toString()
+
+        override val delegate: ObjectOrigin
+            get() = accessor.access(receiver)
     }
 
     data class AddAndConfigureReceiver(
         override val receiver: FunctionOrigin,
-    ) : FunctionOrigin, ReceiverOrigin {
+    ) : FunctionOrigin, DelegatingObjectOrigin, ReceiverOrigin {
         override val invocationId: Long get() = receiver.invocationId
         override val originElement: LanguageTreeElement get() = receiver.originElement
         override val function: SchemaFunction get() = receiver.function
         override fun toString(): String = receiver.toString()
+
+        override val delegate: ObjectOrigin
+            get() = receiver
     }
 
     data class PropertyReference(

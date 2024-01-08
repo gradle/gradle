@@ -26,6 +26,7 @@ internal fun checkIsAssignable(valueType: DataType, isAssignableTo: DataType): B
 }
 
 internal fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataType = when (objectOrigin) {
+    is ObjectOrigin.DelegatingObjectOrigin -> getDataType(objectOrigin.delegate)
     is ObjectOrigin.ConstantOrigin -> objectOrigin.literal.type
     is ObjectOrigin.External -> resolveRef(objectOrigin.key.type)
     is ObjectOrigin.NewObjectFromMemberFunction -> resolveRef(objectOrigin.function.returnValueType)
@@ -33,12 +34,7 @@ internal fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataType = 
     is ObjectOrigin.PropertyReference -> resolveRef(objectOrigin.property.type)
     is ObjectOrigin.PropertyDefaultValue -> resolveRef(objectOrigin.property.type)
     is ObjectOrigin.TopLevelReceiver -> objectOrigin.type
-    is ObjectOrigin.FromLocalValue -> getDataType(objectOrigin.assigned)
     is ObjectOrigin.NullObjectOrigin -> DataType.NullType
-    is ObjectOrigin.AccessAndConfigureReceiver -> resolveRef(objectOrigin.accessor.objectType)
-    is ObjectOrigin.BuilderReturnedReceiver -> getDataType(objectOrigin.receiver)
-    is ObjectOrigin.ImplicitThisReceiver -> getDataType(objectOrigin.resolvedTo)
-    is ObjectOrigin.AddAndConfigureReceiver -> getDataType(objectOrigin.receiver)
 }
 
 internal fun AnalysisContext.checkAccessOnCurrentReceiver(

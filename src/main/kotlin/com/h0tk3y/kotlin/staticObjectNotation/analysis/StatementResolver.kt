@@ -42,7 +42,7 @@ class StatementResolverImpl(
 
         when (expr) {
             is FunctionCall ->
-                if (resolvedExpr is ObjectOrigin.FunctionOrigin && isDanglingPureExpression(resolvedExpr))
+                if (resolvedExpr is ObjectOrigin.FunctionOrigin && isDanglingPureCall(resolvedExpr))
                     errorCollector.collect(ResolutionError(expr, ErrorReason.DanglingPureExpression))
 
             else -> errorCollector.collect(ResolutionError(expr, ErrorReason.DanglingPureExpression))
@@ -100,12 +100,14 @@ class StatementResolverImpl(
     }
 
     // If we can trace the function invocation back to something that is not transient, we consider it not dangling
-    private fun isDanglingPureExpression(obj: ObjectOrigin.FunctionOrigin): Boolean {
+    private fun isDanglingPureCall(obj: ObjectOrigin.FunctionOrigin): Boolean {
         fun isPotentiallyPersistentReceiver(objectOrigin: ObjectOrigin): Boolean = when (objectOrigin) {
             is ObjectOrigin.AccessAndConfigureReceiver -> true
+            is ObjectOrigin.ImplicitThisReceiver -> true
+            is ObjectOrigin.FromLocalValue -> true // TODO: also check for unused val?
+            is ObjectOrigin.DelegatingObjectOrigin -> isPotentiallyPersistentReceiver(objectOrigin.delegate)
             is ObjectOrigin.ConstantOrigin -> false
             is ObjectOrigin.External -> true
-            is ObjectOrigin.BuilderReturnedReceiver -> isPotentiallyPersistentReceiver(objectOrigin.receiver)
             is ObjectOrigin.FunctionOrigin -> {
                 val semantics = objectOrigin.function.semantics
                 when (semantics) {
@@ -116,12 +118,10 @@ class StatementResolverImpl(
                 }
             }
 
-            is ObjectOrigin.FromLocalValue -> true // TODO: also check for unused val?
             is ObjectOrigin.NullObjectOrigin -> false
             is ObjectOrigin.PropertyReference -> true
             is ObjectOrigin.TopLevelReceiver -> true
             is ObjectOrigin.PropertyDefaultValue -> true
-            is ObjectOrigin.ImplicitThisReceiver -> isPotentiallyPersistentReceiver(objectOrigin.resolvedTo)
         }
 
         return when {
