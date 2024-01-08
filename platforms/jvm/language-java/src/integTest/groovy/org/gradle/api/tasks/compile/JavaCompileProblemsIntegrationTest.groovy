@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.compile;
+package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore;
-
 /**
  * Test class verifying the integration between the {@code JavaCompile} and the {@code Problems} service.
  */
-@Ignore
 class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
+        propertiesFile << """
+            org.gradle.compile.use-problems-api=true
+        """
+
         buildFile << """
             plugins {
                 id 'java'
@@ -154,6 +155,33 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    def "events are received when two separate compilation task is executed"() {
+        enableProblemsApiCheck()
+
+        buildFile << """
+        tasks.create("compileJava1", JavaCompile);
+        tasks.create("compileJava2", JavaCompile);
+
+        tasks.create("compileAll") {
+            dependsOn("compileJava1", "compileJava2")
+        }
+        """
+
+        def files = [
+            writeJavaCausingCompilationError("Foo"),
+        ]
+
+        when:
+        // Special flag to fork the compiler, see the setup()
+        fails("compileAll")
+
+        then:
+        collectedProblems.size() == 2
+        for (def problem in collectedProblems) {
+            assertProblem(problem, files, "ERROR")
+        }
+    }
+
     def assertProblem(Map<String, Object> problem, List<String> possibleFiles, String severity) {
         assert problem["severity"] == severity
 
@@ -194,7 +222,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        return file.absolutePath
+        return "file://${file.absolutePath}"
     }
 
     String writeJavaCausingCompilationWarning(String className) {

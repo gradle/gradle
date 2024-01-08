@@ -236,6 +236,8 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(javaModuleDetector.inferClasspath(isModule, getClasspath())));
         spec.setModulePath(ImmutableList.copyOf(javaModuleDetector.inferModulePath(isModule, getClasspath())));
+        spec.setProblemsApiReporting(shouldUseProblemsApi());
+
         if (isModule && !isSourcepathUserDefined) {
             compileOptions.setSourcepath(getProjectLayout().files(sourcesRoots));
         }
@@ -247,6 +249,14 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
             spec.getCompileOptions().setHeaderOutputDirectory(null);
         }
         return spec;
+    }
+
+    private boolean shouldUseProblemsApi() {
+        return getProject()
+            .getProviders()
+            .gradleProperty("org.gradle.compile.use-problems-api")
+            .map(Boolean::parseBoolean)
+            .get();
     }
 
     private void validateForkOptionsMatchToolchain() {
