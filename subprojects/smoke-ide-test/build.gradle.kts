@@ -39,8 +39,6 @@ tasks.register<SmokeIdeTest>("smokeIdeTest") {
 }
 
 dependencies {
-    smokeIdeTestImplementation(project(":persistent-cache"))
-    smokeIdeTestImplementation(project(":logging"))
     smokeIdeTestImplementation(libs.gradleProfiler)
     smokeIdeTestDistributionRuntimeOnly(project(":distributions-full")) {
         because("Tests starts an IDE with using current Gradle distribution")
