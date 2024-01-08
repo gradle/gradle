@@ -135,7 +135,7 @@ class Summary private constructor(
         )
     }
 
-    fun textForConsole(cacheActionText: String, htmlReportFile: File): String {
+    fun textForConsole(cacheActionText: String, htmlReportFile: File? = null): String {
         val documentationRegistry = DocumentationRegistry()
         val uniqueProblemCount = uniqueProblems.size
         return StringBuilder().apply {
@@ -154,8 +154,10 @@ class Summary private constructor(
             if (uniqueProblemCount > maxConsoleProblems) {
                 appendLine("plus ${uniqueProblemCount - maxConsoleProblems} more problems. Please see the report for details.")
             }
-            appendLine()
-            append(buildSummaryReportLink(htmlReportFile))
+            htmlReportFile?.let {
+                appendLine()
+                append(buildSummaryReportLink(it))
+            }
         }.toString()
     }
 

@@ -21,9 +21,10 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -55,6 +56,7 @@ import java.util.stream.Stream;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.stream.Collectors.joining;
 import static org.gradle.api.problems.Severity.ERROR;
+import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.introductionFor;
 
 /**
  * Validates plugins by checking property annotations on work items like tasks and artifact transforms.
@@ -107,24 +109,20 @@ public abstract class ValidatePlugins extends DefaultTask {
             });
         getWorkerExecutor().await();
 
-        InternalProblems problems = getServices().get(InternalProblems.class);
-        InternalProblemReporter reporter = problems.getInternalReporter();
-        List<? extends Problem> problemMessages = ValidationProblemSerialization.parseMessageList(new String(Files.readAllBytes(getOutputFile().get().getAsFile().toPath())));
+        List<? extends Problem> problems = ValidationProblemSerialization.parseMessageList(new String(Files.readAllBytes(getOutputFile().get().getAsFile().toPath())));
 
-        Stream<String> messages = ValidationProblemSerialization.toPlainMessage(problemMessages).sorted();
-        if (problemMessages.isEmpty()) {
+        Stream<String> messages = ValidationProblemSerialization.toPlainMessage(problems).sorted();
+        if (problems.isEmpty()) {
             getLogger().info("Plugin validation finished without warnings.");
         } else {
-            if (getFailOnWarning().get() || problemMessages.stream().anyMatch(problem -> problem.getSeverity() == ERROR)) {
+            if (getFailOnWarning().get() || problems.stream().anyMatch(problem -> problem.getSeverity() == ERROR)) {
                 if (getIgnoreFailures().get()) {
                     getLogger().warn("Plugin validation finished with errors. {} {}",
                         annotateTaskPropertiesDoc(),
                         messages.collect(joining()));
                 } else {
+                    reportProblems(problems);
 
-                    for (Problem problem : problemMessages) {
-                        reporter.report(problem);
-                    }
                     throw WorkValidationException.forProblems(messages.collect(toImmutableList()))
                         .withSummaryForPlugin()
                         .getWithExplanation(annotateTaskPropertiesDoc());
@@ -134,6 +132,16 @@ public abstract class ValidatePlugins extends DefaultTask {
                     messages.collect(joining()));
             }
         }
+    }
+
+    private void reportProblems(List<? extends Problem> problems) {
+        InternalProblemReporter reporter = getServices().get(InternalProblems.class).getInternalReporter();
+        problems.stream()
+            .filter(InternalProblem.class::isInstance)
+            .map(InternalProblem.class::cast)
+            .map(problem -> problem.toBuilder()
+                .label(introductionFor(problem.getAdditionalData()) + problem.getLabel()).build())
+            .forEach(reporter::report);
     }
 
     private String annotateTaskPropertiesDoc() {

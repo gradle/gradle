@@ -187,7 +187,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         server.resetExpectations()
 
         then:
-        configurationCache.assertStateStored(false)
+        configurationCache.assertStateStoreFailed()
         outputContains("Configuration cache entry discarded")
         failure.assertHasFailures(1)
         failure.assertHasDescription("Configuration cache problems found in this build")
@@ -209,7 +209,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         server.resetExpectations()
 
         then:
-        configurationCache.assertStateStored(false)
+        configurationCache.assertStateStoreFailed()
         outputContains("Configuration cache entry discarded")
         failure.assertHasFailures(1)
         failure.assertHasDescription("Configuration cache problems found in this build")

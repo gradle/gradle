@@ -119,34 +119,20 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         checkIdeaProject(ideaModel, originalIdeaModel)
     }
 
-    def "can fetch IdeaProject model for non-root project"() {
+    def "fetching IdeaProject model for non-root project fails"() {
         settingsFile << """
-            rootProject.name = 'root'
-            include(":lib1")
+            rootProject.name = "root"
+            include("a")
         """
 
-        when: "fetching without Isolated Projects"
-        def originalIdeaModel = runBuildAction(new FetchIdeaProjectForTarget(":lib1"))
+        when:
+        executer.withArguments(ENABLE_CLI)
+        runBuildActionFails(new FetchIdeaProjectForTarget(":a"))
 
         then:
         fixture.assertNoConfigurationCache()
 
-        // Returned model is for root project even though the target is not the root
-        originalIdeaModel.name == "root"
-        originalIdeaModel.modules.name == ["root", "lib1"]
-
-        when: "fetching with Isolated Projects"
-        executer.withArguments(ENABLE_CLI)
-        def ideaModel = runBuildAction(new FetchIdeaProjectForTarget(":lib1"))
-
-        then:
-        fixture.assertStateStored {
-            buildModelCreated()
-            modelsCreated(":", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
-            modelsCreated(":lib1", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
-        }
-
-        checkIdeaProject(ideaModel, originalIdeaModel)
+        failureDescriptionContains("org.gradle.tooling.model.idea.IdeaProject can only be requested on the root project, got project ':a'")
     }
 
     def "can fetch IdeaProject model for java projects"() {

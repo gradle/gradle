@@ -175,7 +175,7 @@ public interface ProblemSpec {
     ProblemSpec details(String details);
 
     /**
-     * The description of how to solve this problem.
+     * A description of how to solve this problem.
      *
      * @param solution the solution.
      * @return this

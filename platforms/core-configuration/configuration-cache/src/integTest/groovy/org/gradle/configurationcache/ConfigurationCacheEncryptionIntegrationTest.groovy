@@ -284,7 +284,9 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
     def "new configuration cache entry if env var key changes"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
-        def differentKey = "O6lTi7qNmAAIookBZGqHqyDph882NPQOXW5P5K2yupM="
+        // Obtained via:
+        // openssl enc -aes-128-cbc -P -pbkdf2 -nosalt -k YOUR-OWN-PASSPHRASE-HERE | grep key | cut -f 2 -d = | xxd  -r -ps | base64
+        def differentKey = "yqqfx9gxQY0n9W7PQGl/zA=="
 
         when:
         runWithEncryption(EncryptionKind.ENV_VAR, ["help"], [], [(GRADLE_ENCRYPTION_KEY_ENV_KEY): this.encryptionKeyAsBase64])

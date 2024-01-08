@@ -47,7 +47,7 @@ class ConfigurationCacheBuildOperationsTest {
 
         // when:
         buildOperationExecutor.withStoreOperation("key") {
-            StoreResult(stateFile)
+            StoreResult(stateFile, null)
         }
 
         // then:
