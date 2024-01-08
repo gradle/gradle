@@ -60,7 +60,6 @@ abstract class AbstractResourcePattern implements ResourcePattern {
     @Override
     public String getPattern() {
         // Replace encoded [] with plain variants, since we are using them with a special meaning here.
-        // Inefficient but easy to read, I don't think this method is hot.
         return pattern.getDisplayable().replace("%5B", "[").replace("%5D", "]");
     }
 
