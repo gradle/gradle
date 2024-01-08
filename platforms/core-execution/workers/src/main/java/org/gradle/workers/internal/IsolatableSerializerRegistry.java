@@ -113,7 +113,13 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         super(false);
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.managedFactoryRegistry = managedFactoryRegistry;
-        for (IsolatableSerializer<?> serializer : isolatableSerializers) {
+        registerIsolatableSerializers();
+    }
+
+    private void registerIsolatableSerializers() {
+        for (int i = 0; i < isolatableSerializers.length; i++) {
+            IsolatableSerializer<?> serializer = isolatableSerializers[i];
+            assert serializer.getSerializerIndex() == i;
             register(serializer.getIsolatableClass(), Cast.uncheckedCast(serializer));
         }
     }
@@ -123,8 +129,8 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
     }
 
     public Isolatable<?> readIsolatable(Decoder decoder) throws Exception {
-        byte type = decoder.readByte();
-        Class<? extends Isolatable<?>> isolatableClass = isolatableSerializers[type].getIsolatableClass();
+        byte serializerIndex = decoder.readByte();
+        Class<? extends Isolatable<?>> isolatableClass = isolatableSerializers[serializerIndex].getIsolatableClass();
         return build(isolatableClass).read(decoder);
     }
 
@@ -203,23 +209,45 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         }
     }
 
-    private interface IsolatableSerializer<T extends Isolatable<?>> extends Serializer<T> {
-        Class<T> getIsolatableClass();
+    private static abstract class IsolatableSerializer<T extends Isolatable<?>> implements Serializer<T> {
+
+        public abstract Class<T> getIsolatableClass();
+
+        /**
+         * Index of this serializer in the {@link IsolatableSerializerRegistry#isolatableSerializers list of serializers}.
+         */
+        public abstract byte getSerializerIndex();
+
+        protected abstract void serialize(Encoder encoder, T value) throws Exception;
+
+        protected abstract T deserialize(Decoder decoder) throws Exception;
+
+        @Override
+        public final void write(Encoder encoder, T value) throws Exception {
+            encoder.writeByte(getSerializerIndex());
+            serialize(encoder, value);
+        }
+
+        @Override
+        public final T read(Decoder decoder) throws Exception {
+            // just here for symmetry in the subclasses
+            return deserialize(decoder);
+        }
     }
 
     private static Class<?> fromClassName(String className) {
         return classFromContextLoader(className);
     }
 
-    private static class StringValueSnapshotSerializer implements IsolatableSerializer<StringValueSnapshot> {
+    private static class StringValueSnapshotSerializer extends IsolatableSerializer<StringValueSnapshot> {
+
         @Override
-        public void write(Encoder encoder, StringValueSnapshot value) throws Exception {
-            encoder.writeByte(STRING_VALUE);
+        protected void serialize(Encoder encoder, StringValueSnapshot value) throws Exception {
             encoder.writeString(value.getValue());
         }
 
         @Override
-        public StringValueSnapshot read(Decoder decoder) throws Exception {
+        protected StringValueSnapshot deserialize(Decoder decoder) throws Exception {
             return new StringValueSnapshot(decoder.readString());
         }
 
@@ -227,17 +255,21 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         public Class<StringValueSnapshot> getIsolatableClass() {
             return StringValueSnapshot.class;
         }
+
+        @Override
+        public byte getSerializerIndex() {
+            return STRING_VALUE;
+        }
     }
 
-    private static class BooleanValueSnapshotSerializer implements IsolatableSerializer<BooleanValueSnapshot> {
+    private static class BooleanValueSnapshotSerializer extends IsolatableSerializer<BooleanValueSnapshot> {
         @Override
-        public void write(Encoder encoder, BooleanValueSnapshot value) throws Exception {
-            encoder.writeByte(BOOLEAN_VALUE);
+        protected void serialize(Encoder encoder, BooleanValueSnapshot value) throws Exception {
             encoder.writeBoolean(value.getValue());
         }
 
         @Override
-        public BooleanValueSnapshot read(Decoder decoder) throws Exception {
+        protected BooleanValueSnapshot deserialize(Decoder decoder) throws Exception {
             return new BooleanValueSnapshot(decoder.readBoolean());
         }
 
@@ -245,17 +277,21 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         public Class<BooleanValueSnapshot> getIsolatableClass() {
             return BooleanValueSnapshot.class;
         }
+
+        @Override
+        public byte getSerializerIndex() {
+            return BOOLEAN_VALUE;
+        }
     }
 
-    private static class ShortValueSnapshotSerializer implements IsolatableSerializer<ShortValueSnapshot> {
+    private static class ShortValueSnapshotSerializer extends IsolatableSerializer<ShortValueSnapshot> {
         @Override
-        public void write(Encoder encoder, ShortValueSnapshot value) throws Exception {
-            encoder.writeByte(SHORT_VALUE);
+        protected void serialize(Encoder encoder, ShortValueSnapshot value) throws Exception {
             encoder.writeInt(value.getValue());
         }
 
         @Override
-        public ShortValueSnapshot read(Decoder decoder) throws Exception {
+        protected ShortValueSnapshot deserialize(Decoder decoder) throws Exception {
             return new ShortValueSnapshot((short) decoder.readInt());
         }
 
@@ -263,17 +299,21 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         public Class<ShortValueSnapshot> getIsolatableClass() {
             return ShortValueSnapshot.class;
         }
+
+        @Override
+        public byte getSerializerIndex() {
+            return SHORT_VALUE;
+        }
     }
 
-    private static class IntegerValueSnapshotSerializer implements IsolatableSerializer<IntegerValueSnapshot> {
+    private static class IntegerValueSnapshotSerializer extends IsolatableSerializer<IntegerValueSnapshot> {
         @Override
-        public void write(Encoder encoder, IntegerValueSnapshot value) throws Exception {
-            encoder.writeByte(INTEGER_VALUE);
+        protected void serialize(Encoder encoder, IntegerValueSnapshot value) throws Exception {
             encoder.writeInt(value.getValue());
         }
 
         @Override
-        public IntegerValueSnapshot read(Decoder decoder) throws Exception {
+        protected IntegerValueSnapshot deserialize(Decoder decoder) throws Exception {
             return new IntegerValueSnapshot(decoder.readInt());
         }
 
@@ -281,17 +321,21 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         public Class<IntegerValueSnapshot> getIsolatableClass() {
             return IntegerValueSnapshot.class;
         }
+
+        @Override
+        public byte getSerializerIndex() {
+            return INTEGER_VALUE;
+        }
     }
 
-    private static class LongValueSnapshotSerializer implements IsolatableSerializer<LongValueSnapshot> {
+    private static class LongValueSnapshotSerializer extends IsolatableSerializer<LongValueSnapshot> {
         @Override
-        public void write(Encoder encoder, LongValueSnapshot value) throws Exception {
-            encoder.writeByte(LONG_VALUE);
+        protected void serialize(Encoder encoder, LongValueSnapshot value) throws Exception {
             encoder.writeLong(value.getValue());
         }
 
         @Override
-        public LongValueSnapshot read(Decoder decoder) throws Exception {
+        protected LongValueSnapshot deserialize(Decoder decoder) throws Exception {
             return new LongValueSnapshot(decoder.readLong());
         }
 
@@ -299,18 +343,22 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         public Class<LongValueSnapshot> getIsolatableClass() {
             return LongValueSnapshot.class;
         }
+
+        @Override
+        public byte getSerializerIndex() {
+            return LONG_VALUE;
+        }
     }
 
-    private class AttributeDefinitionSnapshotSerializer implements IsolatableSerializer<AttributeDefinitionSnapshot> {
+    private class AttributeDefinitionSnapshotSerializer extends IsolatableSerializer<AttributeDefinitionSnapshot> {
         @Override
-        public void write(Encoder encoder, AttributeDefinitionSnapshot value) throws Exception {
-            encoder.writeByte(ATTRIBUTE_VALUE);
+        protected void serialize(Encoder encoder, AttributeDefinitionSnapshot value) throws Exception {
             encoder.writeString(value.getValue().getType().getName());
             encoder.writeString(value.getValue().getName());
         }
 
         @Override
-        public AttributeDefinitionSnapshot read(Decoder decoder) throws Exception {
+        protected AttributeDefinitionSnapshot deserialize(Decoder decoder) throws Exception {
             String className = decoder.readString();
             Class<?> attributeClass = fromClassName(className);
             String name = decoder.readString();
@@ -321,19 +369,23 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         public Class<AttributeDefinitionSnapshot> getIsolatableClass() {
             return AttributeDefinitionSnapshot.class;
         }
+
+        @Override
+        public byte getSerializerIndex() {
+            return ATTRIBUTE_VALUE;
+        }
     }
 
-    private class IsolatedImmutableManagedValueSerializer implements IsolatableSerializer<IsolatedImmutableManagedValue> {
+    private class IsolatedImmutableManagedValueSerializer extends IsolatableSerializer<IsolatedImmutableManagedValue> {
         @Override
-        public void write(Encoder encoder, IsolatedImmutableManagedValue value) throws Exception {
-            encoder.writeByte(IMMUTABLE_MANAGED_VALUE);
+        protected void serialize(Encoder encoder, IsolatedImmutableManagedValue value) throws Exception {
             encoder.writeInt(value.getValue().getFactoryId());
             encoder.writeString(value.getValue().publicType().getName());
             writeState(encoder, value.getValue().unpackState());
         }
 
         @Override
-        public IsolatedImmutableManagedValue read(Decoder decoder) throws Exception {
+        protected IsolatedImmutableManagedValue deserialize(Decoder decoder) throws Exception {
             int factoryId = decoder.readInt();
             String publicClassName = decoder.readString();
             Class<?> publicClass = fromClassName(publicClassName);
@@ -348,12 +400,16 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         public Class<IsolatedImmutableManagedValue> getIsolatableClass() {
             return IsolatedImmutableManagedValue.class;
         }
+
+        @Override
+        public byte getSerializerIndex() {
+            return IMMUTABLE_MANAGED_VALUE;
+        }
     }
 
-    private class IsolatedManagedValueSerializer implements IsolatableSerializer<IsolatedManagedValue> {
+    private class IsolatedManagedValueSerializer extends IsolatableSerializer<IsolatedManagedValue> {
         @Override
-        public void write(Encoder encoder, IsolatedManagedValue value) throws Exception {
-            encoder.writeByte(MANAGED_VALUE);
+        protected void serialize(Encoder encoder, IsolatedManagedValue value) throws Exception {
             encoder.writeInt(value.getFactoryId());
             encoder.writeString(value.getTargetType().getName());
             Isolatable<?> state = value.getState();
@@ -361,7 +417,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         }
 
         @Override
-        public IsolatedManagedValue read(Decoder decoder) throws Exception {
+        protected IsolatedManagedValue deserialize(Decoder decoder) throws Exception {
             int factoryId = decoder.readInt();
             String publicClassName = decoder.readString();
             Class<?> publicClass = fromClassName(publicClassName);
@@ -375,17 +431,21 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         public Class<IsolatedManagedValue> getIsolatableClass() {
             return IsolatedManagedValue.class;
         }
+
+        @Override
+        public byte getSerializerIndex() {
+            return MANAGED_VALUE;
+        }
     }
 
-    private static class FileValueSnapshotSerializer implements IsolatableSerializer<FileValueSnapshot> {
+    private static class FileValueSnapshotSerializer extends IsolatableSerializer<FileValueSnapshot> {
         @Override
-        public void write(Encoder encoder, FileValueSnapshot value) throws Exception {
-            encoder.writeByte(FILE_VALUE);
+        protected void serialize(Encoder encoder, FileValueSnapshot value) throws Exception {
             encoder.writeString(value.getValue());
         }
 
         @Override
-        public FileValueSnapshot read(Decoder decoder) throws Exception {
+        protected FileValueSnapshot deserialize(Decoder decoder) throws Exception {
             return new FileValueSnapshot(decoder.readString());
         }
 
@@ -393,12 +453,17 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         public Class<FileValueSnapshot> getIsolatableClass() {
             return FileValueSnapshot.class;
         }
+
+        @Override
+        public byte getSerializerIndex() {
+            return FILE_VALUE;
+        }
     }
 
-    private static class IsolatedJavaSerializedValueSnapshotSerializer implements IsolatableSerializer<IsolatedJavaSerializedValueSnapshot> {
+    private static class IsolatedJavaSerializedValueSnapshotSerializer extends IsolatableSerializer<IsolatedJavaSerializedValueSnapshot> {
+
         @Override
-        public void write(Encoder encoder, IsolatedJavaSerializedValueSnapshot value) throws Exception {
-            encoder.writeByte(SERIALIZED_VALUE);
+        protected void serialize(Encoder encoder, IsolatedJavaSerializedValueSnapshot value) throws Exception {
             encoder.writeString(value.getOriginalClass().getName());
             HashCode implementationHash = value.getImplementationHash();
             if (implementationHash == null) {
@@ -411,7 +476,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         }
 
         @Override
-        public IsolatedJavaSerializedValueSnapshot read(Decoder decoder) throws Exception {
+        protected IsolatedJavaSerializedValueSnapshot deserialize(Decoder decoder) throws Exception {
             String originalClassName = decoder.readString();
             Class<?> originalClass = fromClassName(originalClassName);
             HashCode implementationHash = null;
@@ -426,16 +491,19 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         public Class<IsolatedJavaSerializedValueSnapshot> getIsolatableClass() {
             return IsolatedJavaSerializedValueSnapshot.class;
         }
+
+        @Override
+        public byte getSerializerIndex() {
+            return SERIALIZED_VALUE;
+        }
     }
 
-    private static class NullValueSnapshotSerializer implements IsolatableSerializer<NullValueSnapshot> {
+    private static class NullValueSnapshotSerializer extends IsolatableSerializer<NullValueSnapshot> {
         @Override
-        public void write(Encoder encoder, NullValueSnapshot value) throws Exception {
-            encoder.writeByte(NULL_VALUE);
+        protected void serialize(Encoder encoder, NullValueSnapshot value) {
         }
 
-        @Override
-        public NullValueSnapshot read(Decoder decoder) {
+        protected NullValueSnapshot deserialize(Decoder decoder) {
             return NullValueSnapshot.INSTANCE;
         }
 
@@ -443,18 +511,24 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         public Class<NullValueSnapshot> getIsolatableClass() {
             return NullValueSnapshot.class;
         }
+
+        @Override
+        public byte getSerializerIndex() {
+            return NULL_VALUE;
+        }
     }
 
-    public static class IsolatedEnumValueSnapshotSerializer implements IsolatableSerializer<IsolatedEnumValueSnapshot> {
+
+    public static class IsolatedEnumValueSnapshotSerializer extends IsolatableSerializer<IsolatedEnumValueSnapshot> {
+
         @Override
-        public void write(Encoder encoder, IsolatedEnumValueSnapshot value) throws Exception {
-            encoder.writeByte(ENUM_VALUE);
+        protected void serialize(Encoder encoder, IsolatedEnumValueSnapshot value) throws Exception {
             encoder.writeString(value.getClassName());
             encoder.writeString(value.getName());
         }
 
         @Override
-        public IsolatedEnumValueSnapshot read(Decoder decoder) throws Exception {
+        protected IsolatedEnumValueSnapshot deserialize(Decoder decoder) throws Exception {
             String className = decoder.readString();
             String name = decoder.readString();
             Class<? extends Enum<?>> enumClass = Cast.uncheckedCast(fromClassName(className));
@@ -465,16 +539,18 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         public Class<IsolatedEnumValueSnapshot> getIsolatableClass() {
             return IsolatedEnumValueSnapshot.class;
         }
-    }
-
-    private abstract class AbstractIsolatedMapSerializer<T extends AbstractIsolatedMap<?>> implements IsolatableSerializer<T> {
-        protected abstract T getIsolatedObject(ImmutableList<MapEntrySnapshot<Isolatable<?>>> entries);
-
-        protected abstract byte getTypeByte();
 
         @Override
-        public void write(Encoder encoder, T value) throws Exception {
-            encoder.writeByte(getTypeByte());
+        public byte getSerializerIndex() {
+            return ENUM_VALUE;
+        }
+    }
+
+    private abstract class AbstractIsolatedMapSerializer<T extends AbstractIsolatedMap<?>> extends IsolatableSerializer<T> {
+        protected abstract T getIsolatedObject(ImmutableList<MapEntrySnapshot<Isolatable<?>>> entries);
+
+        @Override
+        protected void serialize(Encoder encoder, T value) throws Exception {
             List<MapEntrySnapshot<Isolatable<?>>> entrySnapshots = value.getEntries();
             encoder.writeInt(entrySnapshots.size());
             for (MapEntrySnapshot<Isolatable<?>> entrySnapshot : entrySnapshots) {
@@ -484,7 +560,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         }
 
         @Override
-        public T read(Decoder decoder) throws Exception {
+        protected T deserialize(Decoder decoder) throws Exception {
             int size = decoder.readInt();
             ImmutableList.Builder<MapEntrySnapshot<Isolatable<?>>> builder = ImmutableList.builder();
             for (int i = 0; i < size; i++) {
@@ -504,13 +580,13 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         }
 
         @Override
-        protected IsolatedMap getIsolatedObject(ImmutableList<MapEntrySnapshot<Isolatable<?>>> entries) {
-            return new IsolatedMap(entries);
+        public byte getSerializerIndex() {
+            return ISOLATED_MAP;
         }
 
         @Override
-        protected byte getTypeByte() {
-            return ISOLATED_MAP;
+        protected IsolatedMap getIsolatedObject(ImmutableList<MapEntrySnapshot<Isolatable<?>>> entries) {
+            return new IsolatedMap(entries);
         }
     }
 
@@ -521,35 +597,39 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         }
 
         @Override
-        protected byte getTypeByte() {
-            return ISOLATED_PROPERTIES;
+        public Class<IsolatedProperties> getIsolatableClass() {
+            return IsolatedProperties.class;
         }
 
         @Override
-        public Class<IsolatedProperties> getIsolatableClass() {
-            return IsolatedProperties.class;
+        public byte getSerializerIndex() {
+            return ISOLATED_PROPERTIES;
         }
     }
 
     @NonNullApi
-    private static class IsolatedPrimitiveArraySerializer implements IsolatableSerializer<IsolatedArrayOfPrimitive> {
+    private static class IsolatedPrimitiveArraySerializer extends IsolatableSerializer<IsolatedArrayOfPrimitive> {
         @Override
-        public Class<IsolatedArrayOfPrimitive> getIsolatableClass() {
-            return IsolatedArrayOfPrimitive.class;
+        protected void serialize(Encoder encoder, IsolatedArrayOfPrimitive value) throws Exception {
+            encoder.writeByte(value.getPrimitiveTypeCode());
+            writeLengthPrefixedByteArray(encoder, value.toByteArray());
         }
 
         @Override
-        public IsolatedArrayOfPrimitive read(Decoder decoder) throws Exception {
+        protected IsolatedArrayOfPrimitive deserialize(Decoder decoder) throws Exception {
             byte primitiveTypeCode = decoder.readByte();
             byte[] bytes = readLengthPrefixedByteArray(decoder);
             return IsolatedArrayOfPrimitive.fromByteArray(primitiveTypeCode, bytes);
         }
 
         @Override
-        public void write(Encoder encoder, IsolatedArrayOfPrimitive value) throws Exception {
-            encoder.writeByte(ISOLATED_ARRAY_OF_PRIMITIVE);
-            encoder.writeByte(value.getPrimitiveTypeCode());
-            writeLengthPrefixedByteArray(encoder, value.toByteArray());
+        public Class<IsolatedArrayOfPrimitive> getIsolatableClass() {
+            return IsolatedArrayOfPrimitive.class;
+        }
+
+        @Override
+        public byte getSerializerIndex() {
+            return ISOLATED_ARRAY_OF_PRIMITIVE;
         }
 
         private static byte[] readLengthPrefixedByteArray(Decoder decoder) throws IOException {
@@ -565,16 +645,17 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         }
     }
 
-    private class IsolatedArraySerializer implements IsolatableSerializer<IsolatedArray> {
+
+    private class IsolatedArraySerializer extends IsolatableSerializer<IsolatedArray> {
+
         @Override
-        public void write(Encoder encoder, IsolatedArray value) throws Exception {
-            encoder.writeByte(ISOLATED_ARRAY);
+        protected void serialize(Encoder encoder, IsolatedArray value) throws Exception {
             encoder.writeString(value.getArrayType().getName());
             writeIsolatableSequence(encoder, value.getElements());
         }
 
         @Override
-        public IsolatedArray read(Decoder decoder) throws Exception {
+        protected IsolatedArray deserialize(Decoder decoder) throws Exception {
             ImmutableList.Builder<Isolatable<?>> builder = ImmutableList.builder();
             Class<?> arrayType = fromClassName(decoder.readString());
             readIsolatableSequence(decoder, builder);
@@ -585,17 +666,21 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         public Class<IsolatedArray> getIsolatableClass() {
             return IsolatedArray.class;
         }
+
+        @Override
+        public byte getSerializerIndex() {
+            return ISOLATED_ARRAY;
+        }
     }
 
-    private class IsolatedListSerializer implements IsolatableSerializer<IsolatedList> {
+    private class IsolatedListSerializer extends IsolatableSerializer<IsolatedList> {
         @Override
-        public void write(Encoder encoder, IsolatedList value) throws Exception {
-            encoder.writeByte(ISOLATED_LIST);
+        protected void serialize(Encoder encoder, IsolatedList value) throws Exception {
             writeIsolatableSequence(encoder, value.getElements());
         }
 
         @Override
-        public IsolatedList read(Decoder decoder) throws Exception {
+        protected IsolatedList deserialize(Decoder decoder) throws Exception {
             ImmutableList.Builder<Isolatable<?>> builder = ImmutableList.builder();
             readIsolatableSequence(decoder, builder);
             return new IsolatedList(builder.build());
@@ -605,17 +690,21 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         public Class<IsolatedList> getIsolatableClass() {
             return IsolatedList.class;
         }
+
+        @Override
+        public byte getSerializerIndex() {
+            return ISOLATED_LIST;
+        }
     }
 
-    private class IsolatedSetSerializer implements IsolatableSerializer<IsolatedSet> {
+    private class IsolatedSetSerializer extends IsolatableSerializer<IsolatedSet> {
         @Override
-        public void write(Encoder encoder, IsolatedSet value) throws Exception {
-            encoder.writeByte(ISOLATED_SET);
+        protected void serialize(Encoder encoder, IsolatedSet value) throws Exception {
             writeIsolatableSequence(encoder, value.getElements());
         }
 
         @Override
-        public IsolatedSet read(Decoder decoder) throws Exception {
+        protected IsolatedSet deserialize(Decoder decoder) throws Exception {
             ImmutableSet.Builder<Isolatable<?>> builder = ImmutableSet.builder();
             readIsolatableSequence(decoder, builder);
             return new IsolatedSet(builder.build());
@@ -624,6 +713,11 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         @Override
         public Class<IsolatedSet> getIsolatableClass() {
             return IsolatedSet.class;
+        }
+
+        @Override
+        public byte getSerializerIndex() {
+            return ISOLATED_SET;
         }
     }
 }
