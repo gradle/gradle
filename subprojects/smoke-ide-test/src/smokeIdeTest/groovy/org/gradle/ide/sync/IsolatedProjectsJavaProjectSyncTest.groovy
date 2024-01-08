@@ -40,7 +40,7 @@ class IsolatedProjectsJavaProjectSyncTest extends AbstractSyncSmokeIdeTest {
 
         then:
         fixture.assertHtmlReportHasProblems {
-            totalProblemsCount = 66
+            totalProblemsCount = 78
             withLocatedProblem(new StringContains("sync.studio.tooling"), "Cannot access project ':app' from project ':'")
             withLocatedProblem(new StringContains("sync.studio.tooling"), "Cannot access project ':lib' from project ':'")
             withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':app' from project ':'")
