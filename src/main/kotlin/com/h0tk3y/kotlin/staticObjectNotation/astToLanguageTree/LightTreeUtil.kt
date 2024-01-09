@@ -145,25 +145,16 @@ fun FlyweightCapableTreeStructure<LighterASTNode>.children(
     return ref.get()
         .filterNotNull()
         .filter { it.isUseful }
-}
+} // TODO: any usages that need to be checked for parsing errors?
 
 internal
 fun FlyweightCapableTreeStructure<LighterASTNode>.getFirstChildExpressionUnwrapped(node: LighterASTNode): LighterASTNode? {
-    val filter: (LighterASTNode) -> Boolean = { it -> it.isExpression() }
-    val firstChild = firstChild(node, filter) ?: return null
+    val firstChild = children(node).firstOrNull { it: LighterASTNode -> it.isExpression() } ?: return null
     return if (firstChild.tokenType == PARENTHESIZED) {
         getFirstChildExpressionUnwrapped(firstChild)
     } else {
         firstChild
     }
-}
-
-internal
-fun FlyweightCapableTreeStructure<LighterASTNode>.firstChild(
-    node: LighterASTNode,
-    filter: (LighterASTNode) -> Boolean
-): LighterASTNode? {
-    return children(node).firstOrNull(filter)
 }
 
 internal

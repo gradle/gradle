@@ -44,7 +44,7 @@ data class ParsingError(
     val message: String
 ) : FailingResult
 
-data class MultipleFailuresResult(val failures: List<FailingResult>) : FailingResult
+data class MultipleFailuresResult(val failures: List<FailingResult>) : FailingResult // TODO: should this exist at all?
 
 sealed interface UnsupportedLanguageFeature {
     data object PackageHeader : UnsupportedLanguageFeature

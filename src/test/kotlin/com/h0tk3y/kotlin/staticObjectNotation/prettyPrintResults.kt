@@ -20,8 +20,8 @@ import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.*
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParseTestUtil.Parser.parseWithAst
 import com.h0tk3y.kotlin.staticObjectNotation.language.*
 
-fun prettyPrintFailingResult(failure: FailingResult): String {
-    fun StringBuilder.recurse(current: FailingResult, depth: Int) {
+fun prettyPrintLanguageResult(languageResult: LanguageResult<*>): String {
+    fun StringBuilder.recurse(current: LanguageResult<*>, depth: Int) {
         fun indent() = "    ".repeat(depth)
         fun nextIndent() = "    ".repeat(depth + 1)
         fun appendIndented(value: Any) {
@@ -32,7 +32,7 @@ fun prettyPrintFailingResult(failure: FailingResult): String {
             append(nextIndent())
             append(value)
         }
-        fun recurseDeeper(next: FailingResult) = recurse(next, depth + 1)
+        fun recurseDeeper(next: LanguageResult<*>) = recurse(next, depth + 1)
         when (current) {
             is MultipleFailuresResult -> {
                 appendIndented("MultipleFailures(\n")
@@ -64,9 +64,13 @@ fun prettyPrintFailingResult(failure: FailingResult): String {
                 appendLine()
                 appendIndented(")")
             }
+            is Element -> {
+                append(prettyPrintLanguageTree(current.element as LanguageTreeElement))
+            }
+            else -> { error("Unhandled language result type: ${current.javaClass.simpleName}")}
         }
     }
-    return buildString { recurse(failure, 0) }
+    return buildString { recurse(languageResult, 0) }
 }
 
 fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {

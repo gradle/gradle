@@ -54,6 +54,7 @@ class GrammarToLightTree(
                     DOT_QUALIFIED_EXPRESSION, REFERENCE_EXPRESSION -> content = checkForFailure(propertyAccessStatement(tree, it))
                     MUL -> collectingFailure(it.unsupportedInNoOffset(node, StarImport))
                     IMPORT_ALIAS -> collectingFailure(it.unsupportedInNoOffset(node, RenamingImport))
+                    ERROR_ELEMENT -> collectingFailure(it.parsingError(node))
                 }
             }
 
@@ -95,10 +96,24 @@ class GrammarToLightTree(
             CLASS, TYPEALIAS -> node.unsupported(TypeDeclaration)
             ARRAY_ACCESS_EXPRESSION -> node.unsupported(Indexing)
             FUN -> node.unsupported(FunctionDeclaration)
-            ERROR_ELEMENT -> node.parsingError("Unparsable expression: \"${node.asText}\"")
+            ERROR_ELEMENT -> node.parsingError(node)
             PREFIX_EXPRESSION -> node.unsupported(PrefixExpression)
             OPERATION_REFERENCE -> node.unsupported(UnsupportedOperator)
+            PARENTHESIZED -> parenthesized(tree, node)
             else -> error("Unexpected tokenType in expression: $tokenType")
+        }
+
+    private
+    fun parenthesized(tree: LightTree, node: LighterASTNode): ElementResult<Expr> =
+        elementOrFailure {
+            val children = childrenWithParsingErrorCollection(tree, node)
+
+            val childExpression: LighterASTNode? = children.firstOrNull { it: LighterASTNode -> it.isExpression() }
+            collectingFailure(childExpression ?: node.parsingError("No content in parenthesized expression"))
+
+            elementIfNoFailures {
+                expression(tree, childExpression!!)
+            }
         }
 
     @Suppress("UNCHECKED_CAST")
@@ -134,6 +149,7 @@ class GrammarToLightTree(
                     }
                     IDENTIFIER -> identifier = Syntactic(it.asText)
                     COLON, TYPE_REFERENCE -> collectingFailure(it.unsupportedIn(node, ExplicitVariableType))
+                    ERROR_ELEMENT -> collectingFailure(it.parsingError(node))
                     else -> if (it.isExpression()) {
                         expression = checkForFailure(expression(tree, it))
                     }
@@ -164,6 +180,7 @@ class GrammarToLightTree(
                     SAFE_ACCESS -> {
                         collectingFailure(it.unsupportedIn(node, SafeNavigation))
                     }
+                    ERROR_ELEMENT -> collectingFailure(it.parsingError(node))
                     else -> {
                         val isEffectiveSelector = isSelector && tokenType != ERROR_ELEMENT
                         if (isEffectiveSelector) {
@@ -307,14 +324,15 @@ class GrammarToLightTree(
     private
     fun lambda(tree: LightTree, node: LighterASTNode): SyntacticResult<FunctionArgument.Lambda> =
         syntacticOrFailure {
-            val functionalLiteralNode = tree.firstChild(node) { it.isKind(FUNCTION_LITERAL) }
+            val children = childrenWithParsingErrorCollection(tree, node)
+            val functionalLiteralNode = children.firstOrNull { it: LighterASTNode -> it.isKind(FUNCTION_LITERAL) }
 
             collectingFailure(functionalLiteralNode ?: node.parsingError("No functional literal in lambda definition"))
 
             var block: LighterASTNode? = null
             functionalLiteralNode?.let {
-                val children = tree.children(functionalLiteralNode)
-                children.forEach {
+                val literalNodeChildren = tree.children(functionalLiteralNode)
+                literalNodeChildren.forEach {
                     when (it.tokenType) {
                         VALUE_PARAMETER_LIST -> collectingFailure(it.unsupportedIn(node, LambdaWithParameters))
                         BLOCK -> block = it
@@ -325,8 +343,7 @@ class GrammarToLightTree(
 
             var statements: List<CheckedResult<ElementResult<DataStatement>>>? = null
             block?.let {
-                val children = tree.children(block!!)
-                statements = children.map { checkForFailure(statement(tree, it)) }
+                statements = tree.children(block!!).map { checkForFailure(statement(tree, it)) }
             }
 
             collectingFailure(statements ?: node.parsingError("Lambda expression without statements"))
@@ -513,6 +530,23 @@ class GrammarToLightTree(
         outer: LighterASTNode,
         feature: UnsupportedLanguageFeature
     ) = UnsupportedConstruct(outer.dataNoOffset, this.dataNoOffset, feature)
+
+    private
+    fun FailureCollectorContext.childrenWithParsingErrorCollection(tree: LightTree, node: LighterASTNode): List<LighterASTNode> {
+        val children = tree.children(node)
+        children.forEach {
+            if (it.tokenType == ERROR_ELEMENT) {
+                collectingFailure(it.parsingError(node))
+            }
+        }
+        return children
+    }
+
+    private
+    fun LighterASTNode.parsingError(outer: LighterASTNode): ParsingError {
+        val cause = PsiBuilderImpl.getErrorMessage(this)
+        return ParsingError(outer.data, this.data, cause ?: "Unknown parsing error")
+    }
 
     private
     fun LighterASTNode.parsingError(outer: LighterASTNode, message: String): ParsingError {

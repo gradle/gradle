@@ -372,4 +372,21 @@ class RejectedLanguageFeaturesLightParserTest: AbstractRejectedLanguageFeaturesT
             """.trimIndent()
         assertResult(expected, code)
     }
+
+    @Test
+    fun `reject unsupported binary expression`() {
+        val code =
+            """
+            val a = (1 + 2)
+            """.trimIndent()
+
+        val expected = """
+                UnsupportedConstruct(
+                    languageFeature = UnsupportedOperationInBinaryExpression, 
+                    potentialElementSource = indexes: 9..14, line/column: 1/10..1/15, file: test, 
+                    erroneousSource = indexes: 9..14, line/column: 1/10..1/15, file: test
+                )
+            """.trimIndent()
+        assertResult(expected, code)
+    }
 }

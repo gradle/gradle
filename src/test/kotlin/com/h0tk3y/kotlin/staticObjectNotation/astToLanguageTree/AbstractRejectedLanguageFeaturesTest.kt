@@ -1,6 +1,6 @@
 package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
-import com.example.com.h0tk3y.kotlin.staticObjectNotation.prettyPrintFailingResult
+import com.example.com.h0tk3y.kotlin.staticObjectNotation.prettyPrintLanguageResult
 import org.intellij.lang.annotations.Language
 import kotlin.test.assertEquals
 
@@ -13,8 +13,8 @@ abstract class AbstractRejectedLanguageFeaturesTest {
         assertEquals(
             expected,
             results.joinToString(separator = "\n") {
-                val failingResult = it as? FailingResult
-                failingResult?.let { prettyPrintFailingResult(it) }
+                val languageResult = it as? LanguageResult<*>
+                languageResult?.let { prettyPrintLanguageResult(it) }
                     ?: error("Unhandled result type: ${it.javaClass.simpleName}")
             }
         )
