@@ -235,6 +235,7 @@ unassigned {
     subproject("soak")
     subproject("smoke-test")
     subproject("performance")
+    subproject("smoke-ide-test") // eventually should be owned by IDEX team
 }
 
 rootProject.name = "gradle"

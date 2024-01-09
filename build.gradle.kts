@@ -16,7 +16,7 @@ description = "Adaptable, fast automation for all"
 dependencyAnalysis {
     issues {
         all {
-            ignoreSourceSet("archTest", "crossVersionTest", "docsTest", "integTest", "jmh", "peformanceTest", "smokeTest", "testInterceptors", "testFixtures")
+            ignoreSourceSet("archTest", "crossVersionTest", "docsTest", "integTest", "jmh", "peformanceTest", "smokeTest", "testInterceptors", "testFixtures", "smokeIdeTest")
         }
     }
 }

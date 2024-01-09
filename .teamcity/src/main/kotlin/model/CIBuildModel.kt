@@ -20,6 +20,7 @@ import configurations.FlakyTestQuarantine
 import configurations.FunctionalTest
 import configurations.Gradleception
 import configurations.SanityCheck
+import configurations.SmokeIdeTests
 import configurations.SmokeTests
 import configurations.TestPerformanceTest
 import projects.DEFAULT_FUNCTIONAL_TEST_BUCKET_SIZE
@@ -82,7 +83,8 @@ data class CIBuildModel(
                 SpecificBuild.ConfigCacheSantaTrackerSmokeTests,
                 SpecificBuild.GradleBuildSmokeTests,
                 SpecificBuild.ConfigCacheSmokeTestsMaxJavaVersion,
-                SpecificBuild.ConfigCacheSmokeTestsMinJavaVersion
+                SpecificBuild.ConfigCacheSmokeTestsMinJavaVersion,
+                SpecificBuild.SmokeIdeTests
             ),
             functionalTests = listOf(
                 TestCoverage(3, TestType.platform, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
@@ -437,6 +439,11 @@ enum class SpecificBuild {
     FlakyTestQuarantineWindows {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return FlakyTestQuarantine(model, stage, Os.WINDOWS)
+        }
+    },
+    SmokeIdeTests {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return SmokeIdeTests(model, stage)
         }
     };
 

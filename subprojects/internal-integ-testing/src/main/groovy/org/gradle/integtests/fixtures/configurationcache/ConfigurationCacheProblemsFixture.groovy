@@ -23,7 +23,6 @@ import org.gradle.api.Action
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.LogContent
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.test.fixtures.file.TestFile
@@ -49,11 +48,9 @@ final class ConfigurationCacheProblemsFixture {
 
     protected static final String PROBLEMS_REPORT_HTML_FILE_NAME = "configuration-cache-report.html"
 
-    private final GradleExecuter executer
     private final File rootDir
 
-    ConfigurationCacheProblemsFixture(GradleExecuter executer, File rootDir) {
-        this.executer = executer
+    ConfigurationCacheProblemsFixture(File rootDir) {
         this.rootDir = rootDir
     }
 
@@ -320,14 +317,14 @@ final class ConfigurationCacheProblemsFixture {
         "${formatTrace(input['trace'][0])}: ${formatStructuredMessage(input['input'])}"
     }
 
-    private static String formatStructuredMessage(List<Map<String, Object>> fragments) {
+    static String formatStructuredMessage(List<Map<String, Object>> fragments) {
         fragments.collect {
             // See StructuredMessage.Fragment
             it['text'] ?: "'${it['name']}'"
         }.join('')
     }
 
-    private static String formatTrace(Map<String, Object> trace) {
+    static String formatTrace(Map<String, Object> trace) {
         switch (trace['kind']) {
             case "Task": return trace['path']
             case "Bean": return trace['type']
@@ -366,7 +363,7 @@ final class ConfigurationCacheProblemsFixture {
         }
     }
 
-    private static Map<String, Object> readJsModelFromReportDir(TestFile reportDir) {
+    static Map<String, Object> readJsModelFromReportDir(TestFile reportDir) {
         assertThat("HTML report URI not found", reportDir, notNullValue())
         assertTrue("HTML report directory not found '$reportDir'", reportDir.isDirectory())
         def htmlFile = reportDir.file(PROBLEMS_REPORT_HTML_FILE_NAME)
