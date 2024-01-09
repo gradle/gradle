@@ -73,8 +73,8 @@ abstract class AbstractSyncSmokeIdeTest extends AbstractIntegrationSpec {
     }
 
     private InvocationSettings.InvocationSettingsBuilder syncInvocationSettingsBuilder() {
-        // Storing `guh` outside of test dir to avoid it's indexing during a sync
-        def gradleUserHome = new File(testDirectory.parent, "gradle-user-home")
+        // TODO Store `guh` and the rest of dirs below outside of project dir to avoid it's indexing during a sync
+        def gradleUserHome = file("gradle-user-home")
         def ideSandbox = file("ide-sandbox")
         def profilerOutput = file('profiler-output')
 
