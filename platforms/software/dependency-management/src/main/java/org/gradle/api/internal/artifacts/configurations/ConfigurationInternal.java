@@ -41,6 +41,8 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
         ARTIFACTS_RESOLVED
     }
 
+    String getDisplayName();
+
     @Override
     AttributeContainerInternal getAttributes();
 

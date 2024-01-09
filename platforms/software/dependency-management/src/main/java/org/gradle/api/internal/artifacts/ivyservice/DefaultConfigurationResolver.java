@@ -36,6 +36,7 @@ import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
+import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
@@ -282,8 +283,9 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         Set<Throwable> nonFatalFailures = nonFatalFailuresBuilder.build();
         Set<UnresolvedDependency> resolutionFailures = failureCollector.complete(lockingFailures);
 
+        ResolutionHost resolutionHost = resolveContext.getResolutionHost();
         MinimalResolutionResult resolutionResult = newModelBuilder.complete(lockingFailures);
-        ResolveException failure = exceptionContextualizer.mapFailures(nonFatalFailures, resolveContext.getDisplayName(), "dependencies");
+        ResolveException failure = exceptionContextualizer.mapFailures(nonFatalFailures, resolutionHost.getDisplayName(), "dependencies");
         VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResult, resolutionFailures, failure);
 
         // Only write dependency locks if resolution completed without failure.
@@ -294,7 +296,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         TransientConfigurationResultsLoader transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(oldTransientModelBuilder, legacyGraphResults);
         ArtifactVariantSelector artifactVariantSelector = variantSelectorFactory.create(resolveContext.getDependenciesResolverFactory());
         DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(
-            resolveContext,
+            resolutionHost,
+            resolveContext.getAttributes().asImmutable(),
             graphResults,
             artifactsResults,
             fileDependencyResults,
