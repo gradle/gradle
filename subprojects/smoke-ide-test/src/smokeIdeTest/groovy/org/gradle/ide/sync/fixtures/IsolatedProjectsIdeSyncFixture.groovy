@@ -89,7 +89,7 @@ class IsolatedProjectsIdeSyncFixture {
         })
 
         if (reportDir == null) {
-            throw new RuntimeException() // TODO
+            throw new FileNotFoundException("Couldn't find configuration cache report directory.")
         }
 
         return reportDir
