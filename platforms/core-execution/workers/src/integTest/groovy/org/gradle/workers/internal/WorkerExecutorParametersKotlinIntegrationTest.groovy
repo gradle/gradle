@@ -47,13 +47,15 @@ class WorkerExecutorParametersKotlinIntegrationTest extends AbstractIntegrationS
         where:
         [isolationMode, type] << [
             WorkerExecutorFixture.IsolationMode.values(),
-            ['byte', 'short', 'int', 'long', 'float', 'double', 'char']
+            ['byte', 'short', 'int', 'long', 'float', 'double', 'char', 'boolean']
         ].combinations()
         expectedOutput = expectedOutputFor(type)
     }
 
     String expectedOutputFor(String type) {
         switch (type) {
+            case 'boolean':
+                return 'booleanArrayOf(true)'
             case 'char':
                 return 'charArrayOf(*)' // 42.toChar() == '*'
             case 'float':
@@ -67,6 +69,9 @@ class WorkerExecutorParametersKotlinIntegrationTest extends AbstractIntegrationS
     private TestFile withRunWorkTaskOf(IsolationMode isolationMode, String primitiveType) {
         def kotlinType = primitiveType.toString().capitalize()
         def kotlinArrayType = "${kotlinType}Array"
+        def primitiveValue = primitiveType == 'boolean'
+            ? 'true'
+            : "42.to${kotlinType}()"
         buildKotlinFile << """
             import org.gradle.workers.WorkAction
             import org.gradle.workers.WorkParameters
@@ -107,7 +112,7 @@ class WorkerExecutorParametersKotlinIntegrationTest extends AbstractIntegrationS
 
             tasks {
                 register<ParameterTask>("runWork") {
-                    inputArray = ${primitiveType}ArrayOf(42.to${kotlinType}())
+                    inputArray = ${primitiveType}ArrayOf(${primitiveValue})
                     outputFile = layout.buildDirectory.file("receipt")
                 }
             }

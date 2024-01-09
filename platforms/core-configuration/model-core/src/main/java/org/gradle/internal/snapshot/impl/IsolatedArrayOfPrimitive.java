@@ -138,6 +138,12 @@ public class IsolatedArrayOfPrimitive implements Isolatable<Object> {
             public Object clone(Object array) {
                 return ((char[]) array).clone();
             }
+        },
+        Z(boolean[].class) {
+            @Override
+            public Object clone(Object array) {
+                return ((boolean[]) array).clone();
+            }
         };
 
         public final Class<?> arrayType;
