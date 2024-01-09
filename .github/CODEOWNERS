@@ -35,6 +35,7 @@ subprojects/architecture-test               @gradle/bt-architecture-council
 
 # Core automation platform (core/configuration)
 platforms/core-configuration/               @gradle/bt-configuration
+subprojects/smoke-ide-test/                 @gradle/bt-configuration
 
 # Core automation platform (Kotlin DSL)
 build-logic/kotlin-dsl/                                     @gradle/bt-kotlin-dsl-maintainers
@@ -103,7 +104,6 @@ subprojects/distributions-dependencies/ @gradle/bt-support
 subprojects/distributions-full/         @gradle/bt-support
 subprojects/performance/                @gradle/bt-support
 subprojects/smoke-test/                 @gradle/bt-support
-subprojects/smoke-ide-test/             @gradle/bt-support
 subprojects/soak/                       @gradle/bt-support
 
 # Build infrastructure

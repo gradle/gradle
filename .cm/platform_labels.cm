@@ -113,6 +113,7 @@ platforms:
     name: 'core_configuration'
     subprojects:
       - 'platforms/core-configuration/'
+      - 'subprojects/smoke-ide-test/'
   - core_execution:
     name: 'core_execution'
     subprojects:
@@ -164,7 +165,6 @@ platforms:
       - 'subprojects/distributions-full/'
       - 'subprojects/performance/'
       - 'subprojects/smoke-test/'
-      - 'subprojects/smoke-ide-test/'
       - 'subprojects/soak/'
   - software:
     name: 'software'
