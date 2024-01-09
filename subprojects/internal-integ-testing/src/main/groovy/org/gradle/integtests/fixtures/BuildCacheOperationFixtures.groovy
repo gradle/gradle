@@ -81,7 +81,7 @@ class BuildCacheOperationFixtures {
         return getOperations(taskPath, BuildCacheArchiveUnpackBuildOperationType.Details)
     }
 
-    BuildOperationRecord getOnlyUnpackOperations(String taskPath) {
+    BuildOperationRecord getOnlyUnpackOperation(String taskPath) {
         return getOnlyOperation(taskPath, BuildCacheArchiveUnpackBuildOperationType.Details)
     }
 

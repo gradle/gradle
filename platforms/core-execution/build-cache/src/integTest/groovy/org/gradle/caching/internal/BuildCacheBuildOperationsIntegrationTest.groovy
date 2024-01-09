@@ -40,7 +40,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
     String remoteCacheClass = "RemoteBuildCache"
 
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
-    def buildCacheOperations = new BuildCacheOperationFixtures(operations)
+    def cacheOperations = new BuildCacheOperationFixtures(operations)
 
     void remote(String loadBody, String storeBody) {
         register(remoteCacheClass, loadBody, storeBody)
@@ -127,9 +127,9 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         then:
         operations.none(BuildCacheRemoteLoadBuildOperationType)
         operations.none(BuildCacheRemoteStoreBuildOperationType)
-        def localMissLoadOp = buildCacheOperations.getOnlyLocalLoadOperation(":t")
-        def packOp = buildCacheOperations.getOnlyPackOperation(":t")
-        def storeOp = buildCacheOperations.getOnlyLocalStoreOperation(":t")
+        def localMissLoadOp = cacheOperations.getOnlyLocalLoadOperation(":t")
+        def packOp = cacheOperations.getOnlyPackOperation(":t")
+        def storeOp = cacheOperations.getOnlyLocalStoreOperation(":t")
 
         def cacheKey = localMissLoadOp.details.cacheKey
         cacheKey != null
@@ -154,8 +154,8 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         operations.none(BuildCacheRemoteLoadBuildOperationType)
         operations.none(BuildCacheLocalStoreBuildOperationType)
 
-        def localHitLoadOp = buildCacheOperations.getOnlyLocalLoadOperation(":t")
-        def unpackOp = buildCacheOperations.getOnlyUnpackOperations(":t")
+        def localHitLoadOp = cacheOperations.getOnlyLocalLoadOperation(":t")
+        def unpackOp = cacheOperations.getOnlyUnpackOperation(":t")
 
         localHitLoadOp.details.cacheKey == cacheKey
         localHitLoadOp.result.hit == true

@@ -25,7 +25,7 @@ import org.gradle.util.internal.ToBeImplemented
 
 class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
-    def buildCacheOperations = new BuildCacheOperationFixtures(new BuildOperationsFixture(executer, temporaryFolder))
+    def cacheOperations = new BuildCacheOperationFixtures(new BuildOperationsFixture(executer, temporaryFolder))
 
     def setup() {
         buildFile << """
@@ -799,11 +799,11 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
     }
 
     private void assertTaskOutputCached(String taskName) {
-        assert listCacheFiles().any { it.name == buildCacheOperations.getTaskCacheKey(taskName) }
+        assert listCacheFiles().any { it.name == cacheOperations.getTaskCacheKey(taskName) }
     }
 
     private void assertTaskOutputNotCached(String taskName) {
-        def cacheKey = buildCacheOperations.getTaskCacheKeyOrNull(taskName)
+        def cacheKey = cacheOperations.getTaskCacheKeyOrNull(taskName)
         assert cacheKey == null
     }
 }

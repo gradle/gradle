@@ -25,7 +25,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
 
     def localCache = new TestBuildCache(file("local-cache"))
     def remoteCache = new TestBuildCache(file("remote-cache"))
-    def buildCacheOperations = new BuildCacheOperationFixtures(executer, temporaryFolder)
+    def cacheOperations = new BuildCacheOperationFixtures(executer, temporaryFolder)
 
     void cached() {
         skipped(":t")
@@ -80,7 +80,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
         then:
         executed()
         localCache.empty
-        def cacheKey = buildCacheOperations.getTaskCacheKey(":t")
+        def cacheKey = cacheOperations.getTaskCacheKey(":t")
         remoteCache.hasCacheFile(cacheKey)
 
         when:
@@ -116,7 +116,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
         then:
         executed()
         localCache.empty
-        def cacheKey = buildCacheOperations.getTaskCacheKey(":t")
+        def cacheKey = cacheOperations.getTaskCacheKey(":t")
         remoteCache.hasCacheFile(cacheKey)
 
         when:

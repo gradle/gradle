@@ -38,7 +38,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
     def remoteCache = new TestBuildCache(file("remote-cache"))
 
     def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
-    def buildCacheOperations = new BuildCacheOperationFixtures(buildOperations)
+    def cacheOperations = new BuildCacheOperationFixtures(buildOperations)
 
     def setup() {
         executer.beforeExecute { withBuildCacheEnabled() }
@@ -68,7 +68,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         failureHasCause(~/Failed to store cache entry $CACHE_KEY_PATTERN for task ':customTask': Could not pack tree 'output': Expected '${escapeString(file('build/output'))}' to be a file/)
         errorOutput =~ /Could not pack tree 'output'/
-        def cacheKey = buildCacheOperations.getTaskCacheKey(":customTask")
+        def cacheKey = cacheOperations.getTaskCacheKey(":customTask")
         !localCache.hasCacheFile(cacheKey)
         localCache.listCacheTempFiles().empty
     }
@@ -121,7 +121,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         succeeds("customTask")
 
         then:
-        def cacheKey = buildCacheOperations.getTaskCacheKey(":customTask")
+        def cacheKey = cacheOperations.getTaskCacheKey(":customTask")
         remoteCache.hasCacheFile(cacheKey)
 
         when:
@@ -158,7 +158,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         succeeds("customTask")
 
         then:
-        def cacheKey = buildCacheOperations.getTaskCacheKey(":customTask")
+        def cacheKey = cacheOperations.getTaskCacheKey(":customTask")
         localCache.hasCacheFile(cacheKey)
 
         when:
@@ -198,7 +198,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         succeeds("cacheable")
 
         then:
-        def cacheKey = buildCacheOperations.getTaskCacheKey(":cacheable")
+        def cacheKey = cacheOperations.getTaskCacheKey(":cacheable")
         localCache.hasCacheFile(cacheKey)
 
         when:

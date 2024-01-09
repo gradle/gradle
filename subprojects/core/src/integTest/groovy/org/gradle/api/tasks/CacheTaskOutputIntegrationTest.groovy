@@ -25,7 +25,7 @@ import org.gradle.util.GradleVersion
 class CacheTaskOutputIntegrationTest extends AbstractIntegrationSpec {
 
     def localCache = new TestBuildCache(file("local-cache"))
-    def buildCacheOperations = new BuildCacheOperationFixtures(executer, temporaryFolder)
+    def cacheOperations = new BuildCacheOperationFixtures(executer, temporaryFolder)
 
     def setup() {
         executer.beforeExecute { withBuildCacheEnabled() }
@@ -66,7 +66,7 @@ class CacheTaskOutputIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private Properties readMetadata() {
-        def cacheKey = buildCacheOperations.getTaskCacheKey(":compileJava")
+        def cacheKey = cacheOperations.getTaskCacheKey(":compileJava")
         assert localCache.hasCacheFile(cacheKey)
         def cacheEntry = localCache.getCacheFile(cacheKey)
 

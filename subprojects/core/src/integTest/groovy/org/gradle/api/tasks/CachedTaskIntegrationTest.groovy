@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.archive.TarTestFixture
 
 class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
-    def buildCacheOperations = new BuildCacheOperationFixtures(executer, temporaryFolder)
+    def cacheOperations = new BuildCacheOperationFixtures(executer, temporaryFolder)
 
     def "displays info about local build cache configuration"() {
         buildFile << defineCacheableTask()
@@ -40,7 +40,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         when:
         withBuildCache().run("cacheable")
         then:
-        def cacheKey = buildCacheOperations.getTaskCacheKey(":cacheable")
+        def cacheKey = cacheOperations.getTaskCacheKey(":cacheable")
         def cacheFile = listCacheFiles().find { it.name == cacheKey }
         cacheFile.exists()
         def cacheEntry = new TarTestFixture(cacheFile)
@@ -74,13 +74,13 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         withBuildCache().run(taskPath)
 
         then:
-        buildCacheOperations.getTaskCacheKeyOrNull(taskPath) == null
+        cacheOperations.getTaskCacheKeyOrNull(taskPath) == null
 
         when:
         withBuildCache().run("clean", "cacheable", "-PstoreInCache")
 
         then:
-        listCacheFiles().any { it.name == buildCacheOperations.getTaskCacheKey(taskPath) }
+        listCacheFiles().any { it.name == cacheOperations.getTaskCacheKey(taskPath) }
 
         when:
         withBuildCache().run("clean", "cacheable")
