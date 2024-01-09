@@ -27,7 +27,6 @@ import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.Comparator;
@@ -132,11 +131,11 @@ import java.util.stream.Collectors;
 
     @Nullable
     private static <T> Object extractAttributeValue(Map<Attribute<?>, ?> attributes, Attribute<T> attribute) {
-        return Cast.uncheckedCast(attributes.entrySet().stream()
+        return attributes.entrySet().stream()
             .filter(e -> haveSameName(e.getKey(), attribute))
             .findFirst()
             .map(Map.Entry::getValue)
-            .orElse(null));
+            .orElse(null);
     }
 
     private void processExtraAttributes(Map<Attribute<?>, ?> attributes, StringBuilder sb) {
