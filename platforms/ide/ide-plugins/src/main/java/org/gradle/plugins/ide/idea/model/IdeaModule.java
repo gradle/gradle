@@ -301,7 +301,7 @@ public abstract class IdeaModule {
     }
 
     /**
-     * Whether to download and add sources associated with the dependency jars. <p> For example see docs for {@link IdeaModule}
+     * Whether to download and add sources associated with the dependency jars. Defaults to true. <p> For example see docs for {@link IdeaModule}
      */
     public boolean isDownloadSources() {
         return downloadSources;
@@ -312,7 +312,7 @@ public abstract class IdeaModule {
     }
 
     /**
-     * Whether to download and add javadoc associated with the dependency jars. <p> For example see docs for {@link IdeaModule}
+     * Whether to download and add javadoc associated with the dependency jars. Defaults to false. <p> For example see docs for {@link IdeaModule}
      */
     public boolean isDownloadJavadoc() {
         return downloadJavadoc;
