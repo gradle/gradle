@@ -64,7 +64,7 @@ class TestFileHelper {
             }
         }
 
-        if (nativeTools && isUnix()) {
+        if (nativeTools && !isWindows()) {
             def process = ['unzip', '-q', '-o', file.absolutePath, '-d', target.absolutePath].execute()
             process.consumeProcessOutput(System.out, System.err)
             assertThat(process.waitFor(), equalTo(0))
@@ -80,7 +80,7 @@ class TestFileHelper {
     }
 
     void untarTo(File target, boolean nativeTools) {
-        if (nativeTools && isUnix()) {
+        if (nativeTools && !isWindows()) {
             target.mkdirs()
             def builder = new ProcessBuilder(['tar', '-xpf', file.absolutePath])
             builder.directory(target)
@@ -109,7 +109,7 @@ class TestFileHelper {
     }
 
     String getPermissions() {
-        if (!isUnix()) {
+        if (isWindows()) {
             return "-rwxr-xr-x"
         }
 
@@ -126,7 +126,7 @@ class TestFileHelper {
     }
 
     void setPermissions(String permissions) {
-        if (!isUnix()) {
+        if (isWindows()) {
             return
         }
         def perms = PosixFilePermissions.fromString(permissions)
@@ -148,7 +148,7 @@ class TestFileHelper {
     }
 
     void delete(boolean nativeTools) {
-        if (isUnix() && nativeTools) {
+        if (!isWindows() && nativeTools) {
             def process = ["rm", "-rf", file.absolutePath].execute()
             def error = process.errorStream.text
             def retval = process.waitFor()
@@ -208,7 +208,7 @@ class TestFileHelper {
     }
 
     void zipTo(TestFile zipFile, boolean nativeTools, boolean readOnly) {
-        if (nativeTools && isUnix()) {
+        if (nativeTools && !isWindows()) {
             def process = ['zip', zipFile.absolutePath, "-r", file.name].execute(null, file.parentFile)
             process.consumeProcessOutput(System.out, System.err)
             assertThat(process.waitFor(), equalTo(0))
@@ -239,7 +239,7 @@ class TestFileHelper {
     void tarTo(TestFile tarFile, boolean nativeTools, boolean readOnly) {
         //TODO: there is an inconsistency here; when using native tools the root folder is put into the TAR, but only its content is packaged by the other branch
         // for example if we put an empty folder into the TAR, then native tools will insert an entry with an empty directory, while the other branch will insert no entries
-        if (nativeTools && isUnix()) {
+        if (nativeTools && !isWindows()) {
             def process = ['tar', "-cf", tarFile.absolutePath, file.name].execute(null, file.parentFile)
             process.consumeProcessOutput(System.out, System.err)
             assertThat(process.waitFor(), equalTo(0))
@@ -291,8 +291,8 @@ class TestFileHelper {
         }
     }
 
-    private static boolean isUnix() {
-        return !System.getProperty('os.name').toLowerCase().contains('windows')
+    private static boolean isWindows() {
+        return System.getProperty('os.name').toLowerCase().contains('windows')
     }
 
     private static int toMode(String permissions) {

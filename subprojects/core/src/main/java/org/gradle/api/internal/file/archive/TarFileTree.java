@@ -43,6 +43,8 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TarFileTree extends AbstractArchiveFileTree {
+    private static final String TAR_ENTRY_PREFIX = "tar entry";
+
     private final Provider<File> tarFileProvider;
     private final Provider<ReadableResourceInternal> resource;
     private final Chmod chmod;
@@ -91,6 +93,8 @@ public class TarFileTree extends AbstractArchiveFileTree {
                 } finally {
                     inputStream.close();
                 }
+            } catch (GradleException e) {
+                throw e; // Gradle exceptions are already meant to be human-readable, so just rethrow it
             } catch (Exception e) {
                 String message = "Unable to expand " + getDisplayName() + "\n"
                         + "  The tar might be corrupted or it is compressed in an unexpected way.\n"
@@ -196,7 +200,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
 
         @Override
         public String getDisplayName() {
-            return String.format("tar entry %s!%s", resource.getDisplayName(), entry.getName());
+            return String.format("%s '%s!%s'", TAR_ENTRY_PREFIX, resource.getDisplayName(), entry.getName());
         }
 
         @Override
@@ -205,7 +209,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
                 getFile();
                 return GFileUtils.openInputStream(getFile());
             } else if (tar.getCurrentEntry() != entry) {
-                throw new UnsupportedOperationException(String.format("The contents of %s has already been read.", this));
+                throw new UnsupportedOperationException(String.format("The contents of %s have already been read.", this));
             } else {
                 read = true;
                 return tar;
