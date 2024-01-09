@@ -30,12 +30,12 @@ import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.snapshot.impl.AbstractIsolatedMap;
+import org.gradle.internal.snapshot.impl.ArrayOfPrimitiveValueSnapshot;
 import org.gradle.internal.snapshot.impl.AttributeDefinitionSnapshot;
 import org.gradle.internal.snapshot.impl.BooleanValueSnapshot;
 import org.gradle.internal.snapshot.impl.FileValueSnapshot;
 import org.gradle.internal.snapshot.impl.IntegerValueSnapshot;
 import org.gradle.internal.snapshot.impl.IsolatedArray;
-import org.gradle.internal.snapshot.impl.IsolatedArrayOfPrimitive;
 import org.gradle.internal.snapshot.impl.IsolatedEnumValueSnapshot;
 import org.gradle.internal.snapshot.impl.IsolatedImmutableManagedValue;
 import org.gradle.internal.snapshot.impl.IsolatedJavaSerializedValueSnapshot;
@@ -53,7 +53,6 @@ import org.gradle.internal.state.Managed;
 import org.gradle.internal.state.ManagedFactory;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 
-import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.List;
@@ -103,7 +102,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         new IsolatedListSerializer(),
         new IsolatedSetSerializer(),
         new IsolatedPropertiesSerializer(),
-        new IsolatedPrimitiveArraySerializer()
+        new IsolatedArrayOfPrimitiveSerializer()
     };
 
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
@@ -610,43 +609,28 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
     }
 
     @NonNullApi
-    private static class IsolatedPrimitiveArraySerializer extends IsolatableSerializer<IsolatedArrayOfPrimitive> {
+    private static class IsolatedArrayOfPrimitiveSerializer extends IsolatableSerializer<ArrayOfPrimitiveValueSnapshot> {
+
         @Override
-        protected void serialize(Encoder encoder, IsolatedArrayOfPrimitive value) throws Exception {
-            encoder.writeByte(value.getPrimitiveTypeCode());
-            writeLengthPrefixedByteArray(encoder, value.toByteArray());
+        protected void serialize(Encoder encoder, ArrayOfPrimitiveValueSnapshot value) throws Exception {
+            value.encode(encoder);
         }
 
         @Override
-        protected IsolatedArrayOfPrimitive deserialize(Decoder decoder) throws Exception {
-            byte primitiveTypeCode = decoder.readByte();
-            byte[] bytes = readLengthPrefixedByteArray(decoder);
-            return IsolatedArrayOfPrimitive.fromByteArray(primitiveTypeCode, bytes);
+        protected ArrayOfPrimitiveValueSnapshot deserialize(Decoder decoder) throws Exception {
+            return ArrayOfPrimitiveValueSnapshot.decode(decoder);
         }
 
         @Override
-        public Class<IsolatedArrayOfPrimitive> getIsolatableClass() {
-            return IsolatedArrayOfPrimitive.class;
+        public Class<ArrayOfPrimitiveValueSnapshot> getIsolatableClass() {
+            return ArrayOfPrimitiveValueSnapshot.class;
         }
 
         @Override
         public byte getSerializerIndex() {
             return ISOLATED_ARRAY_OF_PRIMITIVE;
         }
-
-        private static byte[] readLengthPrefixedByteArray(Decoder decoder) throws IOException {
-            int length = decoder.readInt();
-            byte[] bytes = new byte[length];
-            decoder.readBytes(bytes);
-            return bytes;
-        }
-
-        private static void writeLengthPrefixedByteArray(Encoder encoder, byte[] bytes) throws IOException {
-            encoder.writeInt(bytes.length);
-            encoder.writeBytes(bytes);
-        }
     }
-
 
     private class IsolatedArraySerializer extends IsolatableSerializer<IsolatedArray> {
 
