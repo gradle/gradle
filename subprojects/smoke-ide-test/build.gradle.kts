@@ -27,14 +27,14 @@ plugins.withType<IdeaPlugin> {
     }
 }
 
-val jvmArgumentProvider = the<AndroidStudioProvisioningExtension>().androidStudioSystemProperties(project, emptyList())
-
 tasks.register<SmokeIdeTest>("smokeIdeTest") {
     group = "Verification"
     maxParallelForks = 1
     systemProperties["org.gradle.integtest.executer"] = "forking"
     testClassesDirs = smokeIdeTestSourceSet.output.classesDirs
     classpath = smokeIdeTestSourceSet.runtimeClasspath
+
+    val jvmArgumentProvider = project.extensions.getByType<AndroidStudioProvisioningExtension>().androidStudioSystemProperties(project, emptyList())
     jvmArgumentProviders.add(jvmArgumentProvider)
 }
 
