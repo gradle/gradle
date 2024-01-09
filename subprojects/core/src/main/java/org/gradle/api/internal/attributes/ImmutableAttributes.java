@@ -27,7 +27,8 @@ public interface ImmutableAttributes extends AttributeContainerInternal {
      *
      * <strong>WARNING: {@link Attribute} type information is often unreliable.</strong>  Attributes created
      * from external variants that are selection candidates during resolution will <strong>NOT</strong>
-     * have their type information available.  These attributes will use {@code String} as their type.
+     * have their type information available.
+     *
      * As type is part of attribute equality, this method will in many cases <strong>NOT</strong> be useful to
      * locate these attributes within an {@link org.gradle.api.attributes.AttributeContainer} that was created
      * using the strong type information present on attribute constants such as {@link org.gradle.api.attributes.Category#CATEGORY_ATTRIBUTE}.
