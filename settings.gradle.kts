@@ -103,7 +103,6 @@ platform("core-configuration") {
     subproject("kotlin-dsl-integ-tests")
     subproject("model-core")
     subproject("model-groovy")
-    subproject("smoke-ide-test") // eventually should be owned by IDEX team
 }
 
 // Core Execution Platform
@@ -236,6 +235,7 @@ unassigned {
     subproject("soak")
     subproject("smoke-test")
     subproject("performance")
+    subproject("smoke-ide-test") // eventually should be owned by IDEX team
 }
 
 rootProject.name = "gradle"
