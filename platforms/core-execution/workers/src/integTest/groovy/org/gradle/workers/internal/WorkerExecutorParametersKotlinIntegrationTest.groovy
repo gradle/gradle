@@ -25,32 +25,56 @@ import spock.lang.Issue
 class WorkerExecutorParametersKotlinIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue('https://github.com/gradle/gradle/issues/26596')
-    def "primitive #type array parameter in #isolationMode isolation fails with reasonable error message"() {
+    def "can provide primitive #type array parameter with #isolationMode isolation"() {
         given:
         withRunWorkTaskOf isolationMode, type
 
         when:
-        fails 'runWork'
+        succeeds 'runWork'
 
         then:
-        failureCauseContains "Cannot serialize primitive arrays of type $type[]"
+        outputContains expectedOutput
+
+        when:
+        succeeds 'runWork'
+
+        then:
+        outputDoesNotContain expectedOutput
+
+        and:
+        result.assertTaskSkipped ':runWork'
 
         where:
         [isolationMode, type] << [
             WorkerExecutorFixture.IsolationMode.values(),
-            ['byte', 'short', 'int', 'long', 'float', 'double']
+            ['byte', 'short', 'int', 'long', 'float', 'double', 'char']
         ].combinations()
+        expectedOutput = expectedOutputFor(type)
+    }
+
+    String expectedOutputFor(String type) {
+        switch (type) {
+            case 'char':
+                return 'charArrayOf(*)' // 42.toChar() == '*'
+            case 'float':
+            case 'double':
+                return "${type}ArrayOf(42.0)"
+            default:
+                return "${type}ArrayOf(42)"
+        }
     }
 
     private TestFile withRunWorkTaskOf(IsolationMode isolationMode, String primitiveType) {
         def kotlinType = primitiveType.toString().capitalize()
+        def kotlinArrayType = "${kotlinType}Array"
         buildKotlinFile << """
             import org.gradle.workers.WorkAction
             import org.gradle.workers.WorkParameters
             import org.gradle.workers.WorkerExecutor
 
             interface TestParameters : WorkParameters {
-                val array: Property<${kotlinType}Array>
+                @get:Input
+                val array: Property<$kotlinArrayType>
             }
 
             abstract class ParameterWorkAction : WorkAction<TestParameters> {
@@ -60,21 +84,31 @@ class WorkerExecutorParametersKotlinIntegrationTest extends AbstractIntegrationS
                 }
             }
 
+            @CacheableTask
             abstract class ParameterTask : DefaultTask() {
 
                 @get:Inject
                 abstract val workerExecutor: WorkerExecutor
 
+                @get:Input
+                abstract val inputArray: Property<$kotlinArrayType>
+
+                @get:OutputFile
+                abstract val outputFile: RegularFileProperty
+
                 @TaskAction
                 fun doWork() {
                     workerExecutor.${isolationMode.method}().submit(ParameterWorkAction::class) {
-                        array = ${primitiveType}ArrayOf(42.to${kotlinType}())
+                        array = inputArray
                     }
+                    outputFile.get().asFile.writeText("done")
                 }
             }
 
             tasks {
                 register<ParameterTask>("runWork") {
+                    inputArray = ${primitiveType}ArrayOf(42.to${kotlinType}())
+                    outputFile = layout.buildDirectory.file("receipt")
                 }
             }
         """
