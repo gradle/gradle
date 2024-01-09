@@ -29,9 +29,6 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Arrays;
 
-import static org.gradle.internal.snapshot.impl.AbstractValueProcessor.javaSerialized;
-import static org.gradle.internal.snapshot.impl.JavaSerializedValueSnapshot.javaDeserialized;
-
 @NonNullApi
 public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<Object> {
     private final PrimitiveType primitiveType;
@@ -48,13 +45,13 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
 
     public static ArrayOfPrimitiveValueSnapshot decode(Decoder decoder) throws IOException {
         byte primitiveTypeCode = decoder.readByte();
-        byte[] bytes = readLengthPrefixedByteArray(decoder);
-        return ArrayOfPrimitiveValueSnapshot.fromByteArray(primitiveTypeCode, bytes);
+        PrimitiveType primitiveType = PrimitiveType.fromOrdinal(primitiveTypeCode);
+        return new ArrayOfPrimitiveValueSnapshot(primitiveType, primitiveType.decode(decoder));
     }
 
     public void encode(Encoder encoder) throws IOException {
         encoder.writeByte(getPrimitiveTypeCode());
-        writeLengthPrefixedByteArray(encoder, toByteArray());
+        primitiveType.encode(encoder, array);
     }
 
     @Override
@@ -114,31 +111,8 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
         return null;
     }
 
-    public byte getPrimitiveTypeCode() {
+    private byte getPrimitiveTypeCode() {
         return (byte) primitiveType.ordinal();
-    }
-
-    public byte[] toByteArray() {
-        switch (primitiveType) {
-            case B:
-                return (byte[]) array;
-            default:
-                return javaSerialized(array);
-        }
-    }
-
-    private static Object fromByteArray(byte[] bytes, PrimitiveType primitiveType) {
-        switch (primitiveType) {
-            case B:
-                return bytes;
-            default:
-                return javaDeserialized(primitiveType.arrayType, bytes);
-        }
-    }
-
-    private static ArrayOfPrimitiveValueSnapshot fromByteArray(byte primitiveTypeCode, byte[] bytes) {
-        PrimitiveType primitiveType = PrimitiveType.fromOrdinal(primitiveTypeCode);
-        return new ArrayOfPrimitiveValueSnapshot(primitiveType, fromByteArray(bytes, primitiveType));
     }
 
     /**
@@ -169,6 +143,21 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
             public String toString(Object array) {
                 return Arrays.toString((byte[]) array);
             }
+
+            @Override
+            public void encode(Encoder encoder, Object array) throws IOException {
+                byte[] typed = (byte[]) array;
+                encoder.writeInt(typed.length);
+                encoder.writeBytes(typed);
+            }
+
+            @Override
+            public Object decode(Decoder decoder) throws IOException {
+                int length = decoder.readInt();
+                byte[] array = new byte[length];
+                decoder.readBytes(array);
+                return array;
+            }
         },
         S(short[].class) {
             @Override
@@ -189,6 +178,25 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
             @Override
             public String toString(Object array) {
                 return Arrays.toString((short[]) array);
+            }
+
+            @Override
+            public void encode(Encoder encoder, Object array) throws IOException {
+                short[] typed = (short[]) array;
+                encoder.writeInt(typed.length);
+                for (short e : typed) {
+                    encoder.writeInt(e);
+                }
+            }
+
+            @Override
+            public Object decode(Decoder decoder) throws IOException {
+                int length = decoder.readInt();
+                short[] array = new short[length];
+                for (int i = 0; i < array.length; i++) {
+                    array[i] = (short) decoder.readInt();
+                }
+                return array;
             }
         },
         I(int[].class) {
@@ -211,6 +219,25 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
             public String toString(Object array) {
                 return Arrays.toString((int[]) array);
             }
+
+            @Override
+            public void encode(Encoder encoder, Object array) throws IOException {
+                int[] typed = (int[]) array;
+                encoder.writeInt(typed.length);
+                for (int e : typed) {
+                    encoder.writeInt(e);
+                }
+            }
+
+            @Override
+            public Object decode(Decoder decoder) throws IOException {
+                int length = decoder.readInt();
+                int[] array = new int[length];
+                for (int i = 0; i < array.length; i++) {
+                    array[i] = decoder.readInt();
+                }
+                return array;
+            }
         },
         J(long[].class) {
             @Override
@@ -231,6 +258,25 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
             @Override
             public String toString(Object array) {
                 return Arrays.toString((long[]) array);
+            }
+
+            @Override
+            public void encode(Encoder encoder, Object array) throws IOException {
+                long[] typed = (long[]) array;
+                encoder.writeInt(typed.length);
+                for (long e : typed) {
+                    encoder.writeLong(e);
+                }
+            }
+
+            @Override
+            public Object decode(Decoder decoder) throws IOException {
+                int length = decoder.readInt();
+                long[] array = new long[length];
+                for (int i = 0; i < array.length; i++) {
+                    array[i] = decoder.readLong();
+                }
+                return array;
             }
         },
         F(float[].class) {
@@ -253,6 +299,25 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
             public String toString(Object array) {
                 return Arrays.toString((float[]) array);
             }
+
+            @Override
+            public void encode(Encoder encoder, Object array) throws IOException {
+                float[] typed = (float[]) array;
+                encoder.writeInt(typed.length);
+                for (float e : typed) {
+                    encoder.writeInt(Float.floatToRawIntBits(e));
+                }
+            }
+
+            @Override
+            public Object decode(Decoder decoder) throws IOException {
+                int length = decoder.readInt();
+                float[] array = new float[length];
+                for (int i = 0; i < array.length; i++) {
+                    array[i] = Float.intBitsToFloat(decoder.readInt());
+                }
+                return array;
+            }
         },
         D(double[].class) {
             @Override
@@ -273,6 +338,25 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
             @Override
             public String toString(Object array) {
                 return Arrays.toString((double[]) array);
+            }
+
+            @Override
+            public void encode(Encoder encoder, Object array) throws IOException {
+                double[] typed = (double[]) array;
+                encoder.writeInt(typed.length);
+                for (double e : typed) {
+                    encoder.writeLong(Double.doubleToRawLongBits(e));
+                }
+            }
+
+            @Override
+            public Object decode(Decoder decoder) throws IOException {
+                int length = decoder.readInt();
+                double[] array = new double[length];
+                for (int i = 0; i < array.length; i++) {
+                    array[i] = Double.longBitsToDouble(decoder.readLong());
+                }
+                return array;
             }
         },
         C(char[].class) {
@@ -295,6 +379,25 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
             public String toString(Object array) {
                 return Arrays.toString((char[]) array);
             }
+
+            @Override
+            public void encode(Encoder encoder, Object array) throws IOException {
+                char[] typed = (char[]) array;
+                encoder.writeInt(typed.length);
+                for (char e : typed) {
+                    encoder.writeInt(e);
+                }
+            }
+
+            @Override
+            public Object decode(Decoder decoder) throws IOException {
+                int length = decoder.readInt();
+                char[] array = new char[length];
+                for (int i = 0; i < array.length; i++) {
+                    array[i] = (char) decoder.readInt();
+                }
+                return array;
+            }
         },
         Z(boolean[].class) {
             @Override
@@ -316,6 +419,25 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
             public String toString(Object array) {
                 return Arrays.toString((boolean[]) array);
             }
+
+            @Override
+            public void encode(Encoder encoder, Object array) throws IOException {
+                boolean[] typed = (boolean[]) array;
+                encoder.writeInt(typed.length);
+                for (boolean e : typed) {
+                    encoder.writeBoolean(e);
+                }
+            }
+
+            @Override
+            public Object decode(Decoder decoder) throws IOException {
+                int length = decoder.readInt();
+                boolean[] array = new boolean[length];
+                for (int i = 0; i < array.length; i++) {
+                    array[i] = decoder.readBoolean();
+                }
+                return array;
+            }
         };
 
         public final Class<?> arrayType;
@@ -331,6 +453,10 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
         public abstract int hashCode(Object array);
 
         public abstract String toString(Object array);
+
+        public abstract void encode(Encoder encoder, Object array) throws IOException;
+
+        public abstract Object decode(Decoder decoder) throws IOException;
 
         public static PrimitiveType of(Class<?> arrayType) {
             PrimitiveType primitiveType = maybeOf(arrayType);
@@ -362,15 +488,4 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
         }
     }
 
-    private static byte[] readLengthPrefixedByteArray(Decoder decoder) throws IOException {
-        int length = decoder.readInt();
-        byte[] bytes = new byte[length];
-        decoder.readBytes(bytes);
-        return bytes;
-    }
-
-    private static void writeLengthPrefixedByteArray(Encoder encoder, byte[] bytes) throws IOException {
-        encoder.writeInt(bytes.length);
-        encoder.writeBytes(bytes);
-    }
 }

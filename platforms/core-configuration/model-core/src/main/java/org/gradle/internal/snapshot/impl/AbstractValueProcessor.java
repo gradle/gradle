@@ -205,7 +205,7 @@ abstract class AbstractValueProcessor {
         return visitor.javaSerialized(value, javaSerialized(value));
     }
 
-    public static byte[] javaSerialized(Object value) {
+    private static byte[] javaSerialized(Object value) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try (ObjectOutputStream oos = new ObjectOutputStream(outputStream)) {
             oos.writeObject(value);
