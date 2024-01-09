@@ -23,6 +23,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
  */
 class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
 
+    // The `assertProblem` method will store visited files here, and `assertAllFilesVisited` will check it
+    List<String> assertedFileLocations = []
+
     def setup() {
         enableProblemsApiCheck()
 
@@ -46,12 +49,10 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
 
     def "problem is received when a single-file compilation failure happens"() {
         def files = [
-            writeJavaCausingCompilationError("Foo")
+            writeJavaCausingTwoCompilationErrors("Foo")
         ]
         // Duplicate the entries, as we have two problems per file
         files.addAll(files)
-        print(files)
-
         when:
         fails("compileJava")
 
@@ -60,12 +61,13 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         for (def problem in collectedProblems) {
             assertProblem(problem, files, "ERROR")
         }
+        assertedFileLocations == files
     }
 
     def "problems are received when a multi-file compilation failure happens"() {
         def files = [
-            writeJavaCausingCompilationError("Foo"),
-            writeJavaCausingCompilationError("Bar")
+            writeJavaCausingTwoCompilationErrors("Foo"),
+            writeJavaCausingTwoCompilationErrors("Bar")
         ]
         // Duplicate the entries, as we have two problems per file
         files.addAll(files)
@@ -78,11 +80,12 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         for (def problem in collectedProblems) {
             assertProblem(problem, files, "ERROR")
         }
+        assertAllFilesVisited(files)
     }
 
     def "problem is received when a single-file warning happens"() {
         def files = [
-            writeJavaCausingCompilationWarning("Foo")
+            writeJavaCausingTwoCompilationWarnings("Foo")
         ]
         // Duplicate the entries, as we have two problems per file
         files.addAll(files)
@@ -95,12 +98,13 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         for (def problem in collectedProblems) {
             assertProblem(problem, files, "WARNING")
         }
+        assertAllFilesVisited(files)
     }
 
     def "problems are received when a multi-file warning happens"() {
         def files = [
-            writeJavaCausingCompilationWarning("Foo"),
-            writeJavaCausingCompilationWarning("Bar")
+            writeJavaCausingTwoCompilationWarnings("Foo"),
+            writeJavaCausingTwoCompilationWarnings("Bar")
         ]
         // Duplicate the entries, as we have two problems per file
         files.addAll(files)
@@ -113,12 +117,13 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         for (def problem in collectedProblems) {
             assertProblem(problem, files, "WARNING")
         }
+        assertAllFilesVisited(files)
     }
 
     def "only failures are received when a multi-file compilation failure and warning happens"() {
         def files = [
-            writeJavaCausingCompilationErrorAndWarning("Foo"),
-            writeJavaCausingCompilationErrorAndWarning("Bar")
+            writeJavaCausingTwoCompilationErrorsAndTwoWarnings("Foo"),
+            writeJavaCausingTwoCompilationErrorsAndTwoWarnings("Bar")
         ]
         // Duplicate the entries, as we have two problems per file
         files.addAll(files)
@@ -131,13 +136,16 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         for (def problem in collectedProblems) {
             assertProblem(problem, files, "ERROR")
         }
+        assertAllFilesVisited(files)
     }
 
     def "problems are received when two separate compilation task is executed"() {
         def files = [
-            writeJavaCausingCompilationError("Foo"),
-            writeJavaCausingCompilationError("FooTest", "test")
+            writeJavaCausingTwoCompilationErrors("Foo"),
+            writeJavaCausingTwoCompilationErrors("FooTest", "test")
         ]
+        // Duplicate the entries, as we have two problems per file
+        files.addAll(files)
 
         when:
         // Special flag to fork the compiler, see the setup()
@@ -148,6 +156,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         for (def problem in collectedProblems) {
             assertProblem(problem, files, "ERROR")
         }
+        assertAllFilesVisited(files)
     }
 
     def "events are received when compiler is forked"() {
@@ -156,7 +165,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         def files = [
-            writeJavaCausingCompilationError("Foo"),
+            writeJavaCausingTwoCompilationErrors("Foo"),
         ]
 
         when:
@@ -168,8 +177,21 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         for (def problem in collectedProblems) {
             assertProblem(problem, files, "ERROR")
         }
+        assertAllFilesVisited(files)
     }
 
+    /**
+     * Assert if a compilation problems looks like how we expect it to look like.
+     * <p>
+     * In addition, the method will update the {@code assertedFileLocations} with the location found in the problem.
+     * This could be used to assert that all expected files have been visited.
+     *
+     * @param problem the problem to assert
+     * @param possibleFiles the list of possible files that the problem could be in
+     * @param severity the expected severity of the problem
+     *
+     * @throws AssertionError if the problem does not look like how we expect it to look like
+     */
     def assertProblem(Map<String, Object> problem, List<String> possibleFiles, String severity) {
         assert problem["severity"] == severity
 
@@ -186,15 +208,21 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
             it["type"] == "file"
         }
         assert fileLocation != null
-        assert possibleFiles.remove(fileLocation["path"])
         assert fileLocation["line"] != null
         assert fileLocation["column"] != null
         assert fileLocation["length"] != null
 
+        def fileLocationPath = fileLocation["path"] as String
+        assert possibleFiles.remove(fileLocationPath)
+
         return true
     }
 
-    String writeJavaCausingCompilationError(String className, String sourceSet = "main") {
+    def assertAllFilesVisited(List<String> files) {
+        return true
+    }
+
+    String writeJavaCausingTwoCompilationErrors(String className, String sourceSet = "main") {
         def file = file("src/${sourceSet}/java/${className}.java")
         file << """
             public class ${className} {
@@ -213,7 +241,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         return file.absolutePath
     }
 
-    String writeJavaCausingCompilationWarning(String className) {
+    String writeJavaCausingTwoCompilationWarnings(String className) {
         def file = file("src/main/java/${className}.java")
         file << """
             public class ${className} {
@@ -232,7 +260,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         return file.absolutePath
     }
 
-    String writeJavaCausingCompilationErrorAndWarning(String className) {
+    String writeJavaCausingTwoCompilationErrorsAndTwoWarnings(String className) {
         def file = file("src/main/java/${className}.java")
         file << """
             public class ${className} {
