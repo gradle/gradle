@@ -256,7 +256,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
             .getProviders()
             .gradleProperty("org.gradle.compile.use-problems-api")
             .map(Boolean::parseBoolean)
-            .get();
+            .getOrElse(false);
     }
 
     private void validateForkOptionsMatchToolchain() {
