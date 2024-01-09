@@ -69,7 +69,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         failureHasCause(~/Failed to store cache entry $CACHE_KEY_PATTERN for task ':customTask': Could not pack tree 'output': Expected '${escapeString(file('build/output'))}' to be a file/)
         errorOutput =~ /Could not pack tree 'output'/
         def cacheKey = cacheOperations.getCacheKeyForTask(":customTask")
-        !localCache.hasCacheFile(cacheKey)
+        !localCache.hasCacheEntry(cacheKey)
         localCache.listCacheTempFiles().empty
     }
 
@@ -122,18 +122,19 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def cacheKey = cacheOperations.getCacheKeyForTask(":customTask")
-        remoteCache.hasCacheFile(cacheKey)
+        remoteCache.hasCacheEntry(cacheKey)
 
         when:
-        remoteCache.getCacheFile(cacheKey).text = "corrupt"
-        localCache.getCacheFile(cacheKey).delete()
+        def cacheEntry = remoteCache.getCacheEntry(cacheKey)
+        cacheEntry.text = "corrupt"
+        localCache.deleteCacheEntry(cacheKey)
 
         then:
         fails("clean", "customTask")
         failureHasCause(~/Failed to load cache entry $CACHE_KEY_PATTERN for task ':customTask': Could not load from remote cache: Not in GZIP format/)
 
         and:
-        !localCache.hasCacheFile(cacheKey)
+        !localCache.hasCacheEntry(cacheKey)
     }
 
     def "corrupt archive loaded from local cache is purged"() {
@@ -159,11 +160,11 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def cacheKey = cacheOperations.getCacheKeyForTask(":customTask")
-        localCache.hasCacheFile(cacheKey)
+        localCache.hasCacheEntry(cacheKey)
 
         when:
-        def addedCacheFile = localCache.getCacheFile(cacheKey)
-        addedCacheFile.bytes = addedCacheFile.bytes[0..-100]
+        def cacheEntry = localCache.getCacheEntry(cacheKey)
+        cacheEntry.bytes = cacheEntry.bytes[0..-100]
 
         then:
         fails("clean", "customTask")
@@ -172,7 +173,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         localCache.listCacheFailedFiles().size() == 1
 
         and:
-        !addedCacheFile.exists()
+        !localCache.hasCacheEntry(cacheKey)
 
         when:
         file("build").deleteDir()
@@ -199,7 +200,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def cacheKey = cacheOperations.getCacheKeyForTask(":cacheable")
-        localCache.hasCacheFile(cacheKey)
+        localCache.hasCacheEntry(cacheKey)
 
         when:
         executer.withStacktraceEnabled()

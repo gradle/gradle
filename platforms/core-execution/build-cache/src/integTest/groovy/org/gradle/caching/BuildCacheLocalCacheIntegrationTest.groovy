@@ -81,7 +81,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
         executed()
         localCache.empty
         def cacheKey = cacheOperations.getCacheKeyForTask(":t")
-        remoteCache.hasCacheFile(cacheKey)
+        remoteCache.hasCacheEntry(cacheKey)
 
         when:
         settingsFile << """
@@ -91,7 +91,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         cached()
-        localCache.hasCacheFile(cacheKey)
+        localCache.hasCacheEntry(cacheKey)
 
         when:
         settingsFile << """
@@ -117,7 +117,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
         executed()
         localCache.empty
         def cacheKey = cacheOperations.getCacheKeyForTask(":t")
-        remoteCache.hasCacheFile(cacheKey)
+        remoteCache.hasCacheEntry(cacheKey)
 
         when:
         settingsFile << """

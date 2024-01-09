@@ -67,12 +67,12 @@ class CacheTaskOutputIntegrationTest extends AbstractIntegrationSpec {
 
     private Properties readMetadata() {
         def cacheKey = cacheOperations.getCacheKeyForTask(":compileJava")
-        assert localCache.hasCacheFile(cacheKey)
-        def cacheEntry = localCache.getCacheFile(cacheKey)
+        assert localCache.hasCacheEntry(cacheKey)
+        def cacheEntry = localCache.getCacheEntry(cacheKey)
 
         // Must rename to "*.tgz" for unpacking to work
         def tgzCacheEntry = temporaryFolder.file("cache.tgz")
-        cacheEntry.copyTo(tgzCacheEntry)
+        cacheEntry.copyBytesTo(tgzCacheEntry)
         def extractDir = temporaryFolder.file("extract")
         tgzCacheEntry.untarTo(extractDir)
         tgzCacheEntry.delete()

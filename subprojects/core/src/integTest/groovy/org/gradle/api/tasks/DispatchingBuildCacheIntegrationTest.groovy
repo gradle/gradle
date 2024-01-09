@@ -171,10 +171,10 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         then:
         cacheOperations.assertStoredToLocalCacheForTask(cacheableTask)
         cacheOperations.assertStoredToRemoteCacheForTask(cacheableTask)
-        def localCacheFile = localCache.listCacheFiles().first()
-        def remoteCacheFile = remoteCache.listCacheFiles().first()
-        localCacheFile.md5Hash == remoteCacheFile.md5Hash
-        localCacheFile.name == remoteCacheFile.name
+        def localCacheEntry = localCache.listCacheFiles().first()
+        def remoteCacheEntry = remoteCache.listCacheFiles().first()
+        localCacheEntry.md5Hash == remoteCacheEntry.md5Hash
+        localCacheEntry.name == remoteCacheEntry.name
     }
 
     void pushToRemote() {
