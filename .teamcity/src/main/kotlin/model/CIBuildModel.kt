@@ -20,9 +20,9 @@ import configurations.FlakyTestQuarantine
 import configurations.FunctionalTest
 import configurations.Gradleception
 import configurations.SanityCheck
+import configurations.SmokeIdeTests
 import configurations.SmokeTests
 import configurations.TestPerformanceTest
-import configurations.SmokeIdeTests
 import projects.DEFAULT_FUNCTIONAL_TEST_BUCKET_SIZE
 import projects.DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE
 
