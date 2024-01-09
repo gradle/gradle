@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import com.sun.tools.javac.file.PathFileObject;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
 
@@ -41,7 +42,9 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
         String message = diagnostic.getMessage(Locale.getDefault());
         String label = mapKindToLabel(diagnostic.getKind());
-        String resourceName = diagnostic.getSource() != null ? diagnostic.getSource().toUri().toString() : null;
+
+        String resourceName = diagnostic.getSource() != null ? getPath(diagnostic.getSource()) : null;
+
         Integer line = Math.toIntExact(diagnostic.getLineNumber());
         Integer column = Math.toIntExact(diagnostic.getColumnNumber());
         Integer length = Math.toIntExact(diagnostic.getEndPosition() - diagnostic.getStartPosition());
@@ -51,13 +54,32 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
             .label(label)
             .undocumented()
             .fileLocation(resourceName, line, column, length)
-            .category("compiler", "java") 
+            .category("compiler", "java")
             .severity(severity)
             .details(message)
         ).report();
 
         // We need to print the message to stderr as well, as it was the default behavior of the compiler
         System.err.println(message);
+    }
+
+    /**
+     * Returns the path of the given {@link JavaFileObject}.
+     * <p>
+     *
+     *
+     * @param fileObject
+     * @return
+     */
+    private static String getPath(JavaFileObject fileObject) {
+        if (fileObject instanceof PathFileObject) {
+            // The reason we are not using JavaFileObject#toUri() when we have a PathFileObject is that we found out that it changes the Unicode codepoint in the path when using exotic characters.
+            // This could cause issues when file paths would be compared.
+            PathFileObject pathFileObject = (PathFileObject) fileObject;
+            return pathFileObject.getPath().toAbsolutePath().toString();
+        } else {
+            return fileObject.toUri().toString();
+        }
     }
 
     private static String mapKindToLabel(Diagnostic.Kind kind) {

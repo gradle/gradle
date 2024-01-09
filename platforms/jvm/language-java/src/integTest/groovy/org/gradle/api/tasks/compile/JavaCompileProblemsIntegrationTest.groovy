@@ -24,6 +24,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
+        enableProblemsApiCheck()
+
         propertiesFile << """
             # Feature flag as of 8.6 to enable the Problems API
             org.gradle.compile.use-problems-api=true
@@ -43,12 +45,12 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "problem is received when a single-file compilation failure happens"() {
-        enableProblemsApiCheck()
         def files = [
             writeJavaCausingCompilationError("Foo")
         ]
         // Duplicate the entries, as we have two problems per file
         files.addAll(files)
+        print(files)
 
         when:
         fails("compileJava")
@@ -61,7 +63,6 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "problems are received when a multi-file compilation failure happens"() {
-        enableProblemsApiCheck()
         def files = [
             writeJavaCausingCompilationError("Foo"),
             writeJavaCausingCompilationError("Bar")
@@ -80,7 +81,6 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "problem is received when a single-file warning happens"() {
-        enableProblemsApiCheck()
         def files = [
             writeJavaCausingCompilationWarning("Foo")
         ]
@@ -98,7 +98,6 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "problems are received when a multi-file warning happens"() {
-        enableProblemsApiCheck()
         def files = [
             writeJavaCausingCompilationWarning("Foo"),
             writeJavaCausingCompilationWarning("Bar")
@@ -116,8 +115,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "only failures received when a multi-file compilation failure and warning happens"() {
-        enableProblemsApiCheck()
+    def "only failures are received when a multi-file compilation failure and warning happens"() {
         def files = [
             writeJavaCausingCompilationErrorAndWarning("Foo"),
             writeJavaCausingCompilationErrorAndWarning("Bar")
@@ -136,24 +134,14 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "problems are received when two separate compilation task is executed"() {
-        enableProblemsApiCheck()
-
-        buildFile << """
-        tasks.create("compileJava1", JavaCompile);
-        tasks.create("compileJava2", JavaCompile);
-
-        tasks.create("compileAll") {
-            dependsOn("compileJava1", "compileJava2")
-        }
-        """
-
         def files = [
             writeJavaCausingCompilationError("Foo"),
+            writeJavaCausingCompilationError("FooTest", "test")
         ]
 
         when:
         // Special flag to fork the compiler, see the setup()
-        fails("compileAll")
+        fails("compileTestJava")
 
         then:
         collectedProblems.size() == 2
@@ -163,10 +151,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "events are received when compiler is forked"() {
-        enableProblemsApiCheck()
-
         buildFile << """
-        tasks.compileJava.options.fork = true
+            tasks.compileJava.options.fork = true
         """
 
         def files = [
@@ -208,8 +194,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         return true
     }
 
-    String writeJavaCausingCompilationError(String className) {
-        def file = file("src/main/java/${className}.java")
+    String writeJavaCausingCompilationError(String className, String sourceSet = "main") {
+        def file = file("src/${sourceSet}/java/${className}.java")
         file << """
             public class ${className} {
                 public static void problemOne(String[] args) {
@@ -224,7 +210,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        return "file://${file.absolutePath}"
+        return file.absolutePath
     }
 
     String writeJavaCausingCompilationWarning(String className) {
