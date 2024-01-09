@@ -96,6 +96,13 @@ public class IsolatedArrayOfPrimitive implements Isolatable<Object> {
         }
     }
 
+    /**
+     * The primitive array type.
+     * <br>
+     * <b>IMPORTANT: the order in which the enums are defined here matters and should be considered part of the
+     * cross-version protocol since the {@link Enum#ordinal()} is part of the
+     * {@link #getPrimitiveTypeCode() serialized state}.</b>
+     */
     private enum PrimitiveType {
         B(byte[].class) {
             @Override
