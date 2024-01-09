@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
 /**
  * Test class verifying the integration between the {@code JavaCompile} and the {@code Problems} service.
  */
@@ -24,6 +25,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         propertiesFile << """
+            # Feature flag as of 8.6 to enable the Problems API
             org.gradle.compile.use-problems-api=true
         """
 
@@ -40,7 +42,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def "problem received when a single-file compilation failure happens"() {
+    def "problem is received when a single-file compilation failure happens"() {
         enableProblemsApiCheck()
         def files = [
             writeJavaCausingCompilationError("Foo")
@@ -58,7 +60,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "problems received when a multi-file compilation failure happens"() {
+    def "problems are received when a multi-file compilation failure happens"() {
         enableProblemsApiCheck()
         def files = [
             writeJavaCausingCompilationError("Foo"),
@@ -77,7 +79,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "problem received when a single-file warning happens"() {
+    def "problem is received when a single-file warning happens"() {
         enableProblemsApiCheck()
         def files = [
             writeJavaCausingCompilationWarning("Foo")
@@ -95,7 +97,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "problems received when a multi-file warning happens"() {
+    def "problems are received when a multi-file warning happens"() {
         enableProblemsApiCheck()
         def files = [
             writeJavaCausingCompilationWarning("Foo"),
@@ -133,29 +135,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "events are received when compiler is forked"() {
-        enableProblemsApiCheck()
-
-        buildFile << """
-        tasks.compileJava.options.fork = true
-        """
-
-        def files = [
-            writeJavaCausingCompilationError("Foo"),
-        ]
-
-        when:
-        // Special flag to fork the compiler, see the setup()
-        fails("compileJava")
-
-        then:
-        collectedProblems.size() == 2
-        for (def problem in collectedProblems) {
-            assertProblem(problem, files, "ERROR")
-        }
-    }
-
-    def "events are received when two separate compilation task is executed"() {
+    def "problems are received when two separate compilation task is executed"() {
         enableProblemsApiCheck()
 
         buildFile << """
@@ -174,6 +154,28 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         when:
         // Special flag to fork the compiler, see the setup()
         fails("compileAll")
+
+        then:
+        collectedProblems.size() == 2
+        for (def problem in collectedProblems) {
+            assertProblem(problem, files, "ERROR")
+        }
+    }
+
+    def "events are received when compiler is forked"() {
+        enableProblemsApiCheck()
+
+        buildFile << """
+        tasks.compileJava.options.fork = true
+        """
+
+        def files = [
+            writeJavaCausingCompilationError("Foo"),
+        ]
+
+        when:
+        // Special flag to fork the compiler, see the setup()
+        fails("compileJava")
 
         then:
         collectedProblems.size() == 2
