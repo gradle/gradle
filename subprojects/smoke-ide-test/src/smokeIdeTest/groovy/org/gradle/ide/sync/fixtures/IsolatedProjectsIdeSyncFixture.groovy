@@ -44,15 +44,12 @@ class IsolatedProjectsIdeSyncFixture {
     void assertHtmlReportHasProblems(
         @DelegatesTo(value = HasConfigurationCacheProblemsInReportSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
-        def spec = new HasConfigurationCacheProblemsInReportSpec()
-        specClosure.delegate = spec
-        specClosure()
+        def spec = createSpec(specClosure)
+        def jsModel = readJsModelFromReport()
+        checkProblemsAgainstModel(spec, jsModel)
+    }
 
-        spec.validateSpec()
-
-        def reportDir = resolveFirstConfigurationCacheReportDir(rootDir)
-        def jsModel = configurationCacheProblemsFixture.readJsModelFromReportDir(reportDir)
-
+    private void checkProblemsAgainstModel(HasConfigurationCacheProblemsInReportSpec spec, Map<String, Object> jsModel) {
         def problemsDiagnostics = jsModel.diagnostics.findAll { it['problem'] != null && it['trace'] != null }
 
         def actualLocationsWithProblems = problemsDiagnostics.collect {
@@ -74,25 +71,35 @@ class IsolatedProjectsIdeSyncFixture {
         }
     }
 
-    private static TestFile resolveFirstConfigurationCacheReportDir(TestFile rootDir) {
+    private Map<String, Object> readJsModelFromReport() {
+        def reportDir = resolveSingleConfigurationCacheReportDir(rootDir)
+        def jsModel = configurationCacheProblemsFixture.readJsModelFromReportDir(reportDir)
+        return jsModel
+    }
+
+    private static HasConfigurationCacheProblemsInReportSpec createSpec(Closure<?> specClosure) {
+        def spec = new HasConfigurationCacheProblemsInReportSpec()
+        specClosure.delegate = spec
+        specClosure()
+        spec.validateSpec()
+        return spec
+    }
+
+    private static TestFile resolveSingleConfigurationCacheReportDir(TestFile rootDir) {
         TestFile reportsDir = rootDir.file("build/reports/configuration-cache")
-        TestFile reportDir = null
+        List<TestFile> reportDirs = []
         Files.walkFileTree(reportsDir.toPath(), new SimpleFileVisitor<Path>() {
             @Override
             FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 if (file.getFileName().toString() == "configuration-cache-report.html") {
-                    reportDir = new TestFile(file.parent.toString())
-                    return FileVisitResult.TERMINATE
+                    reportDirs += new TestFile(file.parent.toString())
                 }
                 return FileVisitResult.CONTINUE
             }
         })
 
-        if (reportDir == null) {
-            throw new FileNotFoundException("Couldn't find configuration cache report directory.")
-        }
-
-        return reportDir
+        assert reportDirs.size() == 1
+        return reportDirs[0]
     }
 }
 
