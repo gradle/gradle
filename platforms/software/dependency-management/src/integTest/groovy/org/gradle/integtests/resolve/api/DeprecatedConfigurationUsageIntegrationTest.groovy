@@ -83,7 +83,8 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         'copy(Spec)'                                   | 'dependencyScope' | 'copy { } as Spec'                                             || [ProperMethodUsage.RESOLVABLE]
         'copyRecursive(Spec)'                          | 'consumable'      | 'copyRecursive { } as Spec'                                    || [ProperMethodUsage.RESOLVABLE]
         'copyRecursive(Spec)'                          | 'dependencyScope' | 'copyRecursive { } as Spec'                                    || [ProperMethodUsage.RESOLVABLE]
-
+        'getIncoming()'                                | 'consumable'      | 'getIncoming()'                                                || [ProperMethodUsage.RESOLVABLE]
+        'getIncoming()'                                | 'dependencyScope' | 'getIncoming()'                                                || [ProperMethodUsage.RESOLVABLE]
     }
 
     def "calling an invalid internal API method #methodName for role #role produces a deprecation warning"() {

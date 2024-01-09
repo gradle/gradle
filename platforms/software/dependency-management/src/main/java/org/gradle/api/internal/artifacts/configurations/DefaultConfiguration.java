@@ -695,8 +695,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 runDependencyActions();
                 preventFromFurtherMutation();
 
-                ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) getIncoming();
-                performPreResolveActions(incoming);
+                performPreResolveActions(resolvableDependencies);
                 ResolverResults results = resolver.resolveGraph(DefaultConfiguration.this);
                 dependenciesModified = false;
 
@@ -710,7 +709,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 // TODO: Currently afterResolve runs if there is not an non-unresolved-dependency failure
                 //       We should either _always_ run afterResolve, or only run it if _no_ failure occurred
                 if (!results.getVisitedGraph().getResolutionFailure().isPresent()) {
-                    dependencyResolutionListeners.getSource().afterResolve(incoming);
+                    dependencyResolutionListeners.getSource().afterResolve(resolvableDependencies);
                 }
 
                 // Discard State
@@ -1082,6 +1081,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public ResolvableDependencies getIncoming() {
+        warnOnDeprecatedUsage("getIncoming()", ProperMethodUsage.RESOLVABLE);
         return resolvableDependencies;
     }
 

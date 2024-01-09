@@ -38,7 +38,7 @@ import java.util.Set;
  */
 public class ConfigurationSoftwareComponentVariant extends AbstractSoftwareComponentVariant {
     protected final String name;
-    private final Configuration configuration;
+    private final ConfigurationInternal configuration;
     private DomainObjectSet<ModuleDependency> dependencies;
     private DomainObjectSet<DependencyConstraint> dependencyConstraints;
     private Set<? extends Capability> capabilities;
@@ -50,7 +50,7 @@ public class ConfigurationSoftwareComponentVariant extends AbstractSoftwareCompo
 
     public ConfigurationSoftwareComponentVariant(String name, AttributeContainer attributes, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
         super(((AttributeContainerInternal) attributes).asImmutable(), artifacts);
-        this.configuration = configuration;
+        this.configuration = (ConfigurationInternal) configuration;
         this.name = name;
     }
 
@@ -62,7 +62,8 @@ public class ConfigurationSoftwareComponentVariant extends AbstractSoftwareCompo
     @Override
     public Set<ModuleDependency> getDependencies() {
         if (dependencies == null) {
-            dependencies = configuration.getIncoming().getDependencies().withType(ModuleDependency.class);
+            configuration.runDependencyActions();
+            dependencies = configuration.getAllDependencies().withType(ModuleDependency.class);
         }
         return dependencies;
     }
@@ -70,7 +71,8 @@ public class ConfigurationSoftwareComponentVariant extends AbstractSoftwareCompo
     @Override
     public Set<? extends DependencyConstraint> getDependencyConstraints() {
         if (dependencyConstraints == null) {
-            dependencyConstraints = configuration.getIncoming().getDependencyConstraints();
+            configuration.runDependencyActions();
+            dependencyConstraints = configuration.getAllDependencyConstraints();
         }
         return dependencyConstraints;
     }
@@ -88,7 +90,7 @@ public class ConfigurationSoftwareComponentVariant extends AbstractSoftwareCompo
     @Override
     public Set<ExcludeRule> getGlobalExcludes() {
         if (excludeRules == null) {
-            this.excludeRules = ImmutableSet.copyOf(((ConfigurationInternal) configuration).getAllExcludeRules());
+            this.excludeRules = ImmutableSet.copyOf(configuration.getAllExcludeRules());
         }
         return excludeRules;
     }
