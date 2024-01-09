@@ -33,9 +33,8 @@ import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static org.gradle.api.internal.attributes.AttributeContainerInternal.haveSameName;
 
 /**
  * Describes JVM ecosystem related attributes.
@@ -353,5 +352,16 @@ import static org.gradle.api.internal.attributes.AttributeContainerInternal.have
 
     private static String toName(Object attributeValue) {
         return attributeValue instanceof Category ? ((Named) attributeValue).getName() : String.valueOf(attributeValue);
+    }
+
+    /**
+     * Checks if two attributes have the same name.
+     *
+     * @param a first attribute to compare
+     * @param b second attribute to compare
+     * @return {@code true} if the two attributes have the same name; {@code false} otherwise
+     */
+    private static boolean haveSameName(Attribute<?> a, Attribute<?> b) {
+        return Objects.equals(a.getName(), b.getName());
     }
 }

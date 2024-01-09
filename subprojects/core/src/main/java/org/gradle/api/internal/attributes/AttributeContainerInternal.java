@@ -20,7 +20,6 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 
 import java.util.Map;
-import java.util.Objects;
 
 public interface AttributeContainerInternal extends AttributeContainer {
 
@@ -38,15 +37,4 @@ public interface AttributeContainerInternal extends AttributeContainer {
      * @return a copy of this container, as a map.
      */
     Map<Attribute<?>, ?> asMap();
-
-    /**
-     * Checks if two attributes have the same name.
-     *
-     * @param a first attribute to compare
-     * @param b second attribute to compare
-     * @return {@code true} if the two attributes have the same name; {@code false} otherwise
-     */
-    static boolean haveSameName(Attribute<?> a, Attribute<?> b) {
-        return Objects.equals(a.getName(), b.getName());
-    }
 }
