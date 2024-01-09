@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.artifacts.configurations.ResolutionHost
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
@@ -39,16 +40,16 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
     private visitedGraphResults = Mock(VisitedGraphResults)
     private projectConfigResult = Mock(ResolvedLocalComponentsResult)
     private visitedArtifactSet = Mock(VisitedArtifactSet)
-    private context = Mock(ConfigurationInternal)
+    private context = Mock(ConfigurationInternal) {
+        getResolutionHost() >> Mock(ResolutionHost) {
+            getDisplayName() >> "resolve context 'foo'"
+        }
+    }
     private contextualizer =  new ResolveExceptionContextualizer(Mock(DomainObjectContext), Mock(DocumentationRegistry))
     private resolver = new ErrorHandlingConfigurationResolver(delegate, contextualizer);
 
     def delegateResults = Mock(ResolverResults) {
         getResolvedConfiguration() >> resolvedConfiguration
-    }
-
-    def setup() {
-        context.displayName >> "resolve context 'foo'"
     }
 
     void "delegates to backing service to resolve build dependencies"() {

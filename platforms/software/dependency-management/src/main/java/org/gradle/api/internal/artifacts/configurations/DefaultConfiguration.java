@@ -196,7 +196,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final ConfigurationsProvider configurationsProvider;
 
     private final Path identityPath;
-    private final Path projectPath;
 
     // These fields are not covered by mutation lock
     private final String name;
@@ -286,7 +285,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.identityPath = domainObjectContext.identityPath(name);
-        this.projectPath = domainObjectContext.projectPath(name);
         this.name = name;
         this.configurationsProvider = configurationsProvider;
         this.resolver = resolver;
@@ -590,7 +588,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return new ResolutionBackedFileCollection(
             new SelectedArtifactsProvider(dependencySpec, configurationAttributes, Specs.satisfyAll(), false, false, new VisitedArtifactsSetProvider()),
             false,
-            new DefaultResolutionHost(),
+            getResolutionHost(),
             taskDependencyFactory
         );
     }
@@ -840,7 +838,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                     return new ResolutionBackedFileCollection(
                         new SelectedArtifactsProvider(Specs.satisfyAll(), fullAttributes, filter, false, false, new VisitedArtifactsSetProvider()),
                         false,
-                        new DefaultResolutionHost(),
+                        getResolutionHost(),
                         taskDependencyFactory);
                 });
         }
@@ -1071,11 +1069,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
-    public Describable asDescribable() {
-        return displayName;
-    }
-
-    @Override
     public String getDisplayName() {
         return displayName.getDisplayName();
     }
@@ -1301,16 +1294,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return "dependency was locked to version '" + lockedVersion + "'";
         }
         return "dependency was locked to version '" + lockedVersion + "' (update/lenient mode)";
-    }
-
-    @Override
-    public Path getProjectPath() {
-        return projectPath;
-    }
-
-    @Override
-    public Path getIdentityPath() {
-        return identityPath;
     }
 
     @Override
@@ -1897,11 +1880,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     private DefaultArtifactCollection artifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
-        DefaultResolutionHost failureHandler = new DefaultResolutionHost();
         ResolutionBackedFileCollection files = new ResolutionBackedFileCollection(
-            new SelectedArtifactsProvider(Specs.satisfyAll(), attributes, componentFilter, allowNoMatchingVariants, selectFromAllVariants, new VisitedArtifactsSetProvider()), lenient, failureHandler, taskDependencyFactory
+            new SelectedArtifactsProvider(Specs.satisfyAll(), attributes, componentFilter, allowNoMatchingVariants, selectFromAllVariants, new VisitedArtifactsSetProvider()),
+            lenient,
+            getResolutionHost(),
+            taskDependencyFactory
         );
-        return new DefaultArtifactCollection(files, lenient, failureHandler, calculatedValueContainerFactory);
+        return new DefaultArtifactCollection(files, lenient, getResolutionHost(), calculatedValueContainerFactory);
     }
 
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
@@ -1913,8 +1898,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public String getPath() {
-            // TODO: Can we update this to identityPath?
-            return projectPath.getPath();
+            return identityPath.getPath();
         }
 
         @Override
@@ -2045,7 +2029,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 return new ResolutionBackedFileCollection(
                     new SelectedArtifactsProvider(Specs.satisfyAll(), viewAttributes, componentFilter, allowNoMatchingVariants, selectFromAllVariants, new VisitedArtifactsSetProvider()),
                     lenient,
-                    new DefaultResolutionHost(),
+                    getResolutionHost(),
                     taskDependencyFactory
                 );
             }
@@ -2170,6 +2154,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         public PublishArtifactSet getPublishArtifactSet() {
             return getAllArtifacts();
         }
+    }
+
+    @Override
+    public ResolutionHost getResolutionHost() {
+        return new DefaultResolutionHost();
     }
 
     private class DefaultResolutionHost implements ResolutionHost {
