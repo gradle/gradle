@@ -73,7 +73,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(cacheableTask)
-        populatedLocalCache(cacheableTask)
+        cacheOperations.assertStoredToLocalCacheForTask(cacheableTask)
         remoteCache.empty
 
         when:
@@ -82,7 +82,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         skipped(cacheableTask)
-        cacheOperations.getPackOperations(cacheableTask).empty
+        cacheOperations.getPackOperationsForTask(cacheableTask).empty
         remoteCache.empty
 
     }
@@ -95,8 +95,8 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(cacheableTask)
-        cacheOperations.assertStoredToRemoteCache(cacheableTask)
-        !populatedLocalCache(cacheableTask)
+        cacheOperations.assertStoredToRemoteCacheForTask(cacheableTask)
+        cacheOperations.assertNotStoredToLocalCacheForTask(cacheableTask)
 
         when:
         pullOnly()
@@ -104,8 +104,8 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         skipped(cacheableTask)
-        cacheOperations.assertNotStoredToRemoteCache(cacheableTask)
-        !populatedLocalCache(cacheableTask)
+        cacheOperations.assertNotStoredToRemoteCacheForTask(cacheableTask)
+        cacheOperations.assertNotStoredToLocalCacheForTask(cacheableTask)
 
     }
 
@@ -118,7 +118,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(cacheableTask)
-        cacheOperations.assertStoredToRemoteCache(cacheableTask)
+        cacheOperations.assertStoredToRemoteCacheForTask(cacheableTask)
         localCache.empty
 
         when:
@@ -128,8 +128,8 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(cacheableTask)
-        populatedLocalCache(cacheableTask)
-        cacheOperations.assertNotStoredToRemoteCache(cacheableTask)
+        cacheOperations.assertStoredToLocalCacheForTask(cacheableTask)
+        cacheOperations.assertNotStoredToRemoteCacheForTask(cacheableTask)
 
         when:
         pullOnly()
@@ -137,8 +137,8 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         withBuildCache().run 'clean', cacheableTask
 
         then:
-        !populatedLocalCache(cacheableTask)
-        cacheOperations.assertNotStoredToRemoteCache(cacheableTask)
+        cacheOperations.assertNotStoredToLocalCacheForTask(cacheableTask)
+        cacheOperations.assertNotStoredToRemoteCacheForTask(cacheableTask)
         outputFile.text == inputFile.text + 'local'
     }
 
@@ -158,7 +158,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         withBuildCache().run cacheableTask
 
         then:
-        populatedLocalCache(cacheableTask)
+        cacheOperations.assertStoredToLocalCacheForTask(cacheableTask)
         remoteCache.empty
     }
 
@@ -169,23 +169,12 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         withBuildCache().run cacheableTask
 
         then:
-        populatedLocalCache(cacheableTask)
-        cacheOperations.assertStoredToRemoteCache(cacheableTask)
+        cacheOperations.assertStoredToLocalCacheForTask(cacheableTask)
+        cacheOperations.assertStoredToRemoteCacheForTask(cacheableTask)
         def localCacheFile = localCache.listCacheFiles().first()
         def remoteCacheFile = remoteCache.listCacheFiles().first()
         localCacheFile.md5Hash == remoteCacheFile.md5Hash
         localCacheFile.name == remoteCacheFile.name
-    }
-
-    /**
-     * TODO: Replace with cacheOperations.assertStoredToLocalCache(taskPath) once operations are implemented
-     */
-    private boolean populatedLocalCache(String taskPath) {
-        def cacheKey = cacheOperations.getTaskCacheKeyOrNull(taskPath)
-        if (cacheKey == null) {
-            return false
-        }
-        localCache.hasCacheFile(cacheKey)
     }
 
     void pushToRemote() {
@@ -207,5 +196,4 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
     private void setupCacheConfiguration(boolean pushToLocal, boolean pushToRemote) {
         settingsFile.text = localCache.localCacheConfiguration(pushToLocal) + remoteCache.remoteCacheConfiguration(pushToRemote)
     }
-
 }

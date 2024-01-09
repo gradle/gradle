@@ -799,11 +799,11 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
     }
 
     private void assertTaskOutputCached(String taskName) {
-        assert listCacheFiles().any { it.name == cacheOperations.getTaskCacheKey(taskName) }
+        assert listCacheFiles().any { it.name == cacheOperations.getCacheKeyForTask(taskName) }
     }
 
     private void assertTaskOutputNotCached(String taskName) {
-        def cacheKey = cacheOperations.getTaskCacheKeyOrNull(taskName)
+        def cacheKey = cacheOperations.getCacheKeyForTaskOrNull(taskName)
         assert cacheKey == null
     }
 }

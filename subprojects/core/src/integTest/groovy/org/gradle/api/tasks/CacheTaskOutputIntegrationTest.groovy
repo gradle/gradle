@@ -66,7 +66,7 @@ class CacheTaskOutputIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private Properties readMetadata() {
-        def cacheKey = cacheOperations.getTaskCacheKey(":compileJava")
+        def cacheKey = cacheOperations.getCacheKeyForTask(":compileJava")
         assert localCache.hasCacheFile(cacheKey)
         def cacheEntry = localCache.getCacheFile(cacheKey)
 

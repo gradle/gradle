@@ -80,7 +80,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
         then:
         executed()
         localCache.empty
-        def cacheKey = cacheOperations.getTaskCacheKey(":t")
+        def cacheKey = cacheOperations.getCacheKeyForTask(":t")
         remoteCache.hasCacheFile(cacheKey)
 
         when:
@@ -116,7 +116,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
         then:
         executed()
         localCache.empty
-        def cacheKey = cacheOperations.getTaskCacheKey(":t")
+        def cacheKey = cacheOperations.getCacheKeyForTask(":t")
         remoteCache.hasCacheFile(cacheKey)
 
         when:

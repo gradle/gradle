@@ -40,7 +40,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         when:
         withBuildCache().run("cacheable")
         then:
-        def cacheKey = cacheOperations.getTaskCacheKey(":cacheable")
+        def cacheKey = cacheOperations.getCacheKeyForTask(":cacheable")
         def cacheFile = listCacheFiles().find { it.name == cacheKey }
         cacheFile.exists()
         def cacheEntry = new TarTestFixture(cacheFile)
@@ -74,13 +74,13 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         withBuildCache().run(taskPath)
 
         then:
-        cacheOperations.getTaskCacheKeyOrNull(taskPath) == null
+        cacheOperations.getCacheKeyForTaskOrNull(taskPath) == null
 
         when:
         withBuildCache().run("clean", "cacheable", "-PstoreInCache")
 
         then:
-        listCacheFiles().any { it.name == cacheOperations.getTaskCacheKey(taskPath) }
+        listCacheFiles().any { it.name == cacheOperations.getCacheKeyForTask(taskPath) }
 
         when:
         withBuildCache().run("clean", "cacheable")

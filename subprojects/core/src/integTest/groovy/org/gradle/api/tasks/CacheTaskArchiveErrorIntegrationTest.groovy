@@ -68,7 +68,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         failureHasCause(~/Failed to store cache entry $CACHE_KEY_PATTERN for task ':customTask': Could not pack tree 'output': Expected '${escapeString(file('build/output'))}' to be a file/)
         errorOutput =~ /Could not pack tree 'output'/
-        def cacheKey = cacheOperations.getTaskCacheKey(":customTask")
+        def cacheKey = cacheOperations.getCacheKeyForTask(":customTask")
         !localCache.hasCacheFile(cacheKey)
         localCache.listCacheTempFiles().empty
     }
@@ -121,7 +121,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         succeeds("customTask")
 
         then:
-        def cacheKey = cacheOperations.getTaskCacheKey(":customTask")
+        def cacheKey = cacheOperations.getCacheKeyForTask(":customTask")
         remoteCache.hasCacheFile(cacheKey)
 
         when:
@@ -158,7 +158,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         succeeds("customTask")
 
         then:
-        def cacheKey = cacheOperations.getTaskCacheKey(":customTask")
+        def cacheKey = cacheOperations.getCacheKeyForTask(":customTask")
         localCache.hasCacheFile(cacheKey)
 
         when:
@@ -198,7 +198,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         succeeds("cacheable")
 
         then:
-        def cacheKey = cacheOperations.getTaskCacheKey(":cacheable")
+        def cacheKey = cacheOperations.getCacheKeyForTask(":cacheable")
         localCache.hasCacheFile(cacheKey)
 
         when:

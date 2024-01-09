@@ -31,94 +31,96 @@ class BuildCacheOperationFixtures {
     BuildOperationsFixture buildOperations
 
     BuildCacheOperationFixtures(GradleExecuter executer, TestDirectoryProvider projectDir) {
-        this.buildOperations = new BuildOperationsFixture(executer, projectDir)
+        this(new BuildOperationsFixture(executer, projectDir))
     }
 
     BuildCacheOperationFixtures(BuildOperationsFixture buildOperations) {
         this.buildOperations = buildOperations
     }
 
-    private BuildOperationRecord getTaskCacheExecutionBuildOperationRecord(String taskPath) {
+    private BuildOperationRecord getExecutionBuildOperationRecordForTask(String taskPath) {
         return buildOperations.first(ExecuteTaskBuildOperationType) { it.details["taskPath"] == taskPath }
     }
 
-    private List<BuildOperationRecord> getOperations(String taskPath, Class<?> details) {
-        def parent = getTaskCacheExecutionBuildOperationRecord(taskPath)
+    private List<BuildOperationRecord> getOperationsForTask(String taskPath, Class<?> details) {
+        def parent = getExecutionBuildOperationRecordForTask(taskPath)
         return parent == null ? [] : buildOperations.search(parent) { it.hasDetailsOfType(details) }
     }
 
-    private BuildOperationRecord getOnlyOperation(String taskPath, Class<?> details) {
-        def ops = getOperations(taskPath, details)
+    private BuildOperationRecord getOnlyOperationForTask(String taskPath, Class<?> details) {
+        def ops = getOperationsForTask(taskPath, details)
         assert ops.size() == 1
         return ops.first()
     }
 
-    List<BuildOperationRecord> getPackOperations(String taskPath) {
-        return getOperations(taskPath, BuildCacheArchivePackBuildOperationType.Details)
+    List<BuildOperationRecord> getPackOperationsForTask(String taskPath) {
+        return getOperationsForTask(taskPath, BuildCacheArchivePackBuildOperationType.Details)
     }
 
-    BuildOperationRecord getOnlyPackOperation(String taskPath) {
-        return getOnlyOperation(taskPath, BuildCacheArchivePackBuildOperationType.Details)
+    BuildOperationRecord getOnlyPackOperationForTask(String taskPath) {
+        return getOnlyOperationForTask(taskPath, BuildCacheArchivePackBuildOperationType.Details)
     }
 
-    List<BuildOperationRecord> getLocalLoadOperations(String taskPath) {
-        return getOperations(taskPath, BuildCacheLocalLoadBuildOperationType.Details)
+    List<BuildOperationRecord> getLocalLoadOperationsForTask(String taskPath) {
+        return getOperationsForTask(taskPath, BuildCacheLocalLoadBuildOperationType.Details)
     }
 
-    BuildOperationRecord getOnlyLocalLoadOperation(String taskPath) {
-        return getOnlyOperation(taskPath, BuildCacheLocalLoadBuildOperationType.Details)
+    BuildOperationRecord getOnlyLocalLoadOperationForTask(String taskPath) {
+        return getOnlyOperationForTask(taskPath, BuildCacheLocalLoadBuildOperationType.Details)
     }
 
-    List<BuildOperationRecord> getLocalStoreOperations(String taskPath) {
-        return getOperations(taskPath, BuildCacheLocalStoreBuildOperationType.Details)
+    List<BuildOperationRecord> getLocalStoreOperationsForTask(String taskPath) {
+        return getOperationsForTask(taskPath, BuildCacheLocalStoreBuildOperationType.Details)
     }
 
-    BuildOperationRecord getOnlyLocalStoreOperation(String taskPath) {
-        return getOnlyOperation(taskPath, BuildCacheLocalStoreBuildOperationType.Details)
+    BuildOperationRecord getOnlyLocalStoreOperationForTask(String taskPath) {
+        return getOnlyOperationForTask(taskPath, BuildCacheLocalStoreBuildOperationType.Details)
     }
 
-    List<BuildOperationRecord> getUnpackOperations(String taskPath) {
-        return getOperations(taskPath, BuildCacheArchiveUnpackBuildOperationType.Details)
+    List<BuildOperationRecord> getUnpackOperationsForTask(String taskPath) {
+        return getOperationsForTask(taskPath, BuildCacheArchiveUnpackBuildOperationType.Details)
     }
 
-    BuildOperationRecord getOnlyUnpackOperation(String taskPath) {
-        return getOnlyOperation(taskPath, BuildCacheArchiveUnpackBuildOperationType.Details)
+    BuildOperationRecord getOnlyUnpackOperationForTask(String taskPath) {
+        return getOnlyOperationForTask(taskPath, BuildCacheArchiveUnpackBuildOperationType.Details)
     }
 
-    String getTaskCacheKeyOrNull(String taskPath) {
-        def packOperations = getPackOperations(taskPath)
+    List<BuildOperationRecord> getRemoteStoreOperationsForTask(String taskPath) {
+        return getOperationsForTask(taskPath, BuildCacheRemoteStoreBuildOperationType.Details)
+    }
+
+    BuildOperationRecord getOnlyRemoteStoreOperationForTask(String taskPath) {
+        return getOnlyOperationForTask(taskPath, BuildCacheRemoteStoreBuildOperationType.Details)
+    }
+
+    String getCacheKeyForTaskOrNull(String taskPath) {
+        def packOperations = getPackOperationsForTask(taskPath)
         return packOperations.empty ? null : packOperations[0].details["cacheKey"]
     }
 
-    String getTaskCacheKey(String taskPath) {
-        def cacheKey = getTaskCacheKeyOrNull(taskPath)
+    String getCacheKeyForTask(String taskPath) {
+        def cacheKey = getCacheKeyForTaskOrNull(taskPath)
         assert cacheKey != null
         return cacheKey
     }
 
-    /**
-     * TODO: Use store operations once operations are implemented
-     */
-    void assertStoredToLocalCache(String taskPath) {
-        throw new UnsupportedOperationException("Not implemented yet")
+    void assertStoredToLocalCacheForTask(String taskPath) {
+        def operations = getLocalStoreOperationsForTask(taskPath)
+        assert !operations.empty && operations[0].result["stored"] == true
     }
 
-    /**
-     * TODO: Use store operations once operations are implemented
-     */
-    void assertNotStoredToLocalCache(String taskPath) {
-        throw new UnsupportedOperationException("Not implemented yet")
+    void assertNotStoredToLocalCacheForTask(String taskPath) {
+        def operations = getLocalStoreOperationsForTask(taskPath)
+        assert operations.empty
     }
 
-    void assertStoredToRemoteCache(String taskPath) {
-        def parent = getTaskCacheExecutionBuildOperationRecord(taskPath)
-        def buildOperations = buildOperations.all(BuildCacheRemoteStoreBuildOperationType) { it.parentId == parent.id}
-        assert !buildOperations.empty && buildOperations[0].result["stored"] == true
+    void assertStoredToRemoteCacheForTask(String taskPath) {
+        def operations = getRemoteStoreOperationsForTask(taskPath)
+        assert !operations.empty && operations[0].result["stored"] == true
     }
 
-    void assertNotStoredToRemoteCache(String taskPath) {
-        def parent = getTaskCacheExecutionBuildOperationRecord(taskPath)
-        def buildOperations = buildOperations.all(BuildCacheRemoteStoreBuildOperationType) { it.parentId == parent.id}
-        assert buildOperations.empty
+    void assertNotStoredToRemoteCacheForTask(String taskPath) {
+        def operations = getRemoteStoreOperationsForTask(taskPath)
+        assert operations.empty
     }
 }

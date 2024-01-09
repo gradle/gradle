@@ -103,7 +103,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
         when:
         withBuildCache().run taskPath
-        def originalCacheKey = cacheOperations.getTaskCacheKey(taskPath)
+        def originalCacheKey = cacheOperations.getCacheKeyForTask(taskPath)
         def originalCacheFile = listCacheFiles().find { it.name == originalCacheKey }
         TestFile.makeOlder(originalCacheFile)
         def originalModificationTime = originalCacheFile.lastModified()
@@ -117,7 +117,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
         when:
         withBuildCache().run taskPath, rerunMethod
-        def updatedCacheKey = cacheOperations.getTaskCacheKey(taskPath)
+        def updatedCacheKey = cacheOperations.getCacheKeyForTask(taskPath)
         def updatedCacheFile = listCacheFiles().find { it.name == updatedCacheKey }
         def updatedModificationTimes = updatedCacheFile.lastModified()
 

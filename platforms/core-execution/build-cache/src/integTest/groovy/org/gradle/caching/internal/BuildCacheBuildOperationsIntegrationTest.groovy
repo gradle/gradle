@@ -127,9 +127,9 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         then:
         operations.none(BuildCacheRemoteLoadBuildOperationType)
         operations.none(BuildCacheRemoteStoreBuildOperationType)
-        def localMissLoadOp = cacheOperations.getOnlyLocalLoadOperation(":t")
-        def packOp = cacheOperations.getOnlyPackOperation(":t")
-        def storeOp = cacheOperations.getOnlyLocalStoreOperation(":t")
+        def localMissLoadOp = cacheOperations.getOnlyLocalLoadOperationForTask(":t")
+        def packOp = cacheOperations.getOnlyPackOperationForTask(":t")
+        def storeOp = cacheOperations.getOnlyLocalStoreOperationForTask(":t")
 
         def cacheKey = localMissLoadOp.details.cacheKey
         cacheKey != null
@@ -154,8 +154,8 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         operations.none(BuildCacheRemoteLoadBuildOperationType)
         operations.none(BuildCacheLocalStoreBuildOperationType)
 
-        def localHitLoadOp = cacheOperations.getOnlyLocalLoadOperation(":t")
-        def unpackOp = cacheOperations.getOnlyUnpackOperation(":t")
+        def localHitLoadOp = cacheOperations.getOnlyLocalLoadOperationForTask(":t")
+        def unpackOp = cacheOperations.getOnlyUnpackOperationForTask(":t")
 
         localHitLoadOp.details.cacheKey == cacheKey
         localHitLoadOp.result.hit == true
