@@ -34,7 +34,7 @@ class SmokeIdeTests(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(sta
         requiresNotEc2Agent()
     }
 
-    applyDefaults(
+    applyTestDefaults(
         model,
         this,
         ":smoke-ide-test:smokeIdeTest",
