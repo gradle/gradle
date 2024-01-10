@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationExecutor;
 
 import java.util.Collection;
@@ -127,6 +128,9 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     private Set<ResolvedArtifact> sort(ResolvedArtifactSet artifacts) {
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor(new TreeSet<>(new ResolvedArtifactComparator()));
         ParallelResolveArtifactSet.wrap(artifacts, buildOperationProcessor).visit(visitor);
+        if (!visitor.getFailures().isEmpty()) {
+            throw UncheckedException.throwAsUncheckedException(visitor.getFailures().get(0));
+        }
         return visitor.getArtifacts();
     }
 

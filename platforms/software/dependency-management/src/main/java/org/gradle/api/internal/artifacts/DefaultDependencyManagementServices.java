@@ -51,7 +51,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.GradlePluginVariantsSu
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultConfigurationResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ErrorHandlingConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitEmptyConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
@@ -553,14 +552,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 listenerManager
             );
 
-            return new ErrorHandlingConfigurationResolver(
-                new ShortCircuitEmptyConfigurationResolver(
-                    defaultResolver,
-                    componentIdentifierFactory,
-                    moduleIdentifierFactory,
-                    currentBuild.getBuildIdentifier()
-                ),
-                resolveExceptionContextualizer
+            return new ShortCircuitEmptyConfigurationResolver(
+                defaultResolver,
+                componentIdentifierFactory,
+                moduleIdentifierFactory,
+                currentBuild.getBuildIdentifier()
             );
         }
 

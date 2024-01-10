@@ -179,7 +179,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private ResolutionStrategyInternal resolutionStrategy;
     private final FileCollectionFactory fileCollectionFactory;
-    private final ResolveExceptionContextualizer exceptionContextualizer;
+    private final ResolveExceptionContextualizer exceptionMapper;
 
     private final Set<MutationValidator> childMutationValidators = new HashSet<>();
     private final MutationValidator parentMutationValidator = DefaultConfiguration.this::validateParentMutation;
@@ -258,7 +258,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         NotationParser<Object, Capability> capabilityNotationParser,
         ImmutableAttributesFactory attributesFactory,
         RootComponentMetadataBuilder rootComponentMetadataBuilder,
-        ResolveExceptionContextualizer exceptionContextualizer,
+        ResolveExceptionContextualizer exceptionMapper,
         UserCodeApplicationContext userCodeApplicationContext,
         ProjectStateRegistry projectStateRegistry,
         WorkerThreadRegistry workerThreadRegistry,
@@ -290,7 +290,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.instantiator = instantiator;
         this.attributesFactory = attributesFactory;
         this.domainObjectContext = domainObjectContext;
-        this.exceptionContextualizer = exceptionContextualizer;
+        this.exceptionMapper = exceptionMapper;
 
         this.displayName = Describables.memoize(new ConfigurationDescription(identityPath));
         this.configurationAttributes = new FreezableAttributeContainer(attributesFactory.mutable(), this.displayName);
@@ -746,7 +746,14 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
                 ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) getIncoming();
                 performPreResolveActions(incoming);
-                ResolverResults results = resolver.resolveGraph(DefaultConfiguration.this);
+
+                ResolverResults results;
+                try {
+                    results = resolver.resolveGraph(DefaultConfiguration.this);
+                } catch (Exception e) {
+                    throw exceptionMapper.contextualize(e, DefaultConfiguration.this);
+                }
+
                 dependenciesModified = false;
 
                 // Make the new state visible in case a dependency resolution listener queries the result, which requires the new state
@@ -913,8 +920,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         assertIsResolvable();
         return currentResolveState.update(initial -> {
             if (!initial.isPresent()) {
-                ResolverResults results = resolver.resolveBuildDependencies(this);
-                return Optional.of(results);
+                try {
+                    return Optional.of(resolver.resolveBuildDependencies(this));
+                } catch (Exception e) {
+                    throw exceptionMapper.contextualize(e, this);
+                }
             } // Otherwise, already have a result, so reuse it
             return initial;
         }).get();
@@ -2068,7 +2078,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public Optional<? extends RuntimeException> mapFailure(String type, Collection<Throwable> failures) {
-            return Optional.ofNullable(exceptionContextualizer.mapFailures(failures, DefaultConfiguration.this.getDisplayName(), type));
+            return Optional.ofNullable(exceptionMapper.mapFailures(failures, DefaultConfiguration.this.getDisplayName(), type));
         }
     }
 
