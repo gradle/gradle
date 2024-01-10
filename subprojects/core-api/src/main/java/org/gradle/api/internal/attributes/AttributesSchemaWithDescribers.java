@@ -19,7 +19,7 @@ import org.gradle.api.attributes.AttributesSchema;
 
 import java.util.List;
 
-public interface DescribableAttributesSchema extends AttributesSchema {
+public interface AttributesSchemaWithDescribers extends AttributesSchema {
 
     List<AttributeDescriber> getConsumerDescribers();
 

@@ -21,7 +21,7 @@ import org.gradle.internal.component.model.AttributeMatcher;
 
 import javax.annotation.Nullable;
 
-public interface AttributesSchemaInternal extends DescribableAttributesSchema {
+public interface AttributesSchemaInternal extends AttributesSchemaWithDescribers {
     /**
      * Returns a matcher that uses the consumer rules from this schema, and the producer rules from the given schema.
      */
