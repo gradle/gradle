@@ -17,11 +17,14 @@
 package org.gradle.internal.resource
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 class ExternalResourceNameIntegrationTest extends AbstractIntegrationSpec {
 
-     def "can access repository on network share"() {
+    // Network shares on Linux and macOS are just normal file paths, so we don't have anything to test here
+    @Requires(UnitTestPreconditions.Windows)
+    def "can access repository on network share"() {
         //since we do not have a network share, we test the failure case and assert that the correct path was searched
         given:
         buildFile << """
@@ -42,14 +45,14 @@ class ExternalResourceNameIntegrationTest extends AbstractIntegrationSpec {
         fails 'resolve'
 
         then:
-        //the URL is processed by the Java file API in FileOrUriNotationConverter.convert(), which has platform specific behavior
-        def expectLeadingSlashes = OperatingSystem.current().isWindows() ? '////' : '/'
-
         failure.assertHasCause """Could not find org:name:1.0.
 Searched in the following locations:
-  - file:${expectLeadingSlashes}MISSING/folder/ivy/org/name/1.0/ivy-1.0.xml
+  - file:////MISSING/folder/ivy/org/name/1.0/ivy-1.0.xml
 """
-         where:
-         hostPrefix << ['//', 'file:/', 'file:////']
+        where:
+        // '//' - Normal UNC path for use with `new File(String)`
+        // 'file:////' - UNC path encoded as a URI, for use with `new File(URI)`
+        // No `file://` - that's using the "authority" instead, which `new File(URI)` doesn't support
+        hostPrefix << ['//', 'file:////']
     }
 }
