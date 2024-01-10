@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.problems.ReceivedProblem
 
 /**
  * Test class verifying the integration between the {@code JavaCompile} and the {@code Problems} service.
@@ -80,7 +81,6 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         for (def problem in collectedProblems) {
             assertProblem(problem, files, "ERROR")
         }
-        assertAllFilesVisited(files)
     }
 
     def "problem is received when a single-file warning happens"() {
@@ -98,7 +98,6 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         for (def problem in collectedProblems) {
             assertProblem(problem, files, "WARNING")
         }
-        assertAllFilesVisited(files)
     }
 
     def "problems are received when a multi-file warning happens"() {
@@ -117,7 +116,6 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         for (def problem in collectedProblems) {
             assertProblem(problem, files, "WARNING")
         }
-        assertAllFilesVisited(files)
     }
 
     def "only failures are received when a multi-file compilation failure and warning happens"() {
@@ -136,7 +134,6 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         for (def problem in collectedProblems) {
             assertProblem(problem, files, "ERROR")
         }
-        assertAllFilesVisited(files)
     }
 
     def "problems are received when two separate compilation task is executed"() {
@@ -156,7 +153,6 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         for (def problem in collectedProblems) {
             assertProblem(problem, files, "ERROR")
         }
-        assertAllFilesVisited(files)
     }
 
     def "events are received when compiler is forked"() {
@@ -174,10 +170,9 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         collectedProblems.size() == 2
-        for (def problem in collectedProblems) {
+        for (ReceivedProblem problem in collectedProblems) {
             assertProblem(problem, files, "ERROR")
         }
-        assertAllFilesVisited(files)
     }
 
     /**
@@ -192,35 +187,32 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
      *
      * @throws AssertionError if the problem does not look like how we expect it to look like
      */
-    def assertProblem(Map<String, Object> problem, List<String> possibleFiles, String severity) {
-        assert problem["severity"] == severity
+    def assertProblem(ReceivedProblem problem, List<String> possibleFiles, String severity) {
+        assert problem["severity"] == severity: "Expected severity to be ${severity}, but was ${problem["severity"]}"
 
         def locations = problem["locations"] as List<Map<String, Object>>
-        assert locations.size() == 2
+        assert locations.size() == 2: "Expected two locations, but received ${locations.size()}"
 
         def taskLocation = locations.find {
-            it["type"] == "task"
+            it.containsKey("buildTreePath")
         }
-        assert taskLocation != null
-        assert taskLocation["identityPath"]["path"] == ":compileJava"
+        assert taskLocation != null: "Expected a task location, but it was null"
+        assert taskLocation["buildTreePath"] == ":compileJava": "Expected task location to be ':compileJava', but it was ${taskLocation["buildTreePath"]}"
 
         def fileLocation = locations.find {
-            it["type"] == "file"
+            it.containsKey("path") && it.containsKey("line") && it.containsKey("column") && it.containsKey("length")
         }
-        assert fileLocation != null
-        assert fileLocation["line"] != null
-        assert fileLocation["column"] != null
-        assert fileLocation["length"] != null
+        assert fileLocation != null: "Expected a file location, but it was null"
+        assert fileLocation["line"] != null: "Expected a line number, but it was null"
+        assert fileLocation["column"] != null: "Expected a column number, but it was null"
+        assert fileLocation["length"] != null: "Expected a length, but it was null"
 
         def fileLocationPath = fileLocation["path"] as String
-        assert possibleFiles.remove(fileLocationPath)
+        assert possibleFiles.remove(fileLocationPath): "Not found file location '${fileLocationPath}' in the expected file locations: ${possibleFiles}"
 
         return true
     }
 
-    def assertAllFilesVisited(List<String> files) {
-        return true
-    }
 
     String writeJavaCausingTwoCompilationErrors(String className, String sourceSet = "main") {
         def file = file("src/${sourceSet}/java/${className}.java")
