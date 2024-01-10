@@ -15,22 +15,23 @@
 [[lazy_configuration]]
 = Configuring Tasks Lazily
 
-As a build grows in complexity, knowing when and where a particular value is configured is difficult to track. Gradle provides several ways to manage this complexity using *lazy configuration*.
+Knowing when and where a particular value is configured is difficult to track as a build grows in complexity.
+Gradle provides several ways to manage this using *lazy configuration*.
 
 [[lazy_properties]]
 == Lazy properties
 
-Gradle provides lazy properties, which delay the calculation of a property’s value until it’s actually required.
+Gradle provides lazy properties, which delay calculating a property’s value until it’s actually required.
 
 Lazy properties provide three main benefits:
 
 1. Build authors can wire together Gradle models without worrying when a particular property’s value will be known. +
-For example, you may want to set the input source files of a task based on the source directories property of an extension but the extension property value isn't known until the build script or some other plugin configures them.
-2. Build authors can wire an output property of a task into an input property of some other task and Gradle automatically determines the task dependencies based on this connection. +
+For example, you may want to set the input source files of a task based on the source directories property of an extension, but the extension property value isn't known until the build script or some other plugin configures them.
+2. Build authors can wire an output property of a task into an input property of some other task, and Gradle automatically determines the task dependencies based on this connection. +
 Property instances carry information about which task, if any, produces their value.
 Build authors do not need to worry about keeping task dependencies in sync with configuration changes.
-3. Build authors can avoid resource intensive work during the configuration phase, which can have a large impact on build performance. +
-For example, when a configuration value comes from parsing a file but is only used when functional tests are run, using a property instance to capture this means that the file is parsed only when the functional tests are run, but not when, for example, `clean` is run.
+3. Build authors can avoid resource-intensive work during the configuration phase, which can greatly impact build performance. +
+For example, when a configuration value comes from parsing a file but is only used when functional tests are run, using a property instance to capture this means that the file is parsed only when the functional tests are run (and not when `clean` is run, for example).
 
 Gradle represents lazy properties with two interfaces:
 
@@ -38,18 +39,18 @@ Gradle represents lazy properties with two interfaces:
 ** Properties with these types are read-only.
 ** The method link:{javadocPath}/org/gradle/api/provider/Provider.html#get--[Provider.get()] returns the current value of the property.
 ** A `Provider` can be created from another `Provider` using link:{javadocPath}/org/gradle/api/provider/Provider.html#map-org.gradle.api.Transformer-[Provider.map(Transformer)].
-** Many other types extend `Provider` and can be used where-ever a `Provider` is required.
+** Many other types extend `Provider` and can be used wherever a `Provider` is required.
 
-2. link:{javadocPath}/org/gradle/api/provider/Property.html[Property] represents a value that can be queried and also changed.
+2. link:{javadocPath}/org/gradle/api/provider/Property.html[Property] represents a value that can be queried and changed.
 ** Properties with these types are configurable.
 ** `Property` extends the `Provider` interface.
 ** The method link:{javadocPath}/org/gradle/api/provider/Property.html#set-T-[Property.set(T)] specifies a value for the property, overwriting whatever value may have been present.
-** The method link:{javadocPath}/org/gradle/api/provider/Property.html#set-org.gradle.api.provider.Provider-[Property.set(Provider)] specifies a `Provider` for the value for the property, overwriting whatever value may have been present. This allows you to wire together `Provider` and `Property` instances before the values are configured.
+** The method link:{javadocPath}/org/gradle/api/provider/Property.html#set-org.gradle.api.provider.Provider-[Property.set(Provider)] specifies a `Provider` for the value for the property, overwriting whatever value may have been present.
+This allows you to wire together `Provider` and `Property` instances before the values are configured.
 ** A `Property` can be created by the factory method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#property-java.lang.Class-[ObjectFactory.property(Class)].
 
 Lazy properties are intended to be passed around and only queried when required.
-This typically happens during the execution phase.
-For more information about the Gradle build phases, please see <<build_lifecycle.adoc#sec:build_phases,Build Lifecycle>>.
+This typically happens during the <<build_lifecycle.adoc#sec:build_phases,execution phase>>.
 
 The following demonstrates a task with a configurable `greeting` property and a read-only `message` property:
 
@@ -61,7 +62,7 @@ include::sample[dir="snippets/providers/propertyAndProvider/groovy",files="build
 <2> A configurable greeting
 <3> Read-only property calculated from the greeting
 <4> Configure the greeting
-<5> Alternative notation to calling Property.set() (incubating for Kotlin, see <<kotlin_dsl.adoc#kotdsl:assignment,Kotlin DSL Primer>>)
+<5> Alternative notation to calling Property.set()
 
 ----
 $ gradle greeting
@@ -93,9 +94,9 @@ A `Provider` can also be created by the factory method link:{groovyDslPath}/org.
 ====
 There are no specific methods to create a provider using a `groovy.lang.Closure`.
 
-When writing a plugin or build script with Groovy, you can use the `map(Transformer)` method with a closure and Groovy will take care of converting the closure to a `Transformer`.
+When writing a plugin or build script with Groovy, you can use the `map(Transformer)` method with a closure, and Groovy will convert the closure to a `Transformer`.
 
-Similarly, when writing a plugin or build script with Kotlin, the Kotlin compiler will take care of converting a Kotlin function into a `Transformer`.
+Similarly, when writing a plugin or build script with Kotlin, the Kotlin compiler will convert a Kotlin function into a `Transformer`.
 ====
 
 [[connecting_properties_together]]
@@ -103,7 +104,7 @@ Similarly, when writing a plugin or build script with Kotlin, the Kotlin compile
 
 An important feature of lazy properties is that they can be connected together so that changes to one property are automatically reflected in other properties.
 
-Here's an example where the property of a task is connected to a property of a project extension:
+Here is an example where the property of a task is connected to a property of a project extension:
 
 ====
 include::sample[dir="snippets/providers/connectProperties/kotlin",files="build.gradle.kts[]"]
@@ -136,8 +137,8 @@ In <<working_with_files.adoc#working_with_files,Working with Files>>, we introdu
 
 All of these types are also considered lazy types.
 
-There are more strongly typed models types used to represent elements of the file system:
-link:{javadocPath}/org/gradle/api/file/Directory.html[Directory] and link:{javadocPath}/org/gradle/api/file/RegularFile.html[RegularFile]. These types shouldn't be confused with the standard Java link:{javaApi}/java/io/File.html[File] type as they are used to tell Gradle, and other people, that you expect more specific values such as a directory or a non-directory, regular file.
+There are more strongly typed models used to represent elements of the file system:
+link:{javadocPath}/org/gradle/api/file/Directory.html[Directory] and link:{javadocPath}/org/gradle/api/file/RegularFile.html[RegularFile]. These types shouldn't be confused with the standard Java link:{javaApi}/java/io/File.html[File] type as they are used to tell Gradle that you expect more specific values such as a directory or a non-directory, regular file.
 
 Gradle provides two specialized `Property` subtypes for dealing with values of these types:
 link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[RegularFileProperty] and link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty]. link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] has methods to create these: link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#fileProperty--[ObjectFactory.fileProperty()] and link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#directoryProperty--[ObjectFactory.directoryProperty()].
@@ -172,12 +173,13 @@ From a `DirectoryProperty` or a `Directory`, you can create `FileCollection` ins
 
 Many builds have several tasks connected together, where one task consumes the outputs of another task as an input.
 
-To make this work, we would need to configure each task to know where to look for its inputs and place its outputs, make sure that the producing and consuming tasks are configured with the same location, and attach task dependencies between the tasks.
-This can be cumbersome and brittle if any of these values are configurable by a user or configured by multiple plugins, as task properties need to be configured in the correct order and locations and task dependencies kept in sync as values change.
+To make this work, we need to configure each task to know where to look for its inputs and where to place its outputs.
+Ensure that the producing and consuming tasks are configured with the same location and attach task dependencies between the tasks.
+This can be cumbersome and brittle if any of these values are configurable by a user or configured by multiple plugins, as task properties need to be configured in the correct order and locations, and task dependencies kept in sync as values change.
 
-The `Property` API makes this easier by keeping track of not only the value for a property but also the task that produces the value.
+The `Property` API makes this easier by keeping track of the value of a property and the task that produces the value.
 
-As an example consider the following plugin with a producer and consumer task which are wired together:
+As an example, consider the following plugin with a producer and consumer task which are wired together:
 
 ====
 include::sample[dir="snippets/providers/implicitTaskInputFileDependency/kotlin",files="build.gradle.kts[]"]
@@ -196,12 +198,12 @@ include::{snippetsPath}/providers/implicitTaskInputFileDependency/tests/implicit
 ----
 
 In the example above, the task outputs and inputs are connected before any location is defined.
-The setters can be called at any time before the task is executed and the change will automatically affect all related input and output properties.
+The setters can be called at any time before the task is executed, and the change will automatically affect all related input and output properties.
 
 Another important thing to note in this example is the absence of any explicit task dependency.
 Task outputs represented using `Providers` keep track of which task produces their value, and using them as task inputs will implicitly add the correct task dependencies.
 
-Implicit task dependencies also works for input properties that are not files:
+Implicit task dependencies also work for input properties that are not files:
 
 ====
 include::sample[dir="snippets/providers/implicitTaskInputDependency/kotlin",files="build.gradle.kts[]"]
@@ -262,7 +264,7 @@ Gradle provides a lazy link:{javadocPath}/org/gradle/api/provider/MapProperty.ht
 You can create a `MapProperty` instance using link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#mapProperty-java.lang.Class-java.lang.Class-[ObjectFactory.mapProperty(Class, Class)].
 
 Similar to other property types, a `MapProperty` has a link:{javadocPath}/org/gradle/api/provider/MapProperty.html#set-java.util.Map-[set()] method that you can use to specify the value for the property.
-There are some additional methods to allow entries with lazy values to be added to the map.
+Some additional methods allow entries with lazy values to be added to the map.
 
 ====
 include::sample[dir="snippets/providers/mapProperty/kotlin",files="build.gradle.kts[]"]
@@ -277,8 +279,9 @@ include::{snippetsPath}/providers/mapProperty/tests/mapProperty.out[]
 [[applying_conventions]]
 == Applying a convention to a property
 
-Often you want to apply some _convention_, or default value, to a property to be used if no value has been configured for the property. You can use the `convention()` method for this.
-This method accepts either a value or a `Provider` and this will be used as the value until some other value is configured.
+Often, you want to apply some _convention_, or default value to a property to be used if no value has been configured.
+You can use the `convention()` method for this.
+This method accepts either a value or a `Provider`, and this will be used as the value until some other value is configured.
 
 ====
 include::sample[dir="snippets/providers/propertyConvention/kotlin",files="build.gradle.kts[tags=conventions]"]
@@ -293,10 +296,11 @@ include::{snippetsPath}/providers/propertyConvention/tests/propertyConvention.ou
 [[unmodifiable_property]]
 == Making a property unmodifiable
 
-Most properties of a task or project are intended to be configured by plugins or build scripts and then the resulting value used to do something useful.
+Most properties of a task or project are intended to be configured by plugins or build scripts, and then the resulting value is used to do something useful.
 
-For example, a property that specifies the output directory for a compilation task may start off with a value specified by a plugin, then a build script might change the value to some custom location, then this value is used by the task when it runs.
-However, once the task starts to run, we want to prevent any further change to the property.
+For example, a property that specifies the output directory for a compilation task may start with a value specified by a plugin.
+Then a build script might change the value to some custom location, then this value is used by the task when it runs.
+However, once the task starts to run, we want to prevent further property changes.
 This way we avoid errors that result from different consumers, such as the task action, Gradle's up-to-date checks, build caching, or other tasks, using different values for the property.
 
 Lazy properties provide several methods that you can use to disallow changes to their value once the value has been configured.
@@ -306,7 +310,7 @@ The link:{javadocPath}/org/gradle/api/provider/Property.html#finalizeValue--[fin
 libVersioning.version.finalizeValue()
 ```
 
-When the value of the property comes from a `Provider`, the provider is queried for its current value and the result becomes the final value for the property.
+When the property's value comes from a `Provider`, the provider is queried for its current value, and the result becomes the final value for the property.
 This final value replaces the provider and the property no longer tracks the value of the provider.
 Calling this method also makes a property instance unmodifiable and any further attempts to change the value of the property will fail.
 Gradle automatically makes the properties of a task final when the task starts execution.
@@ -318,7 +322,8 @@ modifiedFiles.finalizeValueOnRead()
 ```
 
 In other words, this method calculates the final value lazily as required, whereas `finalizeValue()` calculates the final value eagerly.
-This method can be used when the value may be expensive to calculate or may not have been configured yet, but you also want to ensure that all consumers of the property see the same value when they query the value.
+This method can be used when the value may be expensive to calculate or may not have been configured yet.
+You also want to ensure that all consumers of the property see the same value when they query the value.
 
 [[lazy_configuration_faqs]]
 == Guidelines
@@ -344,76 +349,76 @@ To see those guidelines in action, have a look at https://github.com/gradle/grad
 Use these types for _read-only_ values:
 
 link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider]<link:{javadocPath}/org/gradle/api/file/RegularFile.html[RegularFile]>:: File on disk
-  Factories;;
-    * link:{javadocPath}/org/gradle/api/provider/Provider.html#map-org.gradle.api.Transformer-[Provider.map(Transformer)].
-    * link:{javadocPath}/org/gradle/api/provider/Provider.html#flatMap-org.gradle.api.Transformer-[Provider.flatMap(Transformer)].
-    * link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#file-java.lang.String-[DirectoryProperty.file(String)]
+Factories;;
+* link:{javadocPath}/org/gradle/api/provider/Provider.html#map-org.gradle.api.Transformer-[Provider.map(Transformer)].
+* link:{javadocPath}/org/gradle/api/provider/Provider.html#flatMap-org.gradle.api.Transformer-[Provider.flatMap(Transformer)].
+* link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#file-java.lang.String-[DirectoryProperty.file(String)]
 
 link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider]<link:{javadocPath}/org/gradle/api/file/Directory.html[Directory]>:: Directory on disk
-  Factories;;
-    * link:{javadocPath}/org/gradle/api/provider/Provider.html#map-org.gradle.api.Transformer-[Provider.map(Transformer)].
-    * link:{javadocPath}/org/gradle/api/provider/Provider.html#flatMap-org.gradle.api.Transformer-[Provider.flatMap(Transformer)].
-    * link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#dir-java.lang.String-[DirectoryProperty.dir(String)]
+Factories;;
+* link:{javadocPath}/org/gradle/api/provider/Provider.html#map-org.gradle.api.Transformer-[Provider.map(Transformer)].
+* link:{javadocPath}/org/gradle/api/provider/Provider.html#flatMap-org.gradle.api.Transformer-[Provider.flatMap(Transformer)].
+* link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#dir-java.lang.String-[DirectoryProperty.dir(String)]
 
 link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection]:: Unstructured collection of files
-  Factories;;
-    * link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(Object++[]++)]
+Factories;;
+* link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(Object++[]++)]
     * link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[ProjectLayout.files(Object++...++)]
     * link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#files-java.lang.Object++...++-[DirectoryProperty.files(Object++...++)]
 
 link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree]:: Hierarchy of files
-  Factories;;
-    * link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree(Object)] will produce a link:{javadocPath}/org/gradle/api/file/ConfigurableFileTree.html[ConfigurableFileTree], or you can use link:{javadocPath}/org/gradle/api/Project.html#zipTree-java.lang.Object-[Project.zipTree(Object)] and link:{javadocPath}/org/gradle/api/Project.html#tarTree-java.lang.Object-[Project.tarTree(Object)]
-    * link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#getAsFileTree--[DirectoryProperty.getAsFileTree()]
+Factories;;
+* link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree(Object)] will produce a link:{javadocPath}/org/gradle/api/file/ConfigurableFileTree.html[ConfigurableFileTree], or you can use link:{javadocPath}/org/gradle/api/Project.html#zipTree-java.lang.Object-[Project.zipTree(Object)] and link:{javadocPath}/org/gradle/api/Project.html#tarTree-java.lang.Object-[Project.tarTree(Object)]
+* link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#getAsFileTree--[DirectoryProperty.getAsFileTree()]
 
 == Property Files API Reference
 
 Use these types for _mutable_ values:
 
 link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[RegularFileProperty]:: File on disk
-  Factories;;
-    * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#fileProperty--[ObjectFactory.fileProperty()]
+Factories;;
+* link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#fileProperty--[ObjectFactory.fileProperty()]
 
 link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty]:: Directory on disk
-  Factories;;
-    * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#directoryProperty--[ObjectFactory.directoryProperty()]
+Factories;;
+* link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#directoryProperty--[ObjectFactory.directoryProperty()]
 
 link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[ConfigurableFileCollection]:: Unstructured collection of files
-  Factories;;
-    * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#fileCollection--[ObjectFactory.fileCollection()]
+Factories;;
+* link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#fileCollection--[ObjectFactory.fileCollection()]
 
 link:{javadocPath}/org/gradle/api/file/ConfigurableFileTree.html[ConfigurableFileTree]:: Hierarchy of files
-  Factories;;
-    * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#fileTree--[ObjectFactory.fileTree()]
+Factories;;
+* link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#fileTree--[ObjectFactory.fileTree()]
 
 link:{javadocPath}/org/gradle/api/file/SourceDirectorySet.html[SourceDirectorySet]:: Hierarchy of source directories
-  Factories;;
-    * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#sourceDirectorySet-java.lang.String-java.lang.String-[ObjectFactory.sourceDirectorySet(String, String)]
+Factories;;
+* link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#sourceDirectorySet-java.lang.String-java.lang.String-[ObjectFactory.sourceDirectorySet(String, String)]
 
 == Lazy Collections API Reference
 
 Use these types for _mutable_ values:
 
 link:{javadocPath}/org/gradle/api/provider/ListProperty.html[ListProperty<T>]:: a property whose value is `List<T>`
-  Factories;;
-    * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#listProperty-java.lang.Class-[ObjectFactory.listProperty(Class)]
+Factories;;
+* link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#listProperty-java.lang.Class-[ObjectFactory.listProperty(Class)]
 
 link:{javadocPath}/org/gradle/api/provider/SetProperty.html[SetProperty<T>]:: a property whose value is `Set<T>`
-  Factories;;
-    * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#setProperty-java.lang.Class-[ObjectFactory.setProperty(Class)]
+Factories;;
+* link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#setProperty-java.lang.Class-[ObjectFactory.setProperty(Class)]
 
 == Lazy Objects API Reference
 
 Use these types for _read only_ values:
 
 link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider<T>]:: a property whose value is an instance of `T`
-  Factories;;
-    * link:{javadocPath}/org/gradle/api/provider/Provider.html#map-org.gradle.api.Transformer-[Provider.map(Transformer)].
-    * link:{javadocPath}/org/gradle/api/provider/Provider.html#flatMap-org.gradle.api.Transformer-[Provider.flatMap(Transformer)].
-    * link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:provider(java.util.concurrent.Callable)[ProviderFactory.provider(Callable)]. Always prefer one of the other factory methods over this method.
+Factories;;
+* link:{javadocPath}/org/gradle/api/provider/Provider.html#map-org.gradle.api.Transformer-[Provider.map(Transformer)].
+* link:{javadocPath}/org/gradle/api/provider/Provider.html#flatMap-org.gradle.api.Transformer-[Provider.flatMap(Transformer)].
+* link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:provider(java.util.concurrent.Callable)[ProviderFactory.provider(Callable)]. Always prefer one of the other factory methods over this method.
 
 Use these types for _mutable_ values:
 
 link:{javadocPath}/org/gradle/api/provider/Property.html[Property<T>]:: a property whose value is an instance of `T`
-  Factories;;
-    * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#property-java.lang.Class-[ObjectFactory.property(Class)]
+Factories;;
+* link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#property-java.lang.Class-[ObjectFactory.property(Class)]
