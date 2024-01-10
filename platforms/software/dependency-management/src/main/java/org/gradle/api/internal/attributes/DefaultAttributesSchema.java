@@ -17,10 +17,13 @@
 package org.gradle.api.internal.attributes;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.internal.Cast;
+import org.gradle.internal.component.AbstractVariantSelectionException;
+import org.gradle.internal.component.FailureDescriber;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeSelectionSchema;
 import org.gradle.internal.component.model.AttributeSelectionUtils;
@@ -53,6 +56,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     private final HashMap<AttributesSchemaInternal, AttributeMatcher> matcherCache = new HashMap<>();
     private final List<AttributeDescriber> consumerAttributeDescribers = new ArrayList<>();
     private final Set<Attribute<?>> precedence = new LinkedHashSet<>();
+    private final List<FailureDescriber<? extends AbstractVariantSelectionException>> failureDescribers = new ArrayList<>();
 
     public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
         this.instantiatorFactory = instantiatorFactory;
@@ -160,6 +164,16 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     @Override
     public Attribute<?> getAttributeByName(String name) {
         return attributesByName.get(name);
+    }
+
+    @Override
+    public ImmutableList<FailureDescriber<? extends AbstractVariantSelectionException>> getFailureDescribers() {
+        return ImmutableList.copyOf(failureDescribers);
+    }
+
+    @Override
+    public void addFailureDescriber(FailureDescriber<? extends AbstractVariantSelectionException> describer) {
+        failureDescribers.add(describer);
     }
 
     // TODO: Move this out into its own class so it can be unit tested directly.

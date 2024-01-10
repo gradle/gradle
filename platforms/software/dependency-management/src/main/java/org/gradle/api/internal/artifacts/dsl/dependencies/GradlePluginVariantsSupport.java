@@ -19,18 +19,21 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.util.GradleVersion;
 
 public class GradlePluginVariantsSupport {
 
-    public static void configureSchema(AttributesSchema attributesSchema) {
+    public static void configureSchema(AttributesSchemaInternal attributesSchema, DocumentationRegistry documentationRegistry) {
         AttributeMatchingStrategy<GradlePluginApiVersion> strategy = attributesSchema.attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
         strategy.getCompatibilityRules().add(TargetGradleVersionCompatibilityRule.class);
         strategy.getDisambiguationRules().add(TargetGradleVersionDisambiguationRule.class);
+
+        attributesSchema.addFailureDescriber(new GradlePluginVariantsFailureDescriber(documentationRegistry));
     }
 
     public static class TargetGradleVersionCompatibilityRule implements AttributeCompatibilityRule<GradlePluginApiVersion> {
