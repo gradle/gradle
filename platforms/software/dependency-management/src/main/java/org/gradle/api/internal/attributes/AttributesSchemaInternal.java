@@ -16,7 +16,10 @@
 
 package org.gradle.api.internal.attributes;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.internal.component.AbstractVariantSelectionException;
+import org.gradle.internal.component.FailureDescriber;
 import org.gradle.internal.component.model.AttributeMatcher;
 
 import javax.annotation.Nullable;
@@ -38,4 +41,7 @@ public interface AttributesSchemaInternal extends AttributesSchemaWithDescribers
 
     @Nullable
     Attribute<?> getAttributeByName(String name);
+
+    ImmutableList<FailureDescriber<? extends AbstractVariantSelectionException>> getFailureDescribers();
+    void addFailureDescriber(FailureDescriber<? extends AbstractVariantSelectionException> describer);
 }

@@ -16,9 +16,12 @@
 
 package org.gradle.api.internal.attributes;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
+import org.gradle.internal.component.AbstractVariantSelectionException;
+import org.gradle.internal.component.FailureDescriber;
 import org.gradle.internal.component.model.AttributeMatcher;
 
 import javax.annotation.Nullable;
@@ -109,6 +112,16 @@ public class EmptySchema implements AttributesSchemaInternal {
     @Override
     public Attribute<?> getAttributeByName(String name) {
         return null;
+    }
+
+    @Override
+    public void addFailureDescriber(FailureDescriber<? extends AbstractVariantSelectionException> describer) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ImmutableList<FailureDescriber<? extends AbstractVariantSelectionException>> getFailureDescribers() {
+        return ImmutableList.of();
     }
 
     private static class DoNothingCompatibilityRule implements CompatibilityRule<Object> {
