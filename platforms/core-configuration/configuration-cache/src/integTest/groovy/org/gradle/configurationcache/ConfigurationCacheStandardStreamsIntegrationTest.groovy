@@ -94,7 +94,7 @@ class ConfigurationCacheStandardStreamsIntegrationTest extends AbstractConfigura
         problems.assertFailureHasProblems(failure) {
             totalProblemsCount = 1
             withProblem("Task `:run` of type `org.gradle.api.tasks.${task.capitalize()}`: cannot serialize object of type '$targetStreamType', a subtype of 'java.io.OutputStream', " +
-                "as these are not supported with the configuration cache.")
+                "as these are not supported with the configuration cache. Only 'System.out' or 'System.err' can be used there.")
             problemsWithStackTraceCount = 0
         }
 
@@ -126,7 +126,7 @@ class ConfigurationCacheStandardStreamsIntegrationTest extends AbstractConfigura
         problems.assertFailureHasProblems(failure) {
             totalProblemsCount = 1
             withProblem("Task `:run` of type `org.gradle.api.tasks.${task.capitalize()}`: cannot serialize object of type '$sourceStreamType', a subtype of 'java.io.InputStream', " +
-                "as these are not supported with the configuration cache.")
+                "as these are not supported with the configuration cache. Only 'System.in' can be used there.")
             problemsWithStackTraceCount = 0
         }
 

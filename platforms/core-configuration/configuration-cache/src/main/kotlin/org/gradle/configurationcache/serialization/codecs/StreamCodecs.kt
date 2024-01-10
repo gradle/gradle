@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import org.gradle.configurationcache.problems.StructuredMessageBuilder
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
@@ -35,7 +36,7 @@ enum class StreamReference {
 object InputStreamCodec : Codec<InputStream> {
     override suspend fun WriteContext.encode(value: InputStream) {
         if (value !== System.`in`) {
-            logUnsupported("serialize", InputStream::class, value.javaClass)
+            logUnsupported("serialize", InputStream::class, value.javaClass, appendix = supportedStreamsInfo())
             writeEnum(StreamReference.UNSUPPORTED)
             return
         }
@@ -46,8 +47,15 @@ object InputStreamCodec : Codec<InputStream> {
         if (readEnum<StreamReference>() == StreamReference.IN) {
             return System.`in`
         }
-        logUnsupported("deserialize", InputStream::class)
+        logUnsupported("deserialize", InputStream::class, appendix = supportedStreamsInfo())
         return null
+    }
+
+    private
+    fun supportedStreamsInfo(): StructuredMessageBuilder = {
+        text(" Only ")
+        reference("System.in")
+        text(" can be used there.")
     }
 }
 
@@ -58,7 +66,7 @@ object OutputStreamCodec : Codec<OutputStream> {
             value === System.out -> writeEnum(StreamReference.OUT)
             value === System.err -> writeEnum(StreamReference.ERR)
             else -> {
-                logUnsupported("serialize", OutputStream::class, value.javaClass)
+                logUnsupported("serialize", OutputStream::class, value.javaClass, appendix = supportedStreamsInfo())
                 writeEnum(StreamReference.UNSUPPORTED)
             }
         }
@@ -69,9 +77,20 @@ object OutputStreamCodec : Codec<OutputStream> {
             StreamReference.OUT -> System.out
             StreamReference.ERR -> System.err
             else -> {
-                logUnsupported("deserialize", OutputStream::class)
+                logUnsupported("deserialize", OutputStream::class, appendix = supportedStreamsInfo())
                 null
             }
+        }
+    }
+
+    private
+    fun supportedStreamsInfo(): StructuredMessageBuilder {
+        return {
+            text(" Only ")
+            reference("System.out")
+            text(" or ")
+            reference("System.err")
+            text(" can be used there.")
         }
     }
 }
