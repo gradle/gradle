@@ -24,7 +24,6 @@ import org.gradle.internal.hash.HashCode;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
@@ -220,12 +219,12 @@ public class BaseSerializerFactory {
     private static class ShortSerializer extends AbstractSerializer<Short> {
         @Override
         public Short read(Decoder decoder) throws Exception {
-            return (short) decoder.readInt();
+            return decoder.readShort();
         }
 
         @Override
         public void write(Encoder encoder, Short value) throws Exception {
-            encoder.writeInt(value);
+            encoder.writeShort(value);
         }
     }
 
@@ -256,30 +255,24 @@ public class BaseSerializerFactory {
     private static class FloatSerializer extends AbstractSerializer<Float> {
         @Override
         public Float read(Decoder decoder) throws Exception {
-            byte[] bytes = new byte[4];
-            decoder.readBytes(bytes);
-            return ByteBuffer.wrap(bytes).getFloat();
+            return decoder.readFloat();
         }
 
         @Override
         public void write(Encoder encoder, Float value) throws Exception {
-            byte[] b = ByteBuffer.allocate(4).putFloat(value).array();
-            encoder.writeBytes(b);
+            encoder.writeFloat(value);
         }
     }
 
     private static class DoubleSerializer extends AbstractSerializer<Double> {
         @Override
         public Double read(Decoder decoder) throws Exception {
-            byte[] bytes = new byte[8];
-            decoder.readBytes(bytes);
-            return ByteBuffer.wrap(bytes).getDouble();
+            return decoder.readDouble();
         }
 
         @Override
         public void write(Encoder encoder, Double value) throws Exception {
-            byte[] b = ByteBuffer.allocate(8).putDouble(value).array();
-            encoder.writeBytes(b);
+            encoder.writeDouble(value);
         }
     }
 
