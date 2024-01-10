@@ -25,18 +25,21 @@ import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
 import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A utility class used by {@link ResolutionFailureHandler} to assess and classify
  * how the attributes of candidate variants during a single attempt at dependency resolution
  * align with the requested attributes.
  */
-/* package */ final class ResolutionCandidateAssessor {
+public final class ResolutionCandidateAssessor {
     private final ImmutableAttributes requestedAttributes;
     private final AttributeMatcher attributeMatcher;
 
@@ -47,6 +50,12 @@ import java.util.Set;
 
     public ImmutableAttributes getRequestedAttributes() {
         return requestedAttributes;
+    }
+
+    public List<AssessedCandidate> assessCandidates(List<? extends VariantGraphResolveMetadata> variantMetadatas) {
+        return variantMetadatas.stream()
+            .map(variantMetadata -> assessCandidate(variantMetadata.getName(), variantMetadata.getAttributes()))
+            .collect(Collectors.toList());
     }
 
     public AssessedCandidate assessCandidate(

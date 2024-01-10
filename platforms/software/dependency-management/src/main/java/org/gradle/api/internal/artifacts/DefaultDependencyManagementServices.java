@@ -221,10 +221,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(DefaultVariantSelectorFactory.class);
         }
 
-        AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, PlatformSupport platformSupport) {
+        AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, PlatformSupport platformSupport, DocumentationRegistry documentationRegistry) {
             DefaultAttributesSchema attributesSchema = instantiatorFactory.decorateLenient().newInstance(DefaultAttributesSchema.class, instantiatorFactory, isolatableFactory);
             platformSupport.configureSchema(attributesSchema);
-            GradlePluginVariantsSupport.configureSchema(attributesSchema);
+            GradlePluginVariantsSupport.configureSchema(attributesSchema, documentationRegistry);
             return attributesSchema;
         }
 

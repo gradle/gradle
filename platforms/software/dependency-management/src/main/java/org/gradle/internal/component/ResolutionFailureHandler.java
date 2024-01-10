@@ -57,6 +57,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -318,7 +319,7 @@ public class ResolutionFailureHandler {
         return e;
     }
 
-    public NoMatchingGraphVariantsException noMatchingGraphVariantFailure(
+    public AbstractVariantSelectionException noMatchingGraphVariantFailure(
         AttributesSchemaInternal schema,
         AttributeMatcher matcher,
         AttributeContainerInternal requestedAttributes,
@@ -326,6 +327,21 @@ public class ResolutionFailureHandler {
         GraphSelectionCandidates candidates
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
+        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessCandidates(extractVariants(candidates));
+
+        return attemptDescribeSpecificFailure(schema, targetComponent.getId().getDisplayName(), requestedAttributes, assessedCandidates)
+            .orElseGet(() -> describeDefaultNoMatchingGraphVariantFailure(schema, requestedAttributes, targetComponent, candidates, resolutionCandidateAssessor));
+    }
+
+    private Optional<AbstractVariantSelectionException> attemptDescribeSpecificFailure(AttributesSchemaInternal schema, String requesterName, AttributeContainer requestedAttributes, List<AssessedCandidate> candidates) {
+        return schema.getFailureDescribers().stream()
+            .filter(d -> d.canDescribeFailure(requestedAttributes, candidates))
+            .findFirst()
+            .map(describer -> describer.describeFailure(requesterName, requestedAttributes, candidates));
+    }
+
+    // TODO: we can probably make all these default descriptions into FailureDescribers, too, that are implicitly always present in a schema (added to the end of the list of describers we iterate)
+    private NoMatchingGraphVariantsException describeDefaultNoMatchingGraphVariantFailure(AttributesSchemaInternal schema, AttributeContainerInternal requestedAttributes, ComponentGraphResolveMetadata targetComponent, GraphSelectionCandidates candidates, ResolutionCandidateAssessor resolutionCandidateAssessor) {
         AttributeDescriber describer = DescriberSelector.selectDescriber(requestedAttributes, schema);
         String message = buildNoMatchingGraphVariantSelectionFailureMsg(resolutionCandidateAssessor, new StyledDescriber(describer), targetComponent, candidates);
         NoMatchingGraphVariantsException e = new NoMatchingGraphVariantsException(message);
