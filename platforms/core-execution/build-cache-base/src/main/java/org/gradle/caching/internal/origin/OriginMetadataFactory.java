@@ -72,6 +72,7 @@ public class OriginMetadataFactory {
             properties.load(inputStream);
 
             String originBuildInvocationId = properties.getProperty(BUILD_INVOCATION_ID_KEY);
+            String originWorkIdentity = properties.getProperty(IDENTITY_KEY);
             String executionTimeAsString = properties.getProperty(EXECUTION_TIME_KEY);
 
             if (originBuildInvocationId == null || executionTimeAsString == null) {
@@ -79,7 +80,7 @@ public class OriginMetadataFactory {
             }
 
             Duration originalExecutionTime = Duration.ofMillis(Long.parseLong(executionTimeAsString));
-            return new OriginMetadata(originBuildInvocationId, originalExecutionTime);
+            return new OriginMetadata(originBuildInvocationId, originWorkIdentity, originalExecutionTime);
         };
     }
 

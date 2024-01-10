@@ -57,6 +57,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
     public PreviousExecutionState read(Decoder decoder) throws Exception {
         OriginMetadata originMetadata = new OriginMetadata(
             decoder.readString(),
+            decoder.readString(),
             Duration.ofMillis(decoder.readLong())
         );
 
@@ -92,6 +93,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
     public void write(Encoder encoder, PreviousExecutionState execution) throws Exception {
         OriginMetadata originMetadata = execution.getOriginMetadata();
         encoder.writeString(originMetadata.getBuildInvocationId());
+        encoder.writeString(originMetadata.getOriginWorkIdentity());
         encoder.writeLong(originMetadata.getExecutionTime().toMillis());
 
         implementationSnapshotSerializer.write(encoder, execution.getImplementation());
