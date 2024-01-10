@@ -80,8 +80,10 @@ assert f == project.layout.projectDirectory.dir("testdir").asFile
 
     def "produces deprecation warning for invalid URLs"() {
         buildFile """
-def f = file("file:///home/user/test%%20dir")
-assert f == new File("/home/user/test% dir")
+def originalFile = layout.projectDirectory.dir("test% dir").asFile
+def fileURI = layout.projectDirectory.dir("test% dir").asFile.toURI().toString().replaceFirst("%25", "%")
+def f = file(fileURI)
+assert f == originalFile
 """
 
         expect:
@@ -91,8 +93,10 @@ assert f == new File("/home/user/test% dir")
 
     def "produces no deprecation warning for valid URLs"() {
         buildFile """
-def f = file("file:///home/user/test%25%20dir")
-assert f == new File("/home/user/test% dir")
+def originalFile = layout.projectDirectory.dir("test% dir").asFile
+def fileURI = layout.projectDirectory.dir("test% dir").asFile.toURI().toString()
+def f = file(fileURI)
+assert f == originalFile
 """
 
         expect:
