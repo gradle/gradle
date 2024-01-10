@@ -1,8 +1,8 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features support for [custom encryption keys](#encryption-key) for the [configuration cache](#configuration-cache) as well as more helpful [error and warning messages](#error-improvements).
+This release features support for [custom encryption keys](#encryption-key) for the [configuration cache](#configuration-cache), several improvements to [build init](#build-init), and updated [build authoring](#build-authors) APIs.
 
-Additionally, this release comes with several improvements to [build init](#build-init) and to [build authoring](#build-authors) for build engineers and plugin authors.
+Additionally, this release provides more helpful [error and warning messages](#error-improvements) and a new API for [IDE integrators](#ide-integration).
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Baptiste Decroix](https://github.com/bdecroix-spiria),
@@ -116,15 +116,19 @@ The [task configuration avoidance API](userguide/task_configuration_avoidance.ht
 Previously, filtering tasks by name required using the `matching` method using the following pattern:
 
 ```
-tasks.matching { it.name.contains("pack") }
+tasks.matching { it.name.contains("pack") }.configureEach {
+    // configure details of all '*pack*' tasks that are part of the task graph
+}
 ```
 
-The problem was that it triggered the creation of the tasks, even when the task was not part of the build execution.
+The problem was that calling `matching` triggered the creation of _all_ tasks, even when the task was not part of the build execution.
 
 Starting from this release, you can use:
 
 ```
-tasks.named { it.contains("pack") }
+tasks.named { it.contains("pack") }.configureEach {
+    // lazily configure details of all '*pack*' tasks that are part of the task graph
+}
 ```
 
 Using `named` will not cause the registered tasks to be eagerly created.
