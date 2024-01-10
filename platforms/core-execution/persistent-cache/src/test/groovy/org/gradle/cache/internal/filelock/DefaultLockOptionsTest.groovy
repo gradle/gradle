@@ -21,12 +21,12 @@ import spock.lang.Specification
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive
 import static org.gradle.cache.FileLockManager.LockMode.Shared
 
-class LockOptionsBuilderTest extends Specification {
+class DefaultLockOptionsTest extends Specification {
     def "can make copy of options"() {
-        def builder = LockOptionsBuilder.mode(Exclusive).useCrossVersionImplementation()
+        def builder = DefaultLockOptions.mode(Exclusive).useCrossVersionImplementation()
 
         when:
-        def copy = builder.withMode(Shared)
+        def copy = builder.copyWithMode(Shared)
 
         then:
         !copy.is(builder)

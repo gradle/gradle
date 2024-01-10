@@ -24,7 +24,7 @@ import java.io.File;
  * Represents a directory that can be used for caching.
  *
  * <p>By default, a shared lock is held on this cache by this process, to prevent it being removed or rebuilt by another process
- * while it is in use. You can change this use {@link CacheBuilder#withLockOptions(LockOptions)}.
+ * while it is in use. You can change this use {@link CacheBuilder#withInitialLockMode(org.gradle.cache.FileLockManager.LockMode)}.
  *
  * <p>You can use {@link CacheBuilder#withInitializer(org.gradle.api.Action)} to provide an action to initialize the contents
  * of the cache, for building a read-only cache. An exclusive lock is held by this process while the initializer is running.</p>

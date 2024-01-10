@@ -17,7 +17,6 @@
 package org.gradle.cache.scopes;
 
 import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.UnscopedCacheBuilderFactory;
 
 import java.io.File;
 
@@ -26,16 +25,24 @@ import java.io.File;
  */
 public interface ScopedCacheBuilderFactory {
     /**
-     * Creates a builder for Gradle-version specific caches in this scope. See {@link UnscopedCacheBuilderFactory#cache(String)}.
+     * Creates a builder for a Gradle version-specific cache with the given key in this scope.
      *
-     * @param key A unique name for the cache.
+     * <p>By default a cache is opened with a shared lock, so that it can be accessed by multiple processes. It is the caller's responsibility
+     * to coordinate access to the cache. The initial lock level can be changed using the provided builder </p>
+     *
+     * @param key The cache key. This is a unique identifier within the cache scope.
+     * @return The builder.
      */
     CacheBuilder createCacheBuilder(String key);
 
     /**
-     * Creates a builder for cross Gradle version caches in this scope. See {@link UnscopedCacheBuilderFactory#cache(String)}.
+     * Creates a builder for cross Gradle version caches with the given key in this scope.
+     *
+     * <p>By default a cache is opened with a shared lock, so that it can be accessed by multiple processes. It is the caller's responsibility
+     * to coordinate access to the cache. The initial lock level can be changed using the provided builder </p>
      *
      * @param key A unique name for the cache.
+     * @see #createCacheBuilder(String)
      */
     CacheBuilder createCrossVersionCacheBuilder(String key);
 

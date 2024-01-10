@@ -20,15 +20,16 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.utils.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.DefaultFilePermissions;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
-import org.gradle.cache.internal.DecompressionCache;
+import org.gradle.cache.internal.DecompressionCoordinator;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
@@ -42,6 +43,8 @@ import java.io.InputStream;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.lang.String.format;
+
 public class TarFileTree extends AbstractArchiveFileTree {
     private static final String TAR_ENTRY_PREFIX = "tar entry";
 
@@ -50,20 +53,24 @@ public class TarFileTree extends AbstractArchiveFileTree {
     private final Chmod chmod;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileHasher fileHasher;
+    private final TemporaryFileProvider temporaryExtractionDir;
 
     public TarFileTree(
-            Provider<File> tarFileProvider,
-            Provider<ReadableResourceInternal> resource,
-            Chmod chmod,
-            DirectoryFileTreeFactory directoryFileTreeFactory,
-            FileHasher fileHasher,
-            DecompressionCache decompressionCache) {
-        super(decompressionCache);
+        Provider<File> tarFileProvider,
+        Provider<ReadableResourceInternal> resource,
+        Chmod chmod,
+        DirectoryFileTreeFactory directoryFileTreeFactory,
+        FileHasher fileHasher,
+        DecompressionCoordinator decompressionCoordinator,
+        TemporaryFileProvider temporaryExtractionDir
+        ) {
+        super(decompressionCoordinator);
         this.tarFileProvider = tarFileProvider;
         this.resource = resource;
         this.chmod = chmod;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.fileHasher = fileHasher;
+        this.temporaryExtractionDir = temporaryExtractionDir;
     }
 
     @Override
@@ -78,7 +85,16 @@ public class TarFileTree extends AbstractArchiveFileTree {
 
     @Override
     public void visit(FileVisitor visitor) {
-        decompressionCache.useCache(() -> {
+        File archiveFile = tarFileProvider.get();
+        if (!archiveFile.exists()) {
+            throw new InvalidUserDataException(format("Cannot expand %s as it does not exist.", getDisplayName()));
+        }
+        if (!archiveFile.isFile()) {
+            throw new InvalidUserDataException(format("Cannot expand %s as it is not a file.", getDisplayName()));
+        }
+
+        File expandedDir = getExpandedDir();
+        decompressionCoordinator.exclusiveAccessTo(expandedDir, () -> {
             InputStream inputStream;
             try {
                 inputStream = new BufferedInputStream(resource.get().read());
@@ -89,7 +105,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
             try {
                 try {
                     Objects.requireNonNull(visitor);
-                    visitImpl(visitor, inputStream);
+                    visitImpl(visitor, expandedDir, inputStream);
                 } finally {
                     inputStream.close();
                 }
@@ -105,12 +121,11 @@ public class TarFileTree extends AbstractArchiveFileTree {
         });
     }
 
-    private void visitImpl(FileVisitor visitor, InputStream inputStream) throws IOException {
+    private void visitImpl(FileVisitor visitor, File expandedDir, InputStream inputStream) throws IOException {
         checkFormat(inputStream);
 
         AtomicBoolean stopFlag = new AtomicBoolean();
         DetailsImpl.NoCloseTarArchiveInputStream tar = new DetailsImpl.NoCloseTarArchiveInputStream(inputStream);
-        File expandedDir = getExpandedDir();
         ReadableResourceInternal resource = this.resource.get();
         TarArchiveEntry entry;
         while (!stopFlag.get() && (entry = (TarArchiveEntry) tar.getNextEntry()) != null) {
@@ -131,7 +146,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
         File tarFile = tarFileProvider.get();
         HashCode fileHash = hashFile(tarFile);
         String expandedDirName = "tar_" + fileHash;
-        return new File(decompressionCache.getBaseDir(), expandedDirName);
+        return temporaryExtractionDir.newTemporaryDirectory(".cache", "expanded", expandedDirName);
     }
 
     private HashCode hashFile(File tarFile) {

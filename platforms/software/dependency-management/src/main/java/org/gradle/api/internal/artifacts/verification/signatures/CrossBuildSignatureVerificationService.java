@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.verification.signatures.CrossBuildCachingKeyService.MISSING_KEY_TIMEOUT;
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class CrossBuildSignatureVerificationService implements SignatureVerificationService {
     private final SignatureVerificationService delegate;
@@ -69,7 +68,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         this.keyringFileHash = keyringFileHash;
         store = cacheBuilderFactory.createCacheBuilder("signature-verification")
             .withDisplayName("Signature verification cache")
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
+            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
             .open();
         InterningStringSerializer stringSerializer = new InterningStringSerializer(new StringInterner());
         cache = store.createIndexedCache(
