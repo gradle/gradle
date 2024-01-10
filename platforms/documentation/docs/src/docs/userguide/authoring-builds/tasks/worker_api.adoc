@@ -15,18 +15,18 @@
 [[tasks_parallel_worker]]
 = Developing Parallel Tasks
 
-Gradle provides an API that can split up tasks into sections which can be executed in parallel.
+Gradle provides an API that can split tasks into sections that can be executed in parallel.
 This allows Gradle to fully utilize the resources available and complete builds faster.
 
 == The Worker API
-The Worker API provides the ability to break up the execution of a task action into discrete units of work and then to execute that work concurrently and asynchronously.
+The Worker API provides the ability to break up the execution of a task action into discrete units of work and then execute that work concurrently and asynchronously.
 
 == Worker API example
 The best way to understand how to use the API is to go through the process of converting an existing custom task to use the Worker API:
 
 1. You'll start by creating a custom task class that generates MD5 hashes for a configurable set of files.
 2. Then, you'll convert this custom task to use the Worker API.
-3. Then we'll explore running the task with different levels of isolation.
+3. Then, we'll explore running the task with different levels of isolation.
 
 In the process, you'll learn about the basics of the Worker API and the capabilities it provides.
 
@@ -51,7 +51,7 @@ You should name this class `CreateMD5`:
 include::{snippetsPath}/workerApi/md5CustomTask/groovy/buildSrc/src/main/java/CreateMD5.java[]
 ----
 <1> link:{javadocPath}/org/gradle/api/tasks/SourceTask.html[SourceTask] is a convenience type for tasks that operate on a set of source files.
-<2> The output of the task will go into a configured directory.
+<2> The task output will go into a configured directory.
 <3> The task iterates over all the files defined as "source files" and creates an MD5 hash of each.
 <4> Insert an artificial sleep to simulate hashing a large file (the sample files won't be that large).
 <5> The MD5 hash of each file is written to the output directory into a file of the same name with an "md5" extension.
@@ -102,7 +102,7 @@ include::{snippetsPath}/workerApi/md5CustomTask/tests/md5Task1.out[]
 ----
 
 In the `build/md5` directory, you should now see corresponding files with an `md5` extension containing MD5 hashes of the files from the `src` directory.
-Notice that the task takes at least 9 seconds to run because it hashes each file one at a time (i.e. 3 files at ~3 seconds a piece).
+Notice that the task takes at least 9 seconds to run because it hashes each file one at a time (i.e., three files at ~3 seconds apiece).
 
 [[converting_to_worker_api]]
 === Step 2. Convert to the Worker API
@@ -146,11 +146,11 @@ link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] instea
 include::{snippetsPath}/workerApi/md5NoIsolation/groovy/buildSrc/src/main/java/CreateMD5.java[]
 ----
 <1> The link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] service is required in order to submit your work.
-    Create an abstract getter methods annotated `javax.inject.Inject` and Gradle will inject the service at runtime when the task is created.
-<2> Before submitting work, you need to get a `WorkQueue` object with the desired isolation mode (described below).
+Create an abstract getter method annotated `javax.inject.Inject`, and Gradle will inject the service at runtime when the task is created.
+<2> Before submitting work, get a `WorkQueue` object with the desired isolation mode (described below).
 <3> When submitting the unit of work, specify the unit of work implementation, in this case `GenerateMD5`, and configure its parameters.
 
-At this point, you should be able to run your task again:
+At this point, you should be able to rerun your task:
 
 [listing]
 ----
@@ -159,13 +159,13 @@ $ gradle clean md5
 include::{snippetsPath}/workerApi/md5NoIsolation/tests/md5Task1.out[]
 ----
 
-The results should look the same as before, although the MD5 hash files may be generated in a different order due to the fact that the units of work are executed in parallel.
+The results should look the same as before, although the MD5 hash files may be generated in a different order since the units of work are executed in parallel.
 This time, however, the task runs much faster.
 This is because the Worker API executes the MD5 calculation for each file in parallel rather than in sequence.
 
 === Step 3. Change the isolation mode
 
-The isolation mode controls how strongly Gradle will isolate items of work from each other as well as from the rest of the Gradle runtime.
+The isolation mode controls how strongly Gradle will isolate items of work from each other and the rest of the Gradle runtime.
 
 There are three methods on `WorkerExecutor` that control this:
 
@@ -174,10 +174,10 @@ There are three methods on `WorkerExecutor` that control this:
 3. `processIsolation()`
 
 The `noIsolation()` mode is the lowest level of isolation and will prevent a unit of work from changing the project state.
-This is the fastest isolation mode because it requires the least overhead to set up the work item to execute.
+This is the fastest isolation mode because it requires the least overhead to set up and execute the work item.
 However, it will use a single shared classloader for all units of work.
-This means that each unit of work can potentially affect one another through static class state.
-It also means that every unit of work uses the same version of libraries that are on the buildscript classpath.
+This means that each unit of work can affect one another through static class state.
+It also means that every unit of work uses the same version of libraries on the buildscript classpath.
 If you wanted the user to be able to configure the task to run with a different (but compatible) version of the
 link:https://commons.apache.org/proper/commons-codec/[Apache Commons Codec] library, you would need to use a different isolation mode.
 
@@ -214,7 +214,7 @@ include::sample[dir="snippets/workerApi/md5ClassloaderIsolation/groovy",files="b
 <2> Add a _configuration_ to resolve our codec library version.
 <3> Configure an alternate, compatible version of https://commons.apache.org/proper/commons-codec/[Apache Commons Codec].
 <4> Configure the `md5` task to use the configuration as its classpath.
-    Note that the configuration will not be resolved until the task is actually executed.
+Note that the configuration will not be resolved until the task is executed.
 
 Now, if you run your task, it should work as expected using the configured version of the codec library:
 
@@ -227,13 +227,13 @@ include::{snippetsPath}/workerApi/md5ClassloaderIsolation/tests/md5Task1.out[]
 
 === Step 4. Create a Worker Daemon
 
-Sometimes it is desirable to create even further isolation when executing items of work.
-For instance, external libraries may rely on certain system properties to be set which may conflict between work items.
+Sometimes, it is desirable to create even further isolation when executing items of work.
+For instance, external libraries may rely on certain system properties to be set, which may conflict between work items.
 Or a library might not be compatible with the version of JDK that Gradle is running with and may need to be run with a different version.
 
 The Worker API can accommodate this using the `processIsolation()` method that causes the work to execute in a separate "worker daemon".
 These worker daemon processes will persist across builds and can be reused during subsequent builds.
-If system resources get low, however, Gradle will stop any unused worker daemons.
+However, if system resources get low, Gradle will stop unused worker daemons.
 
 To utilize a worker daemon, use the `processIsolation()` method when creating the `WorkQueue`.
 You may also want to configure custom settings for the new process:
@@ -255,7 +255,7 @@ $ gradle clean md5
 include::{snippetsPath}/workerApi/md5ProcessIsolation/tests/md5Task1.out[]
 ----
 
-Note that the execution time may be somewhat high.
+Note that the execution time may be high.
 This is because Gradle has to start a new process for each worker daemon, which is expensive.
 
 However, if you run your task a second time, you will see that it runs much faster.
