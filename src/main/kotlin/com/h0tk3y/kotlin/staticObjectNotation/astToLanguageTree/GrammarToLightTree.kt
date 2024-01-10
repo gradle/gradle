@@ -102,7 +102,7 @@ class GrammarToLightTree(
             PARENTHESIZED -> parenthesized(tree, node)
             LAMBDA_EXPRESSION -> node.unsupported(FunctionDeclaration)
             THIS_EXPRESSION -> Element(This(node.data))
-            else -> error("Unexpected tokenType in expression: $tokenType")
+            else -> node.parsingError("Parsing failure, unexpected tokenType in expression: $tokenType")
         }
 
     private
@@ -125,7 +125,7 @@ class GrammarToLightTree(
             REFERENCE_EXPRESSION -> Element(PropertyAccess(null, referenceExpression(node).value, node.data))
             in QUALIFIED_ACCESS -> qualifiedExpression(tree, node) as ElementResult<PropertyAccess>
             ARRAY_ACCESS_EXPRESSION -> node.unsupported(Indexing)
-            else -> error("Unexpected tokenType in property access statement: $tokenType")
+            else -> node.parsingError("Parsing failure, unexpected tokenType in property access statement: $tokenType")
         }
 
     private
@@ -224,7 +224,7 @@ class GrammarToLightTree(
                 OPEN_QUOTE, CLOSING_QUOTE -> {}
                 LITERAL_STRING_TEMPLATE_ENTRY -> sb.append(it.asText)
                 ERROR_ELEMENT -> it.parsingError(node, "Unparsable string template: \"${node.asText}\"")
-                else -> error("Unexpected tokenType in string template: $tokenType")
+                else -> it.parsingError("Parsing failure, unexpected tokenType in string template: $tokenType")
             }
         }
         return Element(Literal.StringLiteral(sb.toString(), node.data))
@@ -271,7 +271,7 @@ class GrammarToLightTree(
             }
             BOOLEAN_CONSTANT -> return Element(Literal.BooleanLiteral(convertedText as Boolean, node.data))
             NULL -> return Element(Null(node.data))
-            else -> error("Unsupported constant type: $type")
+            else -> return node.parsingError("Parsing failure, unsupported constant type: $type")
         }
     }
 
@@ -290,14 +290,14 @@ class GrammarToLightTree(
                     VALUE_ARGUMENT_LIST, LAMBDA_ARGUMENT -> {
                         valueArguments += node
                     }
-                    else -> error("Unexpected token type in call expression: $tokenType")
+                    else -> node.parsingError("Parsing failure, unexpected token type in call expression: $tokenType")
                 }
             }
 
             process(child)
         }
 
-        if (name == null) error("Not handled!")
+        if (name == null) node.parsingError("Name missing from function call!")
 
         return elementOrFailure {
             val arguments = valueArguments.flatMap { valueArguments(tree, it) }.map { checkForFailure(it) }
@@ -318,7 +318,7 @@ class GrammarToLightTree(
                 COMMA, LPAR, RPAR -> doNothing()
                 LAMBDA_EXPRESSION -> list.add(lambda(tree, it))
                 ERROR_ELEMENT -> list.add(it.parsingError(node, "Unparsable value argument: \"${node.asText}\""))
-                else -> error("Unexpected token type in value arguments: $tokenType")
+                else -> it.parsingError("Parsing failure, unexpected token type in value arguments: $tokenType")
             }
         }
         return list
@@ -387,7 +387,7 @@ class GrammarToLightTree(
                     CALL_EXPRESSION -> expression = checkForFailure(callExpression(tree, it))
                     else ->
                         if (it.isExpression()) expression = checkForFailure(expression(tree, it))
-                        else error("Unexpected token type in value argument: $tokenType")
+                        else it.parsingError("Parsing failure, unexpected token type in value argument: $tokenType")
                 }
             }
 
