@@ -22,6 +22,5 @@ import org.gradle.internal.classpath.DefaultClassPath
 import java.io.File
 
 
-internal
 fun ClassPath.filter(predicate: (File) -> Boolean): ClassPath =
     DefaultClassPath.of(asFiles.filter(predicate))

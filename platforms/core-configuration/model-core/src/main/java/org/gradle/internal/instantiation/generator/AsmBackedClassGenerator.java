@@ -16,7 +16,6 @@
 package org.gradle.internal.instantiation.generator;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import groovy.lang.GroovySystem;
@@ -90,6 +89,7 @@ import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -528,7 +528,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final boolean managed;
         private final Type generatedType;
         private final Type superclassType;
-        private final Map<java.lang.reflect.Type, ReturnTypeEntry> genericReturnTypeConstantsIndex = Maps.newHashMap();
+        private final Map<java.lang.reflect.Type, ReturnTypeEntry> genericReturnTypeConstantsIndex = new HashMap<>();
         private final AsmClassGenerator classGenerator;
         private final int factoryId;
         private boolean hasMappingField;

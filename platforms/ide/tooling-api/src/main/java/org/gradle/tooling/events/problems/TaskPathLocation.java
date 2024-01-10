@@ -25,5 +25,11 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface TaskPathLocation extends Location {
-    String getIdentityPath();
+
+    /**
+     * Returns the path of this task within the build tree. This is a unique name for this task within the composite build.
+     *
+     * @since 8.6
+     */
+    String getBuildTreePath();
 }

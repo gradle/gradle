@@ -35,6 +35,7 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
+import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -218,8 +219,9 @@ abstract class AbstractSmokeTest extends Specification {
     @TempDir
     File testProjectDir
     File buildFile
-
     File settingsFile
+    @TempDir
+    File buildCacheDir
 
     def setup() {
         buildFile = new File(testProjectDir, defaultBuildFileName)
@@ -355,6 +357,16 @@ abstract class AbstractSmokeTest extends Specification {
             text = text.replaceAll("\\\$${var}".toString(), value)
         }
         file.text = text
+    }
+
+    protected void setupLocalBuildCache() {
+        settingsFile << """
+            buildCache {
+                local {
+                    directory = new File("${TextUtil.normaliseFileSeparators(buildCacheDir.absolutePath)}")
+                }
+            }
+        """
     }
 
     protected static String jcenterRepository(GradleDsl dsl = GROOVY) {

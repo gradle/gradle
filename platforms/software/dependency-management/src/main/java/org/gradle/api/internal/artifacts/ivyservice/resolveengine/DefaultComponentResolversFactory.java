@@ -16,6 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ComponentResolversFactory;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolveContext;
@@ -24,15 +26,20 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolver
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
+import org.gradle.api.internal.artifacts.repositories.ContentFilteringRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Default implementation of {@link ComponentResolversFactory}.
@@ -75,13 +82,18 @@ public class DefaultComponentResolversFactory implements ComponentResolversFacto
             factory.create(resolvers);
         }
         resolvers.add(projectDependencyResolver);
+
+        List<? extends ResolutionAwareRepository> filteredRepositories = repositories.stream()
+            .filter(repository -> !shouldSkipRepository(repository, resolveContext.getName(), resolveContext.getAttributes()))
+            .collect(Collectors.toList());
+
         resolvers.add(createModuleRepositoryResolvers(
-            repositories,
+            filteredRepositories,
             consumerSchema,
             // We should avoid using `resolveContext` if possible here.
             // We should not need to know _what_ we're resolving in order to construct a resolver for a set of repositories.
-            // These parameters are used to support various features in `RepositoryContentDescriptor`.
-            resolveContext.getName(),
+            // These parameters are used to support filtering components by attributes when using dynamic versions.
+            // We should consider just removing that feature and making dynamic version selection dumber.
             resolveContext.getResolutionStrategy(),
             resolveContext.getAttributes(),
             metadataHandler
@@ -110,13 +122,11 @@ public class DefaultComponentResolversFactory implements ComponentResolversFacto
     private ComponentResolvers createModuleRepositoryResolvers(
         List<? extends ResolutionAwareRepository> repositories,
         AttributesSchemaInternal consumerSchema,
-        String resolveContextName,
         ResolutionStrategyInternal resolutionStrategy,
         AttributeContainerInternal requestedAttributes,
         GlobalDependencyResolutionRules metadataHandler
     ) {
         return moduleDependencyResolverFactory.create(
-            resolveContextName,
             resolutionStrategy,
             repositories,
             metadataHandler.getComponentMetadataProcessorFactory(),
@@ -125,6 +135,58 @@ public class DefaultComponentResolversFactory implements ComponentResolversFacto
             attributesFactory,
             componentMetadataSupplierRuleExecutor
         );
+    }
+
+    /**
+     * Determines if the repository should not be used to resolve the requested resolve context.
+     */
+    private static boolean shouldSkipRepository(
+        ResolutionAwareRepository repository,
+        String resolveContextName,
+        AttributeContainer consumerAttributes
+    ) {
+        if (!(repository instanceof ContentFilteringRepository)) {
+            return false;
+        }
+
+        ContentFilteringRepository cfr = (ContentFilteringRepository) repository;
+
+        Set<String> includedConfigurations = cfr.getIncludedConfigurations();
+        Set<String> excludedConfigurations = cfr.getExcludedConfigurations();
+
+        if ((includedConfigurations != null && !includedConfigurations.contains(resolveContextName)) ||
+            (excludedConfigurations != null && excludedConfigurations.contains(resolveContextName))
+        ) {
+            return true;
+        }
+
+        Map<Attribute<Object>, Set<Object>> requiredAttributes = cfr.getRequiredAttributes();
+        return hasNonRequiredAttribute(requiredAttributes, consumerAttributes);
+    }
+
+    /**
+     * Accepts a map of attribute types to the set of values that are allowed for that attribute type.
+     * If the request attributes of the resolve context being resolved do not match the allowed values,
+     * then the repository is skipped.
+     */
+    private static boolean hasNonRequiredAttribute(
+        @Nullable Map<Attribute<Object>, Set<Object>> requiredAttributes,
+        AttributeContainer consumerAttributes
+    ) {
+        if (requiredAttributes == null) {
+            return false;
+        }
+
+        for (Map.Entry<Attribute<Object>, Set<Object>> entry : requiredAttributes.entrySet()) {
+            Attribute<Object> key = entry.getKey();
+            Set<Object> allowedValues = entry.getValue();
+            Object value = consumerAttributes.getAttribute(key);
+            if (!allowedValues.contains(value)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }

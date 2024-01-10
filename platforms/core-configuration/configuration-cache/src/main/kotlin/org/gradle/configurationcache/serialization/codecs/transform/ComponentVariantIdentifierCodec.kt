@@ -29,6 +29,7 @@ import org.gradle.configurationcache.serialization.encodePreservingSharedIdentit
 import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.writeCollection
+import org.gradle.internal.component.external.model.ImmutableCapabilities
 
 
 /**
@@ -39,7 +40,7 @@ object ComponentVariantIdentifierCodec : Codec<ComponentVariantIdentifier> {
         encodePreservingSharedIdentityOf(value) {
             write(value.componentId)
             write(value.attributes)
-            writeCollection(value.capabilities)
+            writeCollection(value.capabilities.asSet())
         }
     }
 
@@ -48,7 +49,7 @@ object ComponentVariantIdentifierCodec : Codec<ComponentVariantIdentifier> {
             val componentId = readNonNull<ComponentIdentifier>()
             val attributes = readNonNull<ImmutableAttributes>()
             val capabilities: List<Capability> = readList().uncheckedCast()
-            ComponentVariantIdentifier(componentId, attributes, capabilities)
+            ComponentVariantIdentifier(componentId, attributes, ImmutableCapabilities.of(capabilities))
         }
     }
 }

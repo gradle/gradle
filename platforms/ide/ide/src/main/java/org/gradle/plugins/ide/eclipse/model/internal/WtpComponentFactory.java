@@ -39,6 +39,7 @@ import org.gradle.plugins.ide.internal.resolver.NullGradleApiSourcesResolver;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -53,7 +54,7 @@ public class WtpComponentFactory {
     }
 
     public void configure(final EclipseWtpComponent wtp, WtpComponent component) {
-        List<WbModuleEntry> entries = Lists.newArrayList();
+        List<WbModuleEntry> entries = new ArrayList<>();
         entries.addAll(getEntriesFromSourceDirs(wtp));
         for (WbResource element : wtp.getResources()) {
             if (wtp.getProject().file(element.getSourcePath()).isDirectory()) {
@@ -76,7 +77,7 @@ public class WtpComponentFactory {
     }
 
     private static List<WbResource> getEntriesFromSourceDirs(EclipseWtpComponent wtp) {
-        List<WbResource> result = Lists.newArrayList();
+        List<WbResource> result = new ArrayList<>();
         if (wtp.getSourceDirs() != null) {
             for (File dir : wtp.getSourceDirs()) {
                 if (dir.isDirectory()) {
@@ -98,9 +99,9 @@ public class WtpComponentFactory {
         private final Project project;
         private final EclipseWtpComponent wtp;
         private final String deployPath;
-        private final List<WbDependentModule> projectEntries = Lists.newArrayList();
-        private final List<WbDependentModule> moduleEntries = Lists.newArrayList();
-        private final List<WbDependentModule> fileEntries = Lists.newArrayList();
+        private final List<WbDependentModule> projectEntries = new ArrayList<>();
+        private final List<WbDependentModule> moduleEntries = new ArrayList<>();
+        private final List<WbDependentModule> fileEntries = new ArrayList<>();
 
         private final UnresolvedIdeDependencyHandler unresolvedIdeDependencyHandler = new UnresolvedIdeDependencyHandler();
 

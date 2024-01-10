@@ -17,11 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ChecksumAndSignatureVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
@@ -32,8 +29,6 @@ import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerif
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
@@ -43,8 +38,6 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ArtifactResolveException;
@@ -104,26 +97,23 @@ public class StartParameterResolutionOverride {
         List<String> checksums = startParameter.getWriteDependencyVerifications();
         File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(gradleDir);
         fileResourceListener.fileObserved(verificationsFile);
+
         if (!checksums.isEmpty() || startParameter.isExportKeys()) {
-            return DisablingVerificationOverride.of(
-                new WriteDependencyVerificationFile(verificationsFile, buildOperationExecutor, checksums, checksumService, signatureVerificationServiceFactory, startParameter.isDryRun(), startParameter.isExportKeys())
-            );
-        } else {
-            if (verificationsFile.exists()) {
-                if (startParameter.getDependencyVerificationMode() == DependencyVerificationMode.OFF) {
-                    return DependencyVerificationOverride.NO_VERIFICATION;
-                }
-                try {
-                    File sessionReportDir = computeReportDirectory(timeProvider);
-                    return DisablingVerificationOverride.of(
-                        new ChecksumAndSignatureVerificationOverride(buildOperationExecutor, startParameter.getGradleUserHomeDir(), verificationsFile, checksumService, signatureVerificationServiceFactory, startParameter.getDependencyVerificationMode(), documentationRegistry, sessionReportDir, gradlePropertiesFactory, fileResourceListener)
-                    );
-                } catch (Exception e) {
-                    return new FailureVerificationOverride(e);
-                }
-            }
+            return new WriteDependencyVerificationFile(verificationsFile, buildOperationExecutor, checksums, checksumService, signatureVerificationServiceFactory, startParameter.isDryRun(), startParameter.isExportKeys());
         }
-        return DependencyVerificationOverride.NO_VERIFICATION;
+
+        if (!verificationsFile.exists() ||
+            startParameter.getDependencyVerificationMode() == DependencyVerificationMode.OFF
+        ) {
+            return DependencyVerificationOverride.NO_VERIFICATION;
+        }
+
+        try {
+            File sessionReportDir = computeReportDirectory(timeProvider);
+            return new ChecksumAndSignatureVerificationOverride(buildOperationExecutor, startParameter.getGradleUserHomeDir(), verificationsFile, checksumService, signatureVerificationServiceFactory, startParameter.getDependencyVerificationMode(), documentationRegistry, sessionReportDir, gradlePropertiesFactory, fileResourceListener);
+        } catch (Exception e) {
+            return new FailureVerificationOverride(e);
+        }
     }
 
     private File computeReportDirectory(BuildCommencedTimeProvider timeProvider) {
@@ -233,52 +223,8 @@ public class StartParameterResolutionOverride {
         }
 
         @Override
-        public ModuleComponentRepository<ModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ModuleComponentGraphResolveState> original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy) {
+        public ModuleComponentRepository<ModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ModuleComponentGraphResolveState> original) {
             throw new DependencyVerificationException("Dependency verification cannot be performed", error);
-        }
-    }
-
-    public static class DisablingVerificationOverride implements DependencyVerificationOverride, Stoppable {
-        private final static Logger LOGGER = Logging.getLogger(DependencyVerificationOverride.class);
-
-        private final DependencyVerificationOverride delegate;
-
-        public static DisablingVerificationOverride of(DependencyVerificationOverride delegate) {
-            return new DisablingVerificationOverride(delegate);
-        }
-
-        private DisablingVerificationOverride(DependencyVerificationOverride delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public ModuleComponentRepository<ModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ModuleComponentGraphResolveState> original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy) {
-            if (resolutionStrategy.isDependencyVerificationEnabled()) {
-                return delegate.overrideDependencyVerification(original, resolveContextName, resolutionStrategy);
-            } else {
-                LOGGER.warn("Dependency verification has been disabled for configuration " + resolveContextName);
-                return original;
-            }
-        }
-
-        @Override
-        public void buildFinished(GradleInternal model) {
-            delegate.buildFinished(model);
-        }
-
-        @Override
-        public void artifactsAccessed(String displayName) {
-            delegate.artifactsAccessed(displayName);
-        }
-
-        @Override
-        public ResolvedArtifactResult verifiedArtifact(ResolvedArtifactResult artifact) {
-            return delegate.verifiedArtifact(artifact);
-        }
-
-        @Override
-        public void stop() {
-            CompositeStoppable.stoppable(delegate).stop();
         }
     }
 }

@@ -33,6 +33,8 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.integtests.fixtures.problems.KnownCategories
+import org.gradle.integtests.fixtures.problems.ReceivedProblem
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -58,7 +60,6 @@ import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFA
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.util.Matchers.matchesRegexp
 import static org.gradle.util.Matchers.normalizedLineSeparators
-
 /**
  * Spockified version of AbstractIntegrationTest.
  *
@@ -125,6 +126,12 @@ abstract class AbstractIntegrationSpec extends Specification {
     }
 
     def cleanup() {
+        if (enableProblemsApiCheck) {
+            collectedProblems.each {
+                KnownCategories.assertHasKnownCategory(it)
+            }
+        }
+
         buildOperationsFixture = null
         disableProblemsApiCheck()
 
@@ -486,7 +493,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     protected ExecutionFailure fails(String... tasks) {
         failure = executer.withTasks(*tasks).runWithFailure()
 
-        if (enableProblemsApiCheck && buildOperationsFixture.problems().isEmpty()) {
+        if (enableProblemsApiCheck && collectedProblems.isEmpty()) {
             throw new AssertionFailedError("Expected to find a problem emitted via the 'Problems' service for the failing build, but none was received.")
         }
 
@@ -737,14 +744,6 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         recreateExecuter()
     }
 
-    void assumeGroovy3() {
-        Assume.assumeFalse('Requires Groovy 3', isAtLeastGroovy4)
-    }
-
-    void assumeGroovy4() {
-        Assume.assumeTrue('Requires Groovy 4', isAtLeastGroovy4)
-    }
-
     def enableProblemsApiCheck() {
         enableProblemsApiCheck = true
         buildOperationsFixture = new BuildOperationsFixture(executer, temporaryFolder)
@@ -754,14 +753,15 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         enableProblemsApiCheck = false
     }
 
-    List<Map<String, Object>> getCollectedProblems() {
+    List<ReceivedProblem> getCollectedProblems() {
         if (!enableProblemsApiCheck) {
             throw new IllegalStateException('Problems API check is not enabled')
         }
-        return buildOperationsFixture.all().collectMany {
-            it.progress(DefaultProblemProgressDetails.class)
-        }.collect {
-            it.details["problem"]
+        return buildOperationsFixture.all().collectMany {operation ->
+            operation.progress(DefaultProblemProgressDetails.class).collect {
+                def problemDetails = it.details.get("problem") as Map<String, Object>
+                return new ReceivedProblem(operation.id, problemDetails)
+            }
         }
     }
 

@@ -20,7 +20,6 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.descriptor.Configuration;
@@ -30,6 +29,7 @@ import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -51,7 +51,7 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
     private final ImmutableMap<String, Configuration> configurationDefinitions;
 
     // Configurations are built on-demand, but only once.
-    private final Map<String, ModuleConfigurationMetadata> configurations = Maps.newHashMap();
+    private final Map<String, ModuleConfigurationMetadata> configurations = new HashMap<>();
 
     private Optional<List<? extends VariantGraphResolveMetadata>> graphVariants;
 

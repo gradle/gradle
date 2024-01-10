@@ -86,7 +86,6 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
-import static org.gradle.api.problems.TestProblemsUtil.createTestProblems
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 
@@ -129,7 +128,7 @@ class DependencyGraphBuilderTest extends Specification {
     def desugaring = new AttributeDesugaring(AttributeTestUtil.attributesFactory())
     def resolveStateFactory = new LocalComponentGraphResolveStateFactory(desugaring, new ComponentIdGenerator())
     def documentationRegistry = new DocumentationRegistry()
-    def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(createTestProblems(), documentationRegistry))
+    def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(documentationRegistry))
 
     DependencyGraphBuilder builder
 
@@ -1143,7 +1142,7 @@ class DependencyGraphBuilderTest extends Specification {
             excludeRules << new DefaultExclude(moduleIdentifierFactory.module(excluded.moduleVersionId.group, excluded.moduleVersionId.name))
         }
         def dependencyMetaData = new LocalComponentDependencyMetadata(componentSelector,
-            ImmutableAttributes.EMPTY, "default", [] as List<IvyArtifactName>,
+            "default", [] as List<IvyArtifactName>,
             excludeRules, force, false, transitive, false, false, null)
         dependencyMetaData = new DslOriginDependencyMetadataWrapper(dependencyMetaData, Stub(ModuleDependency) {
             getAttributes() >> ImmutableAttributes.EMPTY

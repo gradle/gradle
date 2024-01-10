@@ -322,7 +322,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return the names of the tasks to execute in this build. Never returns null.
      */
     public List<String> getTaskNames() {
-        List<String> taskNames = Lists.newArrayList();
+        List<String> taskNames = new ArrayList<>();
         for (TaskExecutionRequest taskRequest : taskRequests) {
             taskNames.addAll(taskRequest.getArgs());
         }

@@ -25,6 +25,7 @@ import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.InternalActionAwareBuildController;
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
+import org.gradle.tooling.internal.protocol.InternalStreamedValueRelay;
 
 import java.io.File;
 
@@ -66,10 +67,12 @@ public class InternalBuildActionAdapter<T> implements org.gradle.tooling.interna
 
     private BuildController wrapBuildController(final InternalBuildControllerVersion2 buildController) {
         ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
-        if (buildController instanceof InternalActionAwareBuildController) {
-            return new NestedActionAwareBuildControllerAdapter(buildController, protocolToModelAdapter, new ModelMapping(), rootDir);
+        if (buildController instanceof InternalStreamedValueRelay) {
+            return new StreamingAwareBuildControllerAdapter(buildController, protocolToModelAdapter, new ModelMapping(), versionDetails, rootDir);
+        } else if (buildController instanceof InternalActionAwareBuildController) {
+            return new NestedActionAwareBuildControllerAdapter(buildController, protocolToModelAdapter, new ModelMapping(), versionDetails, rootDir);
         } else {
-            return new ParameterAwareBuildControllerAdapter(buildController, protocolToModelAdapter, new ModelMapping(), rootDir);
+            return new ParameterAwareBuildControllerAdapter(buildController, protocolToModelAdapter, new ModelMapping(), versionDetails, rootDir);
         }
     }
 }

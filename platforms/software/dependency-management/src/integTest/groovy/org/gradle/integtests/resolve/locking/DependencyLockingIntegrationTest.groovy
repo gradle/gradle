@@ -233,4 +233,44 @@ dependencies {
 
     }
 
+    def 'fails to load a malformed lock file'() {
+        given:
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'bar', '1.0').publish()
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+    lockFile = file("\$projectDir/gradle/lock.file")
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:1.0'
+    lockedConf 'org:bar:1.0'
+}
+"""
+        def lockFile = testDirectory.file('gradle', 'lock.file')
+        lockFile.text = """
+<<<<<<< HEAD
+======
+lockedConf=org:foo:1.0"""
+
+        when:
+        fails 'dependencies', '-s'
+
+        then:
+        failureHasCause("Invalid lock state for")
+        failure.assertHasResolution('Verify the lockfile content.')
+    }
+
 }

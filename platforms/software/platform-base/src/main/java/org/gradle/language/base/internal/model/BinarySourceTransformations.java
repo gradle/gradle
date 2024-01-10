@@ -17,7 +17,6 @@
 package org.gradle.language.base.internal.model;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.common.primitives.Booleans;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
@@ -112,7 +111,7 @@ public class BinarySourceTransformations {
     }
 
     private Set<LanguageSourceSetInternal> getSourcesToCompile(BinarySpecInternal binary) {
-        LinkedHashSet<LanguageSourceSetInternal> sourceSets = Sets.newLinkedHashSet();
+        LinkedHashSet<LanguageSourceSetInternal> sourceSets = new LinkedHashSet<>();
         for (LanguageSourceSet languageSourceSet : binary.getInputs()) {
             LanguageSourceSetInternal languageSourceSetInternal = (LanguageSourceSetInternal) languageSourceSet;
             if (languageSourceSetInternal.getMayHaveSources()) {

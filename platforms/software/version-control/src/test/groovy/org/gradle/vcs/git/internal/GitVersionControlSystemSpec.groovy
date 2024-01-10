@@ -16,7 +16,7 @@
 
 package org.gradle.vcs.git.internal
 
-import com.google.common.collect.Maps
+
 import org.eclipse.jgit.revwalk.RevCommit
 import org.gradle.api.GradleException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -220,7 +220,7 @@ class GitVersionControlSystemSpec extends Specification {
     def 'treats tags as the available versions and ignores other references'() {
         given:
         def versions = gitVcs.getAvailableVersions(repoSpec)
-        HashMap<String, String> versionMap = Maps.newHashMap()
+        HashMap<String, String> versionMap = new HashMap()
         for (VersionRef ref : versions) {
             versionMap.put(ref.version, ref.canonicalId)
         }

@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher.daemon.registry;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.remote.Address;
@@ -25,9 +24,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.*;
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*;
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State;
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Canceled;
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle;
 
 /**
  * A daemon registry for daemons running in the same JVM.
@@ -40,7 +41,7 @@ import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*;
  * the endpoint disappearing or becoming busy between asking for idle daemons and trying to connect.
  */
 public class EmbeddedDaemonRegistry implements DaemonRegistry {
-    private final List<DaemonStopEvent> stopEvents = Lists.newCopyOnWriteArrayList();
+    private final List<DaemonStopEvent> stopEvents = new CopyOnWriteArrayList<>();
     private final Map<Address, DaemonInfo> daemonInfos = new ConcurrentHashMap<Address, DaemonInfo>();
     private final Spec<DaemonInfo> allSpec = new Spec<DaemonInfo>() {
         public boolean isSatisfiedBy(DaemonInfo entry) {

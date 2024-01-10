@@ -16,12 +16,11 @@
 
 package org.gradle.tooling.internal.consumer.parameters
 
-import com.google.common.collect.Sets
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
+import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider
 import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier
-import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider
 import org.gradle.tooling.internal.gradle.TaskListingLaunchable
 import org.gradle.tooling.internal.protocol.InternalLaunchable
 import org.gradle.tooling.model.TaskSelector
@@ -62,11 +61,11 @@ class ConsumerOperationParametersTest extends Specification {
     def "launchables from adapters"() {
         when:
         def launchable1 = Mock(TaskListingLaunchable)
-        def paths1 = Sets.newTreeSet()
+        def paths1 = new TreeSet<>()
         paths1.add(':a')
         _ * launchable1.taskNames >> paths1
         def launchable2 = Mock(TaskListingLaunchable)
-        def paths2 = Sets.newTreeSet()
+        def paths2 = new TreeSet<>()
         paths2.add(':b')
         paths2.add(':lib:b')
         _ * launchable2.taskNames >> paths2

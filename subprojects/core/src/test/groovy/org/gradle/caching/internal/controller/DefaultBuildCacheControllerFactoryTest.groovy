@@ -36,6 +36,7 @@ import org.gradle.caching.internal.services.DefaultBuildCacheControllerFactory
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -47,6 +48,7 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
 
     def buildCacheEnabled = true
     def buildOperationExecuter = new TestBuildOperationExecutor()
+    def buildOperationProgressEmitter = new NoOpBuildOperationProgressEventEmitter()
     def config = new DefaultBuildCacheConfiguration(TestUtil.instantiatorFactory().inject(), [
         new DefaultBuildCacheServiceRegistration(DirectoryBuildCache, TestDirectoryBuildCacheServiceFactory),
         new DefaultBuildCacheServiceRegistration(TestOtherRemoteBuildCache, TestOtherRemoteBuildCacheServiceFactory),
@@ -66,6 +68,7 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
                 isBuildCacheDebugLogging() >> emitDebugLogging
             },
             buildOperationExecuter,
+            buildOperationProgressEmitter,
             Stub(OriginMetadataFactory),
             Stub(StringInterner),
             Stub(TemporaryFileProvider),

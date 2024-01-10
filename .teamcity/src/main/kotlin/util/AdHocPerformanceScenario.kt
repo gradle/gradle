@@ -7,15 +7,16 @@ import common.Os
 import common.applyPerformanceTestSettings
 import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
+import common.cleanUpReadOnlyDir
 import common.gradleWrapper
 import common.individualPerformanceTestArtifactRules
 import common.killProcessStep
 import common.performanceTestCommandLine
 import common.removeSubstDirOnWindows
 import common.substDirOnWindows
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
-import jetbrains.buildServer.configs.kotlin.v2019_2.ParametrizedWithType
+import jetbrains.buildServer.configs.kotlin.BuildType
+import jetbrains.buildServer.configs.kotlin.ParameterDisplay
+import jetbrains.buildServer.configs.kotlin.ParametrizedWithType
 
 abstract class AdHocPerformanceScenario(os: Os, arch: Arch = Arch.AMD64) : BuildType({
     val id = "Util_Performance_AdHocPerformanceScenario${os.asName()}${arch.asName()}"
@@ -80,6 +81,7 @@ abstract class AdHocPerformanceScenario(os: Os, arch: Arch = Arch.AMD64) : Build
     val buildTypeThis = this
     steps {
         killProcessStep(buildTypeThis, KILL_ALL_GRADLE_PROCESSES, os)
+        cleanUpReadOnlyDir(os)
         substDirOnWindows(os)
         gradleWrapper {
             name = "GRADLE_RUNNER"

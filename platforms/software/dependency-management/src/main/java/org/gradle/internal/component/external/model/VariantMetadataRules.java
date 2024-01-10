@@ -16,7 +16,6 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyConstraintMetadata;
 import org.gradle.api.artifacts.DependencyConstraintsMetadata;
@@ -26,13 +25,10 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.MutableVariantFilesMetadata;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.capabilities.MutableCapabilitiesMetadata;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.internal.component.model.CapabilitiesRules;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.VariantAttributesRules;
@@ -42,6 +38,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,11 +46,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class VariantMetadataRules {
     private final ImmutableAttributesFactory attributesFactory;
     private final ModuleVersionIdentifier moduleVersionId;
-    private final List<AdditionalVariant> additionalVariants = Lists.newArrayList();
+    private final List<AdditionalVariant> additionalVariants = new ArrayList<>();
 
     private DependencyMetadataRules dependencyMetadataRules;
     private VariantAttributesRules variantAttributesRules;
-    private CapabilitiesRules capabilitiesRules;
+    private List<VariantMetadataRules.VariantAction<? super MutableCapabilitiesMetadata>> capabilitiesRules;
     private VariantFilesRules variantFilesRules;
 
     private final AttributeContainerInternal baseAttributes;
@@ -93,18 +90,27 @@ public class VariantMetadataRules {
         return joined.asImmutable();
     }
 
-    public CapabilitiesMetadata applyCapabilitiesRules(VariantResolveMetadata variant, CapabilitiesMetadata capabilities) {
-        if (capabilitiesRules != null) {
-            List<Capability> descriptors = Lists.newArrayList(capabilities.getCapabilities());
-            if (descriptors.isEmpty()) {
-                // we must add the implicit capability here because it is assumed that if there's a rule
-                // "addCapability" would effectively _add_ a capability, so the implicit one must not be forgotten
-                descriptors.add(new DefaultImmutableCapability(moduleVersionId.getGroup(), moduleVersionId.getName(), moduleVersionId.getVersion()));
-            }
-            DefaultMutableCapabilities mutableCapabilities = new DefaultMutableCapabilities(descriptors);
-            return capabilitiesRules.execute(variant, mutableCapabilities);
+    public ImmutableCapabilities applyCapabilitiesRules(VariantResolveMetadata variant, ImmutableCapabilities capabilities) {
+        if (capabilitiesRules == null) {
+            return capabilities;
         }
-        return capabilities;
+
+        DefaultMutableCapabilitiesMetadata mutableCapabilities;
+        if (capabilities.asSet().isEmpty()) {
+            // we must add the implicit capability here because it is assumed that if there's a rule
+            // "addCapability" would effectively _add_ a capability, so the implicit one must not be forgotten
+            mutableCapabilities = new DefaultMutableCapabilitiesMetadata(ImmutableCapabilities.of(
+                new DefaultImmutableCapability(moduleVersionId.getGroup(), moduleVersionId.getName(), moduleVersionId.getVersion()))
+            );
+        } else {
+            mutableCapabilities = new DefaultMutableCapabilitiesMetadata(capabilities);
+        }
+
+        for (VariantMetadataRules.VariantAction<? super MutableCapabilitiesMetadata> action : capabilitiesRules) {
+            action.maybeExecute(variant, mutableCapabilities);
+        }
+
+        return mutableCapabilities.asImmutableCapabilities();
     }
 
     public <T extends ModuleDependencyMetadata> List<? extends ModuleDependencyMetadata> applyDependencyMetadataRules(VariantResolveMetadata variant, List<T> configDependencies) {
@@ -151,9 +157,9 @@ public class VariantMetadataRules {
 
     public void addCapabilitiesAction(VariantAction<? super MutableCapabilitiesMetadata> action) {
         if (capabilitiesRules == null) {
-            capabilitiesRules = new CapabilitiesRules();
+            capabilitiesRules = new ArrayList<>(1);
         }
-        capabilitiesRules.addCapabilitiesAction(action);
+        capabilitiesRules.add(action);
     }
 
     public void addVariantFilesAction(VariantAction<? super MutableVariantFilesMetadata> action) {

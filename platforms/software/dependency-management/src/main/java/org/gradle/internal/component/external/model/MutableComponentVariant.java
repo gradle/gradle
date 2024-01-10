@@ -24,6 +24,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Set;
 
 public interface MutableComponentVariant {
 
@@ -43,7 +44,7 @@ public interface MutableComponentVariant {
 
     void addDependencyConstraint(String group, String module, VersionConstraint versionConstraint, String reason, ImmutableAttributes attributes);
 
-    List<Capability> getCapabilities();
+    Set<Capability> getCapabilities();
 
     void addCapability(String group, String name, String version);
 

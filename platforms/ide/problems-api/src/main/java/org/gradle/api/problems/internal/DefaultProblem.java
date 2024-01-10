@@ -19,13 +19,7 @@ package org.gradle.api.problems.internal;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemCategory;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.UnboundBasicProblemBuilder;
-import org.gradle.api.problems.locations.ProblemLocation;
-import org.gradle.internal.operations.OperationIdentifier;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
@@ -34,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 @NonNullApi
-public class DefaultProblem implements Problem, Serializable {
+public class DefaultProblem implements InternalProblem, Serializable {
     private final String label;
     private Severity severity;
     private final List<ProblemLocation> locations;
@@ -42,11 +36,8 @@ public class DefaultProblem implements Problem, Serializable {
     private final String description;
     private final List<String> solutions;
     private final RuntimeException cause;
-    private final String problemCategory;
+    private final ProblemCategory problemCategory;
     private final Map<String, Object> additionalData;
-
-    @Nullable
-    private OperationIdentifier buildOperationId;
 
     protected DefaultProblem(
         String label,
@@ -56,9 +47,8 @@ public class DefaultProblem implements Problem, Serializable {
         @Nullable String description,
         @Nullable List<String> solutions,
         @Nullable RuntimeException cause,
-        String problemCategory,
-        Map<String, Object> additionalData,
-        @Nullable OperationIdentifier buildOperationId
+        ProblemCategory problemCategory,
+        Map<String, Object> additionalData
     ) {
         this.label = label;
         this.severity = severity;
@@ -69,7 +59,6 @@ public class DefaultProblem implements Problem, Serializable {
         this.cause = cause;
         this.problemCategory = problemCategory;
         this.additionalData = ImmutableMap.copyOf(additionalData);
-        this.buildOperationId = buildOperationId;
     }
 
     @Override
@@ -104,13 +93,13 @@ public class DefaultProblem implements Problem, Serializable {
     }
 
     @Override
-    public RuntimeException getException() { // TODO (donat) Investigate why this is represented as List<StackTraceElement> on DefaultDeprecatedUsageProgressDetails.
+    public RuntimeException getException() {
         return cause;
     }
 
     @Override
-    public ProblemCategory getProblemCategory() {
-        return new DefaultProblemCategory(problemCategory);
+    public ProblemCategory getCategory() {
+        return problemCategory;
     }
 
     @Override
@@ -118,22 +107,13 @@ public class DefaultProblem implements Problem, Serializable {
         return additionalData;
     }
 
-    public void setBuildOperationRef(@Nullable OperationIdentifier buildOperationId) {
-        this.buildOperationId = buildOperationId;
-    }
-
-    @Nullable
-    public OperationIdentifier getBuildOperationId() {
-        return buildOperationId;
-    }
-
     public void setSeverity(Severity severity) {
         this.severity = severity;
     }
 
     @Override
-    public UnboundBasicProblemBuilder toBuilder() {
-        return new DefaultBasicProblemBuilder(this);
+    public InternalProblemBuilder toBuilder() {
+        return new DefaultProblemBuilder(this);
     }
 
     private static boolean equals(@Nullable Object a, @Nullable Object b) {
@@ -157,13 +137,12 @@ public class DefaultProblem implements Problem, Serializable {
             equals(description, that.description) &&
             equals(solutions, that.solutions) &&
             equals(cause, that.cause) &&
-            equals(additionalData, that.additionalData) &&
-            equals(buildOperationId, that.buildOperationId);
+            equals(additionalData, that.additionalData);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{label, severity, locations, documentationLink, description, solutions, cause, additionalData, buildOperationId});
+        return Arrays.hashCode(new Object[]{label, severity, locations, documentationLink, description, solutions, cause, additionalData});
     }
 
 }

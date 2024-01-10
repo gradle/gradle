@@ -26,9 +26,9 @@ import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLI
 
 class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
-    public static final String SAMPLE_APP_CLASS = "some/thing/App.java"
-    public static final String SAMPLE_APP_TEST_CLASS = "some/thing/AppTest.java"
-    public static final String SAMPLE_APP_SPOCK_TEST_CLASS = "some/thing/AppTest.groovy"
+    public static final String SAMPLE_APP_CLASS = "org/example/App.java"
+    public static final String SAMPLE_APP_TEST_CLASS = "org/example/AppTest.java"
+    public static final String SAMPLE_APP_SPOCK_TEST_CLASS = "org/example/AppTest.groovy"
 
     @Override
     String subprojectName() { 'app' }
@@ -59,7 +59,7 @@ class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrati
         run("build")
 
         then:
-        assertTestPassed("some.thing.AppTest", "appHasAGreeting")
+        assertTestPassed("org.example.AppTest", "appHasAGreeting")
 
         when:
         run("run")
@@ -88,7 +88,7 @@ class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrati
         when:
         run('test')
         then:
-        assertTestPassed("some.thing.AppTest", "appHasAGreeting")
+        assertTestPassed("org.example.AppTest", "appHasAGreeting")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -105,7 +105,7 @@ class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrati
         succeeds('test')
 
         then:
-        assertTestPassed("some.thing.AppTest", "appHasAGreeting")
+        assertTestPassed("org.example.AppTest", "appHasAGreeting")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -127,7 +127,7 @@ class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrati
         run("build")
 
         then:
-        assertTestPassed("some.thing.AppTest", "application has a greeting")
+        assertTestPassed("org.example.AppTest", "application has a greeting")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -148,7 +148,7 @@ class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrati
         run("build")
 
         then:
-        assertTestPassed("some.thing.AppTest", "appHasAGreeting")
+        assertTestPassed("org.example.AppTest", "appHasAGreeting")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -169,7 +169,7 @@ class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrati
         run("build")
 
         then:
-        assertTestPassed("some.thing.AppTest", "appHasAGreeting")
+        assertTestPassed("org.example.AppTest", "appHasAGreeting")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

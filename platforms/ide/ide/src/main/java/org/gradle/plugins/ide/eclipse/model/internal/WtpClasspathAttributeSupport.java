@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.eclipse.model.internal;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
@@ -41,6 +40,7 @@ import org.gradle.plugins.ide.internal.resolver.NullGradleApiSourcesResolver;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -111,7 +111,7 @@ public class WtpClasspathAttributeSupport {
 
     private static class WtpClasspathAttributeDependencyVisitor implements IdeDependencyVisitor {
         private final EclipseClasspath classpath;
-        private final Set<File> files = Sets.newLinkedHashSet();
+        private final Set<File> files = new LinkedHashSet<>();
 
         private WtpClasspathAttributeDependencyVisitor(EclipseClasspath classpath) {
             this.classpath = classpath;

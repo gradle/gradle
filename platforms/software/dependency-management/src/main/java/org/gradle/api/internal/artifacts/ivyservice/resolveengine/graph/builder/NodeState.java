@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
@@ -42,6 +41,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Resolved
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
@@ -63,6 +63,9 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -76,8 +79,8 @@ public class NodeState implements DependencyGraphNode {
     private static final Logger LOGGER = LoggerFactory.getLogger(NodeState.class);
     private final Long nodeId;
     private final ComponentState component;
-    private final List<EdgeState> incomingEdges = Lists.newArrayList();
-    private final List<EdgeState> outgoingEdges = Lists.newArrayList();
+    private final List<EdgeState> incomingEdges = new ArrayList<>();
+    private final List<EdgeState> outgoingEdges = new ArrayList<>();
     private final ResolvedConfigurationIdentifier id;
 
     private final VariantGraphResolveState variantState;
@@ -103,8 +106,8 @@ public class NodeState implements DependencyGraphNode {
     private Multimap<ModuleIdentifier, DependencyState> potentiallyActivatedConstraints;
 
     // caches
-    private final Map<DependencyMetadata, DependencyState> dependencyStateCache = Maps.newHashMap();
-    private final Map<DependencyState, EdgeState> edgesCache = Maps.newHashMap();
+    private final Map<DependencyMetadata, DependencyState> dependencyStateCache = new HashMap<>();
+    private final Map<DependencyState, EdgeState> edgesCache = new HashMap<>();
 
     // Caches the list of dependency states for dependencies
     private List<DependencyState> cachedDependencyStates;
@@ -379,7 +382,7 @@ public class NodeState implements DependencyGraphNode {
 
     private void prepareToRecomputeEdge(EdgeState edgeToRecompute) {
         if (edgesToRecompute == null) {
-            edgesToRecompute = Sets.newLinkedHashSet();
+            edgesToRecompute = new LinkedHashSet<>();
         }
         edgesToRecompute.add(edgeToRecompute);
         resolveState.onMoreSelected(this);
@@ -611,7 +614,7 @@ public class NodeState implements DependencyGraphNode {
             potentialEdge.component.getModule().maybeCreateVirtualMetadata(resolveState);
         }
         if (virtualEdges == null) {
-            virtualEdges = Lists.newArrayList();
+            virtualEdges = new ArrayList<>();
         }
         EdgeState edge = potentialEdge.edge;
         virtualEdges.add(edge);
@@ -859,7 +862,7 @@ public class NodeState implements DependencyGraphNode {
             ModuleComponentSelector selector = (ModuleComponentSelector) dependencyState.getDependency().getSelector();
             if (!StringUtils.isEmpty(selector.getVersionConstraint().getStrictVersion())) {
                 if (constraintsSet == null) {
-                    constraintsSet = Sets.newHashSet();
+                    constraintsSet = new HashSet<>();
                 }
                 constraintsSet.add(selector.getModuleIdentifier());
             }
@@ -964,7 +967,7 @@ public class NodeState implements DependencyGraphNode {
                         singleStrictVersionConstraints = sourceNode.ownStrictVersionConstraints;
                     } else {
                         if (collectedConstraints == null) {
-                            collectedConstraints = Sets.newHashSet();
+                            collectedConstraints = new HashSet<>();
                             collectedConstraints.addAll(singleStrictVersionConstraints.getModules());
                         }
                         collectedConstraints.addAll(sourceNode.ownStrictVersionConstraints.getModules());
@@ -986,7 +989,7 @@ public class NodeState implements DependencyGraphNode {
             for (ModuleIdentifier ownConstraint : ownStrictVersionConstraints.getModules()) {
                 if (resultSet.contains(ownConstraint)) {
                     if (collectedConstraints == null) {
-                        collectedConstraints = Sets.newHashSet();
+                        collectedConstraints = new HashSet<>();
                         collectedConstraints.addAll(singleStrictVersionConstraints.getModules());
                     }
                     collectedConstraints.remove(ownConstraint);
@@ -1011,7 +1014,7 @@ public class NodeState implements DependencyGraphNode {
                 continue;
             }
             if (endorsesStrictVersionsFrom == null) {
-                endorsesStrictVersionsFrom = Lists.newArrayList();
+                endorsesStrictVersionsFrom = new ArrayList<>();
             }
             endorsesStrictVersionsFrom.add(edgeState);
         }
@@ -1126,7 +1129,7 @@ public class NodeState implements DependencyGraphNode {
 
     void prepareForConstraintNoLongerPending(ModuleIdentifier moduleIdentifier) {
         if (upcomingNoLongerPendingConstraints == null) {
-            upcomingNoLongerPendingConstraints = Sets.newLinkedHashSet();
+            upcomingNoLongerPendingConstraints = new LinkedHashSet<>();
         }
         upcomingNoLongerPendingConstraints.add(moduleIdentifier);
         // Trigger a replay on this node, to add new constraints to graph
@@ -1181,7 +1184,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     void forEachCapability(CapabilitiesConflictHandler capabilitiesConflictHandler, Action<? super Capability> action) {
-        List<? extends Capability> capabilities = metadata.getCapabilities().getCapabilities();
+        ImmutableSet<ImmutableCapability> capabilities = metadata.getCapabilities().asSet();
         // If there's more than one node selected for the same component, we need to add
         // the implicit capability to the list, in order to make sure we can discover conflicts
         // between variants of the same module.
@@ -1209,7 +1212,7 @@ public class NodeState implements DependencyGraphNode {
         if (onComponent != null) {
             return onComponent;
         }
-        List<? extends Capability> capabilities = metadata.getCapabilities().getCapabilities();
+        ImmutableSet<ImmutableCapability> capabilities = metadata.getCapabilities().asSet();
         if (!capabilities.isEmpty()) { // Not required, but Guava's performance bad for an empty immutable list
             for (Capability capability : capabilities) {
                 if (capability.getGroup().equals(group) && capability.getName().equals(name)) {
@@ -1230,7 +1233,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     boolean hasShadowedCapability() {
-        for (Capability capability : metadata.getCapabilities().getCapabilities()) {
+        for (Capability capability : metadata.getCapabilities().asSet()) {
             if (capability instanceof ShadowedCapability) {
                 return true;
             }

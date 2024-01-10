@@ -20,10 +20,14 @@ import org.gradle.api.Project;
 import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
+/**
+ * Builds the {@link org.gradle.tooling.model.idea.BasicIdeaProject} model
+ * that contains the Idea module hierarchy without resolving dependencies.
+ */
 public class BasicIdeaModelBuilder implements ToolingModelBuilder {
-    private final IdeaModelBuilder ideaModelBuilder;
+    private final IdeaModelBuilderInternal ideaModelBuilder;
 
-    public BasicIdeaModelBuilder(IdeaModelBuilder ideaModelBuilder) {
+    public BasicIdeaModelBuilder(IdeaModelBuilderInternal ideaModelBuilder) {
         this.ideaModelBuilder = ideaModelBuilder;
     }
 
@@ -34,8 +38,6 @@ public class BasicIdeaModelBuilder implements ToolingModelBuilder {
 
     @Override
     public DefaultIdeaProject buildAll(String modelName, Project project) {
-        return ideaModelBuilder
-                .setOfflineDependencyResolution(true)
-                .buildAll(modelName, project);
+        return ideaModelBuilder.buildForRoot(project, true);
     }
 }

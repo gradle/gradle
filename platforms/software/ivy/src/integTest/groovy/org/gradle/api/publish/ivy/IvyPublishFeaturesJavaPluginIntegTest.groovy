@@ -23,9 +23,13 @@ class IvyPublishFeaturesJavaPluginIntegTest extends AbstractIvyPublishFeaturesJa
         given:
         buildFile << """
 
+            sourceSets {
+                feature
+            }
+
             java {
                 registerFeature("feature") {
-                    usingSourceSet(sourceSets.main)
+                    usingSourceSet(sourceSets.feature)
                 }
             }
 
@@ -50,7 +54,7 @@ class IvyPublishFeaturesJavaPluginIntegTest extends AbstractIvyPublishFeaturesJa
             noMoreDependencies()
         }
         javaLibrary.parsedModuleMetadata.variant("featureRuntimeElements") {
-            assert files*.name == ['publishTest-1.9.jar']
+            assert files*.name == ['publishTest-1.9-feature.jar']
             dependency('org', 'optionaldep', '1.0')
             noMoreDependencies()
         }
@@ -65,7 +69,7 @@ class IvyPublishFeaturesJavaPluginIntegTest extends AbstractIvyPublishFeaturesJa
         resolveRuntimeArtifacts(javaLibrary) {
             optionalFeatureCapabilities << "org.gradle.test:publishTest-feature:1.0"
             withModuleMetadata {
-                expectFiles "publishTest-1.9.jar", "optionaldep-1.0.jar"
+                expectFiles "publishTest-1.9.jar", "publishTest-1.9-feature.jar", "optionaldep-1.0.jar"
             }
             withoutModuleMetadata {
                 // documents the current behavior - ivy does not use variant matching and hence the requested capability is ignored and the default configuration is selected
@@ -80,9 +84,13 @@ class IvyPublishFeaturesJavaPluginIntegTest extends AbstractIvyPublishFeaturesJa
         given:
         buildFile << """
 
+            sourceSets {
+                feature
+            }
+
             java {
                 registerFeature("feature") {
-                    usingSourceSet(sourceSets.main)
+                    usingSourceSet(sourceSets.feature)
                 }
             }
 
@@ -112,7 +120,7 @@ class IvyPublishFeaturesJavaPluginIntegTest extends AbstractIvyPublishFeaturesJa
             noMoreDependencies()
         }
         javaLibrary.parsedModuleMetadata.variant("featureRuntimeElements") {
-            assert files*.name == ["${name}-${version}.jar"]
+            assert files*.name == ["${name}-${version}-feature.jar"]
             dependency('org', 'optionaldep', '1.0')
             noMoreDependencies()
         }
@@ -127,7 +135,7 @@ class IvyPublishFeaturesJavaPluginIntegTest extends AbstractIvyPublishFeaturesJa
         resolveRuntimeArtifacts(javaLibrary) {
             optionalFeatureCapabilities << "$group:${name}-feature:1.0"
             withModuleMetadata {
-                expectFiles "${name}-${version}.jar", "optionaldep-1.0.jar"
+                expectFiles "${name}-${version}.jar", "${name}-${version}-feature.jar", "optionaldep-1.0.jar"
             }
             withoutModuleMetadata {
                 // documents the current behavior - ivy does not use variant matching and hence the requested capability is ignored and the default configuration is selected

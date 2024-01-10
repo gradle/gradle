@@ -57,7 +57,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
 
     @Override
     public Filter resolveExcludedTaskName(BuildState defaultBuild, String taskName) {
-        if (!defaultBuild.isProjectsLoaded()) {
+        if (!defaultBuild.isProjectsCreated()) {
             // Too early to resolve excludes
             return new Filter(defaultBuild, Specs.satisfyNone());
         }

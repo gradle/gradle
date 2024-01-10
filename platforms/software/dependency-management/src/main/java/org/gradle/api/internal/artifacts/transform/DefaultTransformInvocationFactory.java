@@ -78,6 +78,11 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
 
         Cache<UnitOfWork.Identity, Try<TransformExecutionResult.TransformWorkspaceResult>> identityCache;
         UnitOfWork execution;
+
+        // TODO This is a workaround for script compilation that is triggered via the "early" execution
+        //      engine created in DependencyManagementBuildScopeServices. We should unify the execution
+        //      engines instead.
+        ExecutionEngine effectiveEngine;
         if (producerProject == null) {
             // Non-project-bound transforms run in a global immutable workspace,
             // and are identified by a non-normalized identity
@@ -97,43 +102,46 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 fileSystemAccess,
                 immutableWorkspaceServices.getWorkspaceProvider()
             );
-        } else if (!transform.requiresInputChanges()) {
-            // Non-incremental project artifact transforms also run in an immutable workspace
-            identityCache = immutableWorkspaceServices.getIdentityCache();
-            execution = new NormalizedIdentityImmutableTransformExecution(
-                transform,
-                inputArtifact,
-                dependencies,
-                subject,
-
-                transformExecutionListener,
-                buildOperationExecutor,
-                progressEventEmitter,
-                fileCollectionFactory,
-                inputFingerprinter,
-                immutableWorkspaceServices.getWorkspaceProvider()
-            );
+            effectiveEngine = executionEngine;
         } else {
-            // Incremental project artifact transforms run in project-bound mutable workspace
-            MutableTransformWorkspaceServices workspaceServices = producerProject.getServices().get(MutableTransformWorkspaceServices.class);
-            identityCache = workspaceServices.getIdentityCache();
-            execution = new MutableTransformExecution(
-                transform,
-                inputArtifact,
-                dependencies,
-                subject,
-                producerProject,
+            effectiveEngine = producerProject.getServices().get(ExecutionEngine.class);
+            if (!transform.requiresInputChanges()) {
+                // Non-incremental project artifact transforms also run in an immutable workspace
+                identityCache = immutableWorkspaceServices.getIdentityCache();
+                execution = new NormalizedIdentityImmutableTransformExecution(
+                    transform,
+                    inputArtifact,
+                    dependencies,
+                    subject,
 
-                transformExecutionListener,
-                buildOperationExecutor,
-                progressEventEmitter,
-                fileCollectionFactory,
-                inputFingerprinter,
-                workspaceServices.getWorkspaceProvider()
-            );
+                    transformExecutionListener,
+                    buildOperationExecutor,
+                    progressEventEmitter,
+                    fileCollectionFactory,
+                    inputFingerprinter,
+                    immutableWorkspaceServices.getWorkspaceProvider()
+                );
+            } else {
+                // Incremental project artifact transforms run in project-bound mutable workspace
+                MutableTransformWorkspaceServices workspaceServices = producerProject.getServices().get(MutableTransformWorkspaceServices.class);
+                identityCache = workspaceServices.getIdentityCache();
+                execution = new MutableTransformExecution(
+                    transform,
+                    inputArtifact,
+                    dependencies,
+                    subject,
+                    producerProject,
+
+                    transformExecutionListener,
+                    buildOperationExecutor,
+                    progressEventEmitter,
+                    fileCollectionFactory,
+                    inputFingerprinter,
+                    workspaceServices.getWorkspaceProvider()
+                );
+            }
         }
-
-        return executionEngine.createRequest(execution)
+        return effectiveEngine.createRequest(execution)
             .executeDeferred(identityCache)
             .map(result -> result
                 .map(successfulResult -> successfulResult.resolveForInputArtifact(inputArtifact))

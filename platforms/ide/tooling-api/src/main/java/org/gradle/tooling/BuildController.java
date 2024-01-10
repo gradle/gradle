@@ -17,6 +17,7 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
@@ -82,7 +83,7 @@ public interface BuildController {
     /**
      * Fetches a snapshot of the model of the given type for the given element, usually a Gradle project.
      *
-     * <p>The following elements are supported:
+     * <p>The following elements are supported as targets:
      *
      * <ul>
      *     <li>Any {@link org.gradle.tooling.model.gradle.BasicGradleProject}</li>
@@ -209,4 +210,19 @@ public interface BuildController {
      * @since 6.8
      */
     boolean getCanQueryProjectModelInParallel(Class<?> modelType);
+
+    /**
+     * <p>Streams an object to the client application.
+     *
+     * <p>The client application can receive objects sent using this method by registering a {@link StreamedValueListener}.
+     * The client application receives objects in the order they were sent, and before it receives the result of the {@link BuildAction}.</p>
+     *
+     * <p>This method sends the object asynchronously and does not block until the client application has received the object.</p>
+     *
+     * <p>The build action will fail if the client application did not register a listener to receive the streamed objects.</p>
+     *
+     * @since 8.6
+     */
+    @Incubating
+    <T> void send(T value);
 }

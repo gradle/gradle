@@ -16,8 +16,7 @@
 
 package org.gradle.api.publish.internal.validation;
 
-import com.google.common.collect.Sets;
-
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -30,14 +29,14 @@ public class VariantWarningCollector {
 
     public void addUnsupported(String text) {
         if (unsupportedUsages == null) {
-            unsupportedUsages = Sets.newHashSet();
+            unsupportedUsages = new HashSet<>();
         }
         unsupportedUsages.add(text);
     }
 
     public void addIncompatible(String text) {
         if (incompatibleUsages == null) {
-            incompatibleUsages = Sets.newHashSet();
+            incompatibleUsages = new HashSet<>();
         }
         incompatibleUsages.add(text);
     }
@@ -60,7 +59,7 @@ public class VariantWarningCollector {
 
     public void addVariantUnsupported(String text) {
         if (variantUnsupported == null) {
-            variantUnsupported = Sets.newHashSet();
+            variantUnsupported = new HashSet<>();
         }
         variantUnsupported.add(text);
     }

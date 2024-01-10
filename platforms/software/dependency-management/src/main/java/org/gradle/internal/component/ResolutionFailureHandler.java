@@ -18,7 +18,6 @@ package org.gradle.internal.component;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -55,6 +54,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -90,12 +90,9 @@ public class ResolutionFailureHandler {
     private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
     private static final String AMBIGUOUS_TRANSFORMATION_SECTION = "sub:transform-ambiguity";
 
-    @SuppressWarnings("FieldCanBeLocal")
-    private final Problems problemsService;
     private final DocumentationRegistry documentationRegistry;
 
-    public ResolutionFailureHandler(Problems problemsService, DocumentationRegistry documentationRegistry) {
-        this.problemsService = problemsService;
+    public ResolutionFailureHandler(DocumentationRegistry documentationRegistry) {
         this.documentationRegistry = documentationRegistry;
     }
 
@@ -456,7 +453,7 @@ public class ResolutionFailureHandler {
         sb.append(":\n");
         for (VariantGraphResolveState candidate : candidates) {
             sb.append("   - Variant ").append(candidate.getName()).append(" provides ");
-            sb.append(CapabilitiesSupport.sortedCapabilityList(targetComponent, candidate.getCapabilities().getCapabilities())).append("\n");
+            sb.append(CapabilitiesSupport.sortedCapabilityList(targetComponent, candidate.getCapabilities().asSet())).append("\n");
         }
         return sb.toString();
     }
@@ -480,7 +477,7 @@ public class ResolutionFailureHandler {
         formatter.append(variant.getName());
         formatter.append("'");
         if (variantAware) {
-            formatter.append(" " + CapabilitiesSupport.prettifyCapabilities(targetComponent, variant.getCapabilities().getCapabilities()));
+            formatter.append(" " + CapabilitiesSupport.prettifyCapabilities(targetComponent, variant.getCapabilities().asSet()));
         }
         if (ambiguous) {
             formatAttributeMatchesForAmbiguity(formatter, consumerAttributes.asImmutable(), attributeMatcher, producerAttributes.asImmutable(), describer);
@@ -498,9 +495,9 @@ public class ResolutionFailureHandler {
     ) {
         Map<String, Attribute<?>> allAttributes = collectAttributes(immutableConsumer, immutableProducer);
         List<String> otherValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
-        Map<Attribute<?>, ?> compatibleAttrs = Maps.newLinkedHashMap();
-        Map<Attribute<?>, ?> incompatibleAttrs = Maps.newLinkedHashMap();
-        Map<Attribute<?>, ?> incompatibleConsumerAttrs = Maps.newLinkedHashMap();
+        Map<Attribute<?>, ?> compatibleAttrs = new LinkedHashMap<>();
+        Map<Attribute<?>, ?> incompatibleAttrs = new LinkedHashMap<>();
+        Map<Attribute<?>, ?> incompatibleConsumerAttrs = new LinkedHashMap<>();
         for (Attribute<?> attribute : allAttributes.values()) {
             Attribute<Object> untyped = Cast.uncheckedCast(attribute);
             String attributeName = attribute.getName();
@@ -536,7 +533,7 @@ public class ResolutionFailureHandler {
         AttributeDescriber describer
     ) {
         Map<String, Attribute<?>> allAttributes = collectAttributes(immutableConsumer, immutableProducer);
-        Map<Attribute<?>, ?> compatibleAttrs = Maps.newLinkedHashMap();
+        Map<Attribute<?>, ?> compatibleAttrs = new LinkedHashMap<>();
         List<String> otherValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
         for (Attribute<?> attribute : allAttributes.values()) {
             Attribute<Object> untyped = Cast.uncheckedCast(attribute);

@@ -44,9 +44,9 @@ class JavaGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'java-gradle-plugin', '--dsl', scriptDsl.id)
 
         then:
-        subprojectDir.file("src/main/java").assertHasDescendants("some/thing/SomeThingPlugin.java")
-        subprojectDir.file("src/test/java").assertHasDescendants("some/thing/SomeThingPluginTest.java")
-        subprojectDir.file("src/functionalTest/java").assertHasDescendants("some/thing/SomeThingPluginFunctionalTest.java")
+        subprojectDir.file("src/main/java").assertHasDescendants("org/example/SomeThingPlugin.java")
+        subprojectDir.file("src/test/java").assertHasDescendants("org/example/SomeThingPluginTest.java")
+        subprojectDir.file("src/functionalTest/java").assertHasDescendants("org/example/SomeThingPluginFunctionalTest.java")
 
         and:
         commonJvmFilesGenerated(scriptDsl)
@@ -55,8 +55,8 @@ class JavaGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        assertTestPassed("some.thing.SomeThingPluginTest", "pluginRegistersATask")
-        assertFunctionalTestPassed("some.thing.SomeThingPluginFunctionalTest", "canRunTask")
+        assertTestPassed("org.example.SomeThingPluginTest", "pluginRegistersATask")
+        assertFunctionalTestPassed("org.example.SomeThingPluginFunctionalTest", "canRunTask")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -70,9 +70,9 @@ class JavaGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'java-gradle-plugin', '--dsl', scriptDsl.id, '--incubating')
 
         then:
-        subprojectDir.file("src/main/java").assertHasDescendants("some/thing/SomeThingPlugin.java")
-        subprojectDir.file("src/test/java").assertHasDescendants("some/thing/SomeThingPluginTest.java")
-        subprojectDir.file("src/functionalTest/java").assertHasDescendants("some/thing/SomeThingPluginFunctionalTest.java")
+        subprojectDir.file("src/main/java").assertHasDescendants("org/example/SomeThingPlugin.java")
+        subprojectDir.file("src/test/java").assertHasDescendants("org/example/SomeThingPluginTest.java")
+        subprojectDir.file("src/functionalTest/java").assertHasDescendants("org/example/SomeThingPluginFunctionalTest.java")
 
         and:
         commonJvmFilesGenerated(scriptDsl)
@@ -82,8 +82,8 @@ class JavaGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        assertTestPassed("some.thing.SomeThingPluginTest", "pluginRegistersATask")
-        assertFunctionalTestPassed("some.thing.SomeThingPluginFunctionalTest", "canRunTask")
+        assertTestPassed("org.example.SomeThingPluginTest", "pluginRegistersATask")
+        assertFunctionalTestPassed("org.example.SomeThingPluginFunctionalTest", "canRunTask")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -99,15 +99,15 @@ class JavaGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('check')
 
         then:
-        assertTestPassed("some.thing.SomeThingPluginTest", "pluginRegistersATask")
-        assertFunctionalTestPassed("some.thing.SomeThingPluginFunctionalTest", "canRunTask")
+        assertTestPassed("org.example.SomeThingPluginTest", "pluginRegistersATask")
+        assertFunctionalTestPassed("org.example.SomeThingPluginFunctionalTest", "canRunTask")
 
         when:
         run('check', '--rerun-tasks')
 
         then:
-        assertTestPassed("some.thing.SomeThingPluginTest", "pluginRegistersATask")
-        assertFunctionalTestPassed("some.thing.SomeThingPluginFunctionalTest", "canRunTask")
+        assertTestPassed("org.example.SomeThingPluginTest", "pluginRegistersATask")
+        assertFunctionalTestPassed("org.example.SomeThingPluginFunctionalTest", "canRunTask")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

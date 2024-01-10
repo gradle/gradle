@@ -3,9 +3,9 @@ import common.JvmVersion
 import common.Os
 import common.VersionedSettingsBranch
 import configurations.BaseGradleBuildType
-import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
-import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.BuildFailureOnText
+import jetbrains.buildServer.configs.kotlin.DslContext
+import jetbrains.buildServer.configs.kotlin.buildSteps.GradleBuildStep
+import jetbrains.buildServer.configs.kotlin.failureConditions.BuildFailureOnText
 import model.ALL_CROSS_VERSION_BUCKETS
 import model.CIBuildModel
 import model.DefaultFunctionalTestBucketProvider
@@ -216,11 +216,14 @@ class CIConfigIntegrationTests {
     }
 
     private fun containsSrcFileWithString(srcRoot: File, content: String, exceptions: List<String>): Boolean {
-        srcRoot.walkTopDown().forEach {
-            if (it.extension == "groovy" || it.extension == "java") {
-                val text = it.readText()
+        srcRoot.walkTopDown().forEach { file ->
+            if (file.extension == "groovy" || file.extension == "java") {
+                val originalText = file.readText()
+                val text = originalText.lineSequence()
+                    .filterNot { it.trim().startsWith("//") }
+                    .joinToString("\n")
                 if (text.contains(content) && exceptions.all { !text.contains(it) }) {
-                    println("Found suspicious test file: $it")
+                    println("Found suspicious test file: $file")
                     return true
                 }
             }

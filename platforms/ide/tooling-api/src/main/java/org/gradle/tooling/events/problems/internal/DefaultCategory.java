@@ -43,7 +43,7 @@ public class DefaultCategory implements ProblemCategory {
     }
 
     @Override
-    public List<String> getSubCategories() {
+    public List<String> getSubcategories() {
         return subcategories;
     }
 }

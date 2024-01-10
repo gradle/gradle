@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.dsl.Dependencies;
-import org.gradle.api.artifacts.dsl.DependencyAdder;
+import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyModifier;
 import org.gradle.api.file.FileCollection;
@@ -40,17 +40,17 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * This file is used to add <a href="https://groovy-lang.org/metaprogramming.html#_extension_modules">Groovy Extension Module</a> to {@link DependencyAdder} and {@link DependencyModifier} to make the Groovy DSL more idiomatic.
+ * This file is used to add <a href="https://groovy-lang.org/metaprogramming.html#_extension_modules">Groovy Extension Module</a> to {@link DependencyCollector} and {@link DependencyModifier} to make the Groovy DSL more idiomatic.
  * <p>
  * These extension methods allow an interface to implement a dependencies block in the Groovy DSL by
  * <ul>
- * <li>exposing an instance of {@link DependencyAdder} to add dependencies without explicitly calling {@link DependencyAdder#add(Dependency)}</li>
+ * <li>exposing an instance of {@link DependencyCollector} to add dependencies without explicitly calling {@link DependencyCollector#add(Dependency)}</li>
  * <li>exposing an instance of {@link DependencyModifier} to modify dependencies without explicitly calling {@link DependencyModifier#modify(ModuleDependency)}</li>
  * </ul>
  * </p>
  *
  * <p>
- * There are {@code call(...)} equivalents for all the {@code add(...)} methods in {@link DependencyAdder}.
+ * There are {@code call(...)} equivalents for all the {@code add(...)} methods in {@link DependencyCollector}.
  * </p>
  *
  * <p>
@@ -60,7 +60,7 @@ import java.util.Set;
  * @since 7.6
  *
  * @see Dependencies
- * @see DependencyAdder
+ * @see DependencyCollector
  * @see DependencyModifier
  * @see DependencyFactory
  *
@@ -167,7 +167,7 @@ public class DependenciesExtensionModule {
      * @param dependencyNotation dependency to add
      * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
      */
-    public static void call(DependencyAdder self, CharSequence dependencyNotation) {
+    public static void call(DependencyCollector self, CharSequence dependencyNotation) {
         self.add(dependencyNotation);
     }
 
@@ -178,7 +178,7 @@ public class DependenciesExtensionModule {
      * @param configuration an action to configure the dependency
      * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
      */
-    public static void call(DependencyAdder self, CharSequence dependencyNotation, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
+    public static void call(DependencyCollector self, CharSequence dependencyNotation, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
         self.add(dependencyNotation, ConfigureUtil.configureUsing(configuration));
     }
 
@@ -187,7 +187,7 @@ public class DependenciesExtensionModule {
      *
      * @param files files to add as a dependency
      */
-    public static void call(DependencyAdder self, FileCollection files) {
+    public static void call(DependencyCollector self, FileCollection files) {
         self.add(files);
     }
 
@@ -197,7 +197,7 @@ public class DependenciesExtensionModule {
      * @param files files to add as a dependency
      * @param configuration an action to configure the dependency
      */
-    public static void call(DependencyAdder self, FileCollection files, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.FileCollectionDependency") Closure<?> configuration) {
+    public static void call(DependencyCollector self, FileCollection files, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.FileCollectionDependency") Closure<?> configuration) {
         self.add(files, ConfigureUtil.configureUsing(configuration));
     }
 
@@ -206,7 +206,7 @@ public class DependenciesExtensionModule {
      *
      * @param externalModule external module to add as a dependency
      */
-    public static void call(DependencyAdder self, ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule) {
+    public static void call(DependencyCollector self, ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule) {
         self.add(externalModule);
     }
 
@@ -216,7 +216,7 @@ public class DependenciesExtensionModule {
      * @param externalModule external module to add as a dependency
      * @param configuration an action to configure the dependency
      */
-    public static void call(DependencyAdder self, ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
+    public static void call(DependencyCollector self, ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
         self.add(externalModule, ConfigureUtil.configureUsing(configuration));
     }
 
@@ -225,7 +225,7 @@ public class DependenciesExtensionModule {
      *
      * @param dependency dependency to add
      */
-    public static void call(DependencyAdder self, Dependency dependency) {
+    public static void call(DependencyCollector self, Dependency dependency) {
         self.add(dependency);
     }
 
@@ -235,7 +235,7 @@ public class DependenciesExtensionModule {
      * @param dependency dependency to add
      * @param configuration an action to configure the dependency
      */
-    public static <D extends Dependency> void call(DependencyAdder self, D dependency, @ClosureParams(SecondParam.class) Closure<?> configuration) {
+    public static <D extends Dependency> void call(DependencyCollector self, D dependency, @ClosureParams(SecondParam.class) Closure<?> configuration) {
         self.add(dependency, ConfigureUtil.configureUsing(configuration));
     }
 
@@ -244,7 +244,7 @@ public class DependenciesExtensionModule {
      *
      * @param dependency dependency to add
      */
-    public static void call(DependencyAdder self, Provider<? extends Dependency> dependency) {
+    public static void call(DependencyCollector self, Provider<? extends Dependency> dependency) {
         self.add(dependency);
     }
 
@@ -254,7 +254,7 @@ public class DependenciesExtensionModule {
      * @param dependency dependency to add
      * @param configuration an action to configure the dependency
      */
-    public static <D extends Dependency> void call(DependencyAdder self, Provider<? extends D> dependency, @ClosureParams(SecondParam.FirstGenericType.class) Closure<?> configuration) {
+    public static <D extends Dependency> void call(DependencyCollector self, Provider<? extends D> dependency, @ClosureParams(SecondParam.FirstGenericType.class) Closure<?> configuration) {
         self.add(dependency, ConfigureUtil.configureUsing(configuration));
     }
 }

@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.properties.PropertyValue;
@@ -35,7 +36,6 @@ import java.io.File;
 import java.net.URL;
 import java.util.List;
 
-import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
 import static org.gradle.api.problems.Severity.WARNING;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
@@ -75,10 +75,9 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyMetadata.getPropertyName())
-                    .label("of type %s shouldn't be annotated with @Optional", valueType.getName())
+                    .label(String.format("of type %s shouldn't be annotated with @Optional", valueType.getName()))
                     .documentedAt(userManual(VALIDATION_PROBLEMS, CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPES.toLowerCase()))
-                    .noLocation()
-                    .category(VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPES))
+                    .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPES))
                     .details("Properties of primitive type cannot be optional")
                     .severity(Severity.ERROR)
                     .solution("Remove the @Optional annotation")
@@ -98,10 +97,9 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyMetadata.getPropertyName())
-                    .label("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName())
+                    .label(String.format("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName()))
                     .documentedAt(userManual(VALIDATION_PROBLEMS, INCORRECT_USE_OF_INPUT_ANNOTATION.toLowerCase()))
-                    .noLocation()
-                    .category(VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(INCORRECT_USE_OF_INPUT_ANNOTATION))
+                    .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(INCORRECT_USE_OF_INPUT_ANNOTATION))
                     .severity(Severity.ERROR)
                     .details("A property of type '" + ModelType.of(valueType).getDisplayName() + "' annotated with @Input cannot determine how to interpret the file")
                     .solution("Annotate with @InputFile for regular files")
@@ -117,10 +115,9 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyMetadata.getPropertyName())
-                    .label("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName())
+                    .label(String.format("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName()))
                     .documentedAt(userManual(VALIDATION_PROBLEMS, INCORRECT_USE_OF_INPUT_ANNOTATION.toLowerCase()))
-                    .noLocation()
-                    .category(VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(INCORRECT_USE_OF_INPUT_ANNOTATION))
+                    .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(INCORRECT_USE_OF_INPUT_ANNOTATION))
                     .severity(Severity.ERROR)
                     .details("A property of type '" + ModelType.of(valueType).getDisplayName() + "' annotated with @Input cannot determine how to interpret the file")
                     .solution("Annotate with @InputDirectory for directories")
@@ -137,10 +134,9 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyMetadata.getPropertyName())
-                    .label("has @Input annotation used on type '%s' or a property of this type", URL.class.getName())
+                    .label(String.format("has @Input annotation used on type '%s' or a property of this type", URL.class.getName()))
                     .documentedAt(userManual(VALIDATION_PROBLEMS, UNSUPPORTED_VALUE_TYPE.toLowerCase()))
-                    .noLocation()
-                    .category(VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(UNSUPPORTED_VALUE_TYPE))
+                    .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(UNSUPPORTED_VALUE_TYPE))
                     .severity(WARNING)
                     .details(String.format("Type '%s' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type", URL.class.getName()))
                     .solution("Use type 'java.net.URI' instead")

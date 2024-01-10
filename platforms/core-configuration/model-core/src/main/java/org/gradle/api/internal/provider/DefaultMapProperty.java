@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 
@@ -34,7 +35,7 @@ import java.util.Set;
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
-public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSupplier<K, V>> implements MapProperty<K, V>, MapProviderInternal<K, V> {
+public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, DefaultMapProperty.MapSupplierGuard<K, V>> implements MapProperty<K, V>, MapProviderInternal<K, V> {
     private static final String NULL_KEY_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null key to a property of type %s.", Map.class.getSimpleName());
     private static final String NULL_VALUE_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null value to a property of type %s.", Map.class.getSimpleName());
 
@@ -44,7 +45,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     private final Class<V> valueType;
     private final ValueCollector<K> keyCollector;
     private final MapEntryCollector<K, V> entryCollector;
-    private MapSupplier<K, V> defaultValue = emptySupplier();
+    private MapSupplierGuard<K, V> defaultValue = emptySupplier();
 
     public DefaultMapProperty(PropertyHost propertyHost, Class<K> keyType, Class<V> valueType) {
         super(propertyHost);
@@ -55,12 +56,20 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         init(defaultValue, noValueSupplier());
     }
 
-    private MapSupplier<K, V> emptySupplier() {
-        return new EmptySupplier();
+    private MapSupplierGuard<K, V> emptySupplier() {
+        return guard(new EmptySupplier());
     }
 
-    private MapSupplier<K, V> noValueSupplier() {
-        return uncheckedCast(NO_VALUE);
+    private MapSupplierGuard<K, V> noValueSupplier() {
+        return guard(uncheckedCast(NO_VALUE));
+    }
+
+    private void setConvention(MapSupplier<K, V> unguardedConvention) {
+        setConvention(guard(unguardedConvention));
+    }
+
+    private void setSupplier(MapSupplier<K, V> unguardedSupplier) {
+        setSupplier(guard(unguardedSupplier));
     }
 
     @Nullable
@@ -233,29 +242,39 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     }
 
     @Override
+    public void update(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Map<? extends K, ? extends V>>, ? super Provider<Map<K, V>>> transform) {
+        Provider<? extends Map<? extends K, ? extends V>> newValue = transform.transform(shallowCopy());
+        if (newValue != null) {
+            set(newValue);
+        } else {
+            set((Map<? extends K, ? extends V>) null);
+        }
+    }
+
+    @Override
     protected String describeContents() {
         return String.format("Map(%s->%s, %s)", keyType.getSimpleName().toLowerCase(), valueType.getSimpleName(), getSupplier());
     }
 
     @Override
-    protected Value<? extends Map<K, V>> calculateValueFrom(MapSupplier<K, V> value, ValueConsumer consumer) {
+    protected Value<? extends Map<K, V>> calculateValueFrom(MapSupplierGuard<K, V> value, ValueConsumer consumer) {
         return value.calculateValue(consumer);
     }
 
     @Override
-    protected MapSupplier<K, V> finalValue(MapSupplier<K, V> value, ValueConsumer consumer) {
+    protected MapSupplierGuard<K, V> finalValue(MapSupplierGuard<K, V> value, ValueConsumer consumer) {
         Value<? extends Map<K, V>> result = value.calculateValue(consumer);
         if (!result.isMissing()) {
-            return new FixedSupplier<>(result.getWithoutSideEffect(), uncheckedCast(result.getSideEffect()));
+            return guard(new FixedSupplier<>(result.getWithoutSideEffect(), uncheckedCast(result.getSideEffect())));
         } else if (result.getPathToOrigin().isEmpty()) {
             return noValueSupplier();
         } else {
-            return new NoValueSupplier<>(result);
+            return guard(new NoValueSupplier<>(result));
         }
     }
 
     @Override
-    protected ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue(MapSupplier<K, V> value) {
+    protected ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue(MapSupplierGuard<K, V> value) {
         return value.calculateOwnExecutionTimeValue();
     }
 
@@ -596,6 +615,75 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public ValueProducer getProducer() {
             return left.getProducer().plus(right.getProducer());
+        }
+    }
+
+    private MapSupplierGuard<K, V> guard(MapSupplier<K, V> supplier) {
+        return new MapSupplierGuard<>(this, supplier);
+    }
+
+    protected static final class MapSupplierGuard<K, V> implements MapSupplier<K, V>, GuardedData<MapSupplier<K, V>>, GuardedValueSupplier<MapSupplierGuard<K, V>> {
+        private final EvaluationContext.EvaluationOwner owner;
+        private final MapSupplier<K, V> supplier;
+
+        public MapSupplierGuard(EvaluationContext.EvaluationOwner owner, MapSupplier<K, V> supplier) {
+            this.owner = owner;
+            this.supplier = supplier;
+        }
+
+        @Override
+        public MapSupplierGuard<K, V> withOwner(EvaluationContext.EvaluationOwner newOwner) {
+            return new MapSupplierGuard<>(newOwner, supplier);
+        }
+
+        @Override
+        public EvaluationContext.EvaluationOwner getOwner() {
+            return owner;
+        }
+
+        @Override
+        public MapSupplier<K, V> unsafeGet() {
+            return supplier;
+        }
+
+        @Override
+        public Value<? extends Map<K, V>> calculateValue(ValueConsumer consumer) {
+            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().open(owner)) {
+                return supplier.calculateValue(consumer);
+            }
+        }
+
+        @Override
+        public Value<? extends Set<K>> calculateKeys(ValueConsumer consumer) {
+            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().open(owner)) {
+                return supplier.calculateKeys(consumer);
+            }
+        }
+
+        @Override
+        public MapSupplierGuard<K, V> plus(MapCollector<K, V> collector) {
+            return new MapSupplierGuard<>(owner, supplier.plus(collector));
+        }
+
+        @Override
+        public ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue() {
+            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().open(owner)) {
+                return supplier.calculateOwnExecutionTimeValue();
+            }
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().open(owner)) {
+                return supplier.getProducer();
+            }
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().open(owner)) {
+                return supplier.calculatePresence(consumer);
+            }
         }
     }
 }

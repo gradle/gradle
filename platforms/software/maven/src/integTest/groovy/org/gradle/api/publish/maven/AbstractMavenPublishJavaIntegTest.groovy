@@ -289,7 +289,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         javaLibrary.parsedPom.scopes.compile.assertDependsOn("org.springframework:spring-core:1.2.9")
 
         javaLibrary.parsedPom.scopes.runtime.assertDependsOn("org.apache.commons:commons-compress:1.5")
-        javaLibrary.parsedPom.scopes.no_scope.assertDependencyManagement("commons-logging:commons-logging:1.1", "commons-logging:commons-logging:1.2", "org.tukaani:xz:1.6")
+        javaLibrary.parsedPom.scopes.no_scope.assertDependencyManagement("commons-logging:commons-logging:1.1", "org.tukaani:xz:1.6")
 
         and:
         javaLibrary.parsedModuleMetadata.variant("apiElements") {

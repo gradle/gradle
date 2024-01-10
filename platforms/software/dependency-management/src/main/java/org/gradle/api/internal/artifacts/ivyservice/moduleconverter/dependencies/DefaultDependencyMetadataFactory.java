@@ -50,8 +50,8 @@ public class DefaultDependencyMetadataFactory implements DependencyMetadataFacto
     @Override
     public LocalOriginDependencyMetadata createDependencyConstraintMetadata(DependencyConstraint dependencyConstraint) {
         ComponentSelector selector = createSelector(dependencyConstraint);
-        return new LocalComponentDependencyMetadata(selector, dependencyConstraint.getAttributes(), null,
-                Collections.emptyList(), Collections.emptyList(), ((DependencyConstraintInternal)dependencyConstraint).isForce(), false, false, true, false, dependencyConstraint.getReason());
+        return new LocalComponentDependencyMetadata(selector, null,
+            Collections.emptyList(), Collections.emptyList(), ((DependencyConstraintInternal) dependencyConstraint).isForce(), false, false, true, false, dependencyConstraint.getReason());
     }
 
     private ComponentSelector createSelector(DependencyConstraint dependencyConstraint) {

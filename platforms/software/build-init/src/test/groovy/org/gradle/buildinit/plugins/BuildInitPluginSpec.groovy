@@ -17,60 +17,21 @@
 package org.gradle.buildinit.plugins
 
 
-import org.gradle.api.tasks.TaskDependencyMatchers
-import org.gradle.api.tasks.wrapper.Wrapper
+import org.gradle.buildinit.tasks.InitBuild
 import org.gradle.initialization.SettingsState
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
 
 class BuildInitPluginSpec extends AbstractProjectBuilderSpec {
     def setup() {
         project.gradle.attachSettings(Stub(SettingsState))
     }
 
-    def "applies plugin"() {
-        when:
-        project.pluginManager.apply BuildInitPlugin
-        and:
-        project.evaluate()
-        then:
-        project.tasks.wrapper instanceof Wrapper
-        TaskDependencyMatchers.dependsOn("wrapper").matches(project.tasks.init)
-    }
-
-    def "no wrapper task configured if build file already exists"() {
-        setup:
-        project.file("build.gradle") << '// an empty file'
-
-        when:
-        project.pluginManager.apply(BuildInitPlugin)
-
-        then:
-        project.init != null
-        project.tasks.collect { it.name } == ["init"]
-    }
-
-    def "no build file generation if settings file already exists"() {
-        setup:
-        project.file("settings.gradle") << '// an empty file'
-
+    def "adds 'init' task"() {
         when:
         project.pluginManager.apply BuildInitPlugin
 
         then:
-        project.init != null
-        project.tasks.collect { it.name } == ["init"]
-    }
-
-    def "no build file generation when part of multi-project build"() {
-        setup:
-        TestUtil.createChildProject(project, 'child')
-
-        when:
-        project.pluginManager.apply BuildInitPlugin
-
-        then:
-        project.init != null
-        project.tasks.collect { it.name } == ["init"]
+        project.tasks.init instanceof InitBuild
+        project.tasks.init.group == "Build Setup"
     }
 }

@@ -37,7 +37,7 @@ class ChangingProvider<T> extends DefaultProvider<T> {
     }
 
     @Override
-    public String toString() {
+    protected String toStringNoReentrance() {
         return "changing(?)";
     }
 

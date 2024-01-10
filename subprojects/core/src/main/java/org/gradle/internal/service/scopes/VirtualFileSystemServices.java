@@ -71,6 +71,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeintegration.NativeCapabilities;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
@@ -263,7 +264,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                         return Optional.of(new LinuxFileWatcherRegistryFactory(immutableLocationsFilter));
                     }
                 } catch (NativeIntegrationUnavailableException e) {
-                    LOGGER.debug("Native file system watching is not available for this operating system.", e);
+                    NativeServices.logFileSystemWatchingUnavailable(e);
                 }
             }
             return Optional.empty();

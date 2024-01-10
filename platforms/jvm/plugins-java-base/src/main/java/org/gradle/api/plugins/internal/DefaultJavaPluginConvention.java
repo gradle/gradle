@@ -169,7 +169,7 @@ public abstract class DefaultJavaPluginConvention extends org.gradle.api.plugins
 
     File getReportsDir() {
         // This became public API by accident as Groovy has access to private methods and we show an example in our docs
-        // see subprojects/docs/src/snippets/java/customDirs/groovy/build.gradle
+        // see platforms/documentation/docs/src/snippets/java/customDirs/groovy/build.gradle
         // and https://docs.gradle.org/current/userguide/java_testing.html#test_reporting
         return project.getExtensions().getByType(ReportingExtension.class).getBaseDir();
     }

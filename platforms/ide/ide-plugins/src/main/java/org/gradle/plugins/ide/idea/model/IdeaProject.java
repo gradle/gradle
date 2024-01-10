@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.ide.idea.model;
 
-import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
@@ -35,6 +34,7 @@ import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -125,12 +125,12 @@ public abstract class IdeaProject implements IdeWorkspace {
 
     private List<IdeaModule> modules;
     private String jdkName;
-    private IdeaLanguageLevel languageLevel;
-    private JavaVersion targetBytecodeVersion;
+    protected IdeaLanguageLevel languageLevel;
+    protected JavaVersion targetBytecodeVersion;
     private String vcs;
-    private Set<String> wildcards = Sets.newLinkedHashSet();
+    private Set<String> wildcards = new LinkedHashSet<>();
     private RegularFileProperty outputFile;
-    private Set<ProjectLibrary> projectLibraries = Sets.newLinkedHashSet();
+    private Set<ProjectLibrary> projectLibraries = new LinkedHashSet<>();
     private PathFactory pathFactory;
 
     @Inject

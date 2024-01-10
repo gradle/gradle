@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionSelector;
@@ -27,6 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selector
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -37,7 +37,7 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
     private final Version emptyVersion;
 
     private final VersionParser versionParser;
-    private final List<T> selectors = Lists.newArrayList();
+    private final List<T> selectors = new ArrayList<>();
     private boolean deferSelection;
     private boolean forced;
     private final Comparator<ResolvableSelectorState> selectorComparator;

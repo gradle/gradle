@@ -23,6 +23,9 @@ import org.gradle.internal.service.scopes.ServiceScope;
 /**
  * Provides information about various build features supported by Gradle,
  * and their state in the current build.
+ * <p>
+ * An instance of this type can be injected into a task, plugin or other object by annotating
+ * a public constructor or property getter method with {@code javax.inject.Inject}.
  *
  * @see BuildFeature
  * @since 8.5

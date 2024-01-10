@@ -32,6 +32,7 @@ import java.util.List;
  * To use compilation as an example, {@code [java, unused-variable]} would be a subcategory, that along with the {@code [compilation]} main category, denotes a particular compiler warning.
  * The exact definition of subcategories depends on the problem's domain.
  * <p>
+ *
  * @since 8.6
  */
 @Incubating
@@ -40,6 +41,7 @@ public interface ProblemCategory {
      * Returns the namespace. Describes the component reporting the problem (Gradle core or plugin ID).
      *
      * @return the problem's namespace.
+     * @since 8.6
      */
     String getNamespace();
 
@@ -47,6 +49,7 @@ public interface ProblemCategory {
      * The main problem category.
      *
      * @return The category string.
+     * @since 8.6
      */
     String getCategory();
 
@@ -54,6 +57,7 @@ public interface ProblemCategory {
      * The problem's subcategories.
      *
      * @return the subcategories.
+     * @since 8.6
      */
-    List<String> getSubCategories();
+    List<String> getSubcategories();
 }
