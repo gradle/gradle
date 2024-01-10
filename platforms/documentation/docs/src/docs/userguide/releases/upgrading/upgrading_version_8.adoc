@@ -72,7 +72,7 @@ Currently, `ProjectDependency` and `FileCollectionDependency` implement this int
 In Gradle 9.0, these types will no longer implement `SelfResolvingDependency`.
 Instead, they will both directly implement `Dependency`.
 
-As such, the following methods of `ProjectDependency` and `FileCollectionDependency` will no longer be available:
+As such, the following methods of `ProjectDependency` and `FileCollectionDependency` will no longer be avaDilable:
 
 - `resolve`
 - `resolve(boolean)`
@@ -95,54 +95,34 @@ dependencies {
     implementation(project(":foo"))
 }
 
-tasks.register("resolve") {
-    val files = configurations["runtimeClasspath"].files
+tasks.register("resolveDeprecated") {
+    // Wire build dependencies (calls getBuildDependencies)
+    dependsOn(configurations["implementation"].dependencies.toSet())
+
+    // Resolve dependencies
     doLast {
-        // Deprecated
         configurations["implementation"].dependencies.withType<FileCollectionDependency>() {
-            resolve()
-            resolve(true)
+            assert(resolve().map { it.name } == listOf("bar.txt"))
+            assert(resolve(true).map { it.name } == listOf("bar.txt"))
         }
         configurations["implementation"].dependencies.withType<ProjectDependency>() {
-            resolve()
-            resolve(true)
+            // These methods do not even work properly.
+            assert(resolve().map { it.name } == listOf<String>())
+            assert(resolve(true).map { it.name } == listOf<String>())
         }
-
-        // Resolve a Configuration instead
-        assert(files.map { it.name } == listOf("bar.txt", "foo.jar"))
     }
 }
-----
-======
-[.multi-language-sample]
-======
-.build.gradle
-[source,groovy]
-----
-plugins {
-    id("java-library")
-}
 
-dependencies {
-    implementation(files("bar.txt"))
-    implementation(project(":foo"))
-}
+tasks.register("resolveReplacement") {
+    val conf = configurations["runtimeClasspath"]
 
-task resolve {
-    def files = configurations.runtimeClasspath.files
+    // Wire build dependencies
+    dependsOn(conf)
+
+    // Resolve dependencies
+    val files = conf.files
     doLast {
-        // Deprecated
-        configurations.implementation.dependencies.withType(FileCollectionDependency) {
-            resolve()
-            resolve(true)
-        }
-        configurations.implementation.dependencies.withType(ProjectDependency) {
-            resolve()
-            resolve(true)
-        }
-
-        // Resolve a Configuration instead
-        assert files*.name == ["bar.txt", "foo.jar"]
+        assert(files.map { it.name } == listOf("bar.txt", "foo.jar"))
     }
 }
 ----
