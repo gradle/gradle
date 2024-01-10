@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.ResolvedModuleVersion
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -238,7 +237,7 @@ class DefaultCachePolicySpec extends Specification {
         cachePolicy.eachModule(new Action<ModuleResolutionControl>() {
             void execute(ModuleResolutionControl t) {
                 assertId(t.request, 'g', 'n', 'v')
-                assertId(t.cachedResult.id, 'group', 'name', 'version')
+                assertId(t.cachedResult, 'group', 'name', 'version')
                 assert !t.changing
                 t.refresh()
             }
@@ -251,7 +250,7 @@ class DefaultCachePolicySpec extends Specification {
         cachePolicy.eachModule(new Action<ModuleResolutionControl>() {
             void execute(ModuleResolutionControl t) {
                 assertId(t.request, 'g', 'n', 'v')
-                assertId(t.cachedResult.id, 'group', 'name', 'version')
+                assertId(t.cachedResult, 'group', 'name', 'version')
                 assert t.changing
                 t.refresh()
             }
@@ -592,11 +591,7 @@ class DefaultCachePolicySpec extends Specification {
     }
 
     private def moduleVersion(String group, String name, String version) {
-        return new ResolvedModuleVersion() {
-            ModuleVersionIdentifier getId() {
-                return DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(group, name), version);
-            }
-        }
+        DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(group, name), version)
     }
 
 }

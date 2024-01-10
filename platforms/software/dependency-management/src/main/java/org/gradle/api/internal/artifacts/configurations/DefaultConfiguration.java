@@ -43,7 +43,6 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolvableDependencies;
-import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -634,7 +633,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
-    public ResolvedConfiguration getResolvedConfiguration() {
+    @Deprecated
+    public org.gradle.api.artifacts.ResolvedConfiguration getResolvedConfiguration() {
         warnOnDeprecatedUsage("getResolvedConfiguration()", ProperMethodUsage.RESOLVABLE);
         return resolveGraphIfRequired().getResolvedConfiguration();
     }

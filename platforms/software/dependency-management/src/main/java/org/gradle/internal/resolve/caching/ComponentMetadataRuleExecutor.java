@@ -18,8 +18,6 @@ package org.gradle.internal.resolve.caching;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataContext;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource;
 import org.gradle.cache.internal.InMemoryCacheController;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -66,22 +64,8 @@ public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor
         return (policy, entry) -> {
             Duration age = Duration.ofMillis(timeProvider.getCurrentTime() - entry.getTimestamp());
             final ModuleComponentResolveMetadata result = entry.getResult();
-            return !policy.moduleExpiry(new SimpleResolvedModuleVersion(result.getModuleVersionId()), age, result.isChanging()).isMustCheck();
+            return !policy.moduleExpiry(result.getModuleVersionId(), age, result.isChanging()).isMustCheck();
         };
-    }
-
-    private static class SimpleResolvedModuleVersion implements ResolvedModuleVersion {
-
-        private final ModuleVersionIdentifier identifier;
-
-        private SimpleResolvedModuleVersion(ModuleVersionIdentifier identifier) {
-            this.identifier = identifier;
-        }
-
-        @Override
-        public ModuleVersionIdentifier getId() {
-            return identifier;
-        }
     }
 
 }

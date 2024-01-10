@@ -17,12 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.artifacts.ResolvedDependency;
-import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
@@ -81,7 +76,8 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
 
         // Handle non-fatal failures in old model (ResolvedConfiguration) with `ErrorHandling` wrappers.
         // The new model (ResolutionResult) handles non-fatal failure without needing wrappers.
-        ResolvedConfiguration wrappedConfiguration = new ErrorHandlingResolvedConfiguration(results.getResolvedConfiguration(), resolveContext, exceptionMapper);
+        @SuppressWarnings("deprecation")
+        org.gradle.api.artifacts.ResolvedConfiguration wrappedConfiguration = new ErrorHandlingResolvedConfiguration(results.getResolvedConfiguration(), resolveContext, exceptionMapper);
         return DefaultResolverResults.graphResolved(
             results.getVisitedGraph(),
             results.getResolvedLocalComponents(),
@@ -90,13 +86,14 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         );
     }
 
-    private static class ErrorHandlingLenientConfiguration implements LenientConfiguration {
-        private final LenientConfiguration lenientConfiguration;
+    @Deprecated
+    private static class ErrorHandlingLenientConfiguration implements org.gradle.api.artifacts.LenientConfiguration {
+        private final org.gradle.api.artifacts.LenientConfiguration lenientConfiguration;
         private final ResolveContext resolveContext;
         private final ResolveExceptionContextualizer contextualizer;
 
         private ErrorHandlingLenientConfiguration(
-            LenientConfiguration lenientConfiguration,
+            org.gradle.api.artifacts.LenientConfiguration lenientConfiguration,
             ResolveContext resolveContext,
             ResolveExceptionContextualizer contextualizer
         ) {
@@ -106,7 +103,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
-        public Set<ResolvedArtifact> getArtifacts() {
+        public Set<org.gradle.api.artifacts.ResolvedArtifact> getArtifacts() {
             try {
                 return lenientConfiguration.getArtifacts();
             } catch (Exception e) {
@@ -115,7 +112,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
-        public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
+        public Set<org.gradle.api.artifacts.ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
             try {
                 return lenientConfiguration.getArtifacts(dependencySpec);
             } catch (Exception e) {
@@ -124,7 +121,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
-        public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
+        public Set<org.gradle.api.artifacts.ResolvedDependency> getFirstLevelModuleDependencies() {
             try {
                 return lenientConfiguration.getFirstLevelModuleDependencies();
             } catch (Exception e) {
@@ -133,7 +130,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
-        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
+        public Set<org.gradle.api.artifacts.ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
             try {
                 return lenientConfiguration.getFirstLevelModuleDependencies(dependencySpec);
             } catch (Exception e) {
@@ -142,7 +139,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
-        public Set<ResolvedDependency> getAllModuleDependencies() {
+        public Set<org.gradle.api.artifacts.ResolvedDependency> getAllModuleDependencies() {
             try {
                 return lenientConfiguration.getAllModuleDependencies();
             } catch (Exception e) {
@@ -151,7 +148,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
-        public Set<UnresolvedDependency> getUnresolvedModuleDependencies() {
+        public Set<org.gradle.api.artifacts.UnresolvedDependency> getUnresolvedModuleDependencies() {
             try {
                 return lenientConfiguration.getUnresolvedModuleDependencies();
             } catch (Exception e) {
@@ -178,13 +175,14 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
     }
 
-    private static class ErrorHandlingResolvedConfiguration implements ResolvedConfiguration {
-        private final ResolvedConfiguration resolvedConfiguration;
+    @Deprecated
+    private static class ErrorHandlingResolvedConfiguration implements org.gradle.api.artifacts.ResolvedConfiguration {
+        private final org.gradle.api.artifacts.ResolvedConfiguration resolvedConfiguration;
         private final ResolveContext resolveContext;
         private final ResolveExceptionContextualizer contextualizer;
 
         public ErrorHandlingResolvedConfiguration(
-            ResolvedConfiguration resolvedConfiguration,
+            org.gradle.api.artifacts.ResolvedConfiguration resolvedConfiguration,
             ResolveContext resolveContext,
             ResolveExceptionContextualizer contextualizer
         ) {
@@ -199,9 +197,11 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
-        public LenientConfiguration getLenientConfiguration() {
+        public org.gradle.api.artifacts.LenientConfiguration getLenientConfiguration() {
             try {
-                return new ErrorHandlingLenientConfiguration(resolvedConfiguration.getLenientConfiguration(), resolveContext, contextualizer);
+                @SuppressWarnings("deprecation")
+                ErrorHandlingLenientConfiguration errorHandlingLenientConfiguration = new ErrorHandlingLenientConfiguration(resolvedConfiguration.getLenientConfiguration(), resolveContext, contextualizer);
+                return errorHandlingLenientConfiguration;
             } catch (Exception e) {
                 throw contextualizer.contextualize(e, resolveContext);
             }
@@ -235,7 +235,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
-        public Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {
+        public Set<org.gradle.api.artifacts.ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {
             try {
                 return resolvedConfiguration.getFirstLevelModuleDependencies();
             } catch (Exception e) {
@@ -244,7 +244,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
-        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
+        public Set<org.gradle.api.artifacts.ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
             try {
                 return resolvedConfiguration.getFirstLevelModuleDependencies(dependencySpec);
             } catch (Exception e) {
@@ -253,7 +253,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
-        public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
+        public Set<org.gradle.api.artifacts.ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
             try {
                 return resolvedConfiguration.getResolvedArtifacts();
             } catch (Exception e) {
@@ -272,7 +272,8 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
-        public ResolvedConfiguration getResolvedConfiguration() {
+        @Deprecated
+        public org.gradle.api.artifacts.ResolvedConfiguration getResolvedConfiguration() {
             return new BrokenResolvedConfiguration(failure);
         }
 
@@ -322,7 +323,8 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
     }
 
-    private static class BrokenResolvedConfiguration implements ResolvedConfiguration {
+    @Deprecated
+    private static class BrokenResolvedConfiguration implements org.gradle.api.artifacts.ResolvedConfiguration {
         private final ResolveException failure;
 
         public BrokenResolvedConfiguration(ResolveException failure) {
@@ -335,7 +337,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
-        public LenientConfiguration getLenientConfiguration() {
+        public org.gradle.api.artifacts.LenientConfiguration getLenientConfiguration() {
             throw failure;
         }
 
@@ -355,17 +357,17 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
-        public Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {
+        public Set<org.gradle.api.artifacts.ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {
             throw failure;
         }
 
         @Override
-        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
+        public Set<org.gradle.api.artifacts.ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
             throw failure;
         }
 
         @Override
-        public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
+        public Set<org.gradle.api.artifacts.ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
             throw failure;
         }
     }

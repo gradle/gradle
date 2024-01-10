@@ -23,7 +23,10 @@ import java.util.Set;
 /**
  * A {@code ResolvedConfiguration} represents the result of resolving a {@link Configuration}, and provides access
  * to both the artifacts and the meta-data of the result.
+ *
+ * @deprecated This class is deprecated and will be removed in Gradle 10.
  */
+@Deprecated
 public interface ResolvedConfiguration {
     /**
      * Returns whether all dependencies were successfully retrieved or not.

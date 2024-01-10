@@ -19,18 +19,20 @@ package org.gradle.internal.locking;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultUnresolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -127,11 +129,12 @@ public class DependencyLockingGraphVisitor implements DependencyGraphVisitor {
     }
 
     /**
-     * This will transform any lock out of date result into an {@link UnresolvedDependency} in order to plug into lenient resolution.
+     * This will transform any lock out of date result into an {@link org.gradle.api.artifacts.UnresolvedDependency} in order to plug into lenient resolution.
      * This happens only if there are no previous failures as otherwise lock state can't be asserted.
      *
      * @return the existing failures augmented with any locking related one
      */
+    @SuppressWarnings("deprecation")
     public Set<UnresolvedDependency> collectLockingFailures() {
         if (dependencyLockingState.mustValidateLockState()) {
             if (!modulesToBeLocked.isEmpty() || !extraModules.isEmpty() || !forcedModules.isEmpty()) {
@@ -142,20 +145,33 @@ public class DependencyLockingGraphVisitor implements DependencyGraphVisitor {
         return Collections.emptySet();
     }
 
+    // TODO: Dependency locking failures are not unresolved dependencies and should not be modeled as such
     private static Set<UnresolvedDependency> createLockingFailures(Map<ModuleIdentifier, ModuleComponentIdentifier> modulesToBeLocked, Set<ModuleComponentIdentifier> extraModules, Map<ModuleComponentIdentifier, String> forcedModules) {
         Set<UnresolvedDependency> completedFailures = Sets.newHashSetWithExpectedSize(modulesToBeLocked.values().size() + extraModules.size());
         for (ModuleComponentIdentifier presentInLock : modulesToBeLocked.values()) {
-            completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(presentInLock.getModuleIdentifier(), presentInLock.getVersion()),
-                                  new LockOutOfDateException("Did not resolve '" + presentInLock.getDisplayName() + "' which is part of the dependency lock state")));
+            ModuleComponentSelector failureComponentSelector = DefaultModuleComponentSelector.newSelector(presentInLock.getModuleIdentifier(), presentInLock.getVersion());
+            completedFailures.add(
+                new UnresolvedDependency(
+                    DefaultModuleVersionSelector.newSelector(presentInLock.getModuleIdentifier(), presentInLock.getVersion()),
+                    new ModuleVersionResolveException(failureComponentSelector, () -> "Dependency lock state out of date",
+                        new LockOutOfDateException("Did not resolve '" + presentInLock.getDisplayName() + "' which is part of the dependency lock state"))));
         }
         for (ModuleComponentIdentifier extraModule : extraModules) {
-            completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(extraModule.getModuleIdentifier(), extraModule.getVersion()),
-                new LockOutOfDateException("Resolved '" + extraModule.getDisplayName() + "' which is not part of the dependency lock state")));
+            ModuleComponentSelector failureComponentSelector = DefaultModuleComponentSelector.newSelector(extraModule.getModuleIdentifier(), extraModule.getVersion());
+            completedFailures.add(
+                new UnresolvedDependency(
+                    DefaultModuleVersionSelector.newSelector(extraModule.getModuleIdentifier(), extraModule.getVersion()),
+                        new ModuleVersionResolveException(failureComponentSelector, () -> "Dependency lock state out of date",
+                            new LockOutOfDateException("Resolved '" + extraModule.getDisplayName() + "' which is not part of the dependency lock state"))));
         }
         for (Map.Entry<ModuleComponentIdentifier, String> entry : forcedModules.entrySet()) {
             ModuleComponentIdentifier forcedModule = entry.getKey();
-            completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(forcedModule.getModuleIdentifier(), forcedModule.getVersion()),
-                new LockOutOfDateException("Did not resolve '" + forcedModule.getDisplayName() + "' which has been forced / substituted to a different version: '" + entry.getValue() + "'")));
+            ModuleComponentSelector failureComponentSelector = DefaultModuleComponentSelector.newSelector(forcedModule.getModuleIdentifier(), forcedModule.getVersion());
+            completedFailures.add(
+                new UnresolvedDependency(
+                    DefaultModuleVersionSelector.newSelector(forcedModule.getModuleIdentifier(), forcedModule.getVersion()),
+                    new ModuleVersionResolveException(failureComponentSelector, () -> "Dependency lock state out of date",
+                        new LockOutOfDateException("Did not resolve '" + forcedModule.getDisplayName() + "' which has been forced / substituted to a different version: '" + entry.getValue() + "'"))));
         }
         return completedFailures;
     }

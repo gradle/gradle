@@ -129,7 +129,7 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
             1 * record.getOutput() >> HashCode.fromInt(10000)
             1 * cachedResult.isChanging() >> changing
             1 * cachedResult.getId() >> id
-            1 * cachePolicy.moduleExpiry({ it.id == id }, Duration.ZERO, changing) >> Stub(Expiry) {
+            1 * cachePolicy.moduleExpiry({ it == id }, Duration.ZERO, changing) >> Stub(Expiry) {
                 isMustCheck() >> false
             }
             // we make it return false, this should invalidate the cache
@@ -137,7 +137,7 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
         } else {
             1 * cachedResult.isChanging() >> changing
             1 * cachedResult.getId() >> id
-            1 * cachePolicy.moduleExpiry({ it.id == id }, Duration.ZERO, changing) >> Stub(Expiry) {
+            1 * cachePolicy.moduleExpiry({ it == id }, Duration.ZERO, changing) >> Stub(Expiry) {
                 isMustCheck() >> mustRefresh
             }
         }

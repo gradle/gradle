@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,31 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
+
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 
-@Deprecated
-public class DefaultUnresolvedDependency implements org.gradle.api.artifacts.UnresolvedDependency {
-    private final Throwable problem;
+public class UnresolvedDependency {
+    private final ModuleVersionResolveException problem;
     private final ModuleVersionSelector selector;
 
-    public DefaultUnresolvedDependency(ModuleVersionSelector selector, Throwable problem) {
+    public UnresolvedDependency(ModuleVersionSelector selector, ModuleVersionResolveException problem) {
         this.selector = selector;
         this.problem = problem;
     }
 
-    @Override
     public ModuleVersionSelector getSelector() {
         return selector;
     }
 
-    @Override
-    public Throwable getProblem() {
+    public ModuleVersionResolveException getProblem() {
         return problem;
-    }
-
-    public String toString() {
-        return selector.getGroup() + ":" + selector.getName() + ":" + selector.getVersion();
     }
 }

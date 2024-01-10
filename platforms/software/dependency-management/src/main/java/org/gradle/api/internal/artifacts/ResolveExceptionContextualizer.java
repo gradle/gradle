@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveException;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
@@ -53,7 +53,7 @@ public class ResolveExceptionContextualizer {
         }
 
         if (failures.size() > 1) {
-            return new DefaultLenientConfiguration.ArtifactResolveException(type, contextDisplayName, failures);
+            return new ArtifactResolveException(type, contextDisplayName, failures);
         }
 
         Throwable failure = failures.iterator().next();
@@ -78,7 +78,7 @@ public class ResolveExceptionContextualizer {
             return (ResolveException) failure;
         }
 
-        return new DefaultLenientConfiguration.ArtifactResolveException(type, contextDisplayName, Collections.singleton(failure));
+        return new ArtifactResolveException(type, contextDisplayName, Collections.singleton(failure));
     }
 
     @Nullable

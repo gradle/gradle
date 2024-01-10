@@ -297,8 +297,11 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * allowed this usage but marked it as deprecated.
      *
      * @return The ResolvedConfiguration object
+     *
+     * @deprecated {@link ResolvedConfiguration} and its associated types have been deprecated for removal in Gradle 10.
      */
-    ResolvedConfiguration getResolvedConfiguration();
+    @Deprecated
+    org.gradle.api.artifacts.ResolvedConfiguration getResolvedConfiguration();
 
     /**
      * Returns the name of the task that upload the artifacts of this configuration to repositories

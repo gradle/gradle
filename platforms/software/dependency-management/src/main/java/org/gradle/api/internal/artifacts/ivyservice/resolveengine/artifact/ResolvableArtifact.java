@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -25,7 +24,7 @@ import org.gradle.internal.model.CalculatedValue;
 import java.io.File;
 
 /**
- * Represents an artifact that can be resolved. Call {@link #getFile()} or {@link ResolvedArtifact#getFile()} to resolve.
+ * Represents an artifact that can be resolved. Call {@link #getFile()} or {@link org.gradle.api.artifacts.ResolvedArtifact#getFile()} to resolve.
  */
 public interface ResolvableArtifact extends TaskDependencyContainer {
     ComponentArtifactIdentifier getId();
@@ -49,5 +48,6 @@ public interface ResolvableArtifact extends TaskDependencyContainer {
 
     ResolvableArtifact transformedTo(File file);
 
-    ResolvedArtifact toPublicView();
+    @Deprecated
+    org.gradle.api.artifacts.ResolvedArtifact toPublicView();
 }

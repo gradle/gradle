@@ -21,11 +21,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.ResolvedDependency;
-import org.gradle.api.artifacts.ResolvedModuleVersion;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCollectingVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -39,16 +34,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class DefaultResolvedDependency implements ResolvedDependency, DependencyGraphNodeResult {
+@Deprecated
+public class DefaultResolvedDependency implements org.gradle.api.artifacts.ResolvedDependency, DependencyGraphNodeResult {
     private final Set<DefaultResolvedDependency> children = new LinkedHashSet<>();
-    private final Set<ResolvedDependency> parents = new LinkedHashSet<>();
-    private final ListMultimap<ResolvedDependency, ResolvedArtifactSet> parentArtifacts = ArrayListMultimap.create();
+    private final Set<org.gradle.api.artifacts.ResolvedDependency> parents = new LinkedHashSet<>();
+    private final ListMultimap<org.gradle.api.artifacts.ResolvedDependency, ResolvedArtifactSet> parentArtifacts = ArrayListMultimap.create();
     private final String name;
     private final ResolvedConfigurationIdentifier resolvedConfigId;
     private final BuildOperationExecutor buildOperationProcessor;
     private final Set<ResolvedArtifactSet> moduleArtifacts;
-    private final Map<ResolvedDependency, Set<ResolvedArtifact>> allArtifactsCache = new HashMap<>();
-    private Set<ResolvedArtifact> allModuleArtifactsCache;
+    private final Map<org.gradle.api.artifacts.ResolvedDependency, Set<org.gradle.api.artifacts.ResolvedArtifact>> allArtifactsCache = new HashMap<>();
+    private Set<org.gradle.api.artifacts.ResolvedArtifact> allModuleArtifactsCache;
 
     public DefaultResolvedDependency(ResolvedConfigurationIdentifier resolvedConfigurationIdentifier, BuildOperationExecutor buildOperationProcessor) {
         this.name = String.format("%s:%s:%s", resolvedConfigurationIdentifier.getModuleGroup(), resolvedConfigurationIdentifier.getModuleName(), resolvedConfigurationIdentifier.getModuleVersion());
@@ -58,7 +54,7 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     }
 
     @Override
-    public ResolvedDependency getPublicView() {
+    public org.gradle.api.artifacts.ResolvedDependency getPublicView() {
         return this;
     }
 
@@ -88,12 +84,12 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     }
 
     @Override
-    public ResolvedModuleVersion getModule() {
-        return new DefaultResolvedModuleVersion(resolvedConfigId.getId());
+    public org.gradle.api.artifacts.ResolvedModuleVersion getModule() {
+        return new org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion(resolvedConfigId.getId());
     }
 
     @Override
-    public Set<ResolvedDependency> getChildren() {
+    public Set<org.gradle.api.artifacts.ResolvedDependency> getChildren() {
         return ImmutableSet.copyOf(children);
     }
 
@@ -103,15 +99,15 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     }
 
     @Override
-    public Set<ResolvedArtifact> getModuleArtifacts() {
+    public Set<org.gradle.api.artifacts.ResolvedArtifact> getModuleArtifacts() {
         return sort(CompositeResolvedArtifactSet.of(moduleArtifacts));
     }
 
     @Override
-    public Set<ResolvedArtifact> getAllModuleArtifacts() {
+    public Set<org.gradle.api.artifacts.ResolvedArtifact> getAllModuleArtifacts() {
         if (allModuleArtifactsCache == null) {
-            Set<ResolvedArtifact> allArtifacts = new LinkedHashSet<>(getModuleArtifacts());
-            for (ResolvedDependency childResolvedDependency : getChildren()) {
+            Set<org.gradle.api.artifacts.ResolvedArtifact> allArtifacts = new LinkedHashSet<>(getModuleArtifacts());
+            for (org.gradle.api.artifacts.ResolvedDependency childResolvedDependency : getChildren()) {
                 allArtifacts.addAll(childResolvedDependency.getAllModuleArtifacts());
             }
             allModuleArtifactsCache = allArtifacts;
@@ -120,12 +116,13 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     }
 
     @Override
-    public Set<ResolvedArtifact> getParentArtifacts(ResolvedDependency parent) {
+    public Set<org.gradle.api.artifacts.ResolvedArtifact> getParentArtifacts(org.gradle.api.artifacts.ResolvedDependency parent) {
         return sort(getArtifactsForIncomingEdge((DependencyGraphNodeResult) parent));
     }
 
-    private Set<ResolvedArtifact> sort(ResolvedArtifactSet artifacts) {
-        ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor(new TreeSet<>(new ResolvedArtifactComparator()));
+    private Set<org.gradle.api.artifacts.ResolvedArtifact> sort(ResolvedArtifactSet artifacts) {
+        org.gradle.api.internal.artifacts.ivyservice.ArtifactCollectingVisitor visitor =
+            new org.gradle.api.internal.artifacts.ivyservice.ArtifactCollectingVisitor(new TreeSet<>(new ResolvedArtifactComparator()));
         ParallelResolveArtifactSet.wrap(artifacts, buildOperationProcessor).visit(visitor);
         return visitor.getArtifacts();
     }
@@ -139,20 +136,20 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
         if (!parents.contains(parent)) {
             throw new InvalidUserDataException("Provided dependency (" + parent + ") must be a parent of: " + this);
         }
-        return CompositeResolvedArtifactSet.of(parentArtifacts.get((ResolvedDependency) parent));
+        return CompositeResolvedArtifactSet.of(parentArtifacts.get((org.gradle.api.artifacts.ResolvedDependency) parent));
     }
 
     @Override
-    public Set<ResolvedArtifact> getArtifacts(ResolvedDependency parent) {
+    public Set<org.gradle.api.artifacts.ResolvedArtifact> getArtifacts(org.gradle.api.artifacts.ResolvedDependency parent) {
         return getParentArtifacts(parent);
     }
 
     @Override
-    public Set<ResolvedArtifact> getAllArtifacts(ResolvedDependency parent) {
+    public Set<org.gradle.api.artifacts.ResolvedArtifact> getAllArtifacts(org.gradle.api.artifacts.ResolvedDependency parent) {
         if (allArtifactsCache.get(parent) == null) {
-            Set<ResolvedArtifact> allArtifacts = new LinkedHashSet<>(getArtifacts(parent));
-            for (ResolvedDependency childResolvedDependency : getChildren()) {
-                for (ResolvedDependency childParent : childResolvedDependency.getParents()) {
+            Set<org.gradle.api.artifacts.ResolvedArtifact> allArtifacts = new LinkedHashSet<>(getArtifacts(parent));
+            for (org.gradle.api.artifacts.ResolvedDependency childResolvedDependency : getChildren()) {
+                for (org.gradle.api.artifacts.ResolvedDependency childParent : childResolvedDependency.getParents()) {
                     allArtifacts.addAll(childResolvedDependency.getAllArtifacts(childParent));
                 }
             }
@@ -162,7 +159,7 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     }
 
     @Override
-    public Set<ResolvedDependency> getParents() {
+    public Set<org.gradle.api.artifacts.ResolvedDependency> getParents() {
         return parents;
     }
 
@@ -193,7 +190,7 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
         child.parents.add(this);
     }
 
-    public void addParentSpecificArtifacts(ResolvedDependency parent, ResolvedArtifactSet artifacts) {
+    public void addParentSpecificArtifacts(org.gradle.api.artifacts.ResolvedDependency parent, ResolvedArtifactSet artifacts) {
         this.parentArtifacts.put(parent, artifacts);
         moduleArtifacts.add(artifacts);
     }
@@ -202,9 +199,9 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
         moduleArtifacts.add(artifacts);
     }
 
-    private static class ResolvedArtifactComparator implements Comparator<ResolvedArtifact> {
+    private static class ResolvedArtifactComparator implements Comparator<org.gradle.api.artifacts.ResolvedArtifact> {
         @Override
-        public int compare(ResolvedArtifact artifact1, ResolvedArtifact artifact2) {
+        public int compare(org.gradle.api.artifacts.ResolvedArtifact artifact1, org.gradle.api.artifacts.ResolvedArtifact artifact2) {
             int diff = artifact1.getName().compareTo(artifact2.getName());
             if (diff != 0) {
                 return diff;

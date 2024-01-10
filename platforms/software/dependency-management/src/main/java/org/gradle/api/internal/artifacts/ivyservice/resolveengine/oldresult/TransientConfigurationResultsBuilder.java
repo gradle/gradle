@@ -18,7 +18,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
@@ -126,9 +125,10 @@ public class TransientConfigurationResultsBuilder {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private TransientConfigurationResults deserialize(Decoder decoder, ResolvedGraphResults graphResults, SelectedArtifactResults artifactResults, BuildOperationExecutor buildOperationProcessor) {
         Timer clock = Time.startTimer();
-        Map<Long, DefaultResolvedDependency> allDependencies = new HashMap<>();
+        Map<Long, org.gradle.api.internal.artifacts.DefaultResolvedDependency> allDependencies = new HashMap<>();
         Map<Dependency, DependencyGraphNodeResult> firstLevelDependencies = new LinkedHashMap<>();
         DependencyGraphNodeResult root;
         int valuesRead = 0;
@@ -143,7 +143,7 @@ public class TransientConfigurationResultsBuilder {
                     case NODE:
                         id = decoder.readSmallLong();
                         ResolvedConfigurationIdentifier details = resolvedConfigurationIdentifierSerializer.read(decoder);
-                        allDependencies.put(id, new DefaultResolvedDependency(details, buildOperationProcessor));
+                        allDependencies.put(id, new org.gradle.api.internal.artifacts.DefaultResolvedDependency(details, buildOperationProcessor));
                         break;
                     case ROOT:
                         id = decoder.readSmallLong();
@@ -156,7 +156,7 @@ public class TransientConfigurationResultsBuilder {
                         return new DefaultTransientConfigurationResults(root, firstLevelDependencies);
                     case FIRST_LEVEL:
                         id = decoder.readSmallLong();
-                        DefaultResolvedDependency dependency = allDependencies.get(id);
+                        org.gradle.api.internal.artifacts.DefaultResolvedDependency dependency = allDependencies.get(id);
                         if (dependency == null) {
                             throw new IllegalStateException(String.format("Unexpected first level id %s. Seen ids: %s", id, allDependencies.keySet()));
                         }
@@ -165,8 +165,8 @@ public class TransientConfigurationResultsBuilder {
                     case EDGE:
                         long parentId = decoder.readSmallLong();
                         long childId = decoder.readSmallLong();
-                        DefaultResolvedDependency parent = allDependencies.get(parentId);
-                        DefaultResolvedDependency child = allDependencies.get(childId);
+                        org.gradle.api.internal.artifacts.DefaultResolvedDependency parent = allDependencies.get(parentId);
+                        org.gradle.api.internal.artifacts.DefaultResolvedDependency child = allDependencies.get(childId);
                         if (parent == null) {
                             throw new IllegalStateException(String.format("Unexpected parent dependency id %s. Seen ids: %s", parentId, allDependencies.keySet()));
                         }
@@ -179,7 +179,7 @@ public class TransientConfigurationResultsBuilder {
                         break;
                     case NODE_ARTIFACTS:
                         id = decoder.readSmallLong();
-                        DefaultResolvedDependency node = allDependencies.get(id);
+                        org.gradle.api.internal.artifacts.DefaultResolvedDependency node = allDependencies.get(id);
                         if (node == null) {
                             throw new IllegalStateException(String.format("Unexpected node id %s. Seen ids: %s", node, allDependencies.keySet()));
                         }

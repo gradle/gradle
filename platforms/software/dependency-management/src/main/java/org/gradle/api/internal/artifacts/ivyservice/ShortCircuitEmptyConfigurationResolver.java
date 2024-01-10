@@ -16,13 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.artifacts.ResolvedDependency;
-import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
@@ -100,7 +95,10 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
         VisitedGraphResults graphResults = emptyGraphResults(resolveContext);
         ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor(thisBuild);
-        return DefaultResolverResults.graphResolved(graphResults, emptyProjectResult, new EmptyResolvedConfiguration(), EmptyResults.INSTANCE);
+
+        @SuppressWarnings("deprecation")
+        org.gradle.api.artifacts.ResolvedConfiguration resolvedConfiguration = new EmptyResolvedConfiguration();
+        return DefaultResolverResults.graphResolved(graphResults, emptyProjectResult, resolvedConfiguration, EmptyResults.INSTANCE);
     }
 
     private VisitedGraphResults emptyGraphResults(ResolveContext resolveContext) {
@@ -128,7 +126,8 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
     }
 
-    private static class EmptyResolvedConfiguration implements ResolvedConfiguration {
+    @Deprecated
+    private static class EmptyResolvedConfiguration implements org.gradle.api.artifacts.ResolvedConfiguration {
 
         @Override
         public boolean hasError() {
@@ -136,25 +135,25 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
 
         @Override
-        public LenientConfiguration getLenientConfiguration() {
-            return new LenientConfiguration() {
+        public org.gradle.api.artifacts.LenientConfiguration getLenientConfiguration() {
+            return new org.gradle.api.artifacts.LenientConfiguration() {
                 @Override
-                public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
+                public Set<org.gradle.api.artifacts.ResolvedDependency> getFirstLevelModuleDependencies() {
                     return Collections.emptySet();
                 }
 
                 @Override
-                public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
+                public Set<org.gradle.api.artifacts.ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
                     return Collections.emptySet();
                 }
 
                 @Override
-                public Set<ResolvedDependency> getAllModuleDependencies() {
+                public Set<org.gradle.api.artifacts.ResolvedDependency> getAllModuleDependencies() {
                     return Collections.emptySet();
                 }
 
                 @Override
-                public Set<UnresolvedDependency> getUnresolvedModuleDependencies() {
+                public Set<org.gradle.api.artifacts.UnresolvedDependency> getUnresolvedModuleDependencies() {
                     return Collections.emptySet();
                 }
 
@@ -169,12 +168,12 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
                 }
 
                 @Override
-                public Set<ResolvedArtifact> getArtifacts() {
+                public Set<org.gradle.api.artifacts.ResolvedArtifact> getArtifacts() {
                     return Collections.emptySet();
                 }
 
                 @Override
-                public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
+                public Set<org.gradle.api.artifacts.ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
                     return Collections.emptySet();
                 }
             };
@@ -195,17 +194,17 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
 
         @Override
-        public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
+        public Set<org.gradle.api.artifacts.ResolvedDependency> getFirstLevelModuleDependencies() {
             return Collections.emptySet();
         }
 
         @Override
-        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
+        public Set<org.gradle.api.artifacts.ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
             return Collections.emptySet();
         }
 
         @Override
-        public Set<ResolvedArtifact> getResolvedArtifacts() {
+        public Set<org.gradle.api.artifacts.ResolvedArtifact> getResolvedArtifacts() {
             return Collections.emptySet();
         }
     }

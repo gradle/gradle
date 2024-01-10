@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
@@ -58,6 +57,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Reso
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentDetailsSerializer;
@@ -288,7 +288,9 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         TransientConfigurationResultsLoader transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(oldTransientModelBuilder, legacyGraphResults);
         ArtifactVariantSelector artifactVariantSelector = variantSelectorFactory.create(resolveContext.getDependenciesResolverFactory());
-        DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(
+
+        @SuppressWarnings("deprecation")
+        org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration lenientConfiguration = new org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration(
             resolveContext,
             graphResults,
             artifactsResults,
@@ -300,10 +302,12 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             artifactVariantSelector
         );
 
+        @SuppressWarnings("deprecation")
+        org.gradle.api.artifacts.ResolvedConfiguration resolvedConfiguration = new DefaultResolvedConfiguration(lenientConfiguration);
         return DefaultResolverResults.graphResolved(
             graphResults,
             localComponentsVisitor,
-            new DefaultResolvedConfiguration(lenientConfiguration),
+            resolvedConfiguration,
             lenientConfiguration
         );
     }

@@ -16,9 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ResolvedModuleVersion;
 
-public class DefaultResolvedModuleVersion implements ResolvedModuleVersion {
+@Deprecated
+public class DefaultResolvedModuleVersion implements org.gradle.api.artifacts.ResolvedModuleVersion {
     private final ModuleVersionIdentifier identifier;
 
     public DefaultResolvedModuleVersion(ModuleVersionIdentifier identifier) {

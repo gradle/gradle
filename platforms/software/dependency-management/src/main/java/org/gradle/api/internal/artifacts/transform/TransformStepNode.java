@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
@@ -252,7 +252,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
                         } catch (ResolveException e) {
                             throw e;
                         } catch (RuntimeException e) {
-                            throw new DefaultLenientConfiguration.ArtifactResolveException("artifacts", transformStep.getDisplayName(), Collections.singleton(e));
+                            throw new ArtifactResolveException("artifacts", transformStep.getDisplayName(), Collections.singleton(e));
                         }
 
                         return transformStep

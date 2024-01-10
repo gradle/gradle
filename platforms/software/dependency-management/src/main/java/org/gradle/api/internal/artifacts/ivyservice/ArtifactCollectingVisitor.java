@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalDependencyFiles;
@@ -30,14 +29,15 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+@Deprecated
 public class ArtifactCollectingVisitor implements ArtifactVisitor {
-    private final Set<ResolvedArtifact> artifacts;
+    private final Set<org.gradle.api.artifacts.ResolvedArtifact> artifacts;
 
     public ArtifactCollectingVisitor() {
         this(new LinkedHashSet<>());
     }
 
-    public ArtifactCollectingVisitor(Set<ResolvedArtifact> artifacts) {
+    public ArtifactCollectingVisitor(Set<org.gradle.api.artifacts.ResolvedArtifact> artifacts) {
         this.artifacts = artifacts;
     }
 
@@ -64,7 +64,7 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
         return false;
     }
 
-    public Set<ResolvedArtifact> getArtifacts() {
+    public Set<org.gradle.api.artifacts.ResolvedArtifact> getArtifacts() {
         return artifacts;
     }
 }

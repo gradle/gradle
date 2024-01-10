@@ -18,10 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results
 
 
 import org.gradle.api.artifacts.ResolveException
-import org.gradle.api.artifacts.UnresolvedDependency
 import org.gradle.api.internal.artifacts.result.DefaultMinimalResolutionResult
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
 
 import java.util.function.Supplier
@@ -47,7 +47,7 @@ class DefaultVisitedGraphResultsTest extends Specification {
 
     def "visits all resolution failures"() {
         given:
-        def throwable = Mock(Throwable)
+        def throwable = Mock(ModuleVersionResolveException)
         def resolveEx = Mock(ResolveException)
 
         def unresolved = Mock(UnresolvedDependency) {

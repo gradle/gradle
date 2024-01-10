@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -43,7 +42,6 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
     private final CalculatedValue<File> fileSource;
     private final WorkNodeAction resolvedArtifactDependency;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
-    private final ResolvedArtifact publicView;
 
     public DefaultResolvableArtifact(@Nullable ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependencyContainer builtBy, CalculatedValue<File> fileSource, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.owner = owner;
@@ -59,7 +57,6 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
             this.resolvedArtifactDependency = null;
         }
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
-        this.publicView = new DefaultResolvedArtifact(artifactId, fileSource, owner, artifact);
     }
 
     @Override
@@ -98,8 +95,9 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
     }
 
     @Override
-    public ResolvedArtifact toPublicView() {
-        return publicView;
+    @SuppressWarnings("deprecation")
+    public org.gradle.api.artifacts.ResolvedArtifact toPublicView() {
+        return new DefaultResolvedArtifact(artifactId, fileSource, owner, artifact);
     }
 
     @Override

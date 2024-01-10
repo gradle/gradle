@@ -17,10 +17,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.model.CalculatedValue;
 
@@ -28,12 +25,13 @@ import javax.annotation.Nullable;
 import java.io.File;
 
 /**
- * Default implementation of {@link ResolvedArtifact}, the artifact type used by the legacy
+ * Default implementation of {@link org.gradle.api.artifacts.ResolvedArtifact}, the artifact type used by the legacy
  * {@link org.gradle.api.artifacts.ResolvedConfiguration} API. This class presents a file extension, type,
  * classifier via its {@link IvyArtifactName}. This name is tracked on a best-effort basis, and may not
  * always represent the actual file name.
  */
-public class DefaultResolvedArtifact implements ResolvedArtifact {
+@Deprecated
+public class DefaultResolvedArtifact implements org.gradle.api.artifacts.ResolvedArtifact {
 
     private final ComponentArtifactIdentifier id;
     private final CalculatedValue<File> fileSource;
@@ -64,12 +62,12 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
     }
 
     @Override
-    public ResolvedModuleVersion getModuleVersion() {
+    public org.gradle.api.artifacts.ResolvedModuleVersion getModuleVersion() {
         if (owner == null) {
             // Local file dependencies do not have an owner
             throw new UnsupportedOperationException();
         }
-        return new DefaultResolvedModuleVersion(owner);
+        return new org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion(owner);
     }
 
     @Override

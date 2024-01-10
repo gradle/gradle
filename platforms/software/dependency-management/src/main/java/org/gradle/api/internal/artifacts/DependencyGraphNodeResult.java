@@ -16,13 +16,14 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 
 import java.util.Collection;
 
 public interface DependencyGraphNodeResult {
-    ResolvedDependency getPublicView();
+
+    @Deprecated
+    org.gradle.api.artifacts.ResolvedDependency getPublicView();
 
     Collection<? extends DependencyGraphNodeResult> getOutgoingEdges();
 

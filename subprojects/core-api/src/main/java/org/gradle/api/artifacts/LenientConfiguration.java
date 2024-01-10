@@ -23,7 +23,10 @@ import java.util.Set;
 
 /**
  * Resolved configuration that does not fail eagerly when some dependencies are not resolved, or some artifacts do not exist.
+ *
+ * @deprecated This class is deprecated and will be removed in Gradle 10.
  */
+@Deprecated
 public interface LenientConfiguration {
     /**
      * Returns successfully resolved direct dependencies.

@@ -16,11 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -31,10 +27,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultResolvedConfiguration implements ResolvedConfiguration {
-    private final DefaultLenientConfiguration configuration;
+@Deprecated
+public class DefaultResolvedConfiguration implements org.gradle.api.artifacts.ResolvedConfiguration {
+    private final org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration configuration;
 
-    public DefaultResolvedConfiguration(DefaultLenientConfiguration configuration) {
+    public DefaultResolvedConfiguration(org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration configuration) {
         this.configuration = configuration;
     }
 
@@ -57,7 +54,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     }
 
     @Override
-    public LenientConfiguration getLenientConfiguration() {
+    public org.gradle.api.artifacts.LenientConfiguration getLenientConfiguration() {
         return configuration;
     }
 
@@ -72,7 +69,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
         configuration.select(dependencySpec).visitArtifacts(visitor, false);
         Collection<Throwable> failures = visitor.getFailures();
         if (!failures.isEmpty()) {
-            throw new DefaultLenientConfiguration.ArtifactResolveException(
+            throw new ArtifactResolveException(
                 "files",
                 configuration.getDisplayName().toString(),
                 failures
@@ -82,19 +79,19 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     }
 
     @Override
-    public Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {
+    public Set<org.gradle.api.artifacts.ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {
         rethrowFailure();
         return configuration.getFirstLevelModuleDependencies();
     }
 
     @Override
-    public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
+    public Set<org.gradle.api.artifacts.ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
         rethrowFailure();
         return configuration.getFirstLevelModuleDependencies(dependencySpec);
     }
 
     @Override
-    public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
+    public Set<org.gradle.api.artifacts.ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
         rethrowFailure();
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
         configuration.select().visitArtifacts(visitor, false);

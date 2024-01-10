@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results;
 
 import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 
 import java.util.Optional;

@@ -19,7 +19,10 @@ import java.util.Set;
 
 /**
  * Information about a resolved dependency.
+ *
+ * @deprecated This class is deprecated and will be removed in Gradle 10.
  */
+@Deprecated
 public interface ResolvedDependency {
     /**
      * Returns the name of the resolved dependency.
@@ -65,7 +68,7 @@ public interface ResolvedDependency {
 
     /**
      * Returns the module artifacts belonging to this ResolvedDependency. A module artifact is an artifact that belongs
-     * to a ResolvedDependency independent of a particular parent. Returns never null. 
+     * to a ResolvedDependency independent of a particular parent. Returns never null.
      */
     Set<ResolvedArtifact> getModuleArtifacts();
 

@@ -168,8 +168,8 @@ class DependencyLockingGraphVisitorTest extends Specification {
         then:
         failures.size() == 1
         failures.each {
-            assert it.problem instanceof LockOutOfDateException
-            assert it.problem.message.contains("Resolved 'org:foo:1.0' which is not part of the dependency lock state")
+            assert it.problem.cause instanceof LockOutOfDateException
+            assert it.problem.cause.message.contains("Resolved 'org:foo:1.0' which is not part of the dependency lock state")
         }
     }
 
@@ -183,8 +183,8 @@ class DependencyLockingGraphVisitorTest extends Specification {
         then:
         failures.size() == 1
         failures.each {
-            assert it.problem instanceof LockOutOfDateException
-            assert it.problem.message.contains("Did not resolve 'org:foo:1.1' which is part of the dependency lock state")
+            assert it.problem.cause instanceof LockOutOfDateException
+            assert it.problem.cause.message.contains("Did not resolve 'org:foo:1.1' which is part of the dependency lock state")
         }
     }
 
@@ -199,8 +199,8 @@ class DependencyLockingGraphVisitorTest extends Specification {
         then:
         failures.size() == 1
         failures.each {
-            assert it.problem instanceof LockOutOfDateException
-            assert it.problem.message.contains("Did not resolve 'org:foo:1.1' which has been forced / substituted to a different version: '1.0'")
+            assert it.problem.cause instanceof LockOutOfDateException
+            assert it.problem.cause.message.contains("Did not resolve 'org:foo:1.1' which has been forced / substituted to a different version: '1.0'")
         }
     }
 

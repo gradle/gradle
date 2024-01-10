@@ -22,7 +22,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
@@ -31,14 +30,15 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.result.DefaultMinimalResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -149,9 +149,10 @@ public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor 
         for (UnresolvedDependency failure : extraFailures) {
             ModuleVersionSelector failureSelector = failure.getSelector();
             ModuleComponentSelector failureComponentSelector = DefaultModuleComponentSelector.newSelector(failureSelector.getModule(), failureSelector.getVersion());
-            root.addDependency(dependencyResultFactory.createUnresolvedDependency(failureComponentSelector, root, true,
-                ComponentSelectionReasons.of(DEPENDENCY_LOCKING),
-                new ModuleVersionResolveException(failureComponentSelector, () -> "Dependency lock state out of date", failure.getProblem())));
+            UnresolvedDependencyResult unresolvedDependency = dependencyResultFactory.createUnresolvedDependency(
+                failureComponentSelector, root, true, ComponentSelectionReasons.of(DEPENDENCY_LOCKING), failure.getProblem()
+            );
+            root.addDependency(unresolvedDependency);
         }
     }
 }

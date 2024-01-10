@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
@@ -31,14 +30,14 @@ public class DefaultResolverResults implements ResolverResults {
     private final ResolvedLocalComponentsResult resolvedLocalComponentsResult;
     private final VisitedGraphResults graphResults;
     private final VisitedArtifactSet visitedArtifacts;
-    private final ResolvedConfiguration resolvedConfiguration;
+    @SuppressWarnings("deprecation") private final org.gradle.api.artifacts.ResolvedConfiguration resolvedConfiguration;
     private final boolean fullyResolved;
 
     public DefaultResolverResults(
         ResolvedLocalComponentsResult resolvedLocalComponentsResult,
         VisitedGraphResults graphResults,
         VisitedArtifactSet visitedArtifacts,
-        @Nullable ResolvedConfiguration resolvedConfiguration,
+        @Nullable @SuppressWarnings("deprecation") org.gradle.api.artifacts.ResolvedConfiguration resolvedConfiguration,
         boolean fullyResolved
     ) {
         this.resolvedLocalComponentsResult = resolvedLocalComponentsResult;
@@ -49,7 +48,8 @@ public class DefaultResolverResults implements ResolverResults {
     }
 
     @Override
-    public ResolvedConfiguration getResolvedConfiguration() {
+    @Deprecated
+    public org.gradle.api.artifacts.ResolvedConfiguration getResolvedConfiguration() {
         if (resolvedConfiguration == null) {
             throw new IllegalStateException("Cannot get ResolvedConfiguration before graph resolution.");
         }
@@ -99,7 +99,7 @@ public class DefaultResolverResults implements ResolverResults {
     public static ResolverResults graphResolved(
         VisitedGraphResults graphResults,
         ResolvedLocalComponentsResult resolvedLocalComponentsResult,
-        ResolvedConfiguration resolvedConfiguration,
+        @SuppressWarnings("deprecation") org.gradle.api.artifacts.ResolvedConfiguration resolvedConfiguration,
         VisitedArtifactSet visitedArtifacts
     ) {
         return new DefaultResolverResults(

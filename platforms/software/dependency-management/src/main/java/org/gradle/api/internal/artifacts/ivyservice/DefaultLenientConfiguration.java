@@ -18,11 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
-import org.gradle.api.artifacts.LenientConfiguration;
-import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.ResolvedDependency;
-import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.ResolveArtifactsBuildOperationType;
@@ -71,8 +66,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-public class DefaultLenientConfiguration implements LenientConfiguration, VisitedArtifactSet {
+@Deprecated
+public class DefaultLenientConfiguration implements org.gradle.api.artifacts.LenientConfiguration, VisitedArtifactSet {
 
     private final static ResolveArtifactsBuildOperationType.Result RESULT = new ResolveArtifactsBuildOperationType.Result() {
     };
@@ -165,8 +162,10 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     @Override
-    public Set<UnresolvedDependency> getUnresolvedModuleDependencies() {
-        return graphResults.getUnresolvedDependencies();
+    public Set<org.gradle.api.artifacts.UnresolvedDependency> getUnresolvedModuleDependencies() {
+        return graphResults.getUnresolvedDependencies().stream().map(dep ->
+            new DefaultUnresolvedDependency(dep.getSelector(), dep.getProblem())
+        ).collect(Collectors.toSet());
     }
 
     private TransientConfigurationResults loadTransientGraphResults(SelectedArtifactResults artifactResults) {
@@ -174,8 +173,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     @Override
-    public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
-        Set<ResolvedDependency> matches = new LinkedHashSet<>();
+    public Set<org.gradle.api.artifacts.ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
+        Set<org.gradle.api.artifacts.ResolvedDependency> matches = new LinkedHashSet<>();
         for (DependencyGraphNodeResult node : getFirstLevelNodes(dependencySpec)) {
             matches.add(node.getPublicView());
         }
@@ -194,13 +193,13 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     @Override
-    public Set<ResolvedDependency> getAllModuleDependencies() {
-        Set<ResolvedDependency> resolvedElements = new LinkedHashSet<>();
-        Deque<ResolvedDependency> workQueue = new LinkedList<>(loadTransientGraphResults(getSelectedArtifacts()).getRootNode().getPublicView().getChildren());
+    public Set<org.gradle.api.artifacts.ResolvedDependency> getAllModuleDependencies() {
+        Set<org.gradle.api.artifacts.ResolvedDependency> resolvedElements = new LinkedHashSet<>();
+        Deque<org.gradle.api.artifacts.ResolvedDependency> workQueue = new LinkedList<>(loadTransientGraphResults(getSelectedArtifacts()).getRootNode().getPublicView().getChildren());
         while (!workQueue.isEmpty()) {
-            ResolvedDependency item = workQueue.removeFirst();
+            org.gradle.api.artifacts.ResolvedDependency item = workQueue.removeFirst();
             if (resolvedElements.add(item)) {
-                final Set<ResolvedDependency> children = item.getChildren();
+                final Set<org.gradle.api.artifacts.ResolvedDependency> children = item.getChildren();
                 workQueue.addAll(children);
             }
         }
@@ -223,7 +222,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     @Override
-    public Set<ResolvedArtifact> getArtifacts() {
+    public Set<org.gradle.api.artifacts.ResolvedArtifact> getArtifacts() {
         return getArtifacts(Specs.satisfyAll());
     }
 
@@ -231,7 +230,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
      * Recursive but excludes unsuccessfully resolved artifacts.
      */
     @Override
-    public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
+    public Set<org.gradle.api.artifacts.ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
         LenientArtifactCollectingVisitor visitor = new LenientArtifactCollectingVisitor();
         visitArtifactsWithBuildOperation(dependencySpec, getSelectedArtifacts(), fileDependencyResults, visitor);
         return visitor.artifacts;
@@ -306,7 +305,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
             }
         }
 
-        CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact> walker = new CachingDirectedGraphWalker<>(new ResolvedDependencyArtifactsGraph(artifactSets));
+        CachingDirectedGraphWalker<DependencyGraphNodeResult, org.gradle.api.artifacts.ResolvedArtifact> walker = new CachingDirectedGraphWalker<>(new ResolvedDependencyArtifactsGraph(artifactSets));
         for (DependencyGraphNodeResult node : getFirstLevelNodes(dependencySpec)) {
             walker.add(node);
         }
@@ -319,18 +318,18 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     @Override
-    public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
+    public Set<org.gradle.api.artifacts.ResolvedDependency> getFirstLevelModuleDependencies() {
         return getFirstLevelModuleDependencies(Specs.SATISFIES_ALL);
     }
 
     private static class LenientArtifactCollectingVisitor implements ArtifactVisitor {
-        final Set<ResolvedArtifact> artifacts = new LinkedHashSet<>();
+        final Set<org.gradle.api.artifacts.ResolvedArtifact> artifacts = new LinkedHashSet<>();
         final Set<File> files = new LinkedHashSet<>();
 
         @Override
         public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
             try {
-                ResolvedArtifact resolvedArtifact = artifact.toPublicView();
+                org.gradle.api.artifacts.ResolvedArtifact resolvedArtifact = artifact.toPublicView();
                 files.add(resolvedArtifact.getFile());
                 artifacts.add(resolvedArtifact);
             } catch (org.gradle.internal.resolve.ArtifactResolveException e) {
@@ -364,24 +363,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
     }
 
-    public static class ArtifactResolveException extends ResolveException {
-        private final String type;
-        private final String displayName;
-
-        public ArtifactResolveException(String type, String displayName, Iterable<? extends Throwable> failures) {
-            super(displayName, failures);
-            this.type = type;
-            this.displayName = displayName;
-        }
-
-        // Need to override as error message is hardcoded in constructor of public type ResolveException
-        @Override
-        public String getMessage() {
-            return String.format("Could not resolve all %s for %s.", type, displayName);
-        }
-    }
-
-    private static class ResolvedDependencyArtifactsGraph implements DirectedGraphWithEdgeValues<DependencyGraphNodeResult, ResolvedArtifact> {
+    private static class ResolvedDependencyArtifactsGraph implements DirectedGraphWithEdgeValues<DependencyGraphNodeResult, org.gradle.api.artifacts.ResolvedArtifact> {
         private final List<ResolvedArtifactSet> dest;
 
         ResolvedDependencyArtifactsGraph(List<ResolvedArtifactSet> dest) {
@@ -389,13 +371,13 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         @Override
-        public void getNodeValues(DependencyGraphNodeResult node, Collection<? super ResolvedArtifact> values, Collection<? super DependencyGraphNodeResult> connectedNodes) {
+        public void getNodeValues(DependencyGraphNodeResult node, Collection<? super org.gradle.api.artifacts.ResolvedArtifact> values, Collection<? super DependencyGraphNodeResult> connectedNodes) {
             connectedNodes.addAll(node.getOutgoingEdges());
             dest.add(node.getArtifactsForNode());
         }
 
         @Override
-        public void getEdgeValues(DependencyGraphNodeResult from, DependencyGraphNodeResult to, Collection<ResolvedArtifact> values) {
+        public void getEdgeValues(DependencyGraphNodeResult from, DependencyGraphNodeResult to, Collection<org.gradle.api.artifacts.ResolvedArtifact> values) {
         }
     }
 }

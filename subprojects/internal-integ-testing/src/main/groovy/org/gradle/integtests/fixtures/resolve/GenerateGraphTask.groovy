@@ -44,7 +44,7 @@ import org.gradle.util.Path
  * ways of accessing artifacts and files from a resolved graph are consistent.
  *
  * This task intentionally does <strong>NOT</strong> test the {@link org.gradle.api.artifacts.ResolvedConfiguration ResolvedConfiguration} API,
- * which ought to be considered legacy and deprecated for internal use.  That type's behavior will be verified elsewhere.
+ * which is now deprecated. That type's behavior will be verified elsewhere.
  * This is meant to be Configuration Cache compatible, so it does not store and test the {@link org.gradle.api.artifacts.result.ResolutionResult ResolutionResult}
  * directly, but stores the root node of the graph and walks it to compare the components and dependencies instead.
  */

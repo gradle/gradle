@@ -22,7 +22,10 @@ import java.io.File;
 
 /**
  * Information about a resolved artifact.
+ *
+ * @deprecated This class is deprecated and will be removed in Gradle 10.
  */
+@Deprecated
 public interface ResolvedArtifact {
     /**
      * Returns the local file for this artifact. Downloads the artifact if not already available locally, blocking until complete.

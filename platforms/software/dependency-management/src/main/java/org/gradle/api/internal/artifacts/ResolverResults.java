@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
@@ -34,7 +33,8 @@ public interface ResolverResults {
      *
      * @throws IllegalStateException if only build dependencies have been resolved.
      */
-    ResolvedConfiguration getResolvedConfiguration();
+    @Deprecated
+    org.gradle.api.artifacts.ResolvedConfiguration getResolvedConfiguration();
 
     /**
      * Return the model representing the resolved graph. This model provides access

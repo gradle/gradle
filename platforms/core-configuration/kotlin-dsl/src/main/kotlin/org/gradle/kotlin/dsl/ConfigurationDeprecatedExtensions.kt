@@ -273,6 +273,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.fileCollection(vararg depen
 /**
  * See [Configuration.getResolvedConfiguration].
  */
+@Suppress("DEPRECATION")
 @Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().resolvedConfiguration"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.resolvedConfiguration
     get() = get().resolvedConfiguration

@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.configurations.dynamicversion;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 
@@ -31,11 +30,11 @@ public interface CachePolicy {
 
     Expiry missingModuleExpiry(ModuleComponentIdentifier component, Duration age);
 
-    Expiry moduleExpiry(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, Duration age);
+    Expiry moduleExpiry(ModuleComponentIdentifier component, ModuleVersionIdentifier resolvedModuleVersion, Duration age);
 
-    Expiry moduleExpiry(ResolvedModuleVersion resolvedModuleVersion, Duration age, boolean changing);
+    Expiry moduleExpiry(ModuleVersionIdentifier resolvedModuleVersion, Duration age, boolean changing);
 
-    Expiry changingModuleExpiry(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, Duration age);
+    Expiry changingModuleExpiry(ModuleComponentIdentifier component, ModuleVersionIdentifier resolvedModuleVersion, Duration age);
 
     Expiry moduleArtifactsExpiry(ModuleVersionIdentifier moduleVersionId, Set<ModuleComponentArtifactMetadata> artifacts, Duration age, boolean belongsToChangingModule, boolean moduleDescriptorInSync);
 

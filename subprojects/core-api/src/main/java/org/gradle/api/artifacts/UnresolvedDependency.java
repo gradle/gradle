@@ -17,7 +17,10 @@ package org.gradle.api.artifacts;
 
 /**
  * Unsuccessfully resolved dependency.
+ *
+ * @deprecated This class is deprecated and will be removed in Gradle 10.
  */
+@Deprecated
 public interface UnresolvedDependency {
     /**
      * The module selector of the dependency.

@@ -17,14 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
@@ -129,7 +128,8 @@ public class ArtifactSetToFileCollectionFactory {
                                 }
 
                                 @Override
-                                public ResolvedArtifact toPublicView() {
+                                @SuppressWarnings("deprecation")
+                                public org.gradle.api.artifacts.ResolvedArtifact toPublicView() {
                                     throw new UnsupportedOperationException();
                                 }
 
@@ -196,7 +196,7 @@ public class ArtifactSetToFileCollectionFactory {
             if (failures.isEmpty()) {
                 return Optional.empty();
             } else {
-                return Optional.of(new DefaultLenientConfiguration.ArtifactResolveException(type, getDisplayName(), failures));
+                return Optional.of(new ArtifactResolveException(type, getDisplayName(), failures));
             }
         }
     }

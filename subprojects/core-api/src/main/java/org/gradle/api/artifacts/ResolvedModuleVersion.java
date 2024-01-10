@@ -17,7 +17,10 @@ package org.gradle.api.artifacts;
 
 /**
  * Represents meta-data about a resolved module version.
+ *
+ * @deprecated This class is deprecated and will be removed in Gradle 10.
  */
+@Deprecated
 public interface ResolvedModuleVersion {
     /**
      * The identifier of this resolved module version.

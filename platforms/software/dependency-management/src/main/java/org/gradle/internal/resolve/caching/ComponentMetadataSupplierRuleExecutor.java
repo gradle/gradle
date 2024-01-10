@@ -19,7 +19,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.serialize.Serializer;
@@ -44,20 +43,7 @@ public class ComponentMetadataSupplierRuleExecutor extends CrossBuildCachingRule
         return (policy, entry) -> {
             Duration age = Duration.ofMillis(timeProvider.getCurrentTime() - entry.getTimestamp());
             final ComponentMetadata result = entry.getResult();
-            return !policy.moduleExpiry(new SimpleResolvedModuleVersion(result), age, result.isChanging()).isMustCheck();
+            return !policy.moduleExpiry(result.getId(), age, result.isChanging()).isMustCheck();
         };
-    }
-
-    private static class SimpleResolvedModuleVersion implements ResolvedModuleVersion {
-        private final ComponentMetadata result;
-
-        public SimpleResolvedModuleVersion(ComponentMetadata result) {
-            this.result = result;
-        }
-
-        @Override
-        public ModuleVersionIdentifier getId() {
-            return result.getId();
-        }
     }
 }

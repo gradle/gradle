@@ -22,12 +22,8 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyConstraintSet
 import org.gradle.api.artifacts.DependencySet
-import org.gradle.api.artifacts.LenientConfiguration
 import org.gradle.api.artifacts.ResolutionStrategy
 import org.gradle.api.artifacts.ResolvableDependencies
-import org.gradle.api.artifacts.ResolvedArtifact
-import org.gradle.api.artifacts.ResolvedConfiguration
-import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
@@ -107,8 +103,8 @@ fun BindingsBuilder.unsupportedTypes() {
     // Dependency Resolution Types
     bind(unsupported<ConfigurationContainer>())
     bind(unsupported<ResolutionStrategy>())
-    bind(unsupported<ResolvedConfiguration>())
-    bind(unsupported<LenientConfiguration>())
+    @Suppress("DEPRECATION") bind(unsupported<org.gradle.api.artifacts.ResolvedConfiguration>())
+    @Suppress("DEPRECATION") bind(unsupported<org.gradle.api.artifacts.LenientConfiguration>())
     bind(unsupported<ResolvableDependencies>())
     bind(unsupported<ResolutionResult>())
     bind(unsupported<DependencyConstraintSet>())
@@ -127,8 +123,8 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<DependencySet>())
     bind(unsupported<Dependency>())
     bind(unsupported<DependencyLockingHandler>())
-    bind(unsupported<ResolvedDependency>())
-    bind(unsupported<ResolvedArtifact>())
+    @Suppress("DEPRECATION") bind(unsupported<org.gradle.api.artifacts.ResolvedDependency>())
+    @Suppress("DEPRECATION") bind(unsupported<org.gradle.api.artifacts.ResolvedArtifact>())
     bind(unsupported<ArtifactView>())
     bind(unsupported<ArtifactResolutionResult>())
     bind(unsupported<ComponentArtifactsResult>())
