@@ -17,6 +17,7 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.Problems;
+import org.gradle.internal.operations.OperationIdentifier;
 
 /**
  * Describes a transformation that can be applied to a problem.
@@ -33,5 +34,5 @@ public interface ProblemTransformer {
      * @param problem the problem to transform
      * @return the transformed problem
      */
-    Problem transform(InternalProblem problem);
+    Problem transform(InternalProblem problem, OperationIdentifier id);
 }

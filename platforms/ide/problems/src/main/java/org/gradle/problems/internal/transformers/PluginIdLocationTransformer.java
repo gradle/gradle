@@ -21,6 +21,7 @@ import org.gradle.api.internal.plugins.DefaultPluginManager.OperationDetails;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.problems.internal.OperationListener;
 
 import java.util.Objects;
@@ -35,11 +36,11 @@ public class PluginIdLocationTransformer extends BaseLocationTransformer {
     }
 
     @Override
-    public Problem transform(InternalProblem problem) {
-        return getExecuteTask(OperationDetails.class)
-            .map(id -> {
+    public Problem transform(InternalProblem problem, OperationIdentifier id) {
+        return getExecuteTask(OperationDetails.class, id)
+            .map(executeOpId -> {
                 try {
-                    OperationDetails operationDetails = operationListener.getOp(id, OperationDetails.class);
+                    OperationDetails operationDetails = operationListener.getOp(executeOpId, OperationDetails.class);
                     Objects.requireNonNull(operationDetails, "operationDetails should not be null");
                     String pluginId = operationDetails.getPluginId();
                     if (pluginId != null) {

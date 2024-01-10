@@ -36,10 +36,9 @@ public abstract class BaseLocationTransformer implements ProblemTransformer {
     }
 
     @Nonnull
-    protected Optional<OperationIdentifier> getExecuteTask(Class<?> operationDetailsClass) {
+    protected Optional<OperationIdentifier> getExecuteTask(Class<?> operationDetailsClass, OperationIdentifier operationId) {
         return buildOperationAncestryTracker.findClosestMatchingAncestor(
-            currentBuildOperationRef.getId(),
-            id -> operationListener.getOp(id, operationDetailsClass) != null
+            operationId, id -> operationListener.getOp(id, operationDetailsClass) != null
         );
     }
 
