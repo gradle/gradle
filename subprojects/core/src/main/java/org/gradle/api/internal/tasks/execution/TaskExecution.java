@@ -151,7 +151,7 @@ public class TaskExecution implements MutableUnitOfWork {
 
     @Override
     public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-        return task::getPath;
+        return () -> task.getIdentityPath().getPath();
     }
 
     @Override

@@ -80,7 +80,7 @@ public class CaptureOutputsAfterExecutionStep<C extends WorkspaceContext, B> ext
                 // As this is _roughly_ the amount of time that is avoided by reusing the outputs,
                 // which is currently the _only_ thing this value is used for.
                 Duration originExecutionTime = result.getDuration().plus(Duration.ofMillis(snapshotOutputDuration));
-                OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), originExecutionTime);
+                OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), context.getIdentity().getUniqueId(), originExecutionTime);
                 operationContext.setResult(Operation.Result.INSTANCE);
                 return new DefaultExecutionOutputState(result.getExecution().isSuccessful(), outputsProducedByWork, originMetadata, false);
             },

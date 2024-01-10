@@ -21,15 +21,21 @@ import java.time.Duration;
 public class OriginMetadata {
 
     private final String buildInvocationId;
+    private final String originWorkIdentity;
     private final Duration executionTime;
 
-    public OriginMetadata(String buildInvocationId, Duration executionTime) {
+    public OriginMetadata(String buildInvocationId, String originWorkIdentity, Duration executionTime) {
         this.buildInvocationId = buildInvocationId;
+        this.originWorkIdentity = originWorkIdentity;
         this.executionTime = executionTime;
     }
 
     public String getBuildInvocationId() {
         return buildInvocationId;
+    }
+
+    public String getOriginWorkIdentity() {
+        return originWorkIdentity;
     }
 
     public Duration getExecutionTime() {
@@ -50,12 +56,16 @@ public class OriginMetadata {
         if (!buildInvocationId.equals(that.buildInvocationId)) {
             return false;
         }
+        if (!originWorkIdentity.equals(that.originWorkIdentity)) {
+            return false;
+        }
         return executionTime.equals(that.executionTime);
     }
 
     @Override
     public int hashCode() {
         int result = buildInvocationId.hashCode();
+        result = 31 * result + originWorkIdentity.hashCode();
         result = 31 * result + executionTime.hashCode();
         return result;
     }
@@ -64,6 +74,7 @@ public class OriginMetadata {
     public String toString() {
         return "OriginMetadata{"
             + "buildInvocationId=" + buildInvocationId
+            + "originWorkIdentity=" + originWorkIdentity
             + ", executionTime=" + executionTime
             + '}';
     }

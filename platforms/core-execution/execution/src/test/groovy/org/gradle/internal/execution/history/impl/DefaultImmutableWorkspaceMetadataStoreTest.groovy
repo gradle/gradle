@@ -42,7 +42,7 @@ class DefaultImmutableWorkspaceMetadataStoreTest extends Specification {
             .putAll("out1", hashCodeFrom(0x1234), hashCodeFrom(0x2345))
             .putAll("out2", hashCodeFrom(0x3456))
             .build()
-        def metadata = new ImmutableWorkspaceMetadata(new OriginMetadata("test-invocation-id", Duration.ofSeconds(123)), outputHashes)
+        def metadata = new ImmutableWorkspaceMetadata(new OriginMetadata("test-invocation-id", "test-work-unit-id", Duration.ofSeconds(123)), outputHashes)
 
         when:
         store.storeWorkspaceMetadata(workspace, metadata)

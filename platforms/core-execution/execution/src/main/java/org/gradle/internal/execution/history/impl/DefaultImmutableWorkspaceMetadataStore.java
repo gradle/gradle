@@ -45,6 +45,7 @@ public class DefaultImmutableWorkspaceMetadataStore implements ImmutableWorkspac
         try (KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(metadataFile))) {
             OriginMetadata originMetadata = new OriginMetadata(
                 decoder.readString(),
+                decoder.readString(),
                 Duration.ofMillis(decoder.readSmallLong())
             );
 
@@ -71,6 +72,7 @@ public class DefaultImmutableWorkspaceMetadataStore implements ImmutableWorkspac
         try (KryoBackedEncoder encoder = new KryoBackedEncoder(new FileOutputStream(metadataFile))) {
             OriginMetadata originMetadata = metadata.getOriginMetadata();
             encoder.writeString(originMetadata.getBuildInvocationId());
+            encoder.writeString(originMetadata.getOriginWorkIdentity());
             encoder.writeSmallLong(originMetadata.getExecutionTime().toMillis());
 
             ImmutableListMultimap<String, HashCode> outputPropertyHashes = metadata.getOutputPropertyHashes();

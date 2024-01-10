@@ -65,7 +65,7 @@ public class SkipEmptyNonIncrementalWorkStep extends AbstractSkipEmptyWorkStep<P
 
     @Override
     protected CachingResult performSkip(UnitOfWork work, PreviousExecutionContext context) {
-        OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), Duration.ZERO);
+        OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), context.getIdentity().getUniqueId(), Duration.ZERO);
         DefaultExecutionOutputState emptyOutputState = new DefaultExecutionOutputState(true, ImmutableSortedMap.of(), originMetadata, false);
         return CachingResult.shortcutResult(Duration.ZERO, Execution.skipped(SHORT_CIRCUITED, work), emptyOutputState, null, null);
     }
