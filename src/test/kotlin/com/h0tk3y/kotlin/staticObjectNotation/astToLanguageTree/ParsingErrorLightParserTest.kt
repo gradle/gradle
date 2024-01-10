@@ -187,21 +187,46 @@ class ParsingErrorLightParserTest: AbstractRejectedLanguageFeaturesTest() {
         """.trimIndent()
 
         val expected = """
-            MultipleFailures(
-                UnsupportedConstruct(
-                    languageFeature = UninitializedProperty, 
-                    potentialElementSource = indexes: 36..41, line/column: 4/5..4/10, file: test, 
-                    erroneousSource = indexes: 36..41, line/column: 4/5..4/10, file: test
-                )
-                ParsingError(
-                    message = Unexpected tokens (use ';' to separate expressions on the same line), 
-                    potentialElementSource = indexes: 42..43, line/column: 4/11..4/12, file: test, 
-                    erroneousSource = indexes: 42..43, line/column: 4/11..4/12, file: test
-                )
+            FunctionCall [indexes: 0..55, line/column: 1/1..6/2, file: test] (
+                name = block
+                args = [
+                    FunctionArgument.Lambda [indexes: 6..55, line/column: 1/7..6/2, file: test] (
+                        block = Block [indexes: 12..53, line/column: 2/5..5/10, file: test] (
+                            LocalValue [indexes: 12..21, line/column: 2/5..2/14, file: test] (
+                                name = a
+                                rhs = IntLiteral [indexes: 20..21, line/column: 2/13..2/14, file: test] (1)
+                            )
+                            Assignment [indexes: 26..31, line/column: 3/5..3/10, file: test] (
+                                lhs = PropertyAccess [indexes: 26..27, line/column: 3/5..3/6, file: test] (
+                                    name = b
+                                )
+                                rhs = IntLiteral [indexes: 30..31, line/column: 3/9..3/10, file: test] (2)
+                            )
+                            ErroneousStatement (
+                                UnsupportedConstruct(
+                                    languageFeature = UninitializedProperty, 
+                                    potentialElementSource = indexes: 36..41, line/column: 4/5..4/10, file: test, 
+                                    erroneousSource = indexes: 36..41, line/column: 4/5..4/10, file: test
+                                )
+                            )
+                            ErroneousStatement (
+                                ParsingError(
+                                    message = Unexpected tokens (use ';' to separate expressions on the same line), 
+                                    potentialElementSource = indexes: 42..43, line/column: 4/11..4/12, file: test, 
+                                    erroneousSource = indexes: 42..43, line/column: 4/11..4/12, file: test
+                                )
+                            )
+                            Assignment [indexes: 48..53, line/column: 5/5..5/10, file: test] (
+                                lhs = PropertyAccess [indexes: 48..49, line/column: 5/5..5/6, file: test] (
+                                    name = d
+                                )
+                                rhs = IntLiteral [indexes: 52..53, line/column: 5/9..5/10, file: test] (4)
+                            )
+                        )
+                    )
+                ]
             )
             """.trimIndent()
         assertResult(expected, code)
-
-        // TODO: atm a block can't be made up of a mixture of errors and successes
     }
 }

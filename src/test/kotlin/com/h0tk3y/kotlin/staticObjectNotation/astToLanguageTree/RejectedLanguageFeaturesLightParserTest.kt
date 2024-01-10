@@ -305,10 +305,21 @@ class RejectedLanguageFeaturesLightParserTest: AbstractRejectedLanguageFeaturesT
                 potentialElementSource = indexes: 0..11, line/column: 1/1..1/12, file: test, 
                 erroneousSource = indexes: 0..11, line/column: 1/1..1/12, file: test
             )
-            UnsupportedConstruct(
-                languageFeature = FunctionDeclaration, 
-                potentialElementSource = indexes: 16..31, line/column: 2/5..2/20, file: test, 
-                erroneousSource = indexes: 16..31, line/column: 2/5..2/20, file: test
+            FunctionCall [indexes: 12..33, line/column: 2/1..2/22, file: test] (
+                name = f
+                args = [
+                    FunctionArgument.Lambda [indexes: 14..33, line/column: 2/3..2/22, file: test] (
+                        block = Block [indexes: 16..31, line/column: 2/5..2/20, file: test] (
+                            ErroneousStatement (
+                                UnsupportedConstruct(
+                                    languageFeature = FunctionDeclaration, 
+                                    potentialElementSource = indexes: 16..31, line/column: 2/5..2/20, file: test, 
+                                    erroneousSource = indexes: 16..31, line/column: 2/5..2/20, file: test
+                                )
+                            )
+                        )
+                    )
+                ]
             )
             UnsupportedConstruct(
                 languageFeature = FunctionDeclaration, 
@@ -343,10 +354,21 @@ class RejectedLanguageFeaturesLightParserTest: AbstractRejectedLanguageFeaturesT
                 potentialElementSource = indexes: 24..28, line/column: 3/3..3/7, file: test, 
                 erroneousSource = indexes: 24..28, line/column: 3/3..3/7, file: test
             )
-            UnsupportedConstruct(
-                languageFeature = AnnotationUsage, 
-                potentialElementSource = indexes: 34..40, line/column: 4/5..4/11, file: test, 
-                erroneousSource = indexes: 34..40, line/column: 4/5..4/11, file: test
+            FunctionCall [indexes: 30..42, line/column: 4/1..4/13, file: test] (
+                name = b
+                args = [
+                    FunctionArgument.Lambda [indexes: 32..42, line/column: 4/3..4/13, file: test] (
+                        block = Block [indexes: 34..40, line/column: 4/5..4/11, file: test] (
+                            ErroneousStatement (
+                                UnsupportedConstruct(
+                                    languageFeature = AnnotationUsage, 
+                                    potentialElementSource = indexes: 34..40, line/column: 4/5..4/11, file: test, 
+                                    erroneousSource = indexes: 34..40, line/column: 4/5..4/11, file: test
+                                )
+                            )
+                        )
+                    )
+                ]
             )
             """.trimIndent()
         assertResult(expected, code)

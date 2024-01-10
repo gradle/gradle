@@ -1,6 +1,7 @@
 package com.h0tk3y.kotlin.staticObjectNotation.language
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataType
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.FailingResult
 
 sealed interface LanguageTreeElement {
     val sourceData: SourceData
@@ -16,10 +17,21 @@ sealed interface FunctionArgument : LanguageTreeElement {
     data class Lambda(val block: Block, override val sourceData: SourceData) : FunctionArgument
 }
 
-sealed interface DataStatement : LanguageTreeElement
+sealed interface BlockElement : LanguageTreeElement
+sealed interface DataStatement : LanguageTreeElement, BlockElement
+data class ErroneousStatement(val failingResult: FailingResult) : BlockElement {
+    override val sourceData: SourceData
+        get() = error("Use failing result for source data")
+}
+
 sealed interface Expr : DataStatement
 
-data class Block(val statements: List<DataStatement>, override val sourceData: SourceData) : LanguageTreeElement
+data class Block(
+    val content: List<BlockElement>,
+    override val sourceData: SourceData
+) : LanguageTreeElement {
+    val statements: List<DataStatement> get() = content.filterIsInstance<DataStatement>()
+}
 
 data class Import(val name: AccessChain, override val sourceData: SourceData) : LanguageTreeElement
 

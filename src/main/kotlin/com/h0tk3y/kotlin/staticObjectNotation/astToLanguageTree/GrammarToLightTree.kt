@@ -344,15 +344,20 @@ class GrammarToLightTree(
                 }
             }
 
-            var statements: List<CheckedResult<ElementResult<DataStatement>>>? = null
+            var statements: List<ElementResult<DataStatement>>? = null
             block?.let {
-                statements = tree.children(block!!).map { checkForFailure(statement(tree, it)) }
+                statements = tree.children(block!!).map { statement(tree, it) }
             }
 
             collectingFailure(statements ?: node.parsingError("Lambda expression without statements"))
 
             syntacticIfNoFailures {
-                val checkedStatements = statements!!.map(::checked)
+                val checkedStatements = statements!!.map {
+                    when (it) {
+                        is Element -> it.element
+                        is FailingResult -> ErroneousStatement(it)
+                    }
+                }
                 val b = Block(checkedStatements, block!!.data)
                 Syntactic(FunctionArgument.Lambda(b, node.data))
             }
