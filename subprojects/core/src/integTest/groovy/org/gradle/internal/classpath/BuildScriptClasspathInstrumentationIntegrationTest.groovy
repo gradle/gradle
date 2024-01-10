@@ -19,6 +19,7 @@ package org.gradle.internal.classpath
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.file.TestFile
 
 import java.nio.file.Files
@@ -28,6 +29,8 @@ import java.util.stream.Collectors
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
+
+    private static final String KOTLIN_VERSION = new KotlinGradlePluginVersions().latestsStable.last()
 
     def "buildSrc and included builds should be cached in global cache"() {
         given:
@@ -55,8 +58,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     def "buildSrc and included build should be just instrumented and not upgraded"() {
         given:
-        // We test content in the global cache
-        requireOwnGradleUserHomeDir()
         withBuildSrc()
         withIncludedBuild()
         buildFile << """
@@ -99,20 +100,21 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     def "directories should be instrumented"() {
         given:
-        // We test content in the global cache
-        requireOwnGradleUserHomeDir()
-        withIncludedBuild()
+        withKotlinPluginIncludedBuild()
         buildFile << """
             buildscript {
                 dependencies {
-                    classpath(files("./included/build/classes/java/main"))
+                    classpath(files("./included-kotlin-plugin/build/classes/kotlin/main"))
                 }
             }
+
+            apply plugin: CustomPlugin
+            apply plugin: "java-library"
         """
 
         when:
-        executer.inDirectory(file("included")).withTasks("compileJava").run()
-        run("tasks", "--info")
+        executer.inDirectory(file("included-kotlin-plugin")).withTasks("build").run()
+        run("jar", "--info")
 
         then:
         allTransformsFor("main") == ["ExternalDependencyInstrumentingArtifactTransform"]
@@ -135,6 +137,42 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         file("included/settings.gradle") << "rootProject.name = 'included'"
         settingsFile << """
             includeBuild("./included")
+        """
+    }
+
+    def withKotlinPluginIncludedBuild() {
+        file("included-kotlin-plugin/src/main/kotlin/CustomPlugin.kt") << """
+            import org.gradle.api.*
+
+            class CustomPlugin: Plugin<Project> {
+                override fun apply(project: Project) {
+                    project.tasks.withType(Task::class.java).configureEach { task ->
+                        task.doLast {
+                            println("Hello from included build")
+                        }
+                    }
+                }
+            }
+        """
+        file("included-kotlin-plugin/build.gradle") << """
+            plugins {
+                id("java-gradle-plugin")
+                id("org.jetbrains.kotlin.jvm") version "$KOTLIN_VERSION"
+            }
+            group = "org.test"
+            version = "1.0"
+        """
+        file("included-kotlin-plugin/settings.gradle") << """
+            pluginManagement {
+                ${mavenCentralRepository()}
+            }
+            dependencyResolutionManagement {
+                ${mavenCentralRepository()}
+            }
+            rootProject.name = 'included'
+        """
+        settingsFile << """
+            includeBuild("./included-kotlin-plugin")
         """
     }
 
