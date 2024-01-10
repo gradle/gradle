@@ -154,9 +154,6 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * The default {@link Configuration} implementation.
- * <p>
- * After initialization, when the allowed usage is changed then role-related deprecation warnings will be emitted, except for the special cases
- * noted in {@link #isSpecialCaseOfChangingUsage(String, boolean)}}.  Initialization is complete when the {@link #roleAtCreation} field is set.
  */
 @SuppressWarnings("rawtypes")
 public abstract class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator, ResettableConfiguration {
@@ -333,12 +330,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.consumptionDeprecated = roleAtCreation.isConsumptionDeprecated();
         this.resolutionDeprecated = roleAtCreation.isResolutionDeprecated();
         this.declarationDeprecated = roleAtCreation.isDeclarationAgainstDeprecated();
-
-        if (lockUsage) {
-            preventUsageMutation();
-        }
-
-        // Until the role at creation is set, changing usage won't trigger warnings
+        this.usageCanBeMutated = !lockUsage;
         this.roleAtCreation = roleAtCreation;
     }
 
@@ -1631,17 +1623,28 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
     }
 
+    /**
+     * Conditionally warn when the usage of the configuration changes. In the following cases, the warning will not be emitted:
+     * <ol>
+     *     <li>Changes to the usage of the detached configurations should NOT warn (this done by the Kotlin plugin).</li>
+     *     <li>Configurations with a legacy role should NOT warn when changing usage, since the role-locked configuration APIs are still incubating</li>
+     * </ol>
+     *
+     * The eventual goal is that all configuration usage be specified upon creation and immutable thereafter.
+     */
     private void maybeWarnOnChangingUsage(String usage, boolean current) {
-        if (!isSpecialCaseOfChangingUsage(usage, current)) {
-            String msgTemplate = "Allowed usage is changing for %s, %s. Ideally, usage should be fixed upon creation.";
-            String changingUsage = usage + " was " + !current + " and is now " + current;
-
-            DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, getDisplayName(), changingUsage))
-                .withAdvice("Usage should be fixed upon creation.")
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "configurations_allowed_usage")
-                .nagUser();
+        if (isDetachedConfiguration() || isInLegacyRole()) {
+            return;
         }
+
+        String msgTemplate = "Allowed usage is changing for %s, %s. Ideally, usage should be fixed upon creation.";
+        String changingUsage = usage + " was " + !current + " and is now " + current;
+
+        DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, getDisplayName(), changingUsage))
+            .withAdvice("Usage should be fixed upon creation.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "configurations_allowed_usage")
+            .nagUser();
     }
 
     private void maybeWarnOnRedundantUsageActivation(String usage, String method) {
@@ -1653,30 +1656,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 .withUpgradeGuideSection(8, "redundant_configuration_usage_activation")
                 .nagUser();
         }
-    }
-
-    /**
-     * This is a temporary method that decides if a usage change is a known/supported special case, where a deprecation warning message
-     * should not be emitted.
-     * <p>
-     * Many of these exceptions are needed to avoid spamming deprecations warnings whenever the Kotlin plugin is used.  This method is
-     * temporary as the eventual goal is that all configuration usage be specified upon creation and immutable thereafter.
-     * <p>
-     * <ol>
-     *     <li>While {#roleAtCreation} is {@code null}, we are still initializing, so we should NOT warn.</li>
-     *     <li>Changes to the usage of the detached configurations should NOT warn (this done by the Kotlin plugin).</li>
-     *     <li>Configurations with a legacy role should NOT warn when changing usage,
-     *         since users cannot create non-legacy configurations and there is no current public API for setting roles upon creation</li>
-     *     <li>Setting consumable usage to false on the {@code apiElements} and {@code runtimeElements} configurations should NOT warn (this is done by the Kotlin plugin).</li>
-     *     <li>All other usage changes should warn.</li>
-     * </ol>
-     *
-     * @param usage the name usage that is being changed
-     * @param current the current value of the usage after the change
-     * @return {@code true} if the usage change is a known special case; {@code false} otherwise
-     */
-    private boolean isSpecialCaseOfChangingUsage(String usage, boolean current) {
-        return isInitializing() || isDetachedConfiguration() || isInLegacyRole() || isPermittedConfigurationForUsageChange(usage, current);
     }
 
     /**
@@ -1699,10 +1678,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return isInLegacyRole() || isDetachedConfiguration() || isPermittedConfigurationForRedundantActivation();
     }
 
-    private boolean isInitializing() {
-        return roleAtCreation == null;
-    }
-
     private boolean isDetachedConfiguration() {
         return this.configurationsProvider instanceof DetachedConfigurationsProvider;
     }
@@ -1710,21 +1685,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @SuppressWarnings("deprecation")
     private boolean isInLegacyRole() {
         return roleAtCreation == ConfigurationRoles.LEGACY;
-    }
-
-    /**
-     * Determine if this is a configuration that is permitted to change its usage, to support important 3rd party
-     * plugins such as Kotlin that do this.
-     *
-     * <p>This method is temporary and all usage-changing exceptions should be removed once Kotlin 1.9.20 is released.
-     * The duplication of the configuration names defined in {@link JvmConstants}, which are not available to be
-     * referenced directly from here, is unfortunate, but not a showstopper.</p>
-     *
-     * @return {@code true} if this is a configuration that is permitted to change its usage; {@code false} otherwise
-     */
-    @SuppressWarnings("JavadocReference")
-    private boolean isPermittedConfigurationForUsageChange(String usage, boolean current) {
-        return (name.equals("apiElements") || name.equals("runtimeElements")) && usage.equals("consumable") && !current;
     }
 
     /**
