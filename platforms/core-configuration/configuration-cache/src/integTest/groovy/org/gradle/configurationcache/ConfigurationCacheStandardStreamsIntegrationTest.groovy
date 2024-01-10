@@ -24,7 +24,8 @@ import javax.annotation.Nullable
 class ConfigurationCacheStandardStreamsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     def "#task task can run with default configuration"() {
         setUpProject(
-            "${task}Task"(extraArg: "Gradle"))
+            makeTask(task, extraArg: "Gradle")
+        )
 
         when:
         configurationCacheRun("run")
@@ -38,10 +39,11 @@ class ConfigurationCacheStandardStreamsIntegrationTest extends AbstractConfigura
         "javaExec" || _
     }
 
-    def "#task task can redirect #source into #targetStream"() {
+    def "#task task can redirect #taskProperty into #targetStream"() {
         setUpProject(
-            "${task}Task"((source): targetStream, extraArg: "Gradle"),
-            sourceStream)
+            makeTask((taskProperty): targetStream, extraArg: "Gradle", task),
+            sourceStream
+        )
 
         when:
         configurationCacheRun("run")
@@ -50,7 +52,7 @@ class ConfigurationCacheStandardStreamsIntegrationTest extends AbstractConfigura
         ((targetStream == "System.out") ? output : errorOutput).contains("Hello, Gradle")
 
         where:
-        task       | source           | sourceStream | targetStream
+        task       | taskProperty     | sourceStream | targetStream
         "exec"     | "standardOutput" | "System.out" | "System.out"
         "exec"     | "standardOutput" | "System.out" | "System.err"
         "exec"     | "errorOutput"    | "System.err" | "System.out"
@@ -62,7 +64,9 @@ class ConfigurationCacheStandardStreamsIntegrationTest extends AbstractConfigura
     }
 
     def "#task task can redirect System_in into standardInput"() {
-        setUpProject("${task}Task"(standardInput: "System.in"))
+        setUpProject(
+            makeTask(standardInput: "System.in", task)
+        )
         withStdInContents("Gradle")
 
         when:
@@ -77,10 +81,11 @@ class ConfigurationCacheStandardStreamsIntegrationTest extends AbstractConfigura
         "javaExec" || _
     }
 
-    def "#task task cannot use #targetStreamType as #source"() {
+    def "#task task cannot use #targetStreamType as #taskProperty"() {
         setUpProject(
-            "${task}Task"((source): targetStream, extraArg: "Gradle"),
-            sourceStream)
+            makeTask((taskProperty): targetStream, extraArg: "Gradle", task),
+            sourceStream
+        )
 
         when:
         configurationCacheFails("run")
@@ -94,7 +99,7 @@ class ConfigurationCacheStandardStreamsIntegrationTest extends AbstractConfigura
         }
 
         where:
-        task       | source           | sourceStream | targetStreamType                | targetStream
+        task       | taskProperty     | sourceStream | targetStreamType                | targetStream
         "exec"     | "standardOutput" | "System.out" | "java.io.ByteArrayOutputStream" | "new ByteArrayOutputStream()"
         "exec"     | "errorOutput"    | "System.err" | "java.io.ByteArrayOutputStream" | "new ByteArrayOutputStream()"
         "exec"     | "standardOutput" | "System.out" | "java.io.FileOutputStream"      | "new FileOutputStream(file('output.txt'))"
@@ -107,7 +112,8 @@ class ConfigurationCacheStandardStreamsIntegrationTest extends AbstractConfigura
 
     def "#task task cannot use #sourceStreamType as standardInput"() {
         setUpProject(
-            "${task}Task"(standardInput: sourceStream))
+            makeTask(standardInput: sourceStream, task)
+        )
 
         buildFile """
             file("input.txt").text = "Gradle"
@@ -174,10 +180,14 @@ class ConfigurationCacheStandardStreamsIntegrationTest extends AbstractConfigura
         })
     }
 
+    String makeTask(Map<String, String> args, String taskName) {
+        return "${taskName}Task"(args)
+    }
+
     @SuppressWarnings('unused')
     // called by string
     def execTask(Map<String, String> args) {
-        return """
+        """
             tasks.register("run", Exec) {
                 dependsOn(compileJava)
                 executable = ${Jvm.canonicalName}.current().javaExecutable
@@ -192,7 +202,7 @@ class ConfigurationCacheStandardStreamsIntegrationTest extends AbstractConfigura
     @SuppressWarnings('unused')
     // called by string
     def javaExecTask(Map<String, String> args) {
-        return """
+        """
             tasks.register("run", JavaExec) {
                 classpath = project.layout.files(compileJava)
                 mainClass = "Main"
