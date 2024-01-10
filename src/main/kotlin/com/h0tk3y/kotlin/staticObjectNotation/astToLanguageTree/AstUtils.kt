@@ -172,6 +172,7 @@ enum class AstKind(astDescription: String? = null) {
     unsignedLiteral("UnsignedLiteral"),
     realLiteral("RealLiteral"),
     booleanLiteral("BooleanLiteral"),
+    nullLiteral("NullLiteral"),
     stringLiteral,
     callableReference,
     lineStringLiteral,

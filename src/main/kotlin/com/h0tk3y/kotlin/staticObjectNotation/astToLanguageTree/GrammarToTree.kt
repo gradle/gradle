@@ -434,7 +434,8 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
 
                     unsignedLiteral -> ast.unsupported(TodoNotCoveredYet)
                     binLiteral, hexLiteral, characterLiteral, realLiteral -> ast.unsupported(UnsupportedLiteral)
-                    else -> error("unexpected child kind")
+                    nullLiteral -> Element(Null(singleChild.data))
+                    else -> error("unexpected child kind: ${singleChild.kind}")
                 }
             }
         }

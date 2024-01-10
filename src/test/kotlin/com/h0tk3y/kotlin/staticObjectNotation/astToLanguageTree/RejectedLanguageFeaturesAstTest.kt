@@ -389,4 +389,33 @@ class RejectedLanguageFeaturesAstTest: AbstractRejectedLanguageFeaturesTest() {
             """.trimIndent()
         assertResult(expected, code)
     }
+
+    @Test
+    fun `rejects lambda literal`() {
+        val code =
+            """
+            call(x = { })
+            multiLambda({ }, { })
+            """.trimIndent()
+        val expected = """
+            UnsupportedConstruct(
+                languageFeature = FunctionDeclaration, 
+                potentialElementSource = indexes: 9..12, line/column: 1/10..1/13, file: test, 
+                erroneousSource = indexes: 9..12, line/column: 1/10..1/13, file: test
+            )
+            MultipleFailures(
+                UnsupportedConstruct(
+                    languageFeature = FunctionDeclaration, 
+                    potentialElementSource = indexes: 26..29, line/column: 2/13..2/16, file: test, 
+                    erroneousSource = indexes: 26..29, line/column: 2/13..2/16, file: test
+                )
+                UnsupportedConstruct(
+                    languageFeature = FunctionDeclaration, 
+                    potentialElementSource = indexes: 31..34, line/column: 2/18..2/21, file: test, 
+                    erroneousSource = indexes: 31..34, line/column: 2/18..2/21, file: test
+                )
+            )
+            """.trimIndent()
+        assertResult(expected, code)
+    }
 }

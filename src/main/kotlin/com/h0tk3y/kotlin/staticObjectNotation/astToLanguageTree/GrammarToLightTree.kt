@@ -100,6 +100,8 @@ class GrammarToLightTree(
             PREFIX_EXPRESSION -> node.unsupported(PrefixExpression)
             OPERATION_REFERENCE -> node.unsupported(UnsupportedOperator)
             PARENTHESIZED -> parenthesized(tree, node)
+            LAMBDA_EXPRESSION -> node.unsupported(FunctionDeclaration)
+            THIS_EXPRESSION -> Element(This(node.data))
             else -> error("Unexpected tokenType in expression: $tokenType")
         }
 
@@ -268,6 +270,7 @@ class GrammarToLightTree(
                 }
             }
             BOOLEAN_CONSTANT -> return Element(Literal.BooleanLiteral(convertedText as Boolean, node.data))
+            NULL -> return Element(Null(node.data))
             else -> error("Unsupported constant type: $type")
         }
     }

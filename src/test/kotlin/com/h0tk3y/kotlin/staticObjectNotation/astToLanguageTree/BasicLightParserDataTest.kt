@@ -241,6 +241,44 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
     }
 
     @Test
+    fun `parses assigning 'this' keyword`() {
+        val results = parse(
+            """
+            a = this
+            """.trimIndent()
+        )
+
+        val expected = """
+            Assignment [indexes: 0..8, line/column: 1/1..1/9, file: test] (
+                lhs = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                    name = a
+                )
+                rhs = This
+            )
+            """.trimIndent()
+        assertResult(expected, results)
+    }
+
+    @Test
+    fun `parses assigning 'null'`() {
+        val results = parse(
+            """
+            a = null
+            """.trimIndent()
+        )
+
+        val expected = """
+            Assignment [indexes: 0..8, line/column: 1/1..1/9, file: test] (
+                lhs = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                    name = a
+                )
+                rhs = Null
+            )
+            """.trimIndent()
+        assertResult(expected, results)
+    }
+
+    @Test
     fun `parses a local val`() {
         val results = parse("val a = 1")
 
