@@ -97,6 +97,27 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         gradleUserHomeOutput("instrumented/commons-lang3-3.8.1.jar").exists()
     }
 
+    def "directories should be instrumented"() {
+        given:
+        // We test content in the global cache
+        requireOwnGradleUserHomeDir()
+        withIncludedBuild()
+        buildFile << """
+            buildscript {
+                dependencies {
+                    classpath(files("./included/build/classes/java/main"))
+                }
+            }
+        """
+
+        when:
+        executer.inDirectory(file("included")).withTasks("compileJava").run()
+        run("tasks", "--info")
+
+        then:
+        allTransformsFor("main") == ["ExternalDependencyInstrumentingArtifactTransform"]
+    }
+
     def withBuildSrc() {
         file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
         file("buildSrc/settings.gradle") << "\n"
