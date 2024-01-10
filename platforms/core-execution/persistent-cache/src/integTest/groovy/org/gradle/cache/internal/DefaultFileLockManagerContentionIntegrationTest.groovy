@@ -220,7 +220,9 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         given:
         def gradleUserHome = file("home").absoluteFile
         buildFile << """
-            ext.GRADLE_USER_HOME=file("${escapeString(gradleUserHome)}")
+            task doWorkInWorker(type: WorkerTask) {
+                gradleUserHome = file("${escapeString(gradleUserHome)}")
+            }
         """
         buildFile """
             import org.gradle.cache.scopes.ScopedCacheBuilderFactory
@@ -237,17 +239,18 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             import org.gradle.internal.agents.AgentStatus
             import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 
-            task doWorkInWorker(type: WorkerTask)
-
             abstract class WorkerTask extends DefaultTask {
                 @Inject
                 abstract WorkerExecutor getWorkerExecutor()
+
+                @Internal
+                abstract DirectoryProperty getGradleUserHome()
 
                 @TaskAction
                 void doWork() {
                     (1..8).each {
                         workerExecutor.processIsolation().submit(ToolSetupWorkAction) {
-                            it.gradleUserHome = project.ext.GRADLE_USER_HOME
+                            it.gradleUserHome = this.gradleUserHome
                         }
                     }
                 }
