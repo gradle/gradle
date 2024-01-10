@@ -21,7 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.internal.component.AbstractVariantSelectionException;
-import org.gradle.internal.component.FailureDescriber;
+import org.gradle.internal.component.ResolutionFailureDescriber;
 import org.gradle.internal.component.model.AttributeMatcher;
 
 import javax.annotation.Nullable;
@@ -115,12 +115,12 @@ public class EmptySchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public void addFailureDescriber(FailureDescriber<? extends AbstractVariantSelectionException> describer) {
+    public void addFailureDescriber(ResolutionFailureDescriber<? extends AbstractVariantSelectionException> describer) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public ImmutableList<FailureDescriber<? extends AbstractVariantSelectionException>> getFailureDescribers() {
+    public ImmutableList<ResolutionFailureDescriber<? extends AbstractVariantSelectionException>> getFailureDescribers() {
         return ImmutableList.of();
     }
 

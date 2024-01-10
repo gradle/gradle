@@ -23,7 +23,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.AbstractVariantSelectionException;
-import org.gradle.internal.component.FailureDescriber;
+import org.gradle.internal.component.ResolutionFailureDescriber;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeSelectionSchema;
 import org.gradle.internal.component.model.AttributeSelectionUtils;
@@ -56,7 +56,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     private final HashMap<AttributesSchemaInternal, AttributeMatcher> matcherCache = new HashMap<>();
     private final List<AttributeDescriber> consumerAttributeDescribers = new ArrayList<>();
     private final Set<Attribute<?>> precedence = new LinkedHashSet<>();
-    private final List<FailureDescriber<? extends AbstractVariantSelectionException>> failureDescribers = new ArrayList<>();
+    private final List<ResolutionFailureDescriber<? extends AbstractVariantSelectionException>> resolutionFailureDescribers = new ArrayList<>();
 
     public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
         this.instantiatorFactory = instantiatorFactory;
@@ -167,13 +167,13 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public ImmutableList<FailureDescriber<? extends AbstractVariantSelectionException>> getFailureDescribers() {
-        return ImmutableList.copyOf(failureDescribers);
+    public ImmutableList<ResolutionFailureDescriber<? extends AbstractVariantSelectionException>> getFailureDescribers() {
+        return ImmutableList.copyOf(resolutionFailureDescribers);
     }
 
     @Override
-    public void addFailureDescriber(FailureDescriber<? extends AbstractVariantSelectionException> describer) {
-        failureDescribers.add(describer);
+    public void addFailureDescriber(ResolutionFailureDescriber<? extends AbstractVariantSelectionException> describer) {
+        resolutionFailureDescribers.add(describer);
     }
 
     // TODO: Move this out into its own class so it can be unit tested directly.
