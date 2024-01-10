@@ -28,6 +28,12 @@ import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterpri
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
 
+import javax.annotation.Nullable;
+
+/**
+ * Resolves a plugin either by determining that it is already on the classpath
+ * or by delegating to another resolver.
+ */
 public class AlreadyOnClasspathPluginResolver implements PluginResolver {
     private final PluginResolver delegate;
     private final PluginRegistry corePluginRegistry;
@@ -94,7 +100,7 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
         }
     }
 
-    private void resolveAlreadyOnClasspath(PluginId pluginId, String pluginVersion, PluginResolutionResult result) {
+    private void resolveAlreadyOnClasspath(PluginId pluginId, @Nullable String pluginVersion, PluginResolutionResult result) {
         DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry(pluginInspector, parentLoaderScope);
         PluginImplementation<?> plugin = pluginRegistry.lookup(pluginId);
         if (plugin != null) {

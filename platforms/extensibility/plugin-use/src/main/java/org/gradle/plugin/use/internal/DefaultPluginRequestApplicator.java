@@ -40,7 +40,7 @@ import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositories;
 import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositoriesProvider;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
-import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
+import org.gradle.plugin.use.resolve.internal.PluginResolutionVisitor;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
 import org.gradle.util.internal.TextUtil;
@@ -126,7 +126,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         List<ApplyAction> pluginApplyActions
     ) {
         boolean resolvedPlugin = false;
-        PluginDependencyVisitor dependencyVisitor = new PluginDependencyVisitor();
+        CollectingPluginRequestResolutionVisitor dependencyVisitor = new CollectingPluginRequestResolutionVisitor();
         for (PluginRequestInternal originalRequest : requests) {
             PluginRequestInternal request = pluginResolutionStrategy.applyTo(originalRequest);
 
@@ -138,7 +138,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             resolvedPlugin = true;
             PluginResolution resolved = result.found;
 
-            resolved.visitDependencies(dependencyVisitor);
+            resolved.accept(dependencyVisitor);
 
             if (request.isApply()) {
                 pluginApplyActions.add(new ApplyAction(request, resolved));
@@ -296,7 +296,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         }
     }
 
-    private static class PluginDependencyVisitor implements PluginResolveContext {
+    private static class CollectingPluginRequestResolutionVisitor implements PluginResolutionVisitor {
         private List<Dependency> additionalDependencies;
         private List<ClassLoader> additionalClassloaders;
 

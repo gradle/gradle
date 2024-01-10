@@ -19,17 +19,17 @@ package org.gradle.plugin.use.resolve.internal;
 import org.gradle.api.artifacts.Dependency;
 
 /**
- * Collects dependencies required to apply plugins.
+ * Visits resolved plugins.
  */
-public interface PluginResolveContext {
+public interface PluginResolutionVisitor {
 
     /**
-     * Provide a dependency that will be resolved as part of the script classpath.
+     * Visit a dependency that is required for the plugin.
      */
     void visitDependency(Dependency dependency);
 
     /**
-     * Provide a classloader that will be included as part of the script classpath.
+     * Visit a classloader that provides classes for the plugin.
      */
     void visitClassLoader(ClassLoader classLoader);
 }

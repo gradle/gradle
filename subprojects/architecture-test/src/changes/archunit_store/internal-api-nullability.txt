@@ -4641,7 +4641,7 @@ Class <org.gradle.plugin.use.resolve.internal.PluginArtifactRepositories> is not
 Class <org.gradle.plugin.use.resolve.internal.PluginArtifactRepositoriesProvider> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (PluginArtifactRepositoriesProvider.java:0)
 Class <org.gradle.plugin.use.resolve.internal.PluginResolution> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (PluginResolution.java:0)
 Class <org.gradle.plugin.use.resolve.internal.PluginResolutionResult> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (PluginResolutionResult.java:0)
-Class <org.gradle.plugin.use.resolve.internal.PluginResolveContext> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (PluginResolveContext.java:0)
+Class <org.gradle.plugin.use.resolve.internal.PluginResolutionVisitor> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (PluginResolutionVisitor.java:0)
 Class <org.gradle.plugin.use.resolve.internal.PluginResolver> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (PluginResolver.java:0)
 Class <org.gradle.plugin.use.resolve.internal.PluginResolverContributor> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (PluginResolverContributor.java:0)
 Class <org.gradle.plugin.use.resolve.internal.SimplePluginResolution> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (SimplePluginResolution.java:0)

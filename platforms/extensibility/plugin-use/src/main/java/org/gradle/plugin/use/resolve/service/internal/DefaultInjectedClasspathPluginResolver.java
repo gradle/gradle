@@ -29,7 +29,7 @@ import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
-import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
+import org.gradle.plugin.use.resolve.internal.PluginResolutionVisitor;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 import java.io.File;
@@ -85,13 +85,13 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
         }
 
         @Override
-        public void visitDependencies(PluginResolveContext visitor) {
+        public void accept(PluginResolutionVisitor visitor) {
             visitor.visitClassLoader(plugin.asClass().getClassLoader());
         }
 
         @Override
-        public void applyTo(PluginManagerInternal pluginManagerInternal) {
-            pluginManagerInternal.apply(plugin);
+        public void applyTo(PluginManagerInternal pluginManager) {
+            pluginManager.apply(plugin);
         }
     }
 }

@@ -33,7 +33,7 @@ public class SimplePluginResolution implements PluginResolution {
     }
 
     @Override
-    public void applyTo(PluginManagerInternal pluginManagerInternal) {
-        pluginManagerInternal.apply(plugin);
+    public void applyTo(PluginManagerInternal pluginManager) {
+        pluginManager.apply(plugin);
     }
 }

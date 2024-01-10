@@ -39,7 +39,7 @@ public class AlreadyOnClasspathIgnoringPluginResolver implements PluginResolver 
     @Override
     public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) {
         PluginCoordinates primaryCoordinates = PluginCoordinates.from(pluginRequest);
-        PluginCoordinates alternativeCoordinates = pluginRequest.getAlternativeCoordinates();
+        PluginCoordinates alternativeCoordinates = pluginRequest.getAlternativeCoordinates().orElse(null);
         if (isNotPresentOnClasspath(primaryCoordinates) && isNotPresentOnClasspath(alternativeCoordinates)) {
             delegate.resolve(pluginRequest, result);
         } else {

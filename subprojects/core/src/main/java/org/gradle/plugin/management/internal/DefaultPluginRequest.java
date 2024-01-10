@@ -21,6 +21,7 @@ import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.use.PluginId;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 public class DefaultPluginRequest implements PluginRequestInternal {
 
@@ -124,9 +125,8 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         return origin;
     }
 
-    @Nullable
     @Override
-    public PluginCoordinates getAlternativeCoordinates() {
-        return alternativeCoordinates;
+    public Optional<PluginCoordinates> getAlternativeCoordinates() {
+        return Optional.ofNullable(alternativeCoordinates);
     }
 }

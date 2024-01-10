@@ -25,19 +25,21 @@ import javax.annotation.Nullable;
  * The result of attempting to resolve a plugin to a classpath.
  */
 public interface PluginResolution {
+
+    /**
+     * The ID of the resolved plugin.
+     */
     PluginId getPluginId();
 
     /**
-     * Visit all dependencies required to apply the plugin.
+     * Accepts a visitor and visits the resolved plugin.
      */
-    default void visitDependencies(PluginResolveContext pluginResolveContext) {
-        // No dependencies by default
-    }
+    default void accept(PluginResolutionVisitor visitor) { }
 
     /**
-     * Apply the plugin.
+     * Apply the plugin to the provided plugin manager.
      */
-    void applyTo(PluginManagerInternal pluginManagerInternal);
+    void applyTo(PluginManagerInternal pluginManager);
 
     /**
      * The resolved plugin version, if known.

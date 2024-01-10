@@ -87,13 +87,13 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
         }
 
         @Override
-        public void visitDependencies(PluginResolveContext pluginResolveContext) {
-            pluginResolveContext.visitDependency(markerDependency);
+        public void accept(PluginResolutionVisitor visitor) {
+            visitor.visitDependency(markerDependency);
         }
 
         @Override
-        public void applyTo(PluginManagerInternal pluginManagerInternal) {
-            pluginManagerInternal.apply(pluginId.getId());
+        public void applyTo(PluginManagerInternal pluginManager) {
+            pluginManager.apply(pluginId.getId());
         }
     }
 

@@ -28,7 +28,7 @@ public class ClassPathPluginResolution implements PluginResolution {
     private final String pluginVersion;
     private final PluginImplementation<?> plugin;
 
-    public ClassPathPluginResolution(PluginId pluginId, String pluginVersion, PluginImplementation<?> plugin) {
+    public ClassPathPluginResolution(PluginId pluginId, @Nullable String pluginVersion, PluginImplementation<?> plugin) {
         this.pluginId = pluginId;
         this.pluginVersion = pluginVersion;
         this.plugin = plugin;
@@ -46,7 +46,7 @@ public class ClassPathPluginResolution implements PluginResolution {
     }
 
     @Override
-    public void applyTo(PluginManagerInternal pluginManagerInternal) {
-        pluginManagerInternal.apply(plugin);
+    public void applyTo(PluginManagerInternal pluginManager) {
+        pluginManager.apply(plugin);
     }
 }
