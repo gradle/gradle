@@ -40,9 +40,9 @@ NOTE: You can open this sample inside an IDE.
 
 The sample is a multi-project build with an included build and two subprojects:
 
-1. dependency-report - separate build where the custom tasks and plugin are coded
-2. list - subproject that produces a jar file
-3. utilities - subproject that produces a jar file
+1. `dependency-report` - separate build where the custom tasks and plugin are coded
+2. `list` - subproject that produces a jar file
+3. `utilities` - subproject that produces a jar file
 
 ====
 include::sample[dir="samples/writing-tasks/tasks-with-dependency-resolution-result-inputs/kotlin",files="settings.gradle.kts"]
@@ -58,9 +58,9 @@ include::sample[dir="samples/writing-tasks/tasks-with-dependency-resolution-resu
 
 The `dependency-report` plugin exposes three custom tasks:
 
-1. listResolvedArtifacts in `dependency-reports/src/main/java/com.example/ListResolvedArtifacts.java`
-2. graphResolvedComponents in `dependency-reports/src/main/java/com.example/GraphResolvedComponents.java`
-3. graphResolvedComponentsAndFiles in `dependency-reports/src/main/java/com.example/GraphResolvedComponentsAndFiles.java`
+1. `listResolvedArtifacts` in `dependency-reports/src/main/java/com.example/ListResolvedArtifacts.java`
+2. `graphResolvedComponents` in `dependency-reports/src/main/java/com.example/GraphResolvedComponents.java`
+3. `graphResolvedComponentsAndFiles` in `dependency-reports/src/main/java/com.example/GraphResolvedComponentsAndFiles.java`
 
 To execute the sample tasks:
 
@@ -69,7 +69,7 @@ To execute the sample tasks:
 =====
 [.sample-command]
 ----
-> ./gradlew -q listResolvedArtifacts
+$ ./gradlew -q listResolvedArtifacts
 include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/tests/listResolvedArtifacts.out[]
 
 BUILD SUCCESSFUL in 1s
@@ -79,7 +79,7 @@ BUILD SUCCESSFUL in 1s
 =====
 [.sample-command]
 ----
-> ./gradlew -q graphResolvedComponents
+$ ./gradlew -q graphResolvedComponents
 include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/tests/graphResolvedComponents.out[]
 
 BUILD SUCCESSFUL in 1s
@@ -89,7 +89,7 @@ BUILD SUCCESSFUL in 1s
 =====
 [.sample-command]
 ----
-> ./gradlew -q graphResolvedComponentsAndFiles
+$ ./gradlew -q graphResolvedComponentsAndFiles
 include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/tests/graphResolvedComponentsAndFiles.out[]
 
 BUILD SUCCESSFUL in 1s
