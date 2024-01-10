@@ -69,6 +69,21 @@ public class KryoBackedEncoder extends AbstractEncoder implements FlushableEncod
     }
 
     @Override
+    public void writeShort(short value) throws IOException {
+        output.writeShort(value);
+    }
+
+    @Override
+    public void writeFloat(float value) throws IOException {
+        output.writeFloat(value);
+    }
+
+    @Override
+    public void writeDouble(double value) throws IOException {
+        output.writeDouble(value);
+    }
+
+    @Override
     public void writeBoolean(boolean value) {
         output.writeBoolean(value);
     }

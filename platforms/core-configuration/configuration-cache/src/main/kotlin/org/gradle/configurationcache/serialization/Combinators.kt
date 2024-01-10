@@ -428,33 +428,6 @@ inline fun <reified E : Enum<E>> Decoder.readEnum(): E =
     readSmallInt().let { ordinal -> enumValues<E>()[ordinal] }
 
 
-fun Encoder.writeShort(value: Short) {
-    BaseSerializerFactory.SHORT_SERIALIZER.write(this, value)
-}
-
-
-fun Decoder.readShort(): Short =
-    BaseSerializerFactory.SHORT_SERIALIZER.read(this)
-
-
-fun Encoder.writeFloat(value: Float) {
-    BaseSerializerFactory.FLOAT_SERIALIZER.write(this, value)
-}
-
-
-fun Decoder.readFloat(): Float =
-    BaseSerializerFactory.FLOAT_SERIALIZER.read(this)
-
-
-fun Encoder.writeDouble(value: Double) {
-    BaseSerializerFactory.DOUBLE_SERIALIZER.write(this, value)
-}
-
-
-fun Decoder.readDouble(): Double =
-    BaseSerializerFactory.DOUBLE_SERIALIZER.read(this)
-
-
 inline
 fun <reified T : Any> ReadContext.readClassOf(): Class<out T> =
     readClass().asSubclass(T::class.java)
