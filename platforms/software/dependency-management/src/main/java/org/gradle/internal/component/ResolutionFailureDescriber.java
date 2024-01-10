@@ -16,12 +16,7 @@
 
 package org.gradle.internal.component;
 
-import java.util.List;
-
-import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.internal.component.ResolutionCandidateAssessor.AssessedCandidate;
-
-public interface FailureDescriber<T extends AbstractVariantSelectionException> {
-    boolean canDescribeFailure(AttributeContainer requestedAttributes, List<AssessedCandidate> candidates);
-    T describeFailure(String requesterName, AttributeContainer requestedAttributes, List<AssessedCandidate> candidates);
+public interface ResolutionFailureDescriber<T extends AbstractVariantSelectionException> {
+    boolean canDescribeFailure(ResolutionFailure failure);
+    T describeFailure(ResolutionFailure failure);
 }

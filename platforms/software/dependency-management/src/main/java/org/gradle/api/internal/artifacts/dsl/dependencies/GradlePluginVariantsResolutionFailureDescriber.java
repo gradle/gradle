@@ -19,7 +19,8 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.internal.component.FailureDescriber;
+import org.gradle.internal.component.ResolutionFailure;
+import org.gradle.internal.component.ResolutionFailureDescriber;
 import org.gradle.internal.component.NoMatchingGraphVariantsException;
 import org.gradle.internal.component.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.util.GradleVersion;
@@ -27,29 +28,31 @@ import org.gradle.util.GradleVersion;
 import java.util.List;
 import java.util.Optional;
 
-public class GradlePluginVariantsFailureDescriber implements FailureDescriber<NoMatchingGraphVariantsException> {
-    private static final String GRADLE_VERSION_TOO_OLD_TEMPLATE = "Plugin %s requires at least Gradle %s (this build used Gradle %s).";
+public class GradlePluginVariantsResolutionFailureDescriber implements ResolutionFailureDescriber<NoMatchingGraphVariantsException> {
+    private static final String GRADLE_VERSION_TOO_OLD_TEMPLATE = "Plugin %s requires at least Gradle %s (this build used %s).";
     private static final String NEEDS_NEWER_GRADLE_SECTION = "sub:updating-gradle";
 
     private final DocumentationRegistry documentationRegistry;
+    private final GradleVersion currentGradleVersion;
 
-    protected GradlePluginVariantsFailureDescriber(DocumentationRegistry documentationRegistry) {
+    protected GradlePluginVariantsResolutionFailureDescriber(DocumentationRegistry documentationRegistry, GradleVersion currentGradleVersion) {
         this.documentationRegistry = documentationRegistry;
+        this.currentGradleVersion = currentGradleVersion;
     }
 
     @Override
-    public boolean canDescribeFailure(AttributeContainer requestedAttributes, List<AssessedCandidate> candidates) {
-        return isPluginRequestUsingApiVersionAttribute(requestedAttributes);
+    public boolean canDescribeFailure(ResolutionFailure failure) {
+        return failure.getType() == ResolutionFailure.ResolutionFailureType.NO_MATCHING_VARIANTS && isPluginRequestUsingApiVersionAttribute(failure.getRequestedAttributes());
     }
 
     @Override
-    public NoMatchingGraphVariantsException describeFailure(String requesterName, AttributeContainer requestedAttributes, List<AssessedCandidate> candidates) {
-        Optional<String> minRequiredGradleVersion = findHigherRequiredVersionOfGradle(candidates);
+    public NoMatchingGraphVariantsException describeFailure(ResolutionFailure failure) {
+        Optional<String> minRequiredGradleVersion = findHigherRequiredVersionOfGradle(failure.getCandidates());
         if (minRequiredGradleVersion.isPresent()) {
-            String message = buildPluginNeedsNewerGradleVersionFailureMsg(requesterName, minRequiredGradleVersion.get());
+            String message = buildPluginNeedsNewerGradleVersionFailureMsg(failure.getRequestedName(), minRequiredGradleVersion.get());
             NoMatchingGraphVariantsException result = new NoMatchingGraphVariantsException(message);
             suggestUpdateGradle(result, minRequiredGradleVersion.get());
-            suggestDowngradePlugin(result, requesterName);
+            suggestDowngradePlugin(result, failure.getRequestedName());
             return result;
         } else {
             throw new IllegalStateException("Expected to find a higher required version of Gradle.");
@@ -85,7 +88,7 @@ public class GradlePluginVariantsFailureDescriber implements FailureDescriber<No
     }
 
     private String buildPluginNeedsNewerGradleVersionFailureMsg(String pluginId, String minRequiredGradleVersion) {
-        return String.format(GRADLE_VERSION_TOO_OLD_TEMPLATE, pluginId, minRequiredGradleVersion, GradleVersion.current().getVersion());
+        return String.format(GRADLE_VERSION_TOO_OLD_TEMPLATE, pluginId, minRequiredGradleVersion, currentGradleVersion);
     }
 
     private void suggestUpdateGradle(NoMatchingGraphVariantsException result, String minRequiredGradleVersion) {
@@ -93,6 +96,6 @@ public class GradlePluginVariantsFailureDescriber implements FailureDescriber<No
     }
 
     private void suggestDowngradePlugin(NoMatchingGraphVariantsException result, String pluginId) {
-        result.addResolution("Downgrade plugin " + pluginId + " to an older version compatible with Gradle version " + GradleVersion.current().getVersion() + ".");
+        result.addResolution("Downgrade plugin " + pluginId + " to an older version compatible with " + currentGradleVersion + ".");
     }
 }

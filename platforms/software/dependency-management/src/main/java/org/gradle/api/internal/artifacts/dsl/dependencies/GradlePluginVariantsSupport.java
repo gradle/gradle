@@ -33,7 +33,7 @@ public class GradlePluginVariantsSupport {
         strategy.getCompatibilityRules().add(TargetGradleVersionCompatibilityRule.class);
         strategy.getDisambiguationRules().add(TargetGradleVersionDisambiguationRule.class);
 
-        attributesSchema.addFailureDescriber(new GradlePluginVariantsFailureDescriber(documentationRegistry));
+        attributesSchema.addFailureDescriber(new GradlePluginVariantsResolutionFailureDescriber(documentationRegistry, GradleVersion.current()));
     }
 
     public static class TargetGradleVersionCompatibilityRule implements AttributeCompatibilityRule<GradlePluginApiVersion> {

@@ -24,6 +24,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
@@ -54,12 +55,13 @@ public final class ResolutionCandidateAssessor {
 
     public List<AssessedCandidate> assessCandidates(List<? extends VariantGraphResolveMetadata> variantMetadatas) {
         return variantMetadatas.stream()
-            .map(variantMetadata -> assessCandidate(variantMetadata.getName(), variantMetadata.getAttributes()))
+            .map(variantMetadata -> assessCandidate(variantMetadata.getName(), variantMetadata.getCapabilities(), variantMetadata.getAttributes()))
             .collect(Collectors.toList());
     }
 
     public AssessedCandidate assessCandidate(
         String candidateName,
+        ImmutableCapabilities candidateCapabilities,
         ImmutableAttributes candidateAttributes
     ) {
         Set<String> alreadyAssessed = new HashSet<>(candidateAttributes.keySet().size());
@@ -72,7 +74,7 @@ public final class ResolutionCandidateAssessor {
             .sorted(Comparator.comparing(Attribute::getName))
             .forEach(attribute -> classifyAttribute(requestedAttributes, candidateAttributes, attributeMatcher, attribute, alreadyAssessed, compatible, incompatible, onlyOnConsumer, onlyOnProducer));
 
-        return new AssessedCandidate(candidateName, candidateAttributes, compatible.build(), incompatible.build(), onlyOnConsumer.build(), onlyOnProducer.build());
+        return new AssessedCandidate(candidateName, candidateAttributes, candidateCapabilities, compatible.build(), incompatible.build(), onlyOnConsumer.build(), onlyOnProducer.build());
     }
 
     private void classifyAttribute(ImmutableAttributes requestedAttributes, ImmutableAttributes candidateAttributes, AttributeMatcher attributeMatcher,
@@ -109,15 +111,17 @@ public final class ResolutionCandidateAssessor {
     public final class AssessedCandidate implements Describable {
         private final String name;
         private final ImmutableAttributes candidateAttributes;
+        private final ImmutableCapabilities candidateCapabilities;
 
         private final ImmutableList<AssessedAttribute<?>> compatible;
         private final ImmutableList<AssessedAttribute<?>> incompatible;
         private final ImmutableList<AssessedAttribute<?>> onlyOnConsumer;
         private final ImmutableList<AssessedAttribute<?>> onlyOnProducer;
 
-        private AssessedCandidate(String name, ImmutableAttributes attributes, ImmutableList<AssessedAttribute<?>> compatible, ImmutableList<AssessedAttribute<?>> incompatible, ImmutableList<AssessedAttribute<?>> onlyOnConsumer, ImmutableList<AssessedAttribute<?>> onlyOnProducer) {
+        private AssessedCandidate(String name, AttributeContainerInternal attributes, ImmutableCapabilities candidateCapabilities, ImmutableList<AssessedAttribute<?>> compatible, ImmutableList<AssessedAttribute<?>> incompatible, ImmutableList<AssessedAttribute<?>> onlyOnConsumer, ImmutableList<AssessedAttribute<?>> onlyOnProducer) {
             this.name = name;
-            this.candidateAttributes = attributes;
+            this.candidateAttributes = attributes.asImmutable();
+            this.candidateCapabilities = candidateCapabilities;
             this.compatible = compatible;
             this.incompatible = incompatible;
             this.onlyOnConsumer = onlyOnConsumer;
@@ -135,6 +139,10 @@ public final class ResolutionCandidateAssessor {
 
         public ImmutableAttributes getAllRequestedAttributes() {
             return requestedAttributes;
+        }
+
+        public ImmutableCapabilities getCandidateCapabilities() {
+            return candidateCapabilities;
         }
 
         public ImmutableList<AssessedAttribute<?>> getCompatibleAttributes() {
