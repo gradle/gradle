@@ -21,9 +21,8 @@ The plugin is packaged via an included build and is demonstrated on a multi-proj
 
 == Download the sample
 
-The software product built in this sample is an application that does X
+The software product built in this sample is a plugin that lists dependencies used in the build (both internal and external).
 
-The application does X
 ++++
 <div class="button-9-sect">
     <a href="../samples/zips/sample_tasks_with_dependency_resolution_result_inputs-groovy-dsl.zip">
@@ -39,10 +38,29 @@ NOTE: You can open this sample inside an IDE.
 
 == The sample explained
 
+The sample is a multi-project build with an included build and two subprojects:
+
+1. dependency-report - separate build where the custom tasks and plugin are coded
+2. list - subproject that produces a jar file
+3. utilities - subproject that produces a jar file
+
 ====
-include::sample[dir="kotlin",files="settings.gradle.kts[tag=includes];list/build.gradle.kts[];utilities/build.gradle.kts[];build.gradle.kts[]"]
-include::sample[dir="groovy",files="settings.gradle[tag=includes];list/build.gradle[];utilities/build.gradle[];build.gradle[]"]
+include::sample[dir="samples/writing-tasks/tasks-with-dependency-resolution-result-inputs/kotlin",files="settings.gradle.kts"]
+include::sample[dir="samples/writing-tasks/tasks-with-dependency-resolution-result-inputs/groovy",files="settings.gradle"]
 ====
+
+The build creates the plugin in `dependency-report`:
+
+====
+include::sample[dir="samples/writing-tasks/tasks-with-dependency-resolution-result-inputs/kotlin",files="build.gradle.kts"]
+include::sample[dir="samples/writing-tasks/tasks-with-dependency-resolution-result-inputs/groovy",files="build.gradle"]
+====
+
+The `dependency-report` plugin exposes three custom tasks:
+
+1. listResolvedArtifacts in `dependency-reports/src/main/java/com.example/ListResolvedArtifacts.java`
+2. graphResolvedComponents in `dependency-reports/src/main/java/com.example/GraphResolvedComponents.java`
+3. graphResolvedComponentsAndFiles in `dependency-reports/src/main/java/com.example/GraphResolvedComponentsAndFiles.java`
 
 To execute the sample tasks:
 
