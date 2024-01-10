@@ -233,6 +233,6 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
       > Plugin com.example:producer:1.0 requires at least Gradle 1000.0 (this build used Gradle $currentGradle).""")
         failure.assertHasErrorOutput("Caused by: " + NoMatchingGraphVariantsException.class.getName())
         failure.assertHasResolution("Upgrade Gradle to at least version 1000.0. See the instructions at https://docs.gradle.org/$currentGradle/userguide/upgrading_version_8.html#sub:updating-gradle.")
-        failure.assertHasResolution("Downgrade plugin com.example:producer:1.0 to an older version compatible with Gradle version $currentGradle.")
+        failure.assertHasResolution("Downgrade plugin com.example:producer:1.0 to an older version compatible with Gradle $currentGradle.")
     }
 }
