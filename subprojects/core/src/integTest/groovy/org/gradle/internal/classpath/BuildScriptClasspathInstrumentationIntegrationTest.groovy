@@ -100,24 +100,28 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     def "directories should be instrumented"() {
         given:
-        withKotlinPluginIncludedBuild()
+        withIncludedBuild("first")
+        withIncludedBuild("second")
         buildFile << """
             buildscript {
                 dependencies {
-                    classpath(files("./included-kotlin-plugin/build/classes/kotlin/main"))
+                    classpath(files("./first/build/classes/java/main"))
+                    classpath(files("./second/build/classes/java/main"))
                 }
             }
-
-            apply plugin: CustomPlugin
-            apply plugin: "java-library"
         """
 
         when:
-        executer.inDirectory(file("included-kotlin-plugin")).withTasks("build").run()
-        run("jar", "--info")
+        executer.inDirectory(file("first")).withTasks("classes").run()
+        executer.inDirectory(file("second")).withTasks("classes").run()
+        run("tasks", "--info")
 
         then:
-        allTransformsFor("main") == ["ExternalDependencyInstrumentingArtifactTransform"]
+        allTransformsFor("main") == [
+            // Only the folder name is reported, so we cannot distinguish first and second
+            "ExternalDependencyInstrumentingArtifactTransform",
+            "ExternalDependencyInstrumentingArtifactTransform"
+        ]
     }
 
     def withBuildSrc() {
@@ -125,54 +129,18 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         file("buildSrc/settings.gradle") << "\n"
     }
 
-    def withIncludedBuild() {
-        file("included/src/main/java/Thing.java") << "class Thing { }"
-        file("included/build.gradle") << """
+    def withIncludedBuild(String folderName = "included") {
+        file("$folderName/src/main/java/Thing.java") << "class Thing {}"
+        file("$folderName/build.gradle") << """
             plugins {
                 id("java-library")
             }
             group = "org.test"
             version = "1.0"
         """
-        file("included/settings.gradle") << "rootProject.name = 'included'"
+        file("$folderName/settings.gradle") << "rootProject.name = 'included'"
         settingsFile << """
-            includeBuild("./included")
-        """
-    }
-
-    def withKotlinPluginIncludedBuild() {
-        file("included-kotlin-plugin/src/main/kotlin/CustomPlugin.kt") << """
-            import org.gradle.api.*
-
-            class CustomPlugin: Plugin<Project> {
-                override fun apply(project: Project) {
-                    project.tasks.withType(Task::class.java).configureEach { task ->
-                        task.doLast {
-                            println("Hello from included build")
-                        }
-                    }
-                }
-            }
-        """
-        file("included-kotlin-plugin/build.gradle") << """
-            plugins {
-                id("java-gradle-plugin")
-                id("org.jetbrains.kotlin.jvm") version "$KOTLIN_VERSION"
-            }
-            group = "org.test"
-            version = "1.0"
-        """
-        file("included-kotlin-plugin/settings.gradle") << """
-            pluginManagement {
-                ${mavenCentralRepository()}
-            }
-            dependencyResolutionManagement {
-                ${mavenCentralRepository()}
-            }
-            rootProject.name = 'included'
-        """
-        settingsFile << """
-            includeBuild("./included-kotlin-plugin")
+            includeBuild("./$folderName")
         """
     }
 
