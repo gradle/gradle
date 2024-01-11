@@ -52,6 +52,17 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+### Configuration cache
+
+The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
+This feature can significantly improve build performance.
+
+#### Supporting standard streams as task property values
+
+The standard streams (`System.in`, `System.out`, and `System.err`) can now be used as
+`standardInput`, `standardOutput`, and `errorOutput` of [`Exec`](javadoc/org/gradle/api/tasks/Exec.html) and [`JavaExec`](javadoc/org/gradle/api/tasks/JavaExec.html) tasks.
+Other tasks with properties of types `java.io.InputStream` and `java.io.OutputStream` can also use the standard streams as property values.
+Setting up custom standard streams with `System.setIn`, `System.setOut` and `System.setErr` isn't supported.
 
 ### Other improvements
 

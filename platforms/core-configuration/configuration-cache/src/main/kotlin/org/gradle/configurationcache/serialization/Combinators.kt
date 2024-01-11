@@ -73,10 +73,10 @@ inline fun <reified T : Any> unsupported(
     noinline unsupportedMessage: StructuredMessageBuilder
 ): Codec<T> = codec(
     encode = {
-        logUnsupported("serialize", documentationSection, unsupportedMessage)
+        logUnsupported("serialize", documentationSection, unsupportedThings = unsupportedMessage)
     },
     decode = {
-        logUnsupported("deserialize", documentationSection, unsupportedMessage)
+        logUnsupported("deserialize", documentationSection, unsupportedThings = unsupportedMessage)
         null
     }
 )
