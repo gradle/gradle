@@ -22,8 +22,6 @@ dependencies {
         because("Loaded by the AWS libraries with reflection when present: https://github.com/gradle/gradle/issues/15332")
     }
     implementation(libs.jaxbImpl)
-    implementation(libs.jacksonCore)
-    implementation(libs.jacksonDatabind)
     implementation(libs.commonsHttpclient)
     implementation(libs.commonsLang)
 
