@@ -287,11 +287,13 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
     private static class ShortValueSnapshotSerializer extends IsolatableSerializer<ShortValueSnapshot> {
         @Override
         protected void serialize(Encoder encoder, ShortValueSnapshot value) throws Exception {
+            // TODO: consider changing to `encoder.writeShort`
             encoder.writeInt(value.getValue());
         }
 
         @Override
         protected ShortValueSnapshot deserialize(Decoder decoder) throws Exception {
+            // TODO: consider changing to `decoder.readShort`
             return new ShortValueSnapshot((short) decoder.readInt());
         }
 
