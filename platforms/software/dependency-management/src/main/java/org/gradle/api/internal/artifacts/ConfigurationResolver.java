@@ -33,7 +33,7 @@ public interface ConfigurationResolver {
     ResolverResults resolveGraph(ResolveContext resolveContext) throws ResolveException;
 
     /**
-     * Returns the list of repositories available to resolve a given resolve context. This is used for reporting only.
+     * Returns the list of repositories available to resolve a given resolve context.
      */
     List<ResolutionAwareRepository> getAllRepositories();
 
