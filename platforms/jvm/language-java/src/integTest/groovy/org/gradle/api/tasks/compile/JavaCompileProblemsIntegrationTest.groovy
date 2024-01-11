@@ -163,6 +163,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         def files = [
             writeJavaCausingTwoCompilationErrors("Foo"),
         ]
+        // Duplicate the entries, as we have two problems per file
+        files.addAll(files)
 
         when:
         // Special flag to fork the compiler, see the setup()
