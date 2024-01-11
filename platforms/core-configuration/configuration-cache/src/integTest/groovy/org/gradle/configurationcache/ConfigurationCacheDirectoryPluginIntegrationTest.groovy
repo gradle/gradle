@@ -62,7 +62,7 @@ class ConfigurationCacheDirectoryPluginIntegrationTest extends AbstractConfigura
         """
         file("$folder/build.gradle") << """
             plugins {
-                id("java-library")
+                id("java-gradle-plugin")
             }
         """
         file("$folder/settings.gradle") << "rootProject.name = '$folder'"
