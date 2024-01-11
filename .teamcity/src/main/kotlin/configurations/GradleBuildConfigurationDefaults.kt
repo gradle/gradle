@@ -13,14 +13,14 @@ import common.dependsOn
 import common.functionalTestParameters
 import common.gradleWrapper
 import common.killProcessStep
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildFeatures
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2019_2.ProjectFeatures
-import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.PullRequests
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.commitStatusPublisher
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.pullRequests
+import jetbrains.buildServer.configs.kotlin.BuildFeatures
+import jetbrains.buildServer.configs.kotlin.BuildSteps
+import jetbrains.buildServer.configs.kotlin.BuildType
+import jetbrains.buildServer.configs.kotlin.ProjectFeatures
+import jetbrains.buildServer.configs.kotlin.RelativeId
+import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
+import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
+import jetbrains.buildServer.configs.kotlin.buildFeatures.pullRequests
 import model.CIBuildModel
 import model.StageName
 

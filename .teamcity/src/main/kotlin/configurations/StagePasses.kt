@@ -2,15 +2,15 @@ package configurations
 
 import common.applyDefaultSettings
 import common.uuidPrefix
-import jetbrains.buildServer.configs.kotlin.v2019_2.Dependencies
-import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
-import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
-import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
-import jetbrains.buildServer.configs.kotlin.v2019_2.SnapshotDependency
-import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.ScheduleTrigger
-import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.VcsTrigger
-import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
-import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.vcs
+import jetbrains.buildServer.configs.kotlin.Dependencies
+import jetbrains.buildServer.configs.kotlin.DslContext
+import jetbrains.buildServer.configs.kotlin.FailureAction
+import jetbrains.buildServer.configs.kotlin.RelativeId
+import jetbrains.buildServer.configs.kotlin.SnapshotDependency
+import jetbrains.buildServer.configs.kotlin.triggers.ScheduleTrigger
+import jetbrains.buildServer.configs.kotlin.triggers.VcsTrigger
+import jetbrains.buildServer.configs.kotlin.triggers.schedule
+import jetbrains.buildServer.configs.kotlin.triggers.vcs
 import model.CIBuildModel
 import model.Stage
 import model.StageName

@@ -10,8 +10,8 @@ import configurations.PerformanceTest
 import configurations.PerformanceTestsPass
 import configurations.SmokeTests
 import configurations.buildReportTab
-import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
-import jetbrains.buildServer.configs.kotlin.v2019_2.Project
+import jetbrains.buildServer.configs.kotlin.DslContext
+import jetbrains.buildServer.configs.kotlin.Project
 import model.CIBuildModel
 import model.FlameGraphGeneration
 import model.FunctionalTestBucketProvider
