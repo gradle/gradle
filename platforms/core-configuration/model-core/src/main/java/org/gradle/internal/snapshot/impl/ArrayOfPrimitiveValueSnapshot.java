@@ -18,6 +18,7 @@ package org.gradle.internal.snapshot.impl;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.HasherExtensions;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DecoderExtensions;
@@ -81,8 +82,7 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        // TODO: when this would be needed?
-        throw new UnsupportedOperationException("This operation is not supported on primitive arrays of type: " + primitiveType.arrayType);
+        primitiveType.appendTo(hasher, array);
     }
 
     public ValueSnapshot snapshot(@Nullable Object value, ValueSnapshotter snapshotter) {
@@ -147,6 +147,11 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
             }
 
             @Override
+            public void appendTo(Hasher hasher, Object array) {
+                hasher.putBytes((byte[]) array);
+            }
+
+            @Override
             public void encode(Encoder encoder, Object array) throws IOException {
                 encoder.writeBinary((byte[]) array);
             }
@@ -175,6 +180,11 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
             @Override
             public String toString(Object array) {
                 return Arrays.toString((short[]) array);
+            }
+
+            @Override
+            public void appendTo(Hasher hasher, Object array) {
+                HasherExtensions.putShorts(hasher, (short[]) array);
             }
 
             @Override
@@ -209,6 +219,11 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
             }
 
             @Override
+            public void appendTo(Hasher hasher, Object array) {
+                HasherExtensions.putInts(hasher, (int[]) array);
+            }
+
+            @Override
             public void encode(Encoder encoder, Object array) throws IOException {
                 EncoderExtensions.writeLengthPrefixedInts(encoder, (int[]) array);
             }
@@ -237,6 +252,11 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
             @Override
             public String toString(Object array) {
                 return Arrays.toString((long[]) array);
+            }
+
+            @Override
+            public void appendTo(Hasher hasher, Object array) {
+                HasherExtensions.putLongs(hasher, (long[]) array);
             }
 
             @Override
@@ -271,6 +291,11 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
             }
 
             @Override
+            public void appendTo(Hasher hasher, Object array) {
+                HasherExtensions.putFloats(hasher, (float[]) array);
+            }
+
+            @Override
             public void encode(Encoder encoder, Object array) throws IOException {
                 EncoderExtensions.writeLengthPrefixedFloats(encoder, (float[]) array);
             }
@@ -299,6 +324,11 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
             @Override
             public String toString(Object array) {
                 return Arrays.toString((double[]) array);
+            }
+
+            @Override
+            public void appendTo(Hasher hasher, Object array) {
+                HasherExtensions.putDoubles(hasher, (double[]) array);
             }
 
             @Override
@@ -333,6 +363,11 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
             }
 
             @Override
+            public void appendTo(Hasher hasher, Object array) {
+                HasherExtensions.putChars(hasher, (char[]) array);
+            }
+
+            @Override
             public void encode(Encoder encoder, Object array) throws IOException {
                 EncoderExtensions.writeLengthPrefixedChars(encoder, (char[]) array);
             }
@@ -364,6 +399,11 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
             }
 
             @Override
+            public void appendTo(Hasher hasher, Object array) {
+                HasherExtensions.putBooleans(hasher, (boolean[]) array);
+            }
+
+            @Override
             public void encode(Encoder encoder, Object array) throws IOException {
                 EncoderExtensions.writeLengthPrefixedBooleans(encoder, (boolean[]) array);
             }
@@ -387,6 +427,8 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
         public abstract int hashCode(Object array);
 
         public abstract String toString(Object array);
+
+        public abstract void appendTo(Hasher hasher, Object array);
 
         public abstract void encode(Encoder encoder, Object array) throws IOException;
 
@@ -421,5 +463,4 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
             return primitiveTypes[ordinal];
         }
     }
-
 }

@@ -18,31 +18,50 @@ package org.gradle.workers.internal
 
 import groovy.transform.Canonical
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.workers.fixtures.WorkerExecutorFixture.IsolationMode
 import spock.lang.Issue
 
 class WorkerExecutorParametersKotlinIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        withLocalBuildCache()
+    }
+
     @Issue('https://github.com/gradle/gradle/issues/26596')
     def "can provide primitive #primitiveType array parameter with #isolationMode isolation"() {
         given:
         withRunWorkTaskOfPrimitiveArrayProperty isolationMode, primitiveType
 
-        when:
-        succeeds 'runWork'
+        when: 'task runs for the 1st time'
+        runWork()
 
-        then:
+        then: 'it runs as expected'
         outputContains expectedOutput
 
-        when:
-        succeeds 'runWork'
+        when: 'task runs for the 2nd time'
+        runWork()
 
-        then:
-        outputDoesNotContain expectedOutput
+        then: 'it is skipped because UP-TO-DATE'
+        result.assertTaskSkipped ':runWork'
+        outputContains ':runWork UP-TO-DATE'
 
         and:
+        outputDoesNotContain expectedOutput
+
+        when: 'the outputs are deleted'
+        file('build').deleteDir()
+
+        and: 'task runs for the 3rd time'
+        runWork()
+
+        then: 'it is skipped because FROM-CACHE'
         result.assertTaskSkipped ':runWork'
+        outputContains ':runWork FROM-CACHE'
+
+        and:
+        outputDoesNotContain expectedOutput
 
         where:
         [isolationMode, primitiveType] << [isolationModes(), primitiveTypes()].combinations()
@@ -54,24 +73,42 @@ class WorkerExecutorParametersKotlinIntegrationTest extends AbstractIntegrationS
         given:
         withRunWorkTaskOfPrimitiveArrayListProperty isolationMode, primitiveType
 
-        when:
-        succeeds 'runWork'
+        when: 'task runs for the 1st time'
+        runWork()
 
-        then:
+        then: 'it runs as expected'
         outputContains expectedOutput
 
-        when:
-        succeeds 'runWork'
+        when: 'task runs for the 2nd time'
+        runWork()
 
-        then:
-        outputDoesNotContain expectedOutput
+        then: 'it is skipped because UP-TO-DATE'
+        result.assertTaskSkipped ':runWork'
+        outputContains ':runWork UP-TO-DATE'
 
         and:
+        outputDoesNotContain expectedOutput
+
+        when: 'the outputs are deleted'
+        file('build').deleteDir()
+
+        and: 'task runs for the 3rd time'
+        runWork()
+
+        then: 'it is skipped because FROM-CACHE'
         result.assertTaskSkipped ':runWork'
+        outputContains ':runWork FROM-CACHE'
+
+        and:
+        outputDoesNotContain expectedOutput
 
         where:
         [isolationMode, primitiveType] << [isolationModes(), primitiveTypes()].combinations()
         expectedOutput = expectedOutputFor(primitiveType).with { "$it, $it" }
+    }
+
+    private ExecutionResult runWork() {
+        succeeds 'runWork', '--build-cache'
     }
 
     private static IsolationMode[] isolationModes() {
@@ -177,6 +214,17 @@ class WorkerExecutorParametersKotlinIntegrationTest extends AbstractIntegrationS
                 register<ParameterTask>("runWork") {
                     taskInput = $propertyValue
                     outputFile = layout.buildDirectory.file("receipt")
+                }
+            }
+        """
+    }
+
+    private void withLocalBuildCache() {
+        def cacheDir = createDir("cache-dir")
+        settingsFile """
+            buildCache {
+                local {
+                    directory = file("${cacheDir.name}")
                 }
             }
         """
