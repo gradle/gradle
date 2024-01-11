@@ -20,7 +20,9 @@ import org.gradle.api.NonNullApi;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.DecoderExtensions;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.EncoderExtensions;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.ValueSnapshottingException;
@@ -146,17 +148,12 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
 
             @Override
             public void encode(Encoder encoder, Object array) throws IOException {
-                byte[] typed = (byte[]) array;
-                encoder.writeInt(typed.length);
-                encoder.writeBytes(typed);
+                encoder.writeBinary((byte[]) array);
             }
 
             @Override
             public Object decode(Decoder decoder) throws IOException {
-                int length = decoder.readInt();
-                byte[] array = new byte[length];
-                decoder.readBytes(array);
-                return array;
+                return decoder.readBinary();
             }
         },
         S(short[].class) {
@@ -182,21 +179,12 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
 
             @Override
             public void encode(Encoder encoder, Object array) throws IOException {
-                short[] typed = (short[]) array;
-                encoder.writeInt(typed.length);
-                for (short e : typed) {
-                    encoder.writeInt(e);
-                }
+                EncoderExtensions.writeLengthPrefixedShorts(encoder, (short[]) array);
             }
 
             @Override
             public Object decode(Decoder decoder) throws IOException {
-                int length = decoder.readInt();
-                short[] array = new short[length];
-                for (int i = 0; i < array.length; i++) {
-                    array[i] = (short) decoder.readInt();
-                }
-                return array;
+                return DecoderExtensions.readLengthPrefixedShorts(decoder);
             }
         },
         I(int[].class) {
@@ -222,21 +210,12 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
 
             @Override
             public void encode(Encoder encoder, Object array) throws IOException {
-                int[] typed = (int[]) array;
-                encoder.writeInt(typed.length);
-                for (int e : typed) {
-                    encoder.writeInt(e);
-                }
+                EncoderExtensions.writeLengthPrefixedInts(encoder, (int[]) array);
             }
 
             @Override
             public Object decode(Decoder decoder) throws IOException {
-                int length = decoder.readInt();
-                int[] array = new int[length];
-                for (int i = 0; i < array.length; i++) {
-                    array[i] = decoder.readInt();
-                }
-                return array;
+                return DecoderExtensions.readLengthPrefixedInts(decoder);
             }
         },
         J(long[].class) {
@@ -262,21 +241,12 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
 
             @Override
             public void encode(Encoder encoder, Object array) throws IOException {
-                long[] typed = (long[]) array;
-                encoder.writeInt(typed.length);
-                for (long e : typed) {
-                    encoder.writeLong(e);
-                }
+                EncoderExtensions.writeLengthPrefixedLongs(encoder, (long[]) array);
             }
 
             @Override
             public Object decode(Decoder decoder) throws IOException {
-                int length = decoder.readInt();
-                long[] array = new long[length];
-                for (int i = 0; i < array.length; i++) {
-                    array[i] = decoder.readLong();
-                }
-                return array;
+                return DecoderExtensions.readLengthPrefixedLongs(decoder);
             }
         },
         F(float[].class) {
@@ -302,21 +272,12 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
 
             @Override
             public void encode(Encoder encoder, Object array) throws IOException {
-                float[] typed = (float[]) array;
-                encoder.writeInt(typed.length);
-                for (float e : typed) {
-                    encoder.writeInt(Float.floatToRawIntBits(e));
-                }
+                EncoderExtensions.writeLengthPrefixedFloats(encoder, (float[]) array);
             }
 
             @Override
             public Object decode(Decoder decoder) throws IOException {
-                int length = decoder.readInt();
-                float[] array = new float[length];
-                for (int i = 0; i < array.length; i++) {
-                    array[i] = Float.intBitsToFloat(decoder.readInt());
-                }
-                return array;
+                return DecoderExtensions.readLengthPrefixedFloats(decoder);
             }
         },
         D(double[].class) {
@@ -342,21 +303,12 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
 
             @Override
             public void encode(Encoder encoder, Object array) throws IOException {
-                double[] typed = (double[]) array;
-                encoder.writeInt(typed.length);
-                for (double e : typed) {
-                    encoder.writeLong(Double.doubleToRawLongBits(e));
-                }
+                EncoderExtensions.writeLengthPrefixedDoubles(encoder, (double[]) array);
             }
 
             @Override
             public Object decode(Decoder decoder) throws IOException {
-                int length = decoder.readInt();
-                double[] array = new double[length];
-                for (int i = 0; i < array.length; i++) {
-                    array[i] = Double.longBitsToDouble(decoder.readLong());
-                }
-                return array;
+                return DecoderExtensions.readLengthPrefixedDoubles(decoder);
             }
         },
         C(char[].class) {
@@ -382,21 +334,12 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
 
             @Override
             public void encode(Encoder encoder, Object array) throws IOException {
-                char[] typed = (char[]) array;
-                encoder.writeInt(typed.length);
-                for (char e : typed) {
-                    encoder.writeInt(e);
-                }
+                EncoderExtensions.writeLengthPrefixedChars(encoder, (char[]) array);
             }
 
             @Override
             public Object decode(Decoder decoder) throws IOException {
-                int length = decoder.readInt();
-                char[] array = new char[length];
-                for (int i = 0; i < array.length; i++) {
-                    array[i] = (char) decoder.readInt();
-                }
-                return array;
+                return DecoderExtensions.readLengthPrefixedChars(decoder);
             }
         },
         Z(boolean[].class) {
@@ -422,21 +365,12 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
 
             @Override
             public void encode(Encoder encoder, Object array) throws IOException {
-                boolean[] typed = (boolean[]) array;
-                encoder.writeInt(typed.length);
-                for (boolean e : typed) {
-                    encoder.writeBoolean(e);
-                }
+                EncoderExtensions.writeLengthPrefixedBooleans(encoder, (boolean[]) array);
             }
 
             @Override
             public Object decode(Decoder decoder) throws IOException {
-                int length = decoder.readInt();
-                boolean[] array = new boolean[length];
-                for (int i = 0; i < array.length; i++) {
-                    array[i] = decoder.readBoolean();
-                }
-                return array;
+                return DecoderExtensions.readLengthPrefixedBooleans(decoder);
             }
         };
 
