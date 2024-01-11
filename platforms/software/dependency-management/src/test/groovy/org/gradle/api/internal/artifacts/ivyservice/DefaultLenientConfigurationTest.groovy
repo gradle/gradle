@@ -17,12 +17,12 @@
 package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.artifacts.ResolutionStrategy
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.ResolvedModuleVersion
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactResults
@@ -33,7 +33,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Tran
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector
-import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
@@ -114,7 +113,7 @@ class DefaultLenientConfigurationTest extends Specification {
 
     private DefaultLenientConfiguration newConfiguration() {
         VisitedGraphResults visitedGraphResults = new DefaultVisitedGraphResults(Stub(MinimalResolutionResult), [] as Set, null)
-        new DefaultLenientConfiguration(Stub(ResolutionHost), ImmutableAttributes.EMPTY, ResolutionStrategy.SortOrder.DEFAULT, visitedGraphResults, artifactsResults, fileDependencyResults, resultsLoader, Mock(ResolvedArtifactSetResolver), Mock(ArtifactVariantSelector))
+        new DefaultLenientConfiguration(Stub(ResolutionHost), visitedGraphResults, artifactsResults, fileDependencyResults, resultsLoader, Mock(ResolvedArtifactSetResolver), Mock(ArtifactVariantSelector), Mock(ArtifactSelectionSpec))
     }
 
     def generateDependenciesWithChildren(Map treeStructure) {

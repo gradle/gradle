@@ -54,7 +54,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
 
         then:
         def visitedArtifacts = results.visitedArtifacts
-        def artifactSet = visitedArtifacts.select(Specs.satisfyAll(), Mock(ArtifactSelectionSpec))
+        def artifactSet = visitedArtifacts.select(Mock(ArtifactSelectionSpec))
         artifactSet.visitDependencies(depVisitor)
         artifactSet.visitArtifacts(artifactVisitor, true)
 
@@ -78,7 +78,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         results.visitedGraph.resolutionResult.rootSource.get().dependencies.empty
 
         def visitedArtifacts = results.visitedArtifacts
-        def artifactSet = visitedArtifacts.select(Specs.satisfyAll(), Mock(ArtifactSelectionSpec))
+        def artifactSet = visitedArtifacts.select(Mock(ArtifactSelectionSpec))
         artifactSet.visitDependencies(depVisitor)
         artifactSet.visitArtifacts(artifactVisitor, true)
 
@@ -96,7 +96,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         def results = dependencyResolver.resolveGraph(resolveContext)
 
         then:
-        def resolvedConfig = results.resolvedConfiguration
+        def resolvedConfig = results.legacyResults.resolvedConfiguration
         !resolvedConfig.hasError()
         resolvedConfig.rethrowFailure()
 

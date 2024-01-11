@@ -22,9 +22,9 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -34,15 +34,18 @@ import java.util.Set;
 public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     private final VisitedGraphResults graphResults;
     private final ResolutionHost resolutionHost;
+    private final VisitedArtifactSet visitedArtifacts;
     private final LenientConfigurationInternal configuration;
 
     public DefaultResolvedConfiguration(
         VisitedGraphResults graphResults,
         ResolutionHost resolutionHost,
+        VisitedArtifactSet visitedArtifacts,
         LenientConfigurationInternal configuration
     ) {
         this.graphResults = graphResults;
         this.resolutionHost = resolutionHost;
+        this.visitedArtifacts = visitedArtifacts;
         this.configuration = configuration;
     }
 
@@ -69,7 +72,10 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
     @Override
     public Set<File> getFiles() throws ResolveException {
-        return getFiles(Specs.satisfyAll());
+        ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
+        visitedArtifacts.select(configuration.getImplicitSelectionSpec()).visitArtifacts(visitor, false);
+        resolutionHost.rethrowFailure("files", visitor.getFailures());
+        return visitor.getFiles();
     }
 
     @Override
@@ -95,7 +101,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     @Override
     public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
-        configuration.select().visitArtifacts(visitor, false);
+        visitedArtifacts.select(configuration.getImplicitSelectionSpec()).visitArtifacts(visitor, false);
         resolutionHost.rethrowFailure("artifacts", visitor.getFailures());
         return visitor.getArtifacts();
     }
