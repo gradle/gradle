@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import com.sun.tools.javac.file.PathFileObject;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
@@ -81,14 +80,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     }
 
     private static String getPath(JavaFileObject fileObject) {
-        if (fileObject instanceof PathFileObject) {
-            // The reason we are not using JavaFileObject#toUri() when we have a PathFileObject is that we found out that it changes the Unicode codepoint in the path when using exotic characters.
-            // This could cause issues when file paths would be compared.
-            PathFileObject pathFileObject = (PathFileObject) fileObject;
-            return pathFileObject.getPath().toAbsolutePath().toString();
-        } else {
-            return fileObject.toUri().toString();
-        }
+        return fileObject.getName();
     }
 
     private static String mapKindToLabel(Diagnostic.Kind kind) {

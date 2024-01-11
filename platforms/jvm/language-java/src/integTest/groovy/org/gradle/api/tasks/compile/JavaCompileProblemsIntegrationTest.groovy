@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.problems.ReceivedProblem
+import org.gradle.test.fixtures.file.TestFile
 
 /**
  * Test class verifying the integration between the {@code JavaCompile} and the {@code Problems} service.
@@ -215,7 +216,6 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         return true
     }
 
-
     String writeJavaCausingTwoCompilationErrors(String className, String sourceSet = "main") {
         def file = file("src/${sourceSet}/java/${className}.java")
         file << """
@@ -232,7 +232,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        return file.absolutePath
+        return formatFilePath(file)
     }
 
     String writeJavaCausingTwoCompilationWarnings(String className) {
@@ -251,7 +251,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        return file.absolutePath
+        return formatFilePath(file)
     }
 
     String writeJavaCausingTwoCompilationErrorsAndTwoWarnings(String className) {
@@ -280,7 +280,11 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        return file.absolutePath
+        return formatFilePath(file)
+    }
+
+    def formatFilePath(TestFile file) {
+        return file.absolutePath.toString()
     }
 
 }
