@@ -47,6 +47,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
     private static final String NULL_KEY_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null key to a property of type %s.", Map.class.getSimpleName());
     private static final String NULL_VALUE_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null value to a property of type %s.", Map.class.getSimpleName());
 
+    private static final MapSupplier<Object, Object> NO_VALUE = new NoValueSupplier<>(Value.missing());
+
     private final Class<K> keyType;
     private final Class<V> valueType;
     private final ValueCollector<K> keyCollector;
@@ -77,7 +79,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
     }
 
     private MapSupplierGuard<K, V> noValueSupplier() {
-        return guard(uncheckedCast(new NoValueSupplier<>(Value.missing())));
+        return guard(uncheckedCast(NO_VALUE));
     }
 
     private void setConvention(MapSupplier<K, V> unguardedConvention) {
@@ -157,7 +159,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
         setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(p)));
     }
 
-
     @Override
     public MapProperty<K, V> value(@Nullable Map<? extends K, ? extends V> entries) {
         set(entries);
@@ -211,11 +212,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
         setToConventionIfUnset();
         ConfigureUtil.configure(action, getExplicitValue());
         return this;
-    }
-
-    @Override
-    public ProviderInternal<Map<K, V>> withFinalValue(ValueConsumer consumer) {
-        return super.withFinalValue(consumer);
     }
 
     private boolean isNoValueSupplier(MapSupplierGuard<K, V> valueSupplier) {
@@ -276,17 +272,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
         discardValue();
         return this;
     }
-
-    @Override
-    public MapProperty<K, V> setToConvention() {
-        return uncheckedNonnullCast(super.setToConvention());
-    }
-
-    @Override
-    public MapProperty<K, V> setToConventionIfUnset() {
-        return uncheckedNonnullCast(super.setToConventionIfUnset());
-    }
-
 
     public void fromState(ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value) {
         if (value.isMissing()) {
@@ -668,10 +653,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
         void addCollector(MapCollector<K, V> collector) {
             addExplicitCollector(collector);
         }
-    }
-
-    private Provider<Map<K, V>> frozen() {
-        return Providers.of(get());
     }
 
     private static class PlusCollector<K, V> implements MapCollector<K, V> {

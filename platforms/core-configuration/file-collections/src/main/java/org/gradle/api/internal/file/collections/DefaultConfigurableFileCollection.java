@@ -255,15 +255,26 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         return this;
     }
 
-    @Override
-    public ConfigurableFileCollection setToConventionIfUnset() {
+    /**
+     * Sets the value of the property to the current convention value, if an explicit
+     * value has not been set yet.
+     *
+     * If the property has no convention set at the time this method is invoked,
+     * or if an explicit value has already been set, it has no effect.
+     */
+    protected ConfigurableFileCollection setToConventionIfUnset() {
         assertMutable();
         value = valueState.setToConventionIfUnset(value);
         return this;
     }
 
-    @Override
-    public SupportsConvention setToConvention() {
+    /**
+     * Sets the value of the property to the current convention value, replacing whatever explicit value the property already had.
+     *
+     * If the property has no convention set at the time this method is invoked,
+     * the effect of invoking it is similar to invoking {@link #unset()}.
+     */
+    protected SupportsConvention setToConvention() {
         assertMutable();
         value = valueState.setToConvention();
         return this;

@@ -223,6 +223,10 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
 
     /**
      * {@inheritDoc}
+     *
+     * <p>
+     * This is similar to calling {@link #value(Map)} with a <code>null</code> argument.
+     * </p>
      */
     @Incubating
     @Override
@@ -230,6 +234,10 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
 
     /**
      * {@inheritDoc}
+     *
+     * <p>
+     * This is similar to calling {@link #convention(Map)} with a <code>null</code> argument.
+     * </p>
      */
     @Incubating
     @Override

@@ -213,6 +213,7 @@ public abstract class AbstractProperty<T, S extends AbstractMinimalProvider.Guar
         state.disallowChangesAndFinalizeOnNextGet();
     }
 
+    @Override
     public void disallowUnsafeRead() {
         state.disallowUnsafeRead();
     }
@@ -280,12 +281,39 @@ public abstract class AbstractProperty<T, S extends AbstractMinimalProvider.Guar
         value = state.applyConvention(value, getDefaultConvention());
     }
 
-    public SupportsConvention setToConvention() {
+    @Override
+    public SupportsConvention unsetConvention() {
+        discardConvention();
+        return this;
+    }
+
+    @Override
+    public SupportsConvention unset() {
+        discardValue();
+        return this;
+    }
+
+    /**
+     * Sets the value of the property to the current convention value, replacing whatever explicit value the property already had.
+     *
+     * If the property has no convention set at the time this method is invoked,
+     * the effect of invoking it is similar to invoking {@link #unset()}.
+     */
+    protected SupportsConvention setToConvention() {
+        assertCanMutate();
         this.value = state.setToConvention();
         return this;
     }
 
-    public SupportsConvention setToConventionIfUnset() {
+    /**
+     * Sets the value of the property to the current convention value, if an explicit
+     * value has not been set yet.
+     *
+     * If the property has no convention set at the time this method is invoked,
+     * or if an explicit value has already been set, it has no effect.
+     */
+    protected SupportsConvention setToConventionIfUnset() {
+        assertCanMutate();
         if (!isDefaultConvention()) {
             this.value = state.setToConventionIfUnset(value);
         }

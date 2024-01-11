@@ -69,28 +69,22 @@ public interface SetProperty<T> extends Provider<Set<T>>, HasMultipleValues<T> {
 
     /**
      * {@inheritDoc}
+     *
+     * <p>
+     * This is similar to calling {@link #value(Iterable)} with a <code>null</code> argument.
+     * </p>
      */
     @Override
     SetProperty<T> unset();
 
     /**
      * {@inheritDoc}
+     * <p>
+     * This is similar to calling {@link #convention(Iterable)} with a <code>null</code> argument.
+     * </p>
      */
     @Override
     SetProperty<T> unsetConvention();
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    SetProperty<T> setToConvention();
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    SetProperty<T> setToConventionIfUnset();
-
 
     /**
      * {@inheritDoc}

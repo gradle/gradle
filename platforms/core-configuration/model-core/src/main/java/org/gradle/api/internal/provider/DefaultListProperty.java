@@ -106,14 +106,4 @@ public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T
     public ListProperty<T> unsetConvention() {
         return uncheckedNonnullCast(super.unsetConvention());
     }
-
-    @Override
-    public ListProperty<T> setToConvention() {
-        return uncheckedNonnullCast(super.setToConvention());
-    }
-
-    @Override
-    public ListProperty<T> setToConventionIfUnset() {
-        return uncheckedNonnullCast(super.setToConventionIfUnset());
-    }
 }

@@ -106,14 +106,4 @@ public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>>
     public SetProperty<T> unsetConvention() {
         return uncheckedNonnullCast(super.unsetConvention());
     }
-
-    @Override
-    public SetProperty<T> setToConvention() {
-        return uncheckedNonnullCast(super.setToConvention());
-    }
-
-    @Override
-    public SetProperty<T>  setToConventionIfUnset() {
-        return uncheckedNonnullCast(super.setToConventionIfUnset());
-    }
 }

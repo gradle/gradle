@@ -30,6 +30,7 @@ import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.provider.CollectionPropertyConfigurer;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Cast;
 import org.gradle.util.internal.ConfigureUtil;
 
@@ -38,8 +39,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
-
-import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
     extends AbstractProperty<C, AbstractCollectionProperty.CollectionSupplierGuard<T, C>>
@@ -190,8 +189,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
     @Override
     public void set(@Nullable final Iterable<? extends T> elements) {
         if (elements == null) {
-            discardValue();
-            defaultValue = noValueSupplier();
+            unset();
         } else {
             setSupplier(new CollectingSupplier(new ElementsFromCollection<>(elements)));
         }
@@ -213,6 +211,13 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
             }
         }
         setSupplier(new CollectingSupplier(new ElementsFromCollectionProvider<>(p)));
+    }
+
+    @Override
+    public SupportsConvention unset() {
+        discardValue();
+        defaultValue = noValueSupplier();
+        return this;
     }
 
     @Override
@@ -258,7 +263,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
     @Override
     public HasMultipleValues<T> convention(@Nullable Iterable<? extends T> elements) {
         if (elements == null) {
-            setConvention(noValueSupplier());
+            unsetConvention();
         } else {
             setConvention(new CollectingSupplier(new ElementsFromCollection<>(elements)));
         }
@@ -269,26 +274,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
     public HasMultipleValues<T> convention(Provider<? extends Iterable<? extends T>> provider) {
         setConvention(new CollectingSupplier(new ElementsFromCollectionProvider<>(Providers.internal(provider))));
         return this;
-    }
-
-    @Override
-    public HasMultipleValues<T> unsetConvention() {
-        return convention((Iterable<? extends T>) null);
-    }
-
-    @Override
-    public HasMultipleValues<T> unset() {
-        return value((Iterable<? extends T>) null);
-    }
-
-    @Override
-    public HasMultipleValues<T> setToConvention() {
-        return uncheckedNonnullCast(super.setToConvention());
-    }
-
-    @Override
-    public HasMultipleValues<T> setToConventionIfUnset() {
-        return uncheckedNonnullCast(super.setToConventionIfUnset());
     }
 
     @Override

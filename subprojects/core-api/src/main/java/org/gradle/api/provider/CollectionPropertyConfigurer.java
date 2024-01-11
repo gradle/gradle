@@ -48,7 +48,6 @@ public interface CollectionPropertyConfigurer<T> extends ConfigurableValue.Confi
      * Adds zero or more elements to the property value.
      *
      * @param elements The elements to add
-     * @since 4.10
      */
     @SuppressWarnings("unchecked")
     void addAll(T... elements);
@@ -59,7 +58,6 @@ public interface CollectionPropertyConfigurer<T> extends ConfigurableValue.Confi
      * <p>The given iterable will be queried when the value of this property is queried.
      *
      * @param elements The elements to add.
-     * @since 4.10
      */
     void addAll(Iterable<? extends T> elements);
 
