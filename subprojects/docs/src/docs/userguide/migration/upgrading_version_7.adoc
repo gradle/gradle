@@ -128,6 +128,10 @@ Guava has been updated from 31.1 to https://github.com/google/guava/releases/tag
 
 Jackson has been updated from 2.14.1 to https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.15[2.15.3].
 
+==== Upgrade to Ivy 2.5.2
+
+Ivy has been updated from 2.3.0 to https://ant.apache.org/ivy/history/2.5.2/release-notes.html[2.5.2].
+
 ==== Configuring a non-existing executable now fails
 
 When configuring an executable explicitly for link:{groovyDslPath}/org.gradle.api.tasks.compile.ForkOptions.html#org.gradle.api.tasks.compile.ForkOptions:executable[`JavaCompile`] or link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:executable[`Test`] tasks, Gradle will now emit an error if this executable does not exist.

@@ -65,9 +65,9 @@ dependencies {
         api(libs.fastutil)              { version { strictly("8.5.2") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
         api(libs.googleApiClient)       { version { strictly("1.34.0"); because("our GCS version requires 1.34.0") }}
-        api(libs.gradleEnterpriseTestAnnotation) { version { strictly("1.0") } }
-        api(libs.guava) { version { strictly("32.1.3-jre"); because("our Google API Client version requires at least 31.1-jre") } }
-        api(libs.googleHttpClientGson) { version { strictly("1.42.2"); because("our Google API Client version requires 1.42.2") } }
+        api(libs.gradleEnterpriseTestAnnotation) { version { strictly("1.0") }}
+        api(libs.guava)                 { version { strictly("32.1.3-jre"); because("our Google API Client version requires at least 31.1-jre") }}
+        api(libs.googleHttpClientGson)  { version { strictly("1.42.2"); because("our Google API Client version requires 1.42.2") }}
         api(libs.googleHttpClientApacheV2) { version { strictly("1.42.2"); because("our Google API Client version requires 1.42.2")  }}
         api(libs.googleHttpClient)      { version { strictly("1.42.2"); because("our Google API Client version requires 1.42.2") }}
         api(libs.googleOauthClient)     { version { strictly("1.34.1"); because("our Google API Client version requires 1.34.1") }}
@@ -89,9 +89,9 @@ dependencies {
         api(libs.hamcrest)              { version { strictly("1.3"); because("2.x changes the API") }}
         api(libs.hikariCP)              { version { strictly("4.0.2") }}
         api(libs.httpcore)              { version { strictly("4.4.14") }}
-        api(libs.inject) { version { strictly("1") } }
-        api(libs.ivy) { version { strictly("2.5.1") } }
-        api(libs.jacksonAnnotations) { version { strictly(jacksonVersion) } }
+        api(libs.inject)                { version { strictly("1") }}
+        api(libs.ivy)                   { version { strictly("2.5.1") }}
+        api(libs.jacksonAnnotations)    { version { strictly(jacksonVersion) }}
         api(libs.jacksonCore)           { version { strictly(jacksonVersion) }}
         api(libs.jacksonDatabind)       { version { strictly(jacksonVersion) }}
         api(libs.jacksonKotlin)         { version { strictly(jacksonVersion) }}
