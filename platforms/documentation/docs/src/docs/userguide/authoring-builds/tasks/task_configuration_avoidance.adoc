@@ -17,8 +17,10 @@
 
 As of Gradle 5.1, we recommend that the configuration avoidance APIs be used whenever tasks are created.
 
+image::writing-tasks-4.png[]
+
 [[sec:how_does_it_work]]
-== Task configuration API
+== Task configuration avoidance API
 The configuration avoidance API avoids configuring tasks if they will not be used for a build, which can significantly impact total configuration time.
 
 For example, when running a `compile` task, other unrelated tasks (such as `clean`, `test`, `javadocs`), will not be executed.

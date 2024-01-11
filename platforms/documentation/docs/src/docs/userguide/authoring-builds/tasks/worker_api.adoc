@@ -16,6 +16,9 @@
 = Developing Parallel Tasks
 
 Gradle provides an API that can split tasks into sections that can be executed in parallel.
+
+image::writing-tasks-5.png[]
+
 This allows Gradle to fully utilize the resources available and complete builds faster.
 
 == The Worker API

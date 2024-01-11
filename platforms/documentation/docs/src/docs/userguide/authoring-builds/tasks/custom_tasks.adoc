@@ -23,6 +23,8 @@ This type of task is good for implementing one-off tasks in your build script.
 
 The other type of task is the *enhanced task*, where the behavior is built into the task, and the task provides some properties that you can use to configure the behavior.
 
+image::writing-tasks-2.png[]
+
 Most Gradle plugins use enhanced tasks.
 
 With enhanced tasks, there's no need to implement task behavior as done in simple tasks. Instead, you can declare the task and configure it using its properties. Enhanced tasks let you reuse a piece of behavior in many different places, possibly across different builds.
