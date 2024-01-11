@@ -32,5 +32,8 @@ public interface ArtifactTypeRegistry extends Factory<ArtifactTypeContainer> {
 
     void visitArtifactTypes(Consumer<? super ImmutableAttributes> action);
 
+    /**
+     * Default attributes added to all artifact variants during artifact selection.
+     */
     AttributeContainer getDefaultArtifactAttributes();
 }

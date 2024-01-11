@@ -22,7 +22,7 @@ import org.gradle.api.attributes.AttributeContainer;
 public interface DependencyHandlerInternal extends DependencyHandler {
 
     /**
-     * Default attributes added to all artifacts.
+     * Default attributes added to all artifact variants during artifact selection.
      */
     AttributeContainer getDefaultArtifactAttributes();
 }
