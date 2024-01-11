@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -25,22 +26,25 @@ import org.gradle.api.specs.Spec;
 public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactSet {
     private final VisitedGraphResults graphResults;
     private final VisitedArtifactsResults artifactsResults;
-    ArtifactVariantSelector artifactVariantSelector;
+    private final ArtifactVariantSelector artifactVariantSelector;
+    private final ResolutionStrategy.SortOrder sortOrder;
 
     public BuildDependenciesOnlyVisitedArtifactSet(
         VisitedGraphResults graphResults,
         VisitedArtifactsResults artifactsResults,
-        ArtifactVariantSelector artifactVariantSelector
+        ArtifactVariantSelector artifactVariantSelector,
+        ResolutionStrategy.SortOrder sortOrder
     ) {
         this.graphResults = graphResults;
         this.artifactsResults = artifactsResults;
         this.artifactVariantSelector = artifactVariantSelector;
+        this.sortOrder = sortOrder;
     }
 
     @Override
     public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, ArtifactSelectionSpec spec) {
-        ResolvedArtifactSet selectedArtifacts = artifactsResults.select(artifactVariantSelector, spec).getArtifacts();
-        return new BuildDependenciesOnlySelectedArtifactSet(graphResults, selectedArtifacts);
+        SelectedArtifactResults selected = artifactsResults.select(artifactVariantSelector, spec, sortOrder, false);
+        return new BuildDependenciesOnlySelectedArtifactSet(graphResults, selected.getArtifacts());
     }
 
     private static class BuildDependenciesOnlySelectedArtifactSet implements SelectedArtifactSet {

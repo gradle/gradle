@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.ResolutionStrategy
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.ResolvedModuleVersion
@@ -117,7 +118,7 @@ class DefaultLenientConfigurationTest extends Specification {
 
     private DefaultLenientConfiguration newConfiguration() {
         VisitedGraphResults visitedGraphResults = new DefaultVisitedGraphResults(Stub(MinimalResolutionResult), [] as Set, null)
-        new DefaultLenientConfiguration(Stub(ResolutionHost), ImmutableAttributes.EMPTY, visitedGraphResults, artifactsResults, fileDependencyResults, resultsLoader, buildOperationExecutor, dependencyVerificationOverride, new TestWorkerLeaseService(), Mock(ArtifactVariantSelector))
+        new DefaultLenientConfiguration(Stub(ResolutionHost), ImmutableAttributes.EMPTY, visitedGraphResults, artifactsResults, fileDependencyResults, resultsLoader, buildOperationExecutor, dependencyVerificationOverride, new TestWorkerLeaseService(), Mock(ArtifactVariantSelector), ResolutionStrategy.SortOrder.CONSUMER_FIRS)
     }
 
     def generateDependenciesWithChildren(Map treeStructure) {

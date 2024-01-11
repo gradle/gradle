@@ -22,83 +22,43 @@ import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
-
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.EMPTY;
 
 public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
-    private static final Function<ResolvedArtifactSet, ResolvedArtifactSet> DO_NOTHING = resolvedArtifactSet -> resolvedArtifactSet;
-    private static final Function<ResolvedArtifactSet, ResolvedArtifactSet> ALLOW_UNAVAILABLE = resolvedArtifactSet -> {
-        if (resolvedArtifactSet instanceof UnavailableResolvedArtifactSet) {
-            return ResolvedArtifactSet.EMPTY;
-        } else {
-            return resolvedArtifactSet;
-        }
-    };
-
-    private final ResolutionStrategy.SortOrder sortOrder;
     // Index of the artifact set == the id of the artifact set
     private final List<ArtifactSet> artifactsById;
 
-    public DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder sortOrder, List<ArtifactSet> artifactsById) {
-        this.sortOrder = sortOrder;
+    public DefaultVisitedArtifactResults(List<ArtifactSet> artifactsById) {
         this.artifactsById = artifactsById;
     }
 
-    private SelectedArtifactResults select(ArtifactVariantSelector variantSelector, Function<ResolvedArtifactSet, ResolvedArtifactSet> artifactSetHandler, ArtifactSelectionSpec spec) {
-        if (artifactsById.isEmpty()) {
-            return NoArtifactResults.INSTANCE;
-        }
-
+    @Override
+    public SelectedArtifactResults select(ArtifactVariantSelector variantSelector, ArtifactSelectionSpec spec, ResolutionStrategy.SortOrder sortOrder, boolean lenient) {
         List<ResolvedArtifactSet> resolvedArtifactSets = new ArrayList<>(artifactsById.size());
         for (ArtifactSet artifactSet : artifactsById) {
             ResolvedArtifactSet resolvedArtifacts = artifactSet.select(variantSelector, spec);
-            resolvedArtifactSets.add(artifactSetHandler.apply(resolvedArtifacts));
+            if (!lenient || !(resolvedArtifacts instanceof UnavailableResolvedArtifactSet)) {
+                resolvedArtifactSets.add(resolvedArtifacts);
+            } else {
+                resolvedArtifactSets.add(ResolvedArtifactSet.EMPTY);
+            }
         }
 
-        if (sortOrder == ResolutionStrategy.SortOrder.DEPENDENCY_FIRST) {
-            resolvedArtifactSets = Lists.reverse(resolvedArtifactSets);
-        }
-
-        ResolvedArtifactSet composite = CompositeResolvedArtifactSet.of(resolvedArtifactSets);
-        return new DefaultSelectedArtifactResults(sortOrder, composite, resolvedArtifactSets);
-    }
-
-    @Override
-    public SelectedArtifactResults select(ArtifactVariantSelector variantSelector, ArtifactSelectionSpec spec) {
-        return select(variantSelector, DO_NOTHING, spec);
-    }
-
-    @Override
-    public SelectedArtifactResults selectLenient(ArtifactVariantSelector variantSelector, ArtifactSelectionSpec spec) {
-        return select(variantSelector, ALLOW_UNAVAILABLE, spec);
-    }
-
-    private static class NoArtifactResults implements SelectedArtifactResults {
-
-        private static final NoArtifactResults INSTANCE = new NoArtifactResults();
-
-        @Override
-        public ResolvedArtifactSet getArtifacts() {
-            return EMPTY;
-        }
-
-        @Override
-        public ResolvedArtifactSet getArtifactsWithId(int id) {
-            return EMPTY;
-        }
+        return new DefaultSelectedArtifactResults(resolvedArtifactSets, sortOrder);
     }
 
     private static class DefaultSelectedArtifactResults implements SelectedArtifactResults {
-        private final ResolvedArtifactSet allArtifacts;
-        private final ResolutionStrategy.SortOrder sortOrder;
-        // Index of the artifact set == the id of the artifact set, but reversed when sort order is dependency first
-        private final List<ResolvedArtifactSet> resolvedArtifactsById;
 
-        DefaultSelectedArtifactResults(ResolutionStrategy.SortOrder sortOrder, ResolvedArtifactSet allArtifacts, List<ResolvedArtifactSet> resolvedArtifactsById) {
-            this.sortOrder = sortOrder;
-            this.allArtifacts = allArtifacts;
+        private final List<ResolvedArtifactSet> resolvedArtifactsById;
+        private final ResolvedArtifactSet allArtifacts;
+
+        DefaultSelectedArtifactResults(List<ResolvedArtifactSet> resolvedArtifactsById, ResolutionStrategy.SortOrder sortOrder) {
             this.resolvedArtifactsById = resolvedArtifactsById;
+
+            if (sortOrder == ResolutionStrategy.SortOrder.DEPENDENCY_FIRST) {
+                this.allArtifacts = CompositeResolvedArtifactSet.of(Lists.reverse(resolvedArtifactsById));
+            } else {
+                this.allArtifacts = CompositeResolvedArtifactSet.of(resolvedArtifactsById);
+            }
         }
 
         @Override
@@ -106,12 +66,8 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
             return allArtifacts;
         }
 
-        @Override
-        public ResolvedArtifactSet getArtifactsWithId(int id) {
-            if (sortOrder == ResolutionStrategy.SortOrder.DEPENDENCY_FIRST) {
-                return resolvedArtifactsById.get(resolvedArtifactsById.size() - id - 1);
-            }
-            return resolvedArtifactsById.get(id);
+        public ArtifactsById getArtifactsById() {
+            return resolvedArtifactsById::get;
         }
     }
 }

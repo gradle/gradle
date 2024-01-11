@@ -33,15 +33,15 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         artifacts1.select(selector, _) >> variant1Artifacts
         artifacts2.select(selector, _) >> variant2Artifacts
 
-        def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, [artifacts1, artifacts2])
-        def selected = results.select(selector, Mock(ArtifactSelectionSpec))
+        def results = new DefaultVisitedArtifactResults([artifacts1, artifacts2])
+        def selected = results.select(selector, Mock(ArtifactSelectionSpec), ResolutionStrategy.SortOrder.CONSUMER_FIRST, false)
 
         expect:
         selected.getArtifacts() instanceof CompositeResolvedArtifactSet
         selected.getArtifacts().sets == [variant1Artifacts, variant2Artifacts]
 
-        selected.getArtifactsWithId(0) == variant1Artifacts
-        selected.getArtifactsWithId(1) == variant2Artifacts
+        selected.getArtifactsById().get(0) == variant1Artifacts
+        selected.getArtifactsById().get(1) == variant2Artifacts
     }
 
     def "strict selection includes all failed artifacts"() {
@@ -56,15 +56,15 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         artifacts1.select(selector, _) >> variant1Artifacts
         artifacts2.select(selector, _) >> variant2Artifacts
 
-        def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, [artifacts1, artifacts2])
-        def selected = results.select(selector, Mock(ArtifactSelectionSpec))
+        def results = new DefaultVisitedArtifactResults([artifacts1, artifacts2])
+        def selected = results.select(selector, Mock(ArtifactSelectionSpec), ResolutionStrategy.SortOrder.CONSUMER_FIRST, false)
 
         expect:
         selected.getArtifacts() instanceof CompositeResolvedArtifactSet
         selected.getArtifacts().sets == [variant1Artifacts, variant2Artifacts]
 
-        selected.getArtifactsWithId(0) == variant1Artifacts
-        selected.getArtifactsWithId(1) == variant2Artifacts
+        selected.getArtifactsById().get(0) == variant1Artifacts
+        selected.getArtifactsById().get(1) == variant2Artifacts
     }
 
     def "lenient selection includes selected variant of each node"() {
@@ -79,15 +79,15 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         artifacts1.select(selector, _) >> variant1Artifacts
         artifacts2.select(selector, _) >> variant2Artifacts
 
-        def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, [artifacts1, artifacts2])
-        def selected = results.selectLenient(selector, Mock(ArtifactSelectionSpec))
+        def results = new DefaultVisitedArtifactResults([artifacts1, artifacts2])
+        def selected = results.select(selector, Mock(ArtifactSelectionSpec), ResolutionStrategy.SortOrder.CONSUMER_FIRST, true)
 
         expect:
         selected.getArtifacts() instanceof CompositeResolvedArtifactSet
         selected.getArtifacts().sets == [variant1Artifacts, variant2Artifacts]
 
-        selected.getArtifactsWithId(0) == variant1Artifacts
-        selected.getArtifactsWithId(1) == variant2Artifacts
+        selected.getArtifactsById().get(0) == variant1Artifacts
+        selected.getArtifactsById().get(1) == variant2Artifacts
     }
 
     def "lenient selection does not include unavailable selected variant"() {
@@ -102,8 +102,8 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         artifacts1.select(selector, _) >> variant1Artifacts
         artifacts2.select(selector, _) >> variant2Artifacts
 
-        def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, [artifacts1, artifacts2])
-        def selected = results.selectLenient(selector, Mock(ArtifactSelectionSpec))
+        def results = new DefaultVisitedArtifactResults([artifacts1, artifacts2])
+        def selected = results.select(selector, Mock(ArtifactSelectionSpec), ResolutionStrategy.SortOrder.CONSUMER_FIRST, true)
 
         expect:
         selected.getArtifacts() == variant2Artifacts
@@ -121,14 +121,14 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         artifacts1.select(selector, _) >> variant1Artifacts
         artifacts2.select(selector, _) >> variant2Artifacts
 
-        def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, [artifacts1, artifacts2])
-        def selected = results.selectLenient(selector, Mock(ArtifactSelectionSpec))
+        def results = new DefaultVisitedArtifactResults([artifacts1, artifacts2])
+        def selected = results.select(selector, Mock(ArtifactSelectionSpec), ResolutionStrategy.SortOrder.CONSUMER_FIRST, true)
 
         expect:
         selected.getArtifacts() instanceof CompositeResolvedArtifactSet
         selected.getArtifacts().sets == [variant1Artifacts, variant2Artifacts]
 
-        selected.getArtifactsWithId(0) == variant1Artifacts
-        selected.getArtifactsWithId(1) == variant2Artifacts
+        selected.getArtifactsById().get(0) == variant1Artifacts
+        selected.getArtifactsById().get(1) == variant2Artifacts
     }
 }

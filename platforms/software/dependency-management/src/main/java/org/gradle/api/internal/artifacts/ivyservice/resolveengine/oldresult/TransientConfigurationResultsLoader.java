@@ -18,19 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 
-public class TransientConfigurationResultsLoader {
-    private final TransientConfigurationResultsBuilder transientConfigurationResultsBuilder;
-    private final ResolvedGraphResults graphResults;
-
-    public TransientConfigurationResultsLoader(TransientConfigurationResultsBuilder transientConfigurationResultsBuilder, ResolvedGraphResults graphResults) {
-        this.transientConfigurationResultsBuilder = transientConfigurationResultsBuilder;
-        this.graphResults = graphResults;
-    }
-
+public interface TransientConfigurationResultsLoader {
     /**
      * Creates the result given the selected artifacts.
      */
-    public TransientConfigurationResults create(SelectedArtifactResults artifactResults) {
-        return transientConfigurationResultsBuilder.load(graphResults, artifactResults);
-    }
+    TransientConfigurationResults create(SelectedArtifactResults.ArtifactsById artifactResults);
 }

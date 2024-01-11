@@ -110,11 +110,15 @@ public class TransientConfigurationResultsBuilder {
         });
     }
 
-    public TransientConfigurationResults load(final ResolvedGraphResults graphResults, final SelectedArtifactResults artifactResults) {
+    public TransientConfigurationResultsLoader getLoader(ResolvedGraphResults graphResults) {
+        return legacyArtifactResults -> load(graphResults, legacyArtifactResults);
+    }
+
+    private TransientConfigurationResults load(final ResolvedGraphResults graphResults, SelectedArtifactResults.ArtifactsById artifactsById) {
         synchronized (lock) {
             return cache.load(() -> {
                 try {
-                    return binaryData.read(decoder -> deserialize(decoder, graphResults, artifactResults, buildOperationProcessor));
+                    return binaryData.read(decoder -> deserialize(decoder, graphResults, artifactsById, buildOperationProcessor));
                 } finally {
                     try {
                         binaryData.close();
@@ -126,7 +130,7 @@ public class TransientConfigurationResultsBuilder {
         }
     }
 
-    private TransientConfigurationResults deserialize(Decoder decoder, ResolvedGraphResults graphResults, SelectedArtifactResults artifactResults, BuildOperationExecutor buildOperationProcessor) {
+    private TransientConfigurationResults deserialize(Decoder decoder, ResolvedGraphResults graphResults, SelectedArtifactResults.ArtifactsById artifactResults, BuildOperationExecutor buildOperationProcessor) {
         Timer clock = Time.startTimer();
         Map<Long, DefaultResolvedDependency> allDependencies = new HashMap<>();
         Map<Dependency, DependencyGraphNodeResult> firstLevelDependencies = new LinkedHashMap<>();
@@ -174,7 +178,7 @@ public class TransientConfigurationResultsBuilder {
                             throw new IllegalStateException(String.format("Unexpected child dependency id %s. Seen ids: %s", childId, allDependencies.keySet()));
                         }
                         parent.addChild(child);
-                        artifacts = artifactResults.getArtifactsWithId(decoder.readSmallInt());
+                        artifacts = artifactResults.get(decoder.readSmallInt());
                         child.addParentSpecificArtifacts(parent, artifacts);
                         break;
                     case NODE_ARTIFACTS:
@@ -183,7 +187,7 @@ public class TransientConfigurationResultsBuilder {
                         if (node == null) {
                             throw new IllegalStateException(String.format("Unexpected node id %s. Seen ids: %s", node, allDependencies.keySet()));
                         }
-                        artifacts = artifactResults.getArtifactsWithId(decoder.readSmallInt());
+                        artifacts = artifactResults.get(decoder.readSmallInt());
                         node.addModuleArtifacts(artifacts);
                         break;
                     default:

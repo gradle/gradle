@@ -23,7 +23,11 @@ public interface SelectedArtifactResults {
     ResolvedArtifactSet getArtifacts();
 
     /**
-     * Returns the set of artifacts with the given id.
+     * Returns the set of artifacts mapped by their id.
      */
-    ResolvedArtifactSet getArtifactsWithId(int id);
+    ArtifactsById getArtifactsById();
+
+    interface ArtifactsById {
+        ResolvedArtifactSet get(int id);
+    }
 }
