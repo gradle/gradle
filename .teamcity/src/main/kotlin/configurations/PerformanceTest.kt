@@ -26,8 +26,8 @@ import common.killGradleProcessesStep
 import common.performanceTestCommandLine
 import common.removeSubstDirOnWindows
 import common.substDirOnWindows
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
+import jetbrains.buildServer.configs.kotlin.BuildSteps
+import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 import model.CIBuildModel
 import model.PerformanceTestBuildSpec
 import model.PerformanceTestType

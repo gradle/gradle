@@ -1,7 +1,7 @@
 package configurations
 
 import common.functionalTestExtraParameters
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
+import jetbrains.buildServer.configs.kotlin.BuildSteps
 import model.CIBuildModel
 import model.Stage
 import model.StageName

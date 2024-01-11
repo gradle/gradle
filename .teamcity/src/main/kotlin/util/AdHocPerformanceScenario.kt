@@ -12,9 +12,9 @@ import common.killGradleProcessesStep
 import common.performanceTestCommandLine
 import common.removeSubstDirOnWindows
 import common.substDirOnWindows
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
-import jetbrains.buildServer.configs.kotlin.v2019_2.ParametrizedWithType
+import jetbrains.buildServer.configs.kotlin.BuildType
+import jetbrains.buildServer.configs.kotlin.ParameterDisplay
+import jetbrains.buildServer.configs.kotlin.ParametrizedWithType
 
 abstract class AdHocPerformanceScenario(os: Os, arch: Arch = Arch.AMD64) : BuildType({
     val id = "Util_Performance_AdHocPerformanceScenario${os.asName()}${arch.asName()}"
