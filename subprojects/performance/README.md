@@ -31,7 +31,11 @@ There is a task defined in [`build-logic/performance/src/main/groovy/performance
 There is a `performance:report` task that generates a static HTML report from the contents of the database in `~/.gradle-performance-test-data`. This report allows the results over
 time to be visualized.
 
-The report for the most recent test suite run against master is [here](https://builds.gradle.org/repository/download/Gradle_Check_PerformanceTestCoordinator/.lastFinished/report-performance-performance-tests.zip%21/report/index.html?branch=master)
+The report for the most recent test suite run against master can be found at:
+
+- [Linux Performance Test](https://builds.gradle.org/repository/download/Gradle_Master_Check_PerformanceTestTestLinux_Trigger/.lastFinished/performance-test-results.zip!/report/index.html)
+- [macOS Performance Test](https://builds.gradle.org/repository/download/Gradle_Master_Check_PerformanceTest7_Trigger/.lastFinished/performance-test-results.zip!/report/index.html)
+- [Windows Performance Test](https://builds.gradle.org/repository/download/Gradle_Master_Check_PerformanceTest6_Trigger/.lastFinished/performance-test-results.zip!/report/index.html)
 
 ### Tracking down performance regressions
 
