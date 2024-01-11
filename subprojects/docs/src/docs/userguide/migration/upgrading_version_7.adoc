@@ -132,6 +132,15 @@ Jackson has been updated from 2.14.1 to https://github.com/FasterXML/jackson/wik
 
 Ivy has been updated from 2.3.0 to https://ant.apache.org/ivy/history/2.5.2/release-notes.html[2.5.2].
 
+==== Upgrade to Maven 3.9.6
+
+Maven has been updated from 3.6.3 to https://maven.apache.org/docs/3.9.6/release-notes.html[3.9.6].
+
+==== Upgrade to Plexus Cipher 2.0
+
+Plexus Cipher and related utils were upgraded from 1.x to https://github.com/codehaus-plexus/plexus-cipher/releases/tag/plexus-cipher-2.0[2.0].
+
+
 ==== Configuring a non-existing executable now fails
 
 When configuring an executable explicitly for link:{groovyDslPath}/org.gradle.api.tasks.compile.ForkOptions.html#org.gradle.api.tasks.compile.ForkOptions:executable[`JavaCompile`] or link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:executable[`Test`] tasks, Gradle will now emit an error if this executable does not exist.
