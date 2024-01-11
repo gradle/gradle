@@ -35,6 +35,120 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.7]]
+== Upgrading from 8.6 and earlier
+
+=== Deprecations
+
+[[deprecate_resolved_configuration]]
+==== Deprecated `ResolvedConfiguration` and `LenientConfiguration`
+
+The `ResolvedConfiguration` API and its associated types have been deprecated and are scheduled for removal in Gradle 10.
+
+The following types are now deprecated:
+
+- `LenientConfiguration`
+- `ResolvedArtifact`
+- `ResolvedConfiguration`
+- `ResolvedDependency`
+- `ResolvedModuleVersion`
+- `UnresolvedDependency`
+
+Gradle currently exposes several different APIs for initiating dependency resolution and analyzing the results.
+`ResolvedConfiguration` was one of the first APIs to fulfil this purpose, but since been superseded.
+One of the primary shortcomings of this API is that it is neither variant-aware nor Configuration Cache compatible.
+The `ResolutionResult` and `ArtifactCollection` APIs fulfill both of these requirements.
+
+See the below code snippet for common replacements for `ResolvedConfiguration` APIs.
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+}
+
+val runtimeClasspath = configurations["runtimeClasspath"]
+
+// Instead of
+runtimeClasspath.resolvedConfiguration.hasError()
+// Use
+runtimeClasspath.incoming.artifactView { lenient = true }.failures.isEmpty()
+
+// Instead of
+runtimeClasspath.resolvedConfiguration.rethrowFailure()
+// Use
+runtimeClasspath.files // Throws the same failure as `rethrowFailure`, if present
+
+// Instead of
+runtimeClasspath.resolvedConfiguration.files
+// Use
+runtimeClasspath.files
+
+// Instead of
+runtimeClasspath.resolvedConfiguration.files { true } // Some predicate
+// Use
+runtimeClasspath.incoming.artifactView {
+    componentFilter { true } // Some predicate
+}.files.files
+
+// Instead of
+runtimeClasspath.resolvedConfiguration.resolvedArtifacts
+// Use (not a direct replacement)
+runtimeClasspath.incoming.artifacts.artifacts
+
+// Instead of
+runtimeClasspath.resolvedConfiguration.lenientConfiguration.allModuleDependencies
+// Use
+runtimeClasspath.incoming.artifactView { lenient = true }.artifacts.artifacts
+
+// Instead of
+runtimeClasspath.resolvedConfiguration.lenientConfiguration.unresolvedModuleDependencies
+// Use
+runtimeClasspath.incoming.artifactView { lenient = true }.failures
+
+// Instead of
+runtimeClasspath.resolvedConfiguration.lenientConfiguration.files
+// Use
+runtimeClasspath.incoming.artifactView { lenient = true }.files.files
+
+// Instead of
+runtimeClasspath.resolvedConfiguration.lenientConfiguration.files { true } // Some predicate
+// Use
+runtimeClasspath.incoming.artifactView {
+    lenient = true
+    componentFilter { true } // Some predicate
+}.files.files
+
+// Instead of
+runtimeClasspath.resolvedConfiguration.lenientConfiguration.artifacts
+// Use
+runtimeClasspath.incoming.artifactView { lenient = true }.artifacts.artifacts
+
+// Instead of
+runtimeClasspath.resolvedConfiguration.lenientConfiguration.artifacts { true } // Some predicate
+// Use
+runtimeClasspath.incoming.artifactView {
+    lenient = true
+    componentFilter { true } // Some predicate
+}.artifacts.artifacts
+
+// The following APIs have no direct replacement:
+runtimeClasspath.resolvedConfiguration.firstLevelModuleDependencies
+runtimeClasspath.resolvedConfiguration.firstLevelModuleDependencies { true } // Some predicate
+runtimeClasspath.resolvedConfiguration.lenientConfiguration.firstLevelModuleDependencies
+runtimeClasspath.resolvedConfiguration.lenientConfiguration.firstLevelModuleDependencies { true } // Some predicate
+// However, a `ResolutionResult` and `ArtifactCollection` can provide similar information.
+runtimeClasspath.incoming.resolutionResult.root.dependencies
+runtimeClasspath.incoming.artifacts.artifacts
+runtimeClasspath.incoming.artifactView { lenient = true }.artifacts.artifacts
+----
+======
+=====
+
 [[changes_8.6]]
 == Upgrading from 8.5 and earlier
 
