@@ -49,7 +49,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
     AbstractFileCollection containing(File... files) {
         def resolver = Stub(FileResolver)
         _ * resolver.resolve(_) >> { File f -> f }
-        return new DefaultConfigurableFileCollection("<display>", resolver, taskDependencyFactory, patternSetFactory, host).from(files)
+            return new DefaultConfigurableFileCollection("<display>", resolver, taskDependencyFactory, patternSetFactory, host).from(files)
     }
 
     def "resolves specified files using file resolver"() {
@@ -345,7 +345,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         when:
         collection.convention("src1")
-        collection.from = collection + src
+        collection.convention(collection + src)
         def files = collection.files
 
         then:
@@ -383,6 +383,23 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         files as List == [file1, file2]
     }
 
+    def "can append contents to collection defined via convention using plus operator"() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def src = containing(file2)
+
+        when:
+        collection.convention("src1")
+        collection.convention(collection + src)
+        def files = collection.files
+
+        then:
+        _ * fileResolver.resolve("src1") >> file1
+        files as List == [file1, file2]
+        !collection.explicit
+    }
+
     def "can prepend contents to empty collection using plus operator"() {
         given:
         def file1 = new File("1")
@@ -411,6 +428,55 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         then:
         _ * fileResolver.resolve("src2") >> file2
         files as List == [file1, file2]
+    }
+
+    def "can prepend contents to collection defined via convention using plus operator"() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def src = containing(file1)
+
+        when:
+        collection.convention("src2")
+        collection.convention(src + collection)
+        def files = collection.files
+
+        then:
+        _ * fileResolver.resolve("src2") >> file2
+        files as List == [file1, file2]
+        !collection.explicit
+    }
+
+    def "can alternate multiple updates to collection convention and explicit values"() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def file3 = new File("3")
+        def file4 = new File("4")
+        def file5 = new File("5")
+        def src1 = containing(file1)
+        def src2 = containing(file2)
+        def src3 = containing(file3)
+        def src4 = containing(file4)
+        def src5 = containing(file5)
+
+        when:
+        collection.convention(src1)
+        collection.from = src2
+        collection.convention(src3 + collection)
+        collection.from = collection + src4
+
+        then:
+        collection.files as List == [file2, file4]
+        collection.explicit
+
+        when:
+        collection.unset()
+        collection.convention(collection + src5)
+
+        then:
+        collection.files as List == [file3, file2, file5]
+        !collection.explicit
     }
 
     def "elements provider tracks changes to content"() {
