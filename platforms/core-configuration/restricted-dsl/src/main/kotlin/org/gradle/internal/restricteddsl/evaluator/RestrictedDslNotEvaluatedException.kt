@@ -87,7 +87,7 @@ class RestrictedDslNotEvaluatedException(
 
     private
     fun formatParsingError(parsingError: ParsingError) =
-        "${locationPrefixString(parsingError.sourceData)}: parsing error: ${parsingError.message}"
+        "${locationPrefixString(parsingError.erroneousSource)}: parsing error: ${parsingError.message}"
 
 
     private
