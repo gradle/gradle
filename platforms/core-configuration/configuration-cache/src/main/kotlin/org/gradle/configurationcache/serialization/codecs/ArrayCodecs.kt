@@ -22,13 +22,7 @@ import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readArray
-import org.gradle.configurationcache.serialization.readDouble
-import org.gradle.configurationcache.serialization.readFloat
-import org.gradle.configurationcache.serialization.readShort
 import org.gradle.configurationcache.serialization.writeArray
-import org.gradle.configurationcache.serialization.writeDouble
-import org.gradle.configurationcache.serialization.writeFloat
-import org.gradle.configurationcache.serialization.writeShort
 
 
 object NonPrimitiveArrayCodec : Codec<Array<*>> {

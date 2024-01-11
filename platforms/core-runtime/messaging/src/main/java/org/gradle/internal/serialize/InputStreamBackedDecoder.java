@@ -16,7 +16,11 @@
 
 package org.gradle.internal.serialize;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.DataInputStream;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class InputStreamBackedDecoder extends AbstractDecoder implements Decoder, Closeable {
     private final DataInputStream inputStream;
@@ -50,6 +54,21 @@ public class InputStreamBackedDecoder extends AbstractDecoder implements Decoder
     }
 
     @Override
+    public short readShort() throws EOFException, IOException {
+        return inputStream.readShort();
+    }
+
+    @Override
+    public float readFloat() throws EOFException, IOException {
+        return inputStream.readFloat();
+    }
+
+    @Override
+    public double readDouble() throws EOFException, IOException {
+        return inputStream.readDouble();
+    }
+
+    @Override
     public boolean readBoolean() throws EOFException, IOException {
         return inputStream.readBoolean();
     }
@@ -61,7 +80,7 @@ public class InputStreamBackedDecoder extends AbstractDecoder implements Decoder
 
     @Override
     public byte readByte() throws IOException {
-        return (byte)(inputStream.readByte() & 0xff);
+        return (byte) (inputStream.readByte() & 0xff);
     }
 
     @Override
