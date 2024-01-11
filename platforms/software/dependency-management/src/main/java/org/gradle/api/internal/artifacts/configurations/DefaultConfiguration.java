@@ -859,7 +859,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         } finally {
             // Reset this configuration to an unresolved state
             getResolutionStrategy().setKeepStateRequiredForGraphResolution(false);
-            currentResolveState.set(ResolveState.NOT_RESOLVED);
+            currentResolveState.set(Optional.empty());
         }
     }
 
