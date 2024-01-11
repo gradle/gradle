@@ -57,8 +57,8 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
     }
 
     @Override
-    public List<ResolutionAwareRepository> getRepositories() {
-        return delegate.getRepositories();
+    public List<ResolutionAwareRepository> getAllRepositories() {
+        return delegate.getAllRepositories();
     }
 
     @Override

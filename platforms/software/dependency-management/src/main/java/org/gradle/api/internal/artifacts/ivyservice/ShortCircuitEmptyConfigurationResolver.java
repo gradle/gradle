@@ -67,8 +67,8 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
     }
 
     @Override
-    public List<ResolutionAwareRepository> getRepositories() {
-        return delegate.getRepositories();
+    public List<ResolutionAwareRepository> getAllRepositories() {
+        return delegate.getAllRepositories();
     }
 
     @Override

@@ -753,7 +753,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                         projectPathString,
                         isVisible(),
                         isTransitive(),
-                        resolver.getRepositories()
+                        resolver.getAllRepositories()
                     ));
             }
         });
@@ -1038,22 +1038,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 parsedExcludeRules.add(parser.parseNotation(excludeRule));
             }
         }
-    }
-
-    /**
-     * Adds exclude rules to this configuration.
-     * <p>
-     * Usage: This method should only be called on resolvable or declarable configurations and should throw an exception if
-     * called on a configuration that does not permit this usage.
-     *
-     * @param excludeRules the exclude rules to add.
-     */
-    public void setExcludeRules(Set<ExcludeRule> excludeRules) {
-        warnOnInvalidInternalAPIUsage("setExcludeRules(Set)", ProperMethodUsage.DECLARABLE_AGAINST, ProperMethodUsage.RESOLVABLE);
-        validateMutation(MutationType.DEPENDENCIES);
-        parsedExcludeRules = null;
-        this.excludeRules.clear();
-        this.excludeRules.addAll(excludeRules);
     }
 
     @Override
