@@ -192,9 +192,10 @@ class ConfigurationCacheStandardStreamsIntegrationTest extends AbstractConfigura
                 dependsOn(compileJava)
                 executable = ${Jvm.canonicalName}.current().javaExecutable
                 args '-cp', project.layout.files(compileJava).asPath, 'Main' ${formatArgument args["extraArg"], { ", '$it'" }}
-                ${formatArgument args["standardInput"], { "standardInput = $it" }}
-                ${formatArgument args["standardOutput"], { "standardOutput = $it" }}
-                ${formatArgument args["errorOutput"], { "errorOutput = $it" }}
+
+                ${formatStreamArgument args, "standardInput"}
+                ${formatStreamArgument args, "standardOutput"}
+                ${formatStreamArgument args, "errorOutput"}
             }
         """
     }
@@ -206,15 +207,32 @@ class ConfigurationCacheStandardStreamsIntegrationTest extends AbstractConfigura
             tasks.register("run", JavaExec) {
                 classpath = project.layout.files(compileJava)
                 mainClass = "Main"
-                ${formatArgument args["standardInput"], { "standardInput = $it" }}
-                ${formatArgument args["standardOutput"], { "standardOutput = $it" }}
-                ${formatArgument args["errorOutput"], { "errorOutput = $it" }}
                 ${formatArgument args["extraArg"], { "args '$it'" }}
+
+                ${formatStreamArgument args, "standardInput"}
+                ${formatStreamArgument args, "standardOutput"}
+                ${formatStreamArgument args, "errorOutput"}
             }
         """
     }
 
     private def formatArgument(@Nullable argument, Closure<String> resultBuilder) {
         argument?.with(resultBuilder) ?: ""
+    }
+
+    private def formatStreamArgument(Map<String, String> args, String streamName) {
+        def streamValue = args[streamName]
+        def result = ""
+        if (streamValue) {
+            result += "$streamName = $streamValue"
+        }
+        if (streamValue && !streamValue.startsWith("System.")) {
+            result += """
+                doLast {
+                    ${streamName}.close()
+                }
+            """
+        }
+        return result
     }
 }
