@@ -112,7 +112,9 @@ public class Hashing {
      * Hash the given {@code hashable} instance with the default hash function.
      */
     public static HashCode hashHashable(Hashable hashable) {
-        return newHasher().put(hashable).hash();
+        Hasher hasher = newHasher();
+        hasher.put(hashable);
+        return hasher.hash();
     }
 
     /**
@@ -368,78 +370,67 @@ public class Hashing {
         }
 
         @Override
-        public Hasher putByte(byte value) {
+        public void putByte(byte value) {
             hasher.putInt(1);
             hasher.putByte(value);
-            return this;
         }
 
         @Override
-        public Hasher putBytes(byte[] bytes) {
+        public void putBytes(byte[] bytes) {
             hasher.putInt(bytes.length);
             hasher.putBytes(bytes);
-            return this;
         }
 
         @Override
-        public Hasher putBytes(byte[] bytes, int off, int len) {
+        public void putBytes(byte[] bytes, int off, int len) {
             hasher.putInt(len);
             hasher.putBytes(bytes, off, len);
-            return this;
         }
 
         @Override
-        public Hasher putHash(HashCode hashCode) {
+        public void putHash(HashCode hashCode) {
             hasher.putInt(hashCode.length());
             hasher.putHash(hashCode);
-            return this;
         }
 
         @Override
-        public Hasher putInt(int value) {
+        public void putInt(int value) {
             hasher.putInt(4);
             hasher.putInt(value);
-            return this;
         }
 
         @Override
-        public Hasher putLong(long value) {
+        public void putLong(long value) {
             hasher.putInt(8);
             hasher.putLong(value);
-            return this;
         }
 
         @Override
-        public Hasher putDouble(double value) {
+        public void putDouble(double value) {
             hasher.putInt(8);
             hasher.putDouble(value);
-            return this;
         }
 
         @Override
-        public Hasher putBoolean(boolean value) {
+        public void putBoolean(boolean value) {
             hasher.putInt(1);
             hasher.putBoolean(value);
-            return this;
         }
 
         @Override
-        public Hasher putString(CharSequence value) {
+        public void putString(CharSequence value) {
             hasher.putInt(value.length());
             hasher.putString(value);
-            return this;
         }
 
         @Override
-        public Hasher put(Hashable hashable) {
+        public void put(Hashable hashable) {
             hashable.appendToHasher(this);
-            return this;
         }
 
         @Override
-        public Hasher putNull() {
+        public void putNull() {
             this.putInt(0);
-            return this;
         }
 
         @Override
