@@ -252,8 +252,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     }
 
     private boolean shouldUseProblemsApi() {
-        return getProject()
-            .getProviders()
+        return getProviderFactory()
             .gradleProperty("org.gradle.compile.use-problems-api")
             .map(Boolean::parseBoolean)
             .getOrElse(false);
