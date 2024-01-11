@@ -16,6 +16,8 @@
 
 package org.gradle.api.provider;
 
+import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
 
 import javax.annotation.Nullable;
@@ -29,7 +31,7 @@ import javax.annotation.Nullable;
  * @since 4.5
  */
 @SupportsKotlinAssignmentOverloading
-public interface HasMultipleValues<T> extends HasConfigurableValue {
+public interface HasMultipleValues<T> extends HasConfigurableValue, CollectionPropertyConfigurer<T>, ConfigurableValue<CollectionPropertyConfigurer<T>>, SupportsConvention {
     /**
      * Sets the value of the property to the elements of the given iterable, and replaces any existing value. This property will query the elements of the iterable each time the value of this property is queried.
      *
@@ -78,49 +80,38 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
     HasMultipleValues<T> empty();
 
     /**
-     * Adds an element to the property value.
-     *
-     * @param element The element
+     * {@inheritDoc}
      */
+    @Override
     void add(T element);
 
     /**
-     * Adds an element to the property value.
-     *
-     * <p>The given provider will be queried when the value of this property is queried.
-     * This property will have no value when the given provider has no value.
-     *
-     * @param provider The provider of an element
+     * {@inheritDoc}
      */
+    @Override
     void add(Provider<? extends T> provider);
 
     /**
-     * Adds zero or more elements to the property value.
+     * {@inheritDoc}
      *
-     * @param elements The elements to add
      * @since 4.10
      */
     @SuppressWarnings("unchecked")
+    @Override
     void addAll(T... elements);
 
     /**
-     * Adds zero or more elements to the property value.
+     * {@inheritDoc}
      *
-     * <p>The given iterable will be queried when the value of this property is queried.
-     *
-     * @param elements The elements to add.
      * @since 4.10
      */
+    @Override
     void addAll(Iterable<? extends T> elements);
 
     /**
-     * Adds zero or more elements to the property value.
-     *
-     * <p>The given provider will be queried when the value of this property is queried.
-     * This property will have no value when the given provider has no value.
-     *
-     * @param provider Provider of elements
+     * {@inheritDoc}
      */
+    @Override
     void addAll(Provider<? extends Iterable<? extends T>> provider);
 
     /**
@@ -152,4 +143,34 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
      */
     @Override
     void finalizeValue();
+
+    /**
+     * Performs incremental updates to the actual value of this property.
+     *
+     * {@inheritDoc}
+     *
+     * For wholesale updates to the explicit value, use
+     * or {@link #set(Iterable)}, {@link #set(Provider)} .
+     *
+     * For wholesale updates to the convention value, use
+     * {@link #convention(Iterable)} or {@link #convention(Provider)}.
+     */
+    @Override
+    HasMultipleValues<T> withActualValue(Action<CollectionPropertyConfigurer<T>> action);
+
+    /**
+     * Performs incremental updates to the actual value of this property.
+     *
+     * This is a Groovy closure-compatible version of
+     * {@link HasMultipleValues#withActualValue(Action)},
+     * having this property's actual value (and not the property itself)
+     * as the target object.
+     *
+     * @param action a Groovy closure to incrementally configure this object's actual value
+     * via the {@link CollectionPropertyConfigurer} protocol.
+     *
+     * @see #withActualValue(Action)
+     * @since 8.7
+     */
+    HasMultipleValues<T> withActualValue(Closure<Void> action);
 }

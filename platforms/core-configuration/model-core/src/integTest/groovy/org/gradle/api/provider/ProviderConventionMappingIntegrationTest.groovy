@@ -96,7 +96,7 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         failureHasCause("Cannot get the value of task ':mytask' property 'bar' of type $String.name as the provider associated with this property returned a value of type $DefaultProvider.name.")
     }
 
-    def "emits deprecation warning when convention mapping is used with MapProperty"() {
+    def "convention mapping can be used with MapProperty"() {
         buildFile << """
             abstract class MyTask extends DefaultTask {
                 @Internal abstract MapProperty<String, String> getFoo()
@@ -114,11 +114,10 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        runAndFail 'mytask'
-        expectDocumentedFailure()
+        succeeds 'mytask'
     }
 
-    def "emits deprecation warning when convention mapping is used with ListProperty"() {
+    def "convention mapping can be used with ListProperty"() {
         buildFile << """
             abstract class MyTask extends DefaultTask {
                 @Internal abstract ListProperty<String> getFoo()
@@ -136,8 +135,7 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        runAndFail 'mytask'
-        expectDocumentedFailure()
+        succeeds 'mytask'
     }
 
     def "convention mapping works with Property in a ConventionTask"() {

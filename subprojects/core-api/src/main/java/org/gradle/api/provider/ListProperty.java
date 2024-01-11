@@ -16,6 +16,8 @@
 
 package org.gradle.api.provider;
 
+import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 
@@ -64,6 +66,38 @@ public interface ListProperty<T> extends Provider<List<T>>, HasMultipleValues<T>
      */
     @Override
     ListProperty<T> convention(Provider<? extends Iterable<? extends T>> provider);
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>
+     * This is similar to calling {@link #value(Iterable)} with a <code>null</code> argument.
+     * </p>
+     */
+    @Override
+    ListProperty<T> unset();
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>
+     * This is similar to calling {@link #convention(Iterable)} with a <code>null</code> argument.
+     * </p>
+     */
+    @Override
+    ListProperty<T> unsetConvention();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    ListProperty<T> withActualValue(Action<CollectionPropertyConfigurer<T>> action);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    ListProperty<T> withActualValue(Closure<Void> action);
 
     /**
      * Applies an eager transformation to the current value of the property "in place", without explicitly obtaining it.

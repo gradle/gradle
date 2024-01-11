@@ -16,6 +16,8 @@
 
 package org.gradle.api.provider;
 
+import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
 import org.gradle.api.Transformer;
@@ -38,7 +40,7 @@ import java.util.Set;
  * @since 5.1
  */
 @SupportsKotlinAssignmentOverloading
-public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableValue {
+public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableValue, MapPropertyConfigurer<K, V>, ConfigurableValue<MapPropertyConfigurer<K, V>>, SupportsConvention {
 
     /**
      * Sets the value of this property to an empty map, and replaces any existing value.
@@ -113,42 +115,6 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
     MapProperty<K, V> value(Provider<? extends Map<? extends K, ? extends V>> provider);
 
     /**
-     * Adds a map entry to the property value.
-     *
-     * @param key the key
-     * @param value the value
-     */
-    void put(K key, V value);
-
-    /**
-     * Adds a map entry to the property value.
-     *
-     * <p>The given provider will be queried when the value of this property is queried.
-     * This property will have no value when the given provider has no value.
-     *
-     * @param key the key
-     * @param providerOfValue the provider of the value
-     */
-    void put(K key, Provider<? extends V> providerOfValue);
-
-    /**
-     * Adds all entries from another {@link Map} to the property value.
-     *
-     * @param entries a {@link Map} containing the entries to add
-     */
-    void putAll(Map<? extends K, ? extends V> entries);
-
-    /**
-     * Adds all entries from another {@link Map} to the property value.
-     *
-     * <p>The given provider will be queried when the value of this property is queried.
-     * This property will have no value when the given provider has no value.
-     *
-     * @param provider the provider of the entries
-     */
-    void putAll(Provider<? extends Map<? extends K, ? extends V>> provider);
-
-    /**
      * Returns a {@link Provider} that returns the set of keys for the map that is the property value.
      *
      * <p>The returned provider will track the value of this property and query its value when it is queried.</p>
@@ -164,6 +130,37 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
      * @return a {@link Provider} that provides the set of keys for the map
      */
     Provider<Set<K>> keySet();
+
+    /**
+     * Performs incremental updates to the actual value of this property.
+     *
+     * {@inheritDoc}
+     *
+     * For wholesale updates to the explicit value, use
+     * {@link #set(Map)} or {@link #set(Provider)}.
+     *
+     * For wholesale updates to the convention value, use
+     * {@link #convention(Map)} or {@link #convention(Provider)}.
+     */
+    @Override
+    MapProperty<K, V> withActualValue(Action<MapPropertyConfigurer<K, V>> action);
+
+    /**
+     * Performs incremental updates to the actual value of this property.
+     *
+     * This is a Groovy closure-compatible version of
+     * {@link MapProperty#withActualValue(Action)},
+     * having this property's actual value (and not the property itself)
+     * as the target object.
+     *
+     * @param action a Groovy closure to incrementally configure this object's actual value
+     * via the {@link MapPropertyConfigurer} protocol.
+     *
+     * @see #withActualValue(Action)
+     * @since 8.7
+     */
+    @Incubating
+    MapProperty<K, V> withActualValue(Closure<Void> action);
 
     /**
      * Specifies the value to use as the convention for this property. The convention is used when no value has been set for this property.
@@ -223,6 +220,28 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
      */
     @Incubating
     void update(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Map<? extends K, ? extends V>>, ? super Provider<Map<K, V>>> transform);
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>
+     * This is similar to calling {@link #value(Map)} with a <code>null</code> argument.
+     * </p>
+     */
+    @Incubating
+    @Override
+    MapProperty<K, V> unset();
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>
+     * This is similar to calling {@link #convention(Map)} with a <code>null</code> argument.
+     * </p>
+     */
+    @Incubating
+    @Override
+    MapProperty<K, V> unsetConvention();
 
     /**
      * Disallows further changes to the value of this property. Calls to methods that change the value of this property, such as {@link #set(Map)} or {@link #put(Object, Object)} will fail.

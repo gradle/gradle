@@ -337,6 +337,22 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         files.empty
     }
 
+    def "can append contents to convention-based collection using plus operator"() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def src = containing(file2)
+
+        when:
+        collection.convention("src1")
+        collection.from = collection + src
+        def files = collection.files
+
+        then:
+        1 * fileResolver.resolve("src1") >> file1
+        files as List == [file1, file2]
+    }
+
     def "can append contents to empty collection using plus operator"() {
         given:
         def file1 = new File("1")
@@ -1838,7 +1854,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         }
         then:
         collection.from as List == ["src0", "src1", "src2", "src3"]
-        !collection.explicit
+        collection.explicit
     }
 
     def "can incrementally set explicit value"() {
@@ -1856,15 +1872,76 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
     def "can unset convention"() {
         given:
         collection.convention("src0")
-        collection.withActualValue {
-            from("src1")
-        }
+        assert !collection.explicit
+
+        expect:
+        collection.setFrom("src1")
+        assert collection.explicit
+
+        when:
+        collection.unset()
+
+        then:
+        assert !collection.explicit
+        collection.from as List == ["src0"]
 
         when:
         collection.unsetConvention()
 
         then:
         collection.from as List == []
+    }
+
+    def "can set convention as explicit value"() {
+        given:
+        collection.convention("src0")
+
+        expect:
+        !collection.explicit
+
+        when:
+        collection.setFrom("src1")
+
+        then:
+        collection.from as List == ["src1"]
+
+        when:
+        collection.setToConvention()
+
+        then:
+        assert collection.explicit
+        collection.from as List == ["src0"]
+    }
+
+
+    def "can set convention as explicit value if unset"() {
+        given:
+        collection.convention("src0")
+
+        when:
+        collection.setFrom("src1")
+
+        then:
+        collection.from as List == ["src1"]
+
+        when:
+        collection.setToConventionIfUnset()
+
+        then:
+        collection.from as List == ["src1"]
+
+        when:
+        collection.unset()
+
+        then:
+        assert !collection.explicit
+
+        when:
+        collection.setToConventionIfUnset()
+
+        then:
+        assert collection.explicit
+        collection.from as List == ["src0"]
     }
 
     def "conventions are ignored if a value is already explicitly set using #setFrom"() {
