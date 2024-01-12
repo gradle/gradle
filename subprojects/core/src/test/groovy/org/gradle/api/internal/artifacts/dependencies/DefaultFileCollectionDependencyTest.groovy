@@ -16,17 +16,16 @@
 package org.gradle.api.internal.artifacts.dependencies
 
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.SelfResolvingDependency
+import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.internal.artifacts.DependencyResolveContext
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.tasks.TaskDependency
 import spock.lang.Specification
 
-class DefaultSelfResolvingDependencyTest extends Specification {
+class DefaultFileCollectionDependencyTest extends Specification {
     private final FileCollectionInternal source = Mock()
     private final ComponentIdentifier targetComponent = Mock()
-    private final DefaultSelfResolvingDependency dependency = new DefaultSelfResolvingDependency(targetComponent, source)
+    private final DefaultFileCollectionDependency dependency = new DefaultFileCollectionDependency(targetComponent, source)
 
     def defaultValues() {
         expect:
@@ -36,7 +35,7 @@ class DefaultSelfResolvingDependencyTest extends Specification {
     }
 
     def resolvesToTheSourceFileCollection() {
-        final DependencyResolveContext resolveContext = Mock()
+        final org.gradle.api.internal.artifacts.CachingDependencyResolveContext resolveContext = Mock()
 
         when:
         dependency.resolve(resolveContext)
@@ -59,7 +58,7 @@ class DefaultSelfResolvingDependencyTest extends Specification {
 
     def createsCopy() {
         when:
-        DefaultSelfResolvingDependency copy = dependency.copy()
+        DefaultFileCollectionDependency copy = dependency.copy()
 
         then:
         copy.targetComponentId == targetComponent
@@ -70,8 +69,8 @@ class DefaultSelfResolvingDependencyTest extends Specification {
 
     def contentsAreEqualWhenFileSetsAreEqual() {
         given:
-        SelfResolvingDependency equalDependency = new DefaultSelfResolvingDependency(source)
-        SelfResolvingDependency differentSource = new DefaultSelfResolvingDependency(Mock(FileCollectionInternal))
+        FileCollectionDependency equalDependency = new DefaultFileCollectionDependency(source)
+        FileCollectionDependency differentSource = new DefaultFileCollectionDependency(Mock(FileCollectionInternal))
         Dependency differentType = Mock(Dependency.class)
 
         expect:
