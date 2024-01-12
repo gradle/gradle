@@ -16,22 +16,19 @@
 
 package org.gradle.integtests.tooling.r86
 
-import groovy.json.JsonSlurper
+
 import org.gradle.integtests.tooling.fixture.ProblemEventListener
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion;
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.events.problems.Severity
 
-@ToolingApiVersion(">=8.6")
-@TargetGradleVersion(">=8.6")
+@ToolingApiVersion(">=8.7")
+@TargetGradleVersion(">=8.7")
 class DeprecationLoggingProblemEventsCrossVersionTest extends ToolingApiSpecification {
 
     def "problems are emitted when a deprecation is logged"() {
-        singleProjectBuildInRootFolder("root") {
-            buildFile << """import org.gradle.util.TextUtil
-                TextUtil.containsWhitespace("Hello World")
-            """
-        }
+        buildFile "org.gradle.internal.deprecation.DeprecationLogger.deprecate('Plugin script').willBeRemovedInGradle9().undocumented().nagUser()"
 
         when:
         def listener = new ProblemEventListener()
@@ -46,11 +43,11 @@ class DeprecationLoggingProblemEventsCrossVersionTest extends ToolingApiSpecific
         }
 
         then:
-        def problems = listener.problems.collect {new JsonSlurper().parseText(it.json) }
+        def problems = listener.problems
         problems.size() == 1
         def problem = problems[0]
-        problem['label'] == 'The org.gradle.util.TextUtil type has been deprecated.'
-        problem['severity'] == 'WARNING'
+        problem.label.label == 'Plugin script has been deprecated.'
+        problem.severity.severity == Severity.WARNING.severity
     }
 
 }

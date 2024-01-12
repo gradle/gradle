@@ -15,25 +15,24 @@
  */
 package org.gradle.internal.deprecation;
 
+import org.gradle.api.Action;
 import org.gradle.api.logging.configuration.WarningMode;
-import org.gradle.api.problems.ProblemBuilder;
-import org.gradle.api.problems.ProblemBuilderDefiningLabel;
-import org.gradle.api.problems.ProblemBuilderSpec;
-import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.ReportableProblem;
-import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.DefaultProblemCategory;
+import org.gradle.api.problems.internal.InternalProblemReporter;
+import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 import org.gradle.internal.Factory;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.util.internal.TextUtil;
-import org.gradle.problems.buildtree.ProblemStream;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+
+import static org.gradle.api.problems.Severity.WARNING;
+import static org.gradle.api.problems.internal.DefaultProblemCategory.DEPRECATION;
+import static org.gradle.util.internal.TextUtil.screamingSnakeToKebabCase;
 
 
 /**
@@ -77,7 +76,7 @@ public class DeprecationLogger {
     private static final LoggingDeprecatedFeatureHandler DEPRECATED_FEATURE_HANDLER = new LoggingDeprecatedFeatureHandler();
 
     public synchronized static void init(WarningMode warningMode, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter, Problems problemsService, ProblemStream problemStream) {
-        DEPRECATED_FEATURE_HANDLER.init(warningMode, buildOperationProgressEventEmitter, problemsService, problemStream);
+        DEPRECATED_FEATURE_HANDLER.init(warningMode, buildOperationProgressEventEmitter, problemStream);
     }
 
     public synchronized static void reset() {
@@ -356,27 +355,28 @@ public class DeprecationLogger {
     private synchronized static void nagUserWith(DeprecatedFeatureUsage usage) {
         DEPRECATED_FEATURE_HANDLER.featureUsed(usage);
 
-        ReportableProblem problem = transformIntoProblem(usage);
-        problem.report();
+        reportAsProblem(usage);
     }
 
-    private static ReportableProblem transformIntoProblem(final DeprecatedFeatureUsage usage) {
-        Problems problems = ProblemsProgressEventEmitterHolder.get();
-        ProblemBuilderSpec problemBuilderSpec = new ProblemBuilderSpec() {
+    private static void reportAsProblem(final DeprecatedFeatureUsage usage) {
+        InternalProblemReporter reporter = ProblemsProgressEventEmitterHolder.get().getInternalReporter();
+        reporter.report(reporter.create(new Action<InternalProblemSpec>() {
             @Override
-            public ProblemBuilder apply(ProblemBuilderDefiningLabel builder) {
-                return builder
+            public void execute(InternalProblemSpec builder) {
+                InternalProblemSpec internalProblemSpec = builder
                     .label(usage.getSummary())
                     // FIXME: Not sure
                     .documentedAt(usage.getDocumentationUrl())
                     .stackLocation()
-                    .category(DefaultProblemCategory.DEPRECATION, TextUtil.screamingSnakeToKebabCase(usage.getType().name()))
-                    .solution(usage.getAdvice())
-                    .solution(usage.getContextualAdvice())
-                    .severity(Severity.WARNING);
+                    .category(DEPRECATION, screamingSnakeToKebabCase(usage.getType().name()))
+                    .severity(WARNING);
+                if(usage.getAdvice() != null) {
+                    internalProblemSpec.solution(usage.getAdvice());
+                }
+                if(usage.getContextualAdvice() != null) {
+                    internalProblemSpec.solution(usage.getContextualAdvice());
+                }
             }
-        };
-
-        return problems.create(problemBuilderSpec);
+        }));
     }
 }

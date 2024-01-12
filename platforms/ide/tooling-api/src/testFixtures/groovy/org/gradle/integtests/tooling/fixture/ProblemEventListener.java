@@ -18,14 +18,14 @@ package org.gradle.integtests.tooling.fixture;
 
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.ProgressListener;
-import org.gradle.tooling.events.problems.ProblemDescriptor;
+import org.gradle.tooling.events.problems.BaseProblemDescriptor;
 import org.gradle.tooling.events.problems.ProblemEvent;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ProblemEventListener implements ProgressListener {
-    List<ProblemDescriptor> allProblems = new ArrayList<>();
+    List<BaseProblemDescriptor> allProblems = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
     @Override
@@ -37,7 +37,7 @@ public class ProblemEventListener implements ProgressListener {
         }
     }
 
-    public List<ProblemDescriptor> getProblems() {
+    public List<BaseProblemDescriptor> getProblems() {
         return allProblems;
     }
 }
