@@ -1845,7 +1845,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public String getPath() {
-            return identityPath.getPath();
+            return domainObjectContext.projectPath(name).getPath();
         }
 
         @Override

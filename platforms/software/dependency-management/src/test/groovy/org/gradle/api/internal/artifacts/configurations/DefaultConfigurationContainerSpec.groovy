@@ -102,6 +102,7 @@ class DefaultConfigurationContainerSpec extends Specification {
 
     def "adds and gets"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")
+        1 * domainObjectContext.projectPath("compile") >> Path.path(":compile")
         1 * domainObjectContext.model >> RootScriptDomainObjectContext.INSTANCE
 
         when:
@@ -109,7 +110,7 @@ class DefaultConfigurationContainerSpec extends Specification {
 
         then:
         compile.name == "compile"
-        compile.incoming.path == ":build:compile"
+        compile.incoming.path == ":compile"
         compile instanceof DefaultConfiguration
 
         and:
@@ -132,6 +133,7 @@ class DefaultConfigurationContainerSpec extends Specification {
 
     def "configures and finds"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")
+        1 * domainObjectContext.projectPath("compile") >> Path.path(":compile")
         1 * domainObjectContext.model >> RootScriptDomainObjectContext.INSTANCE
 
         when:
@@ -142,12 +144,12 @@ class DefaultConfigurationContainerSpec extends Specification {
         then:
         configurationContainer.getByName("compile") == compile
         compile.description == "I compile!"
-        compile.incoming.path == ":build:compile"
+        compile.incoming.path == ":compile"
     }
 
     def "creates detached"() {
         given:
-        1 * domainObjectContext.identityPath("detachedConfiguration1") >> Path.path(":build:detachedConfiguration1")
+        1 * domainObjectContext.projectPath("detachedConfiguration1") >> Path.path(":detachedConfiguration1")
         1 * domainObjectContext.model >> RootScriptDomainObjectContext.INSTANCE
 
         def dependency1 = new DefaultExternalModuleDependency("group", "name", "version")
@@ -162,6 +164,6 @@ class DefaultConfigurationContainerSpec extends Specification {
         detached.getHierarchy() == [detached] as Set
         [dependency1, dependency2].each { detached.getDependencies().contains(it) }
         detached.getDependencies().size() == 2
-        detached.incoming.path == ":build:detachedConfiguration1"
+        detached.incoming.path == ":detachedConfiguration1"
     }
 }
