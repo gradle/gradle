@@ -26,57 +26,57 @@ public interface Hasher {
     /**
      * Feed a bunch of bytes into the hasher.
      */
-    Hasher putBytes(byte[] bytes);
+    void putBytes(byte[] bytes);
 
     /**
      * Feed a given number of bytes into the hasher from the given offset.
      */
-    Hasher putBytes(byte[] bytes, int off, int len);
+    void putBytes(byte[] bytes, int off, int len);
 
     /**
      * Feed a single byte into the hasher.
      */
-    Hasher putByte(byte value);
+    void putByte(byte value);
 
     /**
      * Feed an integer byte into the hasher.
      */
-    Hasher putInt(int value);
+    void putInt(int value);
 
     /**
      * Feed a long value byte into the hasher.
      */
-    Hasher putLong(long value);
+    void putLong(long value);
 
     /**
      * Feed a double value into the hasher.
      */
-    Hasher putDouble(double value);
+    void putDouble(double value);
 
     /**
      * Feed a boolean value into the hasher.
      */
-    Hasher putBoolean(boolean value);
+    void putBoolean(boolean value);
 
     /**
      * Feed a string into the hasher.
      */
-    Hasher putString(CharSequence value);
+    void putString(CharSequence value);
 
     /**
      * Feed a hash code into the hasher.
      */
-    Hasher putHash(HashCode hashCode);
+    void putHash(HashCode hashCode);
 
     /**
      * Puts a hashable value into the hasher.
      */
-    Hasher put(Hashable hashable);
+    void put(Hashable hashable);
 
     /**
      * Feed a {@code null} value into the hasher.
      */
-    Hasher putNull();
+    void putNull();
 
     /**
      * Returns the combined hash.

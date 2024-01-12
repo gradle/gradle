@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.type;
+package org.gradle.api.internal.artifacts.dsl;
 
-import org.gradle.api.artifacts.type.ArtifactTypeContainer;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.Factory;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
-import java.io.File;
-import java.util.function.Consumer;
-
-public interface ArtifactTypeRegistry extends Factory<ArtifactTypeContainer> {
-    ImmutableAttributes mapAttributesFor(ImmutableAttributes attributes, Iterable<? extends ComponentArtifactMetadata> artifacts);
-
-    ImmutableAttributes mapAttributesFor(File file);
-
-    void visitArtifactTypes(Consumer<? super ImmutableAttributes> action);
+public interface DependencyHandlerInternal extends DependencyHandler {
 
     /**
      * Default attributes added to all artifact variants during artifact selection.
