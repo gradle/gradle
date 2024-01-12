@@ -18,8 +18,6 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
@@ -32,7 +30,6 @@ import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Cast;
-import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -94,13 +91,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
     public HasMultipleValues<T> withActualValue(Action<CollectionPropertyConfigurer<T>> action) {
         setToConventionIfUnset();
         action.execute(getExplicitValue());
-        return this;
-    }
-
-    @Override
-    public HasMultipleValues<T> withActualValue(@DelegatesTo(CollectionPropertyConfigurer.class) Closure<Void> action) {
-        setToConventionIfUnset();
-        ConfigureUtil.configure(action, getExplicitValue());
         return this;
     }
 

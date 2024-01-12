@@ -16,7 +16,6 @@
 
 package org.gradle.api.provider;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
@@ -91,12 +90,6 @@ public interface SetProperty<T> extends Provider<Set<T>>, HasMultipleValues<T> {
      */
     @Override
     SetProperty<T> withActualValue(Action<CollectionPropertyConfigurer<T>> action);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    SetProperty<T> withActualValue(Closure<Void> action);
 
     /**
      * Applies an eager transformation to the current value of the property "in place", without explicitly obtaining it.
