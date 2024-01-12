@@ -25,6 +25,8 @@ import org.junit.Rule
 
 import java.util.concurrent.TimeUnit
 
+import static org.gradle.api.internal.artifacts.verification.DependencyVerificationFixture.getChecksum
+
 class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements TasksWithInputsAndOutputs {
     @Rule
     HttpServer server = new HttpServer()
@@ -711,6 +713,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
     def "invalidates cache when verification file changes"() {
         server.start()
         def v3 = remoteRepo.module("thing", "lib", "1.3").publish()
+        def checkSum = getChecksum(v3, "sha256")
         v3.allowAll()
 
         taskTypeLogsInputFileCollectionContent()
@@ -766,7 +769,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         configurationCache.assertStateLoaded()
 
         when:
-        verificationFile.replace('<sha256 value="9e44491880e9ca23ab209f9b2e31cf2a7d26cd33841aea9a490c1b8c9bbf27e5"', '<sha256 value="12345"')
+        verificationFile.replace("<sha256 value=\"$checkSum\"", '<sha256 value="12345"')
         configurationCacheFails("resolve1")
 
         then:
@@ -775,7 +778,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         configurationCache.assertStateStoreFailed()
 
         when:
-        verificationFile.replace('<sha256 value="12345"', '<sha256 value="9e44491880e9ca23ab209f9b2e31cf2a7d26cd33841aea9a490c1b8c9bbf27e5"')
+        verificationFile.replace('<sha256 value="12345"', "<sha256 value=\"$checkSum\"")
         configurationCacheRun("resolve1")
 
         then:
