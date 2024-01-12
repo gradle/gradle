@@ -28,12 +28,75 @@ class GrammarToLightTree(
         val importNodes = importNodes(tree)
         val scriptNodes = scriptNodes(tree)
 
-        return FailureCollectorContext().run {
-            val packages = packageHeader(tree, packageNode)
-            val imports = importNodes.map { import(tree, it) }
-            val statements = scriptNodes.map { statement(tree, it) }
-            Syntactic(failures + packages + imports + statements)
+        val packages = packageHeader(tree, packageNode)
+        val imports = importNodes.map { import(tree, it) }
+        val statements = scriptNodes.map { statement(tree, it) }
+            .flatMap { surfaceInternalFailures(it) }
+        return Syntactic(packages + imports + statements)
+    }
+
+    private
+    fun surfaceInternalFailures(elementOrFailure: ElementResult<DataStatement>): List<ElementResult<*>> {
+        fun MutableList<ElementResult<*>>.recurse(current: LanguageTreeElement): MutableList<ElementResult<*>> {
+            when (current) {
+                is Block -> {
+                    current.content.forEach {
+                        when (it) {
+                            is ErroneousStatement -> add(it.failingResult)
+                            else -> recurse(it)
+                        }
+                    }
+                }
+
+                is Assignment -> {
+                    recurse(current.lhs)
+                    recurse(current.rhs)
+                }
+
+                is FunctionCall -> {
+                    current.receiver?.let {
+                        recurse(it)
+                    }
+                    if (current.args.isNotEmpty()) {
+                        current.args.forEach {
+                            recurse(it)
+                        }
+                    }
+                }
+
+                is PropertyAccess -> {
+                    current.receiver?.let { receiver ->
+                        recurse(receiver)
+                    }
+                }
+
+                is LocalValue -> recurse(current.rhs)
+
+                is FunctionArgument.Lambda -> recurse(current.block)
+                is FunctionArgument.Named -> recurse(current.expr)
+                is FunctionArgument.Positional -> recurse(current.expr)
+
+                is Import ->  doNothing()
+
+                is Literal.BooleanLiteral -> doNothing()
+                is Literal.IntLiteral -> doNothing()
+                is Literal.LongLiteral -> doNothing()
+                is Literal.StringLiteral -> doNothing()
+                is Null -> doNothing()
+                is This -> doNothing()
+
+                else -> error("Unhandled languege tree element: ${current.javaClass.simpleName}")
+            }
+
+            return this
         }
+
+        val results = mutableListOf<ElementResult<*>>()
+        if (elementOrFailure is Element) {
+            results.recurse(elementOrFailure.element)
+        }
+        results.add(elementOrFailure)
+        return results
     }
 
     private

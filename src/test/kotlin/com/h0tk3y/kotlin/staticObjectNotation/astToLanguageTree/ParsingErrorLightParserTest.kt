@@ -187,6 +187,16 @@ class ParsingErrorLightParserTest: AbstractRejectedLanguageFeaturesTest() {
         """.trimIndent()
 
         val expected = """
+            UnsupportedConstruct(
+                languageFeature = UninitializedProperty, 
+                potentialElementSource = indexes: 36..41, line/column: 4/5..4/10, file: test, 
+                erroneousSource = indexes: 36..41, line/column: 4/5..4/10, file: test
+            )
+            ParsingError(
+                message = Unexpected tokens (use ';' to separate expressions on the same line), 
+                potentialElementSource = indexes: 42..43, line/column: 4/11..4/12, file: test, 
+                erroneousSource = indexes: 42..43, line/column: 4/11..4/12, file: test
+            )
             FunctionCall [indexes: 0..55, line/column: 1/1..6/2, file: test] (
                 name = block
                 args = [
