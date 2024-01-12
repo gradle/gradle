@@ -21,7 +21,7 @@ Such tasks are either provided by you or built into Gradle.
 [[sec:task_outcomes]]
 == Task outcomes
 
-When Gradle executes a task, it labels the task with outcomes via the <<third_party_integration.adoc#embedding,Tooling API>>.
+When Gradle executes a task, it labels the task with outcomes via the console.
 
 image::author-tasks-1.png[]
 
@@ -175,8 +175,6 @@ include::sample[dir="snippets/tasks/taskConstructorArgs-onTaskContainer/groovy",
 The values passed as constructor arguments must be non-null.
 If you attempt to pass a `null` value, Gradle will throw a `NullPointerException` indicating which runtime value is `null`.
 
-TIP: The <<task_configuration_avoidance.adoc#task_configuration_avoidance,Task Configuration Avoidance>> APIs are recommended as they improve configuration time.
-
 [[sec:adding_dependencies_to_tasks]]
 == Adding dependencies
 
@@ -329,7 +327,7 @@ $ ./gradlew tasks
 Tasks runnable from root project 'lab'
 ------------------------------------------------------------
 
-Help tasks
+Other tasks
 ----------
 copy - Copies the resource directory to the target directory.
 ----
