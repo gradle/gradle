@@ -25,12 +25,11 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
+import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.plugin.management.internal.DefaultPluginRequest
 import org.gradle.plugin.management.internal.PluginRequestInternal
 import org.gradle.plugin.use.internal.DefaultPluginId
 import spock.lang.Specification
-
-import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.SOURCE_NAME
 
 class ArtifactRepositoriesPluginResolverTest extends Specification {
     def repository = Mock(ArtifactRepositoryInternal) {
@@ -61,35 +60,39 @@ class ArtifactRepositoriesPluginResolverTest extends Specification {
         getConfigurationContainer() >> configurations
         getAttributesSchema() >> Stub(AttributesSchemaInternal)
     }
-    def result = Mock(PluginResolutionResult)
 
     def resolver = new ArtifactRepositoriesPluginResolver(resolution)
 
     PluginRequestInternal request(String id, String version = null) {
-        new DefaultPluginRequest(DefaultPluginId.of(id), version, true, 1, "source display name")
+        new DefaultPluginRequest(DefaultPluginId.of(id), true, PluginRequestInternal.Origin.OTHER, "source display name", 1, version, null, null, null)
     }
 
     def "fail pluginRequests without versions"() {
+        given:
+        def request = request("plugin")
+        def result = resolver.resolve(request)
+
         when:
-        resolver.resolve(request("plugin"), result)
+        result.assertSuccess(request)
 
         then:
-        1 * result.notFound(SOURCE_NAME, "plugin dependency must include a version number for this source")
+        def e = thrown(LocationAwareException)
+        e.cause.message.contains("plugin dependency must include a version number for this source")
     }
 
     def "succeed pluginRequests with SNAPSHOT versions"() {
         when:
-        resolver.resolve(request("plugin", "1.1-SNAPSHOT"), result)
+        def result = resolver.resolve(request("plugin", "1.1-SNAPSHOT"))
 
         then:
-        1 * result.found(SOURCE_NAME, _)
+        result.found
     }
 
     def "accept pluginRequests with dynamic versions"() {
         when:
-        resolver.resolve(request("plugin", "latest.revision"), result)
+        def result = resolver.resolve(request("plugin", "latest.revision"))
 
         then:
-        1 * result.found(SOURCE_NAME, _)
+        result.found
     }
 }

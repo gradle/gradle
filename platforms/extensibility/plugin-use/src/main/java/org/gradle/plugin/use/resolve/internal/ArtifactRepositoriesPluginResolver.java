@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
-import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
 
@@ -51,18 +50,17 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
     }
 
     @Override
-    public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
+    public PluginResolutionResult resolve(PluginRequestInternal pluginRequest) {
         ModuleDependency markerDependency = getMarkerDependency(pluginRequest);
         String markerVersion = markerDependency.getVersion();
         if (isNullOrEmpty(markerVersion)) {
-            result.notFound(SOURCE_NAME, "plugin dependency must include a version number for this source");
-            return;
+            return PluginResolutionResult.notFound(SOURCE_NAME, "plugin dependency must include a version number for this source");
         }
 
         if (exists(markerDependency)) {
-            result.found("Plugin Repositories", new ExternalPluginResolution(pluginRequest.getId(), markerDependency));
+            return PluginResolutionResult.found(new ExternalPluginResolution(pluginRequest.getId(), markerDependency));
         } else {
-            handleNotFound(result, "could not resolve plugin artifact '" + getNotation(markerDependency) + "'");
+            return handleNotFound("could not resolve plugin artifact '" + getNotation(markerDependency) + "'");
         }
     }
 
@@ -97,7 +95,7 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
         }
     }
 
-    private void handleNotFound(PluginResolutionResult result, String message) {
+    private PluginResolutionResult handleNotFound(String message) {
         StringBuilder detail = new StringBuilder("Searched in the following repositories:\n");
         for (Iterator<ArtifactRepository> it = resolutionServices.getResolveRepositoryHandler().iterator(); it.hasNext();) {
             detail.append("  ").append(((ArtifactRepositoryInternal) it.next()).getDisplayName());
@@ -105,7 +103,7 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
                 detail.append("\n");
             }
         }
-        result.notFound(SOURCE_NAME, message, detail.toString());
+        return PluginResolutionResult.notFound(SOURCE_NAME, message, detail.toString());
     }
 
     /*

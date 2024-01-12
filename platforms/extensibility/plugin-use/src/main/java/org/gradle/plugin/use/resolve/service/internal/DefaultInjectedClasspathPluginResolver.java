@@ -24,7 +24,6 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
@@ -57,13 +56,13 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
     }
 
     @Override
-    public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
+    public PluginResolutionResult resolve(PluginRequestInternal pluginRequest) {
         PluginImplementation<?> plugin = pluginRegistry.lookup(pluginRequest.getId());
         if (plugin == null) {
             String classpathStr = injectedClasspath.getAsFiles().stream().map(File::getAbsolutePath).collect(Collectors.joining(File.pathSeparator));
-            result.notFound(getDescription(), "classpath: " + classpathStr);
+            return PluginResolutionResult.notFound(getDescription(), "classpath: " + classpathStr);
         } else {
-            result.found(getDescription(), new InjectedClasspathPluginResolution(plugin));
+            return PluginResolutionResult.found(new InjectedClasspathPluginResolution(plugin));
         }
     }
 

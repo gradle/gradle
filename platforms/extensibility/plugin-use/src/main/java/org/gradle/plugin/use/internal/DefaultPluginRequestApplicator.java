@@ -36,20 +36,17 @@ import org.gradle.plugin.management.internal.PluginResolutionStrategyInternal;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.resolve.internal.AlreadyOnClasspathIgnoringPluginResolver;
 import org.gradle.plugin.use.resolve.internal.AlreadyOnClasspathPluginResolver;
+import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositories;
 import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositoriesProvider;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
-import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionVisitor;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
-import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Formatter;
-import java.util.LinkedList;
 import java.util.List;
 
 public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
@@ -126,19 +123,19 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         List<ApplyAction> pluginApplyActions
     ) {
         boolean resolvedPlugin = false;
-        CollectingPluginRequestResolutionVisitor dependencyVisitor = new CollectingPluginRequestResolutionVisitor();
+        CollectingPluginRequestResolutionVisitor pluginDependencies = new CollectingPluginRequestResolutionVisitor();
         for (PluginRequestInternal originalRequest : requests) {
             PluginRequestInternal request = pluginResolutionStrategy.applyTo(originalRequest);
 
-            Result result = resolveToFoundResult(pluginResolver, request);
-            if (result.alreadyApplied) {
+            PluginResolutionResult result = resolveToFoundResult(pluginResolver, request);
+            if (result.isAlreadyApplied()) {
                 continue;
             }
 
             resolvedPlugin = true;
-            PluginResolution resolved = result.found;
+            PluginResolution resolved = result.getFound();
 
-            resolved.accept(dependencyVisitor);
+            resolved.accept(pluginDependencies);
 
             if (request.isApply()) {
                 pluginApplyActions.add(new ApplyAction(request, resolved));
@@ -156,9 +153,9 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
         // Only re-define the classpath if we resolved a new plugin, otherwise we break caching.
         if (resolvedPlugin) {
-            dependencyVisitor.getAdditionalDependencies().forEach(scriptHandler::addScriptClassPathDependency);
+            pluginDependencies.getAdditionalDependencies().forEach(scriptHandler::addScriptClassPathDependency);
             classLoaderScope.export(scriptHandler.getInstrumentedScriptClassPath());
-            dependencyVisitor.getAdditionalClassloaders().forEach(classLoaderScope::export);
+            pluginDependencies.getAdditionalClassloaders().forEach(classLoaderScope::export);
         }
     }
 
@@ -215,85 +212,18 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         return new InvalidPluginException(String.format("An exception occurred applying plugin request %s", request.getDisplayName()), e);
     }
 
-    private static Result resolveToFoundResult(PluginResolver effectivePluginResolver, PluginRequestInternal request) {
-        Result result = new Result();
+    private static PluginResolutionResult resolveToFoundResult(PluginResolver effectivePluginResolver, PluginRequestInternal request) {
+        PluginResolutionResult result;
         try {
-            effectivePluginResolver.resolve(request, result);
+            result = effectivePluginResolver.resolve(request);
         } catch (Exception e) {
             throw new LocationAwareException(
                 new GradleException(String.format("Error resolving plugin %s", request.getDisplayName()), e),
                 request.getScriptDisplayName(), request.getLineNumber());
         }
 
-        if (!result.isFound()) {
-            String message = buildNotFoundMessage(request, result);
-            Exception exception = new UnknownPluginException(message);
-            throw new LocationAwareException(exception, request.getScriptDisplayName(), request.getLineNumber());
-        }
-
+        result.assertSuccess(request);
         return result;
-    }
-
-    private static String buildNotFoundMessage(PluginRequestInternal pluginRequest, Result result) {
-        if (result.notFoundList.isEmpty()) {
-            // this shouldn't happen, resolvers should call notFound()
-            return String.format("Plugin %s was not found", pluginRequest.getDisplayName());
-        } else {
-            Formatter sb = new Formatter();
-            sb.format("Plugin %s was not found in any of the following sources:%n", pluginRequest.getDisplayName());
-
-            for (NotFound notFound : result.notFoundList) {
-                sb.format("%n- %s (%s)", notFound.source, notFound.message);
-                if (notFound.detail != null) {
-                    sb.format("%n%s", TextUtil.indent(notFound.detail, "  "));
-                }
-            }
-
-            return sb.toString();
-        }
-    }
-
-    private static class NotFound {
-        private final String source;
-        private final String message;
-        private final String detail;
-
-        private NotFound(String source, String message, @Nullable String detail) {
-            this.source = source;
-            this.message = message;
-            this.detail = detail;
-        }
-    }
-
-    private static class Result implements PluginResolutionResult {
-        private final List<NotFound> notFoundList = new LinkedList<>();
-        private PluginResolution found;
-        private boolean alreadyApplied;
-
-        @Override
-        public void notFound(String sourceDescription, String notFoundMessage) {
-            notFoundList.add(new NotFound(sourceDescription, notFoundMessage, null));
-        }
-
-        @Override
-        public void notFound(String sourceDescription, String notFoundMessage, String notFoundDetail) {
-            notFoundList.add(new NotFound(sourceDescription, notFoundMessage, notFoundDetail));
-        }
-
-        @Override
-        public void found(String sourceDescription, PluginResolution pluginResolution) {
-            found = pluginResolution;
-        }
-
-        @Override
-        public void alreadyApplied() {
-            alreadyApplied = true;
-        }
-
-        @Override
-        public boolean isFound() {
-            return alreadyApplied || found != null;
-        }
     }
 
     private static class CollectingPluginRequestResolutionVisitor implements PluginResolutionVisitor {
