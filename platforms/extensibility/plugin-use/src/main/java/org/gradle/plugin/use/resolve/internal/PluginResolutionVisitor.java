@@ -16,13 +16,20 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
-import org.gradle.api.internal.plugins.PluginImplementation;
-import org.gradle.plugin.use.PluginId;
+import org.gradle.api.artifacts.Dependency;
 
-public interface PluginResolveContext {
-    void addLegacy(PluginId pluginId, Object dependencyNotation);
+/**
+ * Visits resolved plugins.
+ */
+public interface PluginResolutionVisitor {
 
-    void add(PluginImplementation<?> plugin);
+    /**
+     * Visit a dependency that is required for the plugin.
+     */
+    void visitDependency(Dependency dependency);
 
-    void addFromDifferentLoader(PluginImplementation<?> plugin);
+    /**
+     * Visit a classloader that provides classes for the plugin.
+     */
+    void visitClassLoader(ClassLoader classLoader);
 }

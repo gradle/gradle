@@ -37,13 +37,13 @@ public class AlreadyOnClasspathIgnoringPluginResolver implements PluginResolver 
     }
 
     @Override
-    public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) {
+    public PluginResolutionResult resolve(PluginRequestInternal pluginRequest) {
         PluginCoordinates primaryCoordinates = PluginCoordinates.from(pluginRequest);
         PluginCoordinates alternativeCoordinates = pluginRequest.getAlternativeCoordinates().orElse(null);
         if (isNotPresentOnClasspath(primaryCoordinates) && isNotPresentOnClasspath(alternativeCoordinates)) {
-            delegate.resolve(pluginRequest, result);
+            return delegate.resolve(pluginRequest);
         } else {
-            result.alreadyApplied();
+            return PluginResolutionResult.alreadyApplied();
         }
     }
 
