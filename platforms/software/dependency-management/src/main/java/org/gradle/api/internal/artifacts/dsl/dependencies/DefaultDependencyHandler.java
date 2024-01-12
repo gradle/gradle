@@ -34,7 +34,6 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.ExternalModuleDependencyVariantSpec;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.TransformAction;
@@ -48,14 +47,15 @@ import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.dependencies.AbstractExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependencyVariant;
+import org.gradle.api.internal.artifacts.dsl.DependencyHandlerInternal;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -70,7 +70,7 @@ import java.util.Map;
 import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE;
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX;
 
-public abstract class DefaultDependencyHandler implements DependencyHandler, MethodMixIn {
+public abstract class DefaultDependencyHandler implements DependencyHandlerInternal, MethodMixIn {
     private final ConfigurationContainer configurationContainer;
     private final DependencyFactoryInternal dependencyFactory;
     private final ProjectFinder projectFinder;
@@ -80,7 +80,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     private final ArtifactResolutionQueryFactory resolutionQueryFactory;
     private final AttributesSchema attributesSchema;
     private final VariantTransformRegistry transforms;
-    private final Factory<ArtifactTypeContainer> artifactTypeContainer;
+    private final ArtifactTypeRegistry artifactTypeContainer;
     private final ObjectFactory objects;
     private final PlatformSupport platformSupport;
     private final DynamicAddDependencyMethods dynamicMethods;
@@ -94,7 +94,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
                                     ArtifactResolutionQueryFactory resolutionQueryFactory,
                                     AttributesSchema attributesSchema,
                                     VariantTransformRegistry transforms,
-                                    Factory<ArtifactTypeContainer> artifactTypeContainer,
+                                    ArtifactTypeRegistry artifactTypeContainer,
                                     ObjectFactory objects,
                                     PlatformSupport platformSupport) {
         this.configurationContainer = configurationContainer;
@@ -333,6 +333,11 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     @Override
     public void artifactTypes(Action<? super ArtifactTypeContainer> configureAction) {
         configureAction.execute(getArtifactTypes());
+    }
+
+    @Override
+    public AttributeContainer getDefaultArtifactAttributes() {
+        return artifactTypeContainer.getDefaultArtifactAttributes();
     }
 
     @Override
