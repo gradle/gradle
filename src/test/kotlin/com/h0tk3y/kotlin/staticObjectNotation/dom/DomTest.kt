@@ -22,11 +22,14 @@ import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ElementResult
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeBuilderWithTopLevelBlock
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.parseToLightTree
 import com.h0tk3y.kotlin.staticObjectNotation.dom.DeclarativeDocument
+import com.h0tk3y.kotlin.staticObjectNotation.dom.DocumentError
+import com.h0tk3y.kotlin.staticObjectNotation.dom.SyntaxError
+import com.h0tk3y.kotlin.staticObjectNotation.dom.UnsupportedKotlinFeature
+import com.h0tk3y.kotlin.staticObjectNotation.dom.UnsupportedSyntax
 import com.h0tk3y.kotlin.staticObjectNotation.dom.convertBlockToDocument
 import com.h0tk3y.kotlin.staticObjectNotation.language.Block
 import com.h0tk3y.kotlin.staticObjectNotation.language.SourceIdentifier
 import org.intellij.lang.annotations.Language
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -71,14 +74,15 @@ object DomTest {
                 a = b
                 b = f(a = "x")
                 b = f(a = "x") { test() }
-                // call(x = { }) -- todo
-                // multiLambda({ }, { }) -- todo
+                call(x = { }) // TODO: right now, it is reported as an unsupported language feature FunctionDeclaration, report it in a more precise way?
+                multiLambda({ }, { })
                 1
                 a.b()
                 a.x = 1
                 val x = 1
-                // a = this -- todo
-                // a = null -- todo
+                syntaxError = syntaxError!!!
+                a = this
+                a = null
                 factory(1)
             }
             """.trimIndent()
@@ -88,13 +92,19 @@ object DomTest {
             """
                 element(myFun)
                     property(a, literal(x))
-                    error(UnsupportedSyntax(cause=UnsupportedPropertyAccess))
-                    error(UnsupportedSyntax(cause=ValueFactoryArgumentFormat))
-                    error(UnsupportedSyntax(cause=ValueFactoryArgumentFormat))
-                    error(UnsupportedSyntax(cause=DanglingExpr))
-                    error(UnsupportedSyntax(cause=ElementWithExplicitReceiver))
-                    error(UnsupportedSyntax(cause=AssignmentWithExplicitReceiver))
-                    error(UnsupportedSyntax(cause=LocalVal))
+                    error(UnsupportedSyntax(UnsupportedPropertyAccess)
+                    error(UnsupportedSyntax(ValueFactoryArgumentFormat)
+                    error(UnsupportedSyntax(ValueFactoryArgumentFormat)
+                    error(UnsupportedKotlinFeature(FunctionDeclaration)
+                    error(UnsupportedKotlinFeature(FunctionDeclaration), UnsupportedKotlinFeature(FunctionDeclaration)
+                    error(UnsupportedSyntax(DanglingExpr)
+                    error(UnsupportedSyntax(ElementWithExplicitReceiver)
+                    error(UnsupportedSyntax(AssignmentWithExplicitReceiver)
+                    error(UnsupportedSyntax(LocalVal)
+                    error(SyntaxError(Parsing failure, unexpected tokenType in expression: POSTFIX_EXPRESSION)
+                    error(SyntaxError(Unexpected tokens (use ';' to separate expressions on the same line))
+                    error(UnsupportedSyntax(UnsupportedThisValue)
+                    error(UnsupportedSyntax(UnsupportedNullValue)
                     element(factory, literal(1))
 
             """.trimIndent(),
@@ -102,21 +112,9 @@ object DomTest {
         )
     }
 
-    @Test
-    @Ignore
-    fun `converts unsupported language features to errors`() {
-        // TODO
-    }
-
-    @Test
-    @Ignore
-    fun `converts syntax errors to errors in the document`() {
-        // TODO
-    }
-
     private fun parseWithTopLevelBlock(@Language("kts") code: String): List<ElementResult<*>> {
         val (tree, sourceCode, sourceOffset) = parseToLightTree(code)
-        return LanguageTreeBuilderWithTopLevelBlock(DefaultLanguageTreeBuilder()).build(tree, sourceCode, sourceOffset, SourceIdentifier("test")).results
+        return LanguageTreeBuilderWithTopLevelBlock(DefaultLanguageTreeBuilder(shouldSurfaceInternalErrors = false)).build(tree, sourceCode, sourceOffset, SourceIdentifier("test")).results
     }
 
     private fun domAsString(document: DeclarativeDocument) = buildString {
@@ -139,10 +137,16 @@ object DomTest {
                 }
 
                 is DeclarativeDocument.DocumentNode.PropertyNode -> appendLine("property(${node.name}, ${valueToString(node.value)})")
-                is DeclarativeDocument.DocumentNode.ErrorNode -> appendLine("error(${node.errors.joinToString()})")
+                is DeclarativeDocument.DocumentNode.ErrorNode -> appendLine("error(${node.errors.joinToString{ errorString(it) }}")
             }
         }
 
         document.content.forEach(::visit)
+    }
+
+    fun errorString(error: DocumentError): String = when (error) {
+        is SyntaxError -> "SyntaxError(${error.parsingError.message})"
+        is UnsupportedKotlinFeature -> "UnsupportedKotlinFeature(${error.unsupportedConstruct.languageFeature})"
+        is UnsupportedSyntax -> "UnsupportedSyntax(${error.cause})"
     }
 }

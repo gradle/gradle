@@ -52,7 +52,7 @@ private class DocumentResolver(
     }
 
     private fun resolvedElement(elementNode: DeclarativeDocument.DocumentNode.ElementNode): ResolvedDeclarativeDocumentImpl.ResolvedNode.ResolvedElement {
-        val statement = elementNode.statement() as FunctionCall
+        val statement = elementNode.blockElement() as FunctionCall
         val elementResolution = when (val callResolution = trace.expressionResolution(statement)) {
             is ResolutionTrace.ResolutionOrErrors.Resolution -> run {
                 val functionOrigin = callResolution.result as ObjectOrigin.FunctionOrigin
@@ -88,7 +88,7 @@ private class DocumentResolver(
     }
 
     private fun resolvedProperty(propertyNode: DeclarativeDocument.DocumentNode.PropertyNode): ResolvedDeclarativeDocumentImpl.ResolvedNode.ResolvedProperty {
-        val statement = propertyNode.statement() as Assignment
+        val statement = propertyNode.blockElement() as Assignment
         val resolution = when (val assignment = trace.assignmentResolution(statement)) {
             is ResolutionTrace.ResolutionOrErrors.Resolution -> {
                 val receiver = assignment.result.lhs.receiverObject

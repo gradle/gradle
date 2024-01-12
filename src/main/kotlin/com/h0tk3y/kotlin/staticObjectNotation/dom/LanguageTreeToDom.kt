@@ -16,11 +16,16 @@
 
 package com.h0tk3y.kotlin.staticObjectNotation.dom
 
-import com.h0tk3y.kotlin.staticObjectNotation.dom.LanguageTreeBackedDocument.StatementBackedDocumentNode.AssignmentBackedPropertyNode
-import com.h0tk3y.kotlin.staticObjectNotation.dom.LanguageTreeBackedDocument.StatementBackedDocumentNode.StatementBackedErrorNode
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.FailingResult
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.MultipleFailuresResult
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParsingError
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedConstruct
+import com.h0tk3y.kotlin.staticObjectNotation.dom.LanguageTreeBackedDocument.BlockElementBackedDocumentNode.AssignmentBackedPropertyNode
+import com.h0tk3y.kotlin.staticObjectNotation.dom.LanguageTreeBackedDocument.BlockElementBackedDocumentNode.BlockElementBackedErrorNode
 import com.h0tk3y.kotlin.staticObjectNotation.language.Assignment
 import com.h0tk3y.kotlin.staticObjectNotation.language.Block
-import com.h0tk3y.kotlin.staticObjectNotation.language.DataStatement
+import com.h0tk3y.kotlin.staticObjectNotation.language.BlockElement
+import com.h0tk3y.kotlin.staticObjectNotation.language.ErroneousStatement
 import com.h0tk3y.kotlin.staticObjectNotation.language.Expr
 import com.h0tk3y.kotlin.staticObjectNotation.language.FunctionArgument
 import com.h0tk3y.kotlin.staticObjectNotation.language.FunctionCall
@@ -30,29 +35,29 @@ import com.h0tk3y.kotlin.staticObjectNotation.language.Null
 import com.h0tk3y.kotlin.staticObjectNotation.language.PropertyAccess
 import com.h0tk3y.kotlin.staticObjectNotation.language.This
 
-fun convertBlockToDocument(block: Block): DeclarativeDocument = LanguageTreeBackedDocument(block, block.statements.map(::statementToNode))
+fun convertBlockToDocument(block: Block): DeclarativeDocument = LanguageTreeBackedDocument(block, block.content.map(::blockElementToNode))
 
-private fun statementToNode(statement: DataStatement): LanguageTreeBackedDocument.StatementBackedDocumentNode = when (statement) {
+private fun blockElementToNode(blockElement: BlockElement): LanguageTreeBackedDocument.BlockElementBackedDocumentNode = when (blockElement) {
     is Assignment -> {
-        if ((statement.lhs.receiver != null))
-            StatementBackedErrorNode(statement, listOf(UnsupportedSyntax(UnsupportedSyntaxCause.AssignmentWithExplicitReceiver)))
+        if ((blockElement.lhs.receiver != null))
+            BlockElementBackedErrorNode(blockElement, listOf(UnsupportedSyntax(UnsupportedSyntaxCause.AssignmentWithExplicitReceiver)))
         else {
-            when (val rhs = exprToValue(statement.rhs)) {
-                is ExprConversion.Failed -> StatementBackedErrorNode(statement, rhs.errors)
-                is ExprConversion.Converted -> AssignmentBackedPropertyNode(statement, rhs.valueNode)
+            when (val rhs = exprToValue(blockElement.rhs)) {
+                is ExprConversion.Failed -> BlockElementBackedErrorNode(blockElement, rhs.errors)
+                is ExprConversion.Converted -> AssignmentBackedPropertyNode(blockElement, rhs.valueNode)
             }
         }
     }
 
     is FunctionCall -> {
         val errors = mutableListOf<DocumentError>()
-        if (statement.receiver != null) {
+        if (blockElement.receiver != null) {
             errors += UnsupportedSyntax(UnsupportedSyntaxCause.ElementWithExplicitReceiver)
         }
-        if (statement.args.any { it is FunctionArgument.Named }) {
+        if (blockElement.args.any { it is FunctionArgument.Named }) {
             errors += UnsupportedSyntax(UnsupportedSyntaxCause.ElementArgumentFormat)
         }
-        val lambdas = statement.args.filterIsInstance<FunctionArgument.Lambda>()
+        val lambdas = blockElement.args.filterIsInstance<FunctionArgument.Lambda>()
 
         val lambda = when (lambdas.size) {
             0 -> null
@@ -62,21 +67,40 @@ private fun statementToNode(statement: DataStatement): LanguageTreeBackedDocumen
                 null
             }
         }
-        val content = lambda?.block?.statements.orEmpty().map { statementToNode(it) }
-        val values = statement.args.filterIsInstance<FunctionArgument.Positional>().map { exprToValue(it.expr) }
+        val content = lambda?.block?.content.orEmpty().map { blockElementToNode(it) }
+        val values = blockElement.args.filterIsInstance<FunctionArgument.Positional>().map { exprToValue(it.expr) }
         errors += values.filterIsInstance<ExprConversion.Failed>().flatMap { it.errors }
 
         if (errors.isNotEmpty()) {
-            StatementBackedErrorNode(statement, errors) // TODO: reason
+            BlockElementBackedErrorNode(blockElement, errors) // TODO: reason
         } else {
             val arguments = values.map { (it as ExprConversion.Converted).valueNode }
-            LanguageTreeBackedDocument.StatementBackedDocumentNode.FunctionCallBackedElementNode(statement, arguments, content)
+            LanguageTreeBackedDocument.BlockElementBackedDocumentNode.FunctionCallBackedElementNode(blockElement, arguments, content)
         }
     }
 
-    is LocalValue -> StatementBackedErrorNode(statement, listOf(UnsupportedSyntax(UnsupportedSyntaxCause.LocalVal)))
-    is Expr -> StatementBackedErrorNode(statement, listOf(UnsupportedSyntax(UnsupportedSyntaxCause.DanglingExpr)))
+    is LocalValue -> BlockElementBackedErrorNode(blockElement, listOf(UnsupportedSyntax(UnsupportedSyntaxCause.LocalVal)))
+    is Expr -> BlockElementBackedErrorNode(blockElement, listOf(UnsupportedSyntax(UnsupportedSyntaxCause.DanglingExpr)))
+
+    is ErroneousStatement -> {
+        val failingResult = blockElement.failingResult
+        BlockElementBackedErrorNode(blockElement, mapBlockElementErrors(failingResult))
+    }
 }
+
+fun mapBlockElementErrors(failingResult: FailingResult): Collection<DocumentError> {
+    return buildList {
+        fun visit(result: FailingResult) {
+            when (result) {
+                is MultipleFailuresResult -> result.failures.forEach(::visit)
+                is ParsingError -> add(SyntaxError(result))
+                is UnsupportedConstruct -> add(UnsupportedKotlinFeature(result))
+            }
+        }
+        visit(failingResult)
+    }
+}
+
 
 private sealed interface ExprConversion {
     data class Converted(val valueNode: LanguageTreeBackedDocument.ExprBackedValueNode) : ExprConversion
@@ -136,36 +160,32 @@ private fun Expr.asChainedNameOrNull(): String? {
 
 private class LanguageTreeBackedDocument(
     val block: Block,
-    override val content: Collection<StatementBackedDocumentNode>
+    override val content: Collection<BlockElementBackedDocumentNode>
 ) : DeclarativeDocument {
 
-    sealed interface StatementBackedDocumentNode : DeclarativeDocument.DocumentNode {
-        val statement: DataStatement
+    sealed interface BlockElementBackedDocumentNode : DeclarativeDocument.DocumentNode {
+        val blockElement: BlockElement
 
         class AssignmentBackedPropertyNode(
-            override val statement: Assignment,
+            override val blockElement: Assignment,
             override val value: ExprBackedValueNode
 
-        ) : DeclarativeDocument.DocumentNode.PropertyNode, StatementBackedDocumentNode {
-            override val name: String get() = statement.lhs.name
+        ) : DeclarativeDocument.DocumentNode.PropertyNode, BlockElementBackedDocumentNode {
+            override val name: String get() = blockElement.lhs.name
         }
 
         data class FunctionCallBackedElementNode(
-            override val statement: FunctionCall,
+            override val blockElement: FunctionCall,
             override val elementValues: Collection<DeclarativeDocument.ValueNode>,
             override val content: Collection<DeclarativeDocument.DocumentNode>,
-        ) : DeclarativeDocument.DocumentNode.ElementNode, StatementBackedDocumentNode {
-            override val name: String = statement.name
+        ) : DeclarativeDocument.DocumentNode.ElementNode, BlockElementBackedDocumentNode {
+            override val name: String = blockElement.name
         }
 
-        data class StatementBackedErrorNode(
-            override val statement: DataStatement,
+        data class BlockElementBackedErrorNode(
+            override val blockElement: BlockElement,
             override val errors: Collection<DocumentError>
-        ) : DeclarativeDocument.DocumentNode.ErrorNode, StatementBackedDocumentNode
-
-        data class SyntaxErrorNode(
-            override val errors: Collection<SyntaxError>
-        ) : DeclarativeDocument.DocumentNode.ErrorNode
+        ) : DeclarativeDocument.DocumentNode.ErrorNode, BlockElementBackedDocumentNode
     }
 
     sealed interface ExprBackedValueNode : DeclarativeDocument.ValueNode {
@@ -183,13 +203,8 @@ private class LanguageTreeBackedDocument(
     }
 }
 
-internal fun DeclarativeDocument.topLevelBlock(): Block = when (this) {
-    is LanguageTreeBackedDocument -> block
-    else -> throw IllegalStateException("cannot run document resolution with documents not produced from restricted DSL")
-}
-
-internal fun DeclarativeDocument.DocumentNode.statement(): DataStatement = when (this) {
-    is LanguageTreeBackedDocument.StatementBackedDocumentNode -> statement
+internal fun DeclarativeDocument.DocumentNode.blockElement(): BlockElement = when (this) {
+    is LanguageTreeBackedDocument.BlockElementBackedDocumentNode -> blockElement
     else -> throw IllegalStateException("cannot run document resolution with documents not produced from restricted DSL")
 }
 

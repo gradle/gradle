@@ -20,7 +20,8 @@ import org.jetbrains.kotlin.utils.doNothing
 class GrammarToLightTree(
     private val sourceIdentifier: SourceIdentifier,
     private val sourceCode: String,
-    private val sourceOffset: Int
+    private val sourceOffset: Int,
+    private val shouldSurfaceInternalFailures: Boolean = true
 ) {
 
     inner
@@ -76,8 +77,9 @@ class GrammarToLightTree(
 
         val packages = packageHeader(tree, packageNode)
         val imports = importNodes.map { import(tree, it) }
-        val statements = scriptNodes.map { statement(tree, it) }
-            .flatMap { surfaceInternalFailures(it) }
+        val statements = scriptNodes.map { statement(tree, it) }.let {
+            if (shouldSurfaceInternalFailures) it.flatMap { surfaceInternalFailures(it) } else it
+        }
         return Syntactic(packages + imports + statements)
     }
 
