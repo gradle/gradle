@@ -17,7 +17,6 @@
 package gradlebuild.instrumentation.transforms
 
 import gradlebuild.basics.classanalysis.getClassSuperTypes
-import org.gradle.api.artifacts.transform.CacheableTransform
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
@@ -35,8 +34,6 @@ import java.io.File
 import java.util.Properties
 import javax.inject.Inject
 
-
-@CacheableTransform
 abstract class InstrumentationMetadataTransform : TransformAction<TransformParameters.None> {
 
     companion object {
