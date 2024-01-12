@@ -182,7 +182,8 @@ Configuration 'bar':
             assert result == [expected] as Set
         } catch (AmbiguousGraphVariantsException e) {
             if (expected == null) {
-                assert e.message.startsWith(toPlatformLineSeparators("The consumer was configured to find attribute 'platform' with value '${queryAttributes.platform}'${queryAttributes.flavor?", attribute 'flavor' with value '$queryAttributes.flavor'":""}. However we cannot choose between the following variants of [target]:\n  - bar\n  - foo\nAll of them match the consumer attributes:"))
+                def expectedMsg = "The consumer was configured to find ${queryAttributes.flavor?"attribute 'flavor' with value '$queryAttributes.flavor', ":""}attribute 'platform' with value '${queryAttributes.platform}'. However we cannot choose between the following variants of [target]:\n  - bar\n  - foo\nAll of them match the consumer attributes:"
+                assert e.message.startsWith(toPlatformLineSeparators(expectedMsg))
             } else {
                 throw e
             }
@@ -242,7 +243,8 @@ Configuration 'bar':
             assert result == [expected] as Set
         } catch (AmbiguousGraphVariantsException e) {
             if (expected == null) {
-                assert e.message.startsWith(toPlatformLineSeparators("The consumer was configured to find attribute 'platform' with value '${queryAttributes.platform}'${queryAttributes.flavor?", attribute 'flavor' with value '${queryAttributes.flavor}'":""}. However we cannot choose between the following variants of [target]:\n  - bar\n  - foo\nAll of them match the consumer attributes:"))
+                def expectedMsg = "The consumer was configured to find ${queryAttributes.flavor?"attribute 'flavor' with value '${queryAttributes.flavor}', ":""}attribute 'platform' with value '${queryAttributes.platform}'. However we cannot choose between the following variants of [target]:\n  - bar\n  - foo\nAll of them match the consumer attributes:"
+                assert e.message.startsWith(toPlatformLineSeparators(expectedMsg))
             } else {
                 throw e
             }

@@ -154,8 +154,8 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
         }
 
         @Override
-        public AttributeValue<?> findEntry(String key) {
-            return getDesugared().findEntry(key);
+        public AttributeValue<?> findEntry(String name) {
+            return getDesugared().findEntry(name);
         }
 
         @Override
