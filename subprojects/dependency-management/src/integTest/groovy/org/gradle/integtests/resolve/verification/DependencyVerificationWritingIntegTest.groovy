@@ -23,6 +23,8 @@ import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import spock.lang.Issue
 
+import static org.gradle.api.internal.artifacts.verification.DependencyVerificationFixture.getChecksum
+
 class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificationIntegTest implements CachingIntegrationFixture {
 
     def "can generate an empty verification file"() {
@@ -78,7 +80,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
     def "generates verification file for dependencies downloaded during build"() {
         given:
         javaLibrary()
-        uncheckedModule("org", "foo")
+        def foo = uncheckedModule("org", "foo")
         buildFile << """
             dependencies {
                 implementation "org:foo:1.0"
@@ -94,14 +96,14 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         module("org:foo") {
             artifact("foo-1.0.jar") {
                 declaresChecksums(
-                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
-                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                    sha1: getChecksum(foo, "sha1"),
+                    sha512: getChecksum(foo, "sha512")
                 )
             }
             artifact("foo-1.0.pom") {
                 declaresChecksums(
-                    sha1: "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02",
-                    sha512: "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
+                    sha1: getChecksum(foo, "sha1", "pom"),
+                    sha512: getChecksum(foo, "sha512", "pom")
                 )
             }
         }
@@ -111,7 +113,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
     def "generates verification file for dependencies downloaded in previous build (stop in between = #stop)"() {
         given:
         javaLibrary()
-        uncheckedModule("org", "foo")
+        def foo = uncheckedModule("org", "foo")
         buildFile << """
             dependencies {
                 implementation "org:foo:1.0"
@@ -136,14 +138,14 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         module("org:foo") {
             artifact("foo-1.0.jar") {
                 declaresChecksums(
-                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
-                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                    sha1: getChecksum(foo, "sha1"),
+                    sha512: getChecksum(foo, "sha512")
                 )
             }
             artifact("foo-1.0.pom") {
                 declaresChecksums(
-                    sha1: "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02",
-                    sha512: "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
+                    sha1: getChecksum(foo, "sha1", "pom"),
+                    sha512: getChecksum(foo, "sha512", "pom")
                 )
             }
         }
@@ -155,9 +157,9 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
     def "generates checksums for resolvable configurations only"() {
         given:
         javaLibrary()
-        uncheckedModule("org", "foo", "1.0")
-        uncheckedModule("org", "foo", "1.1")
-        uncheckedModule("org", "bar", "1.0")
+        def foo = uncheckedModule("org", "foo", "1.0")
+        def foo1 = uncheckedModule("org", "foo", "1.1")
+        def bar = uncheckedModule("org", "bar", "1.0")
 
         buildFile << """
             configurations {
@@ -187,22 +189,22 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         module("org:foo:1.0") {
             artifact("foo-1.0.jar") {
                 declaresChecksums(
-                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
-                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                    sha1: getChecksum(foo, "sha1"),
+                    sha512: getChecksum(foo, "sha512")
                 )
             }
             artifact("foo-1.0.pom") {
                 declaresChecksums(
-                    sha1: "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02",
-                    sha512: "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
+                    sha1: getChecksum(foo, "sha1", "pom"),
+                    sha512: getChecksum(foo, "sha512", "pom")
                 )
             }
         }
         module("org:foo:1.1") {
             artifact("foo-1.1.jar") {
                 declaresChecksums(
-                    sha1: "4f61704d48102455b54b20e00bed598b51128184",
-                    sha512: "a140b3fa056a88cc228e155a717e4ea5dfbc519f91d9fc9d2a3ab9cdbee118edc834c04dc2abe96d62d2df225fa06083be6fce75a2a7aa0b59e3ae7118a284b1"
+                    sha1: getChecksum(foo1, "sha1"),
+                    sha512: getChecksum(foo1, "sha512")
                 )
             }
         }
@@ -211,7 +213,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
     def "can generate checksum for secondary artifacts"() {
         given:
         javaLibrary()
-        uncheckedModule("org", "foo", "1.0") {
+        def foo = uncheckedModule("org", "foo", "1.0") {
             artifact(type: 'zip')
             artifact(classifier: 'classy')
         }
@@ -235,26 +237,26 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         module("org:foo") {
             artifact("foo-1.0.jar") {
                 declaresChecksums(
-                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
-                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                    sha1: getChecksum(foo, "sha1"),
+                    sha512: getChecksum(foo, "sha512")
                 )
             }
             artifact("foo-1.0.pom") {
                 declaresChecksums(
-                    sha1: "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02",
-                    sha512: "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
+                    sha1: getChecksum(foo, "sha1", "pom"),
+                    sha512: getChecksum(foo, "sha512", "pom")
                 )
             }
             artifact("foo-1.0-classy.jar") {
                 declaresChecksums(
-                    sha1: "57e775f9a7cdbe42752dcb8a18fa1fdedb06a46f",
-                    sha512: "77ce252cbb2ffab6f1dc7d1fce84b933106a38f22f12cd21553d6f7be9846f8d53caf0be109f6a78eac0262f10c54651be9b293f805fe175c66f6e609e557e48"
+                    sha1: getChecksum(foo, "sha1", "jar", "classy"),
+                    sha512: getChecksum(foo, "sha512", "jar", "classy")
                 )
             }
             artifact("foo-1.0.zip") {
                 declaresChecksums(
-                    sha1: "d94282a5db10b302c7dfc3b685c3746584a06ee3",
-                    sha512: "6c9f16dc09b4b5ff9d02ac05418f865552a543633f9e60562b5086841850d0a69775ffa0ea1a618fdc5744840e98feb437560ae64aea097ed3fe385293fb59e8"
+                    sha1: getChecksum(foo, "sha1", "zip"),
+                    sha512: getChecksum(foo, "sha512", "zip")
                 )
             }
         }
@@ -267,8 +269,8 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         given:
         javaLibrary(mod1)
         javaLibrary(mod2)
-        uncheckedModule("org", "foo")
-        uncheckedModule("org", "bar")
+        def foo = uncheckedModule("org", "foo")
+        def bar = uncheckedModule("org", "bar")
         mod1 << """
             dependencies {
                 implementation "org:foo:1.0"
@@ -289,22 +291,22 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         module("org:foo") {
             artifact("foo-1.0.jar") {
                 declaresChecksums(
-                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
-                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                    sha1: getChecksum(foo, "sha1"),
+                    sha512: getChecksum(foo, "sha512")
                 )
             }
             artifact("foo-1.0.pom") {
                 declaresChecksums(
-                    sha1: "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02",
-                    sha512: "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
+                    sha1: getChecksum(foo, "sha1", "pom"),
+                    sha512: getChecksum(foo, "sha512", "pom")
                 )
             }
         }
         module("org:bar") {
             artifact("bar-1.0.jar") {
                 declaresChecksums(
-                    sha1: "42077067b52edb41c658839ab62a616740417814",
-                    sha512: "7bec2082e5447fbbd76285b458f2978194229360cc9aed75a0fc21e2a1b0033137ecf4cbd9883c0a3cfd8b11c176a915500b23d6622aa002c207f48e5043b3b2"
+                    sha1: getChecksum(bar, "sha1"),
+                    sha512: getChecksum(bar, "sha512")
                 )
             }
         }
@@ -317,8 +319,8 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         given:
         javaLibrary(mod1)
         javaLibrary(mod2)
-        uncheckedModule("org", "foo")
-        uncheckedModule("org", "bar")
+        def foo = uncheckedModule("org", "foo")
+        def bar = uncheckedModule("org", "bar")
         mod1 << """
             dependencies {
                 implementation "org:foo:1.0"
@@ -341,22 +343,22 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         module("org:foo") {
             artifact("foo-1.0.jar") {
                 declaresChecksums(
-                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
-                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                    sha1: getChecksum(foo, "sha1"),
+                    sha512: getChecksum(foo, "sha512")
                 )
             }
             artifact("foo-1.0.pom") {
                 declaresChecksums(
-                    sha1: "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02",
-                    sha512: "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
+                    sha1: getChecksum(foo, "sha1", "pom"),
+                    sha512: getChecksum(foo, "sha512", "pom")
                 )
             }
         }
         module("org:bar") {
             artifact("bar-1.0.jar") {
                 declaresChecksums(
-                    sha1: "42077067b52edb41c658839ab62a616740417814",
-                    sha512: "7bec2082e5447fbbd76285b458f2978194229360cc9aed75a0fc21e2a1b0033137ecf4cbd9883c0a3cfd8b11c176a915500b23d6622aa002c207f48e5043b3b2"
+                    sha1: getChecksum(bar, "sha1"),
+                    sha512: getChecksum(bar, "sha512")
                 )
             }
         }
@@ -441,7 +443,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         given:
         javaLibrary(m1)
         javaLibrary(m2)
-        uncheckedModule("org", "foo")
+        def foo = uncheckedModule("org", "foo")
 
         m1 << """
             dependencies {
@@ -464,14 +466,14 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         module("org:foo") {
             artifact("foo-1.0.jar") {
                 declaresChecksums(
-                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
-                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                    sha1: getChecksum(foo, "sha1"),
+                    sha512: getChecksum(foo, "sha512")
                 )
             }
             artifact("foo-1.0.pom") {
                 declaresChecksums(
-                    sha1: "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02",
-                    sha512: "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
+                    sha1: getChecksum(foo, "sha1", "pom"),
+                    sha512: getChecksum(foo, "sha512", "pom")
                 )
             }
         }
@@ -550,7 +552,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 
         given:
         javaLibrary()
-        uncheckedModule("org", "foo")
+        def foo = uncheckedModule("org", "foo")
         buildFile << """
             dependencies {
                 implementation "org:foo:1.0"
@@ -567,14 +569,14 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
             artifact("foo-1.0.jar") {
                 declaresChecksums(
                     md5: "abc",
-                    sha1: ["1234", "16e066e005a935ac60f06216115436ab97c5da02"],
-                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                    sha1: ["1234", getChecksum(foo, "sha1")],
+                    sha512: getChecksum(foo, "sha512")
                 )
             }
             artifact("foo-1.0.pom") {
                 declaresChecksums(
-                    sha1: "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02",
-                    sha512: "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
+                    sha1: getChecksum(foo, "sha1", "pom"),
+                    sha512: getChecksum(foo, "sha512", "pom")
                 )
             }
         }
@@ -607,13 +609,13 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
          <artifact name="foo-1.0.jar">
             <md5 value="abc"/>
             <sha1 value="1234" origin="Generated by Gradle">
-               <also-trust value="16e066e005a935ac60f06216115436ab97c5da02"/>
+               <also-trust value="${getChecksum(foo, "sha1")}"/>
             </sha1>
-            <sha512 value="734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b" origin="Generated by Gradle"/>
+            <sha512 value="${getChecksum(foo, "sha512")}" origin="Generated by Gradle"/>
          </artifact>
          <artifact name="foo-1.0.pom">
-            <sha1 value="85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02" origin="Generated by Gradle"/>
-            <sha512 value="3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe" origin="Generated by Gradle"/>
+            <sha1 value="${getChecksum(foo, "sha1", "pom")}" origin="Generated by Gradle"/>
+            <sha512 value="${getChecksum(foo, "sha512", "pom")}" origin="Generated by Gradle"/>
          </artifact>
       </component>
    </components>
@@ -624,8 +626,8 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
     def "included build dependencies are used when generating the verification file"() {
         given:
         javaLibrary()
-        uncheckedModule("org", "foo")
-        uncheckedModule("org", "bar")
+        def foo = uncheckedModule("org", "foo")
+        def bar = uncheckedModule("org", "bar")
         buildFile << """
             dependencies {
                 implementation "org:foo:1.0"
@@ -659,16 +661,16 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         module("org:foo") {
             artifact("foo-1.0.jar") {
                 declaresChecksums(
-                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
-                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                    sha1: getChecksum(foo, "sha1"),
+                    sha512: getChecksum(foo, "sha512")
                 )
             }
         }
         module("org:bar") {
             artifact("bar-1.0.jar") {
                 declaresChecksums(
-                    sha1: "42077067b52edb41c658839ab62a616740417814",
-                    sha512: "7bec2082e5447fbbd76285b458f2978194229360cc9aed75a0fc21e2a1b0033137ecf4cbd9883c0a3cfd8b11c176a915500b23d6622aa002c207f48e5043b3b2"
+                    sha1: getChecksum(bar, "sha1"),
+                    sha512: getChecksum(bar, "sha512")
                 )
             }
         }
@@ -676,10 +678,10 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 
     def "writes checksums for parent POMs"() {
         given:
-        uncheckedModule("org", "foo", "1.0") {
+        def foo = uncheckedModule("org", "foo", "1.0") {
             parent("org", "parent", "1.0")
         }
-        uncheckedModule("org", "parent", "1.0") {
+        def parent = uncheckedModule("org", "parent", "1.0") {
             hasPackaging("pom")
 
         }
@@ -698,16 +700,16 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         module("org:foo:1.0") {
             artifact("foo-1.0.jar") {
                 declaresChecksums(
-                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
-                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                    sha1: getChecksum(foo, "sha1"),
+                    sha512: getChecksum(foo, "sha512")
                 )
             }
         }
         module("org:parent:1.0") {
             artifact("parent-1.0.pom") {
                 declaresChecksums(
-                    sha1: "dcf91b67fc14846f8234ef8e9cac922721cabf80",
-                    sha512: "01d797bd76f86414d7d7184522663bc7a28faaf19310caf5458a156dded879a914bd5c151ccc3553a9f65c4e58a85e8ec917692d517f770aaf7debacbf0fcbaf"
+                    sha1: getChecksum(parent, "sha1", "pom"),
+                    sha512: getChecksum(parent, "sha512", "pom")
                 )
             }
         }
@@ -715,7 +717,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 
     def "writes checksums for Gradle module metadata"() {
         given:
-        uncheckedModule("org", "foo", "1.0") {
+        def foo = uncheckedModule("org", "foo", "1.0") {
             withModuleMetadata()
         }
         javaLibrary()
@@ -733,14 +735,14 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         module("org:foo:1.0") {
             artifact("foo-1.0.jar") {
                 declaresChecksums(
-                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
-                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                    sha1: getChecksum(foo, "sha1"),
+                    sha512: getChecksum(foo, "sha512")
                 )
             }
             artifact("foo-1.0.module") {
                 declaresChecksums(
-                    sha1: "5cb00c1d3c96a6f47cf3f4129a0db4fcd371b1ed",
-                    sha512: "fa852fb8aab53474f4e498026557806de823797398ac86402636801eebbb13bd2c53b64fbefe5c3c038a64fca3c7b70d76865c5d644e9e9c80a50b4076afe997"
+                    sha1: getChecksum(foo, "sha1", "module"),
+                    sha512: getChecksum(foo, "sha512", "module")
                 )
             }
         }
@@ -748,10 +750,10 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 
     def "writes checksums for parent POMs downloaded in previous build (stop in between = #stop)"() {
         given:
-        uncheckedModule("org", "foo", "1.0") {
+        def foo = uncheckedModule("org", "foo", "1.0") {
             parent("org", "parent", "1.0")
         }
-        uncheckedModule("org", "parent", "1.0") {
+        def parent = uncheckedModule("org", "parent", "1.0") {
             hasPackaging("pom")
 
         }
@@ -781,16 +783,16 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         module("org:foo:1.0") {
             artifact("foo-1.0.jar") {
                 declaresChecksums(
-                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
-                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                    sha1: getChecksum(foo, "sha1"),
+                    sha512: getChecksum(foo, "sha512")
                 )
             }
         }
         module("org:parent:1.0") {
             artifact("parent-1.0.pom") {
                 declaresChecksums(
-                    sha1: "dcf91b67fc14846f8234ef8e9cac922721cabf80",
-                    sha512: "01d797bd76f86414d7d7184522663bc7a28faaf19310caf5458a156dded879a914bd5c151ccc3553a9f65c4e58a85e8ec917692d517f770aaf7debacbf0fcbaf"
+                    sha1: getChecksum(parent, "sha1", "pom"),
+                    sha512: getChecksum(parent, "sha512", "pom")
                 )
             }
         }
@@ -806,7 +808,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 
         given:
         javaLibrary()
-        uncheckedModule("org", "foo", "1.0") {
+        def foo = uncheckedModule("org", "foo", "1.0") {
             if (gmm) {
                 withModuleMetadata()
             }
@@ -826,7 +828,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         module("org:foo:1.0") {
             artifact("foo-1.0.jar") {
                 declaresChecksums(
-                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
+                    sha1: getChecksum(foo, "sha1"),
                 )
             }
         }
@@ -841,7 +843,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
    <components>
       <component group="org" name="foo" version="1.0">
          <artifact name="foo-1.0.jar">
-            <sha1 value="16e066e005a935ac60f06216115436ab97c5da02" origin="Generated by Gradle"/>
+            <sha1 value="${getChecksum(foo, "sha1")}" origin="Generated by Gradle"/>
          </artifact>
       </component>
    </components>
@@ -860,7 +862,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         given:
         javaLibrary()
         uncheckedModule("org", "parent", "1.0")
-        uncheckedModule("org", "foo", "1.0") {
+        def foo = uncheckedModule("org", "foo", "1.0") {
             parent("org", "parent", "1.0")
         }
         buildFile << """
@@ -878,7 +880,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         module("org:foo:1.0") {
             artifact("foo-1.0.jar") {
                 declaresChecksums(
-                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
+                    sha1: getChecksum(foo, "sha1"),
                 )
             }
         }
@@ -893,21 +895,20 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
    <components>
       <component group="org" name="foo" version="1.0">
          <artifact name="foo-1.0.jar">
-            <sha1 value="16e066e005a935ac60f06216115436ab97c5da02" origin="Generated by Gradle"/>
+            <sha1 value="${getChecksum(foo, "sha1")}" origin="Generated by Gradle"/>
          </artifact>
       </component>
    </components>
 </verification-metadata>
 """
-
     }
 
 
     def "updating a file doesn't generate duplicates"() {
         given:
         javaLibrary()
-        uncheckedModule("org", "foo")
-        uncheckedModule("org", "bar", "1.0") {
+        def foo = uncheckedModule("org", "foo")
+        def bar = uncheckedModule("org", "bar", "1.0") {
             artifact(classifier: 'classy')
         }
         buildFile << """
@@ -932,22 +933,22 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
    <components>
       <component group="org" name="bar" version="1.0">
          <artifact name="bar-1.0-classy.jar">
-            <sha1 value="7a5d72c073eab6cd519d431b0b88a7cf6b4ea0e4" origin="Generated by Gradle"/>
-            <sha512 value="9e45d6ce093e9d5a6851cc1e36177e49d2141891ebfb540bf5c8a6d380d3f1ae54f321070c7de951110472c7b4130a8ad24413d975afa97582d835d23dfe2e00" origin="Generated by Gradle"/>
+            <sha1 value="${getChecksum(bar, "sha1", "jar", "classy")}" origin="Generated by Gradle"/>
+            <sha512 value="${getChecksum(bar, "sha512", "jar", "classy")}" origin="Generated by Gradle"/>
          </artifact>
          <artifact name="bar-1.0.pom">
-            <sha1 value="302ecc047ad29b30546a6419fbd5bd58755ff2a0" origin="Generated by Gradle"/>
-            <sha512 value="d0ccda043f53a984382ed7345e21335cacbafc95e5ce536f1aa844c4a6c6bfc837d44bfae0dc28a756d8771c9594e9b3f86f6dcdecae62bfda596e0c21f7ed1d" origin="Generated by Gradle"/>
+            <sha1 value="${getChecksum(bar, "sha1", "pom")}" origin="Generated by Gradle"/>
+            <sha512 value="${getChecksum(bar, "sha512", "pom")}" origin="Generated by Gradle"/>
          </artifact>
       </component>
       <component group="org" name="foo" version="1.0">
          <artifact name="foo-1.0.jar">
-            <sha1 value="16e066e005a935ac60f06216115436ab97c5da02" origin="Generated by Gradle"/>
-            <sha512 value="734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b" origin="Generated by Gradle"/>
+            <sha1 value="${getChecksum(foo, "sha1")}" origin="Generated by Gradle"/>
+            <sha512 value="${getChecksum(foo, "sha512")}" origin="Generated by Gradle"/>
          </artifact>
          <artifact name="foo-1.0.pom">
-            <sha1 value="85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02" origin="Generated by Gradle"/>
-            <sha512 value="3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe" origin="Generated by Gradle"/>
+            <sha1 value="${getChecksum(foo, "sha1", "pom")}" origin="Generated by Gradle"/>
+            <sha512 value="${getChecksum(foo, "sha512", "pom")}" origin="Generated by Gradle"/>
          </artifact>
       </component>
    </components>
@@ -968,22 +969,22 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
    <components>
       <component group="org" name="bar" version="1.0">
          <artifact name="bar-1.0-classy.jar">
-            <sha1 value="7a5d72c073eab6cd519d431b0b88a7cf6b4ea0e4" origin="Generated by Gradle"/>
-            <sha512 value="9e45d6ce093e9d5a6851cc1e36177e49d2141891ebfb540bf5c8a6d380d3f1ae54f321070c7de951110472c7b4130a8ad24413d975afa97582d835d23dfe2e00" origin="Generated by Gradle"/>
+            <sha1 value="${getChecksum(bar, "sha1", "jar", "classy")}" origin="Generated by Gradle"/>
+            <sha512 value="${getChecksum(bar, "sha512", "jar", "classy")}" origin="Generated by Gradle"/>
          </artifact>
          <artifact name="bar-1.0.pom">
-            <sha1 value="302ecc047ad29b30546a6419fbd5bd58755ff2a0" origin="Generated by Gradle"/>
-            <sha512 value="d0ccda043f53a984382ed7345e21335cacbafc95e5ce536f1aa844c4a6c6bfc837d44bfae0dc28a756d8771c9594e9b3f86f6dcdecae62bfda596e0c21f7ed1d" origin="Generated by Gradle"/>
+            <sha1 value="${getChecksum(bar, "sha1", "pom")}" origin="Generated by Gradle"/>
+            <sha512 value="${getChecksum(bar, "sha512", "pom")}" origin="Generated by Gradle"/>
          </artifact>
       </component>
       <component group="org" name="foo" version="1.0">
          <artifact name="foo-1.0.jar">
-            <sha1 value="16e066e005a935ac60f06216115436ab97c5da02" origin="Generated by Gradle"/>
-            <sha512 value="734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b" origin="Generated by Gradle"/>
+            <sha1 value="${getChecksum(foo, "sha1")}" origin="Generated by Gradle"/>
+            <sha512 value="${getChecksum(foo, "sha512")}" origin="Generated by Gradle"/>
          </artifact>
          <artifact name="foo-1.0.pom">
-            <sha1 value="85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02" origin="Generated by Gradle"/>
-            <sha512 value="3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe" origin="Generated by Gradle"/>
+            <sha1 value="${getChecksum(foo, "sha1", "pom")}" origin="Generated by Gradle"/>
+            <sha512 value="${getChecksum(foo, "sha512", "pom")}" origin="Generated by Gradle"/>
          </artifact>
       </component>
    </components>
@@ -998,7 +999,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
     def "can write alternate checksums in a single build"() {
         given:
         javaLibrary()
-        uncheckedModule("org", "foo")
+        def foo = uncheckedModule("org", "foo")
         def alternateRepo = new MavenFileRepository(
             testDirectory.createDir("alternate-repo")
         )
@@ -1036,14 +1037,14 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         module("org:foo") {
             artifact("foo-1.0.jar") {
                 declaresChecksums(
-                    sha1: ["16e066e005a935ac60f06216115436ab97c5da02", "9069ca78e7450a285173431b3e52c5c25299e473"],
-                    sha512: ["734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b", "ec2d57691d9b2d40182ac565032054b7d784ba96b18bcb5be0bb4e70e3fb041eff582c8af66ee50256539f2181d7f9e53627c0189da7e75a4d5ef10ea93b20b3"]
+                    sha1: [getChecksum(foo, "sha1"), "9069ca78e7450a285173431b3e52c5c25299e473"],
+                    sha512: [getChecksum(foo, "sha512"), "ec2d57691d9b2d40182ac565032054b7d784ba96b18bcb5be0bb4e70e3fb041eff582c8af66ee50256539f2181d7f9e53627c0189da7e75a4d5ef10ea93b20b3"]
                 )
             }
             artifact("foo-1.0.pom") {
                 declaresChecksums(
-                    sha1: "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02",
-                    sha512: "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
+                    sha1: getChecksum(foo, "sha1", "pom"),
+                    sha512: getChecksum(foo, "sha512", "pom")
                 )
             }
         }
@@ -1055,7 +1056,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
             trust("org", "bar")
         }
         javaLibrary()
-        uncheckedModule("org", "foo")
+        def foo = uncheckedModule("org", "foo")
         uncheckedModule("org", "bar")
         buildFile << """
             dependencies {
@@ -1073,14 +1074,14 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         module("org:foo") {
             artifact("foo-1.0.jar") {
                 declaresChecksums(
-                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
-                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                    sha1: getChecksum(foo, "sha1"),
+                    sha512: getChecksum(foo, "sha512")
                 )
             }
             artifact("foo-1.0.pom") {
                 declaresChecksums(
-                    sha1: "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02",
-                    sha512: "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
+                    sha1: getChecksum(foo, "sha1", "pom"),
+                    sha512: getChecksum(foo, "sha512", "pom")
                 )
             }
         }
@@ -1093,7 +1094,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
             trust("org", "bar")
         }
         javaLibrary()
-        uncheckedModule("org", "foo")
+        def foo = uncheckedModule("org", "foo")
         uncheckedModule("org", "bar")
         buildFile << """
             dependencies {
@@ -1111,14 +1112,14 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         module("org:foo") {
             artifact("foo-1.0.jar") {
                 declaresChecksums(
-                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
-                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                    sha1: getChecksum(foo, "sha1"),
+                    sha512: getChecksum(foo, "sha512")
                 )
             }
             artifact("foo-1.0.pom") {
                 declaresChecksums(
-                    sha1: "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02",
-                    sha512: "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
+                    sha1: getChecksum(foo, "sha1", "pom"),
+                    sha512: getChecksum(foo, "sha512", "pom")
                 )
             }
         }
@@ -1135,8 +1136,8 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
     def "can use --dry-run to write a different file for comparison"() {
         given:
         javaLibrary()
-        uncheckedModule("org", "foo")
-        uncheckedModule("org", "bar", "1.0")
+        def foo = uncheckedModule("org", "foo")
+        def bar = uncheckedModule("org", "bar", "1.0")
         buildFile << """
             dependencies {
                 implementation "org:foo:1.0"
@@ -1157,12 +1158,12 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
    <components>
       <component group="org" name="foo" version="1.0">
          <artifact name="foo-1.0.jar">
-            <sha1 value="16e066e005a935ac60f06216115436ab97c5da02" origin="Generated by Gradle"/>
-            <sha512 value="734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b" origin="Generated by Gradle"/>
+            <sha1 value="${getChecksum(foo, "sha1")}" origin="Generated by Gradle"/>
+            <sha512 value="${getChecksum(foo, "sha512")}" origin="Generated by Gradle"/>
          </artifact>
          <artifact name="foo-1.0.pom">
-            <sha1 value="85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02" origin="Generated by Gradle"/>
-            <sha512 value="3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe" origin="Generated by Gradle"/>
+            <sha1 value="${getChecksum(foo, "sha1", "pom")}" origin="Generated by Gradle"/>
+            <sha512 value="${getChecksum(foo, "sha512", "pom")}" origin="Generated by Gradle"/>
          </artifact>
       </component>
    </components>
@@ -1188,12 +1189,12 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
    <components>
       <component group="org" name="foo" version="1.0">
          <artifact name="foo-1.0.jar">
-            <sha1 value="16e066e005a935ac60f06216115436ab97c5da02" origin="Generated by Gradle"/>
-            <sha512 value="734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b" origin="Generated by Gradle"/>
+            <sha1 value="${getChecksum(foo, "sha1")}" origin="Generated by Gradle"/>
+            <sha512 value="${getChecksum(foo, "sha512")}" origin="Generated by Gradle"/>
          </artifact>
          <artifact name="foo-1.0.pom">
-            <sha1 value="85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02" origin="Generated by Gradle"/>
-            <sha512 value="3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe" origin="Generated by Gradle"/>
+            <sha1 value="${getChecksum(foo, "sha1", "pom")}" origin="Generated by Gradle"/>
+            <sha512 value="${getChecksum(foo, "sha512", "pom")}" origin="Generated by Gradle"/>
          </artifact>
       </component>
    </components>
@@ -1210,8 +1211,8 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
    <components>
       <component group="org" name="bar" version="1.0">
          <artifact name="bar-1.0.jar">
-            <sha1 value="42077067b52edb41c658839ab62a616740417814" origin="Generated by Gradle"/>
-            <sha512 value="7bec2082e5447fbbd76285b458f2978194229360cc9aed75a0fc21e2a1b0033137ecf4cbd9883c0a3cfd8b11c176a915500b23d6622aa002c207f48e5043b3b2" origin="Generated by Gradle"/>
+            <sha1 value="${getChecksum(bar, "sha1")}" origin="Generated by Gradle"/>
+            <sha512 value="${getChecksum(bar, "sha512")}" origin="Generated by Gradle"/>
          </artifact>
          <artifact name="bar-1.0.pom">
             <sha1 value="302ecc047ad29b30546a6419fbd5bd58755ff2a0" origin="Generated by Gradle"/>
@@ -1220,12 +1221,12 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
       </component>
       <component group="org" name="foo" version="1.0">
          <artifact name="foo-1.0.jar">
-            <sha1 value="16e066e005a935ac60f06216115436ab97c5da02" origin="Generated by Gradle"/>
-            <sha512 value="734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b" origin="Generated by Gradle"/>
+            <sha1 value="${getChecksum(foo, "sha1")}" origin="Generated by Gradle"/>
+            <sha512 value="${getChecksum(foo, "sha512")}" origin="Generated by Gradle"/>
          </artifact>
          <artifact name="foo-1.0.pom">
-            <sha1 value="85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02" origin="Generated by Gradle"/>
-            <sha512 value="3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe" origin="Generated by Gradle"/>
+            <sha1 value="${getChecksum(foo, "sha1", "pom")}" origin="Generated by Gradle"/>
+            <sha512 value="${getChecksum(foo, "sha512", "pom")}" origin="Generated by Gradle"/>
          </artifact>
       </component>
    </components>
