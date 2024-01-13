@@ -1838,8 +1838,8 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
     def "can incrementally set paths using closure"() {
         when:
         collection.withActualValue {
-            from("src1", "src2")
-            from("src3")
+            it.from("src1", "src2")
+            it.from("src3")
         }
         then:
         collection.from as List == ["src1", "src2", "src3"]
@@ -1849,8 +1849,8 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         when:
         collection.convention("src0")
         collection.withActualValue {
-            from("src1", "src2")
-            from("src3")
+            it.from("src1", "src2")
+            it.from("src3")
         }
         then:
         collection.from as List == ["src0", "src1", "src2", "src3"]
@@ -1862,8 +1862,8 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.setFrom("src1")
         collection.convention("unused-src")
         collection.withActualValue {
-            from("src3")
-            from("src4")
+            it.from("src3")
+            it.from("src4")
         }
         then:
         collection.from as List == ["src1", "src3", "src4"]

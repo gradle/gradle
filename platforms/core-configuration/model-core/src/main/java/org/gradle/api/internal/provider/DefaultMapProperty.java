@@ -20,8 +20,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.MapCollectors.EntriesFromMap;
@@ -31,7 +29,6 @@ import org.gradle.api.internal.provider.MapCollectors.SingleEntry;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.MapPropertyConfigurer;
 import org.gradle.api.provider.Provider;
-import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -204,13 +201,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
     public MapProperty<K, V> withActualValue(Action<MapPropertyConfigurer<K, V>> action) {
         setToConventionIfUnset();
         action.execute(getExplicitValue());
-        return this;
-    }
-
-    @Override
-    public MapProperty<K, V> withActualValue(@DelegatesTo(MapPropertyConfigurer.class) Closure<Void> action) {
-        setToConventionIfUnset();
-        ConfigureUtil.configure(action, getExplicitValue());
         return this;
     }
 
