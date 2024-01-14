@@ -16,7 +16,6 @@
 
 package org.gradle.api.provider;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
 
@@ -157,20 +156,4 @@ public interface HasMultipleValues<T> extends HasConfigurableValue, CollectionPr
      */
     @Override
     HasMultipleValues<T> withActualValue(Action<CollectionPropertyConfigurer<T>> action);
-
-    /**
-     * Performs incremental updates to the actual value of this property.
-     *
-     * This is a Groovy closure-compatible version of
-     * {@link HasMultipleValues#withActualValue(Action)},
-     * having this property's actual value (and not the property itself)
-     * as the target object.
-     *
-     * @param action a Groovy closure to incrementally configure this object's actual value
-     * via the {@link CollectionPropertyConfigurer} protocol.
-     *
-     * @see #withActualValue(Action)
-     * @since 8.7
-     */
-    HasMultipleValues<T> withActualValue(Closure<Void> action);
 }

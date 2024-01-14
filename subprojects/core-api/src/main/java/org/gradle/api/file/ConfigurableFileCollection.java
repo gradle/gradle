@@ -16,7 +16,6 @@
 package org.gradle.api.file;
 
 import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
@@ -131,23 +130,6 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
     @Override
     @Incubating
     ConfigurableFileCollection withActualValue(Action<FileCollectionConfigurer> action);
-
-    /**
-     * Performs incremental updates to the actual value of this file collection.
-     *
-     * This is a Groovy closure-compatible version of
-     * {@link ConfigurableFileCollection#withActualValue(Action)},
-     * having this file collection's actual value (and not the file collection itself)
-     * as the target object.
-     *
-     * @param action a Groovy closure to incrementally configure this object actual value
-     * via the {@link FileCollectionConfigurer} protocol.
-     *
-     * @see #withActualValue(Action)
-     * @since 8.7
-     */
-    @Incubating
-    ConfigurableFileCollection withActualValue(@DelegatesTo(FileCollectionConfigurer.class) Closure<Void> action);
 
     /**
      * Applies an eager transformation to the current contents of this file collection, without explicitly resolving it.

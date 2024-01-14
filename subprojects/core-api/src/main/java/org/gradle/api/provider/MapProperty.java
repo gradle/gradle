@@ -16,7 +16,6 @@
 
 package org.gradle.api.provider;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
@@ -144,23 +143,6 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
      */
     @Override
     MapProperty<K, V> withActualValue(Action<MapPropertyConfigurer<K, V>> action);
-
-    /**
-     * Performs incremental updates to the actual value of this property.
-     *
-     * This is a Groovy closure-compatible version of
-     * {@link MapProperty#withActualValue(Action)},
-     * having this property's actual value (and not the property itself)
-     * as the target object.
-     *
-     * @param action a Groovy closure to incrementally configure this object's actual value
-     * via the {@link MapPropertyConfigurer} protocol.
-     *
-     * @see #withActualValue(Action)
-     * @since 8.7
-     */
-    @Incubating
-    MapProperty<K, V> withActualValue(Closure<Void> action);
 
     /**
      * Specifies the value to use as the convention for this property. The convention is used when no value has been set for this property.

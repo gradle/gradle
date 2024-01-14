@@ -1270,8 +1270,8 @@ The value of this property is derived from: <source>""")
         given:
         property.convention(Providers.of(["1"]))
         property.withActualValue {
-            addAll(Providers.of(["2"]))
-            addAll(Providers.of(["3", "4"]))
+            it.addAll(Providers.of(["2"]))
+            it.addAll(Providers.of(["3", "4"]))
         }
         expect:
         assertValueIs toImmutable(["1", "2", "3", "4"])
@@ -1282,8 +1282,8 @@ The value of this property is derived from: <source>""")
         given:
         property.set([])
         property.withActualValue {
-            addAll(Providers.of(["1", "2"]))
-            addAll(Providers.of(["3", "4"]))
+            it.addAll(Providers.of(["1", "2"]))
+            it.addAll(Providers.of(["3", "4"]))
         }
 
         expect:
@@ -1294,8 +1294,8 @@ The value of this property is derived from: <source>""")
     def "can add to actual value without previous configuration"() {
         given:
         property.withActualValue {
-            addAll(Providers.of(["1", "2"]))
-            addAll(Providers.of(["3", "4"]))
+            it.addAll(Providers.of(["1", "2"]))
+            it.addAll(Providers.of(["3", "4"]))
         }
 
         expect:

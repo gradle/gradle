@@ -57,6 +57,7 @@ class GradleRunnerConventionalPluginClasspathInjectionIntegrationTest extends Ba
             |Plugin [id: 'com.company.helloworld'] was not found in any of the following sources:
             |
             |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
+            |- Included Builds (No included builds contain this plugin)
             |- $pluginRepositoriesDisplayName (plugin dependency must include a version number for this source)
         """.stripMargin().trim())
     }
@@ -80,6 +81,7 @@ class GradleRunnerConventionalPluginClasspathInjectionIntegrationTest extends Ba
             |
             |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
             |- Gradle TestKit (classpath: ${explicitClasspath*.absolutePath.join(File.pathSeparator)})
+            |- Included Builds (No included builds contain this plugin)
             |- $pluginRepositoriesDisplayName (plugin dependency must include a version number for this source)
         """.stripMargin().trim())
     }

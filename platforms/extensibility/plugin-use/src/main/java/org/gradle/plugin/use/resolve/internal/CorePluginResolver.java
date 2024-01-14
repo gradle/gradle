@@ -37,21 +37,19 @@ public class CorePluginResolver implements PluginResolver {
     }
 
     @Override
-    public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) {
+    public PluginResolutionResult resolve(PluginRequestInternal pluginRequest) {
         PluginId id = pluginRequest.getId();
         if (!isCorePluginRequest(id)) {
-            result.notFound(getDescription(), format("plugin is not in '%s' namespace", CORE_PLUGIN_NAMESPACE));
-            return;
+            return PluginResolutionResult.notFound(getDescription(), format("plugin is not in '%s' namespace", CORE_PLUGIN_NAMESPACE));
         }
 
         PluginImplementation<?> plugin = pluginRegistry.lookup(id);
         if (plugin == null) {
-            result.notFound(getDescription(), "not a core plugin. " + documentationRegistry.getDocumentationRecommendationFor("available plugins", "plugin_reference"));
-            return;
+            return PluginResolutionResult.notFound(getDescription(), "not a core plugin. " + documentationRegistry.getDocumentationRecommendationFor("available plugins", "plugin_reference"));
         }
 
         validate(pluginRequest);
-        result.found(getDescription(), new SimplePluginResolution(plugin));
+        return PluginResolutionResult.found(new SimplePluginResolution(plugin));
     }
 
     private static void validate(PluginRequestInternal pluginRequest) {

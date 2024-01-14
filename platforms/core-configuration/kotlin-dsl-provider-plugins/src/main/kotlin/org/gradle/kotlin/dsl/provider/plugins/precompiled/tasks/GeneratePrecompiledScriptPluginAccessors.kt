@@ -510,6 +510,7 @@ private
 fun ProjectInternal.applyPlugins(pluginRequests: PluginRequests) {
     serviceOf<PluginRequestApplicator>().applyPlugins(
         pluginRequests,
+        PluginRequests.EMPTY,
         buildscript,
         pluginManager,
         classLoaderScope

@@ -23,6 +23,20 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readArray
 import org.gradle.configurationcache.serialization.writeArray
+import org.gradle.internal.serialize.DecoderExtensions.readLengthPrefixedBooleans
+import org.gradle.internal.serialize.DecoderExtensions.readLengthPrefixedChars
+import org.gradle.internal.serialize.DecoderExtensions.readLengthPrefixedDoubles
+import org.gradle.internal.serialize.DecoderExtensions.readLengthPrefixedFloats
+import org.gradle.internal.serialize.DecoderExtensions.readLengthPrefixedInts
+import org.gradle.internal.serialize.DecoderExtensions.readLengthPrefixedLongs
+import org.gradle.internal.serialize.DecoderExtensions.readLengthPrefixedShorts
+import org.gradle.internal.serialize.EncoderExtensions.writeLengthPrefixedBooleans
+import org.gradle.internal.serialize.EncoderExtensions.writeLengthPrefixedChars
+import org.gradle.internal.serialize.EncoderExtensions.writeLengthPrefixedDoubles
+import org.gradle.internal.serialize.EncoderExtensions.writeLengthPrefixedFloats
+import org.gradle.internal.serialize.EncoderExtensions.writeLengthPrefixedInts
+import org.gradle.internal.serialize.EncoderExtensions.writeLengthPrefixedLongs
+import org.gradle.internal.serialize.EncoderExtensions.writeLengthPrefixedShorts
 
 
 object NonPrimitiveArrayCodec : Codec<Array<*>> {
@@ -40,112 +54,63 @@ object NonPrimitiveArrayCodec : Codec<Array<*>> {
 
 
 object ShortArrayCodec : Codec<ShortArray> {
-    override suspend fun WriteContext.encode(value: ShortArray) {
-        writeSmallInt(value.size)
-        for (i in 0 until value.size) {
-            writeShort(value[i])
-        }
-    }
+    override suspend fun WriteContext.encode(value: ShortArray) =
+        writeLengthPrefixedShorts(this, value)
 
-    override suspend fun ReadContext.decode() = ShortArray(readSmallInt()).also { array ->
-        for (i in 0 until array.size) {
-            array[i] = readShort()
-        }
-    }
+    override suspend fun ReadContext.decode() =
+        readLengthPrefixedShorts(this)
 }
 
 
 object IntArrayCodec : Codec<IntArray> {
-    override suspend fun WriteContext.encode(value: IntArray) {
-        writeSmallInt(value.size)
-        for (i in 0 until value.size) {
-            writeSmallInt(value[i])
-        }
-    }
+    override suspend fun WriteContext.encode(value: IntArray) =
+        writeLengthPrefixedInts(this, value)
 
-    override suspend fun ReadContext.decode() = IntArray(readSmallInt()).also { array ->
-        for (i in 0 until array.size) {
-            array[i] = readSmallInt()
-        }
-    }
+    override suspend fun ReadContext.decode() =
+        readLengthPrefixedInts(this)
 }
 
 
 object LongArrayCodec : Codec<LongArray> {
-    override suspend fun WriteContext.encode(value: LongArray) {
-        writeSmallInt(value.size)
-        for (i in 0 until value.size) {
-            writeLong(value[i])
-        }
-    }
+    override suspend fun WriteContext.encode(value: LongArray) =
+        writeLengthPrefixedLongs(this, value)
 
-    override suspend fun ReadContext.decode() = LongArray(readSmallInt()).also { array ->
-        for (i in 0 until array.size) {
-            array[i] = readLong()
-        }
-    }
+    override suspend fun ReadContext.decode() =
+        readLengthPrefixedLongs(this)
 }
 
 
 object FloatArrayCodec : Codec<FloatArray> {
-    override suspend fun WriteContext.encode(value: FloatArray) {
-        writeSmallInt(value.size)
-        for (i in 0 until value.size) {
-            writeFloat(value[i])
-        }
-    }
+    override suspend fun WriteContext.encode(value: FloatArray) =
+        writeLengthPrefixedFloats(this, value)
 
-    override suspend fun ReadContext.decode() = FloatArray(readSmallInt()).also { array ->
-        for (i in 0 until array.size) {
-            array[i] = readFloat()
-        }
-    }
+    override suspend fun ReadContext.decode() =
+        readLengthPrefixedFloats(this)
 }
 
 
 object DoubleArrayCodec : Codec<DoubleArray> {
-    override suspend fun WriteContext.encode(value: DoubleArray) {
-        writeSmallInt(value.size)
-        for (i in 0 until value.size) {
-            writeDouble(value[i])
-        }
-    }
+    override suspend fun WriteContext.encode(value: DoubleArray) =
+        writeLengthPrefixedDoubles(this, value)
 
-    override suspend fun ReadContext.decode() = DoubleArray(readSmallInt()).also { array ->
-        for (i in 0 until array.size) {
-            array[i] = readDouble()
-        }
-    }
+    override suspend fun ReadContext.decode() =
+        readLengthPrefixedDoubles(this)
 }
 
 
 object CharArrayCodec : Codec<CharArray> {
-    override suspend fun WriteContext.encode(value: CharArray) {
-        writeSmallInt(value.size)
-        for (i in 0 until value.size) {
-            writeSmallInt(value[i].code)
-        }
-    }
+    override suspend fun WriteContext.encode(value: CharArray) =
+        writeLengthPrefixedChars(this, value)
 
-    override suspend fun ReadContext.decode() = CharArray(readSmallInt()).also { array ->
-        for (i in 0 until array.size) {
-            array[i] = readSmallInt().toChar()
-        }
-    }
+    override suspend fun ReadContext.decode() =
+        readLengthPrefixedChars(this)
 }
 
 
 object BooleanArrayCodec : Codec<BooleanArray> {
-    override suspend fun WriteContext.encode(value: BooleanArray) {
-        writeSmallInt(value.size)
-        for (i in 0 until value.size) {
-            writeBoolean(value[i])
-        }
-    }
+    override suspend fun WriteContext.encode(value: BooleanArray) =
+        writeLengthPrefixedBooleans(this, value)
 
-    override suspend fun ReadContext.decode() = BooleanArray(readSmallInt()).also { array ->
-        for (i in 0 until array.size) {
-            array[i] = readBoolean()
-        }
-    }
+    override suspend fun ReadContext.decode() =
+        readLengthPrefixedBooleans(this)
 }

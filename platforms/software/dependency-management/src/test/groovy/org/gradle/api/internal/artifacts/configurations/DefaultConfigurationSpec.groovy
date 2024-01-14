@@ -33,7 +33,6 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
-import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
@@ -296,7 +295,6 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         then:
         configuration.dependencies as Set == [dependency, projectDependency] as Set
         configuration.dependencies.withType(ProjectDependency) as Set == [projectDependency] as Set
-        configuration.dependencies.withType(SelfResolvingDependency) as Set == [projectDependency] as Set
     }
 
     def "get all dependencies"() {
@@ -1264,14 +1262,6 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
         then:
         1 * resolver.resolveGraph(copy) >> graphResolved()
-    }
-
-    def "provides task dependency from project dependency using 'needed'"() {
-        def conf = conf("conf")
-        when:
-        def dep = conf.getTaskDependencyFromProjectDependency(true, "foo") as TasksFromProjectDependencies
-        then:
-        dep.taskName == "foo"
     }
 
     def "provides task dependency from project dependency using 'dependents'"() {

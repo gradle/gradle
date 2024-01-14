@@ -383,7 +383,7 @@ public class DependencyGraphBuilder {
                     if (module.isVirtualPlatform()) {
                         attachMultipleForceOnPlatformFailureToEdges(module);
                     } else if (selected.hasMoreThanOneSelectedNodeUsingVariantAwareResolution()) {
-                        validateMultipleNodeSelection(module, selected, resolutionFailureHandler);
+                        validateMultipleNodeSelection(attributesSchema, module, selected, resolutionFailureHandler);
                     }
                     if (denyDynamicSelectors) {
                         validateDynamicSelectors(selected);
@@ -487,7 +487,7 @@ public class DependencyGraphBuilder {
      * Validates that all selected nodes of a single component have compatible attributes,
      * when using variant aware resolution.
      */
-    private void validateMultipleNodeSelection(ModuleResolveState module, ComponentState selected, ResolutionFailureHandler resolutionFailureHandler) {
+    private void validateMultipleNodeSelection(AttributesSchemaInternal schema, ModuleResolveState module, ComponentState selected, ResolutionFailureHandler resolutionFailureHandler) {
         Set<NodeState> selectedNodes = selected.getNodes().stream()
             .filter(n -> n.isSelected() && !n.isAttachedToVirtualPlatform() && !n.hasShadowedCapability())
             .collect(Collectors.toSet());
@@ -503,7 +503,7 @@ public class DependencyGraphBuilder {
             assertCompatibleAttributes(first, second, incompatibleNodes);
         }
         if (!incompatibleNodes.isEmpty()) {
-            IncompatibleArtifactVariantsException variantsSelectionException = resolutionFailureHandler.incompatibleArtifactVariantsFailure(selected, incompatibleNodes);
+            IncompatibleArtifactVariantsException variantsSelectionException = resolutionFailureHandler.incompatibleArtifactVariantsFailure(schema, selected, incompatibleNodes);
             for (EdgeState edge : module.getIncomingEdges()) {
                 edge.failWith(variantsSelectionException);
             }

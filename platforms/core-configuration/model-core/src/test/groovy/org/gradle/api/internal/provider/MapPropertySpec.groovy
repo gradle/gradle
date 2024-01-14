@@ -1206,8 +1206,8 @@ The value of this property is derived from: <source>""")
         given:
         property.convention(['k0': '1'])
         property.withActualValue {
-            putAll(['k1': '2', 'k2': '3'])
-            put('k2', '4')
+            it.putAll(['k1': '2', 'k2': '3'])
+            it.put('k2', '4')
         }
         expect:
         assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
@@ -1218,9 +1218,9 @@ The value of this property is derived from: <source>""")
         given:
         property.set([:])
         property.withActualValue {
-            put('k0', '1')
-            putAll(['k1': '2', 'k2': '3'])
-            put('k2', '4')
+            it.put('k0', '1')
+            it.putAll(['k1': '2', 'k2': '3'])
+            it.put('k2', '4')
         }
         expect:
         assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
@@ -1230,9 +1230,9 @@ The value of this property is derived from: <source>""")
     def "may configure actual value incrementally"() {
         given:
         property.withActualValue {
-            put('k0', '1')
-            putAll(['k1': '2', 'k2': '3'])
-            put('k2', '4')
+            it.put('k0', '1')
+            it.putAll(['k1': '2', 'k2': '3'])
+            it.put('k2', '4')
         }
         expect:
         assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
@@ -1243,7 +1243,7 @@ The value of this property is derived from: <source>""")
         given:
         property.convention(['k0': '1', 'k1': '2', 'k2': '3'])
         property.withActualValue {
-            put('k1', '4')
+            it.put('k1', '4')
         }
         expect:
         assertValueIs(['k0': '1', 'k1': '4', 'k2': '3'])

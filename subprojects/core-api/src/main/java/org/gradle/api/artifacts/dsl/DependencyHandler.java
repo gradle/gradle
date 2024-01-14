@@ -221,7 +221,7 @@ import java.util.Map;
  * }
  * </pre>
  *
- * <p>File dependencies are represented using a {@link org.gradle.api.artifacts.SelfResolvingDependency}.</p>
+ * <p>File dependencies are represented using a {@link org.gradle.api.artifacts.FileCollectionDependency}.</p>
  *
  * <h3>Dependencies to other configurations</h3>
  *

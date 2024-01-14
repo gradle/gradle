@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.internal.artifacts.dsl;
 
-import java.util.Map;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.attributes.AttributeContainer;
 
-public interface DependencyResolveContext {
-    boolean isTransitive();
+public interface DependencyHandlerInternal extends DependencyHandler {
 
     /**
-     * Accepts either a {@link ResolvableDependency} or {@link org.gradle.api.file.FileCollection}
+     * Default attributes added to all artifact variants during artifact selection.
      */
-    void add(Object dependency);
-
-    Map<String, String> getAttributes();
+    AttributeContainer getDefaultArtifactAttributes();
 }

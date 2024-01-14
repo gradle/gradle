@@ -20,9 +20,9 @@ import org.gradle.api.Plugin
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.plugins.PluginImplementation
+import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.plugins.PluginRegistry
-import org.gradle.groovy.scripts.TextResourceScriptSource
-import org.gradle.internal.resource.StringTextResource
+import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.plugin.management.internal.DefaultPluginRequest
 import org.gradle.plugin.management.internal.InvalidPluginRequestException
 import org.gradle.plugin.management.internal.PluginRequestInternal
@@ -39,46 +39,54 @@ class CorePluginResolverTest extends Specification {
 
     def docRegistry = new DocumentationRegistry()
     def pluginRegistry = Mock(PluginRegistry)
-    def result = Mock(PluginResolutionResult)
+    def impl = Mock(PluginImplementation)
+    def pluginManager = Mock(PluginManagerInternal)
 
     def resolver = new CorePluginResolver(docRegistry, pluginRegistry)
 
     PluginRequestInternal request(String id, String version = null) {
-        new DefaultPluginRequest(DefaultPluginId.of(id), version, true, 1, new TextResourceScriptSource(new StringTextResource("test", "test")))
+        new DefaultPluginRequest(DefaultPluginId.of(id), true, PluginRequestInternal.Origin.OTHER, "source display name", 1, version, null, null, null)
     }
 
     def "non core plugins are ignored"() {
+        given:
+        def request = request("foo.bar")
+
         when:
-        resolver.resolve(request("foo.bar"), result)
+        def result = resolver.resolve(request)
+        result.assertSuccess(request)
 
         then:
-        1 * result.notFound(resolver.getDescription(), "plugin is not in 'org.gradle' namespace")
+        def e = thrown(LocationAwareException)
+        e.cause.message.contains("plugin is not in 'org.gradle' namespace")
     }
 
     def "can resolve unqualified"() {
         when:
-        resolver.resolve(request("foo"), result)
+        def result = resolver.resolve(request("foo"))
+        result.found.applyTo(pluginManager)
 
         then:
-        1 * pluginRegistry.lookup(DefaultPluginId.of("foo")) >> Mock(PluginImplementation) { asClass() >> MyPlugin }
-        1 * result.found(resolver.getDescription(), { it instanceof SimplePluginResolution && it.plugin.asClass() == MyPlugin })
+        1 * pluginManager.apply(impl)
+        1 * pluginRegistry.lookup(DefaultPluginId.of("foo")) >> impl
     }
 
     def "can resolve qualified"() {
         when:
-        resolver.resolve(request("org.gradle.foo"), result)
+        def result = resolver.resolve(request("org.gradle.foo"))
+        result.found.applyTo(pluginManager)
 
         then:
-        1 * pluginRegistry.lookup(DefaultPluginId.of("org.gradle.foo")) >> Mock(PluginImplementation) { asClass() >> MyPlugin }
-        1 * result.found(resolver.getDescription(), { it instanceof SimplePluginResolution && it.plugin.asClass() == MyPlugin })
+        1 * pluginManager.apply(impl)
+        1 * pluginRegistry.lookup(DefaultPluginId.of("org.gradle.foo")) >> impl
     }
 
     def "cannot have version number"() {
         when:
-        resolver.resolve(request("foo", "1.0"), result)
+        resolver.resolve(request("foo", "1.0"))
 
         then:
-        1 * pluginRegistry.lookup(DefaultPluginId.of("foo")) >> Mock(PluginImplementation) { asClass() >> MyPlugin }
+        1 * pluginRegistry.lookup(DefaultPluginId.of("foo")) >> impl
 
         and:
         thrown InvalidPluginRequestException
@@ -86,24 +94,29 @@ class CorePluginResolverTest extends Specification {
 
     def "cannot have custom artifact"() {
         when:
-        resolver.resolve(new DefaultPluginRequest(DefaultPluginId.of("foo"), null, true, 1, "test", Mock(ModuleVersionSelector)), result)
+        resolver.resolve(new DefaultPluginRequest(DefaultPluginId.of("foo"), true, PluginRequestInternal.Origin.OTHER, "test", 1, null, Mock(ModuleVersionSelector), null, null))
 
         then:
-        1 * pluginRegistry.lookup(DefaultPluginId.of("foo")) >> Mock(PluginImplementation) { asClass() >> MyPlugin }
+        1 * pluginRegistry.lookup(DefaultPluginId.of("foo")) >> impl
 
         and:
         thrown InvalidPluginRequestException
     }
 
     def "ignores plugin with version that isn't found in registry"() {
+        given:
+        def request = request("org.gradle.foo", "1.0")
+
         when:
-        resolver.resolve(request("org.gradle.foo", "1.0"), result)
+        def resolved = resolver.resolve(request)
+        resolved.assertSuccess(request)
 
         then:
         1 * pluginRegistry.lookup(DefaultPluginId.of("org.gradle.foo")) >> null
-        1 * result.notFound(resolver.getDescription(), {
-            it.contains("not a core plugin. " + new DocumentationRegistry().getDocumentationRecommendationFor("available plugins","plugin_reference"))
-        })
+
+        and:
+        def e = thrown(LocationAwareException)
+        e.cause.message.contains("not a core plugin. " + new DocumentationRegistry().getDocumentationRecommendationFor("available plugins","plugin_reference"))
     }
 
 }

@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Bundling;
@@ -33,6 +32,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.dsl.DependencyHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform;
 import org.gradle.api.internal.initialization.transform.ExternalDependencyInstrumentingArtifactTransform;
@@ -74,8 +74,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     @Override
     public void prepareDependencyHandler(DependencyHandler dependencyHandler) {
-        // We use `maybeCreate`, since buildSrc already has JAR_TYPE defined from the JavaBase plugin
-        dependencyHandler.getArtifactTypes().maybeCreate(ArtifactTypeDefinition.JAR_TYPE).getAttributes()
+        ((DependencyHandlerInternal) dependencyHandler).getDefaultArtifactAttributes()
             .attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED_ATTRIBUTE_VALUE)
             .attribute(HIERARCHY_COLLECTED_ATTRIBUTE, false);
 

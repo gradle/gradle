@@ -61,6 +61,74 @@ To fix a deprecation warning, invalid URLs that require the legacy behavior shou
 | `https://example.com/my%%badly%encoded%path` | `https://example.com/my%25%25badly%25encoded%25path` | `%` must be encoded as `%25` in URLs, and no `%`-escapes should be invalid.
 |===
 
+[[deprecate_self_resolving_dependency]]
+==== Deprecated `SelfResolvingDependency`
+
+The `SelfResolvingDependency` interface has been deprecated for removal in Gradle 9.0.
+This type dates back to the first versions of Gradle, where some dependencies could be resolved independently.
+Now, all dependencies should be resolved as part of a dependency graph using a `Configuration`.
+
+Currently, `ProjectDependency` and `FileCollectionDependency` implement this interface.
+In Gradle 9.0, these types will no longer implement `SelfResolvingDependency`.
+Instead, they will both directly implement `Dependency`.
+
+As such, the following methods of `ProjectDependency` and `FileCollectionDependency` will no longer be avaDilable:
+
+- `resolve`
+- `resolve(boolean)`
+- `getBuildDependencies`
+
+Consider the following scripts that showcase the deprecated interface and its replacement:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+}
+
+dependencies {
+    implementation(files("bar.txt"))
+    implementation(project(":foo"))
+}
+
+tasks.register("resolveDeprecated") {
+    // Wire build dependencies (calls getBuildDependencies)
+    dependsOn(configurations["implementation"].dependencies.toSet())
+
+    // Resolve dependencies
+    doLast {
+        configurations["implementation"].dependencies.withType<FileCollectionDependency>() {
+            assert(resolve().map { it.name } == listOf("bar.txt"))
+            assert(resolve(true).map { it.name } == listOf("bar.txt"))
+        }
+        configurations["implementation"].dependencies.withType<ProjectDependency>() {
+            // These methods do not even work properly.
+            assert(resolve().map { it.name } == listOf<String>())
+            assert(resolve(true).map { it.name } == listOf<String>())
+        }
+    }
+}
+
+tasks.register("resolveReplacement") {
+    val conf = configurations["runtimeClasspath"]
+
+    // Wire build dependencies
+    dependsOn(conf)
+
+    // Resolve dependencies
+    val files = conf.files
+    doLast {
+        assert(files.map { it.name } == listOf("bar.txt", "foo.jar"))
+    }
+}
+----
+======
+=====
+
 [[changes_8.6]]
 == Upgrading from 8.5 and earlier
 
