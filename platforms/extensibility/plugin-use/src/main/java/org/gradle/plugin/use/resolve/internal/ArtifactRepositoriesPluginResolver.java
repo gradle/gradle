@@ -66,26 +66,28 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
             // in case the user provides an explicit or transitive required version.
             // The resolution will fail if there is no user-provided required version, however it avoids us failing here
             // if the weak version is not present but never selected.
-            return PluginResolutionResult.found(new ExternalPluginResolution(pluginRequest.getId(), pluginRequest, autoApplied));
+            return PluginResolutionResult.found(new ExternalPluginResolution(pluginRequest, autoApplied));
         } else {
             return handleNotFound("could not resolve plugin artifact '" + getNotation(markerDependency) + "'");
         }
     }
 
     static class ExternalPluginResolution implements PluginResolution {
-        private final PluginId pluginId;
         private final PluginRequestInternal pluginRequest;
-        private final boolean weak;
+        private final boolean useWeakVersion;
 
-        public ExternalPluginResolution(PluginId pluginId, PluginRequestInternal pluginRequest, boolean weak) {
-            this.pluginId = pluginId;
+        /**
+         * @param pluginRequest The original plugin request.
+         * @param useWeakVersion Whether a preferred version should be used for the plugin dependency.
+         */
+        public ExternalPluginResolution(PluginRequestInternal pluginRequest, boolean useWeakVersion) {
             this.pluginRequest = pluginRequest;
-            this.weak = weak;
+            this.useWeakVersion = useWeakVersion;
         }
 
         @Override
         public PluginId getPluginId() {
-            return pluginId;
+            return pluginRequest.getId();
         }
 
         @Override
@@ -107,12 +109,14 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
                 : DefaultModuleIdentifier.newId(id, id + PLUGIN_MARKER_SUFFIX);
 
             visitDependency(visitor, module);
-            visitModuleReplacements(visitor, id, module);
+            pluginRequest.getAlternativeCoordinates().ifPresent(altCoords ->
+                visitModuleReplacements(visitor, altCoords, id, module)
+            );
         }
 
         private void visitDependency(PluginResolutionVisitor visitor, ModuleIdentifier module) {
             DefaultMutableVersionConstraint versionConstraint;
-            if (weak) {
+            if (useWeakVersion) {
                 versionConstraint = DefaultMutableVersionConstraint.withPreferredVersion(getPluginVersion());
             } else {
                 versionConstraint = DefaultMutableVersionConstraint.withVersion(getPluginVersion());
@@ -120,18 +124,15 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
             visitor.visitDependency(new DefaultExternalModuleDependency(module, versionConstraint, null));
         }
 
-        private void visitModuleReplacements(PluginResolutionVisitor visitor, String id, ModuleIdentifier module) {
-            PluginCoordinates altCoords = pluginRequest.getAlternativeCoordinates().orElse(null);
-            if (altCoords != null) {
-                String altId = altCoords.getId().getId();
-                visitor.visitReplacement(
-                    DefaultModuleIdentifier.newId(id, id + PLUGIN_MARKER_SUFFIX),
-                    DefaultModuleIdentifier.newId(altId, altId + PLUGIN_MARKER_SUFFIX)
-                );
+        private static void visitModuleReplacements(PluginResolutionVisitor visitor, PluginCoordinates altCoords, String id, ModuleIdentifier module) {
+            String altId = altCoords.getId().getId();
+            visitor.visitReplacement(
+                DefaultModuleIdentifier.newId(id, id + PLUGIN_MARKER_SUFFIX),
+                DefaultModuleIdentifier.newId(altId, altId + PLUGIN_MARKER_SUFFIX)
+            );
 
-                if (altCoords.getModule() != null) {
-                    visitor.visitReplacement(module, altCoords.getModule().getModule());
-                }
+            if (altCoords.getModule() != null) {
+                visitor.visitReplacement(module, altCoords.getModule().getModule());
             }
         }
 
@@ -142,7 +143,7 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
                 return;
             }
 
-            pluginManager.apply(pluginId.getId());
+            pluginManager.apply(pluginRequest.getId().getId());
         }
     }
 

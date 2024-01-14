@@ -29,7 +29,6 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.UnknownPluginException;
-import org.gradle.internal.Pair;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
@@ -37,10 +36,10 @@ import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.PluginResolutionStrategyInternal;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.resolve.internal.AlreadyOnClasspathPluginResolver;
-import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositories;
 import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositoriesProvider;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
+import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionVisitor;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
@@ -95,7 +94,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         PluginResolver pluginResolver = wrapInAlreadyInClasspathResolver(classLoaderScope, resolveContext);
         for (PluginRequestInternal originalRequest : requests) {
             PluginRequestInternal request = pluginResolutionStrategy.applyTo(originalRequest);
-            PluginResolution resolved = resolveToFoundResult(pluginResolver, request);
+            PluginResolution resolved = resolvePluginRequest(pluginResolver, request);
 
             resolved.accept(pluginDependencies);
 
@@ -117,8 +116,8 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         pluginDependencies.getAdditionalDependencies().forEach(scriptHandler::addScriptClassPathDependency);
         if (!pluginDependencies.getReplacements().isEmpty()) {
             ComponentModuleMetadataHandler modules = scriptHandler.getDependencies().getModules();
-            for (Pair<ModuleIdentifier, ModuleIdentifier> sub : pluginDependencies.getReplacements()) {
-                modules.module(sub.getLeft(), details -> details.replacedBy(sub.getRight()));
+            for (CollectingPluginRequestResolutionVisitor.ModuleReplacement replacement : pluginDependencies.getReplacements()) {
+                modules.module(replacement.original, details -> details.replacedBy(replacement.replacement));
             }
         }
 
@@ -180,10 +179,10 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         return new InvalidPluginException(String.format("An exception occurred applying plugin request %s", request.getDisplayName()), e);
     }
 
-    private static PluginResolution resolveToFoundResult(PluginResolver effectivePluginResolver, PluginRequestInternal request) {
+    private static PluginResolution resolvePluginRequest(PluginResolver resolver, PluginRequestInternal request) {
         PluginResolutionResult result;
         try {
-            result = effectivePluginResolver.resolve(request);
+            result = resolver.resolve(request);
         } catch (Exception e) {
             throw new LocationAwareException(
                 new GradleException(String.format("Error resolving plugin %s", request.getDisplayName()), e),
@@ -195,8 +194,18 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
     private static class CollectingPluginRequestResolutionVisitor implements PluginResolutionVisitor {
         private List<Dependency> additionalDependencies;
-        private List<Pair<ModuleIdentifier, ModuleIdentifier>> replacements;
+        private List<ModuleReplacement> replacements;
         private List<ClassLoader> additionalClassloaders;
+
+        static class ModuleReplacement {
+            private final ModuleIdentifier original;
+            private final ModuleIdentifier replacement;
+
+            public ModuleReplacement(ModuleIdentifier original, ModuleIdentifier replacement) {
+                this.original = original;
+                this.replacement = replacement;
+            }
+        }
 
         @Override
         public void visitDependency(Dependency dependency) {
@@ -211,7 +220,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             if (replacements == null) {
                 replacements = new ArrayList<>();
             }
-            replacements.add(Pair.of(original, replacement));
+            replacements.add(new ModuleReplacement(original, replacement));
         }
 
         @Override
@@ -229,7 +238,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             return additionalDependencies;
         }
 
-        public List<Pair<ModuleIdentifier, ModuleIdentifier>> getReplacements() {
+        public List<ModuleReplacement> getReplacements() {
             if (replacements == null) {
                 return Collections.emptyList();
             }
