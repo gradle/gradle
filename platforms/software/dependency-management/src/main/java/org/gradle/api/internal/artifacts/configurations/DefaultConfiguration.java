@@ -194,6 +194,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final ConfigurationsProvider configurationsProvider;
 
     private final Path identityPath;
+    private final Path projectPath;
 
     // These fields are not covered by mutation lock
     private final String name;
@@ -283,6 +284,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.identityPath = domainObjectContext.identityPath(name);
+        this.projectPath = domainObjectContext.projectPath(name);
         this.name = name;
         this.configurationsProvider = configurationsProvider;
         this.resolver = resolver;
@@ -1845,7 +1847,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public String getPath() {
-            return domainObjectContext.projectPath(name).getPath();
+            return projectPath.getPath();
         }
 
         @Override
