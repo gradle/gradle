@@ -50,6 +50,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDepen
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.ErrorHandlingConfigurationResolver
+import org.gradle.api.internal.artifacts.ivyservice.LenientConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedFileVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet
@@ -382,38 +383,44 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
     def fileCollectionWithDependencies() {
         def dependency1 = dependency("group1", "name", "version")
-        def dependency2 = dependency("group2", "name", "version")
         def configuration = conf()
+        def fileSet = [new File("somePath")] as Set
+        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
 
         when:
         def fileCollection = configuration.fileCollection(dependency1)
 
         then:
-        fileCollection.resultProvider.dependencySpec.isSatisfiedBy(dependency1)
-        !fileCollection.resultProvider.dependencySpec.isSatisfiedBy(dependency2)
+        fileCollection.files == fileSet
+        configuration.state == RESOLVED
     }
 
     def fileCollectionWithSpec() {
         def configuration = conf()
         Spec<Dependency> spec = Mock(Spec)
+        def fileSet = [new File("somePath")] as Set
+        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
 
         when:
         def fileCollection = configuration.fileCollection(spec)
 
         then:
-        fileCollection.resultProvider.dependencySpec == spec
+        fileCollection.files == fileSet
+        configuration.state == RESOLVED
     }
 
     def fileCollectionWithClosureSpec() {
         def closure = { dep -> dep.group == 'group1' }
         def configuration = conf()
+        def fileSet = [new File("somePath")] as Set
+        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
 
         when:
         def fileCollection = configuration.fileCollection(closure)
 
         then:
-        fileCollection.resultProvider.dependencySpec.isSatisfiedBy(dependency("group1", "name", "version"))
-        !fileCollection.resultProvider.dependencySpec.isSatisfiedBy(dependency("group2", "name", "version"))
+        fileCollection.files == fileSet
+        configuration.state == RESOLVED
     }
 
     def filesWithDependencies() {
@@ -474,15 +481,12 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, failure)
 
         def visitedArtifactSet = Stub(VisitedArtifactSet) {
-            select(_, _) >> Stub(SelectedArtifactSet) {
+            select(_) >> Stub(SelectedArtifactSet) {
                 visitFiles(_, _) >> { ResolvedFileVisitor v, boolean l -> v.visitFailure(failure) }
             }
         }
-        def resolvedConfiguration = Stub(ResolvedConfiguration) {
-            hasError() >> true
-        }
 
-        _ * resolver.resolveGraph(_) >> DefaultResolverResults.graphResolved(visitedGraphResults, Stub(ResolvedLocalComponentsResult), resolvedConfiguration, visitedArtifactSet)
+        _ * resolver.resolveGraph(_) >> DefaultResolverResults.graphResolved(visitedGraphResults, Stub(ResolvedLocalComponentsResult), Mock(ResolvedConfiguration), visitedArtifactSet)
     }
 
     def "artifacts have correct build dependencies"() {
@@ -540,7 +544,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def selectedArtifactSet = Mock(SelectedArtifactSet)
 
         given:
-        _ * visitedArtifactSet.select(_, _) >> selectedArtifactSet
+        _ * visitedArtifactSet.select(_) >> selectedArtifactSet
         _ * selectedArtifactSet.visitDependencies(_) >> { TaskDependencyResolveContext visitor -> visitor.add(artifactTaskDependencies) }
         _ * artifactTaskDependencies.getDependencies(_) >> requiredTasks
 
@@ -1766,18 +1770,29 @@ All Artifacts:
     private ResolverResults graphResolved(Set<File> files = []) {
         def resolutionResult = new DefaultMinimalResolutionResult(() -> Stub(ResolvedComponentResult), ImmutableAttributes.EMPTY)
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
-        DefaultResolverResults.graphResolved(visitedGraphResults, Stub(ResolvedLocalComponentsResult), Mock(ResolvedConfiguration), visitedArtifacts(files))
+
+        ResolvedConfiguration resolvedConfiguration = Mock(ResolvedConfiguration) {
+            getLenientConfiguration() >> Mock(LenientConfigurationInternal) {
+                select(_) >> selectedArtifacts(files)
+            }
+        }
+
+        DefaultResolverResults.graphResolved(visitedGraphResults, Stub(ResolvedLocalComponentsResult), resolvedConfiguration, visitedArtifacts(files))
     }
 
     private visitedArtifacts(Set<File> files = []) {
         Stub(VisitedArtifactSet) {
-            select(_, _) >> Stub(SelectedArtifactSet) {
-                visitFiles(_, _) >> { ResolvedFileVisitor visitor, boolean l ->
-                    files.each {
-                        visitor.visitFile(it)
-                    }
-                    visitor.endVisitCollection(null)
+            select(_) >> selectedArtifacts(files)
+        }
+    }
+
+    private Object selectedArtifacts(Set<File> files = []) {
+        Stub(SelectedArtifactSet) {
+            visitFiles(_, _) >> { ResolvedFileVisitor visitor, boolean l ->
+                files.each {
+                    visitor.visitFile(it)
                 }
+                visitor.endVisitCollection(null)
             }
         }
     }

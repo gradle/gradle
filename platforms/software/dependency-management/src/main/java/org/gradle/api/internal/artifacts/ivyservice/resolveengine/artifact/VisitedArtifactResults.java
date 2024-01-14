@@ -16,15 +16,17 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-/**
- * A container of the artifacts visited during graph traversal.
- */
-public interface VisitedArtifactSet {
+import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
+
+public interface VisitedArtifactResults {
     /**
-     * Creates a set that selects the artifacts from this set that match the given criteria.
-     * Implementations are lazy, so that the selection happens only when the contents are queried.
+     * Selects the artifacts for the matching variant of each node seen during traversal.
+     * The implementation should attempt to select artifacts eagerly, but may be lazy where
+     * the selection cannot happen until the results are queried.
      *
-     * @param spec Parameters controlling the artifact selection process
+     * @param variantSelector Performs variant selection
+     * @param spec Governs how artifacts are selected
+     * @param lenient If true, ignore artifacts that are resolved, but unavailable
      */
-    SelectedArtifactSet select(ArtifactSelectionSpec spec);
+    SelectedArtifactResults select(ArtifactVariantSelector variantSelector, ArtifactSelectionSpec spec, boolean lenient);
 }

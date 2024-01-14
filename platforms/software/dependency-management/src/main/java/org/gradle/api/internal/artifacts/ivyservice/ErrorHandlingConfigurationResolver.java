@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
 import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
@@ -90,8 +91,8 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         );
     }
 
-    private static class ErrorHandlingLenientConfiguration implements LenientConfiguration {
-        private final LenientConfiguration lenientConfiguration;
+    private static class ErrorHandlingLenientConfiguration implements LenientConfigurationInternal {
+        private final LenientConfigurationInternal lenientConfiguration;
         private final ResolveContext resolveContext;
         private final ResolveExceptionContextualizer contextualizer;
 
@@ -100,9 +101,18 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             ResolveContext resolveContext,
             ResolveExceptionContextualizer contextualizer
         ) {
-            this.lenientConfiguration = lenientConfiguration;
+            this.lenientConfiguration = (LenientConfigurationInternal) lenientConfiguration;
             this.resolveContext = resolveContext;
             this.contextualizer = contextualizer;
+        }
+
+        @Override
+        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec) {
+            try {
+                return lenientConfiguration.select(dependencySpec);
+            } catch (Exception e) {
+                throw contextualizer.contextualize(e, resolveContext);
+            }
         }
 
         @Override

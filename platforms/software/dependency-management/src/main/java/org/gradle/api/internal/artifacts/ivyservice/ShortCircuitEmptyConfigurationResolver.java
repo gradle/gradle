@@ -115,7 +115,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         private static final EmptyResults INSTANCE = new EmptyResults();
 
         @Override
-        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, ArtifactSelectionSpec spec) {
+        public SelectedArtifactSet select(ArtifactSelectionSpec spec) {
             return this;
         }
 
@@ -137,7 +137,12 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
         @Override
         public LenientConfiguration getLenientConfiguration() {
-            return new LenientConfiguration() {
+            return new LenientConfigurationInternal() {
+                @Override
+                public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec) {
+                    return EmptyResults.INSTANCE;
+                }
+
                 @Override
                 public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
                     return Collections.emptySet();

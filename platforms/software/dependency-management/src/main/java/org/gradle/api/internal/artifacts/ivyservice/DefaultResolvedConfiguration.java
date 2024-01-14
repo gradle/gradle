@@ -23,11 +23,9 @@ import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -53,7 +51,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
         List<Throwable> failures = new ArrayList<>();
         graphResults.visitFailures(failures::add);
-        throw new ResolveException(configuration.getDisplayName(), failures);
+        configuration.getResolutionHost().rethrowFailure("dependencies", failures);
     }
 
     @Override
@@ -63,21 +61,17 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
     @Override
     public Set<File> getFiles() throws ResolveException {
-        return getFiles(Specs.satisfyAll());
+        ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
+        configuration.select().visitArtifacts(visitor, false);
+        configuration.getResolutionHost().rethrowFailure("files", visitor.getFailures());
+        return visitor.getFiles();
     }
 
     @Override
     public Set<File> getFiles(final Spec<? super Dependency> dependencySpec) throws ResolveException {
         ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
         configuration.select(dependencySpec).visitArtifacts(visitor, false);
-        Collection<Throwable> failures = visitor.getFailures();
-        if (!failures.isEmpty()) {
-            throw new DefaultLenientConfiguration.ArtifactResolveException(
-                "files",
-                configuration.getDisplayName(),
-                failures
-            );
-        }
+        configuration.getResolutionHost().rethrowFailure("files", visitor.getFailures());
         return visitor.getFiles();
     }
 

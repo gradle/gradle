@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -28,12 +28,10 @@ import java.util.List;
  */
 public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisitor {
     private final boolean buildProjectDependencies;
-    private final ResolutionStrategy.SortOrder sortOrder;
     private final List<ArtifactSet> artifactSetsById = new ArrayList<>();
 
-    public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies, ResolutionStrategy.SortOrder sortOrder) {
+    public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies) {
         this.buildProjectDependencies = buildProjectDependencies;
-        this.sortOrder = sortOrder;
     }
 
     @Override
@@ -45,9 +43,10 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts) {
         // Don't collect build dependencies if not required
         if (!buildProjectDependencies) {
-            artifacts = new NoBuildDependenciesArtifactSet(artifacts);
+            collectArtifacts(artifactSetId, new NoBuildDependenciesArtifactSet(artifacts));
+        } else {
+            collectArtifacts(artifactSetId, artifacts);
         }
-        collectArtifacts(artifactSetId, artifacts);
     }
 
     private void collectArtifacts(int artifactSetId, ArtifactSet artifacts) {
@@ -58,7 +57,7 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
         }
     }
 
-    public VisitedArtifactsResults complete() {
-        return new DefaultVisitedArtifactResults(sortOrder, artifactSetsById);
+    public VisitedArtifactResults complete() {
+        return new DefaultVisitedArtifactResults(Collections.unmodifiableList(artifactSetsById));
     }
 }

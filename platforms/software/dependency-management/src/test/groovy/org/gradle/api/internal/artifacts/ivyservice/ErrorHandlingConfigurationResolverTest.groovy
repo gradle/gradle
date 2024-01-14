@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.gradle.api.artifacts.LenientConfiguration
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.internal.DocumentationRegistry
@@ -135,7 +134,7 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
     void "wraps exceptions thrown by resolved lenient configuration"() {
         given:
         def failure = new RuntimeException()
-        def lenientConfiguration = Stub(LenientConfiguration)
+        def lenientConfiguration = Stub(LenientConfigurationInternal)
 
         resolvedConfiguration.getLenientConfiguration() >> lenientConfiguration
         lenientConfiguration.getFiles(_) >> { throw failure }

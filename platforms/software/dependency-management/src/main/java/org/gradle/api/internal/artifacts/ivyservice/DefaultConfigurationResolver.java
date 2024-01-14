@@ -41,13 +41,14 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyIntern
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyGraphResolver;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesOnlyVisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultVisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactsGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
@@ -177,11 +178,10 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
     @Override
     public ResolverResults resolveBuildDependencies(ResolveContext resolveContext) {
-        ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
         ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter);
         InMemoryResolutionResultBuilder resolutionResultBuilder = new InMemoryResolutionResultBuilder();
         ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild);
-        DefaultResolvedArtifactsBuilder artifactsVisitor = new DefaultResolvedArtifactsBuilder(buildProjectDependencies, resolutionStrategy.getSortOrder());
+        DefaultResolvedArtifactsBuilder artifactsVisitor = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
 
         ComponentResolvers resolvers = componentResolversFactory.create(resolveContext, ImmutableList.of(), consumerSchema);
 
@@ -202,7 +202,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResultBuilder.getResolutionResult(), unresolvedDependencies, null);
 
         ArtifactVariantSelector artifactVariantSelector = variantSelectorFactory.create(resolveContext.getDependenciesResolverFactory());
-        VisitedArtifactSet artifacts = new BuildDependenciesOnlyVisitedArtifactSet(graphResults, artifactsVisitor.complete(), artifactVariantSelector);
+        ResolvedArtifactSetResolver artifactSetResolver = getArtifactSetResolver(resolveContext.getResolutionHost());
+        VisitedArtifactSet artifacts = new DefaultVisitedArtifactSet(graphResults, artifactsVisitor.complete(), artifactSetResolver, artifactVariantSelector);
         return DefaultResolverResults.buildDependenciesResolved(graphResults, localComponentsVisitor, artifacts);
     }
 
@@ -223,7 +224,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild);
 
-        DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies, resolutionStrategy.getSortOrder());
+        DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
         FileDependencyCollectingGraphVisitor fileDependencyVisitor = new FileDependencyCollectingGraphVisitor();
         ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter);
 
@@ -264,7 +265,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         dependencyGraphResolver.resolveGraph(resolveContext, resolvers, consumerSchema, metadataHandler, Specs.satisfyAll(), true, graphVisitors.build());
 
-        VisitedArtifactsResults artifactsResults = artifactsBuilder.complete();
+        VisitedArtifactResults artifactsResults = artifactsBuilder.complete();
         VisitedFileDependencyResults fileDependencyResults = fileDependencyVisitor.complete();
         ResolvedGraphResults legacyGraphResults = oldModelBuilder.complete();
 
@@ -295,16 +296,18 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         TransientConfigurationResultsLoader transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(oldTransientModelBuilder, legacyGraphResults);
         ArtifactVariantSelector artifactVariantSelector = variantSelectorFactory.create(resolveContext.getDependenciesResolverFactory());
+        ResolvedArtifactSetResolver artifactSetResolver = getArtifactSetResolver(resolutionHost);
+        VisitedArtifactSet artifacts = new DefaultVisitedArtifactSet(graphResults, artifactsResults, artifactSetResolver, artifactVariantSelector);
+
         DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(
             resolutionHost,
             resolveContext.getAttributes().asImmutable(),
+            resolutionStrategy.getSortOrder(),
             graphResults,
             artifactsResults,
             fileDependencyResults,
             transientConfigurationResultsFactory,
-            buildOperationExecutor,
-            dependencyVerificationOverride,
-            workerLeaseService,
+            artifactSetResolver,
             artifactVariantSelector
         );
 
@@ -312,7 +315,16 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             graphResults,
             localComponentsVisitor,
             new DefaultResolvedConfiguration(lenientConfiguration),
-            lenientConfiguration
+            artifacts
+        );
+    }
+
+    private ResolvedArtifactSetResolver getArtifactSetResolver(ResolutionHost resolutionHost) {
+        return new ResolvedArtifactSetResolver(
+            workerLeaseService,
+            buildOperationExecutor,
+            dependencyVerificationOverride,
+            resolutionHost
         );
     }
 
