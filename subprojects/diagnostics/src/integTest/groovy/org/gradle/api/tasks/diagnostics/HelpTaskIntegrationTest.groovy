@@ -192,6 +192,7 @@ To run a build, run gradle <task> ...
 
     def "shows basic welcome message for current project only"() {
         given:
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
 
         when:
@@ -273,6 +274,7 @@ BUILD SUCCESSFUL"""
 
     def "help for tasks same type different descriptions"() {
         setup:
+        createDirs("someproj")
         settingsFile.text = """
 include ":someproj"
 """
@@ -313,6 +315,7 @@ BUILD SUCCESSFUL"""
 
     def "help for tasks same type different groups"() {
         setup:
+        createDirs("someproj1", "someproj2")
         settingsFile.text = """
 include ":someproj1"
 include ":someproj2"
@@ -361,6 +364,7 @@ BUILD SUCCESSFUL"""
 
     def "matchingTasksOfSameType"() {
         setup:
+        createDirs("subproj1")
         settingsFile << "include ':subproj1'"
         buildFile << "allprojects{ apply plugin:'java'}"
         when:
@@ -412,6 +416,7 @@ BUILD SUCCESSFUL"""
 
     def "multipleMatchingTasksOfDifferentType"() {
         setup:
+        createDirs("subproj1")
         settingsFile << "include ':subproj1'"
         buildFile << """task someTask(type:Jar){
             description = "an archiving operation"
@@ -539,6 +544,7 @@ BUILD SUCCESSFUL"""
     }
 
     def "listsEnumAndBooleanCmdOptionValues"() {
+        createDirs("proj1", "proj2")
         when:
         run "help", "--task", "hello"
         then:
@@ -575,6 +581,7 @@ BUILD SUCCESSFUL"""
     }
 
     def "listsCommonDynamicAvailableValues"() {
+        createDirs("sub1", "sub2")
         when:
         run "help", "--task", "hello"
         then:

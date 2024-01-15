@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
@@ -30,11 +29,12 @@ import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
-import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.component.model.GraphVariantSelectionResult;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import javax.annotation.Nullable;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -49,7 +49,7 @@ class EdgeState implements DependencyGraphEdge {
     private final DependencyMetadata dependencyMetadata;
     private final NodeState from;
     private final ResolveState resolveState;
-    private final List<NodeState> targetNodes = Lists.newLinkedList();
+    private final List<NodeState> targetNodes = new LinkedList<>();
     private final boolean isTransitive;
     private final boolean isConstraint;
     private final int hashCode;

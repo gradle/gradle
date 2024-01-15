@@ -279,7 +279,7 @@ class HttpClientHelperSSLTest extends Specification {
         System.properties["javax.net.ssl.trustStoreType"] = "Windows-ROOT"
 
         when:
-        performExternalRequest()
+        performExternalRequest("https://microsoft.com")
 
         then:
         noExceptionThrown()
@@ -319,10 +319,10 @@ class HttpClientHelperSSLTest extends Specification {
         performRequest(expectSuccess, true)
     }
 
-    private def performExternalRequest() {
+    private def performExternalRequest(String targetWebsite = "https://gradle.org") {
         createClient()
 
-        client.performGet("https://gradle.org", false)
+        client.performGet(targetWebsite, false)
     }
 
 }

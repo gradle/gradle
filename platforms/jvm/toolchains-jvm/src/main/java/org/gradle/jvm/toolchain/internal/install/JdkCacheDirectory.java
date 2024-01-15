@@ -25,7 +25,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
-import org.gradle.cache.internal.filelock.LockOptionsBuilder;
+import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
@@ -278,7 +278,7 @@ public class JdkCacheDirectory {
     }
 
     public FileLock acquireWriteLock(File destinationFile, String operationName) {
-        return lockManager.lock(destinationFile, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), destinationFile.getName(), operationName);
+        return lockManager.lock(destinationFile, DefaultLockOptions.mode(FileLockManager.LockMode.Exclusive), destinationFile.getName(), operationName);
     }
 
     public File getDownloadLocation() {

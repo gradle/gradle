@@ -20,8 +20,10 @@ import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.Callable;
 
-public class NetworkOperationBackOffAndRetry {
+
+public class NetworkOperationBackOffAndRetry<T> {
     private final static String MAX_ATTEMPTS = "org.gradle.internal.network.retry.max.attempts";
     private final static String INITIAL_BACKOFF_MS = "org.gradle.internal.network.retry.initial.backOff";
 
@@ -40,14 +42,15 @@ public class NetworkOperationBackOffAndRetry {
         assert initialBackOff > 0;
     }
 
-    public void withBackoffAndRetry(Runnable operation) {
+    public T withBackoffAndRetry(Callable<T> operation) {
         int backoff = initialBackOff;
         int retries = 0;
+        T returnValue = null;
         while (retries < maxDeployAttempts) {
             retries++;
             Throwable failure;
             try {
-                operation.run();
+                returnValue = operation.call();
                 if (retries > 1) {
                     LOGGER.info("Successfully ran '{}' after {} retries", operation, retries - 1);
                 }
@@ -68,5 +71,6 @@ public class NetworkOperationBackOffAndRetry {
                 }
             }
         }
+        return returnValue;
     }
 }

@@ -210,6 +210,7 @@ project(":project2") {
     @Issue("GRADLE-3366")
     def "project dependency excludes are correctly reflected in pom when using maven-publish plugin"() {
         given:
+        createDirs("project1", "project2")
         settingsFile << """
 include "project1", "project2"
 """
@@ -285,6 +286,7 @@ project(":project2") {
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
 
+        createDirs(platformName, "library")
         settingsFile << """
 include "$platformName", "library"
 """
@@ -383,6 +385,7 @@ project(":library") {
     }
 
     private void createBuildScripts(String append = "") {
+        createDirs("project1", "project2", "project3")
         settingsFile << """
 include "project1", "project2", "project3"
         """

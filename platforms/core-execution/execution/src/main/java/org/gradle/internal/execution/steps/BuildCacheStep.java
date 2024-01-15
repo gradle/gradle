@@ -25,15 +25,15 @@ import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
-import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
+import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.AfterExecutionState;
-import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.impl.DefaultAfterExecutionState;
+import org.gradle.internal.execution.history.ExecutionOutputState;
+import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.vfs.FileSystemAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,22 +43,27 @@ import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.Optional;
 
+import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.FROM_CACHE;
+
 public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExecutionResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheStep.class);
 
     private final BuildCacheController buildCache;
     private final Deleter deleter;
+    private final FileSystemAccess fileSystemAccess;
     private final OutputChangeListener outputChangeListener;
     private final Step<? super IncrementalChangesContext, ? extends AfterExecutionResult> delegate;
 
     public BuildCacheStep(
         BuildCacheController buildCache,
         Deleter deleter,
+        FileSystemAccess fileSystemAccess,
         OutputChangeListener outputChangeListener,
         Step<? super IncrementalChangesContext, ? extends AfterExecutionResult> delegate
     ) {
         this.buildCache = buildCache;
         this.deleter = deleter;
+        this.fileSystemAccess = fileSystemAccess;
         this.outputChangeListener = outputChangeListener;
         this.delegate = delegate;
     }
@@ -66,15 +71,15 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
     @Override
     public AfterExecutionResult execute(UnitOfWork work, IncrementalChangesContext context) {
         return context.getCachingState().fold(
-            cachingEnabled -> executeWithCache(work, context, cachingEnabled.getKey(), cachingEnabled.getBeforeExecutionState()),
+            cachingEnabled -> executeWithCache(work, context, cachingEnabled.getKey()),
             cachingDisabled -> executeWithoutCache(work, context)
         );
     }
 
-    private AfterExecutionResult executeWithCache(UnitOfWork work, IncrementalChangesContext context, BuildCacheKey cacheKey, BeforeExecutionState beforeExecutionState) {
+    private AfterExecutionResult executeWithCache(UnitOfWork work, IncrementalChangesContext context, BuildCacheKey cacheKey) {
         CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), context.getWorkspace(), work);
         return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
-                ? buildCache.load(cacheKey, cacheableWork)
+                ? tryLoadingFromCache(cacheKey, cacheableWork)
                 : Optional.<BuildCacheLoadResult>empty()
             )
             .map(successfulLoad -> successfulLoad
@@ -85,36 +90,37 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
                     }
                     cleanLocalState(context.getWorkspace(), work);
                     OriginMetadata originMetadata = cacheHit.getOriginMetadata();
-                    AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(
-                        beforeExecutionState,
-                        cacheHit.getResultingSnapshots(),
-                        originMetadata,
-                        true);
-                    Try<Execution> execution = Try.successful(new Execution() {
-                        @Override
-                        public ExecutionOutcome getOutcome() {
-                            return ExecutionOutcome.FROM_CACHE;
-                        }
-
-                        @Override
-                        public Object getOutput() {
-                            return work.loadAlreadyProducedOutput(context.getWorkspace());
-                        }
-                    });
-                    return new AfterExecutionResult(originMetadata.getExecutionTime(), execution, afterExecutionState);
+                    Try<Execution> execution = Try.successful(Execution.skipped(FROM_CACHE, work));
+                    ExecutionOutputState afterExecutionOutputState = new DefaultExecutionOutputState(true, cacheHit.getResultingSnapshots(), originMetadata, true);
+                    // Record snapshots of loaded result
+                    afterExecutionOutputState.getOutputFilesProducedByWork().values().stream()
+                        .flatMap(FileSystemSnapshot::roots)
+                        .forEach(fileSystemAccess::record);
+                    return new AfterExecutionResult(originMetadata.getExecutionTime(), execution, afterExecutionOutputState);
                 })
                 .orElseGet(() -> executeAndStoreInCache(cacheableWork, cacheKey, context))
             )
-            .getOrMapFailure(loadFailure -> {
-                throw new RuntimeException(
+            .getOrMapFailure(loadFailure -> new AfterExecutionResult(
+                Duration.ZERO,
+                Try.failure(new RuntimeException(
                     String.format("Failed to load cache entry %s for %s: %s",
                         cacheKey.getHashCode(),
                         work.getDisplayName(),
                         loadFailure.getMessage()
                     ),
                     loadFailure
-                );
-            });
+                )),
+                null
+            ));
+    }
+
+    private Optional<BuildCacheLoadResult> tryLoadingFromCache(BuildCacheKey cacheKey, CacheableWork cacheableWork) {
+        if (cacheableWork.shouldInvalidateOutputsBeforeLoad()) {
+            ImmutableList.Builder<String> roots = ImmutableList.builder();
+            cacheableWork.visitOutputTrees((name, type, root) -> roots.add(root.getAbsolutePath()));
+            fileSystemAccess.invalidate(roots.build());
+        }
+        return buildCache.load(cacheKey, cacheableWork);
     }
 
     private void cleanLocalState(File workspace, UnitOfWork work) {
@@ -137,11 +143,15 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
                 cacheableWork.getDisplayName(), cacheKey.getHashCode());
         }
         AfterExecutionResult result = executeWithoutCache(cacheableWork.work, context);
-        result.getExecution().ifSuccessfulOrElse(
-            executionResult -> storeInCacheUnlessDisabled(cacheableWork, cacheKey, result, executionResult),
-            failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", cacheableWork.getDisplayName())
-        );
-        return result;
+        try {
+            result.getExecution().ifSuccessfulOrElse(
+                executionResult -> storeInCacheUnlessDisabled(cacheableWork, cacheKey, result, executionResult),
+                failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", cacheableWork.getDisplayName())
+            );
+            return result;
+        } catch (Exception storeFailure) {
+            return new AfterExecutionResult(Result.failed(storeFailure, result.getDuration()), result.getAfterExecutionOutputState().orElse(null));
+        }
     }
 
     /**
@@ -151,7 +161,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
      */
     private void storeInCacheUnlessDisabled(CacheableWork cacheableWork, BuildCacheKey cacheKey, AfterExecutionResult result, Execution executionResult) {
         if (executionResult.canStoreOutputsInCache()) {
-            result.getAfterExecutionState()
+            result.getAfterExecutionOutputState()
                 .ifPresent(afterExecutionState -> store(cacheableWork, cacheKey, afterExecutionState.getOutputFilesProducedByWork(), afterExecutionState.getOriginMetadata().getExecutionTime()));
         } else {
             LOGGER.debug("Not storing result of {} in cache because storing was disabled for this execution", cacheableWork.getDisplayName());
@@ -213,6 +223,12 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
                     visitor.visitOutputTree(propertyName, type, value.getValue());
                 }
             });
+        }
+
+        // TODO Make this much more explicit
+        public boolean shouldInvalidateOutputsBeforeLoad() {
+            // We don't need to invalidate outputs for immutable work as it's executed in a unique temporary workspace
+            return work instanceof MutableUnitOfWork;
         }
     }
 }

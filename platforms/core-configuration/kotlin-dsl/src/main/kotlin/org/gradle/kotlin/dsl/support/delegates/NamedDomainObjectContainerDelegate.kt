@@ -47,6 +47,9 @@ abstract class NamedDomainObjectContainerDelegate<T : Any> : NamedDomainObjectCo
     override fun addAll(elements: Collection<T>): Boolean =
         delegate.addAll(elements)
 
+    override fun named(predicate: Spec<String>): NamedDomainObjectSet<T> =
+        delegate.named(predicate)
+
     override fun matching(spec: Spec<in T>): NamedDomainObjectSet<T> =
         delegate.matching(spec)
 

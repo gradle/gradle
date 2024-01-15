@@ -17,7 +17,6 @@
 package org.gradle.internal.resources;
 
 import com.google.common.base.Supplier;
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.MutableReference;
@@ -29,6 +28,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -195,7 +195,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
         public void registerLocked(ResourceLock resourceLock) {
             if (!rollback && (unlockedResources == null || !unlockedResources.remove(resourceLock))) {
                 if (lockedResources == null) {
-                    lockedResources = Sets.newHashSet();
+                    lockedResources = new HashSet<ResourceLock>();
                 }
                 lockedResources.add(resourceLock);
             }
@@ -205,7 +205,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
         public void registerUnlocked(ResourceLock resourceLock) {
             if (!rollback && (lockedResources == null || !lockedResources.remove(resourceLock))) {
                 if (unlockedResources == null) {
-                    unlockedResources = Sets.newHashSet();
+                    unlockedResources = new HashSet<ResourceLock>();
                 }
                 unlockedResources.add(resourceLock);
             }

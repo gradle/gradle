@@ -24,12 +24,12 @@ class ScalaCoverage {
     static final List<String> SCALA_2 = [
         "2.11.12",
         "2.12.18",
-        "2.13.11",
+        "2.13.12",
     ]
     static final List<String> SCALA_3 = [
         "3.1.3",
         "3.2.2",
-        "3.3.0",
+        "3.3.1",
     ]
 
 

@@ -424,6 +424,7 @@ baz:1.0 requested
         mavenRepo.module("com", "foo", "1.0").publish()
         mavenRepo.module("com", "bar", "1.0").publish()
         mavenRepo.module("com", "baz", "1.0").publish()
+        createDirs("lib", "tool")
         settingsFile << """
             include 'lib', 'tool'
         """
@@ -487,6 +488,7 @@ testCompileClasspath
 
     @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "requested dependency attributes are reported on dependency result as desugared attributes"() {
+        createDirs("platform")
         settingsFile << "include 'platform'"
         buildFile << """
             project(":platform") {
@@ -551,6 +553,7 @@ testCompileClasspath
               testImplementation(testFixtures(project(':producer')))
             }
         """
+        createDirs("producer")
         settingsFile << """
             include 'producer'
         """
@@ -625,6 +628,7 @@ testRuntimeClasspath
                 }
             }
         """
+        createDirs("producer")
         settingsFile << """
             include 'producer'
         """
@@ -741,6 +745,7 @@ testRuntimeClasspath
 
     @Issue("https://github.com/gradle/gradle/issues/26334")
     def "resolution result does not report duplicate variants for the same module reachable through different paths"() {
+        createDirs("producer", "transitive")
         settingsFile << """
             include "producer", "transitive"
         """
@@ -797,6 +802,7 @@ testRuntimeClasspath
 
     }
     def "resolution result does not realize artifact tasks"() {
+        createDirs("producer")
         settingsFile << "include 'producer'"
         file("producer/build.gradle") << """
             plugins {

@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.file.DirectoryTree;
@@ -39,8 +38,10 @@ import org.gradle.plugins.ide.eclipse.model.SourceFolder;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -148,7 +149,7 @@ public class SourceFoldersCreator {
         // externals are mapped to linked resources so we just need a name of the resource, without full path
         // non-unique folder names are naively deduped by adding parent filename as a prefix till unique
         // since this seems like a rare edge case this simple approach should be enough
-        List<SourceFolder> trimmedSourceFolders = Lists.newArrayList();
+        List<SourceFolder> trimmedSourceFolders = new ArrayList<>();
         for (SourceFolder folder : externalSourceFolders) {
             folder.trim();
             File parentFile = folder.getDir().getParentFile();
@@ -215,7 +216,7 @@ public class SourceFoldersCreator {
 
     private Map<SourceSet, String> collectSourceSetOutputPaths(Iterable<SourceSet> sourceSets, String defaultOutputPath, String baseSourceOutputDir) {
         Set<String> existingPaths = Sets.newHashSet(defaultOutputPath);
-        Map<SourceSet, String> result = Maps.newHashMap();
+        Map<SourceSet, String> result = new HashMap<>();
         for (SourceSet sourceSet : sourceSets) {
             String path = collectSourceSetOutputPath(sourceSet.getName(), existingPaths, "", baseSourceOutputDir);
             existingPaths.add(path);

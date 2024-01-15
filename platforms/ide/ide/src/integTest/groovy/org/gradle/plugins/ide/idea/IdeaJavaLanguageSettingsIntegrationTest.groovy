@@ -28,6 +28,7 @@ class IdeaJavaLanguageSettingsIntegrationTest extends AbstractIdeIntegrationSpec
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     def setup() {
+        createDirs("child1", "child2", "child3")
         settingsFile << """
 rootProject.name = 'root'
 include ':child1', ':child2', ':child3'
@@ -214,6 +215,7 @@ subprojects {
     @ToBeFixedForConfigurationCache
     def "project bytecodeLevel set explicitly for same java versions"() {
         given:
+        createDirs("subprojectA", "subprojectB", "subprojectC")
         settingsFile << """
 rootProject.name = "root"
 include 'subprojectA'
@@ -247,6 +249,7 @@ idea {
     @ToBeFixedForConfigurationCache
     def "explicit project target level when module version differs from project java sdk"() {
         given:
+        createDirs("subprojectA", "subprojectB", "subprojectC")
         settingsFile << """
 rootProject.name = "root"
 include 'subprojectA'
@@ -279,6 +282,7 @@ idea {
     @ToBeFixedForConfigurationCache
     def "target bytecode version set if differs from calculated idea project bytecode version"() {
         given:
+        createDirs("subprojectA")
         settingsFile << """
 rootProject.name = "root"
 include 'subprojectA'
@@ -310,6 +314,7 @@ project(':subprojectA') {
     @ToBeFixedForConfigurationCache
     def "language level set if differs from calculated idea project language level"() {
         given:
+        createDirs("child1")
         settingsFile << """
 rootProject.name = "root"
 include 'child1'
@@ -340,6 +345,7 @@ project(':child1') {
     @ToBeFixedForConfigurationCache
     def "language level set if root has no idea plugin applied"() {
         given:
+        createDirs("child1")
         settingsFile << """
 rootProject.name = "root"
 include 'child1'
@@ -366,6 +372,7 @@ project(':child1') {
     @ToBeFixedForConfigurationCache
     def "can have module specific bytecode version"() {
         given:
+        createDirs("subprojectA", "subprojectB", "subprojectC", "subprojectD")
         settingsFile << """
 rootProject.name = "root"
 include 'subprojectA'

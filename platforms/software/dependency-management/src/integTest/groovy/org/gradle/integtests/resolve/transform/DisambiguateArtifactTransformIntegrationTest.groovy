@@ -48,6 +48,7 @@ class DisambiguateArtifactTransformIntegrationTest extends AbstractHttpDependenc
         m1.artifactFile.text = "1234"
 
         given:
+        createDirs("lib", "app")
         settingsFile << """
             rootProject.name = 'root'
             include 'lib'
@@ -139,6 +140,7 @@ ${artifactTransform("FileSizer")}
         m1.artifactFile.text = "1234"
 
         given:
+        createDirs("lib", "app")
         settingsFile << """
             rootProject.name = 'root'
             include 'lib'
@@ -298,7 +300,7 @@ task resolveReleaseClasses {
     inputs.files artifacts.artifactFiles
     doLast {
         println "files: " + artifacts.collect { it.file.name }
-        println "ids: " + artifacts.collect { it.id }
+        println "artifacts: " + artifacts.collect { it.file.name + " (" + it.id.componentIdentifier + ")" }
         println "components: " + artifacts.collect { it.id.componentIdentifier }
         println "variants: " + artifacts.collect { it.variant.attributes }
         println "content: " + artifacts.collect { it.file.text }
@@ -315,7 +317,7 @@ task resolveTestClasses {
     inputs.files artifacts.artifactFiles
     doLast {
         println "files: " + artifacts.collect { it.file.name }
-        println "ids: " + artifacts.collect { it.id }
+        println "artifacts: " + artifacts.collect { it.file.name + " (" + it.id.componentIdentifier + ")" }
         println "components: " + artifacts.collect { it.id.componentIdentifier }
         println "variants: " + artifacts.collect { it.variant.attributes }
         println "content: " + artifacts.collect { it.file.text }
@@ -328,7 +330,7 @@ task resolveTestClasses {
 
         then:
         outputContains("files: [lib1.jar.release.classes]")
-        outputContains("ids: [lib1.jar.release.classes (lib1.jar)]")
+        outputContains("artifacts: [lib1.jar.release.classes (lib1.jar)]")
         outputContains("components: [lib1.jar]")
         outputContains("variants: [{artifactType=classes, buildType=release}]")
         outputContains("content: [1]")
@@ -341,7 +343,7 @@ task resolveTestClasses {
 
         then:
         outputContains("files: []")
-        outputContains("ids: []")
+        outputContains("artifacts: []")
         outputContains("components: []")
         outputContains("variants: []")
         outputContains("content: []")
@@ -414,6 +416,7 @@ task resolve(type: Copy) {
 
     def "disambiguation leverages schema rules before doing it size based"() {
         given:
+        createDirs("child")
         settingsFile << """
 include('child')
 """

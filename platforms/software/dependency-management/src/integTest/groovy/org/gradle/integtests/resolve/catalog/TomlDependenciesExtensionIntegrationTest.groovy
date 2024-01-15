@@ -31,6 +31,10 @@ import spock.lang.Issue
 
 class TomlDependenciesExtensionIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport, VersionCatalogErrorMessages {
 
+    def setup() {
+        enableProblemsApiCheck()
+    }
+
     @Rule
     final MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
@@ -41,7 +45,7 @@ class TomlDependenciesExtensionIntegrationTest extends AbstractVersionCatalogInt
 foo = "org.gradle.test:lib:1.0"
 """
 
-        buildFile << """
+        buildFile """
             apply plugin: 'java-library'
 
             tasks.register("verifyExtension") {
@@ -91,7 +95,7 @@ bar = {group="org.gradle.test", name="bar", version="1.0"}
 my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
-        buildFile << """
+        buildFile """
             apply plugin: 'java-library'
 
             dependencies {
@@ -119,7 +123,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.1").publish()
-        buildFile << """
+        buildFile """
             apply plugin: 'java-library'
 
             dependencies {
@@ -157,7 +161,7 @@ myBundle = ["lib", "lib2"]
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
         def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.0").publish()
-        buildFile << """
+        buildFile """
             apply plugin: 'java-library'
 
             dependencies {
@@ -195,7 +199,7 @@ myBundle = ["lib", "lib2"]
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
         def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.0").publish()
-        buildFile << """
+        buildFile """
             apply plugin: 'java-library'
 
             dependencies {
@@ -232,7 +236,7 @@ myBundle = ["lib", "lib2"]
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.1").publish()
         def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.1").publish()
-        buildFile << """
+        buildFile """
             apply plugin: 'java-library'
 
             dependencies {
@@ -271,7 +275,7 @@ lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
             include ':other'
         """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
-        buildFile << """
+        buildFile """
             apply plugin: 'java-library'
 
             dependencies {
@@ -307,6 +311,8 @@ lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
     }
 
     def "libraries extension is not visible in buildSrc"() {
+        disableProblemsApiCheck()
+
         tomlFile << """[libraries]
 lib = "org.gradle.test:lib:1.0"
 """
@@ -370,7 +376,7 @@ build-src-lib="org.gradle.test:buildsrc-lib:1.0"
                 implementation libs.build.src.lib
             }
         """
-        buildFile << """
+        buildFile """
             apply plugin: 'java-library'
 
             dependencies {
@@ -423,11 +429,11 @@ from-included="org.gradle.test:other:1.1"
             }
         """
 
-        settingsFile << """
+        settingsFile """
             includeBuild 'included'
         """
 
-        buildFile << """
+        buildFile """
             apply plugin: 'java-library'
 
             dependencies {
@@ -459,7 +465,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
         def other = mavenHttpRepo.module("org.gradle.test", "other", "1.0").publish()
-        buildFile << """
+        buildFile """
             apply plugin: 'java-library'
 
             dependencies {
@@ -467,7 +473,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
                 implementation libs.other
             }
         """
-        settingsFile << """
+        settingsFile """
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
@@ -500,14 +506,14 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 my-lib = {group = "org.gradle.test", name="lib", version.require="1.1"}
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.1").publish()
-        buildFile << """
+        buildFile """
             apply plugin: 'java-library'
 
             dependencies {
                 implementation libs.my.lib
             }
         """
-        settingsFile << """
+        settingsFile """
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
@@ -600,12 +606,12 @@ my-other-lib = {group = "org.gradle.test", name="lib2", version="1.0"}
 my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
-        settingsFile << """
+        settingsFile """
             dependencyResolutionManagement {
                 defaultLibrariesExtensionName = 'myLibs'
             }
         """
-        buildFile << """
+        buildFile """
             apply plugin: 'java-library'
 
             dependencies {
@@ -639,7 +645,7 @@ my-other-lib = {group = "org.gradle.test", name="lib2", version.ref="rich"}
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
         def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.1").publish()
-        buildFile << """
+        buildFile """
             apply plugin: 'java-library'
 
             dependencies {
@@ -673,7 +679,7 @@ my-other-lib = {group = "org.gradle.test", name="lib2", version.ref="rich"}
     @Issue("https://github.com/gradle/gradle/issues/15029")
     def "reasonable error message if an imported catalog doesn't exist"() {
         def path = file("missing.toml")
-        settingsFile << """
+        settingsFile """
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
@@ -709,7 +715,7 @@ other-bundle = ["my-lib", "my-lib2"]
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
         def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.0").publish()
-        buildFile << """
+        buildFile """
             apply plugin: 'java-library'
 
             dependencies {
@@ -742,6 +748,8 @@ other-bundle = ["my-lib", "my-lib2"]
         VersionCatalogProblemId.TOML_SYNTAX_ERROR
     ])
     def "should not swallow invalid TOML parse errors"() {
+        enableProblemsApiCheck()
+
         tomlFile << """
 [versions]
 // This is an invalid comment format
@@ -760,6 +768,41 @@ lib = {group = "org.gradle.test", name="lib", version.ref="commons-lib"}
             inCatalog('libs')
             addError("In file '${tomlFile.absolutePath}' at line 3, column 1: Unexpected \'/\', expected a newline or end-of-input")
         })
+
+        def problem = collectedProblem
+        problem["locations"][0].path == tomlFile.absolutePath
+    }
+
+    @VersionCatalogProblemTestFor([
+        VersionCatalogProblemId.TOML_SYNTAX_ERROR
+    ])
+    def "has multiple TOML parse errors"() {
+        enableProblemsApiCheck()
+
+        tomlFile << """
+# missing key values
+[plugins]
+key=
+key2=
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        verifyContains(failure.error, parseError {
+            inCatalog('libs')
+            addError(getUnexpectedErrorString(4, 5))
+            addError(getUnexpectedErrorString(5, 6))
+        })
+        def problems = collectedProblems
+        problems.size() == 2
+        problems[0]["locations"][0].path == tomlFile.absolutePath
+        problems[1]["locations"][0].path == tomlFile.absolutePath
+    }
+
+    private String getUnexpectedErrorString(int line, int column) {
+        return "In file '${tomlFile.absolutePath}' at line $line, column $column: Unexpected end of line, expected ', \", ''', \"\"\", a number, a boolean, a date/time, an array, or a table"
     }
 
     private GradleExecuter withConfigurationCache() {
@@ -783,7 +826,7 @@ some = "1.4"
 my-b-lib = { group = "com.mycompany", name="myblib", version.ref="some" }
 """
 
-        settingsFile << """
+        settingsFile """
 dependencyResolutionManagement {
     versionCatalogs {
         create("testLibs") {
@@ -804,7 +847,7 @@ dependencyResolutionManagement {
 
     @Issue("https://github.com/gradle/gradle/issues/20383")
     def "should throw an error if 'from' is called with an empty file collection"() {
-        settingsFile << """
+        settingsFile """
 dependencyResolutionManagement {
     versionCatalogs {
         create("testLibs") {
@@ -840,7 +883,7 @@ some = "1.4"
 my-b-lib = { group = "com.mycompany", name="myblib", version.ref="some" }
 """
 
-        settingsFile << """
+        settingsFile """
 dependencyResolutionManagement {
     versionCatalogs {
         create("testLibs") {
@@ -893,7 +936,7 @@ dependencyResolutionManagement {
             p-somePlugin-p2 = "plugin2:1.0"
         """
 
-        buildFile << """
+        buildFile """
             apply plugin: 'java-library'
 
             dependencies {

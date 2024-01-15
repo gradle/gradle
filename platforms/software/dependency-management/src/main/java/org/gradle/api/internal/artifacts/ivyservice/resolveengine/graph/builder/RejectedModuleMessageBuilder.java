@@ -17,12 +17,12 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -42,7 +42,7 @@ class RejectedModuleMessageBuilder {
             sb.append("Cannot find a version of '").append(module.getId()).append("' that satisfies the version constraints:\n");
         }
 
-        Set<EdgeState> allEdges = Sets.newLinkedHashSet();
+        Set<EdgeState> allEdges = new LinkedHashSet<>();
         allEdges.addAll(module.getIncomingEdges());
         allEdges.addAll(module.getUnattachedDependencies());
         renderEdges(sb, allEdges);

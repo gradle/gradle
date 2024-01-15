@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
@@ -43,10 +42,6 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
     private ImmutableAttributes requestAttributes;
 
     @Override
-    public void start(RootGraphNode root) {
-    }
-
-    @Override
     public void visitNode(DependencyGraphNode node) {
         DependencyGraphComponent component = node.getOwner();
         resolutionResultBuilder.startVisitComponent(component.getResultId(), component.getSelectionReason(), component.getRepositoryName());
@@ -59,16 +54,12 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
     }
 
     @Override
-    public void visitSelector(DependencyGraphSelector selector) {
-    }
-
-    @Override
     public void visitEdges(DependencyGraphNode node) {
         resolutionResultBuilder.visitOutgoingEdges(node.getOwner().getResultId(), node.getOutgoingEdges());
     }
 
     @Override
-    public void finish(DependencyGraphNode root) {
+    public void finish(RootGraphNode root) {
         Long resultId = root.getOwner().getResultId();
         this.root = resolutionResultBuilder.getRoot(resultId);
         this.requestAttributes = root.getResolveState().getAttributes();

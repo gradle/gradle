@@ -60,6 +60,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.stream.Collectors;
 
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -672,6 +673,10 @@ public class TestFile extends File {
         return new TestFile(this, pathSegments).createDir();
     }
 
+    public List<TestFile> createDirs(String... paths) {
+        return Arrays.stream(paths).map(this::createDir).collect(Collectors.toList());
+    }
+
     public TestFile deleteDir() {
         new TestFileHelper(this).delete(useNativeTools);
         return this;
@@ -895,6 +900,28 @@ public class TestFile extends File {
     public String getRelativePathFromBase() {
         assertNotEquals("relativeBase must have been set during construction", relativeBase.toPath(), this.toPath());
         return relativeBase.toPath().relativize(this.toPath()).toString();
+    }
+
+    /**
+     * Return a string corresponding to how Gradle will display the file URI for this file.
+     *
+     * @return a string corresponding to how Gradle will display the file URI for this file.
+     */
+    public String getDisplayUri() {
+        return toURI().toASCIIString();
+    }
+
+    /**
+     * Return a string corresponding to how Gradle will display the file URI for this file, assuming it is a directory.
+     *
+     * @return a string corresponding to how Gradle will display the file URI for this file, assuming it is a directory.
+     */
+    public String getDisplayUriForDir() {
+        String uri = getDisplayUri();
+        if (!uri.endsWith("/")) {
+            uri += "/";
+        }
+        return uri;
     }
 
     public static class Snapshot {

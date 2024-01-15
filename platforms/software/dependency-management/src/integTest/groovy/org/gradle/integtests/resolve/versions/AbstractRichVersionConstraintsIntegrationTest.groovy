@@ -141,6 +141,55 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
         }
     }
 
+    def "should choose highest special version when multiple prefer versions disagree"() {
+        repository {
+            'org:foo' {
+                '1.1-releaseProguard'()
+                '1.1-release'()
+                '2.0'()
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                constraints {
+                    conf('org:foo') {
+                        version { prefer '1.1-releaseProguard' }
+                    }
+                    conf('org:foo') {
+                        version { prefer '1.1-release' }
+                    }
+                }
+                conf 'org:foo:[1.0,2.0)'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo' {
+                expectVersionListing()
+                '1.1-release' {
+                    expectGetMetadata()
+                    expectGetArtifact()
+                }
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                constraint("org:foo:{prefer 1.1-releaseProguard}", "org:foo:1.1-release")
+                constraint("org:foo:{prefer 1.1-release}", "org:foo:1.1-release")
+                edge("org:foo:[1.0,2.0)", "org:foo:1.1-release") {
+                    notRequested()
+                    byConstraint()
+                    byReason("didn't match version 2.0")
+                }
+            }
+        }
+    }
+
     def "can combine required and preferred version in single dependency definition"() {
         repository {
             'org:foo' {
@@ -501,6 +550,7 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
                 }
             }
         """
+        createDirs("other")
         settingsFile << "\ninclude 'other'"
 
         when:
@@ -541,6 +591,7 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
                 conf('org:bar:1')
             }
         """
+        createDirs("other")
         settingsFile << "\ninclude 'other'"
 
         when:

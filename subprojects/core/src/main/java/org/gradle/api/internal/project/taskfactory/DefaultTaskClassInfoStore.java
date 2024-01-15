@@ -17,7 +17,6 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
@@ -33,6 +32,7 @@ import org.gradle.work.InputChanges;
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -55,7 +55,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         boolean cacheable = type.isAnnotationPresent(CacheableTask.class);
         Optional<String> reasonNotToTrackState = Optional.ofNullable(type.getAnnotation(UntrackedTask.class))
             .map(UntrackedTask::because);
-        Map<String, Class<?>> processedMethods = Maps.newHashMap();
+        Map<String, Class<?>> processedMethods = new HashMap<>();
         ImmutableList.Builder<TaskActionFactory> taskActionFactoriesBuilder = ImmutableList.builder();
         IncrementalTaskActionFactory foundIncrementalTaskActionFactory = null;
         for (Class current = type; current != null; current = current.getSuperclass()) {

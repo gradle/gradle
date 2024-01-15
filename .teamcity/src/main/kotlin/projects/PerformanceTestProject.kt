@@ -1,7 +1,7 @@
 package projects
 
 import configurations.PerformanceTest
-import jetbrains.buildServer.configs.kotlin.v2019_2.Project
+import jetbrains.buildServer.configs.kotlin.Project
 import model.CIBuildModel
 import model.PerformanceTestBucketProvider
 import model.PerformanceTestCoverage

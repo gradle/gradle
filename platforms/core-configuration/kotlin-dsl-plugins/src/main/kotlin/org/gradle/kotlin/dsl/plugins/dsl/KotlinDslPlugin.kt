@@ -15,24 +15,14 @@
  */
 package org.gradle.kotlin.dsl.plugins.dsl
 
-import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.plugins.JavaPluginExtension
-import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.internal.Factory
-import org.gradle.internal.deprecation.DeprecationLogger
-import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.plugins.appliedKotlinDslPluginsVersion
 import org.gradle.kotlin.dsl.plugins.base.KotlinDslBasePlugin
 import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import javax.inject.Inject
 
 
 /**
@@ -57,10 +47,6 @@ abstract class KotlinDslPlugin : Plugin<Project> {
         apply<JavaGradlePluginPlugin>()
         apply<KotlinDslBasePlugin>()
         apply<PrecompiledScriptPlugins>()
-
-        afterEvaluate {
-            workaroundKotlinJavaVersionSupport()
-        }
     }
 
     private
@@ -73,48 +59,4 @@ abstract class KotlinDslPlugin : Plugin<Project> {
             )
         }
     }
-
-    private
-    fun Project.workaroundKotlinJavaVersionSupport() {
-        val targetJavaVersion = kotlinDslOptionsJvmTarget
-            .orElse(defaultToolchainJavaVersion)
-            .map(::toLastSupportedKotlinJavaVersion)
-        tasks.withType(KotlinCompile::class.java).configureEach { kotlinCompile ->
-            kotlinCompile.compilerOptions.jvmTarget.set(
-                targetJavaVersion.map { JvmTarget.fromTarget(it.toString()) }
-            )
-        }
-        tasks.withType(JavaCompile::class.java).configureEach { javaCompile ->
-            javaCompile.targetCompatibility = targetJavaVersion.get().toString()
-        }
-    }
-
-    private
-    val Project.kotlinDslOptionsJvmTarget: Provider<JavaVersion>
-        get() = DeprecationLogger.whileDisabled(Factory {
-            @Suppress("DEPRECATION")
-            extensions.getByType(KotlinDslPluginOptions::class.java).jvmTarget.map { JavaVersion.toVersion(it) }
-        })!!
-
-    private
-    val Project.defaultToolchainJavaVersion: Provider<JavaVersion>
-        get() = toolchains.launcherFor(java.toolchain).map {
-            JavaVersion.toVersion(it.metadata.languageVersion.asInt())
-        }
-
-    private
-    fun toLastSupportedKotlinJavaVersion(javaVersion: JavaVersion): JavaVersion =
-        javaVersion.takeIf { it <= lastSupportedJvmKotlinTarget } ?: lastSupportedJvmKotlinTarget
-
-    private
-    val lastSupportedJvmKotlinTarget: JavaVersion
-        get() = JavaVersion.toVersion(JvmTarget.values().last().target)
-
-    private
-    val Project.java: JavaPluginExtension
-        get() = extensions.getByType(JavaPluginExtension::class.java)
-
-    @get:Inject
-    protected
-    abstract val toolchains: JavaToolchainService
 }

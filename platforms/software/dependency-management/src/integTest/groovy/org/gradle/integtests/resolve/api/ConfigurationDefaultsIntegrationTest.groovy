@@ -157,6 +157,7 @@ project(":consumer") {
 """
         resolve.prepare("runtimeClasspath")
         resolve.expectDefaultConfiguration("runtimeElements")
+        createDirs("consumer", "producer")
         settingsFile << """
 include 'consumer', 'producer'
 """

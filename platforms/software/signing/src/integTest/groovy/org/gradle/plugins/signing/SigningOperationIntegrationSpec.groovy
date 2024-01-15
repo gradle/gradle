@@ -17,6 +17,11 @@
 package org.gradle.plugins.signing
 
 class SigningOperationIntegrationSpec extends SigningIntegrationSpec {
+
+    def setup() {
+        enableProblemsApiCheck()
+    }
+
     def "direct creation of SignOperation fails"() {
         buildFile << """
             new SignOperation()

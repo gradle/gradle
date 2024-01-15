@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath
 
+import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorFactoryProvider
 import org.gradle.internal.metaobject.BeanDynamicObject
 
 import java.lang.reflect.Constructor
@@ -47,8 +48,8 @@ class GroovyDynamicDispatchingInterceptingTest extends AbstractCallInterceptionT
     }
 
     @Override
-    protected JvmBytecodeInterceptorSet jvmBytecodeInterceptorSet() {
-        JvmBytecodeInterceptorSet.DEFAULT
+    protected JvmBytecodeInterceptorFactoryProvider jvmBytecodeInterceptorSet() {
+        JvmBytecodeInterceptorFactoryProvider.DEFAULT
     }
 
     @Override

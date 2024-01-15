@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.PublicTaskSpecification;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
@@ -28,7 +29,8 @@ public abstract class ToolingModelBuilderSupport {
                 .setDisplayName(task.toString())
                 .setDescription(task.getDescription())
                 .setPublic(PublicTaskSpecification.INSTANCE.isSatisfiedBy(task))
-                .setProjectIdentifier(projectIdentifier);
+                .setProjectIdentifier(projectIdentifier)
+                .setBuildTreePath(((TaskInternal) task).getIdentityPath().getPath());
         return target;
     }
 }

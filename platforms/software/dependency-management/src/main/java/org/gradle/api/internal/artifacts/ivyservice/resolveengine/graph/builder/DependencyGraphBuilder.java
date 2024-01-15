@@ -47,11 +47,13 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.IncompatibleArtifactVariantsException;
+import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.operations.BuildOperationConstraint;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -61,9 +63,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -173,7 +177,7 @@ public class DependencyGraphBuilder {
      */
     private void traverseGraph(final ResolveState resolveState) {
         resolveState.onMoreSelected(resolveState.getRoot());
-        final List<EdgeState> dependencies = Lists.newArrayList();
+        final List<EdgeState> dependencies = new ArrayList<>();
 
         while (resolveState.peek() != null || moduleConflictHandler.hasConflicts() || capabilitiesConflictHandler.hasConflicts()) {
             if (resolveState.peek() != null) {
@@ -235,7 +239,7 @@ public class DependencyGraphBuilder {
             }
 
             private boolean doesNotDeclareExplicitCapability(NodeState nodeState) {
-                return nodeState.getMetadata().getCapabilities().getCapabilities().isEmpty();
+                return nodeState.getMetadata().getCapabilities().asSet().isEmpty();
             }
         });
     }
@@ -335,7 +339,7 @@ public class DependencyGraphBuilder {
                 if (!metaDataResolver.isFetchingMetadataCheap(targetComponent.getComponentId())) {
                     // Avoid initializing the list if there are no components requiring download (a common case)
                     if (requiringDownload == null) {
-                        requiringDownload = Lists.newArrayList();
+                        requiringDownload = new ArrayList<>();
                     }
                     requiringDownload.add(targetComponent);
                 }
@@ -368,6 +372,7 @@ public class DependencyGraphBuilder {
         for (ModuleResolveState module : resolveState.getModules()) {
             ComponentState selected = module.getSelected();
             if (selected != null) {
+                ResolutionFailureHandler resolutionFailureHandler = resolveState.getVariantSelector().getFailureProcessor();
                 if (selected.isRejected()) {
                     GradleException error = new GradleException(selected.getRejectedErrorMessage());
                     attachFailureToEdges(error, module.getIncomingEdges());
@@ -378,7 +383,7 @@ public class DependencyGraphBuilder {
                     if (module.isVirtualPlatform()) {
                         attachMultipleForceOnPlatformFailureToEdges(module);
                     } else if (selected.hasMoreThanOneSelectedNodeUsingVariantAwareResolution()) {
-                        validateMultipleNodeSelection(module, selected);
+                        validateMultipleNodeSelection(attributesSchema, module, selected, resolutionFailureHandler);
                     }
                     if (denyDynamicSelectors) {
                         validateDynamicSelectors(selected);
@@ -390,6 +395,20 @@ public class DependencyGraphBuilder {
             } else if (module.isVirtualPlatform()) {
                 attachMultipleForceOnPlatformFailureToEdges(module);
             }
+        }
+        List<EdgeState> incomingRootEdges = resolveState.getRoot().getIncomingEdges();
+        if (!incomingRootEdges.isEmpty()) {
+            String rootNodeName = resolveState.getRoot().getResolvedConfigurationId().getConfiguration();
+            DeprecationLogger.deprecate(
+                    String.format(
+                        "While resolving configuration '%s', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. " +
+                            "Depending on the resolved configuration in this manner",
+                        rootNodeName
+                    ))
+                .withAdvice("Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them.")
+                .willBecomeAnErrorInGradle9()
+                .withUpgradeGuideSection(8, "depending_on_root_configuration")
+                .nagUser();
         }
     }
 
@@ -468,7 +487,7 @@ public class DependencyGraphBuilder {
      * Validates that all selected nodes of a single component have compatible attributes,
      * when using variant aware resolution.
      */
-    private void validateMultipleNodeSelection(ModuleResolveState module, ComponentState selected) {
+    private void validateMultipleNodeSelection(AttributesSchemaInternal schema, ModuleResolveState module, ComponentState selected, ResolutionFailureHandler resolutionFailureHandler) {
         Set<NodeState> selectedNodes = selected.getNodes().stream()
             .filter(n -> n.isSelected() && !n.isAttachedToVirtualPlatform() && !n.hasShadowedCapability())
             .collect(Collectors.toSet());
@@ -476,7 +495,7 @@ public class DependencyGraphBuilder {
             return;
         }
         Set<Set<NodeState>> combinations = Sets.combinations(selectedNodes, 2);
-        Set<NodeState> incompatibleNodes = Sets.newHashSet();
+        Set<NodeState> incompatibleNodes = new HashSet<>();
         for (Set<NodeState> combination : combinations) {
             Iterator<NodeState> it = combination.iterator();
             NodeState first = it.next();
@@ -484,9 +503,7 @@ public class DependencyGraphBuilder {
             assertCompatibleAttributes(first, second, incompatibleNodes);
         }
         if (!incompatibleNodes.isEmpty()) {
-            IncompatibleArtifactVariantsException variantsSelectionException = new IncompatibleArtifactVariantsException(
-                IncompatibleVariantsSelectionMessageBuilder.buildMessage(selected, incompatibleNodes)
-            );
+            IncompatibleArtifactVariantsException variantsSelectionException = resolutionFailureHandler.incompatibleArtifactVariantsFailure(schema, selected, incompatibleNodes);
             for (EdgeState edge : module.getIncomingEdges()) {
                 edge.failWith(variantsSelectionException);
             }
@@ -534,7 +551,7 @@ public class DependencyGraphBuilder {
                         ModuleComponentSelector mcs = (ModuleComponentSelector) componentSelector;
                         if (!incomingEdge.getFrom().getComponent().getModule().equals(module)) {
                             if (forcedEdges == null) {
-                                forcedEdges = Lists.newArrayList();
+                                forcedEdges = new ArrayList<>();
                             }
                             forcedEdges.add(incomingEdge);
                             if (currentVersion == null) {
@@ -589,7 +606,7 @@ public class DependencyGraphBuilder {
         }
 
         // Collect the components to sort in consumer-first order
-        LinkedList<ComponentState> queue = Lists.newLinkedList();
+        LinkedList<ComponentState> queue = new LinkedList<>();
         for (ModuleResolveState module : resolveState.getModules()) {
             if (module.getSelected() != null && !module.isVirtualPlatform()) {
                 queue.add(module.getSelected());

@@ -16,12 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import com.google.common.io.Files;
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ArtifactVerificationOperation;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMetadataFileSource;
@@ -284,15 +282,6 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
             @Override
             public TaskDependency getBuildDependencies() {
                 return new DefaultTaskDependency();
-            }
-
-            @Override
-            public ArtifactIdentifier toArtifactIdentifier() {
-                return new DefaultArtifactIdentifier(
-                    new DefaultModuleComponentArtifactIdentifier(
-                        moduleComponentIdentifier, getName()
-                    )
-                );
             }
         }
     }

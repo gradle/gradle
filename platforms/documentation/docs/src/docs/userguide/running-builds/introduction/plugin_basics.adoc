@@ -1,0 +1,125 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[plugin_basics]]
+= Plugin Basics
+
+Plugins are used to *extend build capabilities and customize Gradle*.
+
+image::gradle-basic-6.png[]
+
+Most features, like the ability to compile Java code, are added by _plugins_.
+
+Using plugins is also the primary mechanism for organizing build logic.
+
+Plugins can provide useful tasks with capabilities such as running code, creating documentation, setting up source files, publishing archives, etc.
+
+*Applying* a plugin to a project allows the plugin to extend the project's and Gradle's capabilities.
+
+For example:
+
+- The Spring Boot Gradle Plugin, `org.springframework.boot`, provides Spring Boot support.
+- The Google Services Gradle Plugin, `com.google.gms:google-services`, enables Google APIs and Firebase services in your Android application.
+- The Gradle Shadow Plugin, `com.github.johnrengelman.shadow`, is a plugin that generates fat/uber JARs with support for package relocation.
+
+== Plugin distribution
+
+Plugins are distributed in three ways:
+
+1. **Core plugins** - Gradle develops and maintains a set of <<plugin_reference#plugin_reference,Core Plugins>>.
+2. **Community plugins** - Gradle's community shares plugins via the https://plugins.gradle.org[Gradle Plugin Portal].
+3. **Local plugins** - Gradle enables users to create custom plugins using link:{javadocPath}/org/gradle/api/Plugin.html[APIs].
+
+You apply plugins in the build script using their *plugin id*, a globally unique identifier, or a name:
+
+[source]
+----
+plugins {
+    id «plugin id» version «plugin version» [apply «false»]
+}
+----
+
+== Core plugins
+
+Core Gradle plugins are unique in that they provide short names, such as `java` for the core link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin].
+
+To apply the `java` plugin to a project:
+
+[source,build.gradle.kts]
+----
+plugins {
+    id("java")
+}
+----
+
+The <<java_plugin.adoc#java_plugin,Java plugin>> adds Java compilation along with testing and bundling capabilities to a project.
+
+There are many more <<plugin_reference#plugin_reference,Gradle core plugins>> users can take advantage of.
+
+== Community plugins
+
+Gradle has a vibrant community of plugin developers who contribute plugins for various capabilities, such as the link:https://plugins.gradle.org/plugin/org.springframework.boot[Spring Boot Gradle plugin].
+
+To apply the `org.springframework.boot` plugin to a project:
+
+[source,build.gradle.kts]
+----
+plugins {
+    id("org.springframework.boot") version "3.1.5"
+}
+----
+
+The Spring Boot plugin provides Spring Boot support in Gradle.
+It packages executable JAR or WAR archives and runs link:https://spring.io/[Spring Boot] Java applications.
+
+The link:http://plugins.gradle.org/[Gradle plugin portal] provides an interface for searching and exploring community plugins.
+
+== Plugin tasks
+
+link:https://plugins.gradle.org/plugin/com.google.cloud.tools.jib[Jib] is a Gradle plugin for building Docker and OCI images of Java applications.
+
+The Google Jib Gradle plugin is applied as follows:
+
+[source,build.gradle.kts]
+----
+plugins {
+  id("com.google.cloud.tools.jib") version "3.4.0"
+}
+----
+
+Since plugins add tasks to your project when applied, you can view the tasks added by the Jib plugin by running `./gradlew tasks`:
+
+[source]
+----
+$ ./gradlew tasks
+
+> Task :tasks
+
+------------------------------------------------------------
+Tasks runnable from root project 'plugins'
+------------------------------------------------------------
+
+Jib tasks
+---------
+jib - Builds a container image to a registry.
+jibBuildTar - Builds a container image to a tarball.
+jibDockerBuild - Builds a container image to a Docker daemon.
+----
+
+As we can see, the `jib`, `jibBuildTar`, and `jibDockerBuild` tasks from the Jib plugin have been added to the project and may be executed.
+
+Consult the <<custom_plugins.adoc#custom_plugins,Plugin development chapter>> to learn more.
+
+[.text-right]
+**Next Step:** <<gradle_optimizations.adoc#gradle_optimizations,Learn about Incremental Builds and Build Caching>> >>

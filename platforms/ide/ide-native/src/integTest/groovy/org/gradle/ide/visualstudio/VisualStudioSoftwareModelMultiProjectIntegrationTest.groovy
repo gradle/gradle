@@ -58,6 +58,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
         app.executable.writeSources(file("exe/src/main"))
         app.library.writeSources(file("lib/src/hello"))
 
+        createDirs("exe", "lib")
         settingsFile << """
             include ':exe', ':lib'
         """
@@ -124,6 +125,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
         app.library.writeSources(file("lib/src/hello"))
         app.library.writeSources(file("other/src/greeting"))
 
+        createDirs("exe", "lib", "other")
         settingsFile << """
             include ':exe', ':lib', ':other'
         """
@@ -225,6 +227,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
         app.writeSources(file("exe/src/main"), file("lib/src/hello"), file("greet/src/greetings"))
 
         and:
+        createDirs("exe", "lib", "greet")
         settingsFile << """
             include ':exe', ':lib', ':greet'
         """
@@ -299,6 +302,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
         app.executable.writeSources(file("exe/src/main"))
         app.library.writeSources(file("lib/src/hello"))
 
+        createDirs("exe", "lib")
         settingsFile << """
             include ':exe', ':lib'
         """
@@ -344,6 +348,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
         given:
         app.executable.writeSources(file("exe/src/main"))
         app.library.writeSources(file("lib/src/hello"))
+        createDirs("exe", "lib")
         settingsFile << """
             include ':exe', ':lib'
         """
@@ -395,6 +400,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
         app.writeSources(file("exe/src/main"), file("lib/src/main"), file("greet/src/main"))
 
         and:
+        createDirs("exe", "lib", "greet")
         settingsFile << """
             include ':exe', ':lib', ':greet'
         """
@@ -467,6 +473,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
         app.writeSources(file("exe/src/main"), file("lib/src/hello"), file("exe/src/greetings"))
 
         and:
+        createDirs("exe", "lib")
         settingsFile << """
             include ':exe', ':lib'
         """
@@ -532,6 +539,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
         when:
         hostGradleWrapperFile << "dummy wrapper"
 
+        createDirs("exe")
         settingsFile << """
             include ':exe'
         """
@@ -561,6 +569,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
         when:
         hostGradleWrapperFile << "dummy wrapper"
 
+        createDirs("exe")
         settingsFile << """
             include ':exe'
         """
@@ -586,6 +595,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
     @ToBeFixedForConfigurationCache
     def "cleanVisualStudio removes all generated visual studio files"() {
         when:
+        createDirs("exe", "lib")
         settingsFile << """
             include ':exe', ':lib'
         """
@@ -635,6 +645,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
     @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "can create Visual Studio solution for multiproject depending on the same prebuilt binary from another project in parallel"() {
         given:
+        createDirs("projectA", "projectB", "library")
         settingsFile.text = """
             rootProject.name = 'root'
             include ':projectA', ':projectB', ':library'

@@ -21,7 +21,7 @@ import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
 class ToolingApiEclipseMinimalModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     def "minimal Eclipse model does not attempt to resolve external dependencies"() {
-
+        createDirs("child")
         file('settings.gradle').text = 'include "child"'
         file('build.gradle').text = """
 apply plugin: 'java'

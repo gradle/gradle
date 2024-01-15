@@ -161,6 +161,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
                 task "askYesNo"
             }
         """
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
 
         when:

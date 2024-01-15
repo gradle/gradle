@@ -159,6 +159,10 @@ task thing(type: SomeTask) {
         failure.assertHasCause("Cannot query the value of task ':thing' property 'prop' because it has no value available.")
     }
 
+    @Requires(
+        value = IntegTestPreconditions.NotConfigCached,
+        reason = "Config cache does not support extensions during execution, so cause does not include any provenance information"
+    )
     def "fails when property with no value because source property has no value is queried"() {
         given:
         buildFile << """
@@ -373,6 +377,10 @@ assert custom.prop.get() == "value 4"
         succeeds()
     }
 
+    @Requires(
+        value = IntegTestPreconditions.NotConfigCached,
+        reason = "Config cache does not support extensions during execution, leading to 'Could not get unknown property 'custom' for task ':wrongValueTypeDsl' of type org.gradle.api.DefaultTask."
+    )
     def "reports failure to set property value using incompatible type"() {
         given:
         buildFile << """
@@ -531,6 +539,7 @@ project.extensions.create("some", SomeExtension)
     @Requires(IntegTestPreconditions.NotParallelExecutor)
     @Issue("https://github.com/gradle/gradle/issues/12811")
     def "multiple tasks can have property values calculated from a shared finalize on read property instance with value derived from dependency resolution"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer'
             include 'consumer'
@@ -586,6 +595,7 @@ project.extensions.create("some", SomeExtension)
     @Issue("https://github.com/gradle/gradle/issues/12969")
     @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "task can have property value derived from dependency resolution result when another task has input files derived from same result"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer'
             include 'consumer'
@@ -706,6 +716,7 @@ project.extensions.create("some", SomeExtension)
                 output = layout.projectDirectory.file("foo.txt")
             }
             tasks.register("consumer", Consumer) {
+                def layout = layout
                 def filtered = files(producer.map { it.output }).elements.map {
                     it.collect { it.asFile }
                         .findAll { it.isFile() }
@@ -949,5 +960,53 @@ project.extensions.create("some", SomeExtension)
         run 'printer'
         then:
         outputContains("filter: null")
+    }
+
+    def "circular evaluation of task property is detected"() {
+        buildFile """
+            abstract class MyTask extends DefaultTask {
+                @Input
+                abstract Property<String> getStringInput()
+
+                @TaskAction
+                def action() {
+                    println("stringInput = \${stringInput.get()}")
+                }
+            }
+
+            tasks.register("myTask", MyTask) {
+                stringInput.convention("defaultValue")
+                stringInput = $selfReference
+            }
+        """
+
+        when:
+        fails "myTask"
+
+        then:
+        failureCauseContains("Circular evaluation detected")
+
+        where:
+        selfReference                                 || _
+        "stringInput"                                 || _
+        "stringInput.map { it.capitalize() }"         || _
+        "provider { stringInput.get().capitalize() }" || _
+    }
+
+    def "circular evaluation of standalone property is detected"() {
+        buildFile """
+            def prop = objects.property(String)
+            prop.set(prop.map { "newValue" })
+
+            println("prop = \${prop.get()}")
+
+            tasks.register("myTask") {}
+        """
+
+        when:
+        fails "myTask"
+
+        then:
+        failureCauseContains("Circular evaluation detected")
     }
 }

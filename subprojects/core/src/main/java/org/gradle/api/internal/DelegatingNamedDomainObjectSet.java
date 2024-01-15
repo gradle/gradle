@@ -50,6 +50,11 @@ public class DelegatingNamedDomainObjectSet<T> extends DelegatingDomainObjectSet
     }
 
     @Override
+    public NamedDomainObjectSet<T> named(Spec<String> nameFilter) {
+        return getDelegate().named(nameFilter);
+    }
+
+    @Override
     public NamedDomainObjectSet<T> matching(Spec<? super T> spec) {
         return getDelegate().matching(spec);
     }

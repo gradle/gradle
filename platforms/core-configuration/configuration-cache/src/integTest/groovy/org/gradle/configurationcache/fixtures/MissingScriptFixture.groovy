@@ -117,6 +117,7 @@ class MissingScriptFixture {
         @Override
         void createInitialBuildLayoutIn(TestFile dir, ScriptLanguage scriptLanguage) {
             dir.file("a", "build$scriptLanguage.extension") << dummyTaskIn(scriptLanguage)
+            dir.file("b").mkdir()
             dir.file("settings$scriptLanguage.extension") << settingsScriptIn(scriptLanguage, "a", "b")
         }
 
@@ -211,6 +212,7 @@ class MissingScriptFixture {
             dir.file("build$scriptLanguage.extension") << dummyTaskIn(scriptLanguage)
             dir.file("buildSrc", "build$scriptLanguage.extension") << dummyTaskIn(scriptLanguage)
             dir.file("buildSrc", "a", "build$scriptLanguage.extension") << dummyTaskIn(scriptLanguage)
+            dir.file("buildSrc", "b").mkdir()
             dir.file("buildSrc", "settings$scriptLanguage.extension") << settingsScriptIn(scriptLanguage, "a", "b")
         }
 
@@ -260,6 +262,7 @@ class MissingScriptFixture {
 
             dir.file("included-build", "build$scriptLanguage.extension") << dummyTaskIn(scriptLanguage)
             dir.file("included-build", "a", "build$scriptLanguage.extension") << dummyTaskIn(scriptLanguage)
+            dir.file("included-build", "b").mkdir()
             dir.file("included-build", "settings$scriptLanguage.extension") << settingsScriptIn(scriptLanguage, "a", "b")
         }
 

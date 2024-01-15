@@ -16,6 +16,8 @@
 
 package org.gradle.internal.vfs.impl
 
+
+import org.gradle.internal.snapshot.SnapshotUtil
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.test.fixtures.file.TestFile
 
@@ -245,5 +247,83 @@ class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
 
         then: "The filtered tree uses the cached state"
         relativePaths as Set == ["d1", "d1/f1", "f1"] as Set
+    }
+
+    def "reuses cached descendant tree on read"() {
+        given:
+        def parentDir = temporaryFolder.createDir("parent")
+        def childDir = parentDir.createDir("child")
+        childDir.file("file.txt").createFile()
+
+        allowFileSystemAccess(true)
+        def childSnapshot = read(childDir)
+
+        when:
+        def parentSnapshot = read(parentDir)
+        def index = SnapshotUtil.indexByAbsolutePath(parentSnapshot)
+
+        then:
+        index[childDir.absolutePath].is(childSnapshot)
+    }
+
+    def "reuses cached descendant tree when it has siblings on read"() {
+        given:
+        def parentDir = temporaryFolder.createDir("parent")
+        def childDir = parentDir.createDir("child")
+        parentDir.createDir("sibling")
+        childDir.file("file.txt").createFile()
+
+        allowFileSystemAccess(true)
+        def childSnapshot = read(childDir)
+
+        when:
+        def parentSnapshot = read(parentDir)
+        def index = SnapshotUtil.indexByAbsolutePath(parentSnapshot)
+
+        then:
+        index[childDir.absolutePath].is(childSnapshot)
+    }
+
+    def "reuses cached deep descendant trees"() {
+        given:
+        def parentDir = temporaryFolder.createDir("parent")
+        def childDir = parentDir.createDir("child")
+        def grandChildDir = parentDir.createDir("grand-child")
+        parentDir.createDir("sibling")
+        def cousinFile = childDir.createFile("cousin.txt")
+        childDir.createFile("other-cousin.txt")
+        grandChildDir.file("file.txt").createFile()
+
+        allowFileSystemAccess(true)
+        def grandChildSnapshot = read(grandChildDir)
+        def cousinSnapshot = read(cousinFile)
+
+        when:
+        def parentSnapshot = read(parentDir)
+        def index = SnapshotUtil.indexByAbsolutePath(parentSnapshot)
+
+        then:
+        index[grandChildDir.absolutePath].is(grandChildSnapshot)
+        index[cousinFile.absolutePath].is(cousinSnapshot)
+    }
+
+    def "reuses cached unfiltered descendant trees when looking for details of a filtered tree"() {
+        given:
+        def parentDir = temporaryFolder.createDir("parent")
+        def childDir = parentDir.createDir("child")
+        childDir.createFile("file.txt")
+        childDir.createFile("file.html")
+
+        allowFileSystemAccess(true)
+        read(childDir)
+
+        and:
+        def patterns = new FileNameFilter({ it.endsWith('.txt') })
+
+        when:
+        def parentSnapshot = read(parentDir, patterns)
+        def relativePaths = SnapshotVisitorUtil.getRelativePaths(parentSnapshot)
+        then:
+        relativePaths as Set == ["child", "child/file.txt"] as Set
     }
 }

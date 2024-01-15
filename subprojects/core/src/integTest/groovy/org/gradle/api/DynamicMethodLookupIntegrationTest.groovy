@@ -82,6 +82,7 @@ assert contacts("a") == "a"
     // Documents actual behaviour for backwards compatibility, not necessarily desired behaviour
     def "inherited convention method is preferred over property with closure value"() {
         given:
+        createDirs("child")
         settingsFile << "include 'child'"
         buildFile """
 class ContactConvention {
@@ -115,6 +116,7 @@ subprojects {
 
     def "property with closure value is preferred over inherited property with closure value"() {
         given:
+        createDirs("child")
         settingsFile << "include 'child'"
         buildFile """
 ext.contacts = { throw new RuntimeException() }

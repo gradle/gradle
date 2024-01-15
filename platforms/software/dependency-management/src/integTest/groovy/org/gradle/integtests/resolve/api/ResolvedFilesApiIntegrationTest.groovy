@@ -46,6 +46,7 @@ allprojects {
         mavenRepo.module("org", "test", "1.0").publish()
         mavenRepo.module("org", "test2", "1.0").publish()
 
+        createDirs("a", "b")
         settingsFile << """
 include 'a', 'b'
 """
@@ -120,6 +121,7 @@ task show {
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "applies compatibility rules to select variant"() {
+        createDirs("a", "b")
         settingsFile << """
 include 'a', 'b'
 """
@@ -198,6 +200,7 @@ task show {
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "applies disambiguation rules to select variant"() {
+        createDirs("a", "b")
         settingsFile << """
 include 'a', 'b'
 """
@@ -261,6 +264,7 @@ task show {
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "reports failure when there is more than one compatible variant"() {
+        createDirs("a", "b")
         settingsFile << """
 include 'a', 'b'
 """
@@ -321,6 +325,7 @@ task show {
     def "reports failure when there is no compatible variant"() {
         mavenRepo.module("test", "test", "1.2").publish()
 
+        createDirs("a", "b")
         settingsFile << """
 include 'a', 'b'
 """
@@ -527,6 +532,7 @@ task show {
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "reports multiple failures to resolve artifacts when files are queried using #expression"() {
+        createDirs("a")
         settingsFile << "include 'a'"
         buildFile << """
 allprojects {

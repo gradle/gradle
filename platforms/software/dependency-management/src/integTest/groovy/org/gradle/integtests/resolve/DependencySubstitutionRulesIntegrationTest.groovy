@@ -347,6 +347,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
     }
 
     void "can substitute modules with project dependency using #name"() {
+        createDirs("api", "impl")
         settingsFile << 'include "api", "impl"'
         buildFile << """
             $common
@@ -385,6 +386,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
     }
 
     void "can access built artifacts from substituted project dependency"() {
+        createDirs("api", "impl")
         settingsFile << 'include "api", "impl"'
 
         buildFile << """
@@ -435,6 +437,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
     void "can replace project dependency #projectGroup:api:#projectVersion with external dependency org.utils:api:1.5"() {
         mavenRepo.module("org.utils", "api", '1.5').publish()
 
+        createDirs("api", "impl")
         settingsFile << 'include "api", "impl"'
 
         buildFile << """
@@ -478,6 +481,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
     void "can replace transitive external dependency with project dependency"() {
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
+        createDirs("api", "test")
         settingsFile << 'include "api", "test"'
 
         buildFile << """
@@ -516,6 +520,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
     }
 
     void "can replace client module dependency with project dependency"() {
+        createDirs("api", "impl")
         settingsFile << 'include "api", "impl"'
 
         buildFile << """
@@ -548,6 +553,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
 
         when:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         run ":impl:checkDeps"
 
         then:
@@ -562,6 +568,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
     }
 
     void "can replace client module's transitive dependency with project dependency"() {
+        createDirs("api", "impl")
         settingsFile << 'include "api", "impl"'
         mavenRepo.module("org.utils", "bela", '1.5').publish()
 
@@ -582,6 +589,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 """
 
         when:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         run ":impl:checkDeps"
 
         then:
@@ -601,6 +609,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
     void "can replace external dependency declared in extended configuration with project dependency"() {
         mavenRepo.module("org.utils", "api", '1.5').publish()
 
+        createDirs("api", "impl")
         settingsFile << 'include "api", "impl"'
 
         buildFile << """
@@ -637,6 +646,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
     }
 
     void "can replace forced external dependency with project dependency"() {
+        createDirs("api", "impl")
         settingsFile << 'include "api", "impl"'
 
         buildFile << """
@@ -673,6 +683,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
     }
 
     void "get useful error message when replacing an external dependency with a project that does not exist"() {
+        createDirs("api", "impl")
         settingsFile << 'include "api", "impl"'
 
         buildFile << """
@@ -703,6 +714,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
     }
 
     void "replacing external module dependency with project dependency keeps the original configuration"() {
+        createDirs("api", "impl")
         settingsFile << 'include "api", "impl"'
 
         buildFile << """
@@ -735,6 +747,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
     void "replacing external module dependency with project dependency keeps the original transitivity"() {
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
+        createDirs("impl", "test")
         settingsFile << 'include "impl", "test"'
 
         buildFile << """
@@ -768,6 +781,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
     void "external dependency substituted for a project dependency participates in conflict resolution"() {
         mavenRepo.module("org.utils", "api", '2.0').publish()
 
+        createDirs("api", "impl")
         settingsFile << 'include "api", "impl"'
 
         buildFile << """
@@ -827,6 +841,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
     void "project dependency substituted for an external dependency participates in conflict resolution"() {
         mavenRepo.module("org.utils", "dep1", '2.0').publish()
         mavenRepo.module("org.utils", "dep2", '2.0').publish()
+        createDirs("impl", "dep1", "dep2")
         settingsFile << 'include "impl", "dep1", "dep2"'
 
         buildFile << """
@@ -1447,6 +1462,7 @@ Required by:
 
     @Issue("gradle/gradle#5692")
     def 'substitution with project does not trigger failOnVersionConflict'() {
+        createDirs("sub")
         settingsFile << 'include "sub"'
         buildFile << """
 subprojects {
@@ -1643,6 +1659,7 @@ configurations.all {
             .dependencyConstraint(fooModule)
             .publish()
 
+        createDirs("lib")
         settingsFile << """
             include 'lib'
         """

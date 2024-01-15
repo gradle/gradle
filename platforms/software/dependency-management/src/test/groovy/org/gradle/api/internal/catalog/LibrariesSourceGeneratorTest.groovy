@@ -34,15 +34,15 @@ import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.problems.Problems
+import org.gradle.api.problems.internal.ProblemEmitter
 import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.isolation.TestIsolatableFactory
 import org.gradle.internal.management.VersionCatalogBuilderInternal
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -147,6 +147,33 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest implements
         'groovy.json'   | 'getJson'
         'groovyJson'    | 'getGroovyJson'
         'lang3Version'  | 'getLang3Version'
+    }
+
+    def "generates version info in javadoc for dependencies and plugins"() {
+        when:
+        generate {
+            version('barVersion', '2.0')
+            library('foo', 'group:foo:1.0')
+            library('fooBaz', 'group', 'foo-baz').version {
+                it.prefer('1.2')
+                it.strictly('[1.0, 2.0[')
+            }
+            library('bar', 'group', 'bar').versionRef('barVersion')
+            library('boo', 'group', 'boo').withoutVersion()
+            plugin('fooPlugin', 'org.foo.plugin').version('1.0')
+            plugin('barPlugin', 'org.bar.plugin').versionRef('barVersion')
+            plugin('bazPlugin', 'org.baz.plugin').version('')
+        }
+
+        then:
+        sources.hasDependencyAlias('foo', 'getFoo', "with version <b>1.0</b>")
+        sources.hasDependencyAlias('fooBaz', 'getFooBaz', "with version <b>{strictly [1.0, 2.0[; prefer 1.2}</b>")
+        sources.hasDependencyAlias('bar', 'getBar', "with version reference <b>barVersion</b>")
+        sources.hasDependencyAlias('boo', 'getBoo', "with <b>no version specified</b>")
+
+        sources.hasPlugin('fooPlugin', 'getFooPlugin', "with version <b>1.0</b>")
+        sources.hasPlugin('barPlugin', 'getBarPlugin', "with version reference <b>barVersion</b>")
+        sources.hasPlugin('bazPlugin', 'getBazPlugin', "with <b>no version specified</b>")
     }
 
     @VersionCatalogProblemTestFor(
@@ -358,18 +385,17 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
     }
 
     private void generate(String className = 'Generated', @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = VersionCatalogBuilderInternal) Closure<Void> spec) {
-        def stub = Stub(BuildOperationProgressEventEmitter)
-        def problems = new DefaultProblems(stub)
+        def problems = new DefaultProblems(Stub(ProblemEmitter))
         DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder(
             "lib",
             Interners.newStrongInterner(),
             Interners.newStrongInterner(),
             TestUtil.objectFactory(),
             Stub(Supplier)) {
-            @Override
-            protected Problems getProblemService() {
-                problems
-            }
+                @Override
+                protected InternalProblems getProblemsService() {
+                    problems
+                }
         }
         spec.delegate = builder
         spec.resolveStrategy = Closure.DELEGATE_FIRST
@@ -428,6 +454,15 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
 
         void hasVersion(String name, String methodName = "get${toJavaName(name)}Version", String javadoc = null) {
             def lookup = "public Provider<String> $methodName() {"
+            def result = Lookup.find(lines, lookup)
+            assert result.match
+            if (javadoc) {
+                assert result.javadocContains(javadoc)
+            }
+        }
+
+        void hasPlugin(String name, String methodName = "get${toJavaName(name)}", String javadoc = null) {
+            def lookup = "public Provider<PluginDependency> $methodName() {"
             def result = Lookup.find(lines, lookup)
             assert result.match
             if (javadoc) {

@@ -199,6 +199,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
         def modB = mavenRepo.module("org.test", "B").dependsOn(modC).publish()
         def modA = mavenRepo.module("org.test", "A").dependsOn(modC).publish()
 
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         buildFile << """
             allprojects {

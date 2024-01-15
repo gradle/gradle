@@ -17,6 +17,7 @@
 package org.gradle.configurationcache
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ArtifactView
@@ -54,8 +55,8 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet
 import org.gradle.api.internal.artifacts.DefaultDependencySet
+import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency
-import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies.ConfigurationArtifactView
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
@@ -96,13 +97,13 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler.ScriptClassLoader
 import org.gradle.initialization.DefaultSettings
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.locking.DefaultDependencyLockingHandler
 import org.gradle.invocation.DefaultGradle
 import spock.lang.Shared
 
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors.DefaultThreadFactory
-import java.util.concurrent.Executors.FinalizableDelegatedExecutorService
 import java.util.concurrent.ThreadFactory
 
 class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -259,7 +260,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         ScriptClassLoader                     | ClassLoader                    | "getClass().classLoader"
         Thread                                | Thread                         | "Thread.currentThread()"
         DefaultThreadFactory                  | ThreadFactory                  | "java.util.concurrent.Executors.defaultThreadFactory()"
-        FinalizableDelegatedExecutorService   | Executor                       | "java.util.concurrent.Executors.newSingleThreadExecutor().tap { shutdown() }"
+        executorServiceTypeOnCurrentJvm()     | Executor                       | "java.util.concurrent.Executors.newSingleThreadExecutor().tap { shutdown() }"
         ByteArrayInputStream                  | InputStream                    | "new java.io.ByteArrayInputStream([] as byte[])"
         ByteArrayOutputStream                 | OutputStream                   | "new java.io.ByteArrayOutputStream()"
         FileDescriptor                        | FileDescriptor                 | "FileDescriptor.in"
@@ -298,7 +299,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         DefaultExternalModuleDependency       | Dependency                     | "project.dependencies.create('junit:junit:4.13')"
         DefaultDependencyLockingHandler       | DependencyLockingHandler       | "project.dependencyLocking"
         DefaultResolvedDependency             | ResolvedDependency             | "project.configurations.create(java.util.UUID.randomUUID().toString()).tap { project.dependencies.add(name, 'junit:junit:4.13') }.resolvedConfiguration.firstLevelModuleDependencies.first()"
-        PreResolvedResolvableArtifact         | ResolvedArtifact               | "project.configurations.create(java.util.UUID.randomUUID().toString()).tap { project.dependencies.add(name, 'junit:junit:4.13') }.resolvedConfiguration.resolvedArtifacts.first()"
+        DefaultResolvedArtifact               | ResolvedArtifact               | "project.configurations.create(java.util.UUID.randomUUID().toString()).tap { project.dependencies.add(name, 'junit:junit:4.13') }.resolvedConfiguration.resolvedArtifacts.first()"
         ConfigurationArtifactView             | ArtifactView                   | "project.configurations.maybeCreate('some').incoming.artifactView {}"
         DefaultArtifactResolutionResult       | ArtifactResolutionResult       | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.13').withArtifacts(JvmLibrary).execute()"
         DefaultComponentArtifactsResult       | ComponentArtifactsResult       | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.13').withArtifacts(JvmLibrary).execute().components.first()"
@@ -309,6 +310,11 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         'SomeBuildService'                    | BuildService                   | "project.gradle.sharedServices.registerIfAbsent('service', SomeBuildService) {}.get()"
 
         concreteTypeName = concreteType instanceof Class ? concreteType.name : concreteType
+    }
+
+    private static executorServiceTypeOnCurrentJvm() {
+        def shortName = Jvm.current().javaVersion == JavaVersion.VERSION_21 ? 'AutoShutdownDelegatedExecutorService' : 'FinalizableDelegatedExecutorService'
+        return 'java.util.concurrent.Executors$' + shortName
     }
 
     def "reports when task field is declared with type #baseType"() {

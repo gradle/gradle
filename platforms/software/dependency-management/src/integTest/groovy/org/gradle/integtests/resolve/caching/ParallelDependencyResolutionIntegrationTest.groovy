@@ -41,6 +41,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
         given:
         module.metaData.expectGet()
         ('a'..'z').each {
+            createDirs(it)
             settingsFile << "include '$it'\n"
             file("${it}/build.gradle") << """
                 apply plugin: 'java-library'
@@ -79,6 +80,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
 
         given:
         ('a'..'z').each {
+            createDirs(it)
             settingsFile << "include '$it'\n"
             file("${it}/build.gradle") << """
                 apply plugin: 'java-library'
@@ -115,6 +117,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
     def "tasks resolving in parallel do not access Projects in parallel"() {
         given:
         ['project1', 'project2'].each {
+            createDirs(it)
             settingsFile << "include '$it'\n"
             file("$it/build.gradle") << """
                 apply plugin: 'java-library'
@@ -129,6 +132,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
         }
 
         ('a'..'z').each {
+            createDirs(it)
             settingsFile << "include '$it'\n"
             file("${it}/build.gradle") << """
                 apply plugin: 'java-library'
@@ -152,6 +156,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
     def "long running task in producing project does not block task in consuming project"() {
         blockingServer.start()
 
+        createDirs("producer", "consumer")
         settingsFile << """
             include "producer"
             include "consumer"

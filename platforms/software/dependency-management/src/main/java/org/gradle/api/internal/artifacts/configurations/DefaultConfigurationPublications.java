@@ -17,9 +17,9 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
@@ -63,7 +63,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     private final TaskDependencyFactory taskDependencyFactory;
     private NamedDomainObjectContainer<ConfigurationVariant> variants;
     private ConfigurationVariantFactory variantFactory;
-    private List<Capability> capabilities;
+    private DomainObjectSet<Capability> capabilities;
     private boolean canCreate = true;
 
     public DefaultConfigurationPublications(
@@ -97,11 +97,11 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         visitor.visitArtifacts(artifacts);
         PublishArtifactSet allArtifactSet = allArtifacts.getPublishArtifactSet();
         if (variants == null || variants.isEmpty() || !allArtifactSet.isEmpty()) {
-            visitor.visitOwnVariant(displayName, attributes.asImmutable(), getCapabilities(), allArtifactSet);
+            visitor.visitOwnVariant(displayName, attributes.asImmutable(), allArtifactSet);
         }
         if (variants != null) {
-            for (DefaultVariant variant : variants.withType(DefaultVariant.class)) {
-                variant.visit(visitor, getCapabilities());
+            for (ConfigurationVariantInternal variant : variants.withType(ConfigurationVariantInternal.class)) {
+                visitor.visitChildVariant(variant.getName(), variant.getDisplayName(), variant.getAttributes().asImmutable(), variant.getArtifacts());
             }
         }
     }
@@ -211,11 +211,15 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     @Override
     public void capability(Object notation) {
         if (canCreate) {
-            Capability descriptor = capabilityNotationParser.parseNotation(notation);
             if (capabilities == null) {
-                capabilities = Lists.newArrayListWithExpectedSize(1); // it's rare that a component would declare more than 1 capability
+                capabilities = domainObjectCollectionFactory.newDomainObjectSet(Capability.class);
             }
-            capabilities.add(descriptor);
+            if (notation instanceof Provider) {
+                capabilities.addLater(((Provider<?>) notation).map(capabilityNotationParser::parseNotation));
+            } else {
+                Capability descriptor = capabilityNotationParser.parseNotation(notation);
+                capabilities.add(descriptor);
+            }
         } else {
             throw new InvalidUserCodeException("Cannot declare capability '" + notation + "' after dependency " + displayName + " has been resolved");
         }

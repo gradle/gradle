@@ -26,6 +26,7 @@ class IdeaCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForConfigurationCache
     def "includes module for each project in each build"() {
         given:
+        createDirs("api", "shared", "shared/api", "shared/model", "util", "other")
         settingsFile << """
             include 'api'
             include 'shared:api', 'shared:model'

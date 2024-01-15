@@ -40,6 +40,7 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
 
     def "Dependencies of a non-wtp project have no wtp deployment attributes"() {
         given:
+        createDirs("sub")
         settingsFile << "include 'sub'"
         buildFile <<
         """apply plugin: 'java'
@@ -235,6 +236,7 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
 
     def "Project dependencies are marked as not deployed"() {
         given:
+        createDirs("sub")
         settingsFile << 'include "sub"'
         buildFile <<
         """apply plugin: 'java'

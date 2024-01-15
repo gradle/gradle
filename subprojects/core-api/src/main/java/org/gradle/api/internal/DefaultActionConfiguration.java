@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.NonExtensible;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 @NonExtensible
 public class DefaultActionConfiguration implements ActionConfiguration {
-    private final List<Object> params = Lists.newArrayList();
+    private final List<Object> params = new ArrayList<>();
 
     @Override
     public void params(Object... params) {

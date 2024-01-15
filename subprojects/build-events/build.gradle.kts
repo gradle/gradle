@@ -5,14 +5,17 @@ plugins {
 description = "Implementation of build event services and build event types (work item, tasks, tests, configuration, etc)"
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":messaging"))
-    implementation(project(":core-api"))
-    implementation(project(":core"))
-    implementation(project(":model-core"))
-    implementation(project(":tooling-api"))
+    api(project(":base-annotations"))
+    api(project(":build-operations"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":messaging"))
+    api(project(":tooling-api"))
 
-    implementation(libs.jsr305)
+    implementation(project(":model-core"))
+
+    api(libs.jsr305)
     implementation(libs.guava)
 
     testImplementation(project(":internal-testing"))

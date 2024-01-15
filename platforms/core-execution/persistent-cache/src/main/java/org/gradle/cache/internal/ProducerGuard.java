@@ -15,10 +15,10 @@
  */
 package org.gradle.cache.internal;
 
-import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Striped;
 import org.gradle.internal.UncheckedException;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -80,7 +80,7 @@ public abstract class ProducerGuard<T> {
     public abstract <V> V guardByKey(T key, Supplier<V> supplier);
 
     private static class AdaptiveProducerGuard<T> extends ProducerGuard<T> {
-        private final Set<T> producing = Sets.newHashSet();
+        private final Set<T> producing = new HashSet<>();
 
         @Override
         public <V> V guardByKey(T key, Supplier<V> supplier) {

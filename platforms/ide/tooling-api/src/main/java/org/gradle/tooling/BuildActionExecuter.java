@@ -16,6 +16,8 @@
 
 package org.gradle.tooling;
 
+import org.gradle.api.Incubating;
+
 /**
  * Used to execute a {@link BuildAction} in the build process.
  *
@@ -23,7 +25,6 @@ package org.gradle.tooling;
  * @since 1.8
  */
 public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildActionExecuter<T>> {
-
     /**
      * Builder for a build action that hooks into different phases of the build.
      *
@@ -68,6 +69,15 @@ public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildAction
          */
         BuildActionExecuter<Void> build();
     }
+
+    /**
+     * Sets the listener to use to streamed values sent from the action via {@link BuildController#send(Object)}.
+     * Replaces the current listener.
+     *
+     * @since 8.6
+     */
+    @Incubating
+    void setStreamedValueListener(StreamedValueListener listener);
 
     /**
      * <p>Specifies the tasks to execute before executing the BuildAction.</p>

@@ -20,5 +20,5 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import java.util.List;
 import java.util.function.Supplier;
 
-public interface RepositoriesSupplier extends Supplier<List<? extends ResolutionAwareRepository>> {
+public interface RepositoriesSupplier extends Supplier<List<ResolutionAwareRepository>> {
 }

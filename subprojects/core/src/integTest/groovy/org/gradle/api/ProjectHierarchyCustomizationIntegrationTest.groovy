@@ -22,6 +22,7 @@ import spock.lang.Issue
 class ProjectHierarchyCustomizationIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/18726")
     def "can customize name of child project before customizing the name of parent project"() {
+        createDirs("modules", "modules/projectA", "modules/projectA/projectB")
         settingsFile << """
             include("modules:projectA:projectB")
 

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import com.google.common.collect.Maps
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -36,7 +35,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
     final result = new DefaultBuildableArtifactResolveResult()
     final calculatedValueContainerFactory = new CalculatedValueContainerFactory(Mock(ProjectLeaseRegistry), Mock(ServiceRegistry))
 
-    final cache = Maps.newHashMap()
+    final cache = new HashMap()
 
     final repo1 = Stub(ModuleComponentRepository) {
         getId() >> "repo1"

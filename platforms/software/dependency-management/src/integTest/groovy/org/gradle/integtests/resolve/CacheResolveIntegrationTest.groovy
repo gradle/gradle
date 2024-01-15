@@ -76,6 +76,7 @@ task deleteCacheFiles(type: Delete) {
         def module2 = repo2.module('org.gradle', 'testproject', '1.0').publishWithChangedContent()
 
         and:
+        createDirs("a", "b")
         settingsFile << "include 'a','b'"
         buildFile << """
 subprojects {

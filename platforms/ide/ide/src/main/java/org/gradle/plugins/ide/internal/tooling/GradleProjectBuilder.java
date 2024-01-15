@@ -16,16 +16,15 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleProjectTask;
-import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
-import org.gradle.tooling.provider.model.ToolingModelBuilder;
+import org.gradle.tooling.model.GradleProject;
 
 import java.util.List;
 import java.util.Objects;
@@ -33,12 +32,11 @@ import java.util.Objects;
 import static java.util.stream.Collectors.toList;
 import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport.buildFromTask;
-import static org.gradle.util.Path.SEPARATOR;
 
 /**
- * Builds the GradleProject that contains the project hierarchy and task information
+ * Builds the {@link GradleProject} model that contains the project hierarchy and task information.
  */
-public class GradleProjectBuilder implements ToolingModelBuilder {
+public class GradleProjectBuilder implements GradleProjectBuilderInternal {
 
     @Override
     public boolean canBuild(String modelName) {
@@ -47,16 +45,21 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
 
     @Override
     public Object buildAll(String modelName, Project project) {
-        return buildHierarchy(project.getRootProject());
+        return buildForRoot(project);
     }
 
-    public DefaultGradleProject buildAll(Project project) {
-        return buildHierarchy(project.getRootProject());
+    @Override
+    public DefaultGradleProject buildForRoot(Project project) {
+        boolean realizeTasks = GradleProjectBuilderOptions.shouldRealizeTasks();
+        return buildHierarchy(project.getRootProject(), realizeTasks);
     }
 
-    private DefaultGradleProject buildHierarchy(Project project) {
+    /**
+     * When {@code realizeTasks} is false, the project's task graph will not be realized, and the task list in the model will be empty
+     */
+    private static DefaultGradleProject buildHierarchy(Project project, boolean realizeTasks) {
         List<DefaultGradleProject> children = getChildProjectsForInternalUse(project).stream()
-            .map(this::buildHierarchy)
+            .map(it -> buildHierarchy(it, realizeTasks))
             .collect(toList());
 
         String projectIdentityPath = ((ProjectInternal) project).getIdentityPath().getPath();
@@ -71,69 +74,37 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
 
         gradleProject.getBuildScript().setSourceFile(project.getBuildFile());
 
-        /*
-            Internal system property to investigate model loading performance in IDEA/Android Studio.
-            The model loading can be altered with the following values:
-              - "omit_all_tasks": The model builder won't realize the task graph. The returned model will contain an empty task list.
-              - "skip_task_graph_realization":  The model builder won't realize the task graph. The returned model will contain artificial tasks created from the task names.
-              - "skip_task_serialization":  The model builder will realize the task graph but won't send it to the client.
-              - "unmodified" (or any other value): The model builder will run unchanged.
-         */
-        String projectOptions = System.getProperty("org.gradle.internal.GradleProjectBuilderOptions", "unmodified");
-        List<LaunchableGradleTask> tasks = tasks(gradleProject, (TaskContainerInternal) project.getTasks(), projectOptions);
-
-        if (!"skip_task_serialization".equals(projectOptions)) {
-            gradleProject.setTasks(tasks);
-        }
-
         for (DefaultGradleProject child : children) {
             child.setParent(gradleProject);
+        }
+
+        if (realizeTasks) {
+            List<LaunchableGradleProjectTask> tasks = collectTasks(gradleProject, (TaskContainerInternal) project.getTasks());
+            gradleProject.setTasks(tasks);
         }
 
         return gradleProject;
     }
 
-    private static List<LaunchableGradleTask> tasks(DefaultGradleProject owner, TaskContainerInternal tasks, String projectOptions) {
-        if ("omit_all_tasks".equals(projectOptions)) {
-            return ImmutableList.of();
-        }
-        if ("skip_task_graph_realization".equals(projectOptions)) {
-            return tasks.getNames().stream()
-                .map(taskName -> buildFromTaskName(new LaunchableGradleProjectTask(), owner.getProjectIdentifier(), taskName)
-                    .setBuildTreePath(owner.getBuildTreePath() + SEPARATOR + taskName))
-                .collect(toList());
-        }
-
+    private static List<LaunchableGradleProjectTask> collectTasks(DefaultGradleProject owner, TaskContainerInternal tasks) {
         tasks.discoverTasks();
         tasks.realize();
 
         return tasks.getNames().stream()
             .map(tasks::findByName)
             .filter(Objects::nonNull)
-            .map(task -> buildFromTask(new LaunchableGradleProjectTask(), owner.getProjectIdentifier(), task)
-                .setProject(owner)
-                .setBuildTreePath(getBuildTreePath(owner, task))).collect(toList());
+            .map(task -> buildTask(owner, task))
+            .collect(toList());
     }
 
-    private static String getBuildTreePath(DefaultGradleProject owner, Task task) {
-        String ownerBuildTreePath = owner.getBuildTreePath();
-        String buildTreePath = SEPARATOR + task.getName();
-        if (SEPARATOR.equals(ownerBuildTreePath)) {
-            return buildTreePath;
-        }
-        return ownerBuildTreePath + buildTreePath;
+    private static LaunchableGradleProjectTask buildTask(DefaultGradleProject owner, Task task) {
+        LaunchableGradleProjectTask model = buildFromTask(new LaunchableGradleProjectTask(), owner.getProjectIdentifier(), task);
+        model.setProject(owner);
+        return model;
     }
 
-    public static <T extends LaunchableGradleTask> T buildFromTaskName(T target, DefaultProjectIdentifier projectIdentifier, String taskName) {
-        String taskPath = projectIdentifier.getProjectPath() + SEPARATOR + taskName;
-        target.setPath(taskPath)
-            .setName(taskName)
-            .setGroup("undefined")
-            .setDisplayName(taskPath)
-            .setDescription("")
-            .setPublic(true)
-            .setProjectIdentifier(projectIdentifier);
-
-        return target;
+    private static String getBuildTreePath(Task task) {
+        return ((TaskInternal) task).getIdentityPath().getPath();
     }
+
 }

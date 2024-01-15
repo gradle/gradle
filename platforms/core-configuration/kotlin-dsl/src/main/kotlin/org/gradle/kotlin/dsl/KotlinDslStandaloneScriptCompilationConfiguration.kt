@@ -38,7 +38,6 @@ abstract class KotlinDslStandaloneScriptCompilationConfiguration protected const
         "-api-version", "1.8",
         "-Xjvm-default=all",
         "-Xjsr305=strict",
-        "-Xskip-metadata-version-check",
         "-Xskip-prerelease-check",
         "-Xallow-unstable-dependencies",
         "-XXLanguage:+DisableCompatibilityModeForNewInference",

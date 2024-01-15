@@ -16,18 +16,16 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -36,18 +34,13 @@ import java.util.Set;
  */
 public class FailOnVersionConflictGraphVisitor implements DependencyGraphVisitor {
 
-    private final Set<Conflict> allConflicts = Sets.newLinkedHashSet();
+    private final Set<Conflict> allConflicts = new LinkedHashSet<>();
     private final String projectPath;
     private final String configurationName;
 
     public FailOnVersionConflictGraphVisitor(String projectPath, String configurationName) {
         this.projectPath = projectPath;
         this.configurationName = configurationName;
-    }
-
-    @Override
-    public void start(RootGraphNode root) {
-
     }
 
     @Override
@@ -74,21 +67,6 @@ public class FailOnVersionConflictGraphVisitor implements DependencyGraphVisitor
         }
         assert conflictDescription != null;
         return owner.getGroup() + ":" + owner.getName() + " " + conflictDescription;
-    }
-
-    @Override
-    public void visitSelector(DependencyGraphSelector selector) {
-
-    }
-
-    @Override
-    public void visitEdges(DependencyGraphNode node) {
-
-    }
-
-    @Override
-    public void finish(DependencyGraphNode root) {
-
     }
 
     public Set<Throwable> collectConflictFailures() {

@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 
 @FluidDependenciesResolveTest
 class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
+
     def "cannot resolve a configuration with role #role at execution time"() {
         given:
         buildFile << """
@@ -136,6 +137,7 @@ This method is only meant to be called on configurations which allow the (non-de
 
     def "cannot add a dependency on a configuration role #role"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << 'include "a", "b"'
         buildFile << """
         project(':a') {
@@ -175,6 +177,7 @@ This method is only meant to be called on configurations which allow the (non-de
 
     def "cannot depend on default configuration if it's not consumable (#role)"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << 'include "a", "b"'
         buildFile << """
         project(':a') {

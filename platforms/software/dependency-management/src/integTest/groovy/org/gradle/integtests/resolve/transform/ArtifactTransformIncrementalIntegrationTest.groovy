@@ -18,9 +18,85 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
+import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.INSTRUMENTED_ATTRIBUTE
+import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.NOT_INSTRUMENTED_ATTRIBUTE_VALUE
+
 class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
 
+    def "incremental artifact transform in buildscript block for included build runs without exception"() {
+        createDirs("a", "included")
+        settingsFile << """
+            includeBuild("included") {
+                dependencySubstitution {
+                    substitute(module("com.test:lib")).using(project(":b"))
+                }
+            }
+            include ":a"
+        """
+        file("a/build.gradle") << """
+            buildscript {
+                // Build script classpath is resolved via ${INSTRUMENTED_ATTRIBUTE.name} attribute,
+                // so we have to set that attribute too to make transform run
+                def artifactType = Attribute.of('artifactType', String)
+                def instrumented = Attribute.of('${INSTRUMENTED_ATTRIBUTE.name}', String.class)
+                dependencies {
+                    classpath "com.test:lib:1.0"
+                    registerTransform(MakeColor) {
+                        from.attribute(artifactType, 'jar').attribute(instrumented, '${NOT_INSTRUMENTED_ATTRIBUTE_VALUE}')
+                        to.attribute(artifactType, 'green').attribute(instrumented, '${NOT_INSTRUMENTED_ATTRIBUTE_VALUE}')
+                        parameters.targetColor.set('green')
+                    }
+                }
+                configurations.classpath.attributes.attribute(artifactType, 'green')
+            }
+        """
+        file("included/b/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
+        file("included/settings.gradle") << """
+            rootProject.name = "included"
+            include ":b"
+        """
+        file("buildSrc/src/main/groovy/MakeColor.groovy") << """
+            import javax.inject.Inject
+            import org.gradle.api.artifacts.transform.*
+            import org.gradle.api.file.*
+            import org.gradle.api.provider.*
+            import org.gradle.api.tasks.*
+            import org.gradle.work.InputChanges
+
+            @CacheableTransform
+            abstract class MakeColor implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @Input
+                    Property<String> getTargetColor()
+                }
+
+                @PathSensitive(PathSensitivity.NAME_ONLY)
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                @Inject abstract InputChanges getInputChanges()
+
+                @Override
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing [\${input.name}]"
+                    def output = outputs.file("\${input.name}.\${parameters.targetColor.get()}")
+                    output.text = "\${input.exists() ? input.text : 'missing'}-\${parameters.targetColor.get()}"
+                }
+            }
+        """
+
+        expect:
+        succeeds ":a:help"
+        outputContains("processing [b.jar]")
+    }
+
     def "can query incremental changes"() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
@@ -94,12 +170,16 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
 
         when:
         previousExecution()
-        executer.withArguments("-DbContent=changed")
+        withProjectConfig("b") {
+            outputFileContent = "changed"
+        }
         then:
         executesIncrementally("ext.modified=['b']")
 
         when:
-        executer.withArguments('-DbNames=first,second,third')
+        withProjectConfig("b") {
+            names = ["first", "second", "third"]
+        }
         then:
         executesIncrementally("""
             ext.removed = ['b']
@@ -107,7 +187,10 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
         """)
 
         when:
-        executer.withArguments("-DbNames=first,second", "-DbContent=different")
+        withProjectConfig("b") {
+            names = ["first", "second"]
+            outputFileContent = "different"
+        }
         then:
         executesIncrementally("""
             ext.removed = ['third']

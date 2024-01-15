@@ -36,8 +36,8 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.internal.Describables;
@@ -82,6 +82,7 @@ import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.util.internal.TextUtil;
 import org.gradle.work.InputChanges;
 
 import javax.annotation.Nullable;
@@ -93,7 +94,6 @@ import java.util.function.Supplier;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.gradle.api.internal.tasks.properties.AbstractValidatingProperty.reportValueNotSet;
-import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
 import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
@@ -137,8 +137,7 @@ public class DefaultTransform implements Transform {
         InstantiationScheme actionInstantiationScheme,
         DomainObjectContext owner,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
-        ServiceLookup internalServices,
-        Problems problems
+        ServiceLookup internalServices
     ) {
         this.implementationClass = implementationClass;
         this.fromAttributes = fromAttributes;
@@ -157,7 +156,7 @@ public class DefaultTransform implements Transform {
         this.dependenciesLineEndingSensitivity = dependenciesLineEndingSensitivity;
         this.isolatedParameters = calculatedValueContainerFactory.create(Describables.of("parameters of", this),
             new IsolateTransformParameters(parameterObject, implementationClass, cacheable, owner, parameterPropertyWalker, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher,
-                fileCollectionFactory, problems));
+                fileCollectionFactory));
     }
 
     /**
@@ -207,8 +206,7 @@ public class DefaultTransform implements Transform {
                         .forProperty(propertyName)
                         .label("is declared to be sensitive to absolute paths")
                         .documentedAt(userManual("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"))
-                        .noLocation()
-                        .category(VALIDATION, CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY)
+                        .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY))
                         .severity(ERROR)
                         .details("This is not allowed for cacheable transforms")
                         .solution("Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath"));
@@ -293,7 +291,6 @@ public class DefaultTransform implements Transform {
     private static final String ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT = "ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT";
 
     private static void fingerprintParameters(
-        Problems problems,
         InputFingerprinter inputFingerprinter,
         FileCollectionFactory fileCollectionFactory,
         PropertyWalker propertyWalker,
@@ -301,7 +298,7 @@ public class DefaultTransform implements Transform {
         Object parameterObject,
         boolean cacheable
     ) {
-        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(problems, cacheable);
+        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable);
         InputFingerprinter.Result result = inputFingerprinter.fingerprintInputProperties(
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
@@ -368,8 +365,7 @@ public class DefaultTransform implements Transform {
                             .forProperty(propertyName)
                             .label("declares an output")
                             .documentedAt(userManual("validation_problems", ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.toLowerCase()))
-                            .noLocation()
-                            .category(VALIDATION, ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT)
+                            .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT))
                             .severity(ERROR)
                             .details("is annotated with an output annotation")
                             .solution("Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead")
@@ -569,7 +565,6 @@ public class DefaultTransform implements Transform {
         private final BuildOperationExecutor buildOperationExecutor;
         private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
         private final FileCollectionFactory fileCollectionFactory;
-        private final Problems problems;
         private final boolean cacheable;
         private final Class<?> implementationClass;
 
@@ -582,8 +577,7 @@ public class DefaultTransform implements Transform {
             IsolatableFactory isolatableFactory,
             BuildOperationExecutor buildOperationExecutor,
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-            FileCollectionFactory fileCollectionFactory,
-            Problems problems
+            FileCollectionFactory fileCollectionFactory
         ) {
             this.parameterObject = parameterObject;
             this.implementationClass = implementationClass;
@@ -594,7 +588,6 @@ public class DefaultTransform implements Transform {
             this.buildOperationExecutor = buildOperationExecutor;
             this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
             this.fileCollectionFactory = fileCollectionFactory;
-            this.problems = problems;
         }
 
         @Nullable
@@ -696,7 +689,6 @@ public class DefaultTransform implements Transform {
                     public void run(BuildOperationContext context) {
                         // TODO wolfs - schedule fingerprinting separately, it can be done without having the project lock
                         fingerprintParameters(
-                            problems,
                             inputFingerprinter,
                             fileCollectionFactory,
                             parameterPropertyWalker,

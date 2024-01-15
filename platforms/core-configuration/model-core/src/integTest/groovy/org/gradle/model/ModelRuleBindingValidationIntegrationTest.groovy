@@ -29,6 +29,7 @@ class ModelRuleBindingValidationIntegrationTest extends AbstractIntegrationSpec 
 
     def "model rule that does not bind specified for project not used in the build does not fail the build"() {
         when:
+        createDirs("used", "unused")
         settingsFile << """
             include ":used", ":unused"
         """

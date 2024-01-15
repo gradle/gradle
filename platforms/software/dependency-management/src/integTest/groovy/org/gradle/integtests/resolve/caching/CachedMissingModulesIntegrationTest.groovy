@@ -552,6 +552,7 @@ Required by:
         def repo2 = mavenHttpRepo("repo2")
         def repo2Module = repo2.module("group", "projectA", "1.0")
 
+        createDirs("subproject")
         settingsFile << "include 'subproject'"
         buildFile << """
             allprojects{

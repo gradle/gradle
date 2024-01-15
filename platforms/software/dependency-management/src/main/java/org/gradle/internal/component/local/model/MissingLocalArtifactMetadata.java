@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
@@ -28,7 +27,7 @@ import java.io.File;
 /**
  * Represents an unknown local artifact, referenced from a dependency definition.
  */
-public class MissingLocalArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier, DisplayName {
+public class MissingLocalArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier {
     private final ComponentIdentifier componentIdentifier;
     private final IvyArtifactName name;
 
@@ -39,7 +38,7 @@ public class MissingLocalArtifactMetadata implements LocalComponentArtifactMetad
 
     @Override
     public String getDisplayName() {
-        return name + " (" + componentIdentifier.getDisplayName()+ ")";
+        return name.getDisplayName() + " (" + componentIdentifier.getDisplayName() + ")";
     }
 
     @Override

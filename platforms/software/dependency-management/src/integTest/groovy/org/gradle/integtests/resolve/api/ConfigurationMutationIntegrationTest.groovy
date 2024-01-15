@@ -261,6 +261,7 @@ project(":consumer") {
 }
 """
         resolve.prepare("runtimeClasspath")
+        createDirs("consumer", "producer")
         settingsFile << """
 include 'consumer', 'producer'
 """

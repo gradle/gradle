@@ -100,6 +100,10 @@ class RepoScriptBlockUtil {
         """
     }
 
+    static String getMavenCentralMirrorUrl() {
+        MirroredRepository.MAVEN_CENTRAL.mirrorUrl
+    }
+
     static void configureMavenCentral(RepositoryHandler repositories) {
         MirroredRepository.MAVEN_CENTRAL.configure(repositories)
     }

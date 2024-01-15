@@ -18,7 +18,6 @@ package org.gradle.api.tasks.testing;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
@@ -85,6 +84,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -532,12 +532,16 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         if (testCountLogger.hadFailures()) {
             handleTestFailures();
         } else if (testCountLogger.getTotalTests() == 0) {
-            if (!hasFilter()) {
+            if (testsAreNotFiltered()) {
                 emitDeprecationMessage();
             } else if (shouldFailOnNoMatchingTests()) {
                 throw new TestExecutionException(createNoMatchingTestErrorMessage());
             }
         }
+    }
+
+    private boolean shouldFailOnNoMatchingTests() {
+        return patternFiltersSpecified() && filter.isFailOnNoMatchingTests();
     }
 
     private void emitDeprecationMessage() {
@@ -548,11 +552,11 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             .nagUser();
     }
 
-    private boolean shouldFailOnNoMatchingTests() {
-        return filter.isFailOnNoMatchingTests() && hasFilter();
+    boolean testsAreNotFiltered() {
+        return !patternFiltersSpecified();
     }
 
-    private boolean hasFilter() {
+    private boolean patternFiltersSpecified() {
         return !filter.getIncludePatterns().isEmpty()
             || !filter.getCommandLineIncludePatterns().isEmpty()
             || !filter.getExcludePatterns().isEmpty();
@@ -570,7 +574,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     @Internal
     protected List<String> getNoMatchingTestErrorReasons() {
-        List<String> reasons = Lists.newArrayList();
+        List<String> reasons = new ArrayList<String>();
         if (!getFilter().getIncludePatterns().isEmpty()) {
             reasons.add(getFilter().getIncludePatterns() + "(filter.includeTestsMatching)");
         }

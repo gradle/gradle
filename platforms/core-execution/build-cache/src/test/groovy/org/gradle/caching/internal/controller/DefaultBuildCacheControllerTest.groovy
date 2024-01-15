@@ -31,10 +31,11 @@ import org.gradle.caching.internal.packaging.BuildCacheEntryPacker
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
+import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Path
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -45,7 +46,10 @@ class DefaultBuildCacheControllerTest extends Specification {
 
     def key = new DefaultBuildCacheKey(TestHashCodes.hashCodeFrom(12345678))
 
-    CacheableEntity cacheableEntity = Stub(CacheableEntity)
+    CacheableEntity cacheableEntity = Stub(CacheableEntity) {
+        identity >> ":test"
+        type >> CacheableEntity
+    }
     Duration executionTime = Duration.ofMillis(123)
     Map<String, FileSystemSnapshot> snapshots = [:]
 
@@ -57,12 +61,12 @@ class DefaultBuildCacheControllerTest extends Specification {
     def localPush = true
     def remote = Mock(BuildCacheService)
     def remotePush = true
-    FileSystemAccess fileSystemAccess = Stub(FileSystemAccess)
     BuildCacheEntryPacker packer = Stub(BuildCacheEntryPacker)
     OriginMetadataFactory originMetadataFactory = Stub(OriginMetadataFactory)
     StringInterner stringInterner = Stub(StringInterner)
 
     def operations = new TestBuildOperationExecutor()
+    def buildOperationProgressEmitter = new NoOpBuildOperationProgressEventEmitter()
 
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
@@ -72,17 +76,18 @@ class DefaultBuildCacheControllerTest extends Specification {
     BuildCacheController getController(boolean disableRemoteOnError = true) {
         new DefaultBuildCacheController(
             new BuildCacheServicesConfiguration(
+                Path.ROOT.path,
                 local,
                 localPush,
                 remote,
                 remotePush
             ),
             operations,
+            buildOperationProgressEmitter,
             TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory),
             false,
             false,
             disableRemoteOnError,
-            fileSystemAccess,
             packer,
             originMetadataFactory,
             stringInterner

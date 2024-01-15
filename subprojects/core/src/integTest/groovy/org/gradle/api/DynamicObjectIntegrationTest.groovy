@@ -26,6 +26,7 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def canAddDynamicPropertiesToProject() {
+        createDirs("child")
         file("settings.gradle").writelns("include 'child'")
         file("build.gradle").writelns(
                 "ext.rootProperty = 'root'",
@@ -75,7 +76,7 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def canAddDynamicMethodsToProject() {
-
+        createDirs("child")
         file("settings.gradle").writelns("include 'child'")
         file("build.gradle").writelns(
                 "def rootMethod(p) { 'root' + p }",
@@ -151,7 +152,7 @@ class ExtensionBean {
     }
 
     def canAddPropertiesToProjectUsingGradlePropertiesFile() {
-
+        createDirs("child")
         file("settings.gradle").writelns("include 'child'")
         file("gradle.properties") << '''
 global=some value
@@ -237,6 +238,7 @@ assert 'overridden value' == global
 
 
         expect:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         succeeds("defaultTask")
     }
 
@@ -294,6 +296,7 @@ assert 'overridden value' == global
         expectAbstractTaskConventionDeprecationWarnings(3)
 
         expect:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         succeeds("defaultTask")
     }
 
@@ -349,6 +352,7 @@ assert 'overridden value' == global
 
 
         expect:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         succeeds("defaultTask")
     }
 
@@ -445,6 +449,7 @@ assert 'overridden value' == global
     }
 
     def canAddMethodsUsingAPropertyWhoseValueIsAClosure() {
+        createDirs("child1", "child2")
         file("settings.gradle").writelns("include 'child1', 'child2'");
         buildFile """
             class Thing {
@@ -486,7 +491,7 @@ assert 'overridden value' == global
     }
 
     def canInjectMethodsFromParentProject() {
-
+        createDirs("child1", "child2")
         file("settings.gradle").writelns("include 'child1', 'child2'");
         buildFile """
             subprojects {

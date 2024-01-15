@@ -56,12 +56,14 @@ task listJars {
         projectAInRepo2.artifact.expectGet()
 
         then:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         succeeds('listJars')
 
         when:
         server.resetExpectations()
 
         then:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         succeeds('listJars')
 
     }
@@ -103,12 +105,14 @@ task listJars {
         projectC.artifact.expectGet()
 
         then:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         succeeds('listJars')
 
         when:
         server.resetExpectations()
 
         then:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         succeeds('listJars')
     }
 
@@ -149,6 +153,7 @@ task listClientModuleJars {
         projectA.jar.expectGet()
 
         then:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         succeeds('listClientModuleJars')
 
         when:
@@ -156,12 +161,310 @@ task listClientModuleJars {
         projectA.getArtifact(classifier: "extra").expectGet()
 
         then:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         succeeds('listJars')
 
         when:
         server.resetExpectations()
 
         then:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
+        succeeds('listClientModuleJars')
+    }
+
+    @ToBeFixedForConfigurationCache
+    def "dependency declared as a client module adds artifact to direct dependency regardless of order"() {
+        given:
+        def projectA = ivyHttpRepo.module('group', 'projectA', '1.2')
+            .artifact()
+            .artifact(classifier: "extra")
+            .publish()
+
+        buildFile << """
+repositories {
+    ivy { url "${ivyHttpRepo.uri}" }
+}
+configurations {
+    regular
+    clientModule
+}
+dependencies {
+    clientModule "group:projectA:1.2"
+    clientModule(module("group:projectA:1.2")) {
+        artifact { classifier = 'extra' }
+    }
+}
+
+task listClientModuleJars {
+    doLast {
+        assert configurations.clientModule.collect { it.name }.containsAll(['projectA-1.2.jar', 'projectA-1.2-extra.jar'])
+    }
+}
+"""
+
+        when:
+        projectA.ivy.expectGet()
+        projectA.jar.expectGet()
+        projectA.getArtifact(classifier: "extra").expectGet()
+
+        then:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
+        succeeds('listClientModuleJars')
+
+        when:
+        buildFile.text = """
+repositories {
+    ivy { url "${ivyHttpRepo.uri}" }
+}
+configurations {
+    regular
+    clientModule
+}
+dependencies {
+    clientModule(module("group:projectA:1.2")) {
+        artifact { classifier = 'extra' }
+    }
+    clientModule "group:projectA:1.2"
+}
+
+task listClientModuleJars {
+    doLast {
+        assert configurations.clientModule.collect { it.name }.containsAll(['projectA-1.2.jar', 'projectA-1.2-extra.jar'])
+    }
+}
+"""
+
+        server.resetExpectations()
+
+        then:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
+        succeeds('listClientModuleJars')
+    }
+
+    @ToBeFixedForConfigurationCache
+    def "dependency declared as a client module adds artifact to transitive dependency regardless of order"() {
+        given:
+        def projectA = ivyHttpRepo.module('group', 'projectA', '1.2')
+            .artifact()
+            .artifact(classifier: "extra")
+            .publish()
+        def projectB = ivyHttpRepo.module('group', 'projectB', '1.2')
+            .dependsOn(projectA)
+            .artifact()
+            .publish()
+
+        buildFile << """
+repositories {
+    ivy { url "${ivyHttpRepo.uri}" }
+}
+configurations {
+    regular
+    clientModule
+}
+dependencies {
+    clientModule "group:projectB:1.2"
+    clientModule(module("group:projectA:1.2")) {
+        artifact { classifier = 'extra' }
+    }
+}
+
+task listClientModuleJars {
+    doLast {
+        assert configurations.clientModule.collect { it.name }.containsAll(['projectA-1.2.jar', 'projectA-1.2-extra.jar', 'projectB-1.2.jar'])
+    }
+}
+"""
+
+        when:
+        projectA.ivy.expectGet()
+        projectA.jar.expectGet()
+        projectA.getArtifact(classifier: "extra").expectGet()
+        projectB.ivy.expectGet()
+        projectB.jar.expectGet()
+
+        then:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
+        succeeds('listClientModuleJars')
+
+        when:
+        buildFile.text = """
+repositories {
+    ivy { url "${ivyHttpRepo.uri}" }
+}
+configurations {
+    regular
+    clientModule
+}
+dependencies {
+    clientModule(module("group:projectA:1.2")) {
+        artifact { classifier = 'extra' }
+    }
+    clientModule "group:projectB:1.2"
+}
+
+task listClientModuleJars {
+    doLast {
+        assert configurations.clientModule.collect { it.name }.containsAll(['projectA-1.2.jar', 'projectA-1.2-extra.jar', 'projectB-1.2.jar'])
+    }
+}
+"""
+
+        server.resetExpectations()
+
+        then:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
+        succeeds('listClientModuleJars')
+    }
+
+    @ToBeFixedForConfigurationCache
+    def "dependency declared as a client module can add changing to direct dependency regardless of order"() {
+        given:
+        def projectA = ivyHttpRepo.module('group', 'projectA', '1.2')
+            .artifact()
+            .artifact(classifier: "extra")
+            .publish()
+
+        buildFile << """
+repositories {
+    ivy { url "${ivyHttpRepo.uri}" }
+}
+configurations {
+    clientModule {
+        resolutionStrategy.cacheChangingModulesFor 0, 'minutes'
+    }
+}
+dependencies {
+    clientModule "group:projectA:1.2"
+    clientModule(module("group:projectA:1.2")) {
+        changing = true
+    }
+}
+
+task listClientModuleJars {
+    doLast {
+        assert configurations.clientModule.collect { it.name }.containsAll(['projectA-1.2.jar'])
+    }
+}
+"""
+
+        when:
+        projectA.ivy.expectGet()
+        projectA.jar.expectGet()
+
+        then:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
+        succeeds('listClientModuleJars')
+
+        when:
+        buildFile.text = """
+repositories {
+    ivy { url "${ivyHttpRepo.uri}" }
+}
+configurations {
+    clientModule {
+        resolutionStrategy.cacheChangingModulesFor 0, 'minutes'
+    }
+}
+dependencies {
+    clientModule(module("group:projectA:1.2")) {
+        changing = true
+    }
+    clientModule "group:projectA:1.2"
+}
+
+task listClientModuleJars {
+    doLast {
+        assert configurations.clientModule.collect { it.name }.containsAll(['projectA-1.2.jar'])
+    }
+}
+"""
+
+        server.resetExpectations()
+        projectA.ivy.expectHead()
+        projectA.jar.expectHead()
+
+        then:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
+        succeeds('listClientModuleJars')
+    }
+
+    @ToBeFixedForConfigurationCache
+    def "dependency declared as a client module can add changing to transitive dependency regardless of order"() {
+        given:
+        def projectA = ivyHttpRepo.module('group', 'projectA', '1.2')
+            .artifact()
+            .artifact(classifier: "extra")
+            .publish()
+        def projectB = ivyHttpRepo.module('group', 'projectB', '1.2')
+            .dependsOn(projectA)
+            .artifact()
+            .publish()
+
+        buildFile << """
+repositories {
+    ivy { url "${ivyHttpRepo.uri}" }
+}
+configurations {
+    regular
+    clientModule {
+        resolutionStrategy.cacheChangingModulesFor 0, 'minutes'
+    }
+}
+dependencies {
+    clientModule "group:projectB:1.2"
+    clientModule(module("group:projectA:1.2")) {
+        changing = true
+    }
+}
+
+task listClientModuleJars {
+    doLast {
+        assert configurations.clientModule.collect { it.name }.containsAll(['projectA-1.2.jar', 'projectB-1.2.jar'])
+    }
+}
+"""
+
+        when:
+        projectA.ivy.expectGet()
+        projectA.jar.expectGet()
+        projectB.ivy.expectGet()
+        projectB.jar.expectGet()
+
+        then:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
+        succeeds('listClientModuleJars')
+
+        when:
+        buildFile.text = """
+repositories {
+    ivy { url "${ivyHttpRepo.uri}" }
+}
+configurations {
+    regular
+    clientModule {
+        resolutionStrategy.cacheChangingModulesFor 0, 'minutes'
+    }
+}
+dependencies {
+    clientModule(module("group:projectA:1.2")) {
+        changing = true
+    }
+    clientModule "group:projectB:1.2"
+}
+
+task listClientModuleJars {
+    doLast {
+        assert configurations.clientModule.collect { it.name }.containsAll(['projectA-1.2.jar', 'projectB-1.2.jar'])
+    }
+}
+"""
+
+        server.resetExpectations()
+        projectA.ivy.expectHead()
+        projectA.jar.expectHead()
+
+        then:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         succeeds('listClientModuleJars')
     }
 }

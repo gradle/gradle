@@ -157,8 +157,8 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         }
 
         @Override
-        public Object getOutput() {
-            return workOutput.getOutput();
+        public Object getOutput(File workspace) {
+            return workOutput.getOutput(workspace);
         }
 
         @Override

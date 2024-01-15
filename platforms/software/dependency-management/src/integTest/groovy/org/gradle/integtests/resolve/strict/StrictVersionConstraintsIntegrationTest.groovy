@@ -473,6 +473,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
             }
         }
 
+        createDirs("foo")
         settingsFile << "\ninclude 'foo'"
         buildFile << """
             project(':foo') {
@@ -518,6 +519,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
     def "incompatible strict constraint and local project fail to resolve"() {
         given:
 
+        createDirs("foo")
         settingsFile << "\ninclude 'foo'"
         buildFile << """
             project(':foo') {

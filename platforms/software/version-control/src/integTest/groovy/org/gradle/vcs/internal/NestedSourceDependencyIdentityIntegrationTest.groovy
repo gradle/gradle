@@ -138,6 +138,7 @@ Required by:
 
     @ToBeFixedForConfigurationCache
     def "includes build identifier in dependency resolution results with #display"() {
+        repoC.file("a/.gitkeepdir").touch()
         repoC.file("settings.gradle") << """
             ${settings}
             include 'a'

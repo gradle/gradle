@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
@@ -27,7 +26,6 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.Category;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
@@ -88,10 +86,16 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         ModelContainer<?> model,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
+        // Ensure all actions are executed against this configuration and its hierarchy before reading its state.
+        // Dependency actions may modify the hierarchy.
+        runDependencyActionsInHierarchy(configuration);
+
         String configurationName = configuration.getName();
         String description = configuration.getDescription();
         ComponentIdentifier componentId = parent.getId();
         ComponentConfigurationIdentifier configurationIdentifier = new ComponentConfigurationIdentifier(componentId, configuration.getName());
+
+        ImmutableCapabilities capabilities = ImmutableCapabilities.of(Configurations.collectCapabilities(configuration, new HashSet<>(), new HashSet<>()));
 
         // Collect all artifacts and sub-variants.
         ImmutableList.Builder<PublishArtifact> artifactBuilder = ImmutableList.builder();
@@ -103,20 +107,17 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
             }
 
             @Override
-            public void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends Capability> capabilities, Collection<? extends PublishArtifact> artifacts) {
+            public void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts) {
                 CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> variantArtifacts = getVariantArtifacts(componentId, displayName, artifacts, model, calculatedValueContainerFactory);
-                variantsBuilder.add(new LocalVariantMetadata(configurationName, configurationIdentifier, displayName, attributes, ImmutableCapabilities.of(capabilities), variantArtifacts));
+                variantsBuilder.add(new LocalVariantMetadata(configurationName, configurationIdentifier, displayName, attributes, capabilities, variantArtifacts));
             }
 
             @Override
-            public void visitChildVariant(String name, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends Capability> capabilities, Collection<? extends PublishArtifact> artifacts) {
+            public void visitChildVariant(String name, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts) {
                 CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> variantArtifacts = getVariantArtifacts(componentId, displayName, artifacts, model, calculatedValueContainerFactory);
-                variantsBuilder.add(new LocalVariantMetadata(configurationName + "-" + name, new NestedVariantIdentifier(configurationIdentifier, name), displayName, attributes, ImmutableCapabilities.of(capabilities), variantArtifacts));
+                variantsBuilder.add(new LocalVariantMetadata(configurationName + "-" + name, new NestedVariantIdentifier(configurationIdentifier, name), displayName, attributes, capabilities, variantArtifacts));
             }
         });
-
-        // We must call this before collecting dependency state, since dependency actions may modify the hierarchy.
-        runDependencyActionsInHierarchy(configuration);
 
         // Collect all dependencies and excludes in hierarchy.
         ImmutableAttributes attributes = configuration.getAttributes().asImmutable();
@@ -143,7 +144,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
             configuration.isTransitive(),
             hierarchy,
             attributes,
-            ImmutableCapabilities.of(Configurations.collectCapabilities(configuration, Sets.newHashSet(), Sets.newHashSet())),
+            capabilities,
             configuration.isCanBeConsumed(),
             configuration.isDeprecatedForConsumption(),
             configuration.isCanBeResolved(),

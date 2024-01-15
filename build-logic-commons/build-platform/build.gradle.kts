@@ -25,8 +25,8 @@ dependencies {
     constraints {
         api("org.gradle.guides:gradle-guides-plugin:0.22")
         api("org.apache.ant:ant:1.10.13") // Bump the version brought in transitively by gradle-guides-plugin
-        api("com.gradle:gradle-enterprise-gradle-plugin:3.15.1") // Sync with `settings.gradle.kts`
-        api("com.gradle.publish:plugin-publish-plugin:1.1.0")
+        api("com.gradle:gradle-enterprise-gradle-plugin:3.16.1") // Sync with `settings.gradle.kts`
+        api("com.gradle.publish:plugin-publish-plugin:1.2.1")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0.1")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.4.1")
         api("me.champeau.jmh:jmh-gradle-plugin:0.6.8")
@@ -35,7 +35,7 @@ dependencies {
         api(kotlin("compiler-embeddable")) { version { strictly(kotlinVersion) } }
         api("org.jlleitschuh.gradle:ktlint-gradle:10.3.0")
         api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.8.0")
-        api("com.autonomousapps:dependency-analysis-gradle-plugin:0.71.0")
+        api("com.autonomousapps:dependency-analysis-gradle-plugin:1.28.0")
 
         // Java Libraries
         api("com.github.javaparser:javaparser-core:$javaParserVersion")
@@ -44,7 +44,7 @@ dependencies {
         api("com.google.errorprone:error_prone_annotations:2.5.1")
         api("com.google.code.gson:gson:2.8.9")
         api("com.nhaarman:mockito-kotlin:1.6.0")
-        api("com.thoughtworks.qdox:qdox:2.0.0")
+        api("com.thoughtworks.qdox:qdox:2.0.3")
         api("com.uwyn:jhighlight:1.0")
         api("com.vladsch.flexmark:flexmark-all:0.34.60") {
             because("Higher versions tested are either incompatible (0.62.2) or bring additional unwanted dependencies (0.36.8)")

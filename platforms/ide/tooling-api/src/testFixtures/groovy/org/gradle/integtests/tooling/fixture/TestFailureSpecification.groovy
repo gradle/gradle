@@ -103,8 +103,6 @@ class TestFailureSpecification extends ToolingApiSpecification {
 
     /**
      * Runs the test task and collects all test failures.
-     *
-     * @param enableOutput if true, the stdout/stderr of the test task is piped to the console. Handy for debugging task failures. Defaults to false.
      */
     protected List<TestAssertionFailure> runTestTaskWithFailureCollection(TestFailureEventCollector progressEventCollector) {
         withConnection { connection ->

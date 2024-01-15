@@ -366,12 +366,12 @@ class ClassInspectorTest extends Specification {
         expect:
         ClassInspector.inspect(Object).superTypes.empty
         ClassInspector.inspect(Serializable).superTypes.empty
-        ClassInspector.inspect(List).superTypes.toList() == [Collection, Iterable]
+        ClassInspector.inspect(Set).superTypes.toList() == [Collection, Iterable]
     }
 
     def "super types ordered by their distance"() {
         expect:
-        ClassInspector.inspect(ArrayList).superTypes.toList() == [AbstractList, AbstractCollection, Object, List, RandomAccess, Cloneable, Serializable, Collection, Iterable]
+        ClassInspector.inspect(HashSet).superTypes.toList() == [AbstractSet, AbstractCollection, Object, Set, Cloneable, Serializable, Collection, Iterable]
     }
 
     @Issue("GRADLE-3317")

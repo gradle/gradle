@@ -24,6 +24,8 @@ import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.accessors.kotlin
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.maxParallelForks
+import gradlebuild.basics.maxTestDistributionRemoteExecutors
+import gradlebuild.basics.maxTestDistributionLocalExecutors
 import gradlebuild.basics.maxTestDistributionPartitionSecond
 import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.rerunAllTests
@@ -94,6 +96,9 @@ fun configureSourcesVariant() {
             outgoing.artifact(it)
         }
         main.groovy.srcDirs.forEach {
+            outgoing.artifact(it)
+        }
+        main.resources.srcDirs.forEach {
             outgoing.artifact(it)
         }
         pluginManager.withPlugin("org.jetbrains.kotlin.jvm") {
@@ -273,8 +278,8 @@ fun configureTests() {
                 project.maxTestDistributionPartitionSecond?.apply {
                     preferredMaxDuration = Duration.ofSeconds(this)
                 }
-                // No limit; use all available executors
-                distribution.maxRemoteExecutors = if (project.isPerformanceProject()) 0 else null
+                distribution.maxRemoteExecutors = if (project.isPerformanceProject()) 0 else project.maxTestDistributionRemoteExecutors
+                distribution.maxLocalExecutors = project.maxTestDistributionLocalExecutors
 
                 // Test distribution annotation-class filters
                 // See: https://docs.gradle.com/enterprise/test-distribution/#gradle_executor_restrictions_class_matcher
@@ -327,7 +332,7 @@ fun Project.isPerformanceProject() = setOf("build-scan-performance", "performanc
  * Smoke and soak tests are hard to grasp for PTS, that is why we run them without.
  * When running on Windows with PTS, SimplifiedKotlinScriptEvaluatorTest fails. See https://github.com/gradle/gradle-private/issues/3615.
  */
-fun Project.supportsPredictiveTestSelection() = !isPerformanceProject() && !setOf("smoke-test", "soak", "kotlin-dsl").contains(name)
+fun Project.supportsPredictiveTestSelection() = !isPerformanceProject() && !setOf("smoke-test", "soak", "kotlin-dsl", "smoke-ide-test").contains(name)
 
 /**
  * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).

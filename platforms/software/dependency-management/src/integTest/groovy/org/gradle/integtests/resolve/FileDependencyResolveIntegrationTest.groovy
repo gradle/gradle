@@ -154,7 +154,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         settingsFile << "include 'sub'; rootProject.name='main'"
         buildFile << '''
             allprojects {
-                configurations { compile }
+                configurations { conf }
                 task jar {
                     def outputFile = file("${project.name}.jar")
                     outputs.file outputFile
@@ -163,17 +163,21 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
                     }
                 }
             }
-            dependencies {
-                compile project(path: ':sub', configuration: 'compile')
-                compile jar.outputs.files
+            configurations {
+                compile
             }
-'''
+            dependencies {
+                compile project(path: ':sub', configuration: 'conf')
+                conf project(path: ':sub', configuration: 'conf')
+                conf jar.outputs.files
+            }
+        '''
         file("sub/build.gradle") << '''
             dependencies {
-                compile jar.outputs.files
-                compile project(path: ':', configuration: 'compile')
+                conf jar.outputs.files
+                conf project(path: ':', configuration: 'conf')
             }
-'''
+        '''
 
         when:
         run ":checkDeps"

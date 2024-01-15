@@ -43,6 +43,7 @@ project(':contrib:impl') {
     }
 }
 """
+        createDirs("api", "impl", "contrib", "contrib/api", "contrib/impl")
         file('settings.gradle').text = """
         rootProject.name = "root"
         include 'api', 'impl', 'contrib:api', 'contrib:impl'"""

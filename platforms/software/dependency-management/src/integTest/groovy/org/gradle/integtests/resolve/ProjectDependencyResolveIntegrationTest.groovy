@@ -40,6 +40,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org.other", "externalB", "2.1").publish()
 
         and:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
 
         and:
@@ -94,6 +95,7 @@ project(":b") {
         mavenRepo.module("org.other", "externalA", "1.2").publish()
 
         and:
+        createDirs("a", "b")
         file('settings.gradle') << """
             include 'a', 'b'
         """
@@ -154,6 +156,7 @@ project(":b") {
     @Issue("GRADLE-2899")
     def "multiple project configurations can refer to different configurations of target project"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
 
         and:
@@ -223,6 +226,7 @@ project(':b') {
 
     def "resolved project artifacts reflect project properties changed after task graph is resolved"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
 
         and:
@@ -272,6 +276,7 @@ project(':b') {
     @UnsupportedWithConfigurationCache(because = "configure task changes jar task")
     def "resolved project artifact can be changed by configuration task"() {
         given:
+        createDirs("a")
         file('settings.gradle') << "include 'a'"
 
         and:
@@ -313,6 +318,7 @@ project(':b') {
         mavenRepo.module("group", "externalA", "1.5").publish()
 
         and:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
 
         and:
@@ -357,6 +363,7 @@ project(":b") {
 
     def "reports project dependency that refers to an unknown artifact"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << """
 include 'a', 'b'
 """
@@ -394,6 +401,7 @@ project(":b") {
         mavenRepo.module("group", "externalA", "1.5").publish()
 
         and:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
 
         and:
@@ -432,6 +440,7 @@ project(':b') {
 
     def "can have cycle in project dependencies"() {
         given:
+        createDirs("a", "b", "c")
         file('settings.gradle') << "include 'a', 'b', 'c'"
 
         and:
@@ -492,6 +501,7 @@ project('c') {
     @Issue('GRADLE-3280')
     def "can resolve recursive copy of configuration with cyclic project dependencies"() {
         given:
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         buildScript '''
             subprojects {
@@ -539,6 +549,7 @@ project('c') {
     // project dependencies that are “built” by built in plugins like the Java plugin's created jars
     def "can use zip files as project dependencies"() {
         given:
+        createDirs("a", "b")
         file("settings.gradle") << "include 'a'; include 'b'"
         file("a/some.txt") << "foo"
         file("a/build.gradle") << """
@@ -578,6 +589,7 @@ project('c') {
 
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "resolving configuration with project dependency marks dependency's configuration as observed"() {
+        createDirs("api", "impl")
         settingsFile << "include 'api'; include 'impl'"
 
         buildFile << """
@@ -620,6 +632,7 @@ project('c') {
     @Issue(["GRADLE-3330", "GRADLE-3362"])
     def "project dependency can resolve multiple artifacts from target project that are differentiated by archiveFileName only"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
 
         and:
@@ -722,6 +735,7 @@ project(':b') {
 
         """
 
+        createDirs("other")
         settingsFile << "include 'other'"
         file("other/build.gradle") << """
             configurations {

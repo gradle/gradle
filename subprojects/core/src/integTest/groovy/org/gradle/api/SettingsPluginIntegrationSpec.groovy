@@ -45,6 +45,7 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
 
     def "can apply plugin class from settings.gradle"() {
         when:
+        createDirs("moduleA")
         relocatedSettingsFile << """
         apply plugin: SimpleSettingsPlugin
 
@@ -63,6 +64,7 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
         setup:
         testDirectory.createFile("settings/somePath/settingsPlugin.gradle") << "apply from: 'path2/settings.gradle'";
         testDirectory.createFile("settings/somePath/path2/settings.gradle") << "include 'moduleA'";
+        createDirs("moduleA")
 
         when:
         relocatedSettingsFile << "apply from: 'somePath/settingsPlugin.gradle'"

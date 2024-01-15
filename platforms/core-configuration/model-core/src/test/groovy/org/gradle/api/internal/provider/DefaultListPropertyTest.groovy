@@ -56,4 +56,11 @@ class DefaultListPropertyTest extends CollectionPropertySpec<List<String>> {
     ManagedFactory managedFactory() {
         return new ManagedFactories.ListPropertyManagedFactory(TestUtil.propertyFactory())
     }
+
+    static class ListPropertyCircularFunctionEvaluationTest extends CollectionPropertySpec.CollectionPropertyCircularChainEvaluationTest<String, List<String>> {
+        @Override
+        DefaultListProperty<String> property() {
+            return new DefaultListProperty<String>(host, String)
+        }
+    }
 }

@@ -183,6 +183,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     def "repositories shared across projects are stable"() {
         setup:
+        createDirs("child")
         settingsFile << """
             include 'child'
         """

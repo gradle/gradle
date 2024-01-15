@@ -463,7 +463,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDocumentedCause("Cannot access a file in the destination directory. " +
             "Syncing to a directory which contains unreadable content is not supported. " +
             "Use a Copy task with Task.doNotTrackState() instead. " +
-            documentationRegistry.getDocumentationRecommendationFor("information", "incremental_build", "disable-state-tracking"))
+            documentationRegistry.getDocumentationRecommendationFor("information", "incremental_build", "sec:disable-state-tracking"))
         failureHasCause("Failed to create MD5 hash for file '${unreadableOutput}' as it does not exist.")
 
         cleanup:
@@ -668,6 +668,32 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         !file('ignore/file5.txt').exists()
         !file('dest/extra1.txt').exists()
         !file('dest/dir1/extra2.txt').exists()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5748")
+    def "works correctly when . is a path segment"() {
+        given:
+        defaultSourceFileTree()
+        file('dest').create {
+            file 'extra.txt'
+        }
+
+        buildScript '''
+            task sync(type: Sync) {
+                into 'dest'
+                into ('.') {
+                    from 'source/dir1'
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'sync'
+
+        then:
+        file('dest').assertHasDescendants(
+            'file1.txt'
+        )
     }
 
     def defaultSourceFileTree() {

@@ -289,7 +289,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         javaLibrary.parsedPom.scopes.compile.assertDependsOn("org.springframework:spring-core:1.2.9")
 
         javaLibrary.parsedPom.scopes.runtime.assertDependsOn("org.apache.commons:commons-compress:1.5")
-        javaLibrary.parsedPom.scopes.no_scope.assertDependencyManagement("commons-logging:commons-logging:1.1", "commons-logging:commons-logging:1.2", "org.tukaani:xz:1.6")
+        javaLibrary.parsedPom.scopes.no_scope.assertDependencyManagement("commons-logging:commons-logging:1.1", "org.tukaani:xz:1.6")
 
         and:
         javaLibrary.parsedModuleMetadata.variant("apiElements") {
@@ -562,6 +562,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
                 $gradleConfiguration project(':b')
             }
         """, plugin
+        createDirs("b")
         settingsFile << '''
             include "b"
         '''
@@ -837,6 +838,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
             ${mavenTestRepository()}
         """)
 
+        createDirs("subproject")
         settingsFile << """
             include "subproject"
         """
@@ -897,6 +899,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
     @ToBeFixedForConfigurationCache
     def "can publish java-library with dependencies/constraints with attributes"() {
         given:
+        createDirs("utils")
         settingsFile << "include 'utils'\n"
         file("utils/build.gradle") << '''
             def attr1 = Attribute.of('custom', String)
@@ -1173,6 +1176,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
 
+        createDirs("platform")
         settingsFile << """
 include(':platform')
 """

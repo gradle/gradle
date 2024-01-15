@@ -78,18 +78,19 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
         ).map(new Transformer<MinimalExternalModuleDependency, DependencyModel>() {
             @Override
             public MinimalExternalModuleDependency transform(DependencyModel x) {
-                return createMinimalDependency(x, attributesFactory, capabilityNotationParser);
+                return createMinimalDependency(x, attributesFactory, capabilityNotationParser, objects);
             }
         });
     }
 
-    private static DefaultMinimalDependency createMinimalDependency(DependencyModel data, ImmutableAttributesFactory attributesFactory, CapabilityNotationParser capabilityNotationParser) {
+    private static DefaultMinimalDependency createMinimalDependency(DependencyModel data, ImmutableAttributesFactory attributesFactory, CapabilityNotationParser capabilityNotationParser, ObjectFactory objectFactory) {
         ImmutableVersionConstraint version = data.getVersion();
         DefaultMinimalDependency result = new DefaultMinimalDependency(
             DefaultModuleIdentifier.newId(data.getGroup(), data.getName()), new DefaultMutableVersionConstraint(version)
         );
         result.setAttributesFactory(attributesFactory);
         result.setCapabilityNotationParser(capabilityNotationParser);
+        result.setObjectFactory(objectFactory);
         return result;
     }
 
@@ -155,7 +156,7 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
                         params.getBundleName().set(name);
                     })
             ).map(dataList -> dataList.stream()
-                    .map(x -> createMinimalDependency(x, attributesFactory, capabilityNotationParser))
+                    .map(x -> createMinimalDependency(x, attributesFactory, capabilityNotationParser, objects))
                     .collect(Collectors.toCollection(DefaultExternalModuleDependencyBundle::new))));
             return property;
         }

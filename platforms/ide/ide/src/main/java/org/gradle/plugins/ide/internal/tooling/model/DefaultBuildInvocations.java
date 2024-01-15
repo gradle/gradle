@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.internal.tooling.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 
@@ -40,7 +41,7 @@ public class DefaultBuildInvocations implements Serializable, GradleProjectIdent
     }
 
     public DefaultBuildInvocations setTasks(List<? extends LaunchableGradleTask> tasks) {
-        this.tasks = tasks;
+        this.tasks = ImmutableList.copyOf(tasks);
         return this;
     }
 

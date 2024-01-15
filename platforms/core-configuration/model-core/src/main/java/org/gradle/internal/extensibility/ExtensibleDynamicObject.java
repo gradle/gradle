@@ -192,7 +192,7 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
 
     private class InheritedDynamicObject implements DynamicObject {
         @Override
-        public void setProperty(String name, Object value) {
+        public void setProperty(String name, @Nullable Object value) {
             throw new MissingPropertyException(String.format("Could not find property '%s' inherited from %s.", name,
                 dynamicDelegate.getDisplayName()));
         }
@@ -208,12 +208,12 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         }
 
         @Override
-        public MissingMethodException methodMissingException(String name, Object... params) {
+        public MissingMethodException methodMissingException(String name, @Nullable Object... params) {
             return dynamicDelegate.methodMissingException(name, params);
         }
 
         @Override
-        public DynamicInvokeResult trySetProperty(String name, Object value) {
+        public DynamicInvokeResult trySetProperty(String name, @Nullable Object value) {
             setProperty(name, value);
             return DynamicInvokeResult.found();
         }
@@ -239,17 +239,17 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         }
 
         @Override
-        public boolean hasMethod(String name, Object... arguments) {
+        public boolean hasMethod(String name, @Nullable Object... arguments) {
             return snapshotInheritable().hasMethod(name, arguments);
         }
 
         @Override
-        public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
+        public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... arguments) {
             return snapshotInheritable().tryInvokeMethod(name, arguments);
         }
 
         @Override
-        public Object invokeMethod(String name, Object... arguments) {
+        public Object invokeMethod(String name, @Nullable Object... arguments) {
             return snapshotInheritable().invokeMethod(name, arguments);
         }
 

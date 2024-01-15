@@ -121,7 +121,7 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
 
         private PlannedNodeGraph computePlannedNodeGraph(QueryableExecutionPlan.ScheduledNodes scheduledWork) {
             PlannedNodeGraph.Collector collector = new PlannedNodeGraph.Collector(converterRegistry);
-            scheduledWork.visitNodes(collector::collectNodes);
+            scheduledWork.visitNodes((nodes, entryNodes) -> collector.collectNodes(nodes));
             return collector.getGraph();
         }
 

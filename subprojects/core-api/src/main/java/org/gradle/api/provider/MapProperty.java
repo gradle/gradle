@@ -16,7 +16,10 @@
 
 package org.gradle.api.provider;
 
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
+import org.gradle.api.Transformer;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -36,7 +39,7 @@ import java.util.Set;
  * @since 5.1
  */
 @SupportsKotlinAssignmentOverloading
-public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableValue {
+public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableValue, MapPropertyConfigurer<K, V>, ConfigurableValue<MapPropertyConfigurer<K, V>>, SupportsConvention {
 
     /**
      * Sets the value of this property to an empty map, and replaces any existing value.
@@ -111,42 +114,6 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
     MapProperty<K, V> value(Provider<? extends Map<? extends K, ? extends V>> provider);
 
     /**
-     * Adds a map entry to the property value.
-     *
-     * @param key the key
-     * @param value the value
-     */
-    void put(K key, V value);
-
-    /**
-     * Adds a map entry to the property value.
-     *
-     * <p>The given provider will be queried when the value of this property is queried.
-     * This property will have no value when the given provider has no value.
-     *
-     * @param key the key
-     * @param providerOfValue the provider of the value
-     */
-    void put(K key, Provider<? extends V> providerOfValue);
-
-    /**
-     * Adds all entries from another {@link Map} to the property value.
-     *
-     * @param entries a {@link Map} containing the entries to add
-     */
-    void putAll(Map<? extends K, ? extends V> entries);
-
-    /**
-     * Adds all entries from another {@link Map} to the property value.
-     *
-     * <p>The given provider will be queried when the value of this property is queried.
-     * This property will have no value when the given provider has no value.
-     *
-     * @param provider the provider of the entries
-     */
-    void putAll(Provider<? extends Map<? extends K, ? extends V>> provider);
-
-    /**
      * Returns a {@link Provider} that returns the set of keys for the map that is the property value.
      *
      * <p>The returned provider will track the value of this property and query its value when it is queried.</p>
@@ -164,6 +131,20 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
     Provider<Set<K>> keySet();
 
     /**
+     * Performs incremental updates to the actual value of this property.
+     *
+     * {@inheritDoc}
+     *
+     * For wholesale updates to the explicit value, use
+     * {@link #set(Map)} or {@link #set(Provider)}.
+     *
+     * For wholesale updates to the convention value, use
+     * {@link #convention(Map)} or {@link #convention(Provider)}.
+     */
+    @Override
+    MapProperty<K, V> withActualValue(Action<MapPropertyConfigurer<K, V>> action);
+
+    /**
      * Specifies the value to use as the convention for this property. The convention is used when no value has been set for this property.
      *
      * @param value The value, or {@code null} when the convention is that the property has no value.
@@ -178,6 +159,71 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
      * @return this
      */
     MapProperty<K, V> convention(Provider<? extends Map<? extends K, ? extends V>> valueProvider);
+
+    /**
+     * Applies an eager transformation to the current value of the property "in place", without explicitly obtaining it.
+     * The provided transformer is applied to the provider of the current value, and the returned provider is used as a new value.
+     * The provider of the value can be used to derive the new value, but doesn't have to.
+     * Returning null from the transformer unsets the property.
+     * For example, the current value of a string map property can be filtered to retain only vowel keys:
+     * <pre class='autoTested'>
+     *     def property = objects.mapProperty(String, String).value(a: "a", b: "b")
+     *
+     *     property.update { it.map { value -&gt; value.subMap("a", "e", "i", "o", "u") } }
+     *
+     *     println(property.get()) // [a: "a"]
+     * </pre>
+     * Note that simply writing {@code property.set(property.map { ... } } doesn't work and will cause an exception because of a circular reference evaluation at runtime.
+     * <p>
+     * <b>Further changes to the value of the property, such as calls to {@link #set(Map)}, are not transformed, and override the update instead</b>.
+     * Because of this, this method inherently depends on the order of property changes, and therefore must be used sparingly.
+     * <p>
+     * If the value of the property is specified via a provider, then the current value provider tracks that provider.
+     * For example, changes to the upstream property are visible:
+     * <pre class='autoTested'>
+     *     def upstream = objects.mapProperty(String, String).value(a: "a", b: "b")
+     *     def property = objects.mapProperty(String, String).value(upstream)
+     *
+     *     property.update { it.map { value -&gt; value.subMap("a", "e", "i", "o", "u") } }
+     *     upstream.value(e: "e", f: "f")
+     *
+     *     println(property.get()) // [e: "e"]
+     * </pre>
+     * The provided transformation runs <b>eagerly</b>, so it can capture any objects without introducing memory leaks and without breaking configuration caching.
+     * However, transformations applied to the current value provider (like {@link Provider#map(Transformer)}) are subject to the usual constraints.
+     * <p>
+     * If the property has no explicit value set, then the current value comes from the convention.
+     * Changes to convention of this property do not affect the current value provider in this case, though upstream changes are still visible if the convention was set to a provider.
+     * If there is no convention too, then the current value is a provider without a value.
+     * The updated value becomes the explicit value of the property.
+
+     * @param transform the transformation to apply to the current value. May return null, which unsets the property.
+     * @since 8.6
+     */
+    @Incubating
+    void update(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Map<? extends K, ? extends V>>, ? super Provider<Map<K, V>>> transform);
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>
+     * This is similar to calling {@link #value(Map)} with a <code>null</code> argument.
+     * </p>
+     */
+    @Incubating
+    @Override
+    MapProperty<K, V> unset();
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>
+     * This is similar to calling {@link #convention(Map)} with a <code>null</code> argument.
+     * </p>
+     */
+    @Incubating
+    @Override
+    MapProperty<K, V> unsetConvention();
 
     /**
      * Disallows further changes to the value of this property. Calls to methods that change the value of this property, such as {@link #set(Map)} or {@link #put(Object, Object)} will fail.

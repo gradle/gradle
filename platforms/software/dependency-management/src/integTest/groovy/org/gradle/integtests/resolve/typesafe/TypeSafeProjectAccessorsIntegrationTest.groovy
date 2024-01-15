@@ -30,6 +30,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
     @UnsupportedWithConfigurationCache(because = "test makes direct access to the projects extension")
     def "generates type-safe project accessors for multi-project build"() {
         given:
+        createDirs("one", "one/other", "two", "two/other")
         settingsFile << """
             include 'one'
             include 'one:other'
@@ -52,6 +53,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
     @UnsupportedWithConfigurationCache(because = "test makes direct access to the projects extension")
     def "fails if a project doesn't follow convention"() {
         given:
+        createDirs("1library")
         settingsFile << """
             include '1library'
         """
@@ -66,6 +68,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
     @UnsupportedWithConfigurationCache(because = "test makes direct access to the projects extension")
     def "fails if two subprojects have the same java name"() {
         given:
+        createDirs("super-cool", "super--cool")
         settingsFile << """
             include 'super-cool'
             include 'super--cool'
@@ -89,6 +92,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
     @UnsupportedWithConfigurationCache(because = "test makes direct access to the projects extension")
     def "can configure the project extension name"() {
         given:
+        createDirs("one", "one/other", "two", "two/other")
         settingsFile << """
             include 'one'
             include 'one:other'
@@ -129,6 +133,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
     @UnsupportedWithConfigurationCache(because = "test makes direct access to the projects extension")
     def "can use the #notation notation on type-safe accessor"() {
         given:
+        createDirs("other")
         settingsFile << """
             include 'other'
         """
@@ -159,11 +164,13 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
             assert project(":one").is(projects.one.dependencyProject)
             assert project(":two").is(projects.two.dependencyProject)
         """
+        createDirs("buildSrc/one", "buildSrc/two")
         file("buildSrc/settings.gradle") << """
             include 'one'
             include 'two'
         """
         FeaturePreviewsFixture.enableTypeSafeProjectAccessors(file("buildSrc/settings.gradle"))
+        createDirs("one", "two")
         settingsFile << """
             include 'one'
             include 'two'
@@ -186,6 +193,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         //it doesn't follow the project naming convention; so will use an explicitly named sub-folder
 
         given:
+        createDirs("project", "project/one")
         file("project/settings.gradle") << """
             include 'one'
         """
@@ -215,6 +223,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
 
     def "does not warn if root project name explicitly set"() {
         given:
+        createDirs("one")
         settingsFile << """
             include 'one'
         """

@@ -24,6 +24,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.IvyPatternMatcherExcludeRuleSpec;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import javax.annotation.Nullable;
+
 final class DefaultIvyPatternMatcherExcludeRuleSpec implements IvyPatternMatcherExcludeRuleSpec {
     private final ModuleIdentifier moduleId;
     private final IvyArtifactName ivyArtifactName;
@@ -45,7 +47,7 @@ final class DefaultIvyPatternMatcherExcludeRuleSpec implements IvyPatternMatcher
 
     @Override
     public String toString() {
-        return "{ \"exclude-rule\" : { \"moduleId\": \""  + moduleId + "\", \"artifact\" : \"" + ivyArtifactName + "\", \"matcher\": \"" + matcher.getName() + "\"} }";
+        return "{ \"exclude-rule\" : { \"moduleId\": \""  + moduleId + "\", \"artifact\" : \"" + ivyArtifactName.getDisplayName() + "\", \"matcher\": \"" + matcher.getName() + "\"} }";
     }
 
     @Override
@@ -73,7 +75,7 @@ final class DefaultIvyPatternMatcherExcludeRuleSpec implements IvyPatternMatcher
         return isArtifactExclude;
     }
 
-    private boolean matches(String expression, String input) {
+    private boolean matches(@Nullable String expression, @Nullable String input) {
         if (expression == null && input == null) {
             return true;
         }

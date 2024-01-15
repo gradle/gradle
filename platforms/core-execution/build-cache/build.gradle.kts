@@ -6,48 +6,46 @@ plugins {
 description = "Implementation of build cache controller and factories"
 
 dependencies {
+    api(project(":base-annotations"))
+    api(project(":base-services"))
     api(project(":build-cache-base"))
+    api(project(":build-cache-packaging"))
+    api(project(":build-operations"))
+    api(project(":core-api"))
+    api(project(":enterprise-operations"))
+    api(project(":files"))
+    api(project(":file-temp"))
+    api(project(":functional"))
+    api(project(":hashing"))
+    api(project(":persistent-cache"))
+    api(project(":resources"))
     api(project(":snapshots"))
 
-    implementation(project(":build-cache-packaging"))
-    implementation(project(":base-services"))
-    implementation(project(":enterprise-operations"))
-    implementation(project(":core-api"))
-    implementation(project(":files"))
-    implementation(project(":file-temp"))
-    implementation(project(":functional"))
-    implementation(project(":native"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":resources"))
-    implementation(project(":logging"))
+    api(libs.jsr305)
 
-    implementation(libs.slf4jApi)
-    implementation(libs.guava)
-    implementation(libs.inject)
+    implementation(libs.commonsIo)
+    api(libs.guava)
     implementation(libs.h2Database) {
         because("Used in BuildCacheNG")
     }
     implementation(libs.hikariCP) {
         because("Used in BuildCacheNG")
     }
-    implementation(libs.gson) {
-        because("Used in Build Cache NG: Cache manifest uses JSON format")
-    }
-    implementation(libs.commonsIo)
+    api(libs.inject)
+    implementation(libs.slf4jApi)
 
-
+    jmhImplementation(project(":native"))
     jmhImplementation(platform(project(":distributions-dependencies")))
-    jmhImplementation(libs.ant)
-    jmhImplementation(libs.commonsCompress)
     jmhImplementation(libs.aircompressor)
-    jmhImplementation(libs.snappy)
-    jmhImplementation(libs.jtar)
+    jmhImplementation(libs.commonsCompress)
     jmhImplementation(libs.commonsIo)
+    jmhImplementation(libs.jtar)
+    jmhImplementation(libs.snappy)
 
-    testImplementation(project(":model-core"))
     testImplementation(project(":file-collections"))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(project(":model-core"))
     testImplementation(testFixtures(project(":base-services")))
+    testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":snapshots")))
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))

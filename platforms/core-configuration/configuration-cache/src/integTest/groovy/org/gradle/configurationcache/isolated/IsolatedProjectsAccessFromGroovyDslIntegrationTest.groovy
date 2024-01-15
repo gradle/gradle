@@ -16,10 +16,12 @@
 
 package org.gradle.configurationcache.isolated
 
+import org.gradle.api.provider.Property
 import spock.lang.Issue
 
 class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
     def "reports problem when build script uses #block block to apply plugins to another project"() {
+        createDirs("a", "b")
         settingsFile << """
             include("a")
             include("b")
@@ -47,6 +49,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
     }
 
     def "reports problem when build script uses #block block to access dynamically added elements"() {
+        createDirs("a", "b")
         settingsFile << """
             include("a")
             include("b")
@@ -81,6 +84,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
     }
 
     def "reports problem when build script uses #property property to apply plugins to another project"() {
+        createDirs("a", "b")
         settingsFile << """
             include("a")
             include("b")
@@ -109,6 +113,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
     }
 
     def "reports problem when build script uses project() block to apply plugins to another project"() {
+        createDirs("a", "b")
         settingsFile << """
             include("a")
             include("b")
@@ -130,6 +135,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
     }
 
     def "reports problem when root project build script uses #expression method to apply plugins to another project"() {
+        createDirs("a", "b")
         settingsFile << """
             include("a")
             include("b")
@@ -154,6 +160,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
     }
 
     def "reports problem when child project build script uses #expression method to apply plugins to sibling project"() {
+        createDirs("a", "b")
         settingsFile << """
             include("a")
             include("b")
@@ -180,6 +187,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
     }
 
     def "reports problem when root project build script uses chain of methods #chain { } to apply plugins to other projects"() {
+        createDirs("a", "b")
         settingsFile << """
             include("a")
             include("b")
@@ -212,6 +220,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
     }
 
     def "reports problem when project build script uses chain of methods #chain { } to apply plugins to other projects"() {
+        createDirs("a", "b")
         settingsFile << """
             include("a")
             include("b")
@@ -242,6 +251,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
     }
 
     def "reports problem when project build script uses chain of methods #chain { } to apply plugins to all projects"() {
+        createDirs("a", "b")
         settingsFile << """
             include("a")
             include("b")
@@ -267,6 +277,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
     }
 
     def "reports cross-project model access in Gradle.#invocation"() {
+        createDirs("a", "b")
         settingsFile << """
             include("a")
             include("b")
@@ -298,6 +309,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
     }
 
     def "reports cross-project model access in composite build access to Gradle.#invocation"() {
+        createDirs("a", "include")
         settingsFile << """
             include("a")
             includeBuild("include")
@@ -322,6 +334,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
     }
 
     def "reports cross-project model access from a listener added to Gradle.projectsEvaluated"() {
+        createDirs("a", "b")
         settingsFile << """
             include("a")
             include("b")
@@ -344,6 +357,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
     }
 
     def "reports cross-project model from ProjectEvaluationListener registered in Gradle.#invocation"() {
+        createDirs("a", "b")
         settingsFile << """
             include("a")
             include("b")
@@ -374,6 +388,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
     }
 
     def "listener removal works properly in Gradle.#add + Gradle.#remove"() {
+        createDirs("a", "b")
         settingsFile << """
             include("a")
             include("b")
@@ -405,6 +420,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
     }
 
     def "task graph should track cross-project model access in listeners with `#statement`"() {
+        createDirs("a")
         file("settings.gradle") << "include('a')"
         file("build.gradle") << """
             class MyListener implements TaskExecutionGraphListener {
@@ -432,6 +448,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
     }
 
     def "checking cross-project model access in task graph call `#statement` with #tasksToRun, should succeed: #shouldSucceed"() {
+        createDirs("b")
         settingsFile << """
             include("b")
         """
@@ -487,6 +504,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
     }
 
     def "reports cross-project model access on #kind lookup in the parent project using `#expr`"() {
+        createDirs("a")
         settingsFile << """
             include("a")
         """
@@ -518,6 +536,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
     }
 
     def 'no duplicate problems reported for dynamic property lookup in transitive parents'() {
+        createDirs("sub", "sub/sub-a", "sub/sub-b")
         settingsFile << """
             include(":sub")
             include(":sub:sub-a")
@@ -545,6 +564,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
     }
 
     def 'user code in dynamic property lookup triggers a new isolation problem'() {
+        createDirs("sub", "sub/sub-sub")
         settingsFile << """
             include(":sub")
             include(":sub:sub-sub")
@@ -594,6 +614,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
 
     @Issue("https://github.com/gradle/gradle/issues/22949")
     def "invocations of GroovyObject methods on DefaultProject track the dynamic call context"() {
+        createDirs("a")
         settingsFile << """
             include("a")
         """
@@ -624,6 +645,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
     }
 
     def "build script can query basic details of projects in allprojects block"() {
+        createDirs("a", "b")
         settingsFile << """
             rootProject.name = "root"
             include("a")
@@ -667,6 +689,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
+        if (expr == "dependencies.project([path: ':', configuration: 'test'])") {
+            executer.expectDocumentedDeprecationWarning("Accessing the build dependencies of project dependency ':' has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration and use the configuration to track task dependencies. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
+        }
         isolatedProjectsFails(":help")
 
         then:
@@ -698,6 +723,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
 
     def "mentions the specific project and build file in getDependencies(...) problems"() {
         given:
+        createDirs("a", "a/b")
         settingsFile << """
             include(":a")
             include(":a:b")
@@ -718,6 +744,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
     }
 
     def "project can access itself"() {
+        createDirs("a", "b")
         settingsFile << """
             rootProject.name = "root"
             include("a")
@@ -735,6 +762,85 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStored {
             projectsConfigured(":", ":a", ":b")
+        }
+    }
+
+    def "fails on invoke method of unconfigured project"() {
+        given:
+        settingsFile << """
+            include(':a')
+            include(':b')
+        """
+
+        file("a/build.gradle") << """
+            def unconfiguredProject = project(':b')
+            println 'Unconfigured project value = ' + unconfiguredProject.foo()
+        """
+
+        file("b/build.gradle") << """
+            String foo(){ 'configured' }
+        """
+
+        when:
+        isolatedProjectsFails 'help', WARN_PROBLEMS_CLI_OPT
+
+        then:
+        failure.assertHasErrorOutput("Could not find method foo() for arguments [] on project ':b' of type org.gradle.api.Project")
+        problems.assertResultHasProblems(failure) {
+            withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Cannot access project ':b' from project ':a'. 'Project.evaluationDependsOn' must be used to establish a dependency between project ':b' and project ':a' evaluation")
+        }
+
+    }
+
+    def "fails on access property of unconfigured project"() {
+        given:
+        settingsFile << """
+            include(':a')
+            include(':b')
+        """
+
+        file("a/build.gradle") << """
+            def unconfiguredProject = project(':b')
+            println 'Unconfigured project value = ' + unconfiguredProject.myExtension.get()
+        """
+
+        file("b/build.gradle") << """
+            import ${Property.name}
+
+            interface MyExtension {
+                Property<String> getFoo()
+            }
+
+            def myExtension= extensions.create('myExtension', MyExtension)
+            myExtension.foo.set('configured')
+        """
+
+        when:
+        isolatedProjectsFails 'help', WARN_PROBLEMS_CLI_OPT
+
+        then:
+        failure.assertHasErrorOutput("Could not get unknown property 'myExtension' for project ':b' of type org.gradle.api.Project")
+        problems.assertResultHasProblems(failure) {
+            withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Cannot access project ':b' from project ':a'. 'Project.evaluationDependsOn' must be used to establish a dependency between project ':b' and project ':a' evaluation")
+        }
+    }
+
+    def "supports nested structure of build layout"() {
+        settingsFile << """
+            include ':a'
+            include ':a:tests'
+            include ':a:tests:integ-tests'
+        """
+        file("a/build.gradle") << ""
+        file("a/tests/build.gradle") << ""
+        file("a/tests/integ-tests/build.gradle") << ""
+
+        when:
+        isolatedProjectsRun 'build'
+
+        then:
+        fixture.assertStateStored {
+            projectsConfigured(":", ":a", ":a:tests", ":a:tests:integ-tests")
         }
     }
 }

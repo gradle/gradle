@@ -149,6 +149,9 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
     def "captures threaded output sources with context"() {
         given:
         executer.requireOwnGradleUserHomeDir()
+        10.times {
+            createDirs("project-" + it)
+        }
         settingsFile << """
             rootProject.name = 'root'
             10.times {

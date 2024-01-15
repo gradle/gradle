@@ -24,7 +24,6 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -35,6 +34,8 @@ import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -86,11 +87,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
             return cachedAction;
         }
         locked = true;
-        if (includedConfigurations == null &&
-                excludedConfigurations == null &&
-                includeSpecs == null &&
-                excludeSpecs == null &&
-                requiredAttributes == null) {
+        if (includeSpecs == null && excludeSpecs == null) {
             // no filtering in place
             return Actions.doNothing();
         }
@@ -189,7 +186,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     private void addInclude(String group, @Nullable String moduleName, @Nullable String version, MatcherKind matcherKind) {
         assertMutable();
         if (includeSpecs == null) {
-            includeSpecs = Sets.newHashSet();
+            includeSpecs = new HashSet<>();
         }
         includeSpecs.add(new ContentSpec(matcherKind, group, moduleName, version, versionSelectorScheme, versionSelectors, true));
     }
@@ -245,7 +242,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     private void addExclude(String group, @Nullable String moduleName, @Nullable String version, MatcherKind matcherKind) {
         assertMutable();
         if (excludeSpecs == null) {
-            excludeSpecs = Sets.newHashSet();
+            excludeSpecs = new HashSet<>();
         }
         excludeSpecs.add(new ContentSpec(matcherKind, group, moduleName, version, versionSelectorScheme, versionSelectors, false));
     }
@@ -253,7 +250,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     @Override
     public void onlyForConfigurations(String... configurationNames) {
         if (includedConfigurations == null) {
-            includedConfigurations = Sets.newHashSet();
+            includedConfigurations = new HashSet<>();
         }
         Collections.addAll(includedConfigurations, configurationNames);
     }
@@ -261,7 +258,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     @Override
     public void notForConfigurations(String... configurationNames) {
         if (excludedConfigurations == null) {
-            excludedConfigurations = Sets.newHashSet();
+            excludedConfigurations = new HashSet<>();
         }
         Collections.addAll(excludedConfigurations, configurationNames);
     }
@@ -270,7 +267,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     @SuppressWarnings("unchecked")
     public <T> void onlyForAttribute(Attribute<T> attribute, T... validValues) {
         if (requiredAttributes == null) {
-            requiredAttributes = Maps.newHashMap();
+            requiredAttributes = new HashMap<>();
         }
         requiredAttributes.put(Cast.uncheckedCast(attribute), ImmutableSet.copyOf(validValues));
     }
@@ -280,7 +277,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     }
 
     @Nullable
-    Set<String> getIncludedConfigurations() {
+    public Set<String> getIncludedConfigurations() {
         return includedConfigurations;
     }
 
@@ -289,7 +286,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     }
 
     @Nullable
-    Set<String> getExcludedConfigurations() {
+    public Set<String> getExcludedConfigurations() {
         return excludedConfigurations;
     }
 
@@ -316,7 +313,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     }
 
     @Nullable
-    Map<Attribute<Object>, Set<Object>> getRequiredAttributes() {
+    public Map<Attribute<Object>, Set<Object>> getRequiredAttributes() {
         return requiredAttributes;
     }
 
@@ -468,7 +465,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         }
     }
 
-    private class RepositoryFilterAction implements Action<ArtifactResolutionDetails> {
+    private static class RepositoryFilterAction implements Action<ArtifactResolutionDetails> {
         private final ImmutableList<SpecMatcher> includeMatchers;
         private final ImmutableList<SpecMatcher> excludeMatchers;
 
@@ -479,14 +476,6 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
 
         @Override
         public void execute(ArtifactResolutionDetails details) {
-            if (includedConfigurations != null && !includedConfigurations.contains(details.getConsumerName())) {
-                details.notFound();
-                return;
-            }
-            if (excludedConfigurations != null && excludedConfigurations.contains(details.getConsumerName())) {
-                details.notFound();
-                return;
-            }
             if (includeMatchers != null && !anyMatch(includeMatchers, details)) {
                 details.notFound();
                 return;
@@ -495,24 +484,6 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
                 details.notFound();
                 return;
             }
-            if (anyAttributesExcludes(details)) {
-                details.notFound();
-            }
-        }
-
-        private boolean anyAttributesExcludes(ArtifactResolutionDetails details) {
-            if (requiredAttributes != null) {
-                AttributeContainer consumerAttributes = details.getConsumerAttributes();
-                for (Map.Entry<Attribute<Object>, Set<Object>> entry : requiredAttributes.entrySet()) {
-                    Attribute<Object> key = entry.getKey();
-                    Set<Object> allowedValues = entry.getValue();
-                    Object value = consumerAttributes.getAttribute(key);
-                    if (!allowedValues.contains(value)) {
-                        return true;
-                    }
-                }
-            }
-            return false;
         }
 
         private boolean anyMatch(ImmutableList<SpecMatcher> matchers, ArtifactResolutionDetails details) {
@@ -531,4 +502,3 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         }
     }
 }
-

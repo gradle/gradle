@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.project;
 
-import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.Action;
@@ -418,6 +417,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
+    @Nullable
     public ProjectInternal getParent() {
         return getParent(this);
     }
@@ -453,12 +453,13 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
+    @Nullable
     public String getDescription() {
         return description;
     }
 
     @Override
-    public void setDescription(String description) {
+    public void setDescription(@Nullable String description) {
         this.description = description;
     }
 
@@ -508,7 +509,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Map<String, Project> getChildProjectsUnchecked() {
-        Map<String, Project> childProjects = Maps.newTreeMap();
+        Map<String, Project> childProjects = new TreeMap<>();
         for (ProjectState project : owner.getChildProjects()) {
             childProjects.put(project.getName(), project.getMutableModel());
         }

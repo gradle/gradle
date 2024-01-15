@@ -18,12 +18,10 @@ package org.gradle.api.internal.tasks.testing.report
 import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
 import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
-import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationListener
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.DefaultBuildOperationExecutor
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
@@ -51,7 +49,7 @@ class DefaultTestReportTest extends Specification {
         def parallelismConfiguration = new DefaultParallelismConfiguration(false, numThreads)
         buildOperationExecutor = new DefaultBuildOperationExecutor(
                 Mock(BuildOperationListener), Mock(Clock), new NoOpProgressLoggerFactory(),
-                new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), parallelismConfiguration, new DefaultBuildOperationIdFactory(), new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
+                new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), parallelismConfiguration, new DefaultBuildOperationIdFactory())
         return new DefaultTestReport(buildOperationExecutor)
     }
 

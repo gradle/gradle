@@ -45,6 +45,9 @@ class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
             }
         """
 
+        createDirs("app")
+        createDirs("greeter")
+
         when:
         succeeds(":xcode")
 
@@ -68,6 +71,10 @@ class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
         settingsFile << """
             include 'empty'
         """
+
+        createDirs("greeter")
+        createDirs("app")
+        createDirs("empty")
 
         buildFile << """
             allprojects {

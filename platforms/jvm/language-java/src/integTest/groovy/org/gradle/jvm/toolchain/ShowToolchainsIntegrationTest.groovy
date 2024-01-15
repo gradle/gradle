@@ -23,6 +23,7 @@ class ShowToolchainsIntegrationTest extends AbstractIntegrationSpec {
 
     def "shows toolchains only once across all projects"() {
         when:
+        createDirs("a", "b", "c")
         settingsFile << """
                 include 'a', 'b', 'c'
             """
@@ -44,6 +45,7 @@ class ShowToolchainsIntegrationTest extends AbstractIntegrationSpec {
 
     def "toolchains log contains progress info about installation suppliers"() {
         when:
+        createDirs("a")
         settingsFile << """
                 include 'a'
             """

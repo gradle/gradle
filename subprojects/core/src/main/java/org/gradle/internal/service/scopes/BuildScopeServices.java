@@ -151,9 +151,9 @@ import org.gradle.initialization.SettingsProcessor;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.buildsrc.BuildSrcBuildListenerFactory;
 import org.gradle.initialization.buildsrc.BuildSrcProjectConfigurationAction;
+import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.initialization.layout.BuildLocations;
 import org.gradle.initialization.layout.ResolvedBuildLayout;
 import org.gradle.initialization.properties.DefaultProjectPropertiesLoader;
 import org.gradle.initialization.properties.DefaultSystemPropertiesInstaller;
@@ -207,7 +207,7 @@ import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scripts.ScriptExecutionListener;
 import org.gradle.internal.service.CachingServiceLocator;
-import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ScopedServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
@@ -225,10 +225,10 @@ import java.util.List;
 /**
  * Contains the singleton services for a single build invocation.
  */
-public class BuildScopeServices extends DefaultServiceRegistry {
+public class BuildScopeServices extends ScopedServiceRegistry {
 
     public BuildScopeServices(ServiceRegistry parent, BuildModelControllerServices.Supplier supplier) {
-        super(parent);
+        super(Scopes.Build.class, parent);
         addProvider(new BuildCacheServices());
         register(registration -> {
             registration.add(DefaultExecOperations.class);
@@ -283,15 +283,15 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected BuildScopedCacheBuilderFactory createBuildScopedCacheBuilderFactory(
         GradleUserHomeDirProvider userHomeDirProvider,
-        BuildLocations buildLocations,
+        BuildLayout buildLayout,
         StartParameter startParameter,
         UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
     ) {
-        BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildLocations, startParameter);
+        BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildLayout, startParameter);
         return new DefaultBuildScopedCacheBuilderFactory(cacheDir.getDir(), unscopedCacheBuilderFactory);
     }
 
-    protected BuildLocations createBuildLocations(BuildLayoutFactory buildLayoutFactory, BuildDefinition buildDefinition) {
+    protected BuildLayout createBuildLocations(BuildLayoutFactory buildLayoutFactory, BuildDefinition buildDefinition) {
         return buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(buildDefinition.getStartParameter()));
     }
 

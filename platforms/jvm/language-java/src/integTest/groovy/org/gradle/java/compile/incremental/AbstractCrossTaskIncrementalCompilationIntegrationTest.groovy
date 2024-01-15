@@ -113,6 +113,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
     }
 
     def "handles multiple compile tasks in the same project"() {
+        createDirs("other")
         settingsFile << "\n include 'other'" //add an extra project
         source impl: ["class ImplA extends A {}"], api: ["class A {}"], other: ["class Other {}"]
 

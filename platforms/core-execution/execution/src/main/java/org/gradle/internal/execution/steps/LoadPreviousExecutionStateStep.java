@@ -20,7 +20,7 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 
-public class LoadPreviousExecutionStateStep<C extends WorkspaceContext, R extends Result> implements Step<C, R> {
+public class LoadPreviousExecutionStateStep<C extends WorkspaceContext, R extends AfterExecutionResult> implements Step<C, R> {
     private final Step<? super PreviousExecutionContext, ? extends R> delegate;
 
     public LoadPreviousExecutionStateStep(Step<? super PreviousExecutionContext, ? extends R> delegate) {
@@ -33,6 +33,15 @@ public class LoadPreviousExecutionStateStep<C extends WorkspaceContext, R extend
         PreviousExecutionState previousExecutionState = context.getHistory()
             .flatMap(history -> history.load(identity.getUniqueId()))
             .orElse(null);
-        return delegate.execute(work, new PreviousExecutionContext(context, previousExecutionState));
+        R result = delegate.execute(work, new PreviousExecutionContext(context, previousExecutionState));
+
+        // If we did not capture any outputs after execution, remove them from history
+        context.getHistory()
+            .ifPresent(history -> {
+                if (!result.getAfterExecutionOutputState().isPresent()) {
+                    history.remove(context.getIdentity().getUniqueId());
+                }
+            });
+        return result;
     }
 }

@@ -2,14 +2,13 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "Logging API consumed by the Gradle Enterprise plugin"
+description = "Logging API consumed by the Develocity plugin"
 
 gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(project(":logging-api"))
+    api(project(":build-operations"))
 
-    implementation(project(":build-operations"))
-    implementation(project(":base-annotations"))
-    implementation(libs.jsr305)
+    api(libs.jsr305)
 }

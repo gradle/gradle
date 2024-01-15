@@ -65,12 +65,12 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     }
 
     @Override
-    public DynamicInvokeResult trySetProperty(String name, Object value) {
+    public DynamicInvokeResult trySetProperty(String name, @Nullable Object value) {
         return DynamicInvokeResult.notFound();
     }
 
     @Override
-    public void setProperty(String name, Object value) throws MissingPropertyException {
+    public void setProperty(String name, @Nullable Object value) throws MissingPropertyException {
         DynamicInvokeResult result = trySetProperty(name, value);
         if (!result.isFound()) {
             throw setMissingProperty(name);
@@ -149,17 +149,17 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     }
 
     @Override
-    public boolean hasMethod(String name, Object... arguments) {
+    public boolean hasMethod(String name, @Nullable Object... arguments) {
         return false;
     }
 
     @Override
-    public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
+    public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... arguments) {
         return DynamicInvokeResult.notFound();
     }
 
     @Override
-    public Object invokeMethod(String name, Object... arguments) throws groovy.lang.MissingMethodException {
+    public Object invokeMethod(String name, @Nullable Object... arguments) throws groovy.lang.MissingMethodException {
         DynamicInvokeResult result = tryInvokeMethod(name, arguments);
         if (result.isFound()) {
             return result.getValue();
@@ -168,7 +168,7 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     }
 
     @Override
-    public MissingMethodException methodMissingException(String name, Object... params) {
+    public MissingMethodException methodMissingException(String name, @Nullable Object... params) {
         Class<?> publicType = getPublicType();
         boolean includeDisplayName = hasUsefulDisplayName();
         final String message;
@@ -186,7 +186,7 @@ public abstract class AbstractDynamicObject implements DynamicObject {
 
     private static class CustomMissingMethodExecutionFailed extends MissingMethodExecutionFailed {
 
-        public CustomMissingMethodExecutionFailed(String name, Class<?> publicType, String message, Object... params) {
+        public CustomMissingMethodExecutionFailed(String name, @Nullable Class<?> publicType, String message, @Nullable Object... params) {
             super(name, publicType, params, false, new CustomMessageMissingMethodException(name, publicType, message, params));
         }
 
@@ -199,7 +199,7 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     private static class CustomMessageMissingMethodException extends MissingMethodException {
         private final String message;
 
-        CustomMessageMissingMethodException(String name, Class<?> publicType, String message, Object... params) {
+        CustomMessageMissingMethodException(String name, @Nullable Class<?> publicType, String message, @Nullable Object... params) {
             super(name, publicType, params);
             this.message = message;
         }

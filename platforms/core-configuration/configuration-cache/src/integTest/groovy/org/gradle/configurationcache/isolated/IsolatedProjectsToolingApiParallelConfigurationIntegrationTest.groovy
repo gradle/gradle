@@ -20,6 +20,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.tooling.model.GradleProject
 import org.junit.Rule
 
 class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
@@ -275,6 +276,36 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
             projectsConfigured(':plugin-0', ':plugin-1', ':plugin-2', ':plugins', ':', ':a', ':b')
             buildModelCreated()
             modelsCreated(':a', ':b')
+        }
+    }
+
+    def "projects are configured in parallel when fetching GradleProject"() {
+        settingsFile << """
+            rootProject.name = "root"
+            include("a")
+            include("b")
+        """
+        configuring(buildFile)
+        configuring(file("a/build.gradle"))
+        configuring(file("b/build.gradle"))
+
+        given:
+        server.expect("configure-root")
+        server.expectConcurrent("configure-a", "configure-b")
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model = fetchModel(GradleProject)
+
+        then:
+        model.name == "root"
+        model.children.name == ["a", "b"]
+
+        and:
+        fixture.assertStateStored {
+            projectsConfigured(":", ":a", ":b")
+            modelsCreated(":", 2)
+            modelsCreated(":a", ":b")
         }
     }
 

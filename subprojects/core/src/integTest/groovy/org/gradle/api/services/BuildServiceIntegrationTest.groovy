@@ -854,6 +854,7 @@ service: closed with value 12
     @ToBeImplemented
     @Issue("https://github.com/gradle/gradle/issues/17559")
     def "service provided by a plugin cannot be shared by subprojects with different classloaders"() {
+        createDirs("plugin1", "plugin2", "subproject1", "subproject2")
         settingsFile """
         pluginManagement {
             includeBuild 'plugin1'
@@ -919,6 +920,7 @@ Hello, subproject1
     }
 
     def "service provided by a plugin can be shared by subprojects with different classloaders when using by-type service references"() {
+        createDirs("plugin1", "plugin2", "subproject1", "subproject2")
         settingsFile """
         pluginManagement {
             includeBuild 'plugin1'
@@ -995,6 +997,7 @@ Hello, subproject1
     }
 
     def "plugin applied to multiple projects can register a shared service"() {
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         serviceImplementation()
         buildFile << """
@@ -1146,6 +1149,43 @@ Hello, subproject1
         noParametersServiceImplementation()
         buildFile << """
             def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {}
+
+            task first {
+                doFirst {
+                    provider.get().increment()
+                }
+            }
+
+            task second {
+                doFirst {
+                    provider.get().increment()
+                }
+            }
+        """
+
+        when:
+        run("first", "second")
+
+        then:
+        output.count("service:") == 3
+        outputContains("service: created with value = 0")
+        outputContains("service: value is 1")
+        outputContains("service: value is 2")
+
+        when:
+        run("first", "second")
+
+        then:
+        output.count("service:") == 3
+        outputContains("service: created with value = 0")
+        outputContains("service: value is 1")
+        outputContains("service: value is 2")
+    }
+
+    def "service can be registered without action"() {
+        noParametersServiceImplementation()
+        buildFile << """
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService)
 
             task first {
                 doFirst {

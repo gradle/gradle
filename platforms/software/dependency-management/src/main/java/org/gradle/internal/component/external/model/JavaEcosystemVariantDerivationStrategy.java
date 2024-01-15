@@ -23,8 +23,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 
-import java.util.Collections;
-
 public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDerivationStrategy {
     private static final JavaEcosystemVariantDerivationStrategy INSTANCE = new JavaEcosystemVariantDerivationStrategy();
 
@@ -94,14 +92,13 @@ public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDer
             .build();
     }
 
-    private ImmutableCapabilities buildShadowPlatformCapability(ModuleComponentIdentifier componentId, boolean enforced) {
-        return ImmutableCapabilities.of(Collections.singletonList(
-                new ShadowedImmutableCapability(new DefaultImmutableCapability(
-                        componentId.getGroup(),
-                        componentId.getModule(),
-                        componentId.getVersion()
-                ), enforced ? "-derived-enforced-platform" : "-derived-platform")
-            )
+    private static ImmutableCapabilities buildShadowPlatformCapability(ModuleComponentIdentifier componentId, boolean enforced) {
+        return ImmutableCapabilities.of(
+            new ShadowedImmutableCapability(new DefaultImmutableCapability(
+                    componentId.getGroup(),
+                    componentId.getModule(),
+                    componentId.getVersion()
+            ), enforced ? "-derived-enforced-platform" : "-derived-platform")
         );
     }
 

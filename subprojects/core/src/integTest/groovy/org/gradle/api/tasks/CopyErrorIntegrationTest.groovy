@@ -99,7 +99,7 @@ The following types/formats are supported:
             failure.assertHasDocumentedCause("Cannot access input property 'rootSpec\$1' of task ':copy'. " +
                 "Accessing unreadable inputs or outputs is not supported. " +
                 "Declare the task as untracked by using Task.doNotTrackState(). " +
-                new DocumentationRegistry().getDocumentationRecommendationFor("information", "incremental_build", "disable-state-tracking")
+                new DocumentationRegistry().getDocumentationRecommendationFor("information", "incremental_build", "sec:disable-state-tracking")
             )
             failure.assertHasCause("java.nio.file.AccessDeniedException: ${dir}")
         } finally {

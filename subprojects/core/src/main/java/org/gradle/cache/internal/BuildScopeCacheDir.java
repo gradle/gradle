@@ -20,7 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.initialization.layout.BuildLocations;
+import org.gradle.initialization.layout.BuildLayout;
 
 import java.io.File;
 
@@ -31,15 +31,15 @@ public class BuildScopeCacheDir {
 
     public BuildScopeCacheDir(
         GradleUserHomeDirProvider userHomeDirProvider,
-        BuildLocations buildLocations,
+        BuildLayout buildLayout,
         StartParameter startParameter
     ) {
         if (startParameter.getProjectCacheDir() != null) {
             cacheDir = startParameter.getProjectCacheDir();
-        } else if (!buildLocations.getRootDirectory().getName().equals(SettingsInternal.BUILD_SRC) && buildLocations.isBuildDefinitionMissing()) {
+        } else if (!buildLayout.getRootDirectory().getName().equals(SettingsInternal.BUILD_SRC) && buildLayout.isBuildDefinitionMissing()) {
             cacheDir = new File(userHomeDirProvider.getGradleUserHomeDirectory(), UNDEFINED_BUILD);
         } else {
-            cacheDir = new File(buildLocations.getRootDirectory(), ".gradle");
+            cacheDir = new File(buildLayout.getRootDirectory(), ".gradle");
         }
         if (cacheDir.exists() && !cacheDir.isDirectory()) {
             throw new UncheckedIOException(String.format("Cache directory '%s' exists and is not a directory.", cacheDir));

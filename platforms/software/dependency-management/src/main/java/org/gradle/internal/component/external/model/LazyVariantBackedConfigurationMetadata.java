@@ -18,7 +18,6 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -62,7 +61,7 @@ class LazyVariantBackedConfigurationMetadata extends AbstractVariantBackedConfig
         private final VariantMetadataRules variantMetadataRules;
 
         private ImmutableAttributes computedAttributes;
-        private CapabilitiesMetadata computedCapabilities;
+        private ImmutableCapabilities computedCapabilities;
         private ImmutableList<? extends ComponentArtifactMetadata> computedArtifacts;
 
         RuleAwareVariant(ModuleComponentIdentifier componentId, ComponentVariant delegate, ImmutableAttributesFactory attributesFactory, ImmutableAttributes componentLevelAttributes, VariantMetadataRules variantMetadataRules) {
@@ -127,7 +126,7 @@ class LazyVariantBackedConfigurationMetadata extends AbstractVariantBackedConfig
         }
 
         @Override
-        public CapabilitiesMetadata getCapabilities() {
+        public ImmutableCapabilities getCapabilities() {
             if (computedCapabilities == null) {
                 computedCapabilities = variantMetadataRules.applyCapabilitiesRules(delegate, delegate.getCapabilities());
             }

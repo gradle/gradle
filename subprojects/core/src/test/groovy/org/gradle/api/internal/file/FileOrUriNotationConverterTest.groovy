@@ -114,6 +114,17 @@ class FileOrUriNotationConverterTest extends Specification {
         object.toURI().toString() == uriString
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/26678")
+    def "does not change + in file scheme URI parsed from CharSequence"() {
+        setup:
+        def uriString = folder.createFile("test+1").toURI().toString()
+        when:
+        def object = parse(uriString)
+        then:
+        object instanceof File
+        object.toURI().toString() == uriString
+    }
+
     def "with URL"() {
         setup:
         def testFileURL = folder.createFile("test1").toURI().toURL()

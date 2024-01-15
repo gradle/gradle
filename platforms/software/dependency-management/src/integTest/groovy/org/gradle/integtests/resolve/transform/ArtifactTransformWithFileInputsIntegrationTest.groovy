@@ -52,6 +52,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
     }
 
     def "transform can receive a file collection containing pre-built files via parameter object"() {
+        createDirs("a", "b", "c")
         settingsFile << """
                 include 'a', 'b', 'c'
             """
@@ -84,6 +85,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         mavenRepo.module("test", "tool-a", "1.2").publish()
         mavenRepo.module("test", "tool-b", "1.2").publish()
 
+        createDirs("a", "b", "c")
         settingsFile << """
                 include 'a', 'b', 'c'
             """
@@ -116,6 +118,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
     }
 
     def "transform can receive a file input from a nested bean on the parameter object"() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
@@ -172,6 +175,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
     }
 
     def "transform can receive a file collection containing task outputs as parameter"() {
+        createDirs("a", "b", "c")
         settingsFile << """
                 include 'a', 'b', 'c'
             """
@@ -203,6 +207,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
     }
 
     def "transform can receive a file collection containing transform outputs as parameter"() {
+        createDirs("a", "b", "c", "d", "e")
         settingsFile << """
                 include 'a', 'b', 'c', 'd', 'e'
             """
@@ -265,6 +270,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
     }
 
     def "transform can receive a file collection containing substituted external dependencies as parameter"() {
+        createDirs("tools", "tools/tool-a", "tools/tool-b")
         file("tools/settings.gradle") << """
             include 'tool-a', 'tool-b'
         """
@@ -288,6 +294,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 }
             }
         """
+        createDirs("a", "b", "c")
         settingsFile << """
                 include 'a', 'b', 'c'
                 includeBuild 'tools'
@@ -321,6 +328,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
     }
 
     def "transform can receive a task output file as parameter"() {
+        createDirs("a", "b", "c", "d", "e")
         settingsFile << """
                 include 'a', 'b', 'c', 'd', 'e'
             """
@@ -373,6 +381,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
     }
 
     def "transform can receive a task output directory as parameter"() {
+        createDirs("a", "b", "c", "d", "e")
         settingsFile << """
                 include 'a', 'b', 'c', 'd', 'e'
             """
@@ -425,6 +434,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
     }
 
     def "transform does not execute when file inputs cannot be built"() {
+        createDirs("a", "b", "c")
         settingsFile << """
                 include 'a', 'b', 'c'
             """
@@ -459,6 +469,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
     }
 
     def "can use input path sensitivity #pathSensitivity for parameter object"() {
+        createDirs("a", "b", "c")
         settingsFile << """
                 include 'a', 'b', 'c'
             """
@@ -514,6 +525,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
 
     @ToBeFixedForConfigurationCache(because = "classpath normalization configuration is not serialized")
     def "can use classpath normalization for parameter object"() {
+        createDirs("a", "b", "c")
         settingsFile << """
                 include 'a', 'b', 'c'
             """

@@ -27,6 +27,7 @@ class MavenScopesAndProjectDependencySubstitutionIntegrationTest extends Abstrac
         resolve.prepare()
         resolve.addDefaultVariantDerivationStrategy()
         resolve.expectDefaultConfiguration("runtime")
+        createDirs("child1", "child2")
         settingsFile << """
             rootProject.name = 'testproject'
             include 'child1', 'child2'

@@ -25,6 +25,7 @@ dependencies {
 
     implementation(project(":base-services"))
     implementation(project(":enterprise-operations"))
+    implementation(project(":enterprise-workers"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":core-api"))
@@ -49,6 +50,7 @@ dependencies {
     integTestImplementation(project(":persistent-cache"))
 
     crossVersionTestImplementation(project(":jvm-services"))
+    crossVersionTestImplementation(testFixtures(project(":problems-api")))
     crossVersionTestImplementation(libs.jettyWebApp)
     crossVersionTestImplementation(libs.commonsIo)
     crossVersionTestRuntimeOnly(libs.cglib) {

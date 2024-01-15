@@ -19,13 +19,13 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import groovy.util.Node;
 import groovy.util.NodeList;
+import org.gradle.internal.Cast;
 import org.gradle.plugins.ide.eclipse.model.internal.PathUtil;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -70,8 +70,8 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         Preconditions.checkNotNull(path);
         this.path = normalizePath(path);
         this.exported = false;
-        this.accessRules = Sets.newLinkedHashSet();
-        this.entryAttributes = Maps.newLinkedHashMap();
+        this.accessRules = new LinkedHashSet<>();
+        this.entryAttributes = new LinkedHashMap<>();
     }
 
     public String getPath() {
@@ -141,7 +141,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
     }
 
     private Set<AccessRule> readAccessRules(Node node) {
-        Set<AccessRule> accessRules = Sets.newLinkedHashSet();
+        Set<AccessRule> accessRules = new LinkedHashSet<>();
         NodeList accessRulesNodes = (NodeList) node.get("accessrules");
         for (Object accessRulesNode : accessRulesNodes) {
             NodeList accessRuleNodes = (NodeList) ((Node) accessRulesNode).get("accessrule");
@@ -167,7 +167,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
     }
 
     private Map<String, Object> readEntryAttributes(Node node) {
-        Map<String, Object> attributes = Maps.newLinkedHashMap();
+        Map<String, Object> attributes = new LinkedHashMap<>();
         NodeList attributesNodes = (NodeList) node.get("attributes");
         for (Object attributesEntry : attributesNodes) {
             NodeList attributeNodes = (NodeList) ((Node) attributesEntry).get("attribute");
@@ -188,10 +188,25 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
 
         Node attributesNode = getAttributesNode(node, "attributes");
 
-        effectiveEntryAttrs.forEach((key, value) ->
-            attributesNode.appendNode("attribute", ImmutableMap.of(
-                "name", key,
-                "value", value)));
+        effectiveEntryAttrs.forEach((key, value) -> {
+            // If the attribute value is an Iterable, an <attribute> node is produced for each element in the Iterable.
+            // This is something that is supported by the classpath entry format and it allows users to define multi-value
+            // entries by putting a list as value into the 'entryAttributes' Map.
+            // For exmaple: entryAttributes['add-exports'] = ['java.base/jdk.internal.access=ALL-UNNAMED', 'java.base/jdk.internal.loader=ALL-UNNAMED']
+            if (value instanceof Iterable) {
+                Cast.<Iterable<?>>uncheckedCast(value).forEach(valueElement ->
+                    attributesNode.appendNode("attribute", ImmutableMap.of(
+                        "name", key,
+                        "value", valueElement)
+                    )
+                );
+            } else {
+                attributesNode.appendNode("attribute", ImmutableMap.of(
+                    "name", key,
+                    "value", value)
+                );
+            }
+        });
     }
 
     private Map<String, Object> getEffectiveEntryAttrs() {
@@ -207,6 +222,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         }
         return (Node) attributesNodes.get(0);
     }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -232,4 +248,3 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         return "{path='" + path + "', nativeLibraryLocation='" + getNativeLibraryLocation() + "', exported=" + exported + ", accessRules=" + accessRules + "}";
     }
 }
-

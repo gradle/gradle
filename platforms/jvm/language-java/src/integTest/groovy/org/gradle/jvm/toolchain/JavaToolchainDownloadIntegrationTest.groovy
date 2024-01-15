@@ -26,7 +26,8 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
 import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
 import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
 import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
-import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.*
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.applyToolchainResolverPlugin
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.noUrlResolverCode
 
 class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
@@ -60,7 +61,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-               .assertHasCause("No matching toolchains found for requested specification: {languageVersion=14, vendor=ADOPTIUM, implementation=J9} ${getFailureMessageBuildPlatform()}.")
+               .assertHasCause("Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=14, vendor=ADOPTIUM, implementation=J9} ${getFailureMessageBuildPlatform()}.")
                .assertHasCause("No locally installed toolchains match and the configured toolchain download repositories aren't able to provide a match either.")
                .assertHasResolutions(
                    DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
@@ -99,7 +100,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-               .assertHasCause("No matching toolchains found for requested specification: {languageVersion=14, vendor=any, implementation=vendor-specific} ${getFailureMessageBuildPlatform()}.")
+               .assertHasCause("Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=14, vendor=any, implementation=vendor-specific} ${getFailureMessageBuildPlatform()}.")
                .assertHasCause("No locally installed toolchains match and toolchain auto-provisioning is not enabled.")
                .assertHasResolutions(
                    DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),

@@ -56,7 +56,7 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 @SuppressWarnings("deprecation")
 @NonNullApi
@@ -272,7 +272,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     @Override
-    public void visitScheduledNodes(Consumer<List<Node>> visitor) {
+    public void visitScheduledNodes(BiConsumer<List<Node>, Set<Node>> visitor) {
         executionPlan.getContents().getScheduledNodes().visitNodes(visitor);
     }
 

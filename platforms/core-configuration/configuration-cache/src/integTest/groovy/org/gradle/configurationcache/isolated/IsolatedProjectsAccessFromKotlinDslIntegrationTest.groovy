@@ -18,6 +18,7 @@ package org.gradle.configurationcache.isolated
 
 class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
     def "reports problem when build script uses #block block to apply plugins to another project"() {
+        createDirs("a", "b")
         settingsFile << """
             include("a")
             include("b")
@@ -45,6 +46,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
     }
 
     def "reports problem when build script uses #block block to access dynamically added elements"() {
+        createDirs("a", "b")
         settingsFile << """
             include("a")
             include("b")
@@ -75,6 +77,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
     }
 
     def "reports cross-project model access in Gradle.#invocation"() {
+        createDirs("a", "b")
         settingsFile << """
             include("a")
             include("b")
@@ -101,6 +104,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
     }
 
     def "reports cross-project model access from a listener added to Gradle.projectsEvaluated"() {
+        createDirs("a", "b")
         settingsFile << """
             include("a")
             include("b")

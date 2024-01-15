@@ -16,15 +16,17 @@
 
 package org.gradle.internal.isolated;
 
-import com.google.common.reflect.TypeToken;
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.reflect.Types;
+import org.gradle.internal.reflect.Types.TypeVisitResult;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
@@ -35,8 +37,14 @@ import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class IsolationScheme<IMPLEMENTATION, PARAMS> {
     private final Class<IMPLEMENTATION> interfaceType;
@@ -87,22 +95,80 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
         return parametersType;
     }
 
+    /**
+     * Walk the type hierarchy until we find the interface type and keep track the chain of the type parameters.
+     *
+     * E.g.: For `interface Baz<T>`, interface `Bar<T extends CharSequence> extends Baz<T>` and `class Foo implements Bar<String>`,
+     * we'll have mapping `T extends CharSequence -> String` and `T -> String`.
+     *
+     * When we come to `Baz<T>`, we can then query the mapping for `T` and get `String`.
+     */
     @Nonnull
     private <T extends IMPLEMENTATION, P extends PARAMS> Class<P> inferParameterType(Class<T> implementationType, int typeArgumentIndex) {
-        // Avoid using TypeToken for the common simple case, as TypeToken is quite slow
-        for (Type superType : implementationType.getGenericInterfaces()) {
-            if (superType instanceof ParameterizedType) {
-                ParameterizedType parameterizedSuperType = (ParameterizedType) superType;
-                if (parameterizedSuperType.getRawType().equals(interfaceType)) {
-                    Type argument = parameterizedSuperType.getActualTypeArguments()[typeArgumentIndex];
-                    if (argument instanceof Class) {
-                        return Cast.uncheckedCast(argument);
+        AtomicReference<Type> foundType = new AtomicReference<>();
+        Map<Type, Type> collectedTypes = new HashMap<>();
+        Types.walkTypeHierarchy(implementationType, type -> {
+            for (Type genericInterface : type.getGenericInterfaces()) {
+                if (collectTypeParameters(genericInterface, foundType, collectedTypes, typeArgumentIndex)) {
+                    return TypeVisitResult.TERMINATE;
+                }
+            }
+            Type genericSuperclass = type.getGenericSuperclass();
+            if (collectTypeParameters(genericSuperclass, foundType, collectedTypes, typeArgumentIndex)) {
+                return TypeVisitResult.TERMINATE;
+            }
+            return TypeVisitResult.CONTINUE;
+        });
+
+        // Note: we don't handle GenericArrayType here, since
+        // we don't support arrays as a type of a Parameter anywhere
+        Type type = unwrapTypeVariable(foundType.get());
+        return type instanceof Class
+            ? Cast.uncheckedNonnullCast(type)
+            : type instanceof ParameterizedType
+            ? Cast.uncheckedNonnullCast(((ParameterizedType) type).getRawType())
+            : Cast.uncheckedNonnullCast(paramsType);
+    }
+
+    private boolean collectTypeParameters(Type type, AtomicReference<Type> foundType, Map<Type, Type> collectedTypeParameters, int typeArgumentIndex) {
+        if (type instanceof ParameterizedType) {
+            ParameterizedType parameterizedType = (ParameterizedType) type;
+            if (parameterizedType.getRawType().equals(interfaceType)) {
+                Type parameter = parameterizedType.getActualTypeArguments()[typeArgumentIndex];
+                foundType.set(collectedTypeParameters.getOrDefault(parameter, parameter));
+                return true;
+            }
+            Type[] actualTypes = parameterizedType.getActualTypeArguments();
+            Type[] typeParameters = ((Class<?>) parameterizedType.getRawType()).getTypeParameters();
+            for (int i = 0; i < typeParameters.length; i++) {
+                Type firstActualInTypeChain = collectedTypeParameters.getOrDefault(actualTypes[i], actualTypes[i]);
+                collectedTypeParameters.put(typeParameters[i], firstActualInTypeChain);
+            }
+        }
+        return false;
+    }
+
+    private Type unwrapTypeVariable(Type type) {
+        if (type instanceof TypeVariable) {
+            Type nextType;
+            Queue<Type> queue = new ArrayDeque<>();
+            queue.add(type);
+            while ((nextType = queue.poll()) != null) {
+                for (Type bound : ((TypeVariable<?>) nextType).getBounds()) {
+                    if (bound instanceof TypeVariable) {
+                        queue.add(bound);
+                    } else if (isAssignableFromType(paramsType, bound)) {
+                        return bound;
                     }
                 }
             }
         }
-        ParameterizedType superType = (ParameterizedType) TypeToken.of(implementationType).getSupertype(interfaceType).getType();
-        return Cast.uncheckedNonnullCast(TypeToken.of(superType.getActualTypeArguments()[typeArgumentIndex]).getRawType());
+        return type;
+    }
+
+    private static boolean isAssignableFromType(Class<?> clazz, Type type) {
+        return type instanceof Class && clazz.isAssignableFrom((Class<?>) type)
+            || type instanceof ParameterizedType && clazz.isAssignableFrom((Class<?>) ((ParameterizedType) type).getRawType());
     }
 
     /**
@@ -172,6 +238,9 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
                 if (serviceClass.isAssignableFrom(BuildServiceRegistry.class)) {
                     return allServices.find(BuildServiceRegistry.class);
                 }
+                if (serviceClass.isAssignableFrom(Problems.class)) {
+                    return allServices.find(Problems.class);
+                }
                 for (Class<?> whiteListedService : additionalWhiteListedServices) {
                     if (serviceClass.isAssignableFrom(whiteListedService)) {
                         return allServices.find(whiteListedService);
@@ -188,7 +257,7 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
         public Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
             Object result = find(serviceType);
             if (result == null) {
-                notFound(serviceType);
+                return notFound(serviceType);
             }
             return result;
         }

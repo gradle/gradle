@@ -63,6 +63,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
     }
 
     private void setupBuildWithProjectArtifactTransforms() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
@@ -118,6 +119,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
     }
 
     private void setupBuildWithChainedProjectArtifactTransforms() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """

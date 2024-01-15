@@ -18,6 +18,7 @@ package org.gradle.api
 
 abstract class AbstractMutatingDomainObjectContainerInHookIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
     def "can mutate containers inside Project hooks"() {
+        createDirs("nested")
         settingsFile << """
             include 'nested'
         """
@@ -43,6 +44,7 @@ abstract class AbstractMutatingDomainObjectContainerInHookIntegrationTest extend
     }
 
     def "can mutate containers inside Gradle hooks"() {
+        createDirs("nested")
         settingsFile << """
             include 'nested'
             gradle.projectsLoaded {

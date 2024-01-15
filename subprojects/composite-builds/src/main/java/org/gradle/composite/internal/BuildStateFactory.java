@@ -30,6 +30,7 @@ import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.NestedBuildTree;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -75,12 +76,13 @@ public class BuildStateFactory {
     }
 
     public NestedBuildTree createNestedTree(
+        BuildInvocationScopeId buildInvocationScopeId,
         BuildDefinition buildDefinition,
         BuildIdentifier buildIdentifier,
         Path identityPath,
         BuildState owner
     ) {
-        return new DefaultNestedBuildTree(buildDefinition, buildIdentifier, identityPath, owner, userHomeDirServiceRegistry, crossBuildSessionState, buildCancellationToken);
+        return new DefaultNestedBuildTree(buildInvocationScopeId, buildDefinition, buildIdentifier, identityPath, owner, userHomeDirServiceRegistry, crossBuildSessionState, buildCancellationToken);
     }
 
     public BuildDefinition buildDefinitionFor(File buildSrcDir, BuildState owner) {

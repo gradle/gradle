@@ -23,6 +23,7 @@ class MultiProjectDependencyLockingIntegrationTest  extends AbstractDependencyRe
     def firstLockFileFixture = new LockfileFixture(testDirectory: testDirectory.file('first'))
 
     def setup() {
+        createDirs("first", "second")
         settingsFile << """
 rootProject.name = 'multiDepLock'
 include 'first', 'second'

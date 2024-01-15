@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.resolve.ResolveFailureTestFixture
 @FluidDependenciesResolveTest
 class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
+        createDirs("lib", "ui", "app")
         settingsFile << """
             rootProject.name = 'root'
             include 'lib'

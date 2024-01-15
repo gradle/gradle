@@ -32,6 +32,7 @@ project(':impl') {
     task implTask {}
 }
 """
+        createDirs("api", "impl")
         file('settings.gradle').text = "include 'api', 'impl'; rootProject.name = 'root'"
 
         when:

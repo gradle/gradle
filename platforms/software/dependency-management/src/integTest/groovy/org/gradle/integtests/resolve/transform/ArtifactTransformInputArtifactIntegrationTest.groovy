@@ -26,6 +26,7 @@ import java.util.regex.Pattern
 
 class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture {
     def "transform does not execute when project artifact cannot be built"() {
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform()
         buildFile << """
@@ -63,8 +64,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     }
 
     // Documents existing behaviour. The absolute path of the input artifact is baked into the workspace identity
-    // and so when the path changes the outputs are invalidated
-    def "can attach #description to input artifact property with project artifact file but it has no effect when not caching"() {
+    // for incremental transforms, and so when the path changes the outputs are invalidated
+    def "can attach #description to input artifact property with incrementally transformed artifact but it has no effect when not caching"() {
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform()
         buildFile << """
@@ -78,6 +80,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact ${annotation}
                 abstract Provider<FileSystemLocation> getInputArtifact()
+
+                @Inject
+                abstract InputChanges getInputChanges()
 
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
@@ -105,7 +110,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbContent=new")
+        withProjectConfig("b") {
+            outputFileContent = "new"
+        }
         succeeds(":a:resolve")
 
         then: // new content, should run
@@ -114,7 +121,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbContent=new")
+        withProjectConfig("b") {
+            outputFileContent = "new"
+        }
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
@@ -123,7 +132,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbContent=new", "-DbOutputDir=out")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputFileContent = "new"
+        }
         succeeds(":a:resolve")
 
         then: // path has changed, should run
@@ -132,7 +144,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbContent=new", "-DbOutputDir=out")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputFileContent = "new"
+        }
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
@@ -141,7 +156,11 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbContent=new", "-DbOutputDir=out", "-DbFileName=b-blue.jar")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputFileContent = "new"
+            outputFileName = "b-blue.jar"
+        }
         succeeds(":a:resolve")
 
         then: // new file name, should run
@@ -150,7 +169,11 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbContent=new", "-DbOutputDir=out", "-DbFileName=b-blue.jar")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputFileContent = "new"
+            outputFileName = "b-blue.jar"
+        }
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
@@ -175,7 +198,8 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         "@PathSensitive(PathSensitivity.NONE)"      | "@PathSensitive(PathSensitivity.NONE)"
     }
 
-    def "can attach #description to input artifact property with project artifact directory but it has no effect when not caching"() {
+    def "can attach #normalization to input artifact property with #type transformed artifact directory but it has no effect when not caching"() {
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform {
             produceDirs()
@@ -189,8 +213,14 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             }
 
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
-                @InputArtifact ${annotation}
+                @InputArtifact
+                ${sensitivity
+                    ? "@PathSensitive(PathSensitivity.$sensitivity)"
+                    : ""
+                }
                 abstract Provider<FileSystemLocation> getInputArtifact()
+
+                $inputChanges
 
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
@@ -222,7 +252,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-DbName=new")
+        withProjectConfig("b") {
+            outputFileName = "new"
+        }
         succeeds(":a:resolve")
 
         then: // directory content has changed (file renamed)
@@ -231,7 +263,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-DbName=new")
+        withProjectConfig("b") {
+            outputFileName = "new"
+        }
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
@@ -240,7 +274,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-DbName=new", "-DbContent=new")
+        withProjectConfig("b") {
+            outputFileName = "new"
+            outputFileContent = "new"
+        }
         succeeds(":a:resolve")
 
         then: // directory content has changed (file contents changed)
@@ -249,7 +286,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-DbName=new", "-DbContent=new")
+        withProjectConfig("b") {
+            outputFileName = "new"
+            outputFileContent = "new"
+        }
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
@@ -258,7 +298,11 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-DbName=new", "-DbContent=new", "-DbDirName=b-blue")
+        withProjectConfig("b") {
+            outputFileName = "new"
+            outputFileContent = "new"
+            outputDirName = "b-blue"
+        }
         succeeds(":a:resolve")
 
         then: // directory name has changed
@@ -267,7 +311,11 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-DbName=new", "-DbContent=new", "-DbDirName=b-blue")
+        withProjectConfig("b") {
+            outputFileName = "new"
+            outputFileContent = "new"
+            outputDirName = "b-blue"
+        }
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
@@ -276,15 +324,30 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-DbName=new", "-DbContent=new", "-DbDirName=b-blue", "-DbOutputDir=out")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputFileName = "new"
+            outputFileContent = "new"
+            outputDirName = "b-blue"
+        }
         succeeds(":a:resolve")
 
         then: // directory path has changed
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
-        transformed("b-blue")
+        if (incremental || sensitivity == null || sensitivity == PathSensitivity.ABSOLUTE) {
+            transformed("b-blue")
+        } else {
+            // Inputs have been normlaized and results are up-to-date
+            transformed()
+        }
 
         when:
-        executer.withArguments("-DbName=new", "-DbContent=new", "-DbDirName=b-blue", "-DbOutputDir=out")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputFileName = "new"
+            outputFileContent = "new"
+            outputDirName = "b-blue"
+        }
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
@@ -295,20 +358,36 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         when:
         succeeds(":a:resolve")
 
-        then: // have already seen these artifacts before, but the transform outputs have been overwritten
+        then:
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
-        transformed("b-dir")
+        // have already seen these artifacts before...
+        if (incremental) {
+            // ...but the transform outputs have been overwritten
+            transformed("b-dir")
+        } else {
+            // ...and they are up-to-date
+            transformed()
+        }
         outputContains("result = [b-dir.green, c-dir.green]")
 
         where:
-        description                                 | annotation
-        "no sensitivity"                            | ""
-        "@PathSensitive(PathSensitivity.ABSOLUTE)"  | "@PathSensitive(PathSensitivity.ABSOLUTE)"
-        "@PathSensitive(PathSensitivity.RELATIVE)"  | "@PathSensitive(PathSensitivity.RELATIVE)"
-        "@PathSensitive(PathSensitivity.NAME_ONLY)" | "@PathSensitive(PathSensitivity.NAME_ONLY)"
+        incremental | sensitivity
+        true        | null
+        true        | PathSensitivity.ABSOLUTE
+        true        | PathSensitivity.RELATIVE
+        true        | PathSensitivity.NAME_ONLY
+        false       | null
+        false       | PathSensitivity.ABSOLUTE
+        false       | PathSensitivity.RELATIVE
+        false       | PathSensitivity.NAME_ONLY
+
+        inputChanges = incremental ? "@Inject abstract InputChanges getInputChanges()" : ""
+        normalization = (sensitivity?.name()?.toLowerCase()?.replaceAll("_", " ") ?: "no") + " path sensitivity"
+        type = (incremental ? "incremental" : "non-incremental")
     }
 
-    def "re-runs transform when input artifact file changes from file to missing"() {
+    def "re-runs incremental transform when input artifact file changes from file to missing"() {
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform()
         buildFile << """
@@ -322,6 +401,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
+
+                @Inject
+                abstract InputChanges getInputChanges()
 
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
@@ -371,6 +453,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
     def "inputs to the build cache key are reported when build cache logging is enabled"() {
         given:
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         setupBuildWithColorTransform()
         buildFile << """
@@ -410,6 +493,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     }
 
     def "honors @PathSensitive(NONE) on input artifact property for project artifact file when caching"() {
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform()
         buildFile << """
@@ -444,7 +528,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbOutputDir=out")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+        }
         withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, but should be up to date
@@ -453,7 +539,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbOutputDir=out", "-DbFileName=b-blue.jar")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputFileName = "b-blue.jar"
+        }
         withBuildCache().succeeds(":a:resolve")
 
         then: // name has changed, should run
@@ -462,7 +551,11 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
         when:
-        withBuildCache().executer.withArguments("-DbOutputDir=out", "-DbContent=b-new")
+        withBuildCache()
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputFileContent = "b-new"
+        }
         succeeds(":a:resolve")
 
         then: // new content, should run
@@ -471,7 +564,11 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        withBuildCache().executer.withArguments("-DbOutputDir=out", "-DbContent=b-new")
+        withBuildCache()
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputFileContent = "b-new"
+        }
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
@@ -480,7 +577,8 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        withBuildCache().succeeds(":a:resolve")
+        withBuildCache()
+        succeeds(":a:resolve")
 
         then: // have already seen these artifacts before
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
@@ -488,7 +586,8 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
-    def "honors @PathSensitive(#sensitivity) to input artifact property for project artifact directory when caching"() {
+    def "honors @PathSensitive(#sensitivity) to input artifact property for incremental artifact directory transforms when caching"() {
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform {
             produceDirs()
@@ -506,6 +605,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 @PathSensitive(PathSensitivity.${sensitivity})
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
+
+                @Inject
+                abstract InputChanges getInputChanges()
 
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
@@ -525,7 +627,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-DbOutputDir=out")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+        }
         withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, but should be up to date
@@ -534,7 +638,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputDirName = "b-blue"
+        }
         withBuildCache().succeeds(":a:resolve")
 
         then: // name has changed, should run
@@ -543,7 +650,11 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue", "-DbContent=new")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputDirName = "b-blue"
+            outputFileContent = "new"
+        }
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content, should run
@@ -552,7 +663,11 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue", "-DbContent=new")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputDirName = "b-blue"
+            outputFileContent = "new"
+        }
         withBuildCache().succeeds(":a:resolve")
 
         then: // no change, should be up to date
@@ -561,7 +676,12 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue", "-DbContent=new", "-DbName=new")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputDirName = "b-blue"
+            outputFileContent = "new"
+            outputFileName = "new"
+        }
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content (renamed file), should run
@@ -582,6 +702,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     }
 
     def "honors @PathSensitive(#sensitivity) on input artifact property for project artifact file when caching"() {
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform()
         buildFile << """
@@ -616,7 +737,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbOutputDir=out")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+        }
         withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, but should be up to date
@@ -625,7 +748,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbOutputDir=out", "-DbFileName=b-blue.jar")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputFileName = "b-blue.jar"
+        }
         withBuildCache().succeeds(":a:resolve")
 
         then: // name has changed, should run
@@ -634,7 +760,11 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbOutputDir=out", "-DbFileName=b-blue.jar", "-DbContent=new")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputFileName = "b-blue.jar"
+            outputFileContent = "new"
+        }
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content, should run
@@ -643,7 +773,11 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbOutputDir=out", "-DbFileName=b-blue.jar", "-DbContent=new")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputFileName = "b-blue.jar"
+            outputFileContent = "new"
+        }
         withBuildCache().succeeds(":a:resolve")
 
         then: // no change, should be up to date
@@ -663,7 +797,8 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         sensitivity << [PathSensitivity.RELATIVE, PathSensitivity.NAME_ONLY]
     }
 
-    def "honors content changes for @PathSensitive(NONE) on input artifact property for project artifact directory when not caching"() {
+    def "honors content changes for @PathSensitive(NONE) on input artifact property for incremental artifact directory transforms when not caching"() {
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform {
             produceDirs()
@@ -680,6 +815,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 @PathSensitive(PathSensitivity.NONE)
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
+
+                @Inject
+                abstract InputChanges getInputChanges()
 
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
@@ -699,7 +837,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-DbOutputDir=out")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+        }
         succeeds(":a:resolve")
 
         then: // path has changed, but path is baked into workspace identity
@@ -708,7 +848,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputDirName = "b-blue"
+        }
         succeeds(":a:resolve")
 
         then: // name has changed, but path is baked into workspace identity
@@ -717,7 +860,11 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue", "-DbContent=new")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputDirName = "b-blue"
+            outputFileContent = "new"
+        }
         succeeds(":a:resolve")
 
         then: // new content, should run
@@ -726,7 +873,11 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue", "-DbContent=new")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputDirName = "b-blue"
+            outputFileContent = "new"
+        }
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
@@ -735,7 +886,12 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue", "-DbContent=new", "-DbName=new")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputDirName = "b-blue"
+            outputFileContent = "new"
+            outputFileName = "new"
+        }
         succeeds(":a:resolve")
 
         then: // new content (renamed file), should not run
@@ -752,7 +908,8 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
     }
 
-    def "honors @PathSensitive(NONE) on input artifact property for project artifact directory when caching"() {
+    def "honors @PathSensitive(NONE) on input artifact property for incremental artifact directory transforms when caching"() {
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform {
             produceDirs()
@@ -771,6 +928,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
 
+                @Inject
+                abstract InputChanges getInputChanges()
+
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
@@ -789,7 +949,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-DbOutputDir=out")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+        }
         withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, should be up to date
@@ -798,7 +960,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputDirName = "b-blue"
+        }
         withBuildCache().succeeds(":a:resolve")
 
         then: // name has changed, should run
@@ -807,7 +972,11 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue", "-DbContent=new")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputDirName = "b-blue"
+            outputFileContent = "new"
+        }
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content, should run
@@ -816,7 +985,11 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue", "-DbContent=new")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputDirName = "b-blue"
+            outputFileContent = "new"
+        }
         withBuildCache().succeeds(":a:resolve")
 
         then: // no change, should be up to date
@@ -825,7 +998,12 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue", "-DbContent=new", "-DbName=new")
+        withProjectConfig("b") {
+            projectBuildDir = "out"
+            outputDirName = "b-blue"
+            outputFileContent = "new"
+            outputFileName = "new"
+        }
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content (renamed file), should not run
@@ -1002,7 +1180,8 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         sensitivity << [PathSensitivity.RELATIVE, PathSensitivity.NAME_ONLY]
     }
 
-    def "honors content changes with @#annotation on input artifact property with project artifact file when not caching"() {
+    def "honors content changes with @#annotation on input artifact property with incremental artifact transforms file when not caching"() {
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform {
             produceJars()
@@ -1018,6 +1197,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact @${annotation}
                 abstract Provider<FileSystemLocation> getInputArtifact()
+
+                @Inject
+                abstract InputChanges getInputChanges()
 
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
@@ -1045,7 +1227,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbContent=new")
+        withProjectConfig("b") {
+            outputFileContent = "new"
+        }
         succeeds(":a:resolve")
 
         then: // new content, should run
@@ -1054,7 +1238,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbContent=new")
+        withProjectConfig("b") {
+            outputFileContent = "new"
+        }
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
@@ -1063,7 +1249,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbContent=new", "-DbTimestamp=567")
+        withProjectConfig("b") {
+            outputFileContent = "new"
+            outputJarEntryTimestamp = 567
+        }
         succeeds(":a:resolve")
 
         then: // timestamp change only, should not run
@@ -1072,7 +1261,11 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbContent=new", "-DbTimestamp=567", "-DbOutputDir=out")
+        withProjectConfig("b") {
+            outputFileContent = "new"
+            outputJarEntryTimestamp = 567
+            projectBuildDir = "out"
+        }
         succeeds(":a:resolve")
 
         then: // path has changed, but path is baked into workspace identity
@@ -1081,7 +1274,12 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbContent=new", "-DbTimestamp=567", "-DbOutputDir=out", "-DbFileName=b-blue.jar")
+        withProjectConfig("b") {
+            outputFileContent = "new"
+            outputJarEntryTimestamp = 567
+            projectBuildDir = "out"
+            outputFileName = "b-blue.jar"
+        }
         succeeds(":a:resolve")
 
         then: // new file name, but path is baked into workspace identity
@@ -1102,6 +1300,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     }
 
     def "honors @#annotation on input artifact property with project artifact file when caching"() {
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform {
             produceJars()
@@ -1145,7 +1344,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbContent=new")
+        withProjectConfig("b") {
+            outputFileContent = "new"
+        }
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content, should run
@@ -1154,7 +1355,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbContent=new")
+        withProjectConfig("b") {
+            outputFileContent = "new"
+        }
         withBuildCache().succeeds(":a:resolve")
 
         then: // no change, should be up to date
@@ -1163,7 +1366,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbContent=new", "-DbTimestamp=567")
+        withProjectConfig("b") {
+            outputFileContent = "new"
+            outputJarEntryTimestamp = 567
+        }
         withBuildCache().succeeds(":a:resolve")
 
         then: // timestamp change only, should not run
@@ -1172,7 +1378,11 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbContent=new", "-DbTimestamp=567", "-DbOutputDir=out")
+        withProjectConfig("b") {
+            outputFileContent = "new"
+            outputJarEntryTimestamp = 567
+            projectBuildDir = "out"
+        }
         withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, should not run
@@ -1181,7 +1391,12 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbContent=new", "-DbTimestamp=567", "-DbOutputDir=out", "-DbFileName=b-blue.jar")
+        withProjectConfig("b") {
+            outputFileContent = "new"
+            outputJarEntryTimestamp = 567
+            projectBuildDir = "out"
+            outputFileName = "b-blue.jar"
+        }
         withBuildCache().succeeds(":a:resolve")
 
         then: // new file name, should run
@@ -1201,7 +1416,8 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         annotation << ["Classpath", "CompileClasspath"]
     }
 
-    def "honors runtime classpath normalization for input artifact"() {
+    def "honors runtime classpath normalization for input artifact for incremental transform"() {
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform {
             produceJars()
@@ -1224,6 +1440,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 @InputArtifact @Classpath
                 abstract Provider<FileSystemLocation> getInputArtifact()
 
+                @Inject
+                abstract InputChanges getInputChanges()
+
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
@@ -1234,7 +1453,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         """
 
         when:
-        executer.withArguments("-DbEntryName=ignored.txt")
+        withProjectConfig("b") {
+            outputJarEntryName = "ignored.txt"
+        }
         run(":a:resolve")
 
         then:
@@ -1243,7 +1464,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-DbEntryName=ignored.txt", "-DbContent=different")
+        withProjectConfig("b") {
+            outputJarEntryName = "ignored.txt"
+            outputFileContent = "different"
+        }
         run(":a:resolve")
 
         then: // change is ignored due to normalization
@@ -1254,6 +1478,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
     @Issue("https://github.com/gradle/gradle/issues/19003")
     def "can transform an empty input artifact"() {
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         setupBuildWithColorTransform {
             produceDirs()
@@ -1282,7 +1507,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         """
 
         when:
-        executer.withArguments("-DbEmptyDir")
+        withProjectConfig("b") {
+            emptyOutputDir()
+        }
         run(":a:resolve")
 
         then:

@@ -25,10 +25,11 @@ import org.gradle.internal.classpath.CallInterceptionClosureInstrumentingClassVi
 import org.gradle.internal.classpath.ClassData;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.Instrumented;
-import org.gradle.internal.classpath.JvmBytecodeInterceptorSet;
 import org.gradle.internal.classpath.intercept.CallInterceptorRegistry;
+import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorSet;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.ClassVisitor;
@@ -51,6 +52,7 @@ import java.util.Properties;
 import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
 import static org.gradle.internal.classpath.transforms.CommonTypes.NO_EXCEPTIONS;
 import static org.gradle.internal.classpath.transforms.CommonTypes.STRING_TYPE;
+import static org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter.INSTRUMENTATION_ONLY;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
@@ -65,12 +67,10 @@ import static org.objectweb.asm.Type.getType;
 
 public class InstrumentingClassTransform implements ClassTransform {
 
-    private final JvmBytecodeInterceptorSet externalInterceptors;
-
     /**
      * Decoration format. Increment this when making changes.
      */
-    private static final int DECORATION_FORMAT = 34;
+    private static final int DECORATION_FORMAT = 35;
 
     private static final Type SYSTEM_TYPE = getType(System.class);
     private static final Type INTEGER_TYPE = getType(Integer.class);
@@ -78,6 +78,7 @@ public class InstrumentingClassTransform implements ClassTransform {
     private static final Type LONG_TYPE = getType(Long.class);
     private static final Type BOOLEAN_TYPE = getType(Boolean.class);
     public static final Type PROPERTIES_TYPE = getType(Properties.class);
+    private static final Type BYTECODE_INTERCEPTOR_FILTER_TYPE = Type.getType(BytecodeInterceptorFilter.class);
 
     private static final String RETURN_STRING_FROM_STRING = getMethodDescriptor(STRING_TYPE, STRING_TYPE);
     private static final String RETURN_STRING_FROM_STRING_STRING = getMethodDescriptor(STRING_TYPE, STRING_TYPE, STRING_TYPE);
@@ -101,7 +102,7 @@ public class InstrumentingClassTransform implements ClassTransform {
     private static final String RETURN_VOID_FROM_PROPERTIES = getMethodDescriptor(Type.VOID_TYPE, PROPERTIES_TYPE);
     private static final String RETURN_VOID_FROM_PROPERTIES_STRING = getMethodDescriptor(Type.VOID_TYPE, PROPERTIES_TYPE, STRING_TYPE);
     private static final String RETURN_CALL_SITE_ARRAY = getMethodDescriptor(getType(CallSiteArray.class));
-    private static final String RETURN_VOID_FROM_CALL_SITE_ARRAY = getMethodDescriptor(Type.VOID_TYPE, getType(CallSiteArray.class));
+    private static final String RETURN_VOID_FROM_CALL_SITE_ARRAY_BYTECODE_INTERCEPTOR = getMethodDescriptor(Type.VOID_TYPE, getType(CallSiteArray.class), BYTECODE_INTERCEPTOR_FILTER_TYPE);
     private static final String RETURN_MAP = getMethodDescriptor(getType(Map.class));
     private static final String RETURN_MAP_FROM_STRING = getMethodDescriptor(getType(Map.class), STRING_TYPE);
 
@@ -171,6 +172,8 @@ public class InstrumentingClassTransform implements ClassTransform {
     private static final String INSTRUMENTED_CALL_SITE_METHOD = "$instrumentedCallSiteArray";
     private static final String CREATE_CALL_SITE_ARRAY_METHOD = "$createCallSiteArray";
 
+    private final JvmBytecodeInterceptorSet externalInterceptors;
+
     @Override
     public void applyConfigurationTo(Hasher hasher) {
         hasher.putString(InstrumentingClassTransform.class.getSimpleName());
@@ -178,15 +181,11 @@ public class InstrumentingClassTransform implements ClassTransform {
     }
 
     public InstrumentingClassTransform() {
-        this(CallInterceptorRegistry.getJvmBytecodeInterceptors());
+        this(INSTRUMENTATION_ONLY);
     }
 
-    /**
-     * This constructor can be used in tests with a set of call interceptors complemented by ones generated
-     * specifically for the tests.
-     */
-    public InstrumentingClassTransform(JvmBytecodeInterceptorSet externalInterceptors) {
-        this.externalInterceptors = externalInterceptors;
+    public InstrumentingClassTransform(BytecodeInterceptorFilter interceptorFilter) {
+        this.externalInterceptors = CallInterceptorRegistry.getJvmBytecodeInterceptors(interceptorFilter);
     }
 
     @Override
@@ -194,9 +193,8 @@ public class InstrumentingClassTransform implements ClassTransform {
         return Pair.of(entry.getPath(),
             new InstrumentingVisitor(
                 new CallInterceptionClosureInstrumentingClassVisitor(
-                    new LambdaSerializationTransformer(
-                        new InstrumentingBackwardsCompatibilityVisitor(visitor)
-                    )
+                    new LambdaSerializationTransformer(new InstrumentingBackwardsCompatibilityVisitor(visitor)),
+                    externalInterceptors.getOriginalFilter()
                 ),
                 classData, externalInterceptors
             )
@@ -248,7 +246,8 @@ public class InstrumentingClassTransform implements ClassTransform {
             new MethodVisitorScope(visitStaticPrivateMethod(INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY)) {{
                 _INVOKESTATIC(className, CREATE_CALL_SITE_ARRAY_METHOD, RETURN_CALL_SITE_ARRAY);
                 _DUP();
-                _INVOKESTATIC(INSTRUMENTED_TYPE, "groovyCallSites", RETURN_VOID_FROM_CALL_SITE_ARRAY);
+                _GETSTATIC(BYTECODE_INTERCEPTOR_FILTER_TYPE, externalInterceptors.getOriginalFilter().name(), BYTECODE_INTERCEPTOR_FILTER_TYPE.getDescriptor());
+                _INVOKESTATIC(INSTRUMENTED_TYPE, "groovyCallSites", RETURN_VOID_FROM_CALL_SITE_ARRAY_BYTECODE_INTERCEPTOR);
                 _ARETURN();
                 visitMaxs(2, 0);
                 visitEnd();
@@ -265,12 +264,14 @@ public class InstrumentingClassTransform implements ClassTransform {
         private final String className;
         private final Lazy<MethodNode> asNode;
         private final Collection<JvmBytecodeCallInterceptor> externalInterceptors;
+        private final BytecodeInterceptorFilter interceptorFilter;
 
         public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, Lazy<MethodNode> asNode, ClassData classData, JvmBytecodeInterceptorSet externalInterceptors) {
             super(methodVisitor);
             this.owner = owner;
             this.className = owner.className;
             this.asNode = asNode;
+            this.interceptorFilter = externalInterceptors.getOriginalFilter();
             this.externalInterceptors = externalInterceptors.getInterceptors(methodVisitor, classData);
         }
 
@@ -475,13 +476,24 @@ public class InstrumentingClassTransform implements ClassTransform {
                 Handle interceptor = new Handle(
                     H_INVOKESTATIC,
                     INSTRUMENTED_TYPE.getInternalName(),
-                    "bootstrap",
+                    getBoostrapMethodName(interceptorFilter),
                     GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR,
                     false
                 );
                 super.visitInvokeDynamicInsn(name, descriptor, interceptor, bootstrapMethodArguments);
             } else {
                 super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+            }
+        }
+
+        private static String getBoostrapMethodName(BytecodeInterceptorFilter interceptorFilter) {
+            switch (interceptorFilter) {
+                case INSTRUMENTATION_ONLY:
+                    return "bootstrapInstrumentationOnly";
+                case ALL:
+                    return "bootstrapAll";
+                default:
+                    throw new UnsupportedOperationException("Unknown interceptor request: " + interceptorFilter);
             }
         }
 

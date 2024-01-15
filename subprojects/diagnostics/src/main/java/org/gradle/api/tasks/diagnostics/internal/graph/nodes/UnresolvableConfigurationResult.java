@@ -16,13 +16,13 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ProjectDependency;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -45,7 +45,7 @@ public class UnresolvableConfigurationResult extends AbstractRenderableDependenc
             return Collections.emptySet();
         }
 
-        Set<UnresolvableRenderableDependency> children = Sets.newLinkedHashSet();
+        Set<UnresolvableRenderableDependency> children = new LinkedHashSet<>();
         for (final Dependency dependency : dependencies) {
             children.add(new UnresolvableRenderableDependency(
                 dependency.getClass().getName() + dependency.hashCode(),

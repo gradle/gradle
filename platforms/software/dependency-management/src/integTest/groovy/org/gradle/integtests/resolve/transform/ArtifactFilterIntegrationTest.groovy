@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
 class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
+        createDirs("libInclude", "libExclude")
         settingsFile << """
             rootProject.name = 'root'
             include 'libInclude'

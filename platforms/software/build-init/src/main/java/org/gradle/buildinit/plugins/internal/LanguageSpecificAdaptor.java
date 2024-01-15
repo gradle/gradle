@@ -103,8 +103,13 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
     public Map<String, List<String>> generateWithExternalComments(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
         HashMap<String, List<String>> comments = new HashMap<>();
         for (BuildScriptBuilder buildScriptBuilder : allBuildScriptBuilder(settings, buildContentGenerationContext)) {
-            buildScriptBuilder.withExternalComments().create(settings.getTarget()).generate();
-            comments.put(buildScriptBuilder.getFileNameWithoutExtension(), buildScriptBuilder.extractComments());
+            buildScriptBuilder.withComments(settings.isWithComments() ? BuildInitComments.EXTERNAL : BuildInitComments.OFF)
+                .create(settings.getTarget())
+                .generate();
+
+            if (settings.isWithComments()) {
+                comments.put(buildScriptBuilder.getFileNameWithoutExtension(), buildScriptBuilder.extractComments());
+            }
         }
         return comments;
     }
@@ -139,6 +144,7 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
 
     private BuildScriptBuilder pluginsBuildSettingsScriptBuilder(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
         BuildScriptBuilder builder = scriptBuilderFactory.scriptForNewProjectsWithoutVersionCatalog(settings.getDsl(), buildContentGenerationContext, pluginsBuildLocation(settings) + "/settings", settings.isUseIncubatingAPIs());
+        builder.withComments(settings.isWithComments() ? BuildInitComments.ON : BuildInitComments.OFF);
         builder.fileComment("This settings file is used to specify which projects to include in your build-logic build.");
         String rootProjectName;
         if (settings.isUseIncubatingAPIs()) {
@@ -153,6 +159,7 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
 
     private BuildScriptBuilder pluginsBuildBuildScriptBuilder(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
         BuildScriptBuilder pluginsBuildScriptBuilder = scriptBuilderFactory.scriptForNewProjects(settings.getDsl(), buildContentGenerationContext, pluginsBuildLocation(settings) + "/build", settings.isUseIncubatingAPIs());
+        pluginsBuildScriptBuilder.withComments(settings.isWithComments() ? BuildInitComments.ON : BuildInitComments.OFF);
         pluginsBuildScriptBuilder.conventionPluginSupport("Support convention plugins written in " + settings.getDsl().toString() + ". Convention plugins are build scripts in 'src/main' that automatically become available as plugins in the main build.");
         if (getLanguage() == Language.KOTLIN) {
             pluginsBuildScriptBuilder.implementationDependency(null, BuildInitDependency.of("org.jetbrains.kotlin:kotlin-gradle-plugin", libraryVersionProvider.getVersion("kotlin")));
@@ -162,6 +169,7 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
 
     private BuildScriptBuilder projectBuildScriptBuilder(String projectName, InitSettings settings, BuildContentGenerationContext buildContentGenerationContext, String buildFile) {
         BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.scriptForNewProjects(settings.getDsl(), buildContentGenerationContext, buildFile, settings.isUseIncubatingAPIs());
+        buildScriptBuilder.withComments(settings.isWithComments() ? BuildInitComments.ON : BuildInitComments.OFF);
         descriptor.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
         return buildScriptBuilder;
     }
@@ -169,8 +177,9 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
     private BuildScriptBuilder conventionPluginScriptBuilder(String conventionPluginName, InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
         BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.scriptForNewProjectsWithoutVersionCatalog(settings.getDsl(), buildContentGenerationContext,
             pluginsBuildLocation(settings) + "/src/main/" + settings.getDsl().name().toLowerCase() + "/"
-                + settings.getPackageName() + "." + getLanguage().getName() + "-" + conventionPluginName + "-conventions",
+                + InitSettings.CONVENTION_PLUGIN_NAME_PREFIX + "." + getLanguage().getName() + "-" + conventionPluginName + "-conventions",
             settings.isUseIncubatingAPIs());
+        buildScriptBuilder.withComments(settings.isWithComments() ? BuildInitComments.ON : BuildInitComments.OFF);
         descriptor.generateConventionPluginBuildScript(conventionPluginName, settings, buildScriptBuilder);
         return buildScriptBuilder;
     }

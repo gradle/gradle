@@ -85,7 +85,7 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
     }
 
     private TransformedExternalArtifactSet doCreateExternal(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory) {
-        return new TransformedExternalArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), variantDefinition.getTargetAttributes(), sourceVariant.getCapabilities().getCapabilities(), variantDefinition.getTransformChain(), dependenciesResolverFactory, calculatedValueContainerFactory);
+        return new TransformedExternalArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), variantDefinition.getTargetAttributes(), sourceVariant.getCapabilities(), variantDefinition.getTransformChain(), dependenciesResolverFactory, calculatedValueContainerFactory);
     }
 
     private TransformedProjectArtifactSet doCreateProject(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory) {
@@ -99,7 +99,7 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
             sourceAttributes = sourceVariant.getAttributes();
             sourceArtifacts = sourceVariant.getArtifacts();
         }
-        ComponentVariantIdentifier targetComponentVariant = new ComponentVariantIdentifier(componentIdentifier, variantDefinition.getTargetAttributes(), sourceVariant.getCapabilities().getCapabilities());
+        ComponentVariantIdentifier targetComponentVariant = new ComponentVariantIdentifier(componentIdentifier, variantDefinition.getTargetAttributes(), sourceVariant.getCapabilities());
         List<TransformStepNode> transformStepNodes = createTransformStepNodes(sourceArtifacts, sourceAttributes, targetComponentVariant, variantDefinition, dependenciesResolverFactory);
         return new TransformedProjectArtifactSet(targetComponentVariant, transformStepNodes);
     }

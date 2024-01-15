@@ -17,25 +17,25 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.specs.Spec;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.function.Predicate;
 
 /**
- * A filtering provider that uses a predicate to filter the value of another provider.
+ * A filtering provider that uses a spec to filter the value of another provider.
  **/
 public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
 
-    protected final ProviderInternal<T> provider;
-    protected final Predicate<? super T> predicate;
+    protected final ProviderGuard<T> provider;
+    protected final DataGuard<Spec<? super T>> spec;
 
     public FilteringProvider(
         ProviderInternal<T> provider,
-        Predicate<? super T> predicate
+        Spec<? super T> spec
     ) {
-        this.predicate = predicate;
-        this.provider = provider;
+        this.spec = guardData(spec);
+        this.provider = guardProvider(provider);
     }
 
     @Nullable
@@ -51,41 +51,45 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
 
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-        ExecutionTimeValue<? extends T> value = provider.calculateExecutionTimeValue();
-        if (value.isMissing()) {
-            return value;
-        }
-        if (value.hasChangingContent()) {
-            // Need the value contents in order to transform it to produce the value of this provider,
-            // so if the value or its contents are built by tasks, the value of this provider is also built by tasks
-            return ExecutionTimeValue.changingValue(new FilteringProvider<>(value.toProvider(), predicate));
-        }
+        try (EvaluationContext.ScopeContext context = openScope()) {
+            ExecutionTimeValue<? extends T> value = provider.get(context).calculateExecutionTimeValue();
+            if (value.isMissing()) {
+                return value;
+            }
+            if (value.hasChangingContent()) {
+                // Need the value contents in order to transform it to produce the value of this provider,
+                // so if the value or its contents are built by tasks, the value of this provider is also built by tasks
+                return ExecutionTimeValue.changingValue(new FilteringProvider<>(value.toProvider(), spec.get(context)));
+            }
 
-        return ExecutionTimeValue.value(filterValue(value.toValue()));
+            return ExecutionTimeValue.value(filterValue(context, value.toValue()));
+        }
     }
 
     @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-        beforeRead();
-        Value<? extends T> value = provider.calculateValue(consumer);
-        return filterValue(value);
+        try (EvaluationContext.ScopeContext context = openScope()) {
+            beforeRead(context);
+            Value<? extends T> value = provider.get(context).calculateValue(consumer);
+            return filterValue(context, value);
+        }
     }
 
     @Nonnull
-    protected Value<? extends T> filterValue(Value<? extends T> value) {
+    protected Value<? extends T> filterValue(EvaluationContext.ScopeContext context, Value<? extends T> value) {
         if (value.isMissing()) {
             return value.asType();
         }
         T unpackedValue = value.getWithoutSideEffect();
-        if (predicate.test(unpackedValue)) {
+        if (spec.get(context).isSatisfiedBy(unpackedValue)) {
             return value;
         } else {
             return Value.missing();
         }
     }
 
-    protected void beforeRead() {
-        provider.getProducer().visitContentProducerTasks(producer -> {
+    protected void beforeRead(EvaluationContext.ScopeContext context) {
+        provider.get(context).getProducer().visitContentProducerTasks(producer -> {
             if (!producer.getState().getExecuted()) {
                 throw new InvalidUserCodeException(
                     String.format("Querying the filtered value of %s before %s has completed is not supported", provider, producer)
@@ -95,7 +99,7 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
     }
 
     @Override
-    public String toString() {
+    protected String toStringNoReentrance() {
         return "filter(" + (getType() == null ? "" : getType().getName() + " ") + provider + ")";
     }
 }

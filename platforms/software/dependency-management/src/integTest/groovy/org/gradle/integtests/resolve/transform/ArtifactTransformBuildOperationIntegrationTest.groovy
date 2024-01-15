@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.internal.initialization.transform.ProjectDependencyInstrumentingArtifactTransform
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
@@ -41,6 +42,9 @@ import org.gradle.operations.execution.ExecuteWorkBuildOperationType
 import org.gradle.test.fixtures.file.TestFile
 
 import java.util.function.Predicate
+
+import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.INSTRUMENTED_ATTRIBUTE
+import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.NOT_INSTRUMENTED_ATTRIBUTE_VALUE
 
 class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture {
 
@@ -139,6 +143,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "single transform operations are captured"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -204,6 +209,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "chained transform operations are captured"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -287,6 +293,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "transform output used as another transform input operations are captured"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -371,6 +378,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "single transform with upstream dependencies operations are captured"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -441,6 +449,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "chained transform with upstream dependencies operations are captured"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -526,6 +535,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "chained transform producing multiple artifacts operations are captured"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -654,6 +664,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "single transform consuming multiple artifacts from task"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -784,6 +795,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "single transform used by multiple consumers creates a node per consumer"() {
+        createDirs("producer", "consumer1", "consumer2")
         settingsFile << """
             include 'producer', 'consumer1', 'consumer2'
         """
@@ -875,6 +887,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "failing transform"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -959,6 +972,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "planned transform for external dependency substituted by included build"() {
+        createDirs("included/nested-producer")
         file("included/settings.gradle") << """
             include 'nested-producer'
         """
@@ -972,6 +986,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             }
         """
 
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -1060,6 +1075,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "included build transform operations are captured"() {
+        createDirs("included/producer", "included/consumer")
         file("included/settings.gradle") << """
             include 'producer', 'consumer'
         """
@@ -1140,7 +1156,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         }
     }
 
-    def "project transform execution can be up-to-date or from build cache"() {
+    def "incremental project transform execution can be up-to-date or from build cache"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -1152,6 +1169,9 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                 @InputArtifact
                 @PathSensitive(PathSensitivity.RELATIVE)
                 abstract Provider<FileSystemLocation> getInputArtifact()
+
+                @Inject
+                abstract InputChanges getInputChanges()
 
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
@@ -1209,7 +1229,70 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         checkExecuteTransformWorkOperations(getExecutePlannedStepOperations(1).first(), ["FROM-CACHE"])
     }
 
+    def "non-incremental project transform execution can be up-to-date"() {
+        createDirs("producer", "consumer")
+        settingsFile << """
+            include 'producer', 'consumer'
+        """
+
+        setupBuildWithColorTransform(buildFile)
+        buildFile << """
+            @CacheableTransform
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                @PathSensitive(PathSensitivity.RELATIVE)
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing [\${input.name}]"
+                    def output = outputs.file(input.name + ".green")
+                    output.text = input.text + ".green"
+                }
+            }
+        """
+
+        setupExternalDependency()
+
+        buildFile << """
+            project(":consumer") {
+                dependencies {
+                    implementation project(":producer")
+                }
+            }
+        """
+
+        when:
+        run ":consumer:resolve", "-DproducerContent=initial"
+        then:
+        executedAndNotSkipped(":consumer:resolve")
+
+        result.groupedOutput.transform("MakeGreen")
+            .assertOutputContains("processing [producer.jar]")
+
+        checkExecuteTransformWorkOperations(getExecutePlannedStepOperations(1).first(), [null])
+
+        when:
+        run ":consumer:resolve", "-DproducerContent=initial"
+        then:
+        executedAndNotSkipped(":consumer:resolve")
+
+        outputDoesNotContain("processing [producer.jar]")
+        checkExecuteTransformWorkOperations(getExecutePlannedStepOperations(1).first(), ["UP-TO-DATE"])
+
+        when:
+        run ":consumer:resolve", "-DproducerContent=changed"
+        then:
+        executedAndNotSkipped(":consumer:resolve")
+
+        result.groupedOutput.transform("MakeGreen")
+            .assertOutputContains("processing [producer.jar]")
+
+        checkExecuteTransformWorkOperations(getExecutePlannedStepOperations(1).first(), [null])
+    }
+
     def "build operation for planned steps executed non-planned"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -1271,7 +1354,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         }
     }
 
-    def "planned transform steps from script plugin buildscript block are ignored"() {
+    def "planned transform steps from script plugin buildscript block are captured"() {
         setupProjectTransformInBuildScriptBlock(true)
 
         when:
@@ -1284,13 +1367,18 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         outputContains("Task-only execution plan: [PlannedTask('Task :consumer:hello', deps=[])]")
 
         getPlannedNodes(0)
-        getExecutePlannedStepOperations(0).empty
+        getExecutePlannedStepOperations(1)
 
-        buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 2
-        // The execution engine in DependencyManagementBuildScopeServices doesn't fire build operations
-        buildOperations.none(ExecuteWorkBuildOperationType)
-        buildOperations.none(SnapshotTransformInputsBuildOperationType)
-        buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 2
+        // We have 4 artifact transforms: 2 MakeColor transforms and 2 from Gradle instrumentation
+        buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 4
+        Map<String, List<String>> artifactTransforms = groupArtifactTransformByArtifactName()
+        artifactTransforms["buildSrc.jar"] == [ProjectDependencyInstrumentingArtifactTransform.class.name]
+        artifactTransforms["nested-producer.jar"] == ["MakeColor"]
+        artifactTransforms["nested-producer.jar.red"] == ["MakeColor"]
+        artifactTransforms["nested-producer.jar.red.green"] == [ProjectDependencyInstrumentingArtifactTransform.class.name]
+        buildOperations.all(ExecuteWorkBuildOperationType).size() == 4
+        buildOperations.all(SnapshotTransformInputsBuildOperationType).size() == 4
+        buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 4
     }
 
     def "planned transform steps from project buildscript context are captured"() {
@@ -1309,18 +1397,30 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         outputContains("Task-only execution plan: [PlannedTask('Task :consumer:hello', deps=[])]")
 
         getPlannedNodes(0)
-        getExecutePlannedStepOperations(2)
+        getExecutePlannedStepOperations(4)
 
-        buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 2
-        // The execution engine in DependencyManagementBuildScopeServices doesn't fire build operations
-        buildOperations.all(ExecuteWorkBuildOperationType).size() == 0
-        buildOperations.all(SnapshotTransformInputsBuildOperationType).size() == 0
-        buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 2
+        // We have 4 artifact transforms: 2 MakeColor transforms and 2 from Gradle instrumentation
+        buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 4
+        Map<String, List<String>> artifactTransforms = groupArtifactTransformByArtifactName()
+        artifactTransforms["buildSrc.jar"] == [ProjectDependencyInstrumentingArtifactTransform.class.name]
+        artifactTransforms["nested-producer.jar"] == ["MakeColor"]
+        artifactTransforms["nested-producer.jar.red"] == ["MakeColor"]
+        artifactTransforms["nested-producer.jar.red.green"] == [ProjectDependencyInstrumentingArtifactTransform.class.name]
+        buildOperations.all(ExecuteWorkBuildOperationType).size() == 4
+        buildOperations.all(SnapshotTransformInputsBuildOperationType).size() == 4
+        buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 4
+    }
+
+    private Map<String, List<String>> groupArtifactTransformByArtifactName() {
+        return buildOperations.progress(IdentifyTransformExecutionProgressDetails)
+            .groupBy { it.details["artifactName"] as String }
+            .collectEntries { [(it.key): it.value.collect { it.details["transformActionClass"] }] }
     }
 
     private void setupProjectTransformInBuildScriptBlock(boolean inExternalScript) {
         setupBuildWithChainedColorTransform()
 
+        createDirs("included/nested-producer")
         file("included/settings.gradle") << """
             include 'nested-producer'
         """
@@ -1380,20 +1480,21 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             : consumerBuildFile
         buildscriptDestination << """
             buildscript {
-                // Can't use color, since we need to use the configuration directly and
-                // can't go via an artifact view
+                // Build script classpath is resolved via ${INSTRUMENTED_ATTRIBUTE.name} attribute,
+                // so we have to set that attribute too to make transform run
                 def artifactType = Attribute.of('artifactType', String)
+                def instrumented = Attribute.of('${INSTRUMENTED_ATTRIBUTE.name}', String.class)
                 dependencies {
                     classpath("test:test:1.0")
 
                     registerTransform(MakeColor) {
-                        from.attribute(artifactType, 'jar')
-                        to.attribute(artifactType, 'red')
+                        from.attribute(artifactType, 'jar').attribute(instrumented, '${NOT_INSTRUMENTED_ATTRIBUTE_VALUE}')
+                        to.attribute(artifactType, 'red').attribute(instrumented, '${NOT_INSTRUMENTED_ATTRIBUTE_VALUE}')
                         parameters.targetColor.set('red')
                     }
                     registerTransform(MakeColor) {
-                        from.attribute(artifactType, 'red')
-                        to.attribute(artifactType, 'green')
+                        from.attribute(artifactType, 'red').attribute(instrumented, '${NOT_INSTRUMENTED_ATTRIBUTE_VALUE}')
+                        to.attribute(artifactType, 'green').attribute(instrumented, '${NOT_INSTRUMENTED_ATTRIBUTE_VALUE}')
                         parameters.targetColor.set('green')
                     }
                 }

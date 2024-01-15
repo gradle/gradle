@@ -52,6 +52,7 @@ import org.gradle.internal.build.BuildModelController
 import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.buildtree.IntermediateBuildActionRunner
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -60,6 +61,10 @@ import org.gradle.internal.service.CachingServiceLocator
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.invocation.DefaultGradle
+import org.gradle.tooling.provider.model.internal.DefaultIntermediateToolingModelProvider
+import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
+import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
+import org.gradle.tooling.provider.model.internal.ToolingModelProjectDependencyListener
 
 
 class DefaultBuildModelControllerServices(
@@ -113,6 +118,17 @@ class DefaultBuildModelControllerServices(
         fun createLocalComponentRegistry(currentBuild: BuildState, componentProvider: BuildTreeLocalComponentProvider): DefaultLocalComponentRegistry {
             return DefaultLocalComponentRegistry(currentBuild.buildIdentifier, componentProvider)
         }
+
+        fun createIntermediateToolingModelProvider(
+            buildOperationExecutor: BuildOperationExecutor,
+            buildModelParameters: BuildModelParameters,
+            parameterCarrierFactory: ToolingModelParameterCarrier.Factory,
+            listenerManager: ListenerManager
+        ): IntermediateToolingModelProvider {
+            val projectDependencyListener = listenerManager.getBroadcaster(ToolingModelProjectDependencyListener::class.java)
+            val runner = IntermediateBuildActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API intermediate model")
+            return DefaultIntermediateToolingModelProvider(runner, parameterCarrierFactory, projectDependencyListener)
+        }
     }
 
     private
@@ -147,11 +163,12 @@ class DefaultBuildModelControllerServices(
             problemsListener: ProblemsListener,
             problemFactory: ProblemFactory,
             listenerManager: ListenerManager,
-            dynamicCallProblemReporting: DynamicCallProblemReporting
+            dynamicCallProblemReporting: DynamicCallProblemReporting,
+            buildModelParameters: BuildModelParameters
         ): CrossProjectModelAccess {
             val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry)
             return ProblemReportingCrossProjectModelAccess(
-                delegate, problemsListener, listenerManager.getBroadcaster(CoupledProjectsListener::class.java), problemFactory, dynamicCallProblemReporting
+                delegate, problemsListener, listenerManager.getBroadcaster(CoupledProjectsListener::class.java), problemFactory, dynamicCallProblemReporting, buildModelParameters
             )
         }
 

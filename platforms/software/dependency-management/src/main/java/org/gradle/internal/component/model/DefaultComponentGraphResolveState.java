@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
@@ -28,6 +27,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
 
@@ -52,9 +52,6 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     // The variants to use for variant selection during graph resolution
     private final Lazy<Optional<List<? extends VariantGraphResolveState>>> allVariantsForGraphResolution;
 
-    // The variants of this component to use when variant reselection is enabled
-    private final Lazy<Optional<List<VariantArtifactResolveState>>> allVariantsForArtifactSelection;
-
     // The public view of all selectable variants of this component
     private final List<ResolvedVariantResult> selectableVariantResults;
 
@@ -64,12 +61,6 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
             variants.stream()
                 .map(ModuleConfigurationMetadata.class::cast)
                 .map(variant -> resolveStateFor(variant).asVariant())
-                .collect(Collectors.toList())
-        ));
-        allVariantsForArtifactSelection = Lazy.locking().of(() -> graphMetadata.getVariantsForGraphTraversal().map(variants ->
-            variants.stream()
-                .map(ModuleConfigurationMetadata.class::cast)
-                .map(variant -> resolveStateFor(variant).asVariant().prepareForArtifactResolution())
                 .collect(Collectors.toList())
         ));
         this.idGenerator = idGenerator;
@@ -103,11 +94,6 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     @Override
     protected Optional<List<? extends VariantGraphResolveState>> getVariantsForGraphTraversal() {
         return allVariantsForGraphResolution.get();
-    }
-
-    @Override
-    public Optional<List<VariantArtifactResolveState>> getVariantsForArtifactSelection() {
-        return allVariantsForArtifactSelection.get();
     }
 
     @Nullable
@@ -160,7 +146,7 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
         }
 
         @Override
-        public CapabilitiesMetadata getCapabilities() {
+        public ImmutableCapabilities getCapabilities() {
             return configuration.getCapabilities();
         }
 

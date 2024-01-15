@@ -408,9 +408,9 @@ class DefaultLocalComponentMetadataTest extends Specification {
             getExcludeRules() >> new LinkedHashSet<ExcludeRule>()
             collectVariants(_ as ConfigurationInternal.VariantVisitor) >> { ConfigurationInternal.VariantVisitor visitor ->
                 visitor.visitArtifacts(artifacts)
-                visitor.visitOwnVariant(Describables.of(name), ImmutableAttributes.EMPTY, Collections.emptySet(), artifacts)
+                visitor.visitOwnVariant(Describables.of(name), ImmutableAttributes.EMPTY, artifacts)
                 variants.each {
-                    visitor.visitChildVariant(it.name, Describables.of(it.name), it.attributes as ImmutableAttributes, Collections.emptySet(), it.artifacts)
+                    visitor.visitChildVariant(it.name, Describables.of(it.name), it.attributes as ImmutableAttributes, it.artifacts)
                 }
             }
             getOutgoing() >> outgoing

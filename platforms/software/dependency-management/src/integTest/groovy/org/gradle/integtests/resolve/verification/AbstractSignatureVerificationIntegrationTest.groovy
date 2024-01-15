@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.verification
 
-
+import org.bouncycastle.openpgp.PGPPublicKey
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.security.fixtures.KeyServer
@@ -48,9 +48,9 @@ abstract class AbstractSignatureVerificationIntegrationTest extends AbstractDepe
         keyServerFixture.withDefaultSigningKey()
     }
 
-    protected SimpleKeyRing newKeyRing() {
+    protected SimpleKeyRing newKeyRing(PGPPublicKey mustBeAfter = SigningFixtures.validPublicKey) {
         def ring = createKeyRing()
-        def minId = new BigInteger(SigningFixtures.validPublicKeyHexString, 16)
+        def minId = new BigInteger(Fingerprint.of(mustBeAfter).toString(), 16)
         // This loop is just to avoid some flakiness in tests which
         // expect error messages in a certain order
         while (new BigInteger(Fingerprint.of(ring.publicKey).toString(), 16) < minId) {

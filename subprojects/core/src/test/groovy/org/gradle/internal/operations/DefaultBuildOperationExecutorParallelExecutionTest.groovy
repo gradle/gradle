@@ -17,7 +17,6 @@
 package org.gradle.internal.operations
 
 import org.gradle.api.GradleException
-import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
@@ -45,7 +44,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         workerRegistry.startProjectExecution(true)
         buildOperationExecutor = new DefaultBuildOperationExecutor(
             operationListener, Mock(Clock), new NoOpProgressLoggerFactory(),
-            new DefaultBuildOperationQueueFactory(workerRegistry), executorFactory, parallelismConfiguration, new DefaultBuildOperationIdFactory(), new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
+            new DefaultBuildOperationQueueFactory(workerRegistry), executorFactory, parallelismConfiguration, new DefaultBuildOperationIdFactory())
         outerOperationCompletion = workerRegistry.startWorker()
         outerOperation = workerRegistry.getCurrentWorkerLease()
     }
@@ -198,7 +197,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
 
         def buildOperationExecutor = new DefaultBuildOperationExecutor(operationListener, Mock(Clock), new NoOpProgressLoggerFactory(),
             buildOperationQueueFactory, Stub(ExecutorFactory), new DefaultParallelismConfiguration(true, 1),
-            new DefaultBuildOperationIdFactory(), new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
+            new DefaultBuildOperationIdFactory())
         def worker = Stub(BuildOperationWorker)
         def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
 
@@ -226,7 +225,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         }
         def buildOperationExecutor = new DefaultBuildOperationExecutor(
             operationListener, Mock(Clock), new NoOpProgressLoggerFactory(),
-            buildOperationQueueFactory, Stub(ExecutorFactory), new DefaultParallelismConfiguration(true, 1), new DefaultBuildOperationIdFactory(), new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
+            buildOperationQueueFactory, Stub(ExecutorFactory), new DefaultParallelismConfiguration(true, 1), new DefaultBuildOperationIdFactory())
         def worker = Stub(BuildOperationWorker)
         def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
 

@@ -203,6 +203,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
             'org:bar:2.0'()
         }
 
+        createDirs("foo")
         settingsFile << "\ninclude 'foo'"
         buildFile << """
             project(':foo') {
@@ -243,6 +244,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
             'org:bar:2.0'()
         }
 
+        createDirs("foo")
         settingsFile << "\ninclude 'foo'"
         buildFile << """
             configurations.conf.resolutionStrategy.force('org:bar:2.0')

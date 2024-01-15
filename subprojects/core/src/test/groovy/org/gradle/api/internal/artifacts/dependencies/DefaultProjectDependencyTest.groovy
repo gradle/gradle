@@ -18,11 +18,10 @@ package org.gradle.api.internal.artifacts.dependencies
 
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.internal.artifacts.DependencyResolveContext
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
-import org.gradle.internal.exceptions.ConfigurationNotConsumableException
+import org.gradle.internal.component.ConfigurationNotConsumableException
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependencySpec.assertDeepCopy
@@ -47,7 +46,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
     }
 
     void "transitive resolution resolves all dependencies"() {
-        def context = Mock(DependencyResolveContext)
+        def context = Mock(org.gradle.api.internal.artifacts.CachingDependencyResolveContext)
 
         def superConf = project.configurations.create("superConf")
         def conf = project.configurations.create("conf")
@@ -71,7 +70,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
     }
 
     void "if resolution context is not transitive it will not contain all dependencies"() {
-        def context = Mock(DependencyResolveContext)
+        def context = Mock(org.gradle.api.internal.artifacts.CachingDependencyResolveContext)
         projectDependency = new DefaultProjectDependency(project, null, true, TestFiles.taskDependencyFactory())
 
         when:
@@ -83,7 +82,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
     }
 
     void "if dependency is not transitive the resolution context will not contain all dependencies"() {
-        def context = Mock(DependencyResolveContext)
+        def context = Mock(org.gradle.api.internal.artifacts.CachingDependencyResolveContext)
         projectDependency = new DefaultProjectDependency(project, null, true, TestFiles.taskDependencyFactory())
         projectDependency.setTransitive(false)
 

@@ -444,6 +444,7 @@ dependencies {
         def repoDir = file("repo")
         maven(repoDir).module("groupOne", "artifactTwo").publish()
 
+        createDirs("someApiProject", "impl")
         file("settings.gradle") << "include 'someApiProject', 'impl'\n"
         file('someDependency.jar').createFile()
 

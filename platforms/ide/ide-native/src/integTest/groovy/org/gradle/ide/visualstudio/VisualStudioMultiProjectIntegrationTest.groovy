@@ -43,6 +43,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
     @ToBeFixedForConfigurationCache
     def "create visual studio solution for build without any C++ components"() {
         when:
+        createDirs("one", "two", "three")
         settingsFile << """
             rootProject.name = 'app'
             include 'one', 'two', 'three'
@@ -62,6 +63,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
     @ToBeFixedForConfigurationCache
     def "includes a visual studio project for every project with a C++ component"() {
         when:
+        createDirs("one", "two", "three")
         settingsFile << """
             rootProject.name = 'app'
             include 'one', 'two', 'three'
@@ -105,6 +107,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         app.executable.writeSources(file("exe/src/main"))
         app.library.writeSources(file("lib/src/main"))
 
+        createDirs("exe", "lib")
         settingsFile << """
             include ':exe', ':lib'
         """
@@ -160,6 +163,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         app.library.writeSources(file("lib/src/main"))
         app.library.writeSources(file("other/src/main"))
 
+        createDirs("exe", "lib", "other")
         settingsFile << """
             include ':exe', ':lib', ':other'
         """
@@ -228,6 +232,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         app.writeSources(file("exe/src/main"), file("lib/src/main"), file("greet/src/main"))
 
         and:
+        createDirs("exe", "lib", "greet")
         settingsFile << """
             include ':exe', ':lib', ':greet'
         """
@@ -290,6 +295,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         app.writeSources(file("exe/src/main"), file("lib/src/main"), file("greet/src/main"))
 
         and:
+        createDirs("exe", "lib", "greet")
         settingsFile << """
             include ':exe', ':lib', ':greet'
         """
@@ -395,6 +401,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         app.greeter.writeToProject(file("lib"))
         app.main.writeToProject(file("exe"))
 
+        createDirs("exe", "lib")
         settingsFile << """
             include ':exe', ':lib'
         """
@@ -448,6 +455,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         app.writeSources(file("exe/src/main"), file("some/lib/src/main"), file("other/lib/src/main"))
 
         and:
+        createDirs("exe", "some", "some/lib", "other", "other/lib")
         settingsFile << """
             include ':exe', ':some:lib', ':other:lib'
         """

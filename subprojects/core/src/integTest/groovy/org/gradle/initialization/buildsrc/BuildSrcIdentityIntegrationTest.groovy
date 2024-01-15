@@ -48,6 +48,7 @@ class BuildSrcIdentityIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "includes build identifier in dependency report with #display"() {
+        createDirs("buildSrc", "buildSrc/b1", "buildSrc/b2")
         file("buildSrc/settings.gradle") << """
             $settings
             include 'b1', 'b2'
@@ -101,7 +102,7 @@ runtimeClasspath - Runtime classpath of source set 'main'.
         failure.assertHasCause("Could not resolve all files for configuration ':buildSrc:compileClasspath'.")
         failure.assertHasCause("""Could not find org.test:test:1.2.
 Searched in the following locations:
-  - ${m.pom.file.toURL()}
+  - ${m.pom.file.displayUri}
 Required by:
     project :buildSrc""")
         failure.assertHasResolutions(repositoryHint("Maven POM"),
@@ -152,6 +153,7 @@ Required by:
 
     def "includes build identifier in dependency resolution results with #display"() {
         given:
+        createDirs("buildSrc", "buildSrc/a")
         file("buildSrc/settings.gradle") << """
             ${settings}
             include 'a'

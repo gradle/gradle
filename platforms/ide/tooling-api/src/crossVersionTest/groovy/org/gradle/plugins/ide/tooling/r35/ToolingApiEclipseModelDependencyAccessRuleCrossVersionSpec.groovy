@@ -35,6 +35,7 @@ class ToolingApiEclipseModelDependencyAccessRuleCrossVersionSpec extends Tooling
         mavenRepo.module("org.example", "example-lib", "1.0").publish()
         file('src/main/java').mkdirs()
 
+        createDirs("sub")
         settingsFile << """
             rootProject.name = 'root'
             include 'sub'

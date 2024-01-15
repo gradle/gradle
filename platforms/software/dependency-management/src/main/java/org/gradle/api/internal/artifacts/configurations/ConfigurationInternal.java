@@ -15,11 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -29,7 +27,6 @@ import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 public interface ConfigurationInternal extends ResolveContext, DeprecatableConfiguration, FinalizableValue, Configuration {
@@ -66,16 +63,6 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
     void collectVariants(VariantVisitor visitor);
 
     boolean isCanBeMutated();
-
-    /**
-     * Locks the configuration for mutation
-     * <p>
-     * Any invalid state at this point will be added to the returned list of exceptions.
-     * Handling these becomes the responsibility of the caller.
-     *
-     * @return a list of validation failures when not empty
-     */
-    List<? extends GradleException> preventFromFurtherMutationLenient();
 
     /**
      * Gets the complete set of exclude rules including those contributed by
@@ -145,9 +132,9 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
         void visitArtifacts(Collection<? extends PublishArtifact> artifacts);
 
         // This configuration as a variant. May not always be present
-        void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends Capability> capabilities, Collection<? extends PublishArtifact> artifacts);
+        void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts);
 
         // A child variant. May not always be present
-        void visitChildVariant(String name, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends Capability> capabilities, Collection<? extends PublishArtifact> artifacts);
+        void visitChildVariant(String name, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts);
     }
 }

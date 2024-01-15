@@ -22,30 +22,25 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
 public interface DependencyArtifactsVisitor {
     /**
-     * Starts visiting.
-     */
-    void startArtifacts(RootGraphNode root);
-
-    /**
      * Visits a node in the graph. All nodes are visited prior to visiting the edges
      */
-    void visitNode(DependencyGraphNode node);
+    default void visitNode(DependencyGraphNode node) {}
 
     /**
      * Visits the artifacts introduced by a particular edge in the graph. Called for every edge in the graph.
      * The nodes are visited in consumer-first order.
      */
-    void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts);
+    default void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts) {}
 
     /**
      * Visits the artifacts introduce by a particular node in the graph. Called *zero or more* times for each node.
      * Currently local files are treated differently to other dependencies.
      * The nodes are visited in consumer-first order
      */
-    void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, int artifactSetId, ArtifactSet artifactSet);
+    default void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, int artifactSetId, ArtifactSet artifactSet) {}
 
     /**
      * Completes visiting.
      */
-    void finishArtifacts();
+    default void finishArtifacts(RootGraphNode root) {}
 }

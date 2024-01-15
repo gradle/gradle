@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 
 public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractVirtualFileSystem.class);
@@ -68,6 +69,11 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     @Override
     public Optional<MetadataSnapshot> findMetadata(String absolutePath) {
         return root.findMetadata(absolutePath);
+    }
+
+    @Override
+    public Stream<FileSystemLocationSnapshot> findRootSnapshotsUnder(String absolutePath) {
+        return root.rootSnapshotsUnder(absolutePath);
     }
 
     @Override

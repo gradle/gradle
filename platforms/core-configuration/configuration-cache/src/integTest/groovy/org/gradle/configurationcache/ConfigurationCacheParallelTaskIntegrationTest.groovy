@@ -34,6 +34,7 @@ does not really make any difference to the coverage
         server.start()
 
         given:
+        createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -105,6 +106,7 @@ parallel and configuration cache
 
         given:
         def configurationCache = newConfigurationCacheFixture()
+        createDirs("finalized", "finalizer")
         settingsFile << """
             include 'finalized', 'finalizer'
         """

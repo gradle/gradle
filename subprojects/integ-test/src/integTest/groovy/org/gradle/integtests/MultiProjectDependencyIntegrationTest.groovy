@@ -24,6 +24,7 @@ import org.hamcrest.CoreMatchers
 class MultiProjectDependencyIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
+        createDirs("a", "b", "c", "d")
         settingsFile << 'include "a", "b", "c", "d"'
         buildFile << """
 allprojects {

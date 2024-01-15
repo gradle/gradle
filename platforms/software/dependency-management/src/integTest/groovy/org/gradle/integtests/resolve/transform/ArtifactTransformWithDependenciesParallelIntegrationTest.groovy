@@ -28,6 +28,7 @@ class ArtifactTransformWithDependenciesParallelIntegrationTest extends AbstractH
     def "transform is applied to project output when project and external library have conflicting group and module name"() {
         mavenRepo.module("libs", "producer", "1.0").publish()
 
+        createDirs("producer", "consumer")
         settingsFile """
             include 'producer', 'consumer'
         """

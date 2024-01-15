@@ -1,0 +1,147 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[sharing_build_logic_between_subprojects]]
+= Sharing Build Logic between Subprojects
+
+Subprojects in a multi-project build typically share some common _traits_.
+
+image::structuring-builds-3.png[]
+
+For example, several subprojects may contain _code_ in a particular programming language, while another subproject may be dedicated to _documentation_.
+Code quality rules apply to all the _code_ subprojects but not the _documentation_ subproject.
+
+While the subprojects may share common _traits_, they serve different purposes.
+They produce different _artifact types_, for example:
+
+- *public libraries* - libraries that are published to some repository
+- *internal libraries* - libraries on which other subprojects depend
+- *command line applications* - applications with specific packaging requirements
+- *web services* - applications with specific packaging requirements
+
+Additionally, some subprojects may be dedicated to *testing*.
+
+The traits above identify a subproject's _type_.
+In other words, a subproject's _type_ tells us what _traits_ the subproject has.
+
+[[sec:convention_plugins]]
+== Share logic using convention plugins
+
+Gradle's recommended way of organizing build logic is to use its plugin system.
+
+A plugin should define the _type_ of subproject.
+
+In fact, <<plugin_reference#plugin_reference,Gradle core plugins>> are modeled the same way:
+
+- The <<java_plugin#java_plugin,Java Plugin>> configures a generic `java` project.
+- The <<java_library_plugin#java_library_plugin,Java Library Plugin>> internally applies the <<java_plugin#java_plugin,Java Plugin>> and configures aspects specific to a Java library.
+- The <<application_plugin#application_plugin,Application Plugin>> applies and configures the <<java_plugin#java_plugin,Java Plugin>> and the <<distribution_plugin#distribution_plugin,Distribution Plugin>>.
+
+You can compose custom build logic by applying and configuring both core and external plugins.
+You can create custom plugins that define new project _types_ and configure conventions specific to your project or organization.
+
+For each example _trait_ above, we can write a plugin that encapsulates the logic common to the subproject of a given _type_:
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+.
+├── buildSrc
+│   ├── src
+│   │   └──main
+│   │      └──kotlin
+│   │         └──myproject.java-conventions.gradle      // <1>
+│   └── build.gradle.kts
+├── api
+│   ├── src
+│   │   └──...
+│   └── build.gradle.kts                                // <2>
+├── services
+│   └── person-service
+│       ├── src
+│       │   └──...
+│       └── build.gradle.kts                            // <2>
+├── shared
+│   ├── src
+│   │   └──...
+│   └── build.gradle.kts                                // <2>
+└── settings.gradle.kts
+----
+<1> Create the `myproject.java-conventions` convention plugin.
+<2> Applies the `myproject.java-conventions` convention plugin.
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── buildSrc
+│   ├── src
+│   │   └──main
+│   │      └──kotlin
+│   │         └──myproject.java-conventions.gradle.kts  // <1>
+│   └── build.gradle
+├── api
+│   ├── src
+│   │   └──...
+│   └── build.gradle                                    // <2>
+├── services
+│   └── person-service
+│       ├── src
+│       │   └──...
+│       └── build.gradle                                // <2>
+├── shared
+│   ├── src
+│   │   └──...
+│   └── build.gradle                                    // <2>
+└── settings.gradle
+----
+<1> Create the `myproject.java-conventions` convention plugin.
+<2> Applies the `myproject.java-conventions` convention plugin.
+=====
+
+[[sec:using_buildsrc]]
+== Share logic in `buildSrc`
+
+We recommend putting source code and tests for the convention plugins in the `buildSrc` directory in the project's root:
+
+====
+include::sample[dir="snippets/multiproject/dependencies-java/kotlin",files="settings.gradle.kts[];buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[];api/build.gradle.kts[];shared/build.gradle.kts[];services/person-service/build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies-java/groovy",files="settings.gradle[];buildSrc/src/main/groovy/myproject.java-conventions.gradle[];api/build.gradle[];shared/build.gradle[];services/person-service/build.gradle[]"]
+====
+
+Consult <<multi_project_builds.adoc#sec:multiproject_buildsrc,Using `buildSrc` for build logic>> to learn more.
+
+[[sec:convention_plugins_vs_cross_configuration]]
+== Do not use cross-project configuration
+
+An improper way to share build logic between subprojects is _cross-project configuration_ via the link:{javadocPath}//org/gradle/api/Project.html#subprojects-groovy.lang.Closure-[`subprojects {}`] and link:{javadocPath}/org/gradle/api/Project.html#allprojects-groovy.lang.Closure-[`allprojects {}`] DSL constructs.
+
+TIP:  Avoid using `subprojects {}` and `allprojects {}`.
+
+With cross-configuration, build logic can be injected into a subproject, and this is not obvious when looking at the subproject's build script, making it harder to understand the logic of a particular subproject.
+In the long run, cross-configuration usually grows in complexity and becomes a burden.
+Cross configuration can also introduce <<structuring_software_products_details.adoc#sec:decoupled_projects,configuration-time coupling between projects>>, which can prevent optimizations like
+<<structuring_software_products_details.adoc#sec:configuration_on_demand,configuration-on-demand>> from working properly.
+
+=== Convention plugins versus cross-configuration
+
+The two most common uses of cross-configuration can be better modeled using convention plugins:
+
+1. Applying plugins or other configuration to subprojects of a certain type. +
+Often, the cross-configuration section will do `if subproject is of type X, then configure Y`.
+This is equivalent to applying `X-conventions` plugin directly to a subproject.
+2. Extracting information from subprojects of a certain type. +
+This use case can be modeled using <<cross_project_publications.adoc#sec:simple-sharing-artifacts-between-projects,outgoing configuration variants>>.

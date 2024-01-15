@@ -19,54 +19,60 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.internal.Try;
+import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildTreeModelController;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.MultipleBuildOperationFailures;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.work.WorkerThreadRegistry;
-import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalActionAwareBuildController;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
+import org.gradle.tooling.internal.protocol.InternalStreamedValueRelay;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
+import org.gradle.tooling.internal.provider.serialization.StreamedValue;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.provider.model.UnknownModelException;
+import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 @SuppressWarnings("deprecation")
-class DefaultBuildController implements org.gradle.tooling.internal.protocol.InternalBuildController, InternalBuildControllerVersion2, InternalActionAwareBuildController {
+class DefaultBuildController implements org.gradle.tooling.internal.protocol.InternalBuildController, InternalBuildControllerVersion2, InternalActionAwareBuildController, InternalStreamedValueRelay {
     private final WorkerThreadRegistry workerThreadRegistry;
     private final BuildTreeModelController controller;
     private final BuildCancellationToken cancellationToken;
     private final BuildStateRegistry buildStateRegistry;
+    private final ToolingModelParameterCarrier.Factory parameterCarrierFactory;
+    private final BuildEventConsumer buildEventConsumer;
+    private final PayloadSerializer payloadSerializer;
 
     public DefaultBuildController(
         BuildTreeModelController controller,
         WorkerThreadRegistry workerThreadRegistry,
         BuildCancellationToken cancellationToken,
-        BuildStateRegistry buildStateRegistry
+        BuildStateRegistry buildStateRegistry,
+        ToolingModelParameterCarrier.Factory parameterCarrierFactory,
+        BuildEventConsumer buildEventConsumer,
+        PayloadSerializer payloadSerializer
     ) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.controller = controller;
         this.cancellationToken = cancellationToken;
         this.buildStateRegistry = buildStateRegistry;
+        this.parameterCarrierFactory = parameterCarrierFactory;
+        this.buildEventConsumer = buildEventConsumer;
+        this.payloadSerializer = payloadSerializer;
     }
 
     /**
@@ -105,7 +111,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
             if (parameter == null) {
                 model = scope.getModel(modelIdentifier.getName(), null);
             } else {
-                model = scope.getModel(modelIdentifier.getName(), parameterFactory(parameter));
+                model = scope.getModel(modelIdentifier.getName(), parameterCarrierFactory.createCarrier(parameter));
             }
         } catch (UnknownModelException e) {
             throw (InternalUnsupportedModelException) new InternalUnsupportedModelException().initCause(e);
@@ -122,34 +128,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     @Override
     public <T> List<T> run(List<Supplier<T>> actions) {
         assertCanQuery();
-        List<NestedAction<T>> wrappers = new ArrayList<>(actions.size());
-        for (Supplier<T> action : actions) {
-            wrappers.add(new NestedAction<>(action));
-        }
-        controller.runQueryModelActions(wrappers);
-
-        List<T> results = new ArrayList<>(actions.size());
-        List<Throwable> failures = new ArrayList<>();
-        for (NestedAction<T> wrapper : wrappers) {
-            Try<T> value = wrapper.value();
-            if (value.isSuccessful()) {
-                results.add(value.get());
-            } else {
-                failures.add(value.getFailure().get());
-            }
-        }
-        if (!failures.isEmpty()) {
-            throw new MultipleBuildOperationFailures(failures, null);
-        }
-        return results;
-    }
-
-    private Function<Class<?>, Object> parameterFactory(Object parameter)
-        throws InternalUnsupportedModelException {
-        return expectedParameterType -> {
-            ViewBuilder<?> viewBuilder = new ProtocolToModelAdapter().builder(expectedParameterType);
-            return viewBuilder.build(parameter);
-        };
+        return controller.runQueryModelActions(actions);
     }
 
     private ToolingModelScope getTarget(@Nullable Object target, ModelIdentifier modelIdentifier, boolean parameter) {
@@ -194,31 +173,9 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         }
     }
 
-    private static class NestedAction<T> implements RunnableBuildOperation {
-        private final Supplier<T> action;
-        private Try<T> result;
-
-        public NestedAction(Supplier<T> action) {
-            this.action = action;
-        }
-
-        @Override
-        public void run(BuildOperationContext context) {
-            try {
-                T value = action.get();
-                result = Try.successful(value);
-            } catch (Throwable t) {
-                result = Try.failure(t);
-            }
-        }
-
-        public Try<T> value() {
-            return result;
-        }
-
-        @Override
-        public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Tooling API client action");
-        }
+    @Override
+    public void dispatch(Object value) {
+        SerializedPayload serializedModel = payloadSerializer.serialize(value);
+        buildEventConsumer.dispatch(new StreamedValue(serializedModel));
     }
 }

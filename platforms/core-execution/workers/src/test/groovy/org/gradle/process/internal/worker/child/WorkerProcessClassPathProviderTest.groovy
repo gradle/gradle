@@ -48,7 +48,7 @@ class WorkerProcessClassPathProviderTest extends Specification {
         then:
         1 * cacheBuilderFactory.createCacheBuilder('workerMain') >> cacheBuilder
         1 * cacheBuilder.withInitializer(!null) >> { args -> initializer = args[0]; return cacheBuilder }
-        1 * cacheBuilder.withLockOptions(_) >> cacheBuilder
+        1 * cacheBuilder.withInitialLockMode(_) >> cacheBuilder
         1 * cacheBuilder.open() >> { initializer.execute(cache); return cache }
         _ * cache.getBaseDir() >> cacheDir
         1 * cache.close()
@@ -68,7 +68,7 @@ class WorkerProcessClassPathProviderTest extends Specification {
 
         then:
         1 * cacheBuilderFactory.createCacheBuilder('workerMain') >> cacheBuilder
-        1 * cacheBuilder.withLockOptions(_) >> cacheBuilder
+        1 * cacheBuilder.withInitialLockMode(_) >> cacheBuilder
         1 * cacheBuilder.withInitializer(!null) >> cacheBuilder
         1 * cacheBuilder.open() >> cache
         _ * cache.getBaseDir() >> cacheDir

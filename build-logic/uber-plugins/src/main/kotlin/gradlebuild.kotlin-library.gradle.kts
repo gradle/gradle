@@ -28,7 +28,7 @@ plugins {
 
 configurations.transitiveSourcesElements {
     val main = sourceSets.main.get()
-    main.kotlin.srcDirs.forEach {
+    (main.kotlin.srcDirs + main.resources.srcDirs).forEach {
         outgoing.artifact(it)
     }
 }

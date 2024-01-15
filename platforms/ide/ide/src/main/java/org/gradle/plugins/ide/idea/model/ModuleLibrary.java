@@ -17,11 +17,11 @@ package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -118,7 +118,7 @@ public class ModuleLibrary implements Dependency {
 
     @Override
     public void addToNode(Node parentNode) {
-        Map<String, Object> orderEntryAttributes = Maps.newLinkedHashMap();
+        Map<String, Object> orderEntryAttributes = new LinkedHashMap<>();
         orderEntryAttributes.put("type", "module-library");
         orderEntryAttributes.putAll(getAttributeMapForScopeAndExported());
         Node libraryNode = parentNode.appendNode("orderEntry", orderEntryAttributes).appendNode("library");
@@ -126,22 +126,22 @@ public class ModuleLibrary implements Dependency {
         Node javadocNode = libraryNode.appendNode("JAVADOC");
         Node sourcesNode = libraryNode.appendNode("SOURCES");
         for (Path path : classes) {
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("url", path.getUrl());
             classesNode.appendNode("root", attributes);
         }
         for (Path path : javadoc) {
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("url", path.getUrl());
             javadocNode.appendNode("root", attributes);
         }
         for (Path path : sources) {
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("url", path.getUrl());
             sourcesNode.appendNode("root", attributes);
         }
         for (JarDirectory jarDirectory : jarDirectories) {
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("url", jarDirectory.getPath().getUrl());
             attributes.put("recursive", String.valueOf(jarDirectory.isRecursive()));
             libraryNode.appendNode("jarDirectory", attributes);

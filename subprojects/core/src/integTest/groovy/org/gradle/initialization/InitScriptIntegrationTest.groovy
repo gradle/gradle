@@ -82,6 +82,7 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
 
     def 'init script can contribute to settings - before and after'() {
         given:
+        createDirs("sub1", "sub2")
         file("init.gradle") << """
             beforeSettings {
                 it.ext.addedInInit = ["beforeSettings"]
@@ -117,6 +118,7 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
 
     def "can apply settings plugin from init script"() {
         given:
+        createDirs("sub1", "sub2")
         def pluginBuilder = new PluginBuilder(file("plugin"))
         pluginBuilder.addPluginSource("settings-test", "test.SettingsPlugin", """
             package test

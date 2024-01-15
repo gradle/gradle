@@ -48,7 +48,6 @@ class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotat
                 .forProperty(propertyMetadata.getPropertyName())
                 .label("test problem")
                 .documentedAt(Documentation.userManual("id", "section"))
-                .noLocation()
                 .category(TEST_PROBLEM)
                 .severity(annotationValue(propertyMetadata))
                 .details("this is a test")

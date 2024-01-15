@@ -544,6 +544,7 @@ dependencies {
             'org.test:projectB:1.0'()
         }
 
+        createDirs("sub")
         settingsFile << """
 rootProject.name = 'root'
 include 'sub'

@@ -30,9 +30,9 @@ import org.gradle.api.internal.catalog.PluginModel
 import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
-import org.gradle.api.problems.Problems
+import org.gradle.api.problems.internal.ProblemEmitter
 import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -41,9 +41,11 @@ import java.util.function.Supplier
 
 class TomlCatalogFileParserTest extends Specification implements VersionCatalogErrorMessages {
 
-    def stub = Stub(BuildOperationProgressEventEmitter)
     def supplier = Stub(Supplier)
-    def problems = new DefaultProblems(stub)
+    def problems = new DefaultProblems(
+        Stub(ProblemEmitter)
+    )
+
     def createVersionCatalogBuilder() {
         new DefaultVersionCatalogBuilder(
             "libs",
@@ -52,8 +54,8 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
             TestUtil.objectFactory(),
             supplier) {
             @Override
-            protected Problems getProblemService() {
-                problems
+            protected InternalProblems getProblemsService() {
+                return problems
             }
         }
     }
@@ -326,6 +328,9 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
         'invalid13' | "Expected an array but value of 'groovy' is a string."
         'invalid14' | "In version catalog libs, version reference 'nope' doesn't exist"
         'invalid15' | "In version catalog libs, on alias 'my' notation 'some.plugin.id' is not a valid plugin notation."
+        'invalid16' | "${getTomlPath("invalid16")}' at line 3, column 5: Unexpected end of line, expected ', \", ''', \"\"\", a number, a boolean, a date/time, an array, or a table\n" +
+            "    In file '${getTomlPath("invalid16")}' at line 4, column 6: Unexpected end of line, expected ', \", ''', \"\"\", a number, a boolean, a date/time, an array, or a table."
+
     }
 
     def "supports dependencies without version"() {
@@ -429,13 +434,17 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
     }
 
     private void parse(String name) {
-        def tomlResource = getClass().getResource("/org/gradle/api/internal/catalog/parser/${name}.toml").toURI()
-        // Paths might be unusual, but we need it because of 1.8
-        def tomlPath = Paths.get(tomlResource)
+        def tomlPath = getTomlPath(name)
 
         TomlCatalogFileParser.parse(tomlPath, builder, { problems })
         model = builder.build()
         assert model != null: "Expected model to be generated but it wasn't"
+    }
+
+    private getTomlPath(String name) {
+        def tomlResource = getClass().getResource("/org/gradle/api/internal/catalog/parser/${name}.toml").toURI()
+        // Paths might be unusual, but we need it because of 1.8
+        Paths.get(tomlResource)
     }
 
     @CompileStatic

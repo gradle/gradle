@@ -143,6 +143,7 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
             .allowAll()
             .publish()
 
+        createDirs("sub")
         settingsFile << """
             include 'sub'
         """

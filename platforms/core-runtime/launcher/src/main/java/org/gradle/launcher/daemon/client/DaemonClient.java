@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.logging.Logger;
@@ -134,7 +133,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
     @Override
     public BuildActionResult execute(BuildAction action, BuildActionParameters parameters, BuildRequestContext requestContext) {
         UUID buildId = idGenerator.generateId();
-        List<DaemonInitialConnectException> accumulatedExceptions = Lists.newArrayList();
+        List<DaemonInitialConnectException> accumulatedExceptions = new ArrayList<>();
 
         LOGGER.debug("Executing build {} in daemon client {pid={}}", buildId, processEnvironment.maybeGetPid());
 

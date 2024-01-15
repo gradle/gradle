@@ -96,7 +96,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, GlobalCache {
     /**
      * Determines the name without version when the JAR may have been replaced on the classpath.
      * <p>
-     * The Test Acceleration plugins from Gradle Enterprise replace some JUnit platform JARS on the test classpath.
+     * The Test Acceleration plugins from Develocity replace some JUnit platform JARS on the test classpath.
      * Gradle's testing modules need the original JARs with a possible different version.
      * When loading the dependencies from the classpath, this may cause a problem.
      * Note that this happens only in integration tests in the Gradle codebase.

@@ -51,6 +51,7 @@ allprojects {
         mavenRepo.module("org", "test2", "1.0").publish()
         mavenRepo.module("org", "test3", "1.0").publish()
 
+        createDirs("a", "b", "c")
         settingsFile << """
 include 'a', 'b', 'c'
 """

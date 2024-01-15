@@ -20,12 +20,13 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
@@ -44,32 +45,29 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private final ArtifactTypeRegistry artifactTypeRegistry;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final VariantArtifactResolver variantResolver;
+    private final GraphVariantSelector graphVariantSelector;
+    private final AttributesSchemaInternal consumerSchema;
 
     public ResolvedArtifactsGraphVisitor(
         DependencyArtifactsVisitor artifactsBuilder,
         ArtifactTypeRegistry artifactTypeRegistry,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         ArtifactResolver artifactResolver,
-        ResolvedVariantCache resolvedVariantCache
+        ResolvedVariantCache resolvedVariantCache,
+        GraphVariantSelector graphVariantSelector,
+        AttributesSchemaInternal consumerSchema
     ) {
         this.artifactResults = artifactsBuilder;
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.variantResolver = new DefaultVariantArtifactResolver(artifactResolver, artifactTypeRegistry, resolvedVariantCache);
-    }
-
-    @Override
-    public void start(RootGraphNode root) {
-        artifactResults.startArtifacts(root);
+        this.graphVariantSelector = graphVariantSelector;
+        this.consumerSchema = consumerSchema;
     }
 
     @Override
     public void visitNode(DependencyGraphNode node) {
         artifactResults.visitNode(node);
-    }
-
-    @Override
-    public void visitSelector(DependencyGraphSelector selector) {
     }
 
     @Override
@@ -88,8 +86,8 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     }
 
     @Override
-    public void finish(DependencyGraphNode root) {
-        artifactResults.finishArtifacts();
+    public void finish(RootGraphNode root) {
+        artifactResults.finishArtifacts(root);
         artifactsByNodeId.clear();
     }
 
@@ -103,12 +101,12 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
             dependency.getExclusions().mayExcludeArtifacts()
         ) {
             int id = nextId++;
-            return new ArtifactsForNode(id, new VariantResolvingArtifactSet(variantResolver, component, variant, dependency));
+            return new ArtifactsForNode(id, new VariantResolvingArtifactSet(variantResolver, component, variant, dependency, graphVariantSelector, consumerSchema));
         }
 
         return artifactsByNodeId.computeIfAbsent(toNode.getNodeId(), (LongFunction<ArtifactsForNode>) value -> {
             int id = nextId++;
-            return new ArtifactsForNode(id, new VariantResolvingArtifactSet(variantResolver, component, variant, dependency));
+            return new ArtifactsForNode(id, new VariantResolvingArtifactSet(variantResolver, component, variant, dependency, graphVariantSelector, consumerSchema));
         });
     }
 

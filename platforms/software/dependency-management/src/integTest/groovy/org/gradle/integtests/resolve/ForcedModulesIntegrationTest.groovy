@@ -87,6 +87,7 @@ task checkDeps {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
 
+        createDirs("api", "impl", "tool")
         settingsFile << "include 'api', 'impl', 'tool'"
 
         buildFile << """
@@ -136,6 +137,7 @@ allprojects {
         mavenRepo.module("org", "foo", '1.4.4').publish()
         mavenRepo.module("org", "foo", '1.5.5').publish()
 
+        createDirs("api", "impl", "tool")
         settingsFile << "include 'api', 'impl', 'tool'"
 
         buildFile << """
@@ -198,6 +200,7 @@ allprojects {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
 
+        createDirs("api", "impl", "tool")
         settingsFile << "include 'api', 'impl', 'tool'"
 
         buildFile << """

@@ -27,6 +27,7 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
     def setup() {
         blockingServer.start()
 
+        createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """

@@ -35,6 +35,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "resolves strictly for dependency resolve failures when #expression is used"() {
+        createDirs("child")
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
         def m2 = mavenHttpRepo.module('org.foo', 'unknown')
@@ -85,6 +86,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "resolves strictly for artifact resolve failures when #expression is used"() {
+        createDirs("child")
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
         def m2 = mavenHttpRepo.module('org.foo', 'unknown').publish()
@@ -138,6 +140,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "resolves leniently for dependency resolve failures"() {
+        createDirs("child")
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
         def m2 = mavenHttpRepo.module('org.foo', 'unknown')
@@ -283,6 +286,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "lenient for both dependency and artifact resolve and download failures"() {
+        createDirs("child")
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
         def m2 = mavenHttpRepo.module('org.foo', 'unknown')
@@ -453,5 +457,49 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         //TODO: fix dependency resolution results usage in this test and remove this flag
         executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         succeeds "validate"
+    }
+
+    @ToBeFixedForConfigurationCache(because = "ResolvedConfiguration is CC incompatible")
+    def "classifier and extension do not need to match file name"() {
+        given:
+        buildFile.text = """
+            configurations {
+                consumable("con") {
+                    outgoing.artifact(file("foo.txt")) {
+                        classifier = "HELLO"
+                        extension = "123"
+                    }
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+                    }
+                }
+                dependencyScope("implementation")
+                resolvable("res") {
+                    extendsFrom(implementation)
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+                    }
+                }
+            }
+
+            dependencies {
+                implementation project(":")
+            }
+
+            task resolve {
+                doLast {
+                    def artifact = configurations.res.resolvedConfiguration.resolvedArtifacts.first()
+
+                    // This is not necessarily desired behavior.
+                    // It is very confusing that these values disagree
+                    assert artifact.file.name == "foo.txt"
+                    assert artifact.classifier == "HELLO"
+                    assert artifact.extension == "123"
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
     }
 }

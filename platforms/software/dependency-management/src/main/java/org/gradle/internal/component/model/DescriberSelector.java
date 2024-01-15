@@ -15,13 +15,14 @@
  */
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,7 +34,7 @@ public class DescriberSelector {
         AttributeDescriber current = null;
         int maxSize = 0;
         for (AttributeDescriber consumerDescriber : consumerDescribers) {
-            int size = Sets.intersection(consumerDescriber.getAttributes(), consumerAttributeSet).size();
+            int size = Sets.intersection(consumerDescriber.getDescribableAttributes(), consumerAttributeSet).size();
             if (size > maxSize) {
                 // Select the describer which handles the maximum number of attributes
                 current = consumerDescriber;
@@ -55,8 +56,8 @@ public class DescriberSelector {
 
 
         @Override
-        public Set<Attribute<?>> getAttributes() {
-            return delegate.getAttributes();
+        public ImmutableSet<Attribute<?>> getDescribableAttributes() {
+            return delegate.getDescribableAttributes();
         }
 
         @Override
@@ -82,20 +83,22 @@ public class DescriberSelector {
         private final static DefaultDescriber INSTANCE = new DefaultDescriber();
 
         @Override
-        public Set<Attribute<?>> getAttributes() {
-            return Collections.emptySet();
+        public ImmutableSet<Attribute<?>> getDescribableAttributes() {
+            return ImmutableSet.of();
         }
 
         @Override
         public String describeAttributeSet(Map<Attribute<?>, ?> attributes) {
             StringBuilder sb = new StringBuilder();
-            for (Map.Entry<Attribute<?>, ?> entry : attributes.entrySet()) {
-                Attribute<?> attribute = entry.getKey();
-                if (sb.length() > 0) {
-                    sb.append(", ");
-                }
-                sb.append("attribute '").append(attribute.getName()).append("' with value '").append(entry.getValue()).append("'");
-            }
+            attributes.entrySet().stream()
+                .sorted(Comparator.comparing(e -> e.getKey().getName()))
+                .forEach(entry -> {
+                    Attribute<?> attribute = entry.getKey();
+                    if (sb.length() > 0) {
+                        sb.append(", ");
+                    }
+                    sb.append("attribute '").append(attribute.getName()).append("' with value '").append(entry.getValue()).append("'");
+                });
             return sb.toString();
         }
 

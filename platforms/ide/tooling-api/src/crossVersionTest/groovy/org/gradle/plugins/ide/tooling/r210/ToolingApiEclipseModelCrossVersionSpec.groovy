@@ -101,6 +101,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
                 }
             }
         """
+        createDirs("subproject-a", "subproject-b", "subproject-c")
         settingsFile << """
             include 'subproject-a', 'subproject-b', 'subproject-c'
         """

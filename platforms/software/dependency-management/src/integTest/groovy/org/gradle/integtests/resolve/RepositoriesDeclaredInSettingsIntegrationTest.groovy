@@ -218,6 +218,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
     }
 
     def "can fail the build if repositories are declared in a subproject block"() {
+        createDirs("lib1", "lib2")
         settingsFile << """
 
             dependencyResolutionManagement {

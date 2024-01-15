@@ -191,6 +191,7 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
 
     def "warns when publications in different projects share the same coordinates"() {
         given:
+        createDirs("projectA", "projectB")
         settingsFile << """
 include 'projectA'
 include 'projectB'

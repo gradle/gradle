@@ -18,28 +18,16 @@ package org.gradle.cache.internal;
 
 import org.gradle.testfixtures.internal.TestInMemoryCacheFactory;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 
 /**
- * Static util class for obtaining test doubles for a {@link DecompressionCache}.
+ * Static util class for obtaining test doubles for a {@link DecompressionCoordinator}.
  */
 public abstract class TestCaches {
     private TestCaches() {}
 
-    public static DecompressionCache decompressionCache(File cacheDir) {
-        return decompressionCacheFactory(cacheDir).create();
-    }
-
-    public static DecompressionCacheFactory decompressionCacheFactory(File cacheDir) {
-        return new DecompressionCacheFactory() {
-            final TestInMemoryCacheFactory cacheFactory = new TestInMemoryCacheFactory();
-
-            @Nonnull
-            @Override
-            public DecompressionCache create() {
-                return new DefaultDecompressionCache(cacheFactory.open(cacheDir, "test compression cache"));
-            }
-        };
+    public static DecompressionCoordinator decompressionCache(File cacheDir) {
+        final TestInMemoryCacheFactory cacheFactory = new TestInMemoryCacheFactory();
+        return new DefaultDecompressionCoordinator(cacheFactory.open(cacheDir, "test compression cache"));
     }
 }

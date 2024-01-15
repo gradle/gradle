@@ -559,6 +559,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
 
     def "starts dependent task in another project as soon as submitted work for current task is complete (with --parallel)"() {
         given:
+        createDirs("childProject")
         settingsFile << """
             include ':childProject'
         """
@@ -643,6 +644,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
 
     def "does not start task in another project when a task action is executing without --parallel"() {
         given:
+        createDirs("childProject")
         settingsFile << """
             include ':childProject'
         """
@@ -672,6 +674,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
 
     def "can start task in another project when a task submits async work without --parallel"() {
         given:
+        createDirs("childProject")
         settingsFile << """
             include ':childProject'
         """
@@ -743,6 +746,7 @@ See https://github.com/gradle/gradle/pull/25540 for details."""
     )
     def "does not start task in another project when a task awaits async work"() {
         given:
+        createDirs("childProject")
         settingsFile << """
             include ':childProject'
         """
@@ -777,6 +781,7 @@ See https://github.com/gradle/gradle/pull/25540 for details."""
 
     def "can start task in another project when a task awaits async work (with --parallel)"() {
         given:
+        createDirs("childProject")
         settingsFile << """
             include ':childProject'
         """

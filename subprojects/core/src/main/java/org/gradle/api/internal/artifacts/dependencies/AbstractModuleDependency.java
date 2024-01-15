@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
@@ -31,6 +32,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.typeconversion.NotationParser;
 
@@ -48,6 +50,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
 
     private ImmutableAttributesFactory attributesFactory;
     private NotationParser<Object, Capability> capabilityNotationParser;
+    private ObjectFactory objectFactory;
     private DefaultExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
     private Set<DependencyArtifact> artifacts = new LinkedHashSet<>();
     private ImmutableActionSet<ModuleDependency> onMutate = ImmutableActionSet.empty();
@@ -160,6 +163,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         }
         target.setAttributesFactory(attributesFactory);
         target.setCapabilityNotationParser(capabilityNotationParser);
+        target.setObjectFactory(objectFactory);
         if (moduleDependencyCapabilities != null) {
             target.moduleDependencyCapabilities = moduleDependencyCapabilities.copy();
         }
@@ -233,12 +237,15 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     public ModuleDependency capabilities(Action<? super ModuleDependencyCapabilitiesHandler> configureAction) {
         validateMutation();
         validateNotLegacyConfigured();
-        if (capabilityNotationParser == null) {
+        if (capabilityNotationParser == null || objectFactory == null) {
             warnAboutInternalApiUse("capabilities");
             return this;
         }
         if (moduleDependencyCapabilities == null) {
-            moduleDependencyCapabilities = new DefaultMutableModuleDependencyCapabilitiesHandler(capabilityNotationParser);
+            moduleDependencyCapabilities = objectFactory.newInstance(
+                DefaultMutableModuleDependencyCapabilitiesHandler.class,
+                capabilityNotationParser
+            );
         }
         configureAction.execute(moduleDependencyCapabilities);
         return this;
@@ -249,7 +256,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         if (moduleDependencyCapabilities == null) {
             return Collections.emptyList();
         }
-        return moduleDependencyCapabilities.getRequestedCapabilities();
+        return ImmutableList.copyOf(moduleDependencyCapabilities.getRequestedCapabilities().get());
     }
 
     @Override
@@ -279,12 +286,20 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         this.capabilityNotationParser = capabilityNotationParser;
     }
 
+    public void setObjectFactory(ObjectFactory objectFactory) {
+        this.objectFactory = objectFactory;
+    }
+
     public ImmutableAttributesFactory getAttributesFactory() {
         return attributesFactory;
     }
 
     public NotationParser<Object, Capability> getCapabilityNotationParser() {
         return capabilityNotationParser;
+    }
+
+    public ObjectFactory getObjectFactory() {
+        return objectFactory;
     }
 
     private void setAttributes(AttributeContainerInternal attributes) {

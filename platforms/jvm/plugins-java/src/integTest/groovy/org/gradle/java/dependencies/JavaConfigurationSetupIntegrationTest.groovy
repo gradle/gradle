@@ -93,6 +93,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
 
     def "the #configuration configuration is setup correctly for consumption in the #plugin plugin"() {
         when:
+        createDirs("sub")
         settingsFile.text = "include 'sub'"
         buildFile.text = """
             project(':sub') { apply plugin: '$plugin' }
