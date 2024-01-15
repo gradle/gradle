@@ -66,6 +66,7 @@
       </trusted-artifacts>
       <ignored-keys>
          <ignored-key id="74DAFDFD6DAE2441" reason="Key couldn't be downloaded from any key server"/>
+         <ignored-key id="1CF69814023DEDE9" reason="Key couldn't be downloaded from any key server"/>
       </ignored-keys>
       <trusted-keys>
          <trusted-key id="019082BC00E0324E2AEF4CF00D3B328562A119A7" group="org.openjdk.jmh"/>
@@ -783,9 +784,9 @@
             </sha256>
          </artifact>
       </component>
-      <component group="dev.adamko.dokkatoo" name="dokkatoo-plugin" version="1.5.0">
-         <artifact name="dokkatoo-plugin-1.5.0.jar">
-            <sha256 value="b5697243dc8cb6a46bed700df5a59142e1ef7998082d0a045ec7e58fa698c416" origin="Verified" reason="Artifact is not signed"/>
+      <component group="dev.adamko.dokkatoo" name="dokkatoo-plugin" version="2.0.0">
+         <artifact name="dokkatoo-plugin-2.0.0.jar">
+            <sha256 value="4a77e46f94e90d75a745dee17b8bb8dbb1f476a79f98dc2051ecc4641b3b60e4" reason="A key couldn't be downloaded"/>
          </artifact>
       </component>
       <component group="flot" name="flot" version="0.8.1">
