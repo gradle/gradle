@@ -98,7 +98,8 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
         String line;
         try {
             while ((line = reader.readLine()) != null) {
-                if (line.contains(majorMinorOnly)
+                // allowing 10.0 to bypass the check is due to the mingw compiler on linux not including major.minor in the version string.
+                if ((line.contains(majorMinorOnly) || majorMinorOnly.equals("10.0"))
                     && line.contains(" version ")
                     && line.contains(compilerType.getIdentifier())
                     && !line.contains(" default target ")) {
