@@ -21,6 +21,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
+import org.gradle.internal.Factory;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.inject.Inject;
@@ -54,7 +55,10 @@ public class DependencyInjectionTest {
 
     @ArchTest
     public static final ArchRule all_injected_classes_should_be_annotated_with_service_scope = freeze(classes()
-        .that(are(is_injected_by_getter)).or(are(injected_by_constructor))
+        .that()
+        // We exclude Factory classes, as ServiceScope is not applicable to them.
+        .areNotAssignableFrom(Factory.class)
+        .and(are(is_injected_by_getter).or(are(injected_by_constructor)))
         .should().beAnnotatedWith(ServiceScope.class));
 
 }
