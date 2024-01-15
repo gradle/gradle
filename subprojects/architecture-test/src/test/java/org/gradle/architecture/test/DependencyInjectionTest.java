@@ -25,13 +25,14 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.inject.Inject;
 
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 
 @AnalyzeClasses(packages = "org.gradle")
 public class DependencyInjectionTest {
 
-    private static final DescribedPredicate<JavaClass> is_injected_by_getter = new DescribedPredicate<JavaClass>("are injected into getters via @Inject") {
+    private static final DescribedPredicate<JavaClass> is_injected_by_getter = new DescribedPredicate<JavaClass>("injected into getters via @Inject") {
         @Override
         public boolean test(JavaClass javaClass) {
             return javaClass
@@ -41,7 +42,7 @@ public class DependencyInjectionTest {
         }
     };
 
-    private static final DescribedPredicate<JavaClass> is_injected_by_constructor = new DescribedPredicate<JavaClass>("are injected into constructors via @Inject") {
+    private static final DescribedPredicate<JavaClass> injected_by_constructor = new DescribedPredicate<JavaClass>("injected into constructors via @Inject") {
         @Override
         public boolean test(JavaClass javaClass) {
             return javaClass
@@ -53,7 +54,7 @@ public class DependencyInjectionTest {
 
     @ArchTest
     public static final ArchRule all_injected_classes_should_be_annotated_with_service_scope = freeze(classes()
-        .that(is_injected_by_getter).or(is_injected_by_constructor)
+        .that(are(is_injected_by_getter)).or(are(injected_by_constructor))
         .should().beAnnotatedWith(ServiceScope.class));
 
 }
