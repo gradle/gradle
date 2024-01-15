@@ -99,13 +99,13 @@ class ArchUnitFreezeConfiguration(
     }
 }
 
+/**
+ * Sorts the stored rules, so we keep a deterministic order when we add new rules.
+ */
 abstract class ReorderArchUnitRulesTask : DefaultTask() {
     @get:OutputFile
     abstract var ruleFile: File
 
-    /**
-     * Sorts the stored rules, so we keep a deterministic order when we add new rules.
-     */
     @TaskAction
     fun resortStoredRules() {
         val lines = ruleFile.readLines()
