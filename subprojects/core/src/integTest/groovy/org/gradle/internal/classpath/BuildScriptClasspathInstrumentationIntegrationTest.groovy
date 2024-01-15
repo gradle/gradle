@@ -19,7 +19,6 @@ package org.gradle.internal.classpath
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
-import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.file.TestFile
 
 import java.nio.file.Files
@@ -29,8 +28,6 @@ import java.util.stream.Collectors
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
-
-    private static final String KOTLIN_VERSION = new KotlinGradlePluginVersions().latestsStable.last()
 
     def "buildSrc and included builds should be cached in global cache"() {
         given:
@@ -93,13 +90,14 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "--info")
 
         then:
-        allTransformsFor("commons-lang3-3.8.1.jar") == ["ExternalDependencyInstrumentingArtifactTransform"]
+        allTransformsFor("commons-lang3-3.8.1.jar") ==~ ["ExternalDependencyInstrumentingArtifactTransform", "CollectDirectClassSuperTypesTransform"]
         gradleUserHomeOutputs("original/commons-lang3-3.8.1.jar").isEmpty()
         gradleUserHomeOutput("instrumented/commons-lang3-3.8.1.jar").exists()
     }
 
     def "directories should be instrumented"() {
         given:
+        requireOwnGradleUserHomeDir()
         withIncludedBuild("first")
         withIncludedBuild("second")
         buildFile << """
@@ -117,10 +115,12 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "--info")
 
         then:
-        allTransformsFor("main") == [
+        allTransformsFor("main") ==~ [
             // Only the folder name is reported, so we cannot distinguish first and second
             "ExternalDependencyInstrumentingArtifactTransform",
-            "ExternalDependencyInstrumentingArtifactTransform"
+            "CollectDirectClassSuperTypesTransform",
+            "ExternalDependencyInstrumentingArtifactTransform",
+            "CollectDirectClassSuperTypesTransform"
         ]
     }
 
@@ -158,7 +158,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "--info")
 
         then:
-        allTransformsFor("animals-1.0.jar") == ["CollectDirectClassSuperTypesTransform", "InstrumentArtifactTransform"]
+        allTransformsFor("animals-1.0.jar") ==~ ["CollectDirectClassSuperTypesTransform", "ExternalDependencyInstrumentingArtifactTransform"]
         def output = gradleUserHomeOutput("animals-1.0.jar.super-types")
         output.exists()
         output.readLines() == [

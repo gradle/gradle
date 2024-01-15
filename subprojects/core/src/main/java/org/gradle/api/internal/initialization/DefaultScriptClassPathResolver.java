@@ -39,7 +39,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform;
 import org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform;
 import org.gradle.api.internal.initialization.transform.ExternalDependencyInstrumentingArtifactTransform;
-import org.gradle.api.internal.initialization.transform.InstrumentBuildService;
+import org.gradle.api.internal.initialization.transform.InstrumentingBuildService;
 import org.gradle.api.internal.initialization.transform.ProjectDependencyInstrumentingArtifactTransform;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.provider.Providers;
@@ -55,6 +55,7 @@ import org.gradle.util.GradleVersion;
 
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
@@ -100,12 +101,12 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             }
         );
 
-        Provider<InstrumentBuildService> service = registerNewService();
+        Provider<InstrumentingBuildService> service = getOrRegisterNewService();
         registerTransform(dependencyHandler, ExternalDependencyInstrumentingArtifactTransform.class, service, INSTRUMENTED_EXTERNAL_DEPENDENCY_ATTRIBUTE);
         registerTransform(dependencyHandler, ProjectDependencyInstrumentingArtifactTransform.class, Providers.notDefined(), INSTRUMENTED_PROJECT_DEPENDENCY_ATTRIBUTE);
     }
 
-    private void registerTransform(DependencyHandler dependencyHandler, Class<? extends BaseInstrumentingArtifactTransform> transform, Provider<InstrumentBuildService> service, String instrumentedAttribute) {
+    private void registerTransform(DependencyHandler dependencyHandler, Class<? extends BaseInstrumentingArtifactTransform> transform, Provider<InstrumentingBuildService> service, String instrumentedAttribute) {
         dependencyHandler.registerTransform(
             transform,
             spec -> {
@@ -119,10 +120,10 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         );
     }
 
-    private Provider<InstrumentBuildService> registerNewService() {
+    private Provider<InstrumentingBuildService> getOrRegisterNewService() {
         return gradle.getSharedServices().registerIfAbsent(
-            InstrumentBuildService.class.getName() + "@" + System.identityHashCode(this),
-            InstrumentBuildService.class,
+            InstrumentingBuildService.class.getName() + "@" + System.identityHashCode(this),
+            InstrumentingBuildService.class,
             spec -> spec.getParameters().getClassHierarchy().setFrom(classHierarchy)
         );
     }
@@ -147,10 +148,21 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     @Override
     public ClassPath resolveClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler, ConfigurationContainer configContainer) {
-        classHierarchy.setFrom(getHierarchyView(classpathConfiguration));
-        FileCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
-        FileCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
-        return TransformedClassPath.handleInstrumentingArtifactTransform(DefaultClassPath.of(instrumentedExternalDependencies.plus(instrumentedProjectDependencies)));
+        // Clear build service data after resolution so content can be garbage collected
+        return runAndClearBuildServiceAfter(() -> {
+            classHierarchy.setFrom(getHierarchyView(classpathConfiguration));
+            FileCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
+            FileCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
+            ClassPath instrumentedClasspath = DefaultClassPath.of(instrumentedExternalDependencies.plus(instrumentedProjectDependencies));
+            return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath);
+        });
+    }
+
+    private <T> T runAndClearBuildServiceAfter(Supplier<T> action) {
+        T value = action.get();
+        getOrRegisterNewService().get().clear();
+        classHierarchy.unset();
+        return value;
     }
 
     private static FileCollection getHierarchyView(Configuration classpathConfiguration) {
