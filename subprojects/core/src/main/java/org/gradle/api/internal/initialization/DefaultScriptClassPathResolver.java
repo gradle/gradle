@@ -31,13 +31,20 @@ import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dsl.DependencyHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform;
+import org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform;
 import org.gradle.api.internal.initialization.transform.ExternalDependencyInstrumentingArtifactTransform;
+import org.gradle.api.internal.initialization.transform.InstrumentBuildService;
 import org.gradle.api.internal.initialization.transform.ProjectDependencyInstrumentingArtifactTransform;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.invocation.Gradle;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -63,13 +70,19 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     private static final String INSTRUMENTED_PROJECT_DEPENDENCY_ATTRIBUTE = "instrumented-project-dependency";
     private final NamedObjectInstantiator instantiator;
     private final AgentStatus agentStatus;
+    private final Gradle gradle;
+    private final ConfigurableFileCollection classHierarchy;
 
     public DefaultScriptClassPathResolver(
         NamedObjectInstantiator instantiator,
-        AgentStatus agentStatus
+        AgentStatus agentStatus,
+        FileCollectionFactory fileCollectionFactory,
+        Gradle gradle
     ) {
         this.instantiator = instantiator;
         this.agentStatus = agentStatus;
+        this.gradle = gradle;
+        this.classHierarchy = fileCollectionFactory.configurableFiles();
     }
 
     @Override
@@ -79,18 +92,38 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             .attribute(HIERARCHY_COLLECTED_ATTRIBUTE, false);
 
         // Register instrumentation transforms
-        registerTransform(dependencyHandler, ExternalDependencyInstrumentingArtifactTransform.class, INSTRUMENTED_EXTERNAL_DEPENDENCY_ATTRIBUTE);
-        registerTransform(dependencyHandler, ProjectDependencyInstrumentingArtifactTransform.class, INSTRUMENTED_PROJECT_DEPENDENCY_ATTRIBUTE);
+        dependencyHandler.registerTransform(
+            CollectDirectClassSuperTypesTransform.class,
+            spec -> {
+                spec.getFrom().attribute(HIERARCHY_COLLECTED_ATTRIBUTE, false);
+                spec.getTo().attribute(HIERARCHY_COLLECTED_ATTRIBUTE, true);
+            }
+        );
+
+        Provider<InstrumentBuildService> service = registerNewService();
+        registerTransform(dependencyHandler, ExternalDependencyInstrumentingArtifactTransform.class, service, INSTRUMENTED_EXTERNAL_DEPENDENCY_ATTRIBUTE);
+        registerTransform(dependencyHandler, ProjectDependencyInstrumentingArtifactTransform.class, Providers.notDefined(), INSTRUMENTED_PROJECT_DEPENDENCY_ATTRIBUTE);
     }
 
-    private void registerTransform(DependencyHandler dependencyHandler, Class<? extends BaseInstrumentingArtifactTransform> transform, String instrumentedAttribute) {
+    private void registerTransform(DependencyHandler dependencyHandler, Class<? extends BaseInstrumentingArtifactTransform> transform, Provider<InstrumentBuildService> service, String instrumentedAttribute) {
         dependencyHandler.registerTransform(
             transform,
             spec -> {
                 spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED_ATTRIBUTE_VALUE);
                 spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, instrumentedAttribute);
-                spec.parameters(parameters -> parameters.getAgentSupported().set(agentStatus.isAgentInstrumentationEnabled()));
+                spec.parameters(parameters -> {
+                    parameters.getBuildService().set(service);
+                    parameters.getAgentSupported().set(agentStatus.isAgentInstrumentationEnabled());
+                });
             }
+        );
+    }
+
+    private Provider<InstrumentBuildService> registerNewService() {
+        return gradle.getSharedServices().registerIfAbsent(
+            InstrumentBuildService.class.getName() + "@" + System.identityHashCode(this),
+            InstrumentBuildService.class,
+            spec -> spec.getParameters().getClassHierarchy().setFrom(classHierarchy)
         );
     }
 
@@ -114,15 +147,30 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     @Override
     public ClassPath resolveClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler, ConfigurationContainer configContainer) {
+        classHierarchy.setFrom(getHierarchyView(classpathConfiguration));
         FileCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
         FileCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
         return TransformedClassPath.handleInstrumentingArtifactTransform(DefaultClassPath.of(instrumentedExternalDependencies.plus(instrumentedProjectDependencies)));
+    }
+
+    private static FileCollection getHierarchyView(Configuration classpathConfiguration) {
+        return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
+            config.attributes(it -> it.attribute(HIERARCHY_COLLECTED_ATTRIBUTE, true));
+            config.componentFilter(componentId -> !isGradleApi(componentId) && !isProject(componentId));
+        }).getFiles();
     }
 
     private static FileCollection getInstrumentedExternalDependencies(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
             config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, INSTRUMENTED_EXTERNAL_DEPENDENCY_ATTRIBUTE));
             config.componentFilter(componentId -> !isGradleApi(componentId) && !isProject(componentId));
+        }).getFiles();
+    }
+
+    private static FileCollection getInstrumentedProjectDependencies(Configuration classpathConfiguration) {
+        return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
+            config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, INSTRUMENTED_PROJECT_DEPENDENCY_ATTRIBUTE));
+            config.componentFilter(DefaultScriptClassPathResolver::isProject);
         }).getFiles();
     }
 
@@ -136,12 +184,5 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     private static boolean isProject(ComponentIdentifier componentId) {
         return componentId instanceof ProjectComponentIdentifier;
-    }
-
-    private static FileCollection getInstrumentedProjectDependencies(Configuration classpathConfiguration) {
-        return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
-            config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, INSTRUMENTED_PROJECT_DEPENDENCY_ATTRIBUTE));
-            config.componentFilter(DefaultScriptClassPathResolver::isProject);
-        }).getFiles();
     }
 }

@@ -25,6 +25,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.cache.GlobalCacheLocations;
@@ -57,6 +58,8 @@ import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_JAR_DI
 public abstract class BaseInstrumentingArtifactTransform implements TransformAction<InstrumentArtifactTransformParameters> {
 
     public interface InstrumentArtifactTransformParameters extends TransformParameters {
+        @Internal
+        Property<InstrumentBuildService> getBuildService();
         @Input
         Property<Boolean> getAgentSupported();
     }

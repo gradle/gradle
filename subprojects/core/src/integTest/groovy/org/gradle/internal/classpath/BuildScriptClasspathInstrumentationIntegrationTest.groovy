@@ -124,6 +124,50 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         ]
     }
 
+    def "should collect super types for artifacts"() {
+        given:
+        // We test content in the global cache
+        requireOwnGradleUserHomeDir()
+        File jarFile = mavenRepo.module("test", "animals", "1.0").publish().getArtifactFile()
+        artifactBuilder().with {
+            it.sourceFile("org/gradle/test/Dogs.java").createFile().text = '''
+                package org.gradle.test;
+                class GermanShepherd extends Dog implements Animal {
+                }
+                abstract class Dog implements Mammal {
+                }
+                interface Mammal extends Animal {
+                }
+                interface Animal {
+                }
+            '''
+            it.buildJar(jarFile)
+        }
+        buildFile << """
+            buildscript {
+                 repositories {
+                    maven { url "$mavenRepo.uri" }
+                }
+                dependencies {
+                    classpath "test:animals:1.0"
+                }
+            }
+        """
+
+        when:
+        run("tasks", "--info")
+
+        then:
+        allTransformsFor("animals-1.0.jar") == ["CollectDirectClassSuperTypesTransform", "InstrumentArtifactTransform"]
+        def output = gradleUserHomeOutput("animals-1.0.jar.super-types")
+        output.exists()
+        output.readLines() == [
+            "org/gradle/test/Dog=org/gradle/test/Mammal",
+            "org/gradle/test/GermanShepherd=org/gradle/test/Animal,org/gradle/test/Dog",
+            "org/gradle/test/Mammal=org/gradle/test/Animal"
+        ]
+    }
+
     def withBuildSrc() {
         file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
         file("buildSrc/settings.gradle") << "\n"
