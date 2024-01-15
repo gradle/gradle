@@ -62,7 +62,6 @@ Class <org.gradle.groovy.scripts.internal.ScriptCompilationHandler> is not annot
 Class <org.gradle.initialization.BuildClientMetaData> is not annotated with @ServiceScope in (BuildClientMetaData.java:0)
 Class <org.gradle.initialization.DependenciesAccessors> is not annotated with @ServiceScope in (DependenciesAccessors.java:0)
 Class <org.gradle.initialization.ProjectDescriptorRegistry> is not annotated with @ServiceScope in (ProjectDescriptorRegistry.java:0)
-Class <org.gradle.internal.Factory> is not annotated with @ServiceScope in (Factory.java:0)
 Class <org.gradle.internal.actor.ActorFactory> is not annotated with @ServiceScope in (ActorFactory.java:0)
 Class <org.gradle.internal.build.PublicBuildPath> is not annotated with @ServiceScope in (PublicBuildPath.java:0)
 Class <org.gradle.internal.file.PathToFileResolver> is not annotated with @ServiceScope in (PathToFileResolver.java:0)
