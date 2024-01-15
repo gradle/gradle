@@ -31,7 +31,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 
 @AnalyzeClasses(packages = "org.gradle")
-public class DependencyInjectionTest {
+public class ServiceScopeAnnotationValidationTest {
 
     private static final DescribedPredicate<JavaClass> is_injected_by_getter = new DescribedPredicate<JavaClass>("injected into getters via @Inject") {
         @Override
