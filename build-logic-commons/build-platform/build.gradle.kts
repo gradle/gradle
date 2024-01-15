@@ -15,7 +15,7 @@ val groovyVersion = GroovySystem.getVersion()
 val isGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
 val codenarcVersion = if (isGroovy4) "3.1.0-groovy-4.0" else "3.1.0"
 val spockVersion = if (isGroovy4) "2.2-groovy-4.0" else "2.2-groovy-3.0"
-val asmVersion = "9.5"
+val asmVersion = "9.6"
 // To try out better kotlin compilation avoidance and incremental compilation
 // with -Pkotlin.incremental.useClasspathSnapshot=true
 val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
@@ -40,9 +40,9 @@ dependencies {
         // Java Libraries
         api("com.github.javaparser:javaparser-core:$javaParserVersion")
         api("com.github.javaparser:javaparser-symbol-solver-core:$javaParserVersion")
-        api("com.google.guava:guava:27.1-jre")
+        api("com.google.guava:guava:32.0.0-jre")
         api("com.google.errorprone:error_prone_annotations:2.5.1")
-        api("com.google.code.gson:gson:2.8.9")
+        api("com.google.code.gson:gson:2.10.1")
         api("com.nhaarman:mockito-kotlin:1.6.0")
         api("com.thoughtworks.qdox:qdox:2.0.3")
         api("com.uwyn:jhighlight:1.0")
@@ -56,11 +56,11 @@ dependencies {
         api("javax.activation:activation:1.1.1")
         api("javax.xml.bind:jaxb-api:2.3.1")
         api("com.sun.xml.bind:jaxb-core:2.2.11")
-        api("com.sun.xml.bind:jaxb-impl:2.2.11")
+        api("com.sun.xml.bind:jaxb-impl:4.0.4")
         api("junit:junit:4.13.2")
         api("org.spockframework:spock-core:$spockVersion")
         api("org.spockframework:spock-junit4:$spockVersion")
-        api("org.asciidoctor:asciidoctorj:2.4.3")
+        api("org.asciidoctor:asciidoctorj:2.5.11")
         api("org.asciidoctor:asciidoctorj-pdf:1.5.4")
         api("dev.adamko.dokkatoo:dokkatoo-plugin:1.5.0")
         api("org.jetbrains.dokka:dokka-core:1.8.10")
@@ -68,7 +68,7 @@ dependencies {
         api("org.codehaus.groovy:$groovyVersion")
         api("org.codehaus.groovy.modules.http-builder:http-builder:0.7.2") // TODO maybe change group name when upgrading to Groovy 4
         api("org.codenarc:CodeNarc:$codenarcVersion")
-        api("org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r")
+        api("org.eclipse.jgit:org.eclipse.jgit:6.6.1.202309021850-r")
         api("org.javassist:javassist:3.27.0-GA")
         api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.6.0")
         api("org.jsoup:jsoup:1.15.3")
@@ -78,7 +78,7 @@ dependencies {
         api("org.ow2.asm:asm:$asmVersion")
         api("org.ow2.asm:asm-commons:$asmVersion")
         api("org.ow2.asm:asm-tree:$asmVersion")
-        api("xerces:xercesImpl:2.12.1") {
+        api("xerces:xercesImpl:2.12.2") {
             because("Maven Central and JCenter disagree on version 2.9.1 metadata")
         }
         api("net.bytebuddy:byte-buddy") { version { strictly("1.10.21") } }
