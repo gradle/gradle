@@ -42,7 +42,7 @@ dependencies {
         api("com.github.javaparser:javaparser-symbol-solver-core:$javaParserVersion")
         api("com.google.guava:guava:27.1-jre")
         api("com.google.errorprone:error_prone_annotations:2.5.1")
-        api("com.google.code.gson:gson:2.8.9")
+        api("com.google.code.gson:gson:2.10.1")
         api("com.nhaarman:mockito-kotlin:1.6.0")
         api("com.thoughtworks.qdox:qdox:2.0.3")
         api("com.uwyn:jhighlight:1.0")
