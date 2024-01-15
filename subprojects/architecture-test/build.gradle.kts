@@ -44,48 +44,40 @@ val sortAcceptedApiChanges = tasks.register<gradlebuild.binarycompatibility.Sort
     apiChangesFile = acceptedApiChangesFile
 }
 
-tasks.test {
-    // Looks like loading all the classes requires more than the default 512M
-    maxHeapSize = "1g"
+val ruleStoreDir = layout.projectDirectory.dir("src/changes/archunit_store")
 
-    // Only use one fork, so freezing doesn't have concurrency issues
-    maxParallelForks = 1
-
-    val ruleStoreDir = project.file("src/changes/archunit_store")
-    outputs.dir(ruleStoreDir)
-
-    systemProperty("org.gradle.public.api.includes", (PublicApi.includes + PublicKotlinDslApi.includes).joinToString(":"))
-    systemProperty("org.gradle.public.api.excludes", (PublicApi.excludes + PublicKotlinDslApi.excludes).joinToString(":"))
-    jvmArgumentProviders.add(ArchUnitFreezeConfiguration(
-        ruleStoreDir,
-        providers.gradleProperty("archunitRefreeze").map { true })
-    )
-
-    dependsOn(verifyAcceptedApiChangesOrdering)
-    enabled = flakyTestStrategy !=  FlakyTestStrategy.ONLY
-
-    extensions.findByType<PredictiveTestSelectionExtension>()?.apply {
-        // PTS doesn't work well with architecture tests which scan all classes
-        enabled = false
+tasks {
+    val reorderRuleStore by registering(ReorderArchUnitRulesTask::class) {
+        ruleFile = ruleStoreDir.file("stored.rules").asFile
     }
 
-    doLast {
-        resortStoredRules(ruleStoreDir)
-    }
-}
+    test {
+        // Looks like loading all the classes requires more than the default 512M
+        maxHeapSize = "1g"
 
-/**
- * Sorts the stored rules, so we keep a deterministic order when we add new rules.
- */
-fun resortStoredRules(store: File) {
-    val storedRules = store.resolve("stored.rules")
+        // Only use one fork, so freezing doesn't have concurrency issues
+        maxParallelForks = 1
 
-    val lines = storedRules.readLines()
-    val sortedLines = lines.sortedBy {
-        // We sort by the rule name
-        it.substringBefore("=")
+        inputs.dir(ruleStoreDir)
+
+        systemProperty("org.gradle.public.api.includes", (PublicApi.includes + PublicKotlinDslApi.includes).joinToString(":"))
+        systemProperty("org.gradle.public.api.excludes", (PublicApi.excludes + PublicKotlinDslApi.excludes).joinToString(":"))
+        jvmArgumentProviders.add(
+            ArchUnitFreezeConfiguration(
+                ruleStoreDir.asFile,
+                providers.gradleProperty("archunitRefreeze").map { true })
+        )
+
+        dependsOn(verifyAcceptedApiChangesOrdering)
+        enabled = flakyTestStrategy != FlakyTestStrategy.ONLY
+
+        extensions.findByType<PredictiveTestSelectionExtension>()?.apply {
+            // PTS doesn't work well with architecture tests which scan all classes
+            enabled = false
+        }
+
+        finalizedBy(reorderRuleStore)
     }
-    storedRules.writeText(sortedLines.joinToString("\n"))
 }
 
 class ArchUnitFreezeConfiguration(
@@ -104,5 +96,26 @@ class ArchUnitFreezeConfiguration(
             "-Darchunit.freeze.refreeze=${refreezeBoolean}",
             "-Darchunit.freeze.store.default.allowStoreUpdate=${refreezeBoolean}"
         )
+    }
+}
+
+abstract class ReorderArchUnitRulesTask : DefaultTask() {
+    @get:OutputFile
+    abstract var ruleFile: File
+
+    /**
+     * Sorts the stored rules, so we keep a deterministic order when we add new rules.
+     */
+    @TaskAction
+    fun resortStoredRules() {
+        val lines = ruleFile.readLines()
+        val sortedLines = lines.sortedBy { line ->
+            // We sort by the rule name
+            line.substringBefore("=")
+        }
+
+        if (lines != sortedLines) {
+            ruleFile.writeText(sortedLines.joinToString("\n"))
+        }
     }
 }
