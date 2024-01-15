@@ -27,7 +27,6 @@ import java.util.List;
 public class ProblemEventListener implements ProgressListener {
     List<BaseProblemDescriptor> allProblems = new ArrayList<>();
 
-    @SuppressWarnings("unchecked")
     @Override
     public void statusChanged(ProgressEvent event) {
         if (event instanceof ProblemEvent) {

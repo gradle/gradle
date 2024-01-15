@@ -31,6 +31,7 @@ import org.gradle.util.internal.DefaultGradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -171,12 +172,9 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             return false;
         }
         fileName = fileName.toLowerCase(Locale.US);
-        if (fileName.endsWith(".gradle") // ordinary Groovy Gradle script
-            || fileName.endsWith(".gradle.kts") // Kotlin Gradle script
-        ) {
-            return true;
-        }
-        return false;
+        // Kotlin Gradle script
+        return fileName.endsWith(".gradle") // ordinary Groovy Gradle script
+            || fileName.endsWith(".gradle.kts");
     }
 
     /**
@@ -199,6 +197,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         return Boolean.parseBoolean(value);
     }
 
+    @Nullable
     public GradleException getDeprecationFailure() {
         return error;
     }
