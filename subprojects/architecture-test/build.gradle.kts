@@ -52,6 +52,7 @@ tasks.test {
     maxParallelForks = 1
 
     val ruleStoreDir = project.file("src/changes/archunit_store")
+    outputs.dir(ruleStoreDir)
 
     systemProperty("org.gradle.public.api.includes", (PublicApi.includes + PublicKotlinDslApi.includes).joinToString(":"))
     systemProperty("org.gradle.public.api.excludes", (PublicApi.excludes + PublicKotlinDslApi.excludes).joinToString(":"))
