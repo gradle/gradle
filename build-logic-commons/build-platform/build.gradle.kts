@@ -78,7 +78,7 @@ dependencies {
         api("org.ow2.asm:asm:$asmVersion")
         api("org.ow2.asm:asm-commons:$asmVersion")
         api("org.ow2.asm:asm-tree:$asmVersion")
-        api("xerces:xercesImpl:2.12.1") {
+        api("xerces:xercesImpl:2.12.2") {
             because("Maven Central and JCenter disagree on version 2.9.1 metadata")
         }
         api("net.bytebuddy:byte-buddy") { version { strictly("1.10.21") } }
