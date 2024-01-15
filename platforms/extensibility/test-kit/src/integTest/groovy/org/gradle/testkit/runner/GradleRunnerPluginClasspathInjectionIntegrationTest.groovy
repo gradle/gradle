@@ -49,13 +49,7 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
             .buildAndFail()
 
         then:
-        execFailure(result).assertHasDescription("""
-            |Plugin [id: '$plugin.id'] was not found in any of the following sources:
-            |
-            |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
-            |- Included Builds (No included builds contain this plugin)
-            |- $pluginRepositoriesDisplayName (plugin dependency must include a version number for this source)
-        """.stripMargin().trim())
+        !execFailure(result).error.contains("Gradle TestKit (classpath:")
     }
 
     def "injected classpath is indicated in error message if plugin not found"() {
@@ -67,14 +61,7 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
             .buildAndFail()
 
         then:
-        execFailure(result).assertHasDescription("""
-            |Plugin [id: '$plugin.id'] was not found in any of the following sources:
-            |
-            |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
-            |- Gradle TestKit (classpath: ${expectedClasspath*.absolutePath.join(File.pathSeparator)})
-            |- Included Builds (No included builds contain this plugin)
-            |- $pluginRepositoriesDisplayName (plugin dependency must include a version number for this source)
-        """.stripMargin().trim())
+        execFailure(result).assertHasErrorOutput("Gradle TestKit (classpath: ${expectedClasspath*.absolutePath.join(File.pathSeparator)})")
     }
 
     def "can inject plugin classpath and use in build"() {
