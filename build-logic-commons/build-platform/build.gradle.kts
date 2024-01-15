@@ -40,7 +40,7 @@ dependencies {
         // Java Libraries
         api("com.github.javaparser:javaparser-core:$javaParserVersion")
         api("com.github.javaparser:javaparser-symbol-solver-core:$javaParserVersion")
-        api("com.google.guava:guava:27.1-jre")
+        api("com.google.guava:guava:32.0.0-jre")
         api("com.google.errorprone:error_prone_annotations:2.5.1")
         api("com.google.code.gson:gson:2.8.9")
         api("com.nhaarman:mockito-kotlin:1.6.0")
