@@ -1,8 +1,9 @@
 #
-#Mon Jan 15 16:24:16 CET 2024
+#Tue Jan 16 09:12:16 CET 2024
 classes\ that\ are\ Gradle\ public\ API\ should\ have\ accessors\ with\ symmetrical\ @Nullable\ annotations=public-api-symmetrical-accessors-nullability.txt
 classes\ that\ are\ Gradle\ public\ API\ should\ not\ have\ direct\ super-class\ or\ interface\ that\ are\ Gradle\ Internal\ API=public-api-not-extends-internal-types.txt
 classes\ that\ are\ in\ Gradle\ internal\ API\ packages\ and\ classes\ written\ in\ Java\ or\ Groovy\ and\ not\ synthetic\ classes\ should\ be\ annotated\ (directly\ or\ via\ its\ package)\ with\ @org.gradle.api.NonNullApi=internal-api-nullability.txt
+classes\ that\ are\ not\ Factory\ class\ and\ are\ injected\ into\ getters\ via\ @Inject\ or\ are\ injected\ into\ constructors\ via\ @Inject\ should\ be\ annotated\ with\ @ServiceScope=injected-services-should-have-service-scope-applied.txt
 classes\ that\ are\ not\ Gradle\ public\ API\ should\ have\ accessors\ with\ symmetrical\ @Nullable\ annotations=internal-api-symmetrical-accessors-nullability.txt
 classes\ that\ are\ not\ assignable\ from\ org.gradle.internal.Factory\ and\ are\ injected\ into\ getters\ via\ @Inject\ or\ are\ injected\ into\ constructors\ via\ @Inject\ should\ be\ annotated\ with\ @ServiceScope=injected-services-should-have-service-scope-applied.txt
 methods\ that\ are\ mutable\ public\ API\ properties\ and\ do\ not\ have\ raw\ return\ type\ org.gradle.api.resources.TextResource\ and\ do\ not\ have\ raw\ return\ type\ assignable\ to\ org.gradle.api.file.FileCollection\ should\ have\ return\ type\ Provider=public-api-mutable-properties.txt
