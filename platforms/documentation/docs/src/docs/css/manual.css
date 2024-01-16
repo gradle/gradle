@@ -46,6 +46,7 @@
     --top-header-color: #fff;
     --footer-white-color: #fff;
     --footer-text-color: #fff;
+    --quoteblock-color: #7a2518
 }
 @media (prefers-color-scheme: dark) {
     :root {
@@ -67,6 +68,7 @@
         --top-header-color: #242526;
         --footer-white-color: #242526;
         --footer-text-color: #aaa;
+        --quoteblock-color: #1DA2BD;
     }
 }
 
@@ -773,7 +775,7 @@ table.pyhltable .linenodiv { background: none !important; padding-right: 0 !impo
 .quoteblock > .title { margin-left: -1.5em; margin-bottom: 0.75em; }
 .quoteblock blockquote, .quoteblock blockquote p { color: var(--header-color); font-size: 1.15rem; line-height: 1.75; word-spacing: 0.1em; letter-spacing: 0; font-style: italic; text-align: justify; }
 .quoteblock blockquote { margin: 0; padding: 0; border: 0; }
-.quoteblock blockquote:before { content: "\201c"; float: left; font-size: 2.75em; font-weight: bold; line-height: 0.6em; margin-left: -0.6em; color: #7a2518; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); }
+.quoteblock blockquote:before { content: "\201c"; float: left; font-size: 2.75em; font-weight: bold; line-height: 0.6em; margin-left: -0.6em; color: var(--quoteblock-color); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); }
 .quoteblock blockquote > .paragraph:last-child p { margin-bottom: 0; }
 .quoteblock .attribution { margin-top: 0.5em; margin-right: 0.5ex; text-align: right; }
 .quoteblock .quoteblock { margin-left: 0; margin-right: 0; padding: 0.5em 0; border-left: 3px solid rgba(0, 0, 0, 0.6); }
