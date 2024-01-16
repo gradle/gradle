@@ -53,7 +53,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
         List<Throwable> failures = new ArrayList<>();
         graphResults.visitFailures(failures::add);
-        throw new ResolveException(configuration.getDisplayName().toString(), failures);
+        throw new ResolveException(configuration.getDisplayName(), failures);
     }
 
     @Override
@@ -74,7 +74,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
         if (!failures.isEmpty()) {
             throw new DefaultLenientConfiguration.ArtifactResolveException(
                 "files",
-                configuration.getDisplayName().toString(),
+                configuration.getDisplayName(),
                 failures
             );
         }

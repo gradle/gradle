@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.Describable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.LenientConfiguration;
@@ -26,7 +25,7 @@ import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.ResolveArtifactsBuildOperationType;
-import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
@@ -45,7 +44,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Tran
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -77,12 +76,12 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     private final static ResolveArtifactsBuildOperationType.Result RESULT = new ResolveArtifactsBuildOperationType.Result() {
     };
 
-    private final ResolveContext resolveContext;
+    private final ResolutionHost resolutionHost;
+    private final ImmutableAttributes implicitAttributes;
     private final VisitedGraphResults graphResults;
     private final VisitedArtifactsResults artifactResults;
     private final VisitedFileDependencyResults fileDependencyResults;
     private final TransientConfigurationResultsLoader transientConfigurationResultsFactory;
-    private final AttributeContainerInternal implicitAttributes;
     private final BuildOperationExecutor buildOperationExecutor;
     private final DependencyVerificationOverride dependencyVerificationOverride;
     private final WorkerLeaseService workerLeaseService;
@@ -93,7 +92,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     private DependencyVerificationException dependencyVerificationException;
 
     public DefaultLenientConfiguration(
-        ResolveContext resolveContext,
+        ResolutionHost resolutionHost,
+        ImmutableAttributes implicitAttributes,
         VisitedGraphResults graphResults,
         VisitedArtifactsResults artifactResults,
         VisitedFileDependencyResults fileDependencyResults,
@@ -103,8 +103,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         WorkerLeaseService workerLeaseService,
         ArtifactVariantSelector artifactVariantSelector
     ) {
-        this.resolveContext = resolveContext;
-        this.implicitAttributes = resolveContext.getAttributes().asImmutable();
+        this.resolutionHost = resolutionHost;
+        this.implicitAttributes = implicitAttributes;
         this.graphResults = graphResults;
         this.artifactResults = artifactResults;
         this.fileDependencyResults = fileDependencyResults;
@@ -131,7 +131,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     private ArtifactSelectionSpec getImplicitSelectionSpec() {
-        return new ArtifactSelectionSpec(implicitAttributes.asImmutable(), Specs.satisfyAll(), false, false);
+        return new ArtifactSelectionSpec(implicitAttributes, Specs.satisfyAll(), false, false);
     }
 
     @Override
@@ -248,7 +248,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                     throw dependencyVerificationException;
                 } else {
                     try {
-                        dependencyVerificationOverride.artifactsAccessed(getDisplayName().toString());
+                        dependencyVerificationOverride.artifactsAccessed(resolutionHost.getDisplayName());
                     } catch (DependencyVerificationException e) {
                         dependencyVerificationException = e;
                         throw e;
@@ -259,27 +259,21 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                String displayName = "Resolve files of " + resolveContext.getIdentityPath();
+                String displayName = "Resolve files of " + resolutionHost.getDisplayName();
                 return BuildOperationDescriptor
                     .displayName(displayName)
                     .progressDisplayName(displayName)
-                    // TODO: Can we update this to use the identity path?
-                    .details(new ResolveArtifactsDetails(resolveContext.getProjectPath().toString()));
+                    .details(new ResolveArtifactsDetails());
             }
         });
     }
 
     private static class ResolveArtifactsDetails implements ResolveArtifactsBuildOperationType.Details {
 
-        private final String configuration;
-
-        public ResolveArtifactsDetails(String configuration) {
-            this.configuration = configuration;
-        }
-
         @Override
+        @Deprecated
         public String getConfigurationPath() {
-            return configuration;
+            return "";
         }
 
     }
@@ -314,8 +308,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         ParallelResolveArtifactSet.wrap(CompositeResolvedArtifactSet.of(artifactSets), buildOperationExecutor).visit(visitor);
     }
 
-    public Describable getDisplayName() {
-        return resolveContext.asDescribable();
+    public String getDisplayName() {
+        return resolutionHost.getDisplayName();
     }
 
     @Override
