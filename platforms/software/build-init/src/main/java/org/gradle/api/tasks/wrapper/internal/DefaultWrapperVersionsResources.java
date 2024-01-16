@@ -23,7 +23,6 @@ import org.gradle.internal.exceptions.ResolutionProvider;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -77,10 +76,18 @@ public class DefaultWrapperVersionsResources implements WrapperVersionsResources
 
         @Override
         public List<String> getResolutions() {
+            return Arrays.asList(suggestActualVersion(), suggestDynamicVersions());
+        }
+
+        private String suggestActualVersion() {
+            return "Specify a valid Gradle release listed on https://gradle.org/releases/.";
+        }
+
+        private String suggestDynamicVersions() {
             String validStrings = DefaultWrapperVersionsResources.PLACE_HOLDERS.stream()
                 .map(s -> String.format("'%s'", s))
                 .collect(Collectors.joining(", "));
-            return Collections.singletonList("Please specify a valid Gradle version or use one of the following available dynamic version specifications: " + validStrings);
+            return String.format("Use one of the following dynamic version specifications: %s.", validStrings);
         }
     }
 }
