@@ -27,6 +27,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.classpath.ClasspathWalker;
+import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.Stat;
 import org.gradle.work.DisableCachingByDefault;
 import org.objectweb.asm.ClassReader;
@@ -68,16 +69,22 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
             ClasspathWalker walker = services.getClasspathWalker();
             File inputFile = getInput().get().getAsFile();
             Map<String, Set<String>> superTypes = new TreeMap<>();
-            walker.visit(inputFile, entry -> {
-                if (entry.getName().endsWith(".class")) {
-                    ClassReader reader = new ClassReader(entry.getContent());
-                    String className = reader.getClassName();
-                    Set<String> classSuperTypes = getSuperTypes(reader);
-                    if (!classSuperTypes.isEmpty()) {
-                        superTypes.put(className, classSuperTypes);
+            try {
+                walker.visit(inputFile, entry -> {
+                    if (entry.getName().endsWith(".class")) {
+                        ClassReader reader = new ClassReader(entry.getContent());
+                        String className = reader.getClassName();
+                        Set<String> classSuperTypes = getSuperTypes(reader);
+                        if (!classSuperTypes.isEmpty()) {
+                            superTypes.put(className, classSuperTypes);
+                        }
                     }
-                }
-            });
+                });
+            } catch (FileException zipException) {
+                // We support badly formatted jars on the build classpath
+                // see: https://github.com/gradle/gradle/issues/13816
+                return;
+            }
 
             File output = outputs.file(inputFile.getName() + FILE_SUFFIX);
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(output))) {
