@@ -64,6 +64,13 @@ The standard streams (`System.in`, `System.out`, and `System.err`) can now be us
 Other tasks with properties of types `java.io.InputStream` and `java.io.OutputStream` can also use the standard streams as property values.
 Setting up custom standard streams with `System.setIn`, `System.setOut` and `System.setErr` isn't supported.
 
+### Documentation
+
+#### Kotlin DSL Reference
+
+Content derived from Javadoc contains a "Since" section now, specifying the Gradle version when the particular functionality has been introduced.
+The information comes from `@since` tags in the Javadoc, but which weren't displayed until now. 
+
 ### Other improvements
 
 #### Generating tidy projects with Gradle init

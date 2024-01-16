@@ -79,7 +79,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         expect:
         def size = getZip().size()
 
-        println("######## Distribution size ${size}")
         size <= getMaxDistributionSizeBytes()
     }
 
