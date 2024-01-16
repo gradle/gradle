@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,31 +16,57 @@
 
 package org.gradle.problems.internal.transformers;
 
-import org.gradle.api.problems.internal.ProblemTransformer;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.BuildOperationListenerManager;
+import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.problems.internal.OperationListener;
+import org.gradle.internal.operations.OperationProgressEvent;
+import org.gradle.internal.operations.OperationStartEvent;
 
-import javax.annotation.Nonnull;
+import javax.inject.Inject;
+import java.util.HashMap;
 import java.util.Optional;
 
-public abstract class BaseLocationTransformer implements ProblemTransformer {
-    protected final BuildOperationAncestryTracker buildOperationAncestryTracker;
-    protected final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
-    protected final OperationListener operationListener;
 
-    public BaseLocationTransformer(BuildOperationAncestryTracker buildOperationAncestryTracker, OperationListener operationListener) {
+public class BaseLocationTransformer<T> implements BuildOperationListener {
+
+    private final Class<? extends T> detailsClass;
+    private final HashMap<OperationIdentifier, T> detailsMap = new HashMap<>();
+    private final BuildOperationAncestryTracker buildOperationAncestryTracker;
+
+    @Inject
+    public BaseLocationTransformer(
+        Class<? extends T> detailsClass,
+        BuildOperationAncestryTracker buildOperationAncestryTracker,
+        BuildOperationListenerManager buildOperationListenerManager
+    ) {
+        this.detailsClass = detailsClass;
         this.buildOperationAncestryTracker = buildOperationAncestryTracker;
-        this.operationListener = operationListener;
+        buildOperationListenerManager.addListener(this);
     }
 
-    @Nonnull
-    protected Optional<OperationIdentifier> getExecuteTask(Class<?> operationDetailsClass) {
-        return buildOperationAncestryTracker.findClosestMatchingAncestor(
-            currentBuildOperationRef.getId(),
-            id -> operationListener.getOp(id, operationDetailsClass) != null
-        );
+    Optional<T> getExecuteTask(OperationIdentifier id) {
+        return buildOperationAncestryTracker
+            .findClosestMatchingAncestor(id, detailsMap::containsKey)
+            .map(detailsMap::get);
     }
 
+    @Override
+    public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+        if (detailsClass.isInstance(buildOperation.getDetails())) {
+            detailsMap.put(buildOperation.getId(), detailsClass.cast(buildOperation.getDetails()));
+        }
+    }
+
+    @Override
+    public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
+        // Pass
+    }
+
+    @Override
+    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+
+    }
 }

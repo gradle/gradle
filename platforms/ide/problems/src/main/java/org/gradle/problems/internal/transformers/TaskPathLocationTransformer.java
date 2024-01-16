@@ -18,31 +18,32 @@ package org.gradle.problems.internal.transformers;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
-import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
+import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemTransformer;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
-import org.gradle.problems.internal.OperationListener;
+import org.gradle.internal.operations.BuildOperationListenerManager;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.util.Path;
 
-import java.util.Objects;
+import javax.inject.Inject;
 
-public class TaskPathLocationTransformer extends BaseLocationTransformer {
+public class TaskPathLocationTransformer extends BaseLocationTransformer<ExecuteTaskBuildOperationDetails> implements ProblemTransformer {
 
+    @Inject
     public TaskPathLocationTransformer(
         BuildOperationAncestryTracker buildOperationAncestryTracker,
-        OperationListener buildOperationListenerManager
+        BuildOperationListenerManager buildOperationListenerManager
     ) {
-        super(buildOperationAncestryTracker, buildOperationListenerManager);
+        super(ExecuteTaskBuildOperationDetails.class, buildOperationAncestryTracker, buildOperationListenerManager);
     }
 
     @Override
-    public Problem transform(InternalProblem problem) {
-        return getExecuteTask(ExecuteTaskBuildOperationDetails.class)
-            .map(id -> {
+    public Problem transform(InternalProblem problem, OperationIdentifier id) {
+        return getExecuteTask(id)
+            .map(executeTaskDetails -> {
                 try {
-                    ExecuteTaskBuildOperationDetails executeTaskDetails = operationListener.getOp(id, ExecuteTaskBuildOperationDetails.class);
-                    Objects.requireNonNull(executeTaskDetails, "executeTaskDetails should not be null");
                     Path taskPath = executeTaskDetails.getTask().getIdentityPath();
                     InternalProblemBuilder problemBuilder = problem.toBuilder();
                     return problemBuilder.taskPathLocation(taskPath.getPath()).build();
