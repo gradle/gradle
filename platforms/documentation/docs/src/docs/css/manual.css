@@ -1313,7 +1313,7 @@ body.book #header > h1 {
  * selectors except that they end with `.nowrap`.
  */
  .openblock .content {
-    background: #fafafa;
+    background: var(--admonition-background);
  	margin-bottom: 1.25em;
     padding: 1em 1em 0em 1em;
     border-radius: 4px;
