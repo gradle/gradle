@@ -53,6 +53,7 @@ import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.util.GradleVersion;
 
+import java.io.File;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -150,7 +151,9 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     public ClassPath resolveClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler, ConfigurationContainer configContainer) {
         // Clear build service data after resolution so content can be garbage collected
         return runAndClearBuildServiceAfter(() -> {
-            classHierarchy.setFrom(getHierarchyView(classpathConfiguration));
+            // We resolve class hierarchy before instrumentation, otherwise the resolution can block the whole build
+            Set<File> resolvedClassHierarchies = getHierarchyView(classpathConfiguration).getFiles();
+            classHierarchy.setFrom(resolvedClassHierarchies);
             FileCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
             FileCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
             ClassPath instrumentedClasspath = DefaultClassPath.of(instrumentedExternalDependencies.plus(instrumentedProjectDependencies));
