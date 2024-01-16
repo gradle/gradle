@@ -37,7 +37,7 @@ public class ServiceScopeAnnotationValidationTest {
     private static final DescribedPredicate<JavaClass> factory_classes = new DescribedPredicate<JavaClass>("Factory class", "") {
         @Override
         public boolean test(JavaClass javaClass) {
-            return javaClass.isAssignableTo(Factory.class);
+            return javaClass.isEquivalentTo(Factory.class);
         }
     };
 
