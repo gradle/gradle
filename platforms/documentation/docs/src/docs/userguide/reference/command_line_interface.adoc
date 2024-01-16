@@ -183,7 +183,8 @@ include::{snippetsPath}/tutorial/excludeTasks/tests/excludeTask.out[]
 .Simple Task Graph
 image::commandLineTutorialTasks.png[]
 
-You can see that the `test` task is not executed, even though the `dist` task depends on it. The `test` task's dependencies, such as `compileTest`, are not executed either. Those dependencies of `test` that another task also depends upon, such as `compile`, are still executed.
+You can see that the `test` task is not executed, even though it is a dependency of the `dist` task. The `test` task’s dependencies, such as `compileTest`, are not executed either. 
+The dependencies of `test` that other tasks depend on, such as `compile`, are still executed.
 
 [[sec:rerun_tasks]]
 === Forcing tasks to execute
