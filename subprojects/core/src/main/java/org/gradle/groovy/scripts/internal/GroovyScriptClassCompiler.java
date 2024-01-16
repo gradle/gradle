@@ -65,7 +65,7 @@ import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardT
 public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable {
     private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
     private static final String CLASSPATH_PROPERTY_NAME = "classpath";
-    private static final String DSL_ID_PROPERTY_NAME = "dslId";
+    private static final String TEMPLATE_ID_PROPERTY_NAME = "templateId";
     private static final String SOURCE_HASH_PROPERTY_NAME = "sourceHash";
     private final ScriptCompilationHandler scriptCompilationHandler;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
@@ -105,12 +105,12 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             return new EmptyCompiledScript<>(operation);
         }
 
-        String dslId = operation.getId();
+        String templateId = operation.getId();
         // TODO: Figure if execution engine should calculate the source hash on its own
         HashCode sourceHashCode = source.getResource().getContentHash();
         RemappingScriptSource remapped = new RemappingScriptSource(source);
         ClassLoader classLoader = targetScope.getExportClassLoader();
-        File outputDir = doCompile(target, dslId, sourceHashCode, remapped, classLoader, operation, verifier, scriptBaseClass);
+        File outputDir = doCompile(target, templateId, sourceHashCode, remapped, classLoader, operation, verifier, scriptBaseClass);
 
         File genericClassesDir = classesDir(outputDir, operation);
         File metadataDir = metadataDir(outputDir);
@@ -121,7 +121,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
     private <T extends Script> File doCompile(
         Object target,
-        String dslId,
+        String templateId,
         HashCode sourceHashCode,
         RemappingScriptSource source,
         ClassLoader classLoader,
@@ -130,7 +130,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         Class<T> scriptBaseClass
     ) {
         UnitOfWork unitOfWork = new GroovyScriptCompileUnitOfWork(
-            dslId,
+            templateId,
             sourceHashCode,
             classLoader,
             classLoaderHierarchyHasher,
@@ -203,14 +203,14 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
     private static class GroovyScriptCompileUnitOfWork extends BuildScriptCompileUnitOfWork {
 
-        private final String dslId;
+        private final String templateId;
         private final Consumer<File> compileAction;
         private final HashCode sourceHashCode;
         private final ClassLoader classLoader;
         private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
 
         public GroovyScriptCompileUnitOfWork(
-            String dslId,
+            String templateId,
             HashCode sourceHashCode,
             ClassLoader classLoader,
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
@@ -220,7 +220,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             Consumer<File> compileAction
         ) {
             super(workspaceProvider, fileCollectionFactory, inputFingerprinter);
-            this.dslId = dslId;
+            this.templateId = templateId;
             this.sourceHashCode = sourceHashCode;
             this.classLoader = classLoader;
             this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
@@ -229,14 +229,14 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
         @Override
         public void visitIdentityInputs(InputVisitor visitor) {
-            visitor.visitInputProperty(DSL_ID_PROPERTY_NAME, () -> dslId);
+            visitor.visitInputProperty(TEMPLATE_ID_PROPERTY_NAME, () -> templateId);
             visitor.visitInputProperty(SOURCE_HASH_PROPERTY_NAME, () -> sourceHashCode);
             visitor.visitInputProperty(CLASSPATH_PROPERTY_NAME, () -> classLoaderHierarchyHasher.getClassLoaderHash(classLoader));
         }
 
         @Override
         public String getDisplayName() {
-            return "Groovy DSL script compilation (" + dslId + ")";
+            return "Groovy DSL script compilation (" + templateId + ")";
         }
 
         @Override
