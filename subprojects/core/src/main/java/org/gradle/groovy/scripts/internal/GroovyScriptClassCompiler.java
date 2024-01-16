@@ -19,9 +19,9 @@ import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.cache.PersistentCache;
-import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classanalysis.AsmConstants;
@@ -31,13 +31,15 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.classpath.transforms.ClassTransform;
+import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.hash.PrimitiveHasher;
-import org.gradle.internal.logging.progress.ProgressLogger;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
@@ -53,82 +55,111 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.function.Consumer;
 
 import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic;
 
 /**
  * A {@link ScriptClassCompiler} which compiles scripts to a cache directory, and loads them from there.
  */
-public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, Closeable {
+public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable {
     private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
+    private static final String CLASSPATH_PROPERTY_NAME = "classpath";
+    private static final String TEMPLATE_ID_PROPERTY_NAME = "templateId";
+    private static final String SOURCE_HASH_PROPERTY_NAME = "sourceHash";
     private final ScriptCompilationHandler scriptCompilationHandler;
-    private final ProgressLoggerFactory progressLoggerFactory;
-    private final GlobalScopedCacheBuilderFactory cacheBuilderFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final CachedClasspathTransformer classpathTransformer;
+    private final ExecutionEngine earlyExecutionEngine;
+    private final FileCollectionFactory fileCollectionFactory;
+    private final InputFingerprinter inputFingerprinter;
+    private final ImmutableWorkspaceProvider workspaceProvider;
 
-    public FileCacheBackedScriptClassCompiler(
-            GlobalScopedCacheBuilderFactory cacheBuilderFactory, ScriptCompilationHandler scriptCompilationHandler,
-            ProgressLoggerFactory progressLoggerFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-            CachedClasspathTransformer classpathTransformer) {
-        this.cacheBuilderFactory = cacheBuilderFactory;
+    public GroovyScriptClassCompiler(
+        ScriptCompilationHandler scriptCompilationHandler,
+        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        CachedClasspathTransformer classpathTransformer,
+        ExecutionEngine earlyExecutionEngine,
+        FileCollectionFactory fileCollectionFactory,
+        InputFingerprinter inputFingerprinter,
+        ImmutableWorkspaceProvider workspaceProvider
+    ) {
         this.scriptCompilationHandler = scriptCompilationHandler;
-        this.progressLoggerFactory = progressLoggerFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.classpathTransformer = classpathTransformer;
+        this.earlyExecutionEngine = earlyExecutionEngine;
+        this.fileCollectionFactory = fileCollectionFactory;
+        this.inputFingerprinter = inputFingerprinter;
+        this.workspaceProvider = workspaceProvider;
     }
 
     @Override
-    public <T extends Script, M> CompiledScript<T, M> compile(final ScriptSource source,
-                                                              final ClassLoaderScope targetScope,
-                                                              final CompileOperation<M> operation,
-                                                              final Class<T> scriptBaseClass,
-                                                              final Action<? super ClassNode> verifier) {
+    public <T extends Script, M> CompiledScript<T, M> compile(
+        final ScriptSource source, final Class<T> scriptBaseClass, final Object target,
+        final ClassLoaderScope targetScope,
+        final CompileOperation<M> operation,
+        final Action<? super ClassNode> verifier
+    ) {
         assert source.getResource().isContentCached();
         if (source.getResource().getHasEmptyContent()) {
-            return emptyCompiledScript(operation);
+            return new EmptyCompiledScript<>(operation);
         }
 
-        ClassLoader classLoader = targetScope.getExportClassLoader();
+        String templateId = operation.getId();
+        // TODO: Figure if execution engine should calculate the source hash on its own
         HashCode sourceHashCode = source.getResource().getContentHash();
-        final String dslId = operation.getId();
-        HashCode classLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(classLoader);
-        if (classLoaderHash == null) {
-            throw new IllegalArgumentException("Unknown classloader: " + classLoader);
-        }
-        final RemappingScriptSource remapped = new RemappingScriptSource(source);
+        RemappingScriptSource remapped = new RemappingScriptSource(source);
+        ClassLoader classLoader = targetScope.getExportClassLoader();
+        File outputDir = doCompile(target, templateId, sourceHashCode, remapped, classLoader, operation, verifier, scriptBaseClass);
 
-        PrimitiveHasher hasher = Hashing.newPrimitiveHasher();
-        hasher.putString(dslId);
-        hasher.putHash(sourceHashCode);
-        hasher.putHash(classLoaderHash);
-        String key = hasher.hash().toCompactString();
-
-        // Caching involves 2 distinct caches, so that 2 scripts with the same (hash, classpath) do not get compiled twice
-        // 1. First, we look for a cache script which (path, hash) matches. This cache is invalidated when the compile classpath of the script changes
-        // 2. Then we look into the 2d cache for a "generic script" with the same hash, that will be remapped to the script class name
-        // Both caches can be closed directly after use because:
-        // For 1, if the script changes or its compile classpath changes, a different directory will be used
-        // For 2, if the script changes, a different cache is used. If the classpath changes, the cache is invalidated, but classes are remapped to 1. anyway so never directly used
-        final PersistentCache cache = cacheBuilderFactory.createCacheBuilder("scripts/" + key)
-            .withDisplayName(dslId + " generic class cache for " + source.getDisplayName())
-            .withInitializer(new ProgressReportingInitializer(
-                progressLoggerFactory,
-                new CompileToCrossBuildCacheAction(remapped, classLoader, operation, verifier, scriptBaseClass),
-                "Compiling " + source.getShortDisplayName()))
-            .open();
-        try {
-            File genericClassesDir = classesDir(cache, operation);
-            File metadataDir = metadataDir(cache);
-            ClassPath remappedClasses = remapClasses(genericClassesDir, remapped);
-            return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, remappedClasses, metadataDir, operation, scriptBaseClass);
-        } finally {
-            cache.close();
-        }
+        File genericClassesDir = classesDir(outputDir, operation);
+        File metadataDir = metadataDir(outputDir);
+        // TODO: Move instrumentation to the execution engine and remove the remapping or move remapping to the non-cacheable unit of work
+        ClassPath remappedClasses = remapClasses(genericClassesDir, remapped);
+        return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, remappedClasses, metadataDir, operation, scriptBaseClass);
     }
 
-    private <T extends Script, M> CompiledScript<T, M> emptyCompiledScript(CompileOperation<M> operation) {
-        return new EmptyCompiledScript<>(operation);
+    private <T extends Script> File doCompile(
+        Object target,
+        String templateId,
+        HashCode sourceHashCode,
+        RemappingScriptSource source,
+        ClassLoader classLoader,
+        CompileOperation<?> operation,
+        Action<? super ClassNode> verifier,
+        Class<T> scriptBaseClass
+    ) {
+        UnitOfWork unitOfWork = new GroovyScriptCompileUnitOfWork(
+            templateId,
+            sourceHashCode,
+            classLoader,
+            classLoaderHierarchyHasher,
+            workspaceProvider,
+            fileCollectionFactory,
+            inputFingerprinter,
+            workspace -> scriptCompilationHandler.compileToDir(source, classLoader, classesDir(workspace, operation), metadataDir(workspace), operation, scriptBaseClass, verifier)
+        );
+        return getExecutionEngine(target)
+            .createRequest(unitOfWork)
+            .execute()
+            .getOutputAs(File.class)
+            .get();
+    }
+
+    /**
+     * We want to use build cache for script compilation, but build cache might not be available yet with early execution engine.
+     * Thus settings and init scripts are not using build cache for now.<br/><br/>
+     *
+     * When we compile project build scripts, build cache is available, but we need to query execution engine with build cache support
+     * from the project services directly to use it.<br/><br/>
+     *
+     * TODO: Remove this and just inject execution engine once we unify execution engines in https://github.com/gradle/gradle/issues/27249
+     */
+    private ExecutionEngine getExecutionEngine(Object target) {
+        if (target instanceof ProjectInternal) {
+            return ((ProjectInternal) target).getServices().get(ExecutionEngine.class);
+        }
+        return earlyExecutionEngine;
     }
 
     private ClassPath remapClasses(File genericClassesDir, RemappingScriptSource source) {
@@ -137,7 +168,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         return classpathTransformer.transform(DefaultClassPath.of(genericClassesDir), BuildLogic, new ClassTransform() {
             @Override
             public void applyConfigurationTo(Hasher hasher) {
-                hasher.putString(FileCacheBackedScriptClassCompiler.class.getSimpleName());
+                hasher.putString(GroovyScriptClassCompiler.class.getSimpleName());
                 hasher.putInt(1); // transformation version
                 hasher.putString(className);
             }
@@ -162,59 +193,55 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     public void close() {
     }
 
-    private File classesDir(PersistentCache cache, CompileOperation<?> operation) {
-        return new File(cache.getBaseDir(), operation.getId());
+    private File classesDir(File outputDir, CompileOperation<?> operation) {
+        return new File(outputDir, operation.getId());
     }
 
-    private File metadataDir(PersistentCache cache) {
-        return new File(cache.getBaseDir(), "metadata");
+    private File metadataDir(File outputDir) {
+        return new File(outputDir, "metadata");
     }
 
-    private class CompileToCrossBuildCacheAction implements Action<PersistentCache> {
-        private final Action<? super ClassNode> verifier;
-        private final Class<? extends Script> scriptBaseClass;
+    private static class GroovyScriptCompileUnitOfWork extends BuildScriptCompileUnitOfWork {
+
+        private final String templateId;
+        private final Consumer<File> compileAction;
+        private final HashCode sourceHashCode;
         private final ClassLoader classLoader;
-        private final CompileOperation<?> operation;
-        private final ScriptSource source;
+        private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
 
-        public <T extends Script> CompileToCrossBuildCacheAction(ScriptSource source, ClassLoader classLoader, CompileOperation<?> operation,
-                                                                 Action<? super ClassNode> verifier, Class<T> scriptBaseClass) {
-            this.source = source;
+        public GroovyScriptCompileUnitOfWork(
+            String templateId,
+            HashCode sourceHashCode,
+            ClassLoader classLoader,
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            ImmutableWorkspaceProvider workspaceProvider,
+            FileCollectionFactory fileCollectionFactory,
+            InputFingerprinter inputFingerprinter,
+            Consumer<File> compileAction
+        ) {
+            super(workspaceProvider, fileCollectionFactory, inputFingerprinter);
+            this.templateId = templateId;
+            this.sourceHashCode = sourceHashCode;
             this.classLoader = classLoader;
-            this.operation = operation;
-            this.verifier = verifier;
-            this.scriptBaseClass = scriptBaseClass;
+            this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
+            this.compileAction = compileAction;
         }
 
         @Override
-        public void execute(PersistentCache cache) {
-            File classesDir = classesDir(cache, operation);
-            File metadataDir = metadataDir(cache);
-            scriptCompilationHandler.compileToDir(source, classLoader, classesDir, metadataDir, operation, scriptBaseClass, verifier);
-        }
-    }
-
-    static class ProgressReportingInitializer implements Action<PersistentCache> {
-        private final ProgressLoggerFactory progressLoggerFactory;
-        private final Action<? super PersistentCache> delegate;
-        private final String shortDescription;
-
-        public ProgressReportingInitializer(ProgressLoggerFactory progressLoggerFactory,
-                                            Action<PersistentCache> delegate,
-                                            String shortDescription) {
-            this.progressLoggerFactory = progressLoggerFactory;
-            this.delegate = delegate;
-            this.shortDescription = shortDescription;
+        public void visitIdentityInputs(InputVisitor visitor) {
+            visitor.visitInputProperty(TEMPLATE_ID_PROPERTY_NAME, () -> templateId);
+            visitor.visitInputProperty(SOURCE_HASH_PROPERTY_NAME, () -> sourceHashCode);
+            visitor.visitInputProperty(CLASSPATH_PROPERTY_NAME, () -> classLoaderHierarchyHasher.getClassLoaderHash(classLoader));
         }
 
         @Override
-        public void execute(PersistentCache cache) {
-            ProgressLogger op = progressLoggerFactory.newOperation(FileCacheBackedScriptClassCompiler.class).start(shortDescription, shortDescription);
-            try {
-                delegate.execute(cache);
-            } finally {
-                op.completed();
-            }
+        public String getDisplayName() {
+            return "Groovy DSL script compilation (" + templateId + ")";
+        }
+
+        @Override
+        public void compileTo(File classesDir) {
+            compileAction.accept(classesDir);
         }
     }
 
