@@ -21,7 +21,7 @@ import com.gradle.enterprise.gradleplugin.testselection.PredictiveTestSelectionE
 import com.gradle.enterprise.gradleplugin.testselection.internal.PredictiveTestSelectionExtensionInternal
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
-import gradlebuild.basics.accessors.kotlin
+import gradlebuild.basics.accessors.kotlinMainSourceSet
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.maxParallelForks
 import gradlebuild.basics.maxTestDistributionRemoteExecutors
@@ -102,7 +102,7 @@ fun configureSourcesVariant() {
             outgoing.artifact(it)
         }
         pluginManager.withPlugin("org.jetbrains.kotlin.jvm") {
-            main.kotlin.srcDirs.forEach {
+            kotlinMainSourceSet.srcDirs.forEach {
                 outgoing.artifact(it)
             }
         }

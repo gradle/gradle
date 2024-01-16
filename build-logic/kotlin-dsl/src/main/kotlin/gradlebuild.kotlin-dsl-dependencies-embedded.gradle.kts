@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import gradlebuild.basics.accessors.kotlin
+import gradlebuild.basics.accessors.kotlinMainSourceSet
 import gradlebuild.basics.util.ReproduciblePropertiesWriter
 import gradlebuild.kotlindsl.generator.tasks.GenerateKotlinDependencyExtensions
 
@@ -37,9 +37,7 @@ tasks {
 
     val apiExtensionsFileCollection = files(apiExtensionsOutputDir).builtBy(generateKotlinDependencyExtensions)
 
-    sourceSets.main {
-        kotlin.srcDir(apiExtensionsFileCollection)
-    }
+    kotlinMainSourceSet.srcDir(apiExtensionsFileCollection)
 
     // Workaround for https://github.com/gradle/gradle/issues/24131
     // See gradlebuild.unittest-and-compile.gradle.kts
