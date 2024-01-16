@@ -21,29 +21,29 @@ import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
 import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemTransformer;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
+import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.problems.internal.OperationListener;
 import org.gradle.util.Path;
 
-import java.util.Objects;
+import javax.inject.Inject;
 
-public class TaskPathLocationTransformer extends BaseLocationTransformer {
+public class TaskPathLocationTransformer extends BaseLocationTransformer<ExecuteTaskBuildOperationDetails> implements ProblemTransformer {
 
+    @Inject
     public TaskPathLocationTransformer(
         BuildOperationAncestryTracker buildOperationAncestryTracker,
-        OperationListener buildOperationListenerManager
+        BuildOperationListenerManager buildOperationListenerManager
     ) {
-        super(buildOperationAncestryTracker, buildOperationListenerManager);
+        super(ExecuteTaskBuildOperationDetails.class, buildOperationAncestryTracker, buildOperationListenerManager);
     }
 
     @Override
     public Problem transform(InternalProblem problem, OperationIdentifier id) {
-        return getExecuteTask(ExecuteTaskBuildOperationDetails.class, id)
-            .map(executeOpId -> {
+        return getExecuteTask(id)
+            .map(executeTaskDetails -> {
                 try {
-                    ExecuteTaskBuildOperationDetails executeTaskDetails = operationListener.getOp(executeOpId, ExecuteTaskBuildOperationDetails.class);
-                    Objects.requireNonNull(executeTaskDetails, "executeTaskDetails should not be null");
                     Path taskPath = executeTaskDetails.getTask().getIdentityPath();
                     InternalProblemBuilder problemBuilder = problem.toBuilder();
                     return problemBuilder.taskPathLocation(taskPath.getPath()).build();

@@ -20,28 +20,28 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.plugins.DefaultPluginManager.OperationDetails;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemTransformer;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
+import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.problems.internal.OperationListener;
 
-import java.util.Objects;
+import javax.inject.Inject;
 
-public class PluginIdLocationTransformer extends BaseLocationTransformer {
+public class PluginIdLocationTransformer extends BaseLocationTransformer<OperationDetails> implements ProblemTransformer {
 
+    @Inject
     public PluginIdLocationTransformer(
         BuildOperationAncestryTracker buildOperationAncestryTracker,
-        OperationListener operationListener
+        BuildOperationListenerManager buildOperationListenerManager
     ) {
-        super(buildOperationAncestryTracker, operationListener);
+        super(OperationDetails.class, buildOperationAncestryTracker, buildOperationListenerManager);
     }
 
     @Override
     public Problem transform(InternalProblem problem, OperationIdentifier id) {
-        return getExecuteTask(OperationDetails.class, id)
-            .map(executeOpId -> {
+        return getExecuteTask(id)
+            .map(operationDetails -> {
                 try {
-                    OperationDetails operationDetails = operationListener.getOp(executeOpId, OperationDetails.class);
-                    Objects.requireNonNull(operationDetails, "operationDetails should not be null");
                     String pluginId = operationDetails.getPluginId();
                     if (pluginId != null) {
                         return problem.toBuilder().pluginLocation(pluginId).build();
