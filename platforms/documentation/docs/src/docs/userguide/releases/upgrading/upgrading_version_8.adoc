@@ -40,6 +40,10 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== Upgrade to Kotlin 1.9.22
+
+The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.22[Kotlin 1.9.22].
+
 === Deprecations
 
 [[deprecated_invalid_url_decoding]]
