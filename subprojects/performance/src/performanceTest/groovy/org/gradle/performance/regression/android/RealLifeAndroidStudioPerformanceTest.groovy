@@ -19,19 +19,13 @@ package org.gradle.performance.regression.android
 import org.apache.commons.io.FilenameUtils
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.gradle.performance.annotations.RunFor
-import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.ScenarioContext
+import spock.lang.Ignore
 
-import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
-import static org.gradle.performance.results.OperatingSystem.LINUX
-
-@RunFor(
-    @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild", "nowInAndroidBuild"])
-)
+@Ignore("https://github.com/gradle/gradle-private/issues/4085")
 class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerformanceTest implements AndroidPerformanceTestFixture {
 
     /**
