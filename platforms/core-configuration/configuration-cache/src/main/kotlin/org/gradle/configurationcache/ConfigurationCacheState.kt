@@ -108,6 +108,10 @@ enum class StateType(val encryptable: Boolean = false) {
      * Contains the dependency resolution metadata for each project.
      */
     ProjectMetadata(false),
+    /**
+     * Contains shared data exposed from projects
+     */
+    SharedData(true),
     BuildFingerprint(true),
     ProjectFingerprint(true),
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.cacheentry
-
-import org.gradle.cache.internal.streams.BlockAddress
-import org.gradle.util.Path
-import java.io.File
-
-
 /**
- * Data stored in the "entry details" file. Provides some metadata about the cache entry.
+ * Shared Data API implementation.
  */
-internal
-class EntryDetails(
-    val rootDirs: List<File>,
-    val intermediateModels: Map<ModelKey, BlockAddress>,
-    val projectMetadata: Map<Path, BlockAddress>,
-    val sharedData: Map<Path, BlockAddress>
-)
+@NonNullApi
+package org.gradle.internal.shareddata;
+
+import org.gradle.api.NonNullApi;

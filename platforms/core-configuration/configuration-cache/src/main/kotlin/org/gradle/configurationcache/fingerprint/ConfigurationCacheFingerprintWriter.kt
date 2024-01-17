@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.internal.shareddata.CrossProjectConfigurationDependencyListener
 import org.gradle.api.internal.artifacts.configurations.ProjectDependencyObservedListener
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener
@@ -102,6 +103,7 @@ class ConfigurationCacheFingerprintWriter(
     UndeclaredBuildInputListener,
     ChangingValueDependencyResolutionListener,
     ProjectDependencyObservedListener,
+    CrossProjectConfigurationDependencyListener,
     CoupledProjectsListener,
     ToolingModelProjectDependencyListener,
     FileResourceListener,
@@ -540,8 +542,22 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun dependencyObserved(consumingProject: ProjectState?, targetProject: ProjectState, requestedState: ConfigurationInternal.InternalState, target: ResolvedProjectConfiguration) {
-        if (consumingProject != null) {
-            onProjectDependency(consumingProject, targetProject)
+        if (host.cacheIntermediateModels && consumingProject != null) {
+            recordProjectDependency(consumingProject, targetProject.identityPath)
+        }
+    }
+
+    override fun configurationDependencyObserved(consumingProject: ProjectState, targetProjectIdentityPath: Path) {
+        if (host.cacheIntermediateModels) {
+            recordProjectDependency(consumingProject, targetProjectIdentityPath)
+        }
+    }
+
+    private
+    fun recordProjectDependency(consumingProject: ProjectState, targetProjectIdentityPath: Path) {
+        val dependency = ProjectSpecificFingerprint.ProjectDependency(consumingProject.identityPath, targetProjectIdentityPath)
+        if (projectDependencies.add(dependency)) {
+            projectScopedWriter.write(dependency)
         }
     }
 

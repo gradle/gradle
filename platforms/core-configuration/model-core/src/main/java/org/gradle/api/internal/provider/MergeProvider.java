@@ -137,5 +137,12 @@ public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> {
                 item.visitProducerTasks(visitor);
             }
         }
+
+        @Override
+        public void visitProducerExtras(Action<? super ValueProducerExtra> visitor) {
+            for (ValueProducer item : items) {
+                item.visitProducerExtras(visitor);
+            }
+        }
     }
 }
