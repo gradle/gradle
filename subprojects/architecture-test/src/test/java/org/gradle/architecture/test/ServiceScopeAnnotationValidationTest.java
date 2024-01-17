@@ -34,7 +34,7 @@ import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 @AnalyzeClasses(packages = "org.gradle")
 public class ServiceScopeAnnotationValidationTest {
 
-    private static final DescribedPredicate<JavaClass> factory_classes = new DescribedPredicate<JavaClass>("Factory class", "") {
+    private static final DescribedPredicate<JavaClass> factory_classes = new DescribedPredicate<JavaClass>("Factory class") {
         @Override
         public boolean test(JavaClass javaClass) {
             return javaClass.isEquivalentTo(Factory.class);
