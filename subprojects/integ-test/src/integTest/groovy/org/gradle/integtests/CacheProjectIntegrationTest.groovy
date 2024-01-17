@@ -71,12 +71,12 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
 
     private void updateCaches() {
         String version = GradleVersion.current().version
-        classPathClassesDir = userHomeDir.file("caches/$version/groovy-dsl").listFiles().find { it.file("classes/cp_proj").isDirectory() }?.file("classes/cp_proj")
-        def candidates = userHomeDir.file("caches/$version/groovy-dsl").listFiles().findAll { it.file("classes/proj").isDirectory() }
+        classPathClassesDir = userHomeDir.file("caches/$version/groovy-dsl").listFiles().find { it.file("original/cp_proj").isDirectory() }?.file("original/cp_proj")
+        def candidates = userHomeDir.file("caches/$version/groovy-dsl").listFiles().findAll { it.file("original/proj").isDirectory() }
         // when there are multiple candidates, assume that a different entry to that used last time is the one required
         def baseDir = candidates.size() == 1 ? candidates.first() : candidates.find {it !in visitedBaseDirs }
         visitedBaseDirs.add(baseDir)
-        classFile = baseDir.file("classes/proj/_BuildScript_.class")
+        classFile = baseDir.file("original/proj/_BuildScript_.class")
     }
 
     @Test
