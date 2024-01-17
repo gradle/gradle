@@ -213,6 +213,75 @@ dependencies {
 ==== Deprecated `ArtifactIdentifier`
 The `ArtifactIdentifier` class has been deprecated for removal in Gradle 9.0.
 
+[[dependency_mutate_dependency_collector_after_finalize]]
+==== Deprecate mutating `DependencyCollector` dependencies after observation
+
+Starting in Gradle 9.0, mutating dependencies sourced from a link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyCollector.html[DependencyCollector] after those dependencies have been observed will result in an error.
+The `DependencyCollector` interface is used to declare dependencies within the test suites DSL.
+
+Consider the following example where a test suite's dependency is mutated after it is observed:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+}
+
+testing.suites {
+    named<JvmTestSuite>("test") {
+        dependencies {
+            // Dependency is declared on a `DependencyCollector`
+            implementation("com:foo")
+        }
+    }
+}
+
+configurations.testImplementation {
+    // Calling `all` here realizes/observes all lazy sources, including the `DependencyCollector`
+    // from the test suite block. Operations like resolving a configuration similarly realize lazy sources.
+    dependencies.all {
+        if (this is ExternalDependency && group == "com" && name == "foo" && version == null) {
+            // Dependency is mutated after observation
+            version {
+                require("2.0")
+            }
+        }
+    }
+}
+----
+======
+=====
+
+In the above example, the build logic uses iteration and mutation to try to set a default version for a particular dependency if the version is not already set.
+Build logic like the above example creates challenges in resolving declared dependencies, as reporting tools will display this dependency as if the user declared the version as "2.0", even though they never did.
+Instead, the build logic can avoid iteration and mutation by declaring a `preferred` version constraint on the dependency's coordinates.
+This allows the dependency management engine to use the version declared on the constraint if no other version is declared.
+
+Consider the following example that replaces the above iteration with an indiscriminate <<rich_versions.adoc#sec:preferred-version,preferred>> version constraint:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    constraints {
+        testImplementation("com:foo") {
+            version {
+                prefer("2.0")
+            }
+        }
+    }
+}
+----
+======
+=====
+
 [[changes_8.5]]
 == Upgrading from 8.4 and earlier
 

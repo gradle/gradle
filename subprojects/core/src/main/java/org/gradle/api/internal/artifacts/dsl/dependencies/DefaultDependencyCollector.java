@@ -30,6 +30,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Nested;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -64,8 +65,10 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
         if (mutable instanceof AbstractModuleDependency) {
             ((AbstractModuleDependency) mutable).addMutationValidator(validator -> {
                 if (((PropertyInternal<?>) getDependencies()).isFinalized()) {
-                    throw new InvalidUserCodeException(
-                        "Cannot mutate '" + mutable + "' after it has been finalized.");
+                    DeprecationLogger.deprecateAction("Mutating dependency " + mutable + " after it has been finalized")
+                        .willBecomeAnErrorInGradle9()
+                        .withUpgradeGuideSection(8, "dependency_mutate_dependency_collector_after_finalize")
+                        .nagUser();
                 }
             });
         }
