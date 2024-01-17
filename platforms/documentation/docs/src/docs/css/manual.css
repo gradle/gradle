@@ -46,7 +46,7 @@
     --top-header-color: #fff;
     --footer-white-color: #fff;
     --footer-text-color: #fff;
-    --quoteblock-color: #7a2518
+    --quoteblock-color: #7a2518;
 }
 @media (prefers-color-scheme: dark) {
     :root {
