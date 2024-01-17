@@ -50,14 +50,14 @@ Many top-level properties and blocks in a settings script are part of the Settin
 
 For example, we can set the root project name in the settings script using the `Settings.rootProject` property:
 
-[source]
+[source,kotlin]
 ----
 settings.rootProject.name = "root"
 ----
 
 Which is usually shortened to:
 
-[source]
+[source,kotlin]
 ----
 rootProject.name = "root"
 ----
@@ -110,7 +110,7 @@ A `{ }` block is called a _lambda_ in Kotlin or a _closure_ in Groovy.
 Simply put, the `plugins{ }` block is a method invocation in which a Kotlin _lambda_ object or Groovy _closure_ object is passed as the argument.
 It is the short form for:
 
-[source]
+[source,kotlin]
 ----
 plugins(function() {
     id("plugin")

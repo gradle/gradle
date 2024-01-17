@@ -61,7 +61,7 @@ To add a dependency to your project, specify a dependency in the dependencies bl
 
 The following `build.gradle.kts` file adds a plugin and two dependencies to the project using the version catalog above:
 
-[source]
+[source,kotlin]
 ----
 plugins {
    alias(libs.plugins.android.application)  // <1>
@@ -90,7 +90,7 @@ NOTE: There are many more configurations available.
 
 You can view your dependency tree in the terminal using the `./gradlew :app:dependencies` command:
 
-[source]
+[source,text]
 ----
 $ ./gradlew :app:dependencies
 

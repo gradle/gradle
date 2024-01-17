@@ -2506,14 +2506,51 @@ div.screenshot {
     }
 }
 
+/* Added dark mode and other items for outdated Prettify.css */
+code[data-lang="text"] .pln,
+code[data-lang="text"] .str,
+code[data-lang="text"] .kwd,
+code[data-lang="text"] .com,
+code[data-lang="text"] .typ,
+code[data-lang="text"] .lit,
+code[data-lang="text"] .pun,
+code[data-lang="text"] .opn,
+code[data-lang="text"] .clo,
+code[data-lang="text"] .tag,
+code[data-lang="text"] .atn,
+code[data-lang="text"] .atv,
+code[data-lang="text"] .dec,
+code[data-lang="text"] .var,
+code[data-lang="text"] .fun{
+    color:#000
+}
+
+@media screen and (prefers-color-scheme: dark){
+    code[data-lang="text"] .pln,
+    code[data-lang="text"] .str,
+    code[data-lang="text"] .kwd,
+    code[data-lang="text"] .com,
+    code[data-lang="text"] .typ,
+    code[data-lang="text"] .lit,
+    code[data-lang="text"] .pun,
+    code[data-lang="text"] .opn,
+    code[data-lang="text"] .clo,
+    code[data-lang="text"] .tag,
+    code[data-lang="text"] .atn,
+    code[data-lang="text"] .atv,
+    code[data-lang="text"] .dec,
+    code[data-lang="text"] .var,
+    code[data-lang="text"] .fun{
+        color:#fff
+    }
+}
+
 @media (prefers-color-scheme: dark) {
     .pln{
         color:#fff !important;
     }
-    li.L1,li.L3,li.L5,li.L7,li.L9{
-        background:#111 !important;
-    }
 }
+
 @media screen and (prefers-color-scheme: dark){
     .str{
         color:#f7f !important;
@@ -2549,6 +2586,7 @@ div.screenshot {
         color:green !important;
     }
 }
+
 @media print,projection and (prefers-color-scheme: dark) {
     .str {
         color: #f9f !important;
@@ -2586,6 +2624,13 @@ div.screenshot {
         color: #f9f !important;
     }
 }
+
+@media (prefers-color-scheme: dark) {
+    li.L1,li.L3,li.L5,li.L7,li.L9{
+        background:#111 !important;
+    }
+}
+
 
 /* Custom Download button*/
 /* CSS */

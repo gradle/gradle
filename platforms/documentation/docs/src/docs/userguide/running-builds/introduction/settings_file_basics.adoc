@@ -74,7 +74,7 @@ include('sub-project-c')
 
 The settings file defines your project name:
 
-[source]
+[source,kotlin]
 ----
 rootProject.name = "root-project"
 ----
@@ -85,7 +85,7 @@ There is only one root project per build.
 
 The settings file defines the structure of the project by including subprojects, if there are any:
 
-[source]
+[source,kotlin]
 ----
 include("app")
 include("business-logic")

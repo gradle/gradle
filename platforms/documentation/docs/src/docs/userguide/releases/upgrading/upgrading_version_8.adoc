@@ -360,7 +360,7 @@ You can work around this by running your build with the `javax.xml.accessExterna
 
 On the command line, add this to your Gradle invocation:
 
-[source]
+[source,properties]
 ----
 -Djavax.xml.accessExternalDTD=http
 ----

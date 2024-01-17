@@ -38,7 +38,7 @@ Learn the basics of project dependencies and Gradle's dependency management.
 Gradle provides excellent support for dependency management and automation.
 
 Let's take another look at our build script (the `gradle.build.kts` file), specifically the following section:
-[source]
+[source,kotlin]
 ----
 repositories {
     // Use Maven Central for resolving dependencies.
@@ -94,7 +94,7 @@ Therefore `failureaccess` is a transitive dependency of the project.
 
 == Step 3. Viewing Project Dependencies
 You can view your dependency tree in the terminal using the `./gradlew :app:dependencies` command:
-[source]
+[source,kotlin]
 ----
 $ ./gradlew :app:dependencies
 
@@ -124,7 +124,7 @@ The output clearly depicts that `com.google.guava:guava:32.1.2-jre` has a depend
 To view dependencies using a https://scans.gradle.com/[Build Scan], run the build task with an optional `--scan` flag.
 
 In the `tutorial` directory, enter the command below and follow the prompt to accept the terms:
-[source]
+[source,text]
 ----
 $ ./gradlew build --scan
 
@@ -172,7 +172,7 @@ Adding and changing dependencies is done in the build file.
 Let's change the `guava` version and look at how this affects the dependency tree.
 
 Change the `guava` dependency to the `gradle.build.kts` file to:
-[source]
+[source,kotlin]
 ----
 implementation("com.google.guava:guava:30.0-jre")
 ----
@@ -186,7 +186,7 @@ Run `./gradlew build --scan` and view the Build Scan results:
 image::tutorial/build-scan-change.png[]
 
 Run `./gradlew :app:dependencies` in the terminal to check the changes in the dependency tree:
-[source]
+[source,text]
 ----
 compileClasspath - Compile classpath for source set 'main'.
 \--- com.google.guava:guava:30.0-jre
