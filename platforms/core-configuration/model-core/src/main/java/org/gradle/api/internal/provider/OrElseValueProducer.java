@@ -22,7 +22,6 @@ import org.gradle.api.Task;
 import javax.annotation.Nullable;
 
 class OrElseValueProducer implements ValueSupplier.ValueProducer {
-
     private final EvaluationContext.EvaluationOwner owner;
     private final ProviderInternal<?> left;
     @Nullable
@@ -30,20 +29,20 @@ class OrElseValueProducer implements ValueSupplier.ValueProducer {
     private final ValueSupplier.ValueProducer leftProducer;
     private final ValueSupplier.ValueProducer rightProducer;
 
-    public OrElseValueProducer(EvaluationContext.ScopeContext ignoredContext, EvaluationContext.EvaluationOwner owner, ProviderInternal<?> left) {
-        this.owner = owner;
-        this.left = left;
-        this.leftProducer = left.getProducer();
-        this.right = null;
-        this.rightProducer = ValueSupplier.ValueProducer.unknown();
+    public OrElseValueProducer(EvaluationContext.ScopeContext context, ProviderInternal<?> left) {
+        this(context, left, null, ValueSupplier.ValueProducer.unknown());
     }
 
-    public OrElseValueProducer(EvaluationContext.ScopeContext ignoredContext, EvaluationContext.EvaluationOwner owner, ProviderInternal<?> left, ProviderInternal<?> right) {
-        this.owner = owner;
+    public OrElseValueProducer(EvaluationContext.ScopeContext context, ProviderInternal<?> left, ProviderInternal<?> right) {
+        this(context, left, right, right.getProducer());
+    }
+
+    private OrElseValueProducer(EvaluationContext.ScopeContext context, ProviderInternal<?> left, @Nullable ProviderInternal<?> right, ValueSupplier.ValueProducer rightProducer) {
+        this.owner = context.getOwner();
         this.left = left;
         this.right = right;
         this.leftProducer = left.getProducer();
-        this.rightProducer = right.getProducer();
+        this.rightProducer = rightProducer;
     }
 
     @Override
@@ -54,20 +53,20 @@ class OrElseValueProducer implements ValueSupplier.ValueProducer {
 
     @Override
     public void visitProducerTasks(Action<? super Task> visitor) {
-        if (mayHaveValue(left)) {
-            if (leftProducer.isKnown()) {
-                leftProducer.visitProducerTasks(visitor);
+        try (EvaluationContext.ScopeContext ignored = EvaluationContext.current().open(owner)) {
+            if (mayHaveValue(left)) {
+                if (leftProducer.isKnown()) {
+                    leftProducer.visitProducerTasks(visitor);
+                }
+                return;
             }
-            return;
-        }
-        if (right != null && rightProducer.isKnown() && mayHaveValue(right)) {
-            rightProducer.visitProducerTasks(visitor);
+            if (right != null && rightProducer.isKnown() && mayHaveValue(right)) {
+                rightProducer.visitProducerTasks(visitor);
+            }
         }
     }
 
     private boolean mayHaveValue(ProviderInternal<?> provider) {
-        try (EvaluationContext.ScopeContext ignored = EvaluationContext.current().open(owner)) {
-            return !provider.calculateExecutionTimeValue().isMissing();
-        }
+        return !provider.calculateExecutionTimeValue().isMissing();
     }
 }

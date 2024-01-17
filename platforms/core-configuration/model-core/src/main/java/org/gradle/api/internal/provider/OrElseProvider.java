@@ -41,7 +41,7 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
     @Override
     public ValueProducer getProducer() {
         try (EvaluationContext.ScopeContext context = openScope()) {
-            return new OrElseValueProducer(context, this, left, right);
+            return new OrElseValueProducer(context, left, right);
         }
     }
 
