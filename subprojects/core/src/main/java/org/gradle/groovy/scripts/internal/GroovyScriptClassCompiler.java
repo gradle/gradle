@@ -31,6 +31,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.classpath.transforms.ClassTransform;
+import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
@@ -57,8 +58,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.function.Consumer;
 
-import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic;
-
 /**
  * A {@link ScriptClassCompiler} which compiles scripts to a cache directory, and loads them from there.
  */
@@ -74,6 +73,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
     private final FileCollectionFactory fileCollectionFactory;
     private final InputFingerprinter inputFingerprinter;
     private final ImmutableWorkspaceProvider workspaceProvider;
+    private final ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy;
 
     public GroovyScriptClassCompiler(
         ScriptCompilationHandler scriptCompilationHandler,
@@ -82,7 +82,8 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         ExecutionEngine earlyExecutionEngine,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
-        ImmutableWorkspaceProvider workspaceProvider
+        ImmutableWorkspaceProvider workspaceProvider,
+        ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy
     ) {
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
@@ -91,6 +92,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
         this.workspaceProvider = workspaceProvider;
+        this.transformFactoryForLegacy = transformFactoryForLegacy;
     }
 
     @Override
@@ -114,7 +116,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
         File genericClassesDir = classesDir(outputDir, operation);
         File metadataDir = metadataDir(outputDir);
-        // TODO: Move instrumentation to the execution engine and remove the remapping or move remapping to the non-cacheable unit of work
+        // TODO: Remove the remapping or move remapping to the non-cacheable unit of work?
         ClassPath remappedClasses = remapClasses(genericClassesDir, remapped);
         return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, remappedClasses, metadataDir, operation, scriptBaseClass);
     }
@@ -137,6 +139,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             workspaceProvider,
             fileCollectionFactory,
             inputFingerprinter,
+            transformFactoryForLegacy,
             workspace -> scriptCompilationHandler.compileToDir(source, classLoader, classesDir(workspace, operation), metadataDir(workspace), operation, scriptBaseClass, verifier)
         );
         return getExecutionEngine(target)
@@ -165,7 +168,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
     private ClassPath remapClasses(File genericClassesDir, RemappingScriptSource source) {
         ScriptSource origin = source.getSource();
         String className = origin.getClassName();
-        return classpathTransformer.transform(DefaultClassPath.of(genericClassesDir), BuildLogic, new ClassTransform() {
+        return classpathTransformer.transform(DefaultClassPath.of(genericClassesDir), new ClassTransform() {
             @Override
             public void applyConfigurationTo(Hasher hasher) {
                 hasher.putString(GroovyScriptClassCompiler.class.getSimpleName());
@@ -193,7 +196,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
     public void close() {
     }
 
-    private File classesDir(File outputDir, CompileOperation<?> operation) {
+    private static File classesDir(File outputDir, CompileOperation<?> operation) {
         return new File(outputDir, operation.getId());
     }
 
@@ -217,9 +220,10 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             ImmutableWorkspaceProvider workspaceProvider,
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
+            ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy,
             Consumer<File> compileAction
         ) {
-            super(workspaceProvider, fileCollectionFactory, inputFingerprinter);
+            super(workspaceProvider, fileCollectionFactory, inputFingerprinter, transformFactoryForLegacy);
             this.templateId = templateId;
             this.sourceHashCode = sourceHashCode;
             this.classLoader = classLoader;

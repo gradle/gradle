@@ -17,6 +17,10 @@
 package org.gradle.internal.scripts;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.internal.classpath.transforms.ClasspathElementTransform;
+import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
+import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
+import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
@@ -41,15 +45,18 @@ public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWor
     private final ImmutableWorkspaceProvider workspaceProvider;
     private final FileCollectionFactory fileCollectionFactory;
     private final InputFingerprinter inputFingerprinter;
+    private final ClasspathElementTransformFactoryForLegacy transformFactory;
 
     public BuildScriptCompileUnitOfWork(
         ImmutableWorkspaceProvider workspaceProvider,
         FileCollectionFactory fileCollectionFactory,
-        InputFingerprinter inputFingerprinter
+        InputFingerprinter inputFingerprinter,
+        ClasspathElementTransformFactoryForLegacy transformFactory
     ) {
         this.workspaceProvider = workspaceProvider;
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
+        this.transformFactory = transformFactory;
     }
 
     @Override
@@ -76,7 +83,10 @@ public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWor
     @Override
     public WorkOutput execute(ExecutionRequest executionRequest) {
         File workspace = executionRequest.getWorkspace();
-        compileTo(classesDir(workspace));
+        File classesDir = classesDir(workspace);
+        File transformDir = transformDir(workspace);
+        compileTo(classesDir);
+        instrument(classesDir, transformDir);
         return new UnitOfWork.WorkOutput() {
             @Override
             public WorkResult getDidWork() {
@@ -91,10 +101,15 @@ public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWor
         };
     }
 
+    private void instrument(File sourceDir, File destinationDir) {
+        ClasspathElementTransform transform = transformFactory.createTransformer(sourceDir, new InstrumentingClassTransform(), InstrumentingTypeRegistry.EMPTY);
+        transform.transform(destinationDir);
+    }
+
     @Nullable
     @Override
     public Object loadAlreadyProducedOutput(File workspace) {
-        return classesDir(workspace);
+        return transformDir(workspace);
     }
 
     @Override
@@ -111,5 +126,9 @@ public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWor
 
     private static File classesDir(File workspace) {
         return new File(workspace, "classes");
+    }
+
+    private static File transformDir(File workspace) {
+        return new File(workspace, "transformed");
     }
 }

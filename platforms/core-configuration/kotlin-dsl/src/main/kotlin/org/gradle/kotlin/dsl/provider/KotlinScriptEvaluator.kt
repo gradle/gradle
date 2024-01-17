@@ -30,9 +30,9 @@ import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
-import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
@@ -101,6 +101,7 @@ class StandardKotlinScriptEvaluator(
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter,
     private val gradlePropertiesController: GradlePropertiesController,
+    private val transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -263,7 +264,8 @@ class StandardKotlinScriptEvaluator(
                         classpathHasher,
                         workspaceProvider,
                         fileCollectionFactory,
-                        inputFingerprinter
+                        inputFingerprinter,
+                        transformFactoryForLegacy
                     )
                 )
                 .execute()
@@ -284,8 +286,7 @@ class StandardKotlinScriptEvaluator(
             className: String,
             accessorsClassPath: ClassPath
         ): CompiledScript {
-            val instrumentedClasses = cachedClasspathTransformer.transform(DefaultClassPath.of(location), BuildLogic)
-            val classpath = instrumentedClasses.plus(accessorsClassPath)
+            val classpath = DefaultClassPath.of(location).plus(accessorsClassPath)
             return ScopeBackedCompiledScript(classLoaderScope, childScopeId, origin, classpath, className)
         }
 
@@ -354,7 +355,8 @@ class StandardKotlinScriptEvaluator(
         workspaceProvider: KotlinDslWorkspaceProvider,
         fileCollectionFactory: FileCollectionFactory,
         inputFingerprinter: InputFingerprinter,
-    ) : BuildScriptCompileUnitOfWork(workspaceProvider.scripts, fileCollectionFactory, inputFingerprinter) {
+        transformFactory: ClasspathElementTransformFactoryForLegacy
+    ) : BuildScriptCompileUnitOfWork(workspaceProvider.scripts, fileCollectionFactory, inputFingerprinter, transformFactory) {
 
         companion object {
             const val JVM_TARGET = "jvmTarget"
