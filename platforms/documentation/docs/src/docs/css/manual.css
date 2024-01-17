@@ -2522,7 +2522,7 @@ code[data-lang="text"] .atv,
 code[data-lang="text"] .dec,
 code[data-lang="text"] .var,
 code[data-lang="text"] .fun{
-    color:#000
+    color:#000;
 }
 
 @media screen and (prefers-color-scheme: dark){
@@ -2541,7 +2541,7 @@ code[data-lang="text"] .fun{
     code[data-lang="text"] .dec,
     code[data-lang="text"] .var,
     code[data-lang="text"] .fun{
-        color:#fff
+        color:#fff !important;
     }
 }
 
