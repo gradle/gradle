@@ -76,7 +76,6 @@ Class <org.gradle.internal.nativeintegration.network.HostnameLookup> is not anno
 Class <org.gradle.internal.operations.logging.BuildOperationLoggerFactory> is not annotated with @ServiceScope in (BuildOperationLoggerFactory.java:0)
 Class <org.gradle.internal.reflect.Instantiator> is not annotated with @ServiceScope in (Instantiator.java:0)
 Class <org.gradle.internal.resource.TextUriResourceLoader$Factory> is not annotated with @ServiceScope in (TextUriResourceLoader.java:0)
-Class <org.gradle.internal.service.ServiceRegistry> is not annotated with @ServiceScope in (ServiceRegistry.java:0)
 Class <org.gradle.internal.time.Clock> is not annotated with @ServiceScope in (Clock.java:0)
 Class <org.gradle.jvm.toolchain.JavaToolchainService> is not annotated with @ServiceScope in (JavaToolchainService.java:0)
 Class <org.gradle.jvm.toolchain.internal.DefaultJvmToolchainManagement> is not annotated with @ServiceScope in (DefaultJvmToolchainManagement.java:0)

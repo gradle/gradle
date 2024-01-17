@@ -22,6 +22,7 @@ import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import org.gradle.internal.Factory;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.inject.Inject;
@@ -34,10 +35,10 @@ import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 @AnalyzeClasses(packages = "org.gradle")
 public class ServiceScopeAnnotationValidationTest {
 
-    private static final DescribedPredicate<JavaClass> factory_classes = new DescribedPredicate<JavaClass>("Factory class") {
+    private static final DescribedPredicate<JavaClass> special_classes = new DescribedPredicate<JavaClass>("special class") {
         @Override
         public boolean test(JavaClass javaClass) {
-            return javaClass.isEquivalentTo(Factory.class);
+            return javaClass.isEquivalentTo(ServiceRegistry.class) || javaClass.isEquivalentTo(Factory.class);
         }
     };
 
@@ -63,7 +64,7 @@ public class ServiceScopeAnnotationValidationTest {
 
     @ArchTest
     public static final ArchRule all_injected_classes_should_be_annotated_with_service_scope = freeze(classes()
-        .that(are(not(factory_classes))
+        .that(are(not(special_classes))
             .and(are(injected_by_getter))
             .or(are(injected_by_constructor))
         )
