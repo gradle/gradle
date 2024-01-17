@@ -242,7 +242,7 @@ testing.suites {
 
 configurations.testImplementation {
     // Calling `all` here realizes/observes all lazy sources, including the `DependencyCollector`
-    // from the test suite block. Operations like resolving a dependency similarly realize lazy sources.
+    // from the test suite block. Operations like resolving a configuration similarly realize lazy sources.
     dependencies.all {
         if (this is ExternalDependency && group == "com" && name == "foo" && version == null) {
             // Dependency is mutated after observation
@@ -257,7 +257,7 @@ configurations.testImplementation {
 =====
 
 In the above example, the build logic uses iteration and mutation to try to set a default version for a particular dependency if the version is not already set.
-Build logic like the above example makes it difficult to reason about declared dependencies, as reporting tools will display this dependency as if the user declared the version as "2.0", even though they never did.
+Build logic like the above example creates challenges in resolving declared dependencies, as reporting tools will display this dependency as if the user declared the version as "2.0", even though they never did.
 Instead, the build logic can avoid iteration and mutation by declaring a `preferred` version constraint on the dependency's coordinates.
 This allows the dependency management engine to use the version declared on the constraint if no other version is declared.
 
