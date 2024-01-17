@@ -13,6 +13,7 @@ dependencies {
 
     pluginsRuntimeOnly(project(":base-ide-plugins"))
     pluginsRuntimeOnly(project(":code-quality"))
+    pluginsRuntimeOnly(project(":core-api-jvm"))
     pluginsRuntimeOnly(project(":ear"))
     pluginsRuntimeOnly(project(":ide"))
     pluginsRuntimeOnly(project(":ide-plugins"))
