@@ -33,16 +33,17 @@ class LightTreeSourceData(
     private val sourceOffset: Int,
     private val node: LighterASTNode
 ) : SourceData {
-    override val indexRange: IntRange
-        get() {
-            val originalRange = node.range()
-            val first = originalRange.first - sourceOffset
-            val last = originalRange.last - sourceOffset
-            return first..last
-        }
+    override val indexRange: IntRange by lazy {
+        val originalRange = node.range()
+        val first = originalRange.first - sourceOffset
+        val last = originalRange.last - sourceOffset
+        first..last
+    }
 
     private
-    val lineColumnInfo: LineColumnInfo by lazy { LineColumnInfo.fromIndexRange(sourceCode, sourceOffset, indexRange) }
+    val lineColumnInfo: LineColumnInfo by lazy {
+        LineColumnInfo.fromIndexRange(sourceCode, sourceOffset, indexRange)
+    }
     override
     val lineRange: IntRange
         get() = lineColumnInfo.startLine..lineColumnInfo.endLine
