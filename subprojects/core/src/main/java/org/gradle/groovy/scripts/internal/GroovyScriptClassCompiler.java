@@ -57,7 +57,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * A {@link ScriptClassCompiler} which compiles scripts to a cache directory, and loads them from there.
@@ -115,10 +115,10 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         ClassLoader classLoader = targetScope.getExportClassLoader();
         BuildScriptCompilationOutput output = doCompile(target, templateId, sourceHashCode, remapped, classLoader, operation, verifier, scriptBaseClass);
 
-        File genericClassesDir = output.getOutput();
-        File metadataDir = metadataDir(new File(output.getWorkspace(), "classes"));
+        File compilationOutput = output.getOutput();
+        File metadataDir = metadataDir(output.getOriginalDir());
         // TODO: Remove the remapping or move remapping to the non-cacheable unit of work?
-        ClassPath remappedClasses = remapClasses(genericClassesDir, remapped);
+        ClassPath remappedClasses = remapClasses(compilationOutput, remapped);
         return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, remappedClasses, metadataDir, operation, scriptBaseClass);
     }
 
@@ -141,7 +141,11 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             fileCollectionFactory,
             inputFingerprinter,
             transformFactoryForLegacy,
-            workspace -> scriptCompilationHandler.compileToDir(source, classLoader, classesDir(workspace, operation), metadataDir(workspace), operation, scriptBaseClass, verifier)
+            workspace -> {
+                File classesDir = classesDir(workspace, operation);
+                scriptCompilationHandler.compileToDir(source, classLoader, classesDir, metadataDir(workspace), operation, scriptBaseClass, verifier);
+                return classesDir;
+            }
         );
         return getExecutionEngine(target)
             .createRequest(unitOfWork)
@@ -208,7 +212,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
     private static class GroovyScriptCompileUnitOfWork extends BuildScriptCompileUnitOfWork {
 
         private final String templateId;
-        private final Consumer<File> compileAction;
+        private final Function<File, File> compileAction;
         private final HashCode sourceHashCode;
         private final ClassLoader classLoader;
         private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
@@ -222,7 +226,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
             ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy,
-            Consumer<File> compileAction
+            Function<File, File> compileAction
         ) {
             super(workspaceProvider, fileCollectionFactory, inputFingerprinter, transformFactoryForLegacy);
             this.templateId = templateId;
@@ -245,8 +249,8 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         }
 
         @Override
-        public void compileTo(File classesDir) {
-            compileAction.accept(classesDir);
+        public File compileTo(File compileWorkspace) {
+            return compileAction.apply(compileWorkspace);
         }
     }
 

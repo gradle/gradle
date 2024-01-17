@@ -381,7 +381,9 @@ class StandardKotlinScriptEvaluator(
             visitor.visitInputProperty(ACCESSORS_CLASS_PATH) { classpathHasher.hash(accessorsClassPath) }
         }
 
-        override fun compileTo(classesDir: File) =
-            compileTo.invoke(classesDir)
+        override fun compileTo(compileWorkspace: File): File {
+            compileTo.invoke(compileWorkspace)
+            return compileWorkspace
+        }
     }
 }

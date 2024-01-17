@@ -38,7 +38,8 @@ import java.util.Map;
 import static java.util.Objects.requireNonNull;
 
 /**
- * A base class that represents a work for compilation for Kotlin and Groovy scripts.
+ * A base class that represents a work for compilation for Kotlin and Groovy build scripts.
+ * This work unit first compiles the build script to a directory, and then instruments the directory for configuration cache and returns instrumented output.
  */
 public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWork {
 
@@ -65,7 +66,10 @@ public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWor
     @Override
     public abstract String getDisplayName();
 
-    public abstract void compileTo(File classesDir);
+    /**
+     * Compiles the build script using given compile workspace and returns the final output location.
+     */
+    public abstract File compileTo(File compileWorkspace);
 
     @Override
     public ImmutableWorkspaceProvider getWorkspaceProvider() {
@@ -83,10 +87,10 @@ public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWor
     @Override
     public WorkOutput execute(ExecutionRequest executionRequest) {
         File workspace = executionRequest.getWorkspace();
-        File classesDir = classesDir(workspace);
-        File transformJar = transformJar(workspace);
-        compileTo(classesDir);
-        instrument(classesDir, transformJar);
+        File output = compileTo(originalDir(workspace));
+        // We should instrument output of classes directory to the classes directory instead of a jar,
+        // but currently instrumentation classloader doesn't support that yet.
+        instrument(output, transformedJar(workspace));
         return new UnitOfWork.WorkOutput() {
             @Override
             public WorkResult getDidWork() {
@@ -109,7 +113,7 @@ public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWor
     @Nullable
     @Override
     public Object loadAlreadyProducedOutput(File workspace) {
-        return new BuildScriptCompilationOutput(workspace, transformJar(workspace));
+        return new BuildScriptCompilationOutput(originalDir(workspace), transformedJar(workspace));
     }
 
     @Override
@@ -119,26 +123,34 @@ public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWor
 
     @Override
     public void visitOutputs(File workspace, OutputVisitor visitor) {
-        File classesDir = classesDir(workspace);
-        OutputFileValueSupplier outputValueSupplier = OutputFileValueSupplier.fromStatic(classesDir, fileCollectionFactory.fixed(classesDir));
-        visitor.visitOutputProperty("classesDir", TreeType.DIRECTORY, outputValueSupplier);
+        File originalDir = originalDir(workspace);
+        OutputFileValueSupplier originalDirValue = OutputFileValueSupplier.fromStatic(originalDir, fileCollectionFactory.fixed(originalDir));
+        visitor.visitOutputProperty("originalDir", TreeType.DIRECTORY, originalDirValue);
+
+        File transformedDir = transformedDir(workspace);
+        OutputFileValueSupplier transformedDirValue = OutputFileValueSupplier.fromStatic(transformedDir, fileCollectionFactory.fixed(transformedDir));
+        visitor.visitOutputProperty("transformedDir", TreeType.FILE, transformedDirValue);
     }
 
-    private static File classesDir(File workspace) {
-        return new File(workspace, "classes");
+    private static File originalDir(File workspace) {
+        return new File(workspace, "original");
     }
 
-    private static File transformJar(File workspace) {
-        return new File(workspace, "/transformed/transformed.jar");
+    private static File transformedDir(File workspace) {
+        return new File(workspace, "transformed");
+    }
+
+    private static File transformedJar(File workspace) {
+        return new File(transformedDir(workspace), "transformed.jar");
     }
 
     public static class BuildScriptCompilationOutput {
 
-        private final File workspace;
+        private final File originalDir;
         private final File output;
 
-        public BuildScriptCompilationOutput(File workspace, File output) {
-            this.workspace = workspace;
+        public BuildScriptCompilationOutput(File originalDir, File output) {
+            this.originalDir = originalDir;
             this.output = output;
         }
 
@@ -146,8 +158,8 @@ public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWor
             return output;
         }
 
-        public File getWorkspace() {
-            return workspace;
+        public File getOriginalDir() {
+            return originalDir;
         }
     }
 }
