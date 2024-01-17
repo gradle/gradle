@@ -380,38 +380,44 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
     def fileCollectionWithDependencies() {
         def dependency1 = dependency("group1", "name", "version")
-        def dependency2 = dependency("group2", "name", "version")
         def configuration = conf()
+        def fileSet = [new File("somePath")] as Set
+        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
 
         when:
         def fileCollection = configuration.fileCollection(dependency1)
 
         then:
-        fileCollection.resultProvider.dependencySpec.isSatisfiedBy(dependency1)
-        !fileCollection.resultProvider.dependencySpec.isSatisfiedBy(dependency2)
+        fileCollection.files == fileSet
+        configuration.state == RESOLVED
     }
 
     def fileCollectionWithSpec() {
         def configuration = conf()
         Spec<Dependency> spec = Mock(Spec)
+        def fileSet = [new File("somePath")] as Set
+        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
 
         when:
         def fileCollection = configuration.fileCollection(spec)
 
         then:
-        fileCollection.resultProvider.dependencySpec == spec
+        fileCollection.files == fileSet
+        configuration.state == RESOLVED
     }
 
     def fileCollectionWithClosureSpec() {
         def closure = { dep -> dep.group == 'group1' }
         def configuration = conf()
+        def fileSet = [new File("somePath")] as Set
+        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
 
         when:
         def fileCollection = configuration.fileCollection(closure)
 
         then:
-        fileCollection.resultProvider.dependencySpec.isSatisfiedBy(dependency("group1", "name", "version"))
-        !fileCollection.resultProvider.dependencySpec.isSatisfiedBy(dependency("group2", "name", "version"))
+        fileCollection.files == fileSet
+        configuration.state == RESOLVED
     }
 
     def filesWithDependencies() {
