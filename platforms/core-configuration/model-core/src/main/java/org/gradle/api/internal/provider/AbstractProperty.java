@@ -27,7 +27,7 @@ import org.gradle.internal.state.ModelObject;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public abstract class AbstractProperty<T, S extends AbstractMinimalProvider.GuardedValueSupplier<? extends S>> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
+public abstract class AbstractProperty<T, S extends ValueSupplier> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
     private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this property");
     private static final DisplayName DEFAULT_VALIDATION_DISPLAY_NAME = Describables.of("a property");
 
@@ -56,9 +56,10 @@ public abstract class AbstractProperty<T, S extends AbstractMinimalProvider.Guar
 
     @Override
     public boolean calculatePresence(ValueConsumer consumer) {
+        // TODO(mlopatkin) Can we coalesce scopes in beforeRead -> finalize and calculatePresence here?
         beforeRead(consumer);
-        try {
-            return getSupplier().calculatePresence(consumer);
+        try (EvaluationContext.ScopeContext context = openScope()) {
+            return getSupplier(context).calculatePresence(consumer);
         } catch (Exception e) {
             if (displayName != null) {
                 throw new PropertyQueryException(String.format("Failed to query the value of %s.", displayName), e);
@@ -115,8 +116,12 @@ public abstract class AbstractProperty<T, S extends AbstractMinimalProvider.Guar
         }
     }
 
-    protected S getSupplier() {
+    protected final S getSupplier(@SuppressWarnings("unused") EvaluationContext.ScopeContext context) {
         return value;
+    }
+
+    protected final String describeValue() {
+        return value.toString();
     }
 
     protected Value<? extends T> calculateOwnValueNoProducer(ValueConsumer consumer) {
@@ -132,7 +137,7 @@ public abstract class AbstractProperty<T, S extends AbstractMinimalProvider.Guar
 
     @Nonnull
     private Value<? extends T> doCalculateValue(ValueConsumer consumer) {
-        try {
+        try (EvaluationContext.ScopeContext ignored = openScope()) {
             return calculateValueFrom(value, consumer);
         } catch (Exception e) {
             if (displayName != null) {
@@ -147,11 +152,13 @@ public abstract class AbstractProperty<T, S extends AbstractMinimalProvider.Guar
 
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-        ExecutionTimeValue<? extends T> value = calculateOwnExecutionTimeValue(this.value);
-        if (getProducerTask() == null) {
-            return value;
-        } else {
-            return value.withChangingContent();
+        try (EvaluationContext.ScopeContext ignored = openScope()) {
+            ExecutionTimeValue<? extends T> value = calculateOwnExecutionTimeValue(this.value);
+            if (getProducerTask() == null) {
+                return value;
+            } else {
+                return value.withChangingContent();
+            }
         }
     }
 
@@ -178,7 +185,9 @@ public abstract class AbstractProperty<T, S extends AbstractMinimalProvider.Guar
         if (task != null) {
             return ValueProducer.task(task);
         } else {
-            return getSupplier().getProducer();
+            try (EvaluationContext.ScopeContext context = openScope()) {
+                return getSupplier(context).getProducer();
+            }
         }
     }
 
@@ -236,7 +245,7 @@ public abstract class AbstractProperty<T, S extends AbstractMinimalProvider.Guar
     }
 
     private void finalizeNow(ValueConsumer consumer) {
-        try {
+        try (EvaluationContext.ScopeContext ignored = openScope()) {
             value = finalValue(value, state.forUpstream(consumer));
         } catch (Exception e) {
             if (displayName != null) {
@@ -332,21 +341,27 @@ public abstract class AbstractProperty<T, S extends AbstractMinimalProvider.Guar
     private class ShallowCopyProvider extends AbstractMinimalProvider<T> {
         // the value of "value" is immutable but the field is not, so copy it
         // (but use a different owner)
-        private final S copiedValue = AbstractProperty.this.value.withOwner(this);
+        private final S copiedValue = value;
 
         @Override
         public ValueProducer getProducer() {
-            return copiedValue.getProducer();
+            try (EvaluationContext.ScopeContext ignored = openScope()) {
+                return copiedValue.getProducer();
+            }
         }
 
         @Override
         public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-            return calculateOwnExecutionTimeValue(copiedValue);
+            try (EvaluationContext.ScopeContext ignored = openScope()) {
+                return calculateOwnExecutionTimeValue(copiedValue);
+            }
         }
 
         @Override
         protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-            return calculateValueFrom(copiedValue, consumer);
+            try (EvaluationContext.ScopeContext ignored = openScope()) {
+                return calculateValueFrom(copiedValue, consumer);
+            }
         }
 
         @Override

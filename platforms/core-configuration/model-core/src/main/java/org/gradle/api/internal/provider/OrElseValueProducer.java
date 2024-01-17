@@ -18,23 +18,32 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.internal.provider.AbstractMinimalProvider.ProviderGuard;
 
 import javax.annotation.Nullable;
 
 class OrElseValueProducer implements ValueSupplier.ValueProducer {
 
-    private final ProviderGuard<?> left;
+    private final EvaluationContext.EvaluationOwner owner;
+    private final ProviderInternal<?> left;
     @Nullable
-    private final ProviderGuard<?> right;
+    private final ProviderInternal<?> right;
     private final ValueSupplier.ValueProducer leftProducer;
     private final ValueSupplier.ValueProducer rightProducer;
 
-    public OrElseValueProducer(ProviderGuard<?> left, @Nullable ProviderGuard<?> right, ValueSupplier.ValueProducer rightProducer) {
+    public OrElseValueProducer(EvaluationContext.ScopeContext ignoredContext, EvaluationContext.EvaluationOwner owner, ProviderInternal<?> left) {
+        this.owner = owner;
+        this.left = left;
+        this.leftProducer = left.getProducer();
+        this.right = null;
+        this.rightProducer = ValueSupplier.ValueProducer.unknown();
+    }
+
+    public OrElseValueProducer(EvaluationContext.ScopeContext ignoredContext, EvaluationContext.EvaluationOwner owner, ProviderInternal<?> left, ProviderInternal<?> right) {
+        this.owner = owner;
         this.left = left;
         this.right = right;
         this.leftProducer = left.getProducer();
-        this.rightProducer = rightProducer;
+        this.rightProducer = right.getProducer();
     }
 
     @Override
@@ -45,18 +54,20 @@ class OrElseValueProducer implements ValueSupplier.ValueProducer {
 
     @Override
     public void visitProducerTasks(Action<? super Task> visitor) {
-        if (!isMissing(left)) {
+        if (mayHaveValue(left)) {
             if (leftProducer.isKnown()) {
                 leftProducer.visitProducerTasks(visitor);
             }
             return;
         }
-        if (right != null && rightProducer.isKnown() && !isMissing(right)) {
+        if (right != null && rightProducer.isKnown() && mayHaveValue(right)) {
             rightProducer.visitProducerTasks(visitor);
         }
     }
 
-    private boolean isMissing(ProviderGuard<?> provider) {
-        return provider.calculateExecutionTimeValue().isMissing();
+    private boolean mayHaveValue(ProviderInternal<?> provider) {
+        try (EvaluationContext.ScopeContext ignored = EvaluationContext.current().open(owner)) {
+            return !provider.calculateExecutionTimeValue().isMissing();
+        }
     }
 }
