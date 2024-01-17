@@ -41,6 +41,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork;
+import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork.BuildScriptCompilationOutput;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
@@ -112,16 +113,16 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         HashCode sourceHashCode = source.getResource().getContentHash();
         RemappingScriptSource remapped = new RemappingScriptSource(source);
         ClassLoader classLoader = targetScope.getExportClassLoader();
-        File outputDir = doCompile(target, templateId, sourceHashCode, remapped, classLoader, operation, verifier, scriptBaseClass);
+        BuildScriptCompilationOutput output = doCompile(target, templateId, sourceHashCode, remapped, classLoader, operation, verifier, scriptBaseClass);
 
-        File genericClassesDir = classesDir(outputDir, operation);
-        File metadataDir = metadataDir(outputDir);
+        File genericClassesDir = output.getOutput();
+        File metadataDir = metadataDir(new File(output.getWorkspace(), "classes"));
         // TODO: Remove the remapping or move remapping to the non-cacheable unit of work?
         ClassPath remappedClasses = remapClasses(genericClassesDir, remapped);
         return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, remappedClasses, metadataDir, operation, scriptBaseClass);
     }
 
-    private <T extends Script> File doCompile(
+    private <T extends Script> BuildScriptCompilationOutput doCompile(
         Object target,
         String templateId,
         HashCode sourceHashCode,
@@ -145,7 +146,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         return getExecutionEngine(target)
             .createRequest(unitOfWork)
             .execute()
-            .getOutputAs(File.class)
+            .getOutputAs(BuildScriptCompilationOutput.class)
             .get();
     }
 

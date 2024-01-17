@@ -84,9 +84,9 @@ public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWor
     public WorkOutput execute(ExecutionRequest executionRequest) {
         File workspace = executionRequest.getWorkspace();
         File classesDir = classesDir(workspace);
-        File transformDir = transformDir(workspace);
+        File transformJar = transformJar(workspace);
         compileTo(classesDir);
-        instrument(classesDir, transformDir);
+        instrument(classesDir, transformJar);
         return new UnitOfWork.WorkOutput() {
             @Override
             public WorkResult getDidWork() {
@@ -101,15 +101,15 @@ public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWor
         };
     }
 
-    private void instrument(File sourceDir, File destinationDir) {
+    private void instrument(File sourceDir, File destination) {
         ClasspathElementTransform transform = transformFactory.createTransformer(sourceDir, new InstrumentingClassTransform(), InstrumentingTypeRegistry.EMPTY);
-        transform.transform(destinationDir);
+        transform.transform(destination);
     }
 
     @Nullable
     @Override
     public Object loadAlreadyProducedOutput(File workspace) {
-        return transformDir(workspace);
+        return new BuildScriptCompilationOutput(workspace, transformJar(workspace));
     }
 
     @Override
@@ -128,7 +128,26 @@ public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWor
         return new File(workspace, "classes");
     }
 
-    private static File transformDir(File workspace) {
-        return new File(workspace, "transformed");
+    private static File transformJar(File workspace) {
+        return new File(workspace, "/transformed/transformed.jar");
+    }
+
+    public static class BuildScriptCompilationOutput {
+
+        private final File workspace;
+        private final File output;
+
+        public BuildScriptCompilationOutput(File workspace, File output) {
+            this.workspace = workspace;
+            this.output = output;
+        }
+
+        public File getOutput() {
+            return output;
+        }
+
+        public File getWorkspace() {
+            return workspace;
+        }
     }
 }
