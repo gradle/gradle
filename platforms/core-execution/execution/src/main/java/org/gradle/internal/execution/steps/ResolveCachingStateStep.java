@@ -42,25 +42,20 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
     private static final CachingState VALIDATION_FAILED_STATE = CachingState.disabledWithoutInputs(VALIDATION_FAILED_REASON);
 
     private final BuildCacheController buildCache;
-    private final boolean buildScansEnabled;
     private final Step<? super CachingContext, ? extends UpToDateResult> delegate;
 
     public ResolveCachingStateStep(
         BuildCacheController buildCache,
-        boolean buildScansEnabled,
         Step<? super CachingContext, ? extends UpToDateResult> delegate
     ) {
         this.buildCache = buildCache;
-        this.buildScansEnabled = buildScansEnabled;
         this.delegate = delegate;
     }
 
     @Override
     public CachingResult execute(UnitOfWork work, C context) {
         CachingState cachingState;
-        if (!buildCache.isEnabled() && !buildScansEnabled) {
-            cachingState = BUILD_CACHE_DISABLED_STATE;
-        } else if (!context.getValidationProblems().isEmpty()) {
+        if (!context.getValidationProblems().isEmpty()) {
             cachingState = VALIDATION_FAILED_STATE;
         } else {
             cachingState = context.getBeforeExecutionState()

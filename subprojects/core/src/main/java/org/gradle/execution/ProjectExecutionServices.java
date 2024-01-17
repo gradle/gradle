@@ -35,7 +35,6 @@ import org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
 import org.gradle.api.internal.tasks.execution.TaskCacheabilityResolver;
-import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.MissingTaskDependencyDetector;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
@@ -88,7 +87,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
 
     TaskExecuter createTaskExecuter(
         AsyncWorkTracker asyncWorkTracker,
-        BuildCacheController buildCacheController,
         BuildOperationExecutor buildOperationExecutor,
         GradleEnterprisePluginManager gradleEnterprisePluginManager,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
@@ -108,12 +106,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         InputFingerprinter inputFingerprinter
     ) {
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
-            buildCacheController.isEnabled()
-                ? ExecuteActionsTaskExecuter.BuildCacheState.ENABLED
-                : ExecuteActionsTaskExecuter.BuildCacheState.DISABLED,
-            gradleEnterprisePluginManager.isPresent()
-                ? ExecuteActionsTaskExecuter.ScanPluginState.APPLIED
-                : ExecuteActionsTaskExecuter.ScanPluginState.NOT_APPLIED,
             executionHistoryStore,
             buildOperationExecutor,
             asyncWorkTracker,

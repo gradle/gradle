@@ -24,7 +24,6 @@ import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.ExecutionEngine;
@@ -132,7 +131,6 @@ public class ExecutionGradleServices {
         BuildInvocationScopeId buildInvocationScopeId,
         BuildOperationExecutor buildOperationExecutor,
         BuildOutputCleanupRegistry buildOutputCleanupRegistry,
-        GradleEnterprisePluginManager gradleEnterprisePluginManager,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         CurrentBuildOperationRef currentBuildOperationRef,
         Deleter deleter,
@@ -167,7 +165,7 @@ public class ExecutionGradleServices {
             new SkipEmptyNonIncrementalWorkStep(buildId, workInputListeners,
             new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
-            new ResolveCachingStateStep<>(buildCacheController, gradleEnterprisePluginManager.isPresent(),
+            new ResolveCachingStateStep<>(buildCacheController,
             new MarkSnapshottingInputsFinishedStep<>(
             new NeverUpToDateStep<>(
             new BuildCacheStep(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
@@ -185,7 +183,7 @@ public class ExecutionGradleServices {
             new SkipEmptyIncrementalWorkStep(outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
             new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
-            new ResolveCachingStateStep<>(buildCacheController, gradleEnterprisePluginManager.isPresent(),
+            new ResolveCachingStateStep<>(buildCacheController,
             new MarkSnapshottingInputsFinishedStep<>(
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(

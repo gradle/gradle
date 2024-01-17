@@ -57,9 +57,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         APPLIED, NOT_APPLIED
     }
 
-    private final BuildCacheState buildCacheState;
-    private final ScanPluginState scanPluginState;
-
     private final ExecutionHistoryStore executionHistoryStore;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
@@ -75,9 +72,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final PathToFileResolver fileResolver;
 
     public ExecuteActionsTaskExecuter(
-        BuildCacheState buildCacheState,
-        ScanPluginState scanPluginState,
-
         ExecutionHistoryStore executionHistoryStore,
         BuildOperationExecutor buildOperationExecutor,
         AsyncWorkTracker asyncWorkTracker,
@@ -92,9 +86,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         TaskDependencyFactory taskDependencyFactory,
         PathToFileResolver fileResolver
     ) {
-        this.buildCacheState = buildCacheState;
-        this.scanPluginState = scanPluginState;
-
         this.executionHistoryStore = executionHistoryStore;
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
@@ -112,11 +103,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        boolean emitLegacySnapshottingOperations = buildCacheState == BuildCacheState.ENABLED || scanPluginState == ScanPluginState.APPLIED;
         TaskExecution work = new TaskExecution(
             task,
             context,
-            emitLegacySnapshottingOperations,
             actionListener,
             asyncWorkTracker,
             buildOperationExecutor,
