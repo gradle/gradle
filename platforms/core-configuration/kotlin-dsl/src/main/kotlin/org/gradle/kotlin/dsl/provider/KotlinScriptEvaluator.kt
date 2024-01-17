@@ -43,6 +43,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork
+import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork.BuildScriptCompilationOutput
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
@@ -254,7 +255,7 @@ class StandardKotlinScriptEvaluator(
             accessorsClassPath: ClassPath,
             initializer: (File) -> Unit
         ): File = try {
-            executionEngineFor(scriptHost)
+            val output = executionEngineFor(scriptHost)
                 .createRequest(
                     KotlinScriptCompileUnitOfWork(
                         programId,
@@ -269,8 +270,9 @@ class StandardKotlinScriptEvaluator(
                     )
                 )
                 .execute()
-                .getOutputAs(File::class.java)
+                .getOutputAs(BuildScriptCompilationOutput::class.java)
                 .get()
+            output.output
         } catch (e: CacheOpenException) {
             throw e.cause as? ScriptCompilationException ?: e
         }
