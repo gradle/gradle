@@ -47,6 +47,7 @@
     --footer-white-color: #fff;
     --footer-text-color: #fff;
     --quoteblock-color: #7a2518;
+    --menu-burger-color: #fff;
 }
 @media (prefers-color-scheme: dark) {
     :root {
@@ -69,6 +70,7 @@
         --footer-white-color: #242526;
         --footer-text-color: #aaa;
         --quoteblock-color: #1DA2BD;
+        --menu-burger-color: #242526;
     }
 }
 
@@ -1538,7 +1540,7 @@ div.screenshot {
 .site-header__navigation-submenu-section .site-header__navigation-submenu {
     display: none;
     width: 170px;
-    background-color: var(--white-color);
+    background-color: var(--menu-burger-color);
     top: 40px;
     left: 7px; /* NOTE: This must match the padding of .site-header__navigation-link */
     padding: 3px 10px 6px 10px;
