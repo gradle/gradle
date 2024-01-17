@@ -35,6 +35,7 @@ import spock.lang.Unroll
 import java.nio.file.Files
 import java.util.stream.Collectors
 
+import static org.gradle.internal.scripts.BuildScriptCompileUnitOfWork.TRANSFORMED_BUILD_SCRIPT_JAR
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
@@ -242,7 +243,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         succeeds("showBuildscript")
 
         then:
-        def jar = inJarCache("proj.jar").assertExists()
+        def jar = inJarCache(TRANSFORMED_BUILD_SCRIPT_JAR).assertExists()
         journal.assertExists()
 
         when:

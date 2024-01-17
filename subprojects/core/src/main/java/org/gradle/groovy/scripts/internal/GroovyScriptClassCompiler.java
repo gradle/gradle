@@ -55,7 +55,6 @@ import org.objectweb.asm.Type;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.util.function.Function;
 
@@ -182,12 +181,12 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             }
 
             @Override
-            public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) throws IOException {
+            public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) {
                 String renamed = entry.getPath().getLastName();
                 if (renamed.startsWith(RemappingScriptSource.MAPPED_SCRIPT)) {
                     renamed = className + renamed.substring(RemappingScriptSource.MAPPED_SCRIPT.length());
                 }
-                byte[] content = entry.getContent();
+                byte[] content = classData.getClassContent();
                 ClassReader cr = new ClassReader(content);
                 String originalClassName = cr.getClassName();
                 String contentHash = Hashing.hashBytes(content).toString();

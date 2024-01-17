@@ -43,6 +43,8 @@ import static java.util.Objects.requireNonNull;
  */
 public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWork {
 
+    public static final String TRANSFORMED_BUILD_SCRIPT_JAR = "transformed_build_script.jar";
+
     private final ImmutableWorkspaceProvider workspaceProvider;
     private final FileCollectionFactory fileCollectionFactory;
     private final InputFingerprinter inputFingerprinter;
@@ -141,7 +143,7 @@ public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWor
     }
 
     private static File transformedJar(File workspace) {
-        return new File(transformedDir(workspace), "transformed.jar");
+        return new File(transformedDir(workspace), TRANSFORMED_BUILD_SCRIPT_JAR);
     }
 
     public static class BuildScriptCompilationOutput {
