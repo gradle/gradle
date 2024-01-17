@@ -42,6 +42,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(project(":core-api-jvm"))
     implementation(project(":file-collections"))
     implementation(project(":logging"))
     implementation(project(":platform-base"))
