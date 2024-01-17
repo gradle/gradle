@@ -54,6 +54,7 @@ import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
 public abstract class CollectDirectClassSuperTypesTransform implements TransformAction<TransformParameters.None> {
 
     private static final Predicate<String> ACCEPTED_TYPES = type -> type != null && !type.startsWith("java/lang");
+    public static final String SUPER_TYPES_MARKER_FILE_NAME = ".gradle-super-types.marker";
     private static final String FILE_SUFFIX = ".super-types";
 
     @Inject
@@ -92,6 +93,10 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
                     writer.write(entry.getKey() + "=" + String.join(",", entry.getValue()) + "\n");
                 }
             }
+
+            // Mark the folder so we know that this is a folder with super types files
+            // This is currently used just to not delete the folders for performance testing
+            outputs.file(SUPER_TYPES_MARKER_FILE_NAME).createNewFile();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
