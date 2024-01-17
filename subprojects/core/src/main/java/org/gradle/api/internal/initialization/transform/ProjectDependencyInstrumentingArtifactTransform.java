@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.work.DisableCachingByDefault;
 
 /**
@@ -32,4 +33,9 @@ public abstract class ProjectDependencyInstrumentingArtifactTransform extends Ba
     @Classpath
     @InputArtifact
     public abstract Provider<FileSystemLocation> getInput();
+
+    @Override
+    protected BytecodeInterceptorFilter provideInterceptorFilter() {
+        return BytecodeInterceptorFilter.INSTRUMENTATION_ONLY;
+    }
 }

@@ -39,6 +39,7 @@ import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.gradle.internal.file.Stat;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -72,6 +73,8 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
     @InputArtifact
     public abstract Provider<FileSystemLocation> getInput();
 
+    protected abstract BytecodeInterceptorFilter provideInterceptorFilter();
+
     @Override
     public void transform(TransformOutputs outputs) {
         File input = getInput().get().getAsFile();
@@ -93,7 +96,7 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
             : InstrumentingTypeRegistry.empty();
         File outputFile = outputs.file(INSTRUMENTED_JAR_DIR_NAME + "/" + input.getName());
         ClasspathElementTransformFactory transformFactory = injectedServices.getTransformFactory(getParameters().getAgentSupported().get());
-        ClasspathElementTransform transform = transformFactory.createTransformer(input, new InstrumentingClassTransform(), typeRegistry);
+        ClasspathElementTransform transform = transformFactory.createTransformer(input, new InstrumentingClassTransform(provideInterceptorFilter()), typeRegistry);
         transform.transform(outputFile);
 
         // Copy original jars after in case they are not in global cache
@@ -119,7 +122,6 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
             throw new UncheckedIOException(e);
         }
     }
-
 
     static class InjectedInstrumentationServices {
 

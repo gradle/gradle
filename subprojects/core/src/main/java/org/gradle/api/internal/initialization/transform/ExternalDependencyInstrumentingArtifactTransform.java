@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization.transform;
 
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.work.DisableCachingByDefault;
 
 /**
@@ -23,4 +24,9 @@ import org.gradle.work.DisableCachingByDefault;
  */
 @DisableCachingByDefault(because = "Instrumented jars are too big to cache")
 public abstract class ExternalDependencyInstrumentingArtifactTransform extends BaseInstrumentingArtifactTransform {
+
+    @Override
+    protected BytecodeInterceptorFilter provideInterceptorFilter() {
+        return BytecodeInterceptorFilter.ALL;
+    }
 }
