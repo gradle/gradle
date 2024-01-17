@@ -129,7 +129,7 @@ public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWor
 
         File transformedDir = transformedDir(workspace);
         OutputFileValueSupplier transformedDirValue = OutputFileValueSupplier.fromStatic(transformedDir, fileCollectionFactory.fixed(transformedDir));
-        visitor.visitOutputProperty("transformedDir", TreeType.FILE, transformedDirValue);
+        visitor.visitOutputProperty("transformedDir", TreeType.DIRECTORY, transformedDirValue);
     }
 
     private static File originalDir(File workspace) {
