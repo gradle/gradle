@@ -21,7 +21,7 @@ image::gradle-basic-5.png[]
 
 You run a Gradle `build` task using the `gradle` command or by invoking the Gradle Wrapper (`./gradlew` or `gradle.bat`) in your project directory:
 
-[source]
+[source,text]
 ----
 $ ./gradlew build
 ----
@@ -31,12 +31,12 @@ All available tasks in your project come from Gradle plugins and build scripts.
 
 You can list all the available tasks in the project by running the following command in the terminal:
 
-[source]
+[source,text]
 ----
 $ ./gradlew tasks
 ----
 
-[source]
+[source,text]
 ----
 Application tasks
 -----------------
@@ -65,7 +65,7 @@ compileJava - Compiles main Java source.
 == Running tasks
 The `run` task is executed with `./gradlew run`:
 
-[source]
+[source,text]
 ----
 $ ./gradlew run
 
@@ -91,7 +91,7 @@ Thus, the `build` task _depends_ on the `compileJava` task.
 
 This means that the `compileJava` task will run _before_ the `build` task:
 
-[source]
+[source,text]
 ----
 $ ./gradlew build
 

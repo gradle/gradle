@@ -303,7 +303,7 @@ Working with containers in the Gradle Kotlin DSL is <<kotlin_dsl.adoc#kotdsl:con
 If you don't know what type a task has, then you can find that information out via the built-in `help` task.
 Simply pass it the name of the task you're interested in using the `--task` option, like so:
 
-[source]
+[source,text]
 ----
 ❯ ./gradlew help --task jar
 ...
@@ -327,7 +327,7 @@ Now, for the sake of the example, let's look at the same configuration applied u
 
 We first determine the types of the `bootJar` and `bootRun` tasks via the `help` task:
 
-[source]
+[source,text]
 ----
 ❯ ./gradlew help --task bootJar
 ...
@@ -335,7 +335,7 @@ Type
      BootJar (org.springframework.boot.gradle.tasks.bundling.BootJar)
 ----
 
-[source]
+[source,text]
 ----
 ❯ ./gradlew help --task bootRun
 ...

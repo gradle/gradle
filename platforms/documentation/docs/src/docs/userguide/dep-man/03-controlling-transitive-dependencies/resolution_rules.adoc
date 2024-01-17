@@ -280,7 +280,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-classif
 
 In the example above, the first level dependency on `quasar` makes us think that Gradle would resolve `quasar-core-0.8.0.jar` but it's not the case: the build would fail with this message:
 
-[source]
+[source,text]
 ----
 Execution failed for task ':resolve'.
 > Could not resolve all files for configuration ':runtimeClasspath'.
