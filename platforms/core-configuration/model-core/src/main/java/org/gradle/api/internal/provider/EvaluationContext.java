@@ -56,6 +56,7 @@ public final class EvaluationContext {
      * A scope context. One can obtain an instance by calling {@link #open(EvaluationOwner)}.
      * Closing this context removes the owner from the evaluation context.
      * The primary use case is to serve as an argument for the try-with-resources block.
+     * It can also serve as a token parameter of a method that must be executed within such a block.
      * <p>
      * It is not safe to call {@link #close()} multiple times.
      * The instances of the class may not be unique for different owners being added.
