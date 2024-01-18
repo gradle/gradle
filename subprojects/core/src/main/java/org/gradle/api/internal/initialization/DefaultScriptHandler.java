@@ -96,7 +96,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
 
     @Override
     public void prepareInjectedScriptClassPath(BiConsumer<ConfigurationContainer, DependencyHandler> action) {
-        defineConfiguration();
+        defineDependencyServices();
         action.accept(configContainer, dependencyHandler);
     }
 
@@ -155,16 +155,20 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     @SuppressWarnings("deprecation")
     private void defineConfiguration() {
         // Defer creation and resolution of configuration until required. Short-circuit when script does not require classpath
+        defineDependencyServices();
+        if (classpathConfiguration == null) {
+            classpathConfiguration = configContainer.migratingUnlocked(CLASSPATH_CONFIGURATION, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE);
+            buildLogicBuilder.prepareClassPath(classpathConfiguration, dependencyHandler);
+        }
+    }
+
+    private void defineDependencyServices() {
         if (configContainer == null) {
             configContainer = (RoleBasedConfigurationContainerInternal) dependencyResolutionServices.getConfigurationContainer();
         }
         if (dependencyHandler == null) {
             dependencyHandler = dependencyResolutionServices.getDependencyHandler();
             buildLogicBuilder.prepareDependencyHandler(dependencyHandler);
-        }
-        if (classpathConfiguration == null) {
-            classpathConfiguration = configContainer.migratingUnlocked(CLASSPATH_CONFIGURATION, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE);
-            buildLogicBuilder.prepareClassPath(classpathConfiguration, dependencyHandler);
         }
     }
 

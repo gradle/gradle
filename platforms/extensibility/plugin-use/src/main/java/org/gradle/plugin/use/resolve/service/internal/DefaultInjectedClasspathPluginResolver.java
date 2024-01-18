@@ -47,9 +47,9 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
 
     private final ClassPath injectedClasspath;
     private final FileCollectionFactory fileCollectionFactory;
-    private final Lazy<PluginRegistry> pluginRegistry;
     private final DefaultScriptClassPathResolver scriptClassPathResolver;
     private final AtomicReference<Configuration> configuration;
+    private final Lazy<PluginRegistry> pluginRegistry;
 
     public DefaultInjectedClasspathPluginResolver(ClassLoaderScope parentScope, DefaultScriptClassPathResolver scriptClassPathResolver, FileCollectionFactory fileCollectionFactory, PluginInspector pluginInspector, ClassPath injectedClasspath) {
         this.injectedClasspath = injectedClasspath;
