@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -165,7 +165,6 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         defaultConfig.extendsFrom == toSet(runtimeElements)
     }
 
-    @SuppressWarnings('UnnecessaryQualifiedReference') // Needed to prevent No such property: JavaBasePlugin for class: org.gradle.api.plugins.JavaLibraryPluginTest
     def "can declare API and implementation dependencies [compileClasspathPackaging=#compileClasspathPackaging]"() {
         if (compileClasspathPackaging) {
             System.setProperty(JavaBasePlugin.COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY, "true")
@@ -202,7 +201,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         task.taskDependencies.getDependencies(task)*.path as Set == [":tools:$producingTask", ":internal:$producingTask"] as Set<String>
 
         cleanup:
-        System.setProperty(org.gradle.api.plugins.JavaBasePlugin.COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY, "")
+        System.setProperty(JavaBasePlugin.COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY, "")
 
         where:
         compileClasspathPackaging | producingTask
