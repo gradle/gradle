@@ -17,6 +17,7 @@
 package org.gradle.workers.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Transformer;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
@@ -48,7 +49,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
     private final Object lock = new Object();
     private final List<WorkerDaemonClient> allClients = new ArrayList<WorkerDaemonClient>();
     private final List<WorkerDaemonClient> idleClients = new ArrayList<WorkerDaemonClient>();
-    private final Action<WorkerProcess> workerProcessCleanupAction = new WorkerProcessCleanupAction();
+    private final Action<WorkerProcess> workerProcessCleanupAction = new WorkerProcessFailureCleanupAction();
 
     private final WorkerDaemonStarter workerDaemonStarter;
     private final ListenerManager listenerManager;
@@ -199,17 +200,23 @@ public class WorkerDaemonClientsManager implements Stoppable {
         }
     }
 
-    private class WorkerProcessCleanupAction implements Action<WorkerProcess> {
+    @NonNullApi
+    private class WorkerProcessFailureCleanupAction implements Action<WorkerProcess> {
         @Override
         public void execute(WorkerProcess workerProcess) {
             synchronized (lock) {
-                Iterator<WorkerDaemonClient> iterator = allClients.iterator();
-                while (iterator.hasNext()) {
-                    WorkerDaemonClient client = iterator.next();
-                    if (client.isProcess(workerProcess)) {
-                        client.setFailed(true);
-                        iterator.remove();
-                    }
+                removeClientWithWorkerProcess(allClients, workerProcess);
+                removeClientWithWorkerProcess(idleClients, workerProcess);
+            }
+        }
+
+        private void removeClientWithWorkerProcess(List<WorkerDaemonClient> clients, WorkerProcess workerProcess) {
+            Iterator<WorkerDaemonClient> iterator = clients.iterator();
+            while (iterator.hasNext()) {
+                WorkerDaemonClient client = iterator.next();
+                if (client.isProcess(workerProcess)) {
+                    client.setFailed(true);
+                    iterator.remove();
                 }
             }
         }

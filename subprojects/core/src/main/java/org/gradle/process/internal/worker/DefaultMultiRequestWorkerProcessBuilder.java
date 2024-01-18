@@ -150,6 +150,11 @@ class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWo
 
             @Override
             public WorkerProcess start() {
+                workerProcess.onProcessExit(execResult -> {
+                    if (execResult.getExitValue() != 0) {
+                        failureHandler.execute(workerProcess);
+                    }
+                });
                 // Note -- leaks current build operation to worker thread, it will be cleared after the worker is started
                 try {
                     workerProcess.start();
@@ -185,7 +190,6 @@ class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWo
                     try {
                         // Reached the end of input, worker has crashed or exited
                         requestProtocol = null;
-                        failureHandler.execute(workerProcess);
                         workerProcess.waitForStop();
                         // Worker didn't crash
                         throw new IllegalStateException(String.format("No response was received from %s but the worker process has finished.", getBaseName()));

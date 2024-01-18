@@ -16,15 +16,18 @@
 
 package org.gradle.process.internal.worker;
 
+import org.gradle.api.Describable;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
+
+import java.util.function.Consumer;
 
 /**
  * A child JVM that performs some worker action. You can send and receive messages to/from the worker action
  * using a supplied {@link ObjectConnection}.
  */
-public interface WorkerProcess {
+public interface WorkerProcess extends Describable {
     WorkerProcess start();
 
     /**
@@ -40,4 +43,10 @@ public interface WorkerProcess {
      * Stop the associated process without expecting a normal exit value.
      */
     void stopNow();
+
+    /**
+     * Registers a handler to be fired in the event this process exits outside of
+     * a call to {@link #waitForStop()}.
+     */
+    void onProcessExit(Consumer<ExecResult> resultHandler);
 }

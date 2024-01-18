@@ -5583,7 +5583,6 @@ Class <org.gradle.workers.internal.Worker> is not annotated (directly or via its
 Class <org.gradle.workers.internal.WorkerDaemonClient> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (WorkerDaemonClient.java:0)
 Class <org.gradle.workers.internal.WorkerDaemonClientsManager$LogLevelChangeEventListener> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (WorkerDaemonClientsManager.java:0)
 Class <org.gradle.workers.internal.WorkerDaemonClientsManager$StopSessionScopedWorkers> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (WorkerDaemonClientsManager.java:0)
-Class <org.gradle.workers.internal.WorkerDaemonClientsManager$WorkerProcessCleanupAction> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (WorkerDaemonClientsManager.java:0)
 Class <org.gradle.workers.internal.WorkerDaemonClientsManager> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (WorkerDaemonClientsManager.java:0)
 Class <org.gradle.workers.internal.WorkerDaemonExpiration$SimpleMemoryExpirationSelector> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (WorkerDaemonExpiration.java:0)
 Class <org.gradle.workers.internal.WorkerDaemonExpiration> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (WorkerDaemonExpiration.java:0)

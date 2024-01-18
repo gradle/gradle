@@ -127,6 +127,25 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         manager.allClients.size() == 0
     }
 
+    def "stopping a failed client removes the client"() {
+        def client1 = Mock(WorkerDaemonClient)
+        def client2 = Mock(WorkerDaemonClient)
+        starter.startDaemon(options, _) >>> [client1, client2]
+
+        when:
+        manager.reserveNewClient(options)
+        manager.reserveNewClient(options)
+        manager.stop()
+
+        then:
+        thrown(ExecException)
+        1 * client1.stop() >> { throw new ExecException("FAILED!") }
+        1 * client2.stop()
+
+        and:
+        manager.allClients.size() == 0
+    }
+
     def "exception contains all errors when multiple clients fail to stop"() {
         def client1 = Mock(WorkerDaemonClient)
         def client2 = Mock(WorkerDaemonClient)

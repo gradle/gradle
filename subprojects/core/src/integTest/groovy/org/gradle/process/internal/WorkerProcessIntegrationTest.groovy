@@ -25,6 +25,7 @@ import org.gradle.internal.id.LongIdGenerator
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector
 import org.gradle.internal.remote.ObjectConnectionBuilder
+import org.gradle.process.ExecResult
 import org.gradle.process.internal.health.memory.MemoryManager
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory
 import org.gradle.process.internal.worker.WorkerProcess
@@ -34,6 +35,8 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import spock.lang.Timeout
+
+import java.util.function.Consumer
 
 import static org.junit.Assert.assertFalse
 import static org.junit.Assert.assertTrue
@@ -269,6 +272,25 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         stdout.stdErr.contains("net.rubygrapefruit.platform.NativeException: Failed to load native library")
     }
 
+    def "can register a result handler for the worker process"() {
+        given:
+        def handled = false
+        def worker = worker(new RemoteProcess())
+
+        when:
+        worker.start()
+        worker.onProcessExit {handled = true }
+
+        then:
+        !handled
+
+        when:
+        worker.waitForStop()
+
+        then:
+        handled
+    }
+
     private class ChildProcess {
         private boolean stopFails
         private boolean startFails
@@ -337,6 +359,10 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         public ChildProcess jvmArgs(String... jvmArgs) {
             this.jvmArgs = Arrays.asList(jvmArgs)
             return this
+        }
+
+        public void onProcessExit(Consumer<ExecResult> resultHandler) {
+            this.proc.onProcessExit(resultHandler)
         }
     }
 }

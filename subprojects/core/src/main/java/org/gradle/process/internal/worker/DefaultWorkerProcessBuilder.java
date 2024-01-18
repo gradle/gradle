@@ -48,6 +48,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerProcessBuilder.class);
@@ -279,6 +280,16 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         @Override
         public void stopNow() {
             delegate.stopNow();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return delegate.getDisplayName();
+        }
+
+        @Override
+        public void onProcessExit(Consumer<ExecResult> resultHandler) {
+            delegate.onProcessExit(resultHandler);
         }
     }
 

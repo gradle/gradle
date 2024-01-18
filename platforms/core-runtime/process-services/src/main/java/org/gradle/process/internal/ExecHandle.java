@@ -16,13 +16,14 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.api.Describable;
 import org.gradle.process.ExecResult;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-public interface ExecHandle {
+public interface ExecHandle extends Describable {
 
     File getDirectory();
 
