@@ -40,7 +40,7 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
 
-    testRuntimeOnly(project(":distributions-jvm")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 
