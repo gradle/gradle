@@ -32,7 +32,6 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -84,7 +83,6 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         ResolvedConfiguration wrappedConfiguration = new ErrorHandlingResolvedConfiguration(results.getResolvedConfiguration(), resolveContext, exceptionMapper);
         return DefaultResolverResults.graphResolved(
             results.getVisitedGraph(),
-            results.getResolvedLocalComponents(),
             wrappedConfiguration,
             results.getVisitedArtifacts()
         );
@@ -287,11 +285,6 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
 
         @Override
         public VisitedArtifactSet getVisitedArtifacts() {
-            throw failure;
-        }
-
-        @Override
-        public ResolvedLocalComponentsResult getResolvedLocalComponents() {
             throw failure;
         }
 

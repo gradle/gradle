@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import org.gradle.api.specs.Specs
 import spock.lang.Specification
 
@@ -38,7 +37,6 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
     private delegate = Mock(ConfigurationResolver)
     private resolvedConfiguration = Mock(ResolvedConfiguration)
     private visitedGraphResults = Mock(VisitedGraphResults)
-    private projectConfigResult = Mock(ResolvedLocalComponentsResult)
     private visitedArtifactSet = Mock(VisitedArtifactSet)
     private context = Mock(ConfigurationInternal) {
         getResolutionHost() >> Mock(ResolutionHost) {
@@ -143,7 +141,7 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
         lenientConfiguration.getArtifacts(_) >> { throw failure }
         lenientConfiguration.getUnresolvedModuleDependencies() >> { throw failure }
 
-        delegate.resolveGraph(context) >> DefaultResolverResults.graphResolved(visitedGraphResults, projectConfigResult, resolvedConfiguration, visitedArtifactSet)
+        delegate.resolveGraph(context) >> DefaultResolverResults.graphResolved(visitedGraphResults, resolvedConfiguration, visitedArtifactSet)
 
         when:
         def results = resolver.resolveGraph(context)

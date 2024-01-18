@@ -16,19 +16,24 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
-import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.StatefulListener;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 
+/**
+ * A listener that is notified when one project observes the local component metadata of another.
+ */
 @StatefulListener
 @EventScope(Scopes.Build.class)
-public interface ProjectDependencyObservedListener {
+public interface ProjectComponentObservationListener {
     /**
-     * Called when a configuration of a project is consumed as a dependency.
+     * Called when one project observes the local component metadata of another project.
+     *
+     * @param consumingProjectPath The path of the project performing the observation. Null if the consuming resolution is not a project.
+     * @param targetProjectPath The path of the project that is being observed.
      */
-    void dependencyObserved(@Nullable ProjectState consumingProject, ProjectState targetProject, ConfigurationInternal.InternalState requestedState, ResolvedProjectConfiguration target);
+    void projectObserved(@Nullable Path consumingProjectPath, Path targetProjectPath);
 }

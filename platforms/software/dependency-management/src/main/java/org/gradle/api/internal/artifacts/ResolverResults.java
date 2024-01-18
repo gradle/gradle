@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 
 /**
  * Immutable representation of the state of dependency resolution. Can represent the result of resolving build
@@ -47,11 +46,6 @@ public interface ResolverResults {
      * Returns details of the artifacts visited during dependency graph resolution. This set is later refined during artifact resolution.
      */
     VisitedArtifactSet getVisitedArtifacts();
-
-    /**
-     * Returns details of the local components in the resolved dependency graph.
-     */
-    ResolvedLocalComponentsResult getResolvedLocalComponents();
 
     /**
      * Returns true if the full graph was resolved. False if only build dependencies were resolved.
