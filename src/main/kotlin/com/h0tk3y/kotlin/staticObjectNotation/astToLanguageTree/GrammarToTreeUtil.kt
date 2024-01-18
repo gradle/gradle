@@ -1,5 +1,8 @@
 package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
+import com.h0tk3y.kotlin.staticObjectNotation.language.BlockElement
+import com.h0tk3y.kotlin.staticObjectNotation.language.DataStatement
+import com.h0tk3y.kotlin.staticObjectNotation.language.ErroneousStatement
 import com.h0tk3y.kotlin.staticObjectNotation.language.LanguageTreeElement
 
 internal class FailureCollectorContext {
@@ -62,7 +65,7 @@ internal class FailureCollectorContext {
             0 -> evaluate(object :
                 CheckBarrierContext {})
             1 -> currentFailures.single()
-            else -> MultipleFailuresResult(currentFailures)
+            else -> MultipleFailuresResult(currentFailures.flatMap { if (it is MultipleFailuresResult) it.failures else listOf(it as SingleFailureResult) })
         }
 
     fun <T> syntacticIfNoFailures(evaluate: CheckBarrierContext.() -> SyntacticResult<T>): SyntacticResult<T> =
@@ -70,11 +73,17 @@ internal class FailureCollectorContext {
             0 -> evaluate(object :
                 CheckBarrierContext {})
             1 -> currentFailures.single()
-            else -> MultipleFailuresResult(currentFailures)
+            else -> MultipleFailuresResult(currentFailures.flatMap { if (it is MultipleFailuresResult) it.failures else listOf(it as SingleFailureResult) })
         }
 
     class CheckedResult<T : LanguageResult<*>>(val value: T)
 }
+
+internal fun ElementResult<DataStatement>.asBlockElement(): BlockElement = when (this) {
+    is Element -> element
+    is FailingResult -> ErroneousStatement(this)
+}
+
 
 internal fun <T : LanguageTreeElement> elementOrFailure(
     evaluate: FailureCollectorContext.() -> ElementResult<T>

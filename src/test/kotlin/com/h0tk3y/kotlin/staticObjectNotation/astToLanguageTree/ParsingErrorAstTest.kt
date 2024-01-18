@@ -1,7 +1,7 @@
 package com.example.com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.AbstractRejectedLanguageFeaturesTest
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ElementResult
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeResult
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParseTestUtil
 import org.antlr.v4.kotlinruntime.misc.ParseCancellationException
 import org.junit.jupiter.api.Test
@@ -9,7 +9,7 @@ import org.junit.jupiter.api.assertThrows
 
 class ParsingErrorAstTest: AbstractRejectedLanguageFeaturesTest() {
 
-    override fun parse(code: String): List<ElementResult<*>> = ParseTestUtil.parseWithAst(code)
+    override fun parse(code: String): LanguageTreeResult = ParseTestUtil.parseWithAst(code)
 
     @Test
     fun `single unparsable expression`() {

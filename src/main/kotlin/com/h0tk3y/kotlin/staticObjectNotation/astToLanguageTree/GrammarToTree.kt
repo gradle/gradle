@@ -9,21 +9,24 @@ class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
     /**
      * script : -shebangLine? -fileAnnotation* -packageHeader importList (statement semi)* EOF
      */
-    fun script(ast: Ast): Syntactic<List<ElementResult<*>>> =
-        FailureCollectorContext().run {
-            ast.expectKind(script)
-            collectingFailure(ast, shebangLine) { it?.unsupported(UnsupportedShebangInScript) }
-            collectingFailure(ast, packageHeader) {
-                it?.takeIf { it.childrenOrEmpty.isNotEmpty() }?.unsupported(PackageHeader)
-            }
-
-            val imports = importList(ast.child(importList))
-
-            val statementAsts = ast.children(statement)
-            val statements = statementAsts.map { statement(it) }
-
-            Syntactic(failures + imports + statements)
+    fun script(ast: Ast): LanguageTreeResult = FailureCollectorContext().run {
+        ast.expectKind(script)
+        collectingFailure(ast, shebangLine) { it?.unsupported(UnsupportedShebangInScript) }
+        collectingFailure(ast, packageHeader) {
+            it?.takeIf { it.childrenOrEmpty.isNotEmpty() }?.unsupported(PackageHeader)
         }
+
+        val imports = importList(ast.child(importList))
+        val statements = ast.children(statement).map { statement(it) }
+        val headerFailures = collectFailures(failures + imports)
+
+        LanguageTreeResult(
+            imports.filterIsInstance<Element<Import>>().map { it.element },
+            Block(statements.map { it.asBlockElement() }, ast.sourceData(sourceIdentifier)),
+            headerFailures,
+            collectFailures(statements)
+        )
+    }
 
     private fun importList(ast: Ast): List<ElementResult<Import>> {
         ast.expectKind(importList)

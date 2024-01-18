@@ -24,9 +24,6 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataTypeRef
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.SchemaFunction
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.tracingCodeResolver
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.DefaultLanguageTreeBuilder
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.Element
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ElementResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeBuilderWithTopLevelBlock
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.parseToLightTree
 import com.h0tk3y.kotlin.staticObjectNotation.dom.DocumentResolution
 import com.h0tk3y.kotlin.staticObjectNotation.dom.ResolvedDeclarativeDocument
@@ -45,7 +42,7 @@ object DomResolutionTest {
     fun `resolves declarative document`() {
         val resolver = tracingCodeResolver()
 
-        val tree = parseWithTopLevelBlock(
+        val topLevelBlock = parseAsTopLevelBlock(
             """
             addAndConfigure("test") {
                 number = 123
@@ -61,9 +58,9 @@ object DomResolutionTest {
             """.trimIndent()
         )
 
-        resolver.resolve(schema, tree.map { (it as Element<*>).element })
+        resolver.resolve(schema, emptyList(), topLevelBlock)
 
-        val document = convertBlockToDocument((tree.single() as Element).element as Block)
+        val document = convertBlockToDocument(topLevelBlock)
         val resolved = resolvedDocument(schema, resolver.trace, document)
         val resolutions = collectResolutions(resolved)
         assertEquals(
@@ -96,7 +93,7 @@ object DomResolutionTest {
     fun `maps resolution errors to document errors`() {
         val resolver = tracingCodeResolver()
 
-        val tree = parseWithTopLevelBlock(
+        val topLevelBlock = parseAsTopLevelBlock(
             """
             addAndConfigure("correct") { }
             addAndConfigure("lambda missing")
@@ -114,9 +111,9 @@ object DomResolutionTest {
             """.trimIndent()
         )
 
-        resolver.resolve(schema, tree.map { (it as Element<*>).element })
+        resolver.resolve(schema, emptyList(), topLevelBlock)
 
-        val document = convertBlockToDocument((tree.single() as Element).element as Block)
+        val document = convertBlockToDocument(topLevelBlock)
         val resolved = resolvedDocument(schema, resolver.trace, document, strictReceiverChecks = true)
         val resolutions = collectResolutions(resolved)
         assertEquals(
@@ -270,8 +267,8 @@ object DomResolutionTest {
 
     private class MyNestedElement
 
-    private fun parseWithTopLevelBlock(@Language("kts") code: String): List<ElementResult<*>> {
+    private fun parseAsTopLevelBlock(@Language("kts") code: String): Block {
         val (tree, sourceCode, sourceOffset) = parseToLightTree(code)
-        return LanguageTreeBuilderWithTopLevelBlock(DefaultLanguageTreeBuilder()).build(tree, sourceCode, sourceOffset, SourceIdentifier("test")).results
+        return DefaultLanguageTreeBuilder().build(tree, sourceCode, sourceOffset, SourceIdentifier("test")).topLevelBlock
     }
 }

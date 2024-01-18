@@ -1,11 +1,27 @@
 package com.h0tk3y.kotlin.staticObjectNotation.demo
 
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.*
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataType
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataTypeRef
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.FqName
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionResult
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.Resolver
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.ref
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.tracingCodeResolver
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.DefaultLanguageTreeBuilder
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.FailingResult
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.MultipleFailuresResult
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParsingError
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedConstruct
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.parseToAst
 import com.h0tk3y.kotlin.staticObjectNotation.language.SourceIdentifier
-import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.*
+import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver.AssignmentAdditionResult.AssignmentAdded
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver.AssignmentResolutionResult.Assigned
+import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTrace
+import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTraceElement
+import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTracer
+import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.ObjectReflection
 
 val int = DataType.IntDataType.ref
 val string = DataType.StringDataType.ref
@@ -17,11 +33,10 @@ fun AnalysisSchema.resolve(
 ): ResolutionResult {
     val ast = parseToAst(code)
 
-    val languageBuilder = LanguageTreeBuilderWithTopLevelBlock(DefaultLanguageTreeBuilder())
+    val languageBuilder = DefaultLanguageTreeBuilder()
     val tree = languageBuilder.build(ast, SourceIdentifier("demo"))
-    val languageElements = tree.results.filterIsInstance<Element<*>>().map { it.element }
 
-    val failures = tree.results.filterIsInstance<FailingResult>()
+    val failures = tree.allFailures
 
     if (failures.isNotEmpty()) {
         println("Failures:")
@@ -39,7 +54,7 @@ fun AnalysisSchema.resolve(
         failures.forEach { printFailures(it) }
     }
 
-    val result = resolver.resolve(this, languageElements)
+    val result = resolver.resolve(this, tree.imports, tree.topLevelBlock)
     return result
 }
 

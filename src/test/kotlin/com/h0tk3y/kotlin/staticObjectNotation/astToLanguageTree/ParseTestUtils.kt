@@ -6,14 +6,14 @@ import org.intellij.lang.annotations.Language
 class ParseTestUtil {
 
     companion object Parser {
-        fun parseWithAst(@Language("kts") code: String): List<ElementResult<*>> {
+        fun parseWithAst(@Language("kts") code: String): LanguageTreeResult {
             val ast = parseToAst(code)
-            return DefaultLanguageTreeBuilder().build(ast, SourceIdentifier("test")).results
+            return DefaultLanguageTreeBuilder().build(ast, SourceIdentifier("test"))
         }
 
-        fun parseWithLightParser(@Language("kts") code: String): List<ElementResult<*>> {
+        fun parseWithLightParser(@Language("kts") code: String): LanguageTreeResult {
             val (tree, sourceCode, sourceOffset) = parseToLightTree(code)
-            return DefaultLanguageTreeBuilder().build(tree, sourceCode, sourceOffset, SourceIdentifier("test")).results
+            return DefaultLanguageTreeBuilder().build(tree, sourceCode, sourceOffset, SourceIdentifier("test"))
         }
     }
 

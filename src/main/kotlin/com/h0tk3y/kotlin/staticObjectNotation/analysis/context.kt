@@ -16,7 +16,8 @@ data class LocalValueAssignment(val localValue: LocalValue, val assignment: Obje
 
 class AnalysisScope(
     private val previousScopeView: AnalysisScopeView?,
-    override val receiver: ObjectOrigin.ReceiverOrigin, override val syntacticEnclosure: LanguageTreeElement
+    override val receiver: ObjectOrigin.ReceiverOrigin,
+    override val syntacticEnclosure: LanguageTreeElement
 ) : AnalysisScopeView {
     private val ownLocalsByName = mutableMapOf<String, LocalValueAssignment>()
 

@@ -1,11 +1,18 @@
 package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
+import com.h0tk3y.kotlin.staticObjectNotation.language.Block
+import com.h0tk3y.kotlin.staticObjectNotation.language.Import
 import com.h0tk3y.kotlin.staticObjectNotation.language.LanguageTreeElement
 import com.h0tk3y.kotlin.staticObjectNotation.language.SourceData
 
 data class LanguageTreeResult(
-    val results: List<ElementResult<*>>
-)
+    val imports: List<Import>,
+    val topLevelBlock: Block,
+    val headerFailures: List<SingleFailureResult>,
+    val codeFailures: List<SingleFailureResult>
+) {
+    val allFailures = headerFailures + codeFailures
+}
 
 sealed interface LanguageResult<out T>
 
@@ -25,26 +32,22 @@ sealed interface SyntacticResult<out T> : LanguageResult<T> {
 
 data class Element<T : LanguageTreeElement>(val element: T) : ElementResult<T>
 data class Syntactic<out T>(val value: T) : SyntacticResult<T>
-sealed interface FailingResult : ElementResult<Nothing>, SyntacticResult<Nothing> {
-    fun failures() = when (this) {
-        is MultipleFailuresResult -> failures
-        else -> listOf(this)
-    }
-}
+sealed interface FailingResult : ElementResult<Nothing>, SyntacticResult<Nothing>
+sealed interface SingleFailureResult : FailingResult
 
 data class UnsupportedConstruct(
     val potentialElementSource: SourceData,
     val erroneousSource: SourceData,
     val languageFeature: UnsupportedLanguageFeature
-) : FailingResult
+) : SingleFailureResult
 
 data class ParsingError(
     val potentialElementSource: SourceData,
     val erroneousSource: SourceData,
     val message: String
-) : FailingResult
+) : SingleFailureResult
 
-data class MultipleFailuresResult(val failures: List<FailingResult>) : FailingResult // TODO: should this exist at all?
+data class MultipleFailuresResult(val failures: List<SingleFailureResult>) : FailingResult // TODO: should this exist at all?
 
 sealed interface UnsupportedLanguageFeature {
     data object PackageHeader : UnsupportedLanguageFeature

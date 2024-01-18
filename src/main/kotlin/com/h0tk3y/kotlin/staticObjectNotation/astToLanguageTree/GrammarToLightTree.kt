@@ -20,8 +20,7 @@ import org.jetbrains.kotlin.utils.doNothing
 class GrammarToLightTree(
     private val sourceIdentifier: SourceIdentifier,
     private val sourceCode: String,
-    private val sourceOffset: Int,
-    private val shouldSurfaceInternalFailures: Boolean = true
+    private val sourceOffset: Int
 ) {
 
     inner
@@ -68,83 +67,24 @@ class GrammarToLightTree(
         } // TODO: hack, due to script wrapping
     }
 
-    fun script(originalTree: LightTree): Syntactic<List<ElementResult<*>>> {
+    fun script(originalTree: LightTree): LanguageTreeResult {
         val tree = CachingLightTree(originalTree)
-
         val packageNode = packageNode(tree)
         val importNodes = importNodes(tree)
         val scriptNodes = scriptNodes(tree)
 
         val packages = packageHeader(tree, packageNode)
         val imports = importNodes.map { import(tree, it) }
-        val statements = scriptNodes.map { statement(tree, it) }.let {
-            if (shouldSurfaceInternalFailures) it.flatMap { surfaceInternalFailures(it) } else it
-        }
-        return Syntactic(packages + imports + statements)
-    }
+        val statements = scriptNodes.map { statement(tree, it) }
 
-    private
-    fun surfaceInternalFailures(elementOrFailure: ElementResult<DataStatement>): List<ElementResult<*>> {
-        fun MutableList<ElementResult<*>>.recurse(current: LanguageTreeElement): MutableList<ElementResult<*>> {
-            when (current) {
-                is Block -> {
-                    current.content.forEach {
-                        when (it) {
-                            is ErroneousStatement -> add(it.failingResult)
-                            else -> recurse(it)
-                        }
-                    }
-                }
+        val headerFailures = collectFailures(packages + imports)
 
-                is Assignment -> {
-                    recurse(current.lhs)
-                    recurse(current.rhs)
-                }
-
-                is FunctionCall -> {
-                    current.receiver?.let {
-                        recurse(it)
-                    }
-                    if (current.args.isNotEmpty()) {
-                        current.args.forEach {
-                            recurse(it)
-                        }
-                    }
-                }
-
-                is PropertyAccess -> {
-                    current.receiver?.let { receiver ->
-                        recurse(receiver)
-                    }
-                }
-
-                is LocalValue -> recurse(current.rhs)
-
-                is FunctionArgument.Lambda -> recurse(current.block)
-                is FunctionArgument.Named -> recurse(current.expr)
-                is FunctionArgument.Positional -> recurse(current.expr)
-
-                is Import -> doNothing()
-
-                is Literal.BooleanLiteral -> doNothing()
-                is Literal.IntLiteral -> doNothing()
-                is Literal.LongLiteral -> doNothing()
-                is Literal.StringLiteral -> doNothing()
-                is Null -> doNothing()
-                is This -> doNothing()
-
-                else -> error("Unhandled languege tree element: ${current.javaClass.simpleName}")
-            }
-
-            return this
-        }
-
-        val results = mutableListOf<ElementResult<*>>()
-        if (elementOrFailure is Element) {
-            results.recurse(elementOrFailure.element)
-        }
-        results.add(elementOrFailure)
-        return results
+        return LanguageTreeResult(
+            imports = imports.filterIsInstance<Element<Import>>().map { it.element },
+            topLevelBlock = Block(statements.map { it.asBlockElement() }, tree.root.data),
+            headerFailures = headerFailures,
+            codeFailures = collectFailures(statements)
+        )
     }
 
     private
@@ -463,16 +403,12 @@ class GrammarToLightTree(
             collectingFailure(statements ?: tree.parsingError(node, "Lambda expression without statements"))
 
             syntacticIfNoFailures {
-                val checkedStatements = statements!!.map {
-                    when (it) {
-                        is Element -> it.element
-                        is FailingResult -> ErroneousStatement(it)
-                    }
-                }
+                val checkedStatements = statements!!.map { it.asBlockElement() }
                 val b = Block(checkedStatements, tree.sourceData(block!!))
                 Syntactic(FunctionArgument.Lambda(b, tree.sourceData(node)))
             }
         }
+
 
     private
     fun valueArgument(tree: CachingLightTree, node: LighterASTNode): SyntacticResult<FunctionArgument.ValueArgument> =

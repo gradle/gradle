@@ -1,26 +1,19 @@
 package com.h0tk3y.kotlin.staticObjectNotation.analysis
 
 import com.h0tk3y.kotlin.staticObjectNotation.language.Block
-import com.h0tk3y.kotlin.staticObjectNotation.language.DataStatement
 import com.h0tk3y.kotlin.staticObjectNotation.language.Import
-import com.h0tk3y.kotlin.staticObjectNotation.language.LanguageTreeElement
 
 interface Resolver {
-    fun resolve(schema: AnalysisSchema, trees: List<LanguageTreeElement>): ResolutionResult
+    fun resolve(schema: AnalysisSchema, imports: List<Import>, topLevelBlock: Block): ResolutionResult
 }
 
 class ResolverImpl(
     private val codeAnalyzer: CodeAnalyzer,
     private val errorCollector: ErrorCollector
 ) : Resolver {
-    override fun resolve(schema: AnalysisSchema, trees: List<LanguageTreeElement>): ResolutionResult {
-        val topLevelBlock = trees.singleOrNull { it is Block } as? Block
-        require(trees.none { it is DataStatement } && topLevelBlock != null) { "expected a top-level block" }
-
+    override fun resolve(schema: AnalysisSchema, imports: List<Import>, topLevelBlock: Block): ResolutionResult {
         val importContext = AnalysisContext(schema, emptyMap(), errorCollector)
-        val importFqnBySimpleName = collectImports(
-            trees.filterIsInstance<Import>(), importContext
-        ) + schema.defaultImports.associateBy { it.simpleName }
+        val importFqnBySimpleName = collectImports(imports, importContext) + schema.defaultImports.associateBy { it.simpleName }
 
         val topLevelReceiver = ObjectOrigin.TopLevelReceiver(schema.topLevelReceiverType, topLevelBlock)
         val topLevelScope = AnalysisScope(null, topLevelReceiver, topLevelBlock)
@@ -59,5 +52,5 @@ class TracingResolver(
     private val resolver: Resolver,
     val trace: ResolutionTrace
 ) : Resolver {
-    override fun resolve(schema: AnalysisSchema, trees: List<LanguageTreeElement>): ResolutionResult = resolver.resolve(schema, trees)
+    override fun resolve(schema: AnalysisSchema, imports: List<Import>, topLevelBlock: Block): ResolutionResult = resolver.resolve(schema, imports, topLevelBlock)
 }

@@ -17,9 +17,6 @@
 package com.example.com.h0tk3y.kotlin.staticObjectNotation.dom
 
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.DefaultLanguageTreeBuilder
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.Element
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ElementResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeBuilderWithTopLevelBlock
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.parseToLightTree
 import com.h0tk3y.kotlin.staticObjectNotation.dom.DeclarativeDocument
 import com.h0tk3y.kotlin.staticObjectNotation.dom.DocumentError
@@ -36,7 +33,7 @@ import kotlin.test.assertEquals
 object DomTest {
     @Test
     fun `converts a simple language tree to document`() {
-        val tree = parseWithTopLevelBlock(
+        val tree = parseAsTopLevelBlock(
             """
             myFun {
                 a = 1
@@ -61,13 +58,13 @@ object DomTest {
                 element(factory, literal(1))
 
             """.trimIndent(),
-            domAsString(convertBlockToDocument((tree.single() as Element).element as Block))
+            domAsString(convertBlockToDocument(tree))
         )
     }
 
     @Test
     fun `converts unsupported syntax to errors`() {
-        val tree = parseWithTopLevelBlock(
+        val tree = parseAsTopLevelBlock(
             """
             myFun {
                 a = "x"
@@ -108,13 +105,13 @@ object DomTest {
                     element(factory, literal(1))
 
             """.trimIndent(),
-            domAsString(convertBlockToDocument((tree.single() as Element).element as Block))
+            domAsString(convertBlockToDocument(tree))
         )
     }
 
-    private fun parseWithTopLevelBlock(@Language("kts") code: String): List<ElementResult<*>> {
+    private fun parseAsTopLevelBlock(@Language("kts") code: String): Block {
         val (tree, sourceCode, sourceOffset) = parseToLightTree(code)
-        return LanguageTreeBuilderWithTopLevelBlock(DefaultLanguageTreeBuilder(shouldSurfaceInternalErrors = false)).build(tree, sourceCode, sourceOffset, SourceIdentifier("test")).results
+        return DefaultLanguageTreeBuilder().build(tree, sourceCode, sourceOffset, SourceIdentifier("test")).topLevelBlock
     }
 
     private fun domAsString(document: DeclarativeDocument) = buildString {

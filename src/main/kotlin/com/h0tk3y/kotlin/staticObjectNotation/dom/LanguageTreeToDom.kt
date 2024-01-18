@@ -82,10 +82,7 @@ private fun blockElementToNode(blockElement: BlockElement): LanguageTreeBackedDo
     is LocalValue -> BlockElementBackedErrorNode(blockElement, listOf(UnsupportedSyntax(UnsupportedSyntaxCause.LocalVal)))
     is Expr -> BlockElementBackedErrorNode(blockElement, listOf(UnsupportedSyntax(UnsupportedSyntaxCause.DanglingExpr)))
 
-    is ErroneousStatement -> {
-        val failingResult = blockElement.failingResult
-        BlockElementBackedErrorNode(blockElement, mapBlockElementErrors(failingResult))
-    }
+    is ErroneousStatement -> BlockElementBackedErrorNode(blockElement, mapBlockElementErrors(blockElement.failingResult))
 }
 
 fun mapBlockElementErrors(failingResult: FailingResult): Collection<DocumentError> {

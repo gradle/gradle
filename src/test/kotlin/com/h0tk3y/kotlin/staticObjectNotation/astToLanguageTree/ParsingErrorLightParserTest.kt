@@ -1,23 +1,27 @@
 package com.example.com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
+import com.example.com.h0tk3y.kotlin.staticObjectNotation.prettyPrintLanguageTreeResult
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.AbstractRejectedLanguageFeaturesTest
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ElementResult
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeResult
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParseTestUtil
 import org.junit.jupiter.api.Test
 
 class ParsingErrorLightParserTest: AbstractRejectedLanguageFeaturesTest() {
 
-    override fun parse(code: String): List<ElementResult<*>> = ParseTestUtil.parseWithLightParser(code)
+    override fun parse(code: String): LanguageTreeResult = ParseTestUtil.parseWithLightParser(code)
 
     @Test
     fun `single unparsable expression`() {
         val code = "."
 
         val expected = """
-            ParsingError(
-                message = Expecting an element, 
-                potentialElementSource = indexes: 0..1, line/column: 1/1..1/2, file: test, 
-                erroneousSource = indexes: 0..1, line/column: 1/1..1/2, file: test
+            ErroneousStatement (
+                ParsingError(
+                    message = Expecting an element,
+                    potentialElementSource = indexes: 0..1, line/column: 1/1..1/2, file: test,
+                    erroneousSource = indexes: 0..1, line/column: 1/1..1/2, file: test
+                )
             )
             """.trimIndent()
         assertResult(expected, code)
@@ -28,15 +32,19 @@ class ParsingErrorLightParserTest: AbstractRejectedLanguageFeaturesTest() {
         val code = "id(\"plugin-id-1\";)"
 
         val expected = """
-            ParsingError(
-                message = Unparsable value argument: "("plugin-id-1"". Expecting ')', 
-                potentialElementSource = indexes: 2..16, line/column: 1/3..1/17, file: test, 
-                erroneousSource = indexes: 16..16, line/column: 1/17..1/17, file: test
+            ErroneousStatement (
+                ParsingError(
+                    message = Unparsable value argument: "("plugin-id-1"". Expecting ')',
+                    potentialElementSource = indexes: 2..16, line/column: 1/3..1/17, file: test,
+                    erroneousSource = indexes: 16..16, line/column: 1/17..1/17, file: test
+                )
             )
-            ParsingError(
-                message = Expecting an element, 
-                potentialElementSource = indexes: 17..18, line/column: 1/18..1/19, file: test, 
-                erroneousSource = indexes: 17..18, line/column: 1/18..1/19, file: test
+            ErroneousStatement (
+                ParsingError(
+                    message = Expecting an element,
+                    potentialElementSource = indexes: 17..18, line/column: 1/18..1/19, file: test,
+                    erroneousSource = indexes: 17..18, line/column: 1/18..1/19, file: test
+                )
             )
             """.trimIndent()
         assertResult(expected, code)
@@ -47,28 +55,28 @@ class ParsingErrorLightParserTest: AbstractRejectedLanguageFeaturesTest() {
         val code = "kotlin(\"plugin-id-1) ; kotlin(\"plugin-id-2\")"
 
         val expected = """
-            MultipleFailures(
+            ErroneousStatement (
                 MultipleFailures(
                     UnsupportedConstruct(
-                        languageFeature = PrefixExpression, 
-                        potentialElementSource = indexes: 37..40, line/column: 1/38..1/41, file: test, 
+                        languageFeature = PrefixExpression,
+                        potentialElementSource = indexes: 37..40, line/column: 1/38..1/41, file: test,
                         erroneousSource = indexes: 37..40, line/column: 1/38..1/41, file: test
                     )
                     UnsupportedConstruct(
-                        languageFeature = UnsupportedOperator, 
-                        potentialElementSource = indexes: 40..41, line/column: 1/41..1/42, file: test, 
+                        languageFeature = UnsupportedOperator,
+                        potentialElementSource = indexes: 40..41, line/column: 1/41..1/42, file: test,
                         erroneousSource = indexes: 40..41, line/column: 1/41..1/42, file: test
                     )
-                )
-                ParsingError(
-                    message = Unparsable value argument: "("plugin-id-1) ; kotlin("plugin-id-2")". Expecting ',', 
-                    potentialElementSource = indexes: 6..44, line/column: 1/7..1/45, file: test, 
-                    erroneousSource = indexes: 42..42, line/column: 1/43..1/43, file: test
-                )
-                ParsingError(
-                    message = Unparsable value argument: "("plugin-id-1) ; kotlin("plugin-id-2")". Expecting ')', 
-                    potentialElementSource = indexes: 6..44, line/column: 1/7..1/45, file: test, 
-                    erroneousSource = indexes: 44..44, line/column: 1/45..1/45, file: test
+                    ParsingError(
+                        message = Unparsable value argument: "("plugin-id-1) ; kotlin("plugin-id-2")". Expecting ',',
+                        potentialElementSource = indexes: 6..44, line/column: 1/7..1/45, file: test,
+                        erroneousSource = indexes: 42..42, line/column: 1/43..1/43, file: test
+                    )
+                    ParsingError(
+                        message = Unparsable value argument: "("plugin-id-1) ; kotlin("plugin-id-2")". Expecting ')',
+                        potentialElementSource = indexes: 6..44, line/column: 1/7..1/45, file: test,
+                        erroneousSource = indexes: 44..44, line/column: 1/45..1/45, file: test
+                    )
                 )
             )""".trimIndent()
         assertResult(expected, code)
@@ -93,15 +101,19 @@ class ParsingErrorLightParserTest: AbstractRejectedLanguageFeaturesTest() {
                 name = b
                 rhs = IntLiteral [indexes: 18..19, line/column: 2/9..2/10, file: test] (2)
             )
-            UnsupportedConstruct(
-                languageFeature = UninitializedProperty, 
-                potentialElementSource = indexes: 20..25, line/column: 3/1..3/6, file: test, 
-                erroneousSource = indexes: 20..25, line/column: 3/1..3/6, file: test
+            ErroneousStatement (
+                UnsupportedConstruct(
+                    languageFeature = UninitializedProperty,
+                    potentialElementSource = indexes: 20..25, line/column: 3/1..3/6, file: test,
+                    erroneousSource = indexes: 20..25, line/column: 3/1..3/6, file: test
+                )
             )
-            ParsingError(
-                message = Unexpected tokens (use ';' to separate expressions on the same line), 
-                potentialElementSource = indexes: 26..27, line/column: 3/7..3/8, file: test, 
-                erroneousSource = indexes: 26..27, line/column: 3/7..3/8, file: test
+            ErroneousStatement (
+                ParsingError(
+                    message = Unexpected tokens (use ';' to separate expressions on the same line),
+                    potentialElementSource = indexes: 26..27, line/column: 3/7..3/8, file: test,
+                    erroneousSource = indexes: 26..27, line/column: 3/7..3/8, file: test
+                )
             )
             LocalValue [indexes: 28..37, line/column: 4/1..4/10, file: test] (
                 name = d
@@ -128,10 +140,12 @@ class ParsingErrorLightParserTest: AbstractRejectedLanguageFeaturesTest() {
                 name = a
                 rhs = IntLiteral [indexes: 8..9, line/column: 1/9..1/10, file: test] (1)
             )
-            ParsingError(
-                message = Expecting ')', 
-                potentialElementSource = indexes: 18..20, line/column: 2/9..2/11, file: test, 
-                erroneousSource = indexes: 20..20, line/column: 2/11..2/11, file: test
+            ErroneousStatement (
+                ParsingError(
+                    message = Expecting ')',
+                    potentialElementSource = indexes: 18..20, line/column: 2/9..2/11, file: test,
+                    erroneousSource = indexes: 20..20, line/column: 2/11..2/11, file: test
+                )
             )
             LocalValue [indexes: 21..30, line/column: 3/1..3/10, file: test] (
                 name = c
@@ -158,10 +172,12 @@ class ParsingErrorLightParserTest: AbstractRejectedLanguageFeaturesTest() {
                 name = b
                 rhs = IntLiteral [indexes: 18..19, line/column: 2/9..2/10, file: test] (2)
             )
-            ParsingError(
-                message = Unexpected tokens (use ';' to separate expressions on the same line), 
-                potentialElementSource = indexes: 19..19, line/column: 2/10..2/10, file: test, 
-                erroneousSource = indexes: 19..19, line/column: 2/10..2/10, file: test
+            ErroneousStatement (
+                ParsingError(
+                    message = Unexpected tokens (use ';' to separate expressions on the same line),
+                    potentialElementSource = indexes: 19..19, line/column: 2/10..2/10, file: test,
+                    erroneousSource = indexes: 19..19, line/column: 2/10..2/10, file: test
+                )
             )
             LocalValue [indexes: 20..29, line/column: 2/11..2/20, file: test] (
                 name = c
@@ -187,16 +203,6 @@ class ParsingErrorLightParserTest: AbstractRejectedLanguageFeaturesTest() {
         """.trimIndent()
 
         val expected = """
-            UnsupportedConstruct(
-                languageFeature = UninitializedProperty, 
-                potentialElementSource = indexes: 36..41, line/column: 4/5..4/10, file: test, 
-                erroneousSource = indexes: 36..41, line/column: 4/5..4/10, file: test
-            )
-            ParsingError(
-                message = Unexpected tokens (use ';' to separate expressions on the same line), 
-                potentialElementSource = indexes: 42..43, line/column: 4/11..4/12, file: test, 
-                erroneousSource = indexes: 42..43, line/column: 4/11..4/12, file: test
-            )
             FunctionCall [indexes: 0..55, line/column: 1/1..6/2, file: test] (
                 name = block
                 args = [
@@ -214,15 +220,15 @@ class ParsingErrorLightParserTest: AbstractRejectedLanguageFeaturesTest() {
                             )
                             ErroneousStatement (
                                 UnsupportedConstruct(
-                                    languageFeature = UninitializedProperty, 
-                                    potentialElementSource = indexes: 36..41, line/column: 4/5..4/10, file: test, 
+                                    languageFeature = UninitializedProperty,
+                                    potentialElementSource = indexes: 36..41, line/column: 4/5..4/10, file: test,
                                     erroneousSource = indexes: 36..41, line/column: 4/5..4/10, file: test
                                 )
                             )
                             ErroneousStatement (
                                 ParsingError(
-                                    message = Unexpected tokens (use ';' to separate expressions on the same line), 
-                                    potentialElementSource = indexes: 42..43, line/column: 4/11..4/12, file: test, 
+                                    message = Unexpected tokens (use ';' to separate expressions on the same line),
+                                    potentialElementSource = indexes: 42..43, line/column: 4/11..4/12, file: test,
                                     erroneousSource = indexes: 42..43, line/column: 4/11..4/12, file: test
                                 )
                             )

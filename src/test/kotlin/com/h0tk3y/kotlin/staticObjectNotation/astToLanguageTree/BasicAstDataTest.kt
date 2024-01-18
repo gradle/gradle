@@ -2,12 +2,13 @@ package com.example.com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.AbstractBasicDataTest
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ElementResult
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeResult
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParseTestUtil
 import org.junit.jupiter.api.Test
 
 class BasicAstDataTest: AbstractBasicDataTest() {
 
-    override fun parse(code: String): List<ElementResult<*>> = ParseTestUtil.parseWithAst(code)
+    override fun parse(code: String): LanguageTreeResult = ParseTestUtil.parseWithAst(code)
 
     @Test
     fun `parses literals`() {
@@ -189,7 +190,7 @@ class BasicAstDataTest: AbstractBasicDataTest() {
     fun `parses named arguments`() {
         val results = parse(
             """
-            f(a = b, c = d)            
+            f(a = b, c = d)
             """.trimIndent()
         )
 

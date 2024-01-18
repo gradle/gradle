@@ -16,9 +16,31 @@
 
 package com.example.com.h0tk3y.kotlin.staticObjectNotation
 
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.*
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.Element
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageResult
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeResult
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.MultipleFailuresResult
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParseTestUtil.Parser.parseWithAst
-import com.h0tk3y.kotlin.staticObjectNotation.language.*
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParsingError
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedConstruct
+import com.h0tk3y.kotlin.staticObjectNotation.language.Assignment
+import com.h0tk3y.kotlin.staticObjectNotation.language.Block
+import com.h0tk3y.kotlin.staticObjectNotation.language.ErroneousStatement
+import com.h0tk3y.kotlin.staticObjectNotation.language.FunctionArgument
+import com.h0tk3y.kotlin.staticObjectNotation.language.FunctionCall
+import com.h0tk3y.kotlin.staticObjectNotation.language.Import
+import com.h0tk3y.kotlin.staticObjectNotation.language.LanguageTreeElement
+import com.h0tk3y.kotlin.staticObjectNotation.language.Literal
+import com.h0tk3y.kotlin.staticObjectNotation.language.LocalValue
+import com.h0tk3y.kotlin.staticObjectNotation.language.Null
+import com.h0tk3y.kotlin.staticObjectNotation.language.PropertyAccess
+import com.h0tk3y.kotlin.staticObjectNotation.language.This
+import com.h0tk3y.kotlin.staticObjectNotation.language.prettyPrint
+
+fun prettyPrintLanguageTreeResult(languageTreeResult: LanguageTreeResult): String {
+    val languageResults = languageTreeResult.imports.map { Element(it) } + languageTreeResult.topLevelBlock.content.map { Element(it) }
+    return languageResults.joinToString("\n") { prettyPrintLanguageResult(it) }
+}
 
 fun prettyPrintLanguageResult(languageResult: LanguageResult<*>, startDepth: Int = 0): String {
     fun StringBuilder.recurse(current: LanguageResult<*>, depth: Int) {
@@ -238,7 +260,7 @@ fun main() {
                 google() }
         }
         """.trimIndent()
-    ).single() as Element<*>
+    ).topLevelBlock
 
-    println(prettyPrintLanguageTree(result.element))
+    println(prettyPrintLanguageTree(result))
 }
