@@ -81,7 +81,7 @@ class GrammarToLightTree(
 
         return LanguageTreeResult(
             imports = imports.filterIsInstance<Element<Import>>().map { it.element },
-            topLevelBlock = Block(statements.map { it.asBlockElement() }, tree.root.data),
+            topLevelBlock = Block(statements.map { it.asBlockElement() }, tree.sourceData(tree.root)),
             headerFailures = headerFailures,
             codeFailures = collectFailures(statements)
         )
