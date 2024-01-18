@@ -52,16 +52,31 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
     private final AtomicReference<ClassPath> instrumentedClassPath;
     private final Lazy<PluginRegistry> pluginRegistry;
 
-    public DefaultInjectedClasspathPluginResolver(ClassLoaderScope parentScope, DefaultScriptClassPathResolver scriptClassPathResolver, FileCollectionFactory fileCollectionFactory, PluginInspector pluginInspector, ClassPath injectedClasspath) {
+    public DefaultInjectedClasspathPluginResolver(
+        ClassLoaderScope parentScope,
+        DefaultScriptClassPathResolver scriptClassPathResolver,
+        FileCollectionFactory fileCollectionFactory,
+        PluginInspector pluginInspector,
+        ClassPath injectedClasspath,
+        InjectedClasspathInstrumentationStrategy instrumentationStrategy
+    ) {
         this.injectedClasspath = injectedClasspath;
         this.fileCollectionFactory = fileCollectionFactory;
         this.scriptClassPathResolver = scriptClassPathResolver;
         this.instrumentedClassPath = new AtomicReference<>();
+        maybeReportAgentUsageWithTestKitProblem(instrumentationStrategy);
         this.pluginRegistry = Lazy.unsafe().of(() -> new DefaultPluginRegistry(pluginInspector,
             parentScope.createChild("injected-plugin", null)
                 .local(checkNotNull(instrumentedClassPath.get()))
                 .lock()
         ));
+    }
+
+    /**
+     * InstrumentationStrategy will report a problem if the agent is used with TestKit, see ConfigurationCacheInjectedClasspathInstrumentationStrategy class.
+     */
+    private static void maybeReportAgentUsageWithTestKitProblem(InjectedClasspathInstrumentationStrategy instrumentationStrategy) {
+        instrumentationStrategy.getTransform();
     }
 
     @Override

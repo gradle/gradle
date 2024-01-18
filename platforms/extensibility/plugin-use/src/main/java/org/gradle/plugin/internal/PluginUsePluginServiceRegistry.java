@@ -50,6 +50,7 @@ import org.gradle.plugin.use.internal.PluginRepositoryHandlerProvider;
 import org.gradle.plugin.use.internal.PluginResolverFactory;
 import org.gradle.plugin.use.resolve.service.internal.ClientInjectedClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.DefaultInjectedClasspathPluginResolver;
+import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy;
 import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
 
 import java.util.List;
@@ -95,15 +96,24 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
         }
 
         ClientInjectedClasspathPluginResolver createInjectedClassPathPluginResolver(
-            ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector,
+            ClassLoaderScopeRegistry classLoaderScopeRegistry,
+            PluginInspector pluginInspector,
             InjectedPluginClasspath injectedPluginClasspath,
             DefaultScriptClassPathResolver scriptClassPathResolver,
-            FileCollectionFactory fileCollectionFactory
+            FileCollectionFactory fileCollectionFactory,
+            InjectedClasspathInstrumentationStrategy instrumentationStrategy
         ) {
             if (injectedPluginClasspath.getClasspath().isEmpty()) {
                 return ClientInjectedClasspathPluginResolver.EMPTY;
             }
-            return new DefaultInjectedClasspathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), scriptClassPathResolver, fileCollectionFactory, pluginInspector, injectedPluginClasspath.getClasspath());
+            return new DefaultInjectedClasspathPluginResolver(
+                classLoaderScopeRegistry.getCoreAndPluginsScope(),
+                scriptClassPathResolver,
+                fileCollectionFactory,
+                pluginInspector,
+                injectedPluginClasspath.getClasspath(),
+                instrumentationStrategy
+            );
         }
 
         PluginResolutionStrategyInternal createPluginResolutionStrategy(Instantiator instantiator, ListenerManager listenerManager) {
