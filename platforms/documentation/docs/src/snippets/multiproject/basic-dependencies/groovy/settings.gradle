@@ -1,2 +1,0 @@
-rootProject.name = 'basic-dependencies'
-include 'api', 'shared', 'services:person-service'
