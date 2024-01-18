@@ -97,13 +97,11 @@ public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGrap
             // There are likely scenarios that this visitor does not cover, where a configuration's metadata is observed but
             // its component is not present in the final graph, similar to above.
             ProjectState targetState = projectStateRegistry.stateFor(projectResult.projectIdentity);
-            targetState.applyToMutableState(project -> {
-                ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().findByName(projectResult.targetConfiguration);
-                if (targetConfig != null) {
-                    // Can be null when dependency metadata for target project has been loaded from cache
-                    targetConfig.markAsObserved(requestedState);
-                }
-            });
+            ConfigurationInternal targetConfig = (ConfigurationInternal) targetState.getMutableModel().getConfigurations().findByName(projectResult.targetConfiguration);
+            if (targetConfig != null) {
+                // Can be null when dependency metadata for target project has been loaded from cache
+                targetConfig.markAsObserved(requestedState);
+            }
         }
     }
 

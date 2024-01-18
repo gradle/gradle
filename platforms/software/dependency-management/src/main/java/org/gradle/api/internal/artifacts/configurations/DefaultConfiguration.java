@@ -202,7 +202,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final Set<Object> excludeRules = new LinkedHashSet<>();
     private Set<ExcludeRule> parsedExcludeRules;
 
-    private InternalState observedState = UNRESOLVED;
+    private final Object observationLock = new Object();
+    private volatile InternalState observedState = UNRESOLVED;
     private boolean insideBeforeResolve;
 
     private boolean dependenciesModified;
@@ -595,10 +596,16 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public void markAsObserved(InternalState requestedState) {
-        if (observedState.compareTo(requestedState) < 0) {
-            observedState = requestedState;
-        }
+        markThisObserved(requestedState);
         markParentsObserved(requestedState);
+    }
+
+    private void markThisObserved(InternalState requestedState) {
+        synchronized (observationLock) {
+            if (observedState.compareTo(requestedState) < 0) {
+                observedState = requestedState;
+            }
+        }
     }
 
     @VisibleForTesting
