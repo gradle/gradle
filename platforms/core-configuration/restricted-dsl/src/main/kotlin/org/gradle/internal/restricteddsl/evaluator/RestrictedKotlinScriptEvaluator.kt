@@ -21,10 +21,8 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionResult
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.SchemaTypeRefContext
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.defaultCodeResolver
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.DefaultLanguageTreeBuilder
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.Element
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.FailingResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeBuilderWithTopLevelBlock
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeResult
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.SingleFailureResult
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.parseToLightTree
 import com.h0tk3y.kotlin.staticObjectNotation.language.SourceIdentifier
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.CompositeFunctionResolver
@@ -68,7 +66,7 @@ interface RestrictedKotlinScriptEvaluator {
             sealed interface StageFailure {
                 data class NoSchemaAvailable(val target: Any) : StageFailure
                 object NoParseResult : StageFailure
-                data class FailuresInLanguageTree(val failures: List<FailingResult>) : StageFailure
+                data class FailuresInLanguageTree(val failures: List<SingleFailureResult>) : StageFailure
                 data class FailuresInResolution(val errors: List<ResolutionError>) : StageFailure
                 data class UnassignedValuesUsed(val usages: List<AssignmentTraceElement.UnassignedValueUsed>) : StageFailure
             }
@@ -136,12 +134,10 @@ class DefaultRestrictedKotlinScriptEvaluator(
 
         val languageModel = languageModelFromLightParser(scriptSource)
 
-        val failures = languageModel.results.filterIsInstance<FailingResult>()
-        if (failures.isNotEmpty()) {
-            failureReasons += FailuresInLanguageTree(failures)
+        if (languageModel.allFailures.isNotEmpty()) {
+            failureReasons += FailuresInLanguageTree(languageModel.allFailures)
         }
-        val elements = languageModel.results.filterIsInstance<Element<*>>().map { it.element }
-        val resolution = resolver.resolve(evaluationSchema.analysisSchema, elements)
+        val resolution = resolver.resolve(evaluationSchema.analysisSchema, languageModel.imports, languageModel.topLevelBlock)
         if (resolution.errors.isNotEmpty()) {
             failureReasons += FailuresInResolution(resolution.errors)
         }
@@ -181,7 +177,7 @@ class DefaultRestrictedKotlinScriptEvaluator(
     }
 
     private
-    val languageTreeBuilder = LanguageTreeBuilderWithTopLevelBlock(DefaultLanguageTreeBuilder())
+    val languageTreeBuilder = DefaultLanguageTreeBuilder()
 
     private
     fun scriptContextFor(

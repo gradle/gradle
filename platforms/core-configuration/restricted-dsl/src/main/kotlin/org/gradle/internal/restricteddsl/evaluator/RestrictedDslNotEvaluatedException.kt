@@ -18,9 +18,8 @@ package org.gradle.internal.restricteddsl.evaluator
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ErrorReason
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionError
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.FailingResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.MultipleFailuresResult
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParsingError
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.SingleFailureResult
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedConstruct
 import com.h0tk3y.kotlin.staticObjectNotation.language.LanguageTreeElement
 import com.h0tk3y.kotlin.staticObjectNotation.language.SourceData
@@ -69,15 +68,13 @@ class RestrictedDslNotEvaluatedException(
         }
 
     private
-    fun formatFailuresInLanguageTree(failures: List<FailingResult>): List<String> = buildList {
-        fun failure(failingResult: FailingResult) {
-            when (failingResult) {
-                is MultipleFailuresResult -> failingResult.failures.forEach(::failure)
-                is UnsupportedConstruct -> add(formatUnsupportedConstruct(failingResult))
-                is ParsingError -> add(formatParsingError(failingResult))
+    fun formatFailuresInLanguageTree(failures: List<SingleFailureResult>): List<String> = buildList {
+        failures.forEach { failure ->
+            when (failure) {
+                is UnsupportedConstruct -> add(formatUnsupportedConstruct(failure))
+                is ParsingError -> add(formatParsingError(failure))
             }
         }
-        failures.forEach { failure(it) }
     }
 
     private

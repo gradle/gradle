@@ -66,4 +66,23 @@ class RestrictedDslProjectSettingsIntegrationSpec extends AbstractIntegrationSpe
         schemaFile.isFile() && schemaFile.text != ""
     }
 
+    def 'reports #kind errors in settings'() {
+        given:
+        file("settings.gradle.something") << """
+            rootProject.name = "test"
+            $code
+        """
+
+        when:
+        def failure = fails(":help")
+
+        then:
+        failure.assertHasErrorOutput(expectedMessage)
+
+        where:
+        kind               | code                  | expectedMessage
+        "syntax"           | "..."                 | "2:13: parsing error: Expecting an element"
+        "language feature" | "@A dependencies { }" | "2:13: unsupported language feature: AnnotationUsage"
+        "semantic"         | "x = 1"               | "2:13: unresolved reference 'x'"
+    }
 }
