@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
+import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginImplementation;
 import org.gradle.api.internal.plugins.PluginInspector;
@@ -48,22 +49,19 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
     private final ClassPath injectedClasspath;
     private final FileCollectionFactory fileCollectionFactory;
     private final DefaultScriptClassPathResolver scriptClassPathResolver;
-    private final AtomicReference<Configuration> configuration;
+    private final AtomicReference<ClassPath> instrumentedClassPath;
     private final Lazy<PluginRegistry> pluginRegistry;
 
     public DefaultInjectedClasspathPluginResolver(ClassLoaderScope parentScope, DefaultScriptClassPathResolver scriptClassPathResolver, FileCollectionFactory fileCollectionFactory, PluginInspector pluginInspector, ClassPath injectedClasspath) {
         this.injectedClasspath = injectedClasspath;
         this.fileCollectionFactory = fileCollectionFactory;
         this.scriptClassPathResolver = scriptClassPathResolver;
-        this.configuration = new AtomicReference<>();
-        this.pluginRegistry = Lazy.unsafe().of(() -> {
-            ClassPath instrumentedClasspath = scriptClassPathResolver.resolveClassPath(checkNotNull(configuration.get()));
-            return new DefaultPluginRegistry(pluginInspector,
-                parentScope.createChild("injected-plugin", null)
-                    .local(instrumentedClasspath)
-                    .lock()
-            );
-        });
+        this.instrumentedClassPath = new AtomicReference<>();
+        this.pluginRegistry = Lazy.unsafe().of(() -> new DefaultPluginRegistry(pluginInspector,
+            parentScope.createChild("injected-plugin", null)
+                .local(checkNotNull(instrumentedClassPath.get()))
+                .lock()
+        ));
     }
 
     @Override
@@ -72,12 +70,13 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
     }
 
     @Override
-    public void prepareClassPath(ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler) {
-        if (this.configuration.get() == null) {
-            dependencyHandler.create(fileCollectionFactory.fixed(injectedClasspath.getAsFiles()));
-            Configuration configuration = configurationContainer.detachedConfiguration(dependencyHandler.create(fileCollectionFactory.fixed(injectedClasspath.getAsFiles())));
-            scriptClassPathResolver.prepareClassPath(configuration, dependencyHandler);
-            this.configuration.set(configuration);
+    public void prepareClassPath(ScriptHandlerInternal scriptHandlerInternal) {
+        if (instrumentedClassPath.get() == null) {
+            DependencyHandler dependencies = scriptHandlerInternal.getDependencies();
+            ConfigurationContainer configurations = scriptHandlerInternal.getConfigurations();
+            Configuration configuration = configurations.detachedConfiguration(dependencies.create(fileCollectionFactory.fixed(injectedClasspath.getAsFiles())));
+            scriptClassPathResolver.prepareClassPath(configuration, dependencies);
+            instrumentedClassPath.set(scriptClassPathResolver.resolveClassPath(configuration));
         }
     }
 

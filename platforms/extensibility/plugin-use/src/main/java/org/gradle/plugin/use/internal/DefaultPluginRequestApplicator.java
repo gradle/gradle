@@ -89,14 +89,13 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         }
 
         PluginArtifactRepositories resolveContext = pluginRepositoriesProvider.createPluginResolveRepositories();
-        scriptHandler.prepareInjectedScriptClassPath(injectedClasspathPluginResolver::prepareClassPath);
         resolveContext.applyRepositoriesTo(scriptHandler.getRepositories());
 
         List<ApplyAction> pluginApplyActions = new ArrayList<>();
         CollectingPluginRequestResolutionVisitor pluginDependencies = new CollectingPluginRequestResolutionVisitor();
 
         // Resolve the plugin requests
-        PluginResolver pluginResolver = wrapInAlreadyInClasspathResolver(classLoaderScope, resolveContext);
+        PluginResolver pluginResolver = wrapInAlreadyInClasspathResolver(classLoaderScope, resolveContext, scriptHandler);
         for (PluginRequestInternal originalRequest : requests) {
             PluginRequestInternal request = pluginResolutionStrategy.applyTo(originalRequest);
             PluginResolution resolved = resolvePluginRequest(pluginResolver, request);
@@ -135,10 +134,10 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         pluginApplyActions.forEach(action -> action.apply(target));
     }
 
-    private PluginResolver wrapInAlreadyInClasspathResolver(ClassLoaderScope classLoaderScope, PluginArtifactRepositories resolveContext) {
+    private PluginResolver wrapInAlreadyInClasspathResolver(ClassLoaderScope classLoaderScope, PluginArtifactRepositories resolveContext, ScriptHandlerInternal scriptHandler) {
         ClassLoaderScope parentLoaderScope = classLoaderScope.getParent();
         PluginDescriptorLocator scriptClasspathPluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(parentLoaderScope.getExportClassLoader());
-        PluginResolver pluginResolver = pluginResolverFactory.create(resolveContext);
+        PluginResolver pluginResolver = pluginResolverFactory.create(resolveContext, scriptHandler);
         return new AlreadyOnClasspathPluginResolver(pluginResolver, pluginRegistry, parentLoaderScope, scriptClasspathPluginDescriptorLocator, pluginInspector, pluginVersionTracker);
     }
 

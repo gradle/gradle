@@ -16,8 +16,7 @@
 
 package org.gradle.plugin.use.resolve.service.internal;
 
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 import java.util.Collection;
@@ -28,11 +27,11 @@ public interface ClientInjectedClasspathPluginResolver {
         public void collectResolversInto(Collection<? super PluginResolver> dest) {
         }
         @Override
-        public void prepareClassPath(ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler) {
+        public void prepareClassPath(ScriptHandlerInternal scriptHandler) {
         }
     };
 
     void collectResolversInto(Collection<? super PluginResolver> dest);
 
-    void prepareClassPath(ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler);
+    void prepareClassPath(ScriptHandlerInternal scriptHandler);
 }
