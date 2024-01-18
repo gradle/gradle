@@ -370,7 +370,7 @@ You can, however, omit the type if you only need to configure properties or to c
 
 One can discover what tasks are available by running `gradle tasks`. You can then find out the type of a given task by running `gradle help --task <taskName>`, as demonstrated here:
 
-[source]
+[source,text]
 ----
 ❯ ./gradlew help --task test
 ...

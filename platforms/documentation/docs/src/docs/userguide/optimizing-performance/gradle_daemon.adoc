@@ -128,7 +128,7 @@ To disable the Daemon for all builds of a project, add `org.gradle.daemon=false`
 
 On Windows, this command disables the Daemon for the current user:
 
-[source]
+[source,text]
 ----
 (if not exist "%USERPROFILE%/.gradle" mkdir "%USERPROFILE%/.gradle") && (echo. >> "%USERPROFILE%/.gradle/gradle.properties" && echo org.gradle.daemon=false >> "%USERPROFILE%/.gradle/gradle.properties")
 ----

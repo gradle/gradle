@@ -47,7 +47,7 @@ Let's start by turning on the local Build Cache for your app.
 
 == Step 2. Enabling the Local Build Cache
 Run the clean task and then the build task using the `./gradlew :app:clean :app:build` command:
-[source]
+[source,text]
 ----
 $ ./gradlew :app:clean :app:build
 > Task :app:clean
@@ -71,7 +71,7 @@ BUILD SUCCESSFUL in 1s
 ----
 
 Add `org.gradle.caching=true` to the `gradle.properties` file:
-[source]
+[source,properties]
 ----
 org.gradle.console=verbose
 org.gradle.caching=true
@@ -79,7 +79,7 @@ org.gradle.caching=true
 
 == Step 3. Using the Local Build Cache
 Run the build task to populate the local Build Cache:
-[source]
+[source,text]
 ----
 $ ./gradlew :app:build
 
@@ -106,7 +106,7 @@ No surprise here, thanks to incremental builds, Gradle noticed nothing changed.
 However, in the background, the local build cache has been populated.
 
 Let's run the clean and build again:
-[source]
+[source,text]
 ----
 $ ./gradlew :app:clean :app:build
 

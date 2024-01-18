@@ -16,9 +16,7 @@
 
 package org.gradle.api.provider;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
-import org.gradle.api.Transformer;
 import org.gradle.api.model.ObjectFactory;
 
 import javax.annotation.Nullable;
@@ -199,47 +197,4 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue, Supports
      */
     @Override
     void finalizeValue();
-
-    /**
-     * Applies an eager transformation to the current value of the property "in place", without explicitly obtaining it.
-     * The provided transformer is applied to the provider of the current value, and the returned provider is used as a new value.
-     * The provider of the value can be used to derive the new value, but doesn't have to.
-     * Returning null from the transformer unsets the property.
-     * For example, the current value of a string property can be reversed:
-     * <pre class='autoTested'>
-     *     def property = objects.property(String).value("value")
-     *
-     *     property.update { it.map { value -&gt; value.reverse() } }
-     *
-     *     println(property.get()) // "eulav"
-     * </pre>
-     * Note that simply writing {@code property.set(property.map { ... } } doesn't work and will cause an exception because of a circular reference evaluation at runtime.
-     * <p>
-     * <b>Further changes to the value of the property, such as calls to {@link #set(Object)}, are not transformed, and override the update instead</b>.
-     * Because of this, this method inherently depends on the order of property changes, and therefore must be used sparingly.
-     * <p>
-     * If the value of the property is specified via a provider, then the current value provider tracks that provider.
-     * For example, changes to the upstream property are visible:
-     * <pre class='autoTested'>
-     *     def upstream = objects.property(String).value("value")
-     *     def property = objects.property(String).value(upstream)
-     *
-     *     property.update { it.map { value -&gt; value.reverse() } }
-     *     upstream.set("other")
-     *
-     *     println(property.get()) // "rehto"
-     * </pre>
-     * The provided transformation runs <b>eagerly</b>, so it can capture any objects without introducing memory leaks and without breaking configuration caching.
-     * However, transformations applied to the current value provider (like {@link Provider#map(Transformer)}) are subject to the usual constraints.
-     * <p>
-     * If the property has no explicit value set, then the current value comes from the convention.
-     * Changes to convention of this property do not affect the current value provider in this case, though upstream changes are still visible if the convention was set to a provider.
-     * If there is no convention too, then the current value is a provider without a value.
-     * The updated value becomes the explicit value of the property.
-     *
-     * @param transform the transformation to apply to the current value. May return null, which unsets the property.
-     * @since 8.6
-     */
-    @Incubating
-    void update(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends T>, ? super Provider<T>> transform);
 }
