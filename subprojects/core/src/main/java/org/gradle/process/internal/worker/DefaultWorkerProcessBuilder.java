@@ -46,9 +46,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerProcessBuilder.class);
@@ -273,6 +273,11 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         }
 
         @Override
+        public Optional<ExecResult> getExecResult() {
+            return delegate.getExecResult();
+        }
+
+        @Override
         public JvmMemoryStatus getJvmMemoryStatus() {
             return delegate.getJvmMemoryStatus();
         }
@@ -285,11 +290,6 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         @Override
         public String getDisplayName() {
             return delegate.getDisplayName();
-        }
-
-        @Override
-        public void onProcessExit(Consumer<ExecResult> resultHandler) {
-            delegate.onProcessExit(resultHandler);
         }
     }
 

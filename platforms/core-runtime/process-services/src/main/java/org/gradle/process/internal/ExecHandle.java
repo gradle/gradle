@@ -19,6 +19,7 @@ package org.gradle.process.internal;
 import org.gradle.api.Describable;
 import org.gradle.process.ExecResult;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +56,9 @@ public interface ExecHandle extends Describable {
      * @return result
      */
     ExecResult waitForFinish();
+
+    @Nullable
+    ExecResult getExecResult();
 
     void addListener(ExecHandleListener listener);
 

@@ -16,16 +16,12 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Transformer;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
@@ -33,7 +29,6 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.session.BuildSessionLifecycleListener;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.OsMemoryInfo;
-import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.util.ArrayList;
@@ -49,7 +44,6 @@ public class WorkerDaemonClientsManager implements Stoppable {
     private final Object lock = new Object();
     private final List<WorkerDaemonClient> allClients = new ArrayList<WorkerDaemonClient>();
     private final List<WorkerDaemonClient> idleClients = new ArrayList<WorkerDaemonClient>();
-    private final Action<WorkerProcess> workerProcessCleanupAction = new WorkerProcessFailureCleanupAction();
 
     private final WorkerDaemonStarter workerDaemonStarter;
     private final ListenerManager listenerManager;
@@ -86,14 +80,19 @@ public class WorkerDaemonClientsManager implements Stoppable {
             Iterator<WorkerDaemonClient> it = clients.iterator();
             while (it.hasNext()) {
                 WorkerDaemonClient candidate = it.next();
-                if (candidate.isCompatibleWith(forkOptions)) {
+                if (candidate.isFailed()) {
+                    emitUnexpectedWorkerFailureWarning(candidate);
                     it.remove();
-                    if (candidate.getLogLevel() != currentLogLevel) {
-                        // TODO: Send a message to workers to change their log level rather than stopping
-                        LOGGER.info("Log level has changed, stopping idle worker daemon with out-of-date log level.");
-                        candidate.stop();
-                    } else {
-                        return candidate;
+                } else {
+                    if (candidate.isCompatibleWith(forkOptions)) {
+                        it.remove();
+                        if (candidate.getLogLevel() != currentLogLevel) {
+                            // TODO: Send a message to workers to change their log level rather than stopping
+                            LOGGER.info("Log level has changed, stopping idle worker daemon with out-of-date log level.");
+                            candidate.stop();
+                        } else {
+                            return candidate;
+                        }
                     }
                 }
             }
@@ -101,9 +100,22 @@ public class WorkerDaemonClientsManager implements Stoppable {
         }
     }
 
+    private static void emitUnexpectedWorkerFailureWarning(WorkerDaemonClient candidate) {
+        if (candidate.getExitCode().isPresent()) {
+            int exitCode = candidate.getExitCode().get();
+            if (exitCode > 127) {
+                LOGGER.warn("Worker daemon '" + candidate.getDisplayName() + "' exited unexpectedly after being killed with signal " + (exitCode - 128) + ".  This is likely because an external process has killed the worker.");
+            } else {
+                LOGGER.warn("Worker daemon '" + candidate.getDisplayName() + "' exited unexpectedly with exit code " + exitCode + ".");
+            }
+        } else {
+            LOGGER.warn("Worker daemon '" + candidate.getDisplayName() + "' exited unexpectedly.");
+        }
+    }
+
     public WorkerDaemonClient reserveNewClient(DaemonForkOptions forkOptions) {
         //allow the daemon to be started concurrently
-        WorkerDaemonClient client = workerDaemonStarter.startDaemon(forkOptions, workerProcessCleanupAction);
+        WorkerDaemonClient client = workerDaemonStarter.startDaemon(forkOptions);
         synchronized (lock) {
             allClients.add(client);
         }
@@ -158,22 +170,23 @@ public class WorkerDaemonClientsManager implements Stoppable {
         if (clientsToStop.size() > 0) {
             int clientCount = clientsToStop.size();
             LOGGER.debug("Stopping {} worker daemon(s).", clientCount);
-            List<Exception> failures = new ArrayList<>();
+            int failureCount = 0;
             for (WorkerDaemonClient client : clientsToStop) {
                 try {
-                    client.stop();
+                    if (client.isFailed()) {
+                        emitUnexpectedWorkerFailureWarning(client);
+                    } else {
+                        client.stop();
+                    }
                 } catch (Exception e) {
-                    failures.add(e);
+                    failureCount++;
+                    LOGGER.warn("Failed to stop worker daemon '" + client.getDisplayName() + "'", e);
                 }
             }
             idleClients.removeAll(clientsToStop);
             allClients.removeAll(clientsToStop);
-            if (!failures.isEmpty()) {
-                if (failures.size() == 1) {
-                    throw UncheckedException.throwAsUncheckedException(failures.get(0));
-                } else {
-                    throw new DefaultMultiCauseException("Not all worker daemon(s) could be stopped.", failures);
-                }
+            if (failureCount > 0) {
+                LOGGER.info("Stopped {} worker daemon(s).  {} worker daemons had failures while stopping.", clientCount, failureCount);
             } else {
                 LOGGER.info("Stopped {} worker daemon(s).", clientCount);
             }
@@ -196,28 +209,6 @@ public class WorkerDaemonClientsManager implements Stoppable {
             if (event instanceof LogLevelChangeEvent) {
                 LogLevelChangeEvent logLevelChangeEvent = (LogLevelChangeEvent) event;
                 currentLogLevel = logLevelChangeEvent.getNewLogLevel();
-            }
-        }
-    }
-
-    @NonNullApi
-    private class WorkerProcessFailureCleanupAction implements Action<WorkerProcess> {
-        @Override
-        public void execute(WorkerProcess workerProcess) {
-            synchronized (lock) {
-                removeClientWithWorkerProcess(allClients, workerProcess);
-                removeClientWithWorkerProcess(idleClients, workerProcess);
-            }
-        }
-
-        private void removeClientWithWorkerProcess(List<WorkerDaemonClient> clients, WorkerProcess workerProcess) {
-            Iterator<WorkerDaemonClient> iterator = clients.iterator();
-            while (iterator.hasNext()) {
-                WorkerDaemonClient client = iterator.next();
-                if (client.isProcess(workerProcess)) {
-                    client.setFailed(true);
-                    iterator.remove();
-                }
             }
         }
     }

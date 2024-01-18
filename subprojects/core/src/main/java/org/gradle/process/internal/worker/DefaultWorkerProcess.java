@@ -31,14 +31,12 @@ import org.gradle.process.internal.ExecHandleListener;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
 
 import static java.lang.String.format;
 
@@ -54,7 +52,6 @@ public class DefaultWorkerProcess implements WorkerProcess {
     private Throwable processFailure;
     private final long connectTimeout;
     private final JvmMemoryStatus jvmMemoryStatus;
-    private final List<Consumer<ExecResult>> resultHandlers = new ArrayList<>();
 
     public DefaultWorkerProcess(int connectTimeoutValue, TimeUnit connectTimeoutUnits, @Nullable JvmMemoryStatus jvmMemoryStatus) {
         connectTimeout = connectTimeoutUnits.toMillis(connectTimeoutValue);
@@ -150,23 +147,11 @@ public class DefaultWorkerProcess implements WorkerProcess {
             } catch (Throwable e) {
                 processFailure = e;
             }
-            for (Consumer<ExecResult> resultHandler : resultHandlers) {
-                try {
-                    resultHandler.accept(execResult);
-                } catch (Throwable t) {
-                    LOGGER.warn("Exception thrown by process result handler for " + getDisplayName(), t);
-                }
-            }
             running = false;
             condition.signalAll();
         } finally {
             lock.unlock();
         }
-    }
-
-    @Override
-    public void onProcessExit(Consumer<ExecResult> resultHandler) {
-        resultHandlers.add(resultHandler);
     }
 
     @Override
@@ -246,6 +231,11 @@ public class DefaultWorkerProcess implements WorkerProcess {
         } finally {
             cleanup();
         }
+    }
+
+    @Override
+    public Optional<ExecResult> getExecResult() {
+        return Optional.ofNullable(execHandle.getExecResult());
     }
 
     private void cleanup() {
