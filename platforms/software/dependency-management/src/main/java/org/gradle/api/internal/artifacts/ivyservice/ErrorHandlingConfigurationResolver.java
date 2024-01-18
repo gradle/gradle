@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ResolveException;
@@ -23,25 +22,17 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
 import org.gradle.api.internal.artifacts.ResolverResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
-import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 
 /**
  * Handles fatal and non-fatal exceptions thrown by a delegate resolver.
@@ -65,7 +56,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         try {
             return delegate.resolveBuildDependencies(resolveContext);
         } catch (Exception e) {
-            return new BrokenResolverResults(exceptionMapper.contextualize(e, resolveContext));
+            throw exceptionMapper.contextualize(e, resolveContext);
         }
     }
 
@@ -75,7 +66,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         try {
             results = delegate.resolveGraph(resolveContext);
         } catch (Exception e) {
-            return new BrokenResolverResults(exceptionMapper.contextualize(e, resolveContext));
+            throw exceptionMapper.contextualize(e, resolveContext);
         }
 
         // Handle non-fatal failures in old model (ResolvedConfiguration) with `ErrorHandling` wrappers.
@@ -257,109 +248,6 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             } catch (Exception e) {
                 throw contextualizer.contextualize(e, resolveContext);
             }
-        }
-    }
-
-    @VisibleForTesting
-    public static class BrokenResolverResults implements ResolverResults {
-
-        private final ResolveException failure;
-
-        public BrokenResolverResults(ResolveException failure) {
-            this.failure = failure;
-        }
-
-        @Override
-        public ResolvedConfiguration getResolvedConfiguration() {
-            return new BrokenResolvedConfiguration(failure);
-        }
-
-        @Override
-        public VisitedGraphResults getVisitedGraph() {
-            return new DefaultVisitedGraphResults(
-                new BrokenMinimalResolutionResult(failure),
-                Collections.emptySet(),
-                failure
-            );
-        }
-
-        @Override
-        public VisitedArtifactSet getVisitedArtifacts() {
-            throw failure;
-        }
-
-        @Override
-        public boolean isFullyResolved() {
-            return false;
-        }
-    }
-
-    private static class BrokenMinimalResolutionResult implements MinimalResolutionResult {
-
-        private final ResolveException failure;
-
-        public BrokenMinimalResolutionResult(ResolveException failure) {
-            this.failure = failure;
-        }
-
-        @Override
-        public Supplier<ResolvedComponentResult> getRootSource() {
-            return () -> {
-                throw failure;
-            };
-        }
-
-        @Override
-        public ImmutableAttributes getRequestedAttributes() {
-            throw failure;
-        }
-    }
-
-    private static class BrokenResolvedConfiguration implements ResolvedConfiguration {
-        private final ResolveException failure;
-
-        public BrokenResolvedConfiguration(ResolveException failure) {
-            this.failure = failure;
-        }
-
-        @Override
-        public boolean hasError() {
-            return true;
-        }
-
-        @Override
-        public LenientConfiguration getLenientConfiguration() {
-            throw failure;
-        }
-
-        @Override
-        public void rethrowFailure() throws ResolveException {
-            throw failure;
-        }
-
-        @Override
-        public Set<File> getFiles() throws ResolveException {
-            throw failure;
-        }
-
-        @Override
-        public Set<File> getFiles(Spec<? super Dependency> dependencySpec) throws ResolveException {
-            throw failure;
-        }
-
-        @Override
-        public Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {
-            throw failure;
-        }
-
-        @Override
-        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
-            throw failure;
-        }
-
-        @Override
-        public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
-            throw failure;
         }
     }
 

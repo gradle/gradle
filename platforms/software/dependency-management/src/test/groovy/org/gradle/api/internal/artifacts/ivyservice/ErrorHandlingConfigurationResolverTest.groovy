@@ -67,42 +67,6 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
         1 * delegate.resolveGraph(context) >> delegateResults
     }
 
-    void "wraps build dependency resolve failures"() {
-        given:
-        def failure = new RuntimeException()
-        delegate.resolveBuildDependencies(context) >> { throw failure }
-
-        when:
-        def results = resolver.resolveBuildDependencies(context)
-
-        then:
-        results.resolvedConfiguration.hasError()
-
-        failsWith(failure)
-            .when { results.resolvedConfiguration.rethrowFailure(); }
-            .when { results.resolvedConfiguration.getFiles(Specs.satisfyAll()); }
-            .when { results.resolvedConfiguration.getFirstLevelModuleDependencies(); }
-            .when { results.resolvedConfiguration.getResolvedArtifacts(); }
-    }
-
-    void "wraps graph resolve failures"() {
-        given:
-        def failure = new RuntimeException()
-        delegate.resolveGraph(context) >> { throw failure }
-
-        when:
-        def results = resolver.resolveGraph(context)
-
-        then:
-        results.resolvedConfiguration.hasError()
-
-        failsWith(failure)
-            .when { results.resolvedConfiguration.rethrowFailure(); }
-            .when { results.resolvedConfiguration.getFiles(Specs.satisfyAll()); }
-            .when { results.resolvedConfiguration.getFirstLevelModuleDependencies(); }
-            .when { results.resolvedConfiguration.getResolvedArtifacts(); }
-    }
-
     void "wraps exceptions thrown by resolved configuration"() {
         given:
         def failure = new RuntimeException()
