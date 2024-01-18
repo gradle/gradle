@@ -16,12 +16,23 @@
 
 package org.gradle.plugin.use.resolve.service.internal;
 
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 import java.util.Collection;
 
 public interface ClientInjectedClasspathPluginResolver {
-    ClientInjectedClasspathPluginResolver EMPTY = dest -> { };
+    ClientInjectedClasspathPluginResolver EMPTY = new ClientInjectedClasspathPluginResolver() {
+        @Override
+        public void collectResolversInto(Collection<? super PluginResolver> dest) {
+        }
+        @Override
+        public void prepareClassPath(ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler) {
+        }
+    };
 
     void collectResolversInto(Collection<? super PluginResolver> dest);
+
+    void prepareClassPath(ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler);
 }

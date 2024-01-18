@@ -41,6 +41,7 @@ import org.gradle.util.internal.ConfigureUtil;
 import javax.inject.Inject;
 import java.io.File;
 import java.net.URI;
+import java.util.function.BiConsumer;
 
 import static java.lang.Boolean.getBoolean;
 
@@ -91,6 +92,12 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     public void addScriptClassPathDependency(Dependency dependency) {
         defineConfiguration();
         classpathConfiguration.getDependencies().add(dependency);
+    }
+
+    @Override
+    public void prepareInjectedScriptClassPath(BiConsumer<ConfigurationContainer, DependencyHandler> action) {
+        defineConfiguration();
+        action.accept(configContainer, dependencyHandler);
     }
 
     @Override

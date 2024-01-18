@@ -42,6 +42,7 @@ import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionVisitor;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
+import org.gradle.plugin.use.resolve.service.internal.ClientInjectedClasspathPluginResolver;
 import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
 
 import javax.annotation.Nullable;
@@ -57,6 +58,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private final PluginInspector pluginInspector;
     private final PluginVersionTracker pluginVersionTracker;
     private final PluginApplicationListener pluginApplicationListenerBroadcaster;
+    private final ClientInjectedClasspathPluginResolver injectedClasspathPluginResolver;
 
     public DefaultPluginRequestApplicator(
         PluginRegistry pluginRegistry,
@@ -65,7 +67,8 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         PluginResolutionStrategyInternal pluginResolutionStrategy,
         PluginInspector pluginInspector,
         PluginVersionTracker pluginVersionTracker,
-        ListenerManager listenerManager
+        ListenerManager listenerManager,
+        ClientInjectedClasspathPluginResolver injectedClasspathPluginResolver
     ) {
         this.pluginRegistry = pluginRegistry;
         this.pluginResolverFactory = pluginResolverFactory;
@@ -74,6 +77,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         this.pluginInspector = pluginInspector;
         this.pluginVersionTracker = pluginVersionTracker;
         this.pluginApplicationListenerBroadcaster = listenerManager.getBroadcaster(PluginApplicationListener.class);
+        this.injectedClasspathPluginResolver = injectedClasspathPluginResolver;
     }
 
     @Override
@@ -85,6 +89,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         }
 
         PluginArtifactRepositories resolveContext = pluginRepositoriesProvider.createPluginResolveRepositories();
+        scriptHandler.prepareInjectedScriptClassPath(injectedClasspathPluginResolver::prepareClassPath);
         resolveContext.applyRepositoriesTo(scriptHandler.getRepositories());
 
         List<ApplyAction> pluginApplyActions = new ArrayList<>();
