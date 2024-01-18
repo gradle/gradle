@@ -1462,7 +1462,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def a1 = Attribute.of('a1', String)
 
         when:
-        conf.preventFromFurtherMutation()
+        conf.markAsObserved()
         conf.getAttributes().attribute(a1, "a1")
 
         then:
@@ -1480,7 +1480,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def containerImmutable = conf.getAttributes().asImmutable()
 
         when:
-        conf.preventFromFurtherMutation()
+        conf.markAsObserved()
         def containerWrapped = conf.getAttributes()
 
         then:
@@ -1672,10 +1672,10 @@ All Artifacts:
         'declarable'            | { it.setCanBeDeclared(!it.isCanBeDeclared()) }
     }
 
-    def "locking all changes prevents #usageName usage changes"() {
+    def "observation changes prevents #usageName usage changes"() {
         given:
         def conf = conf()
-        conf.preventFromFurtherMutation()
+        conf.markAsObserved()
 
         when:
         changeUsage(conf)

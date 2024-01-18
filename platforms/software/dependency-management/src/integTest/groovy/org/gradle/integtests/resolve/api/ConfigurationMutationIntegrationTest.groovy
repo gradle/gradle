@@ -338,4 +338,65 @@ include 'consumer', 'producer'
             }
         }
     }
+
+    def "can lazily add dependencies to a configuration"() {
+        given:
+        buildFile.text = """
+            repositories {
+                maven { url '${mavenRepo.uri}' }
+            }
+
+            configurations {
+                dependencyScope("conf")
+                resolvable("res") {
+                    extendsFrom conf
+                }
+            }
+
+            configurations.conf.dependencies.addLater(provider(() -> project.dependencies.create("org:foo:1.0")))
+
+            task resolve {
+                def files = configurations.res.incoming.files
+                doLast {
+                    assert files*.name == ["foo-1.0.jar"]
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
+
+    def "can lazily add dependency constraints to a configuration"() {
+        mavenRepo.module("org", "foo", "2.0").publish()
+        given:
+        buildFile.text = """
+            repositories {
+                maven { url '${mavenRepo.uri}' }
+            }
+
+            configurations {
+                dependencyScope("conf")
+                resolvable("res") {
+                    extendsFrom conf
+                }
+            }
+
+            dependencies {
+                conf "org:foo:1.0"
+            }
+
+            configurations.conf.dependencyConstraints.addLater(provider(() -> project.dependencies.constraints.create("org:foo:2.0")))
+
+            task resolve {
+                def files = configurations.res.incoming.files
+                doLast {
+                    assert files*.name == ["foo-2.0.jar"]
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
 }
