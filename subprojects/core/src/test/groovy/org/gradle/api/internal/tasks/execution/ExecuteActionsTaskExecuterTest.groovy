@@ -122,7 +122,9 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def actionListener = Stub(TaskActionListener)
     def outputChangeListener = Stub(OutputChangeListener)
     def changeDetector = new DefaultExecutionStateChangeDetector()
-    def taskCacheabilityResolver = Mock(TaskCacheabilityResolver)
+    def taskCacheabilityResolver = Stub(TaskCacheabilityResolver) {
+        shouldDisableCaching(_) >> Optional.empty()
+    }
     def buildCacheController = Stub(BuildCacheController)
     def listenerManager = Stub(ListenerManager)
     def classloaderHierarchyHasher = new ClassLoaderHierarchyHasher() {
