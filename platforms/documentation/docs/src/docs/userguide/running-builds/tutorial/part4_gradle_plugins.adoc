@@ -50,7 +50,7 @@ Plugins can:
 
 == Step 2. Applying a Plugin
 Our project currently applies a single plugin, the <<application_plugin#application_plugin,Application Plugin>> which is bundled with Gradle:
-[source]
+[source,groovy]
 ----
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
@@ -75,7 +75,7 @@ A publication destined for a Maven repository normally includes:
 - The Maven POM file
 
 Apply the plugin by adding `maven-publish` to the plugins block in `build.gradle.kts`:
-[source]
+[source,groovy]
 ----
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
@@ -89,7 +89,7 @@ Don't forget to sync Gradle if you are using IntelliJ IDEA.
 Let's make sure the plugin has been applied by looking at the new tasks that are available.
 
 Run `./gradlew :app:tasks` in your command line:
-[source]
+[source,text]
 ----
 $ ./gradlew :app:tasks
 
@@ -131,7 +131,7 @@ publishing {
 ----
 
 Run `./gradlew :app:tasks` in your command line again, you will see additional tasks now that we have given the plugin additional information about our app:
-[source]
+[source,text]
 ----
 $ ./gradlew :app:tasks
 
@@ -156,7 +156,7 @@ image::tutorial/intellij-idea-pub.png[]
 
 == Step 4. Using the Plugin
 To use the plugin, run the `publishToMavenLocal` task by running `./gradlew :app:publishToMavenLocal`.
-[source]
+[source,text]
 ----
 $ ./gradlew :app:publishToMavenLocal
 

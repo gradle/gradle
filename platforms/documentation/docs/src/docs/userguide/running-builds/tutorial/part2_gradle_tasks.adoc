@@ -35,14 +35,14 @@ Learn the basics of Gradle tasks by running one and looking at its output.
 A _task_ is a basic unit of work that can be done by Gradle as part of the build.
 
 In the `tutorial` directory, enter the command below to list all the available tasks in the project:
-[source]
+[source,text]
 ----
 $ ./gradlew tasks
 ----
 
 The list includes tasks contributed by the `application` plugin and the plugin it applies:
 
-[source]
+[source,text]
 ----
 Application tasks
 -----------------
@@ -110,7 +110,7 @@ If task B uses the output of task A, then task A must complete before task B beg
 - A task may depend on other tasks implicitly.
 
 Here is an example of explicit task dependency:
-[source]
+[source,kotlin]
 ----
 tasks.register("hello") {
     doLast {
@@ -147,7 +147,7 @@ Double-click **tutorial > app > build > build**.
 image::tutorial/intellij-idea-build.png[]
 
 Once the build finishes, make sure it is successful in the IntelliJ console:
-[source]
+[source,text]
 ----
 BUILD SUCCESSFUL in 966ms
 7 actionable tasks: 7 executed
@@ -156,7 +156,7 @@ BUILD SUCCESSFUL in 966ms
 
 == Step 6. Running Tasks in the Terminal
 Run the following command in your terminal:
-[source]
+[source,text]
 ----
 $ ./gradlew build
 ----
@@ -184,7 +184,7 @@ The `jar` tasks is a dependency of the `build` task.
 
 The `jar` task creates an executable JAR file of the app.
 Let's run it by itself:
-[source]
+[source,text]
 ----
 $ ./gradlew jar
 ----
@@ -198,7 +198,7 @@ As expected, the `compileJava` task is a dependency of the `jar` task and execut
 Once the task finishes, an `app.jar` file is created in your `tutorial/app/build/libs/` folder.
 
 Invoke the `run` task and check the output:
-[source]
+[source,text]
 ----
 $ ./gradlew run
 ----

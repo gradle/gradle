@@ -44,20 +44,20 @@ To better see incremental builds in action, we are going to switch the console o
 
 In the top-level folder of your app (`tutorial`), create a `gradle.properties` file.
 
-[source]
+[source,properties]
 ----
 $ touch gradle.properties
 ----
 
 Add `org.gradle.console=verbose` so the contents of the file look like this:
-[source]
+[source,properties]
 ----
 org.gradle.console=verbose
 ----
 
 == Step 3. Analyzing Incremental Builds
 Run the clean task and then the build task using the `./gradlew :app:clean :app:build` command:
-[source]
+[source,text]
 ----
 $ ./gradlew :app:clean :app:build
 
@@ -85,7 +85,7 @@ No surprise here, Gradle invoked all the tasks needed to build the app.
 This was done successfully.
 
 Run the build again to view the _incremental build_ optimization in action:
-[source]
+[source,text]
 ----
 $ ./gradlew :app:build
 

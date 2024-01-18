@@ -59,7 +59,7 @@ The presence of the `gradlew` and `gradle.bat` files in the root directory of a 
 
 A Gradle project will look similar to the following:
 
-[source]
+[source,text]
 ----
 project
 ├── gradle                              // <1>
@@ -99,7 +99,7 @@ It is recommended that you consult the manual for the IDE of your choice to lear
 Gradle can be invoked in the command line once <<installation.adoc#installation, installed>>.
 For example:
 
-[source]
+[source,text]
 ----
 $ gradle build
 ----
@@ -111,7 +111,7 @@ NOTE: Most projects do not use the installed version of Gradle.
 The Wrapper is a script that invokes a declared version of Gradle and is *the recommended way to execute a Gradle build*.
 It is found in the project root directory as a `gradlew` or `gradle.bat` file:
 
-[source]
+[source,text]
 ----
 $ gradlew build     // Linux or OSX
 $ gradle.bat build  // Windows
