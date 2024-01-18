@@ -18,9 +18,9 @@ package org.gradle.configurationcache.flow
 
 import org.gradle.api.Project
 import org.gradle.api.flow.BuildWorkResult
+import org.gradle.api.flow.ControlFlowProvider
 import org.gradle.api.flow.FlowProviders
 import org.gradle.api.internal.provider.AbstractMinimalProvider
-import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.api.provider.Provider
 import org.gradle.internal.service.scopes.Scopes
@@ -38,8 +38,8 @@ class DefaultFlowProviders : FlowProviders {
     override fun getBuildWorkResult(): Provider<BuildWorkResult> =
         buildWorkResult
 
-    override fun getBeforeProject(): Provider<Project> =
-        DefaultProvider { TODO("getBeforeProject is not implemented yet") }
+    override fun getConfigurableProject(): ControlFlowProvider<Project> =
+        TODO("Gotcha!")
 }
 
 

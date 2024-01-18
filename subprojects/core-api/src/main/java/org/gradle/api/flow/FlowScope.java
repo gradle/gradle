@@ -45,6 +45,22 @@ public interface FlowScope {
     );
 
     /**
+     * Connects a {@link FlowAction dataflow action} to a {@link ControlFlowProvider control-flow}.
+     *
+     * @param action the {@link FlowAction dataflow action} type.
+     * @param configure configuration for the given {@link FlowAction dataflow action} parameters.
+     * @param <T> type of the target made available by the connected {@link ControlFlowProvider}
+     * @param <P> the parameters defined by the given {@link FlowAction dataflow action} type.
+     * @return a {@link Registration} object representing the registered action.
+     * @since 8.7
+     */
+    <T, P extends FlowParameters> ControlFlowRegistration<T, P> onEach(
+        ControlFlowProvider<T> provider,
+        Class<? extends FlowAction<P>> action,
+        Action<? super ControlFlowActionSpec<T, P>> configure
+    );
+
+    /**
      * Represents a registered {@link FlowAction dataflow action}.
      *
      * @param <P> the parameters defined by the given {@link FlowAction dataflow action}.
@@ -52,5 +68,16 @@ public interface FlowScope {
      */
     @Incubating
     interface Registration<P extends FlowParameters> {
+    }
+
+    /**
+     * Represents a registered {@link FlowAction dataflow action} connected to a {@link ControlFlowProvider}.
+     *
+     * @param <T> the control flow target type.
+     * @param <P> the parameters defined by the given {@link FlowAction dataflow action}.
+     * @since 8.7
+     */
+    @Incubating
+    interface ControlFlowRegistration<T, P extends FlowParameters> {
     }
 }

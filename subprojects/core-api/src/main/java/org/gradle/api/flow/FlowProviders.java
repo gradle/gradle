@@ -16,6 +16,7 @@
 
 package org.gradle.api.flow;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
@@ -82,19 +83,15 @@ public interface FlowProviders {
     Provider<BuildWorkResult> getBuildWorkResult();
 
     /**
-     * Returns a {@link Provider provider} that allows a {@link FlowAction} to execute before the evaluation of every
-     * configured {@code Project}.
+     * Allows a {@link FlowAction} to participate in the configuration of {@link Project projects}.
      * <p>
-     * The returned provider's value becomes available once for each configured {@link Project} in the build and it
-     * will cause any wired {@link FlowAction}s to run once for each value.
-     * </p>
-     * <p>
-     * <b>IMPORTANT:</b> trying to access the provider's value directly will result in an error. The value can only be
-     * accessed as a {@link FlowAction} {@link FlowParameters parameter}.
+     * Connected to a {@link FlowAction} via {@link FlowScope#onEach(ControlFlowProvider, Class, Action) onEach}, it
+     * will cause the action to execute against every configured project.
      * </p>
      *
+     * @see FlowScope#onEach(ControlFlowProvider, Class, Action)
      * @since 8.7
      */
     @Incubating
-    Provider<Project> getBeforeProject();
+    ControlFlowProvider<Project> getConfigurableProject();
 }

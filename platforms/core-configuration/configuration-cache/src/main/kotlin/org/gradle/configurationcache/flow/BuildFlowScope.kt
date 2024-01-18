@@ -20,6 +20,8 @@ import org.gradle.BuildAdapter
 import org.gradle.BuildResult
 import org.gradle.api.Action
 import org.gradle.api.NonExtensible
+import org.gradle.api.flow.ControlFlowActionSpec
+import org.gradle.api.flow.ControlFlowProvider
 import org.gradle.api.flow.FlowAction
 import org.gradle.api.flow.FlowActionSpec
 import org.gradle.api.flow.FlowParameters
@@ -126,6 +128,14 @@ open class BuildFlowScope @Inject constructor(
         val registeredFlowAction = RegisteredFlowAction(action.uncheckedCast(), parameters)
         state.add(registeredFlowAction)
         return DefaultFlowScopeRegistration()
+    }
+
+    override fun <T, P : FlowParameters> onEach(
+        provider: ControlFlowProvider<T>,
+        action: Class<out FlowAction<P>>,
+        configure: Action<in ControlFlowActionSpec<T, P>>
+    ): FlowScope.ControlFlowRegistration<T, P> {
+        TODO("Gotcha!")
     }
 
     private
