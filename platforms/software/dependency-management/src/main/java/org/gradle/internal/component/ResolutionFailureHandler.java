@@ -92,6 +92,7 @@ public class ResolutionFailureHandler {
     private static final String AMBIGUOUS_TRANSFORMATION_SECTION = "sub:transform-ambiguity";
 
     private final List<ResolutionFailureDescriber<?>> defaultFailureDescribers = Lists.newArrayList(
+        new DefaultVariantAwareNoMatchingGraphVariantFailureDescriber(),
         new DefaultNoMatchingGraphVariantFailureDescriber()
     );
     private final DocumentationRegistry documentationRegistry;
@@ -331,7 +332,7 @@ public class ResolutionFailureHandler {
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessCandidates(extractVariants(candidates));
-        ResolutionFailure failure = new ResolutionFailure(schema, ResolutionFailureType.NO_MATCHING_VARIANTS, targetComponent, targetComponent.getId().getDisplayName(), requestedAttributes, assessedCandidates);
+        ResolutionFailure failure = new ResolutionFailure(schema, ResolutionFailureType.NO_MATCHING_VARIANTS, targetComponent, targetComponent.getId().getDisplayName(), requestedAttributes, assessedCandidates, candidates.isUseVariants());
         return describeFailure(schema, failure);
     }
 
@@ -503,7 +504,7 @@ public class ResolutionFailureHandler {
             .collect(Collectors.toMap(ResolutionCandidateAssessor.AssessedAttribute::getAttribute, ResolutionCandidateAssessor.AssessedAttribute::getProvided, (a, b) -> a));
         Map<Attribute<?>, ?> incompatibleConsumerAttrs = assessedCandidate.getIncompatibleAttributes().stream()
             .collect(Collectors.toMap(ResolutionCandidateAssessor.AssessedAttribute::getAttribute, ResolutionCandidateAssessor.AssessedAttribute::getRequested, (a, b) -> a));
-        List<String> otherValues = assessedCandidate.getOnlyOnConsumerAttributes().stream()
+        List<String> otherValues = assessedCandidate.getOnlyOnRequestAttributes().stream()
             .map(assessedAttribute -> "Doesn't say anything about " + describer.describeMissingAttribute(assessedAttribute.getAttribute(), assessedAttribute.getRequested()))
             .sorted()
             .collect(Collectors.toList());
@@ -527,10 +528,10 @@ public class ResolutionFailureHandler {
         // None of the nullability warnings are relevant here because the attribute values are only retrieved from collections that will contain them
         Map<Attribute<?>, ?> compatibleAttrs = assessedCandidate.getCompatibleAttributes().stream()
             .collect(Collectors.toMap(ResolutionCandidateAssessor.AssessedAttribute::getAttribute, ResolutionCandidateAssessor.AssessedAttribute::getProvided, (a, b) -> a));
-        List<String> onlyOnProducer = assessedCandidate.getOnlyOnProducerAttributes().stream()
+        List<String> onlyOnProducer = assessedCandidate.getOnlyOnCandidateAttributes().stream()
             .map(assessedAttribute -> "Provides " + describer.describeExtraAttribute(assessedAttribute.getAttribute(), assessedAttribute.getProvided()) + " but the consumer didn't ask for it")
             .collect(Collectors.toList());
-        List<String> onlyOnConsumer = assessedCandidate.getOnlyOnConsumerAttributes().stream()
+        List<String> onlyOnConsumer = assessedCandidate.getOnlyOnRequestAttributes().stream()
             .map(assessedAttribute -> "Doesn't say anything about " + describer.describeMissingAttribute(assessedAttribute.getAttribute(), assessedAttribute.getRequested()))
             .collect(Collectors.toList());
 
@@ -581,10 +582,10 @@ public class ResolutionFailureHandler {
     }
     // endregion Graph Variant Selection Failures
 
-    private final class DefaultNoMatchingGraphVariantFailureDescriber implements ResolutionFailureDescriber<NoMatchingGraphVariantsException> {
+    private final class DefaultVariantAwareNoMatchingGraphVariantFailureDescriber implements ResolutionFailureDescriber<NoMatchingGraphVariantsException> {
         @Override
         public boolean canDescribeFailure(ResolutionFailure failure) {
-            return failure.getType() == ResolutionFailureType.NO_MATCHING_VARIANTS;
+            return failure.getType() == ResolutionFailureType.NO_MATCHING_VARIANTS && failure.isVariantAware();
         }
 
         @Override
@@ -606,7 +607,7 @@ public class ResolutionFailureHandler {
                 formatter.node("No matching variant of " + targetVariantText + " was found. The consumer was configured to find " + describer.describeAttributeSet(failure.getRequestedAttributes().asMap()) + " but:");
             }
             formatter.startChildren();
-            if (failure.getCandidates().isEmpty()) {
+            if (failure.noCandidatesHaveAttributes()) {
                 formatter.node("None of the variants have attributes.");
             } else {
                 // We're sorting the names of the configurations and later attributes
@@ -630,6 +631,57 @@ public class ResolutionFailureHandler {
             formatter.append("'");
             formatter.append(" " + CapabilitiesSupport.prettifyCapabilities(targetComponent, assessedCandidate.getCandidateCapabilities().asSet()));
 
+            formatAttributeMatchesForIncompatibility(assessedCandidate, formatter, describer);
+        }
+    }
+
+    private final class DefaultNoMatchingGraphVariantFailureDescriber implements ResolutionFailureDescriber<NoMatchingGraphVariantsException> {
+        @Override
+        public boolean canDescribeFailure(ResolutionFailure failure) {
+            return failure.getType() == ResolutionFailureType.NO_MATCHING_VARIANTS && !failure.isVariantAware();
+        }
+
+        @Override
+        public NoMatchingGraphVariantsException describeFailure(ResolutionFailure failure) {
+            AttributeDescriber describer = DescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
+            String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledDescriber(describer), failure);
+            NoMatchingGraphVariantsException e = new NoMatchingGraphVariantsException(message);
+            suggestReviewAlgorithm(e);
+            e.addResolution(NO_MATCHING_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", NO_MATCHING_VARIANTS_SECTION + "."));
+            return e;
+        }
+
+        private String buildNoMatchingGraphVariantSelectionFailureMsg(StyledDescriber describer, ResolutionFailure failure) {
+            TreeFormatter formatter = new TreeFormatter();
+            String targetVariantText = style(StyledTextOutput.Style.Info, failure.getRequestedName());
+            if (failure.getRequestedAttributes().isEmpty()) {
+                formatter.node("Unable to find a matching configuration of " + targetVariantText);
+            } else {
+                formatter.node("No matching configuration of " + targetVariantText + " was found. The consumer was configured to find " + describer.describeAttributeSet(failure.getRequestedAttributes().asMap()) + " but:");
+            }
+            formatter.startChildren();
+            if (failure.noCandidatesHaveAttributes()) {
+                formatter.node("None of the consumable configurations have attributes.");
+            } else {
+                // We're sorting the names of the configurations and later attributes
+                // to make sure the output is consistently the same between invocations
+                for (AssessedCandidate candidate : failure.getCandidates()) {
+                    formatUnselectableVariant(candidate, formatter, failure.getTargetComponent(), describer);
+                }
+            }
+            formatter.endChildren();
+            return formatter.toString();
+        }
+
+        private void formatUnselectableVariant(
+            AssessedCandidate assessedCandidate,
+            TreeFormatter formatter,
+            ComponentGraphResolveMetadata targetComponent,
+            AttributeDescriber describer
+        ) {
+            formatter.node("Configuration '");
+            formatter.append(assessedCandidate.getDisplayName());
+            formatter.append("'");
             formatAttributeMatchesForIncompatibility(assessedCandidate, formatter, describer);
         }
     }

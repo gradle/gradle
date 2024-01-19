@@ -32,14 +32,20 @@ public class ResolutionFailure {
     private final String requestedName;
     private final ImmutableAttributes requestedAttributes;
     private final ImmutableList<AssessedCandidate> candidates;
+    private final boolean isVariantAware;
 
     public ResolutionFailure(AttributesSchemaInternal schema, ResolutionFailureType type, ComponentGraphResolveMetadata targetComponent, String requestedName, AttributeContainerInternal requestedAttributes, List<AssessedCandidate> candidates) {
+        this(schema, type, targetComponent, requestedName, requestedAttributes, candidates, false);
+    }
+
+    public ResolutionFailure(AttributesSchemaInternal schema, ResolutionFailureType type, ComponentGraphResolveMetadata targetComponent, String requestedName, AttributeContainerInternal requestedAttributes, List<AssessedCandidate> candidates, boolean isVariantAware) {
         this.schema = schema;
         this.type = type;
         this.targetComponent = targetComponent;
         this.requestedName = requestedName;
         this.requestedAttributes = requestedAttributes.asImmutable();
         this.candidates = ImmutableList.copyOf(candidates);
+        this.isVariantAware = isVariantAware;
     }
 
     public AttributesSchemaInternal getSchema() {
@@ -64,6 +70,18 @@ public class ResolutionFailure {
 
     public ImmutableList<AssessedCandidate> getCandidates() {
         return candidates;
+    }
+
+    public boolean isVariantAware() {
+        return isVariantAware;
+    }
+
+    public boolean noCandidatesHaveAttributes() {
+        return candidates.stream().allMatch(AssessedCandidate::hasNoAttributes);
+    }
+
+    public boolean allCandidatesAreIncompatible() {
+        return candidates.stream().noneMatch(candidate -> candidate.getIncompatibleAttributes().isEmpty());
     }
 
     public enum ResolutionFailureType {
