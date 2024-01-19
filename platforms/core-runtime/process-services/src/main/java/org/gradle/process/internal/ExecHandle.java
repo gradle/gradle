@@ -57,6 +57,9 @@ public interface ExecHandle extends Describable {
      */
     ExecResult waitForFinish();
 
+    /**
+     * Returns the result of the process execution, if it has finished.  If the process has not finished, returns null.
+     */
     @Nullable
     ExecResult getExecResult();
 

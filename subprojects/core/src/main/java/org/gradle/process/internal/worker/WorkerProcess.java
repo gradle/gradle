@@ -37,6 +37,9 @@ public interface WorkerProcess extends Describable {
 
     ExecResult waitForStop();
 
+    /**
+     * Returns the result of the process, if it has exited.  If the process has not exited yet, returns {@link Optional#empty()}.
+     */
     Optional<ExecResult> getExecResult();
 
     JvmMemoryStatus getJvmMemoryStatus();

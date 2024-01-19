@@ -33,6 +33,8 @@ class WorkerDaemonProcessFailureIntegrationTest extends AbstractDaemonWorkerExec
     def setup() {
         blockingHttpServer.start()
         if (OperatingSystem.current().windows) {
+            // The killed worker on Windows will cause a broken pipe error to be printed to the console,
+            // so we disable stack trace checks to avoid the test failing.
             executer.withStackTraceChecksDisabled()
         }
     }
