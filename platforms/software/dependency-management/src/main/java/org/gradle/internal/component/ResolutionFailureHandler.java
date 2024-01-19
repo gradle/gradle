@@ -299,7 +299,7 @@ public class ResolutionFailureHandler {
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         AttributeDescriber describer = DescriberSelector.selectDescriber(requestedAttributes, schema);
-        String message = buildAmbiguousGraphVariantsFailureMsg(resolutionCandidateAssessor, new StyledDescriber(describer), matchingVariants, targetComponent, variantAware, discarded);
+        String message = buildAmbiguousGraphVariantsFailureMsg(resolutionCandidateAssessor, new StyledAttributeDescriber(describer), matchingVariants, targetComponent, variantAware, discarded);
         AmbiguousGraphVariantsException e = new AmbiguousGraphVariantsException(message);
         e.addResolution(AMBIGUOUS_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", AMBIGUOUS_VARIANTS_SECTION + "."));
         suggestReviewAlgorithm(e);
@@ -591,14 +591,14 @@ public class ResolutionFailureHandler {
         @Override
         public NoMatchingGraphVariantsException describeFailure(ResolutionFailure failure) {
             AttributeDescriber describer = DescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
-            String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledDescriber(describer), failure);
+            String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledAttributeDescriber(describer), failure);
             NoMatchingGraphVariantsException e = new NoMatchingGraphVariantsException(message);
             suggestReviewAlgorithm(e);
             e.addResolution(NO_MATCHING_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", NO_MATCHING_VARIANTS_SECTION + "."));
             return e;
         }
 
-        private String buildNoMatchingGraphVariantSelectionFailureMsg(StyledDescriber describer, ResolutionFailure failure) {
+        private String buildNoMatchingGraphVariantSelectionFailureMsg(StyledAttributeDescriber describer, ResolutionFailure failure) {
             TreeFormatter formatter = new TreeFormatter();
             String targetVariantText = style(StyledTextOutput.Style.Info, failure.getRequestedName());
             if (failure.getRequestedAttributes().isEmpty()) {
@@ -644,14 +644,14 @@ public class ResolutionFailureHandler {
         @Override
         public NoMatchingGraphVariantsException describeFailure(ResolutionFailure failure) {
             AttributeDescriber describer = DescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
-            String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledDescriber(describer), failure);
+            String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledAttributeDescriber(describer), failure);
             NoMatchingGraphVariantsException e = new NoMatchingGraphVariantsException(message);
             suggestReviewAlgorithm(e);
             e.addResolution(NO_MATCHING_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", NO_MATCHING_VARIANTS_SECTION + "."));
             return e;
         }
 
-        private String buildNoMatchingGraphVariantSelectionFailureMsg(StyledDescriber describer, ResolutionFailure failure) {
+        private String buildNoMatchingGraphVariantSelectionFailureMsg(StyledAttributeDescriber describer, ResolutionFailure failure) {
             TreeFormatter formatter = new TreeFormatter();
             String targetVariantText = style(StyledTextOutput.Style.Info, failure.getRequestedName());
             if (failure.getRequestedAttributes().isEmpty()) {

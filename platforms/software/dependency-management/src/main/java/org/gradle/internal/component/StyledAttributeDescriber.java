@@ -23,11 +23,11 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.util.Map;
 
-class StyledDescriber implements AttributeDescriber {
+class StyledAttributeDescriber implements AttributeDescriber {
 
     private final AttributeDescriber delegate;
 
-    StyledDescriber(AttributeDescriber delegate) {
+    StyledAttributeDescriber(AttributeDescriber delegate) {
         this.delegate = delegate;
     }
 
