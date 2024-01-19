@@ -209,9 +209,9 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
    > Could not resolve com.example:producer:1.0.
      Required by:
          project : > com.example.greeting:com.example.greeting.gradle.plugin:1.0
-      > Plugin com.example:producer:1.0 requires at least Gradle 1000.0 (this build used Gradle $currentGradle).""")
+      > Plugin com.example:producer:1.0 requires at least Gradle 1000.0. This build uses Gradle $currentGradle.""")
         failure.assertHasErrorOutput("Caused by: " + NoMatchingGraphVariantsException.class.getName())
-        failure.assertHasResolution("Upgrade Gradle to at least version 1000.0. See the instructions at https://docs.gradle.org/$currentGradle/userguide/upgrading_version_8.html#sub:updating-gradle.")
+        failure.assertHasResolution("Upgrade to at least Gradle 1000.0. See the instructions at https://docs.gradle.org/$currentGradle/userguide/upgrading_version_8.html#sub:updating-gradle.")
         failure.assertHasResolution("Downgrade plugin com.example:producer:1.0 to an older version compatible with Gradle $currentGradle.")
     }
 
