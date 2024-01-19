@@ -34,10 +34,6 @@ public class ResolutionFailure {
     private final ImmutableList<AssessedCandidate> candidates;
     private final boolean isVariantAware;
 
-    public ResolutionFailure(AttributesSchemaInternal schema, ResolutionFailureType type, ComponentGraphResolveMetadata targetComponent, String requestedName, AttributeContainerInternal requestedAttributes, List<AssessedCandidate> candidates) {
-        this(schema, type, targetComponent, requestedName, requestedAttributes, candidates, false);
-    }
-
     public ResolutionFailure(AttributesSchemaInternal schema, ResolutionFailureType type, ComponentGraphResolveMetadata targetComponent, String requestedName, AttributeContainerInternal requestedAttributes, List<AssessedCandidate> candidates, boolean isVariantAware) {
         this.schema = schema;
         this.type = type;
