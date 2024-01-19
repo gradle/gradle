@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.devel.variants
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.plugins.UnknownPluginException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.component.AmbiguousGraphVariantsException
@@ -409,7 +410,7 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
         fails 'greet', "--stacktrace"
 
         then:
-        failure.assertHasErrorOutput("""      > The consumer was configured to find a library for use during runtime, compatible with Java 17, packaged as a jar, and its dependencies declared externally, as well as attribute 'org.gradle.plugin.api-version' with value '${GradleVersion.current().version}'. However we cannot choose between the following variants of com.example:producer:1.0:
+        failure.assertHasErrorOutput("""      > The consumer was configured to find a library for use during runtime, compatible with Java ${JavaVersion.current().majorVersion}, packaged as a jar, and its dependencies declared externally, as well as attribute 'org.gradle.plugin.api-version' with value '${GradleVersion.current().version}'. However we cannot choose between the following variants of com.example:producer:1.0:
           - alternateRuntimeElements
           - runtimeElements""")
         failure.assertHasErrorOutput("Caused by: " + AmbiguousGraphVariantsException.class.name)
