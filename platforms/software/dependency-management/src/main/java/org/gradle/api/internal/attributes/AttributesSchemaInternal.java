@@ -43,5 +43,5 @@ public interface AttributesSchemaInternal extends AttributesSchemaWithDescribers
     Attribute<?> getAttributeByName(String name);
 
     ImmutableList<ResolutionFailureDescriber<? extends AbstractVariantSelectionException>> getFailureDescribers();
-    void addFailureDescriber(ResolutionFailureDescriber<? extends AbstractVariantSelectionException> describer);
+    void addFailureDescriber(Class<? extends ResolutionFailureDescriber<? extends AbstractVariantSelectionException>> describer);
 }

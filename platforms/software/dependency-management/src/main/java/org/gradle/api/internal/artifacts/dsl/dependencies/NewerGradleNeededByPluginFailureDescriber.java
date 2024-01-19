@@ -22,9 +22,11 @@ import org.gradle.internal.component.NoMatchingGraphVariantsException;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.ResolutionFailure;
 import org.gradle.internal.component.resolution.failure.ResolutionFailure.ResolutionFailureType;
+import org.gradle.internal.component.resolution.failure.describer.AbstractResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.util.GradleVersion;
 
+import javax.inject.Inject;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -35,16 +37,16 @@ import java.util.Optional;
  *
  * This is determined by assessing the incompatibility of the {@link GradlePluginApiVersion#GRADLE_PLUGIN_API_VERSION_ATTRIBUTE} attribute.
  */
-public class NewerGradleNeededByPluginFailureDescriber implements ResolutionFailureDescriber<NoMatchingGraphVariantsException> {
+public class NewerGradleNeededByPluginFailureDescriber extends AbstractResolutionFailureDescriber<NoMatchingGraphVariantsException> {
     private static final String GRADLE_VERSION_TOO_OLD_TEMPLATE = "Plugin %s requires at least Gradle %s (this build used %s).";
     private static final String NEEDS_NEWER_GRADLE_SECTION = "sub:updating-gradle";
 
-    private final DocumentationRegistry documentationRegistry;
     private final GradleVersion currentGradleVersion;
 
-    protected NewerGradleNeededByPluginFailureDescriber(DocumentationRegistry documentationRegistry, GradleVersion currentGradleVersion) {
-        this.documentationRegistry = documentationRegistry;
-        this.currentGradleVersion = currentGradleVersion;
+    @Inject
+    protected NewerGradleNeededByPluginFailureDescriber(DocumentationRegistry documentationRegistry) {
+        super(documentationRegistry);
+        this.currentGradleVersion = GradleVersion.current();
     }
 
     @Override

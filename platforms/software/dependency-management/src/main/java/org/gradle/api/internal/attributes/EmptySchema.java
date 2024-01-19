@@ -115,7 +115,7 @@ public class EmptySchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public void addFailureDescriber(ResolutionFailureDescriber<? extends AbstractVariantSelectionException> describer) {
+    public void addFailureDescriber(Class<? extends ResolutionFailureDescriber<? extends AbstractVariantSelectionException>> describerClass) {
         throw new UnsupportedOperationException();
     }
 
