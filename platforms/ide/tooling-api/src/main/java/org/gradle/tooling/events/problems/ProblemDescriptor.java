@@ -93,5 +93,6 @@ public interface ProblemDescriptor extends BaseProblemDescriptor {
      * @return the exception
      * @since 8.6
      */
-    ExceptionContainer getException();
+    //TODO: fix in 8.7
+    //ExceptionContainer getException();
 }
