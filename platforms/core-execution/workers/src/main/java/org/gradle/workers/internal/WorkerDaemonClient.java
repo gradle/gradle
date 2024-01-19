@@ -78,10 +78,6 @@ class WorkerDaemonClient implements Stoppable, Describable {
         return logLevel;
     }
 
-    public boolean isProcess(WorkerProcess workerProcess) {
-        return this.workerProcess.equals(workerProcess);
-    }
-
     public boolean isFailed() {
         return workerProcess.getExecResult().map(execResult -> execResult.getExitValue() > 0).orElse(false);
     }
