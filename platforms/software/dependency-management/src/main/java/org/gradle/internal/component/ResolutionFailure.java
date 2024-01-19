@@ -76,14 +76,10 @@ public class ResolutionFailure {
         return candidates.stream().allMatch(AssessedCandidate::hasNoAttributes);
     }
 
-    public boolean allCandidatesAreIncompatible() {
-        return candidates.stream().noneMatch(candidate -> candidate.getIncompatibleAttributes().isEmpty());
-    }
-
     public enum ResolutionFailureType {
         AMBIGUOUS_VARIANTS,
         INCOMPATIBLE_VARIANTS,
         NO_MATCHING_CONFIGURATIONS,
-        NO_MATCHING_VARIANTS;
+        NO_MATCHING_VARIANTS
     }
 }
