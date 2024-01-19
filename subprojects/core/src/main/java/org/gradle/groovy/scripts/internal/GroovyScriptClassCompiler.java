@@ -275,12 +275,12 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             return new File(workspace, "instrumented/" + operation.getId() + ".jar");
         }
 
-        private static File classesDir(File workspace) {
-            return new File(workspace, "compile/classes");
+        private File classesDir(File workspace) {
+            return new File(workspace, "classes/" + operation.getId());
         }
 
         private static File metadataDir(File workspace) {
-            return new File(workspace, "compile/metadata");
+            return new File(workspace, "metadata");
         }
 
         @Override

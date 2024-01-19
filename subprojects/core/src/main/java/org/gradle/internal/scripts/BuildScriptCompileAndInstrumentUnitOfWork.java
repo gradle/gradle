@@ -64,12 +64,12 @@ public abstract class BuildScriptCompileAndInstrumentUnitOfWork implements Immut
     public abstract void visitIdentityInputs(InputVisitor visitor);
 
     /**
-     * A compile operation. It should return the root classes dir.
+     * A compile operation. It should return a File where classes are compiled to.
      */
     protected abstract File compile(File workspace);
 
     /**
-     * Returns the File where instrumented jar will be written to.
+     * Provides a File where instrumented jar will be written to.
      */
     protected abstract File instrumentedJar(File workspace);
 

@@ -16,7 +16,6 @@
 
 package org.gradle.integtests
 
-import groovy.test.NotYetImplemented
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
@@ -71,12 +70,12 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
 
     private void updateCaches() {
         String version = GradleVersion.current().version
-        classPathClassesDir = userHomeDir.file("caches/$version/groovy-dsl").listFiles().find { it.file("original/cp_proj").isDirectory() }?.file("original/cp_proj")
-        def candidates = userHomeDir.file("caches/$version/groovy-dsl").listFiles().findAll { it.file("original/proj").isDirectory() }
+        classPathClassesDir = userHomeDir.file("caches/$version/groovy-dsl").listFiles().find { it.file("classes/cp_proj").isDirectory() }?.file("classes/cp_proj")
+        def candidates = userHomeDir.file("caches/$version/groovy-dsl").listFiles().findAll { it.file("classes/proj").isDirectory() }
         // when there are multiple candidates, assume that a different entry to that used last time is the one required
         def baseDir = candidates.size() == 1 ? candidates.first() : candidates.find {it !in visitedBaseDirs }
         visitedBaseDirs.add(baseDir)
-        classFile = baseDir.file("original/proj/_BuildScript_.class")
+        classFile = baseDir.file("classes/proj/_BuildScript_.class")
     }
 
     @Test
@@ -93,12 +92,8 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
         classFile.assertHasChangedSince(classFileSnapshot)
     }
 
-    /**
-     * TODO: This is a behaviour that is not supported with execution engine, should we remove this test?
-     */
     @Issue("https://github.com/gradle/gradle/issues/13367")
     @Test
-    @NotYetImplemented
     @UnsupportedWithConfigurationCache(because = "Test always passes with cc because we don't rerun config phase on second run")
     void "recovers from discarded empty classes directory from classpath entry"() {
         given:
