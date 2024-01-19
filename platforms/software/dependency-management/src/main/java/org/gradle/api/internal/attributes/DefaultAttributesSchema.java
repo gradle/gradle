@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.AbstractVariantSelectionException;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
@@ -53,14 +54,16 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     private final Map<String, Attribute<?>> attributesByName = new HashMap<>();
 
     private final IsolatableFactory isolatableFactory;
+    private final DocumentationRegistry documentationRegistry;
     private final HashMap<AttributesSchemaInternal, AttributeMatcher> matcherCache = new HashMap<>();
     private final List<AttributeDescriber> consumerAttributeDescribers = new ArrayList<>();
     private final Set<Attribute<?>> precedence = new LinkedHashSet<>();
     private final List<ResolutionFailureDescriber<? extends AbstractVariantSelectionException>> resolutionFailureDescribers = new ArrayList<>();
 
-    public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
+    public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, DocumentationRegistry documentationRegistry) {
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
+        this.documentationRegistry = documentationRegistry;
     }
 
     @Override
@@ -172,7 +175,8 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public void addFailureDescriber(ResolutionFailureDescriber<? extends AbstractVariantSelectionException> describer) {
+    public void addFailureDescriber(Class<? extends ResolutionFailureDescriber<? extends AbstractVariantSelectionException>> describerClass) {
+        ResolutionFailureDescriber<? extends AbstractVariantSelectionException> describer = instantiatorFactory.inject().newInstance(describerClass, documentationRegistry);
         resolutionFailureDescribers.add(describer);
     }
 
