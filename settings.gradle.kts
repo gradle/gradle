@@ -3,9 +3,10 @@ rootProject.name = "kotlin-static-object-notation"
 pluginManagement {
     fun RepositoryHandler.setup() {
         mavenCentral()
-        // maven("https://jitpack.io")
         if (this == pluginManagement.repositories) {
             gradlePluginPortal()
+        } else {
+            maven("https://jitpack.io")
         }
     }
     repositories.setup()
@@ -16,13 +17,9 @@ pluginManagement {
         @Suppress("UnstableApiUsage")
         this.repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
 
-        repositories {
-            maven("https://jitpack.io")
-        }
-
         versionCatalogs {
             create("libs") {
-                val kotlinVersion = version("kotlin", "1.9.20")
+                val kotlinVersion = version("kotlin", "1.9.22")
                 plugin("kotlin.jvm", "org.jetbrains.kotlin.jvm").versionRef(kotlinVersion)
                 plugin("kotlin.plugin.serialization", "org.jetbrains.kotlin.plugin.serialization").versionRef(kotlinVersion)
             }
