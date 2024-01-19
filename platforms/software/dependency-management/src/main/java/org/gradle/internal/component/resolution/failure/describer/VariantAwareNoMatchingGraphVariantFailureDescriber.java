@@ -24,9 +24,12 @@ import org.gradle.internal.component.resolution.failure.ResolutionFailure;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import javax.inject.Inject;
+
 import static org.gradle.internal.exceptions.StyledException.style;
 
 public final class VariantAwareNoMatchingGraphVariantFailureDescriber extends AbstractNoMatchingGraphVariantFailureDescriber {
+    @Inject
     public VariantAwareNoMatchingGraphVariantFailureDescriber(DocumentationRegistry documentationRegistry) {
         super(documentationRegistry);
     }

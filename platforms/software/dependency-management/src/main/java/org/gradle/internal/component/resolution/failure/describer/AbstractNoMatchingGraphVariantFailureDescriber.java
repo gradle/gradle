@@ -19,7 +19,6 @@ package org.gradle.internal.component.resolution.failure.describer;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.attributes.AttributeDescriber;
-import org.gradle.internal.component.AbstractVariantSelectionException;
 import org.gradle.internal.component.NoMatchingGraphVariantsException;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
@@ -31,17 +30,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.gradle.internal.component.ResolutionFailureHandler.DEFAULT_MESSAGE_PREFIX;
 import static org.gradle.internal.exceptions.StyledException.style;
 
-/* package */ abstract class AbstractNoMatchingGraphVariantFailureDescriber implements ResolutionFailureDescriber<NoMatchingGraphVariantsException> {
-    protected static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
-    protected static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";
-
-    protected final DocumentationRegistry documentationRegistry;
-
+/* package */ abstract class AbstractNoMatchingGraphVariantFailureDescriber extends AbstractResolutionFailureDescriber<NoMatchingGraphVariantsException> {
     protected AbstractNoMatchingGraphVariantFailureDescriber(DocumentationRegistry documentationRegistry) {
-        this.documentationRegistry = documentationRegistry;
+        super(documentationRegistry);
     }
 
     @Override
@@ -55,10 +48,6 @@ import static org.gradle.internal.exceptions.StyledException.style;
     }
 
     protected abstract String buildNoMatchingGraphVariantSelectionFailureMsg(StyledAttributeDescriber describer, ResolutionFailure failure);
-
-    private void suggestReviewAlgorithm(AbstractVariantSelectionException exception) {
-        exception.addResolution(DEFAULT_MESSAGE_PREFIX + documentationRegistry.getDocumentationFor("variant_attributes", "sec:abm_algorithm") + ".");
-    }
 
     protected void formatAttributeMatchesForIncompatibility(
         ResolutionCandidateAssessor.AssessedCandidate assessedCandidate,
@@ -86,18 +75,5 @@ import static org.gradle.internal.exceptions.StyledException.style;
         }
         formatAttributeSection(formatter, "Other compatible attribute", otherValues);
         formatter.endChildren();
-    }
-
-    private void formatAttributeSection(TreeFormatter formatter, String section, List<String> values) {
-        if (!values.isEmpty()) {
-            if (values.size() > 1) {
-                formatter.node(section + "s");
-            } else {
-                formatter.node(section);
-            }
-            formatter.startChildren();
-            values.forEach(formatter::node);
-            formatter.endChildren();
-        }
     }
 }
