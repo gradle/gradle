@@ -38,7 +38,6 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     private List<File> sourceRoots;
     private Set<String> classesToCompile = Collections.emptySet();
     private File backupDestinationDir;
-    private boolean useProblemsApiReporting;
 
     @Override
     public MinimalJavaCompileOptions getCompileOptions() {
@@ -139,16 +138,6 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     @Override
     public void setSourcesRoots(List<File> sourcesRoots) {
         this.sourceRoots = sourcesRoots;
-    }
-
-    @Override
-    public void setProblemsApiReporting(boolean useProblemsApiReporting) {
-        this.useProblemsApiReporting = useProblemsApiReporting;
-    }
-
-    @Override
-    public boolean useProblemsApiReporting() {
-        return useProblemsApiReporting;
     }
 
 }

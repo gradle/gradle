@@ -66,7 +66,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec, ApiCompilerResult result) {
         // We check here if the Problems API is used
         // If it's not used, the compiler interfaces interpret "null" as "use the default diagnostic listener"
-        DiagnosticListener<JavaFileObject> diagnosticListener = spec.useProblemsApiReporting() ? diagnosticToProblemListener : null;
+        DiagnosticListener<JavaFileObject> diagnosticListener = shouldUseProblemsApiReporting() ? diagnosticToProblemListener : null;
 
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
         JavaCompiler compiler = javaHomeBasedJavaCompilerFactory.create();
@@ -90,6 +90,11 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         task = new AnnotationProcessingCompileTask(task, annotationProcessors, spec.getAnnotationProcessorPath(), result.getAnnotationProcessingResult());
         task = new ResourceCleaningCompilationTask(task, fileManager);
         return task;
+    }
+
+    private static boolean shouldUseProblemsApiReporting() {
+        String property = System.getProperty("org.gradle.internal.emit-compiler-problems");
+        return Boolean.parseBoolean(property);
     }
 
     private static boolean emptySourcepathIn(List<String> options) {

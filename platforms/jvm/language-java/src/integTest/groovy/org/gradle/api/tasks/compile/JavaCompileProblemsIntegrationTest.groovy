@@ -19,8 +19,6 @@ package org.gradle.api.tasks.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.problems.ReceivedProblem
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Issue
-
 /**
  * Test class verifying the integration between the {@code JavaCompile} and the {@code Problems} service.
  */
@@ -34,7 +32,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
 
         propertiesFile << """
             # Feature flag as of 8.6 to enable the Problems API
-            org.gradle.compile.use-problems-api=true
+            systemProp.org.gradle.internal.emit-compiler-problems=true
         """
 
         buildFile << """
@@ -154,30 +152,6 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         collectedProblems.size() == 2
         for (def problem in collectedProblems) {
             assertProblem(problem, files, "ERROR")
-        }
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/27693")
-    def "events are received when compiler is forked"() {
-        buildFile << """
-            tasks.compileJava.options.fork = true
-        """
-
-        def files = [
-            writeJavaCausingTwoCompilationErrors("Foo"),
-        ]
-        // Duplicate the entries, as we have two problems per file
-        files.addAll(files)
-
-        when:
-        // Special flag to fork the compiler, see the setup()
-        fails("compileJava")
-
-        then:
-        collectedProblems.size() == 2
-        for (ReceivedProblem problem in collectedProblems) {
-            // FIXME: This should be fixed by #27693, and the location check should be enabled
-            assertProblem(problem, files, "ERROR", false)
         }
     }
 
