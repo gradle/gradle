@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component;
+package org.gradle.internal.component.resolution.failure;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
@@ -24,6 +24,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
+import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;

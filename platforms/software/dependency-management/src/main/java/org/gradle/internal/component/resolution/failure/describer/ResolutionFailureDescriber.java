@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component;
+package org.gradle.internal.component.resolution.failure.describer;
+
+import org.gradle.internal.component.AbstractVariantSelectionException;
+import org.gradle.internal.component.resolution.failure.ResolutionFailure;
 
 public interface ResolutionFailureDescriber<T extends AbstractVariantSelectionException> {
     boolean canDescribeFailure(ResolutionFailure failure);

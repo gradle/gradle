@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component;
+package org.gradle.internal.component.resolution.failure;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.ResolutionCandidateAssessor.AssessedCandidate;
+import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 
 import java.util.List;
