@@ -147,7 +147,8 @@ All of them match the consumer attributes:
         then:
         NoMatchingGraphVariantsException e = thrown()
         failsWith(e, '''No matching configuration of org:lib:1.0 was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'cplusplus-headers' but:
-  - None of the consumable configurations have attributes.''')
+  - Configuration 'default':
+      - Incompatible because this component declares attribute 'org.gradle.usage' with value 'java-api' and the consumer needed attribute 'org.gradle.usage' with value 'cplusplus-headers\'''')
     }
 
     def "can select a variant thanks to the capabilities"() {
@@ -499,9 +500,14 @@ All of them match the consumer attributes:
     private void defaultConfiguration(ImmutableAttributes attrs = attributes([:])) {
         def variant = Stub(VariantGraphResolveState) {
             getName() >> 'default'
+            getCapabilities() >> ImmutableCapabilities.of(capability('org', 'lib'))
+            getAttributes() >> attrs
         }
         def metadata = Stub(ConfigurationGraphResolveMetadata) {
             isCanBeConsumed() >> true
+            getName() >> variant.getName()
+            getAttributes() >> attrs
+            getCapabilities() >> variant.getCapabilities()
         }
         defaultConfiguration = Stub(ConfigurationGraphResolveState) {
             getName() >> 'default'
@@ -531,6 +537,7 @@ All of them match the consumer attributes:
             isUseVariants() >> { variants.isPresent() }
             getVariants() >> { variants.get() }
             getLegacyConfiguration() >> { defaultConfiguration }
+            getCandidateConfigurations() >> { [defaultConfiguration.getMetadata()] }
         }
         targetState = Stub(ComponentGraphResolveState) {
             getMetadata() >> targetComponent

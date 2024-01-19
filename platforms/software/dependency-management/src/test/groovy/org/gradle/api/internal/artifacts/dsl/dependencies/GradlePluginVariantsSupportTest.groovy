@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies
 
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
@@ -33,7 +34,7 @@ class GradlePluginVariantsSupportTest extends Specification {
     def ep = Stub(AttributeMatchingExplanationBuilder)
 
     def setup() {
-        GradlePluginVariantsSupport.configureSchema(schema)
+        GradlePluginVariantsSupport.configureSchema(schema, new DocumentationRegistry())
     }
 
     def "Gradle #currentGradleVersion #acceptsOrRejects 7.0 api"() {
