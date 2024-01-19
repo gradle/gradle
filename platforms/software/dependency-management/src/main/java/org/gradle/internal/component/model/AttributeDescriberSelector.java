@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DescriberSelector {
+public class AttributeDescriberSelector {
     public static AttributeDescriber selectDescriber(AttributeContainerInternal consumerAttributes, AttributesSchemaInternal consumerSchema) {
         List<AttributeDescriber> consumerDescribers = consumerSchema.getConsumerDescribers();
         Set<Attribute<?>> consumerAttributeSet = consumerAttributes.keySet();
