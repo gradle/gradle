@@ -1,0 +1,19 @@
+name: Feedback
+
+on:
+  schedule:
+    - cron: '0 * * * *' # every hour
+  workflow_dispatch:
+
+jobs:
+  feedback:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      # Feedback loop: ask for something on PR/Issue and close if not provided or return to the queue on update.
+      # https://github.com/gradle/issue-management-action/blob/main/src/feedback.ts
+      - uses: gradle/issue-management-action@v1
+        with:
+          script: "feedback"
