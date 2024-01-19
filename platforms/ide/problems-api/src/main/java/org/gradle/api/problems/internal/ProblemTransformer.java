@@ -32,6 +32,7 @@ public interface ProblemTransformer {
      * Transformations do not need to create a new problem, they can also modify the given problem.
      *
      * @param problem the problem to transform
+     * @param id the operation id associated with the problem
      * @return the transformed problem
      */
     Problem transform(InternalProblem problem, OperationIdentifier id);
