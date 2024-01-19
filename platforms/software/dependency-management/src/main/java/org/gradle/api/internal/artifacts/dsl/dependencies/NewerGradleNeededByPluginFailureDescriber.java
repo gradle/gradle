@@ -38,7 +38,7 @@ import java.util.Optional;
  * This is determined by assessing the incompatibility of the {@link GradlePluginApiVersion#GRADLE_PLUGIN_API_VERSION_ATTRIBUTE} attribute.
  */
 public class NewerGradleNeededByPluginFailureDescriber extends AbstractResolutionFailureDescriber<NoMatchingGraphVariantsException> {
-    private static final String GRADLE_VERSION_TOO_OLD_TEMPLATE = "Plugin %s requires at least Gradle %s (this build used %s).";
+    private static final String GRADLE_VERSION_TOO_OLD_TEMPLATE = "Plugin %s requires at least Gradle %s. This build uses %s.";
     private static final String NEEDS_NEWER_GRADLE_SECTION = "sub:updating-gradle";
 
     private final GradleVersion currentGradleVersion;
@@ -93,7 +93,7 @@ public class NewerGradleNeededByPluginFailureDescriber extends AbstractResolutio
     }
 
     private void suggestUpdateGradle(NoMatchingGraphVariantsException result, GradleVersion minRequiredGradleVersion) {
-        result.addResolution("Upgrade Gradle to at least version " + minRequiredGradleVersion.getVersion() + ". See the instructions at " + documentationRegistry.getDocumentationFor("upgrading_version_8", NEEDS_NEWER_GRADLE_SECTION + "."));
+        result.addResolution("Upgrade to at least Gradle " + minRequiredGradleVersion.getVersion() + ". See the instructions at " + documentationRegistry.getDocumentationFor("upgrading_version_8", NEEDS_NEWER_GRADLE_SECTION + "."));
     }
 
     private void suggestDowngradePlugin(NoMatchingGraphVariantsException result, String pluginId) {
