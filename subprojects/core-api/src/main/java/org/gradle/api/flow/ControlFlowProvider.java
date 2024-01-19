@@ -16,6 +16,7 @@
 
 package org.gradle.api.flow;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 /**
@@ -27,4 +28,13 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface ControlFlowProvider<T> {
+
+    /**
+     * Connects a {@link ControlFlowAction control flow action} to this {@link ControlFlowProvider control flow}.
+     *
+     * @param flowRegistration the {@link ControlFlowAction control flow action} {@link FlowScope#register(Class, Action) registration}.
+     * @see FlowScope#register(Class, Action)
+     * @since 8.7
+     */
+    void onEach(ControlFlowRegistration<? extends ControlFlowAction<? super T, ?>> flowRegistration);
 }

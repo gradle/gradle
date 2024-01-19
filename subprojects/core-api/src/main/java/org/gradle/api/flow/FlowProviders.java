@@ -16,7 +16,6 @@
 
 package org.gradle.api.flow;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
@@ -85,11 +84,11 @@ public interface FlowProviders {
     /**
      * Allows a {@link FlowAction} to participate in the configuration of {@link Project projects}.
      * <p>
-     * Connected to a {@link FlowAction} via {@link FlowScope#onEach(ControlFlowProvider, Class, Action) onEach}, it
+     * Connected to a {@link ControlFlowAction} via {@link ControlFlowProvider#onEach(ControlFlowRegistration) onEach}, it
      * will cause the action to execute against every configured project.
      * </p>
      *
-     * @see FlowScope#onEach(ControlFlowProvider, Class, Action)
+     * @see ControlFlowProvider#onEach(ControlFlowRegistration)
      * @since 8.7
      */
     @Incubating

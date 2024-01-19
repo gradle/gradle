@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * Allows configuring the parameters for a {@link ControlFlowAction control flow action}.
  *
- * @param <T> type of the object {@link ControlFlowAction#getFlowTarget() made available} by the associated {@link ControlFlowProvider control flow}
+ * @param <T> expected {@link ControlFlowAction#getFlowTarget() control flow target object type}
  * @param <P> the parameters defined by the configured {@link ControlFlowAction control flow action} type.
  * @since 8.7
  */

@@ -22,8 +22,10 @@ import org.gradle.api.Incubating;
 /**
  * A {@link FlowAction flow action} that can react to {@link ControlFlowProvider control flow events}.
  *
- * @param <T> type of the object {@link #getFlowTarget() made available} by the associated {@link ControlFlowProvider control flow}
+ * @param <T> expected {@link #getFlowTarget() control flow target object type}
  * @param <P> the parameters defined by the configured {@link FlowAction flow action} type.
+ * @see FlowScope#register(Class, Action)
+ * @see ControlFlowProvider#onEach(ControlFlowRegistration)
  * @since 8.7
  */
 @Incubating
@@ -32,7 +34,7 @@ public interface ControlFlowAction<T, P extends FlowParameters> extends FlowActi
     /**
      * Target of the associated {@link ControlFlowProvider control flow event}.
      *
-     * @see FlowScope#onEach(ControlFlowProvider, Class, Action)
+     * @see ControlFlowProvider#onEach(ControlFlowRegistration)
      * @since 8.7
      */
     T getFlowTarget();
