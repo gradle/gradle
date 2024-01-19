@@ -14,17 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.api.flow;
+package org.gradle.kotlin.dsl.flow
 
-import org.gradle.api.Incubating;
+import org.gradle.api.Incubating
+import org.gradle.api.flow.ControlFlowAction
+import org.gradle.api.flow.FlowParameters
+
 
 /**
- * Allows configuring the parameters for a {@link ControlFlowAction control flow action}.
+ * Syntactic sugar for [control flow actions][ControlFlowAction].
  *
- * @param <T> type of the object {@link ControlFlowAction#getFlowTarget() made available} by the associated {@link ControlFlowProvider control flow}
- * @param <P> the parameters defined by the configured {@link ControlFlowAction control flow action} type.
+ * Makes the [flow target][getFlowTarget] the receiver of the [execute] operation.
+ *
+ * @see ControlFlowAction
  * @since 8.7
  */
 @Incubating
-public interface ControlFlowActionSpec<T, P extends FlowParameters> extends FlowActionSpec<P> {
+abstract class KotlinControlFlowAction<T, P : FlowParameters> : ControlFlowAction<T, P> {
+
+    override fun execute(parameters: P) =
+        flowTarget.execute(parameters)
+
+    abstract fun T.execute(parameters: P)
 }

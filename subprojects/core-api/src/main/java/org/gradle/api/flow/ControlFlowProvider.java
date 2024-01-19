@@ -19,10 +19,10 @@ package org.gradle.api.flow;
 import org.gradle.api.Incubating;
 
 /**
- * Triggers an associated {@link FlowAction} at a specific point in the lifecycle of
- * potentially stateful objects of type {@link T}.
+ * Triggers an associated {@link ControlFlowAction} at a specific point in the lifecycle of
+ * objects of type {@link T}.
  *
- * @param <T> type of the potentially stateful object made available at a specific point in time
+ * @param <T> type of the object made available as the {@link ControlFlowAction#getFlowTarget() control flow action target}
  * @since 8.7
  */
 @Incubating

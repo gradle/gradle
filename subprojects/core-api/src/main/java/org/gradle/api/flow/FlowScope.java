@@ -45,7 +45,7 @@ public interface FlowScope {
     );
 
     /**
-     * Connects a {@link FlowAction dataflow action} to a {@link ControlFlowProvider control-flow}.
+     * Connects a {@link ControlFlowAction control flow action} to a {@link ControlFlowProvider control flow}.
      *
      * @param action the {@link FlowAction dataflow action} type.
      * @param configure configuration for the given {@link FlowAction dataflow action} parameters.
@@ -56,7 +56,7 @@ public interface FlowScope {
      */
     <T, P extends FlowParameters> ControlFlowRegistration<T, P> onEach(
         ControlFlowProvider<T> provider,
-        Class<? extends FlowAction<P>> action,
+        Class<? extends ControlFlowAction<T, P>> action,
         Action<? super ControlFlowActionSpec<T, P>> configure
     );
 
