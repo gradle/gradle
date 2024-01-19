@@ -45,7 +45,7 @@ public class GradlePluginVariantsResolutionFailureDescriber implements Resolutio
     public boolean canDescribeFailure(ResolutionFailure failure) {
         return failure.getType() == ResolutionFailureType.NO_MATCHING_VARIANTS
             && isPluginRequestUsingApiVersionAttribute(failure.getRequestedAttributes())
-            && !failure.allCandidatesAreIncompatible();
+            && failure.allCandidatesAreIncompatible();
     }
 
     @Override
