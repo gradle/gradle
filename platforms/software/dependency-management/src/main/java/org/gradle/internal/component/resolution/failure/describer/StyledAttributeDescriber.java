@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.component;
+package org.gradle.internal.component.resolution.failure.describer;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.attributes.Attribute;
@@ -23,11 +23,13 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.util.Map;
 
-class StyledAttributeDescriber implements AttributeDescriber {
-
+/**
+ * An {@link AttributeDescriber} decorator that styles the output of a delegate for the console.
+ */
+public final class StyledAttributeDescriber implements AttributeDescriber {
     private final AttributeDescriber delegate;
 
-    StyledAttributeDescriber(AttributeDescriber delegate) {
+    public StyledAttributeDescriber(AttributeDescriber delegate) {
         this.delegate = delegate;
     }
 
@@ -50,5 +52,4 @@ class StyledAttributeDescriber implements AttributeDescriber {
     public String describeExtraAttribute(Attribute<?> attribute, Object producerValue) {
         return StyledException.style(StyledTextOutput.Style.Info, delegate.describeExtraAttribute(attribute, producerValue));
     }
-
 }

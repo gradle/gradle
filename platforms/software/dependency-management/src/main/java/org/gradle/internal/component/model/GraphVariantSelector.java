@@ -141,7 +141,7 @@ public class GraphVariantSelector {
                 return new GraphVariantSelectionResult(Collections.emptyList(), true);
             }
 
-            AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
+            AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
             throw failureProcessor.noMatchingGraphVariantFailure(consumerSchema, attributeMatcher, consumerAttributes, targetComponent, candidates);
         }
     }
@@ -158,7 +158,7 @@ public class GraphVariantSelector {
             return singleVariant(candidates.isUseVariants(), ImmutableList.of(fallbackConfiguration.asVariant()));
         }
 
-        AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
+        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
         throw failureProcessor.noMatchingGraphVariantFailure(consumerSchema, attributeMatcher, consumerAttributes, targetComponent, candidates);
     }
 

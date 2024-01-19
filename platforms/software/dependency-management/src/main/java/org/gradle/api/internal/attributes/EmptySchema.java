@@ -21,7 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.internal.component.AbstractVariantSelectionException;
-import org.gradle.internal.component.ResolutionFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.model.AttributeMatcher;
 
 import javax.annotation.Nullable;

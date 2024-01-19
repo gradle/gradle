@@ -19,10 +19,10 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.component.NoMatchingGraphVariantsException;
-import org.gradle.internal.component.ResolutionCandidateAssessor.AssessedCandidate;
-import org.gradle.internal.component.ResolutionFailure;
-import org.gradle.internal.component.ResolutionFailure.ResolutionFailureType;
-import org.gradle.internal.component.ResolutionFailureDescriber;
+import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
+import org.gradle.internal.component.resolution.failure.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.ResolutionFailure.ResolutionFailureType;
+import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.util.GradleVersion;
 
 import java.util.Comparator;
