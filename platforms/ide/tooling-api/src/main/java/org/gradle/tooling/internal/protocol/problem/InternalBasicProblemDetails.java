@@ -41,6 +41,7 @@ public interface InternalBasicProblemDetails extends InternalProblemDetails {
 
     List<InternalSolution> getSolutions();
 
-    @Nullable
-    RuntimeException getException();
+    //TODO: fix in 8.7
+//    @Nullable
+//    RuntimeException getException();
 }
