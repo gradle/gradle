@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,12 @@
 
 package org.gradle.tooling.internal.protocol.problem;
 
-import org.gradle.tooling.internal.protocol.InternalProblemDetails;
+import org.gradle.tooling.internal.protocol.InternalFailure;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
-public interface InternalBasicProblemDetails extends InternalProblemDetails {
-
-    InternalProblemCategory getCategory();
-
-    InternalAdditionalData getAdditionalData();
-
-    InternalLabel getLabel();
+public interface InternalBasicProblemDetails2 extends InternalBasicProblemDetails {
 
     @Nullable
-    InternalDetails getDetails();
-
-    InternalSeverity getSeverity();
-
-    List<InternalLocation> getLocations();
-
-    @Nullable
-    InternalDocumentationLink getDocumentationLink();
-
-    List<InternalSolution> getSolutions();
+    InternalFailure getFailure();
 }

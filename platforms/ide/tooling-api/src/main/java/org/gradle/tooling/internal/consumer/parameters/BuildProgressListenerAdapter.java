@@ -69,7 +69,7 @@ import org.gradle.tooling.events.problems.AdditionalData;
 import org.gradle.tooling.events.problems.BaseProblemDescriptor;
 import org.gradle.tooling.events.problems.Details;
 import org.gradle.tooling.events.problems.DocumentationLink;
-import org.gradle.tooling.events.problems.ExceptionContainer;
+import org.gradle.tooling.events.problems.FailureContainer;
 import org.gradle.tooling.events.problems.Label;
 import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.ProblemAggregation;
@@ -82,7 +82,7 @@ import org.gradle.tooling.events.problems.internal.DefaultAdditionalData;
 import org.gradle.tooling.events.problems.internal.DefaultCategory;
 import org.gradle.tooling.events.problems.internal.DefaultDetails;
 import org.gradle.tooling.events.problems.internal.DefaultDocumentationLink;
-import org.gradle.tooling.events.problems.internal.DefaultExceptionContainer;
+import org.gradle.tooling.events.problems.internal.DefaultFailureContainer;
 import org.gradle.tooling.events.problems.internal.DefaultFileLocation;
 import org.gradle.tooling.events.problems.internal.DefaultLabel;
 import org.gradle.tooling.events.problems.internal.DefaultLineInFileLocation;
@@ -206,6 +206,7 @@ import org.gradle.tooling.internal.protocol.events.InternalTransformDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalWorkItemDescriptor;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetails;
+import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetails2;
 import org.gradle.tooling.internal.protocol.problem.InternalDetails;
 import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
 import org.gradle.tooling.internal.protocol.problem.InternalFileLocation;
@@ -765,12 +766,12 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             toLocations(details.getLocations()),
             toDocumentationLink(details.getDocumentationLink()),
             toSolutions(details.getSolutions()),
-            toAdditionalData(details.getAdditionalData())
-//            ,            toExceptionContainer(details.getException())
+            toAdditionalData(details.getAdditionalData()),
+            toExceptionContainer(details)
         );
     }
 
-    private List<ProblemAggregation> toSummaries(InternalProblemAggregationDetails details) {
+    private static List<ProblemAggregation> toSummaries(InternalProblemAggregationDetails details) {
         Builder<ProblemAggregation> summaries = builderWithExpectedSize(details.getSummaries().size());
         for (InternalProblemAggregation summary : details.getSummaries()) {
             summaries.add(toSummary(summary));
@@ -793,8 +794,15 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return result.build();
     }
 
-    private static ExceptionContainer toExceptionContainer(@Nullable RuntimeException exception) {
-        return new DefaultExceptionContainer(exception);
+    private static @Nullable FailureContainer toExceptionContainer(@Nullable InternalBasicProblemDetails exception) {
+        if (!(exception instanceof InternalBasicProblemDetails2)) {
+            return null;
+        }
+        InternalFailure failure = ((InternalBasicProblemDetails2) exception).getFailure();
+        if(failure == null){
+            return null;
+        }
+        return new DefaultFailureContainer(toFailure(failure));
     }
 
     private static AdditionalData toAdditionalData(InternalAdditionalData additionalData) {
@@ -1056,7 +1064,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             toFailures(origFailure.getCauses()));
     }
 
-    private static List<AnnotationProcessorResult> toAnnotationProcessorResults(List<InternalAnnotationProcessorResult> protocolResults) {
+    private static List<AnnotationProcessorResult> toAnnotationProcessorResults(@Nullable List<InternalAnnotationProcessorResult> protocolResults) {
         if (protocolResults == null) {
             return null;
         }

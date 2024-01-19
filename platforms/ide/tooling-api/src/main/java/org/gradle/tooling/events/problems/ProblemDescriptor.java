@@ -88,11 +88,10 @@ public interface ProblemDescriptor extends BaseProblemDescriptor {
     List<Solution> getSolutions();
 
     /**
-     * Returns the exception associated with this problem.
+     * Returns the failure associated with this problem.
      *
-     * @return the exception
-     * @since 8.6
+     * @return the failure
+     * @since 8.7
      */
-    //TODO: fix in 8.7
-    //ExceptionContainer getException();
+    FailureContainer getFailure();
 }

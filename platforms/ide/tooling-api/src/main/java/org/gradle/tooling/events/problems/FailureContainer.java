@@ -17,22 +17,23 @@
 package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.Failure;
 
 import javax.annotation.Nullable;
 
 /**
  * Holds an exception for a problem.
  *
- * @since 8.6
+ * @since 8.7
  */
 @Incubating
-public interface ExceptionContainer {
+public interface FailureContainer {
 
     /**
-     * Exception that caused the problem.
+     * Failure that caused the problem.
      *
-     * @since 8.6
+     * @since 8.7
      */
     @Nullable
-    RuntimeException getException();
+    Failure getFailure();
 }

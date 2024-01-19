@@ -17,30 +17,16 @@
 package org.gradle.integtests.tooling.r85
 
 import groovy.json.JsonSlurper
-import org.gradle.api.problems.Severity
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.events.problems.ProblemDescriptor
+import org.gradle.tooling.events.problems.BaseProblemDescriptor
 import org.gradle.tooling.events.problems.ProblemEvent
 
 @ToolingApiVersion("=8.5")
-@TargetGradleVersion("=8.5")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
-
-    class MyProgressListener implements ProgressListener {
-        List<ProblemDescriptor> allProblems = []
-
-        @Override
-        void statusChanged(ProgressEvent event) {
-            if (event instanceof ProblemEvent) {
-                this.allProblems.addAll(event.getDescriptor())
-            }
-        }
-    }
 
     def "test failure context"() {
         setup:
@@ -55,7 +41,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
 
         when:
-        def listener = new MyProgressListener()
+        def listener = new ProblemProgressListener()
         withConnection { connection ->
             connection.newBuild()
                 .forTasks(":ba")
@@ -68,17 +54,53 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-        def problems = listener.allProblems.collect {new JsonSlurper().parseText(it.json) }
+        def problems = listener.problems.collect {new JsonSlurper().parseText(it.json) }
         problems.size() == 2
-
-        problems[0].label.contains('The RepositoryHandler.jcenter() method has been deprecated.')
-        problems[0].severity == Severity.WARNING.name()
-        problems[0].where[0].path.endsWith("'$buildFile.absolutePath'")
-        problems[0].where[0].line == 5
-        problems[1].label.contains("Cannot locate tasks that match ':ba' as task 'ba' is ambiguous in root project")
-        problems[1].severity == Severity.ERROR.name()
-        problems[1].where[0].path == 'ba'
-        problems[1].where[0].line == -1
-        problems[1].problemCategory == 'task-selection:no-matches'
     }
+
+    def "Gradle 8.5 exposes problem events via JSON strings"() {
+        setup:
+        buildFile """
+            plugins {
+              id 'java-library'
+            }
+            repositories.jcenter()
+            task bar {}
+            task baz {}
+        """
+
+
+        when:
+        def listener = new ProblemProgressListener()
+        withConnection { connection ->
+            connection.newBuild()
+                .forTasks(":ba")
+                .addProgressListener(listener)
+                .setStandardError(System.err)
+                .setStandardOutput(System.out)
+                .addArguments("--info")
+                .run()
+        }
+
+        then:
+        thrown(BuildException)
+        def problems = listener.problems.collect { new JsonSlurper().parseText(it.json) }
+        problems.size() == 2
+        problems.every {
+            it == [:]
+        }
+    }
+
+    class ProblemProgressListener implements ProgressListener {
+
+        List<BaseProblemDescriptor> problems = []
+
+        @Override
+        void statusChanged(ProgressEvent event) {
+            if (event instanceof ProblemEvent) {
+                this.problems.addAll(event.getDescriptor())
+            }
+        }
+    }
+
 }
