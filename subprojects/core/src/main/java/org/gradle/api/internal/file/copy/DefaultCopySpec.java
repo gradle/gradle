@@ -18,7 +18,6 @@ package org.gradle.api.internal.file.copy;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
@@ -32,9 +31,9 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultConfigurableFilePermissions;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -89,7 +88,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     private Boolean includeEmptyDirs;
     private DuplicatesStrategy duplicatesStrategy = DuplicatesStrategy.INHERIT;
     private String filteringCharset;
-    private final List<CopySpecListener> listeners = Lists.newLinkedList();
+    private final List<CopySpecListener> listeners = new LinkedList<>();
     private PatternFilterable preserve = new PatternSet();
 
     @Inject
@@ -246,6 +245,16 @@ public class DefaultCopySpec implements CopySpecInternal {
     @Nullable
     public String getDestPath() {
         return destDir == null ? null : PATH_NOTATION_PARSER.parseNotation(destDir);
+    }
+
+    @Override
+    @Nullable
+    public File getDestinationDir() {
+        if (destDir instanceof File) {
+            return (File) destDir;
+        } else {
+            return destDir == null ? null : new File(PATH_NOTATION_PARSER.parseNotation(destDir));
+        }
     }
 
     @Override
@@ -921,4 +930,3 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
     }
 }
-

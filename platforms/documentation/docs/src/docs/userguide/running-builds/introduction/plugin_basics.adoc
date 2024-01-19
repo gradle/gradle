@@ -43,7 +43,7 @@ Plugins are distributed in three ways:
 
 You apply plugins in the build script using their *plugin id*, a globally unique identifier, or a name:
 
-[source]
+[source,text]
 ----
 plugins {
     id «plugin id» version «plugin version» [apply «false»]
@@ -100,7 +100,7 @@ plugins {
 
 Since plugins add tasks to your project when applied, you can view the tasks added by the Jib plugin by running `./gradlew tasks`:
 
-[source]
+[source,text]
 ----
 $ ./gradlew tasks
 

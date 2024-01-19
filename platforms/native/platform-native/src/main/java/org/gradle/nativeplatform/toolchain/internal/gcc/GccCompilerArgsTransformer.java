@@ -16,13 +16,13 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
-import com.google.common.collect.Lists;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
 import org.gradle.nativeplatform.toolchain.internal.MacroArgsConverter;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -32,7 +32,7 @@ import java.util.List;
 abstract class GccCompilerArgsTransformer<T extends NativeCompileSpec> implements ArgsTransformer<T> {
     @Override
     public List<String> transform(T spec) {
-        List<String> args = Lists.newArrayList();
+        List<String> args = new ArrayList<>();
         addToolSpecificArgs(spec, args);
         addMacroArgs(spec, args);
         addUserArgs(spec, args);

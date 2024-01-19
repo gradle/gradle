@@ -18,7 +18,8 @@ package org.gradle.problems.internal.transformers;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.plugins.DefaultPluginManager.OperationDetails;
-import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.problems.internal.OperationListener;
 
@@ -34,7 +35,7 @@ public class PluginIdLocationTransformer extends BaseLocationTransformer {
     }
 
     @Override
-    public Problem transform(Problem problem) {
+    public Problem transform(InternalProblem problem) {
         return getExecuteTask(OperationDetails.class)
             .map(id -> {
                 try {
@@ -50,5 +51,4 @@ public class PluginIdLocationTransformer extends BaseLocationTransformer {
                 }
             }).orElse(problem);
     }
-
 }

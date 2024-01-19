@@ -39,20 +39,27 @@ dependencies {
 task verify {
     doLast {
         def dep = configurations.compile.dependencies.find { it instanceof FileCollectionDependency }
-        println "files: " + dep.resolve().collect { it.name }
-        println "files-not-transitive: " + dep.resolve(false).collect { it.name }
-        println "files-transitive: " + dep.resolve(true).collect { it.name }
+        println "files: " + dep.files.files.collect { it.name }
+        println "resolve: " + dep.resolve().collect { it.name }
+        println "resolve-not-transitive: " + dep.resolve(false).collect { it.name }
+        println "resolve-transitive: " + dep.resolve(true).collect { it.name }
+        dep.getBuildDependencies()
     }
 }
 """
 
         when:
-        run "verify"
+        executer.expectDocumentedDeprecationWarning("Directly resolving a file collection dependency's files has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration and resolve the configuration. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
+        executer.expectDocumentedDeprecationWarning("Directly resolving a file collection dependency's files has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration and resolve the configuration. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
+        executer.expectDocumentedDeprecationWarning("Directly resolving a file collection dependency's files has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration and resolve the configuration. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
+        executer.expectDocumentedDeprecationWarning("Accessing the build dependencies of a file collection dependency has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration use the configuration to track task dependencies. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
+        run "verify", "-Dorg.gradle.internal.deprecation.preliminary.DefaultFileCollectionDependency.enabled=true"
 
         then:
         outputContains("files: [lib.jar]")
-        outputContains("files-not-transitive: [lib.jar]")
-        outputContains("files-transitive: [lib.jar]")
+        outputContains("resolve: [lib.jar]")
+        outputContains("resolve-not-transitive: [lib.jar]")
+        outputContains("resolve-transitive: [lib.jar]")
     }
 
     // This test documents existing behaviour rather than desired behaviour
@@ -118,11 +125,16 @@ task verify {
         println "files: " + dep.resolve().collect { it.name }
         println "files-not-transitive: " + dep.resolve(false).collect { it.name }
         println "files-transitive: " + dep.resolve(true).collect { it.name }
+        dep.getBuildDependencies()
     }
 }
 """
 
         when:
+        executer.expectDocumentedDeprecationWarning("Directly resolving the files of project dependency ':child1' has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration and resolve the configuration. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
+        executer.expectDocumentedDeprecationWarning("Directly resolving the files of project dependency ':child1' has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration and resolve the configuration. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
+        executer.expectDocumentedDeprecationWarning("Directly resolving the files of project dependency ':child1' has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration and resolve the configuration. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
+        executer.expectDocumentedDeprecationWarning("Accessing the build dependencies of project dependency ':child1' has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration and use the configuration to track task dependencies. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
         run "verify"
 
         then:

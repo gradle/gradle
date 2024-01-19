@@ -62,28 +62,28 @@ Let's break down the build script for the plugin:
 .gradle/license-plugin/plugin/build.gradle.kts
 [source,kotlin]
 ----
-plugins {                                                                                           // <1>
-    `java-gradle-plugin`                                                                            // <2>
-    id("org.jetbrains.kotlin.jvm") version "1.9.0"                                                  // <3>
+plugins {                                                             // <1>
+    `java-gradle-plugin`                                              // <2>
+    id("org.jetbrains.kotlin.jvm") version "1.9.0"                    // <3>
 }
 
-repositories {                                                                                      // <4>
-    mavenCentral()                                                                                  // <5>
+repositories {                                                        // <4>
+    mavenCentral()                                                    // <5>
 }
 
-dependencies {                                                                                      // <6>
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")                                   // <7>
+dependencies {                                                        // <6>
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")     // <7>
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-gradlePlugin {                                                                                      // <8>
-    val greeting by plugins.creating {                                                              // <9>
+gradlePlugin {                                                        // <8>
+    val greeting by plugins.creating {                                // <9>
         id = "com.gradle.greeting"
         implementationClass = "com.gradle.LicensePlugin"
     }
 }
 
-val functionalTestSourceSet = sourceSets.create("functionalTest") {}                                // <10>
+val functionalTestSourceSet = sourceSets.create("functionalTest") {}  // <10>
 
 // Additional lines //
 
@@ -144,8 +144,8 @@ Configuration blocks (not to be confused with dependency configurations above) a
 
 [source,kotlin]
 ----
-gradlePlugin {                                                                                      // <8>
-    val greeting by plugins.creating {                                                              // <9>
+gradlePlugin {                                              // <8>
+    val greeting by plugins.creating {                      // <9>
         id = "com.gradle.greeting"
         implementationClass = "com.gradle.LicensePlugin"
     }

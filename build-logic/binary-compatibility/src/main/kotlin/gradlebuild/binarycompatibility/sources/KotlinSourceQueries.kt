@@ -262,11 +262,18 @@ fun CtBehavior.firstParameterMatches(ktTypeReference: KtTypeReference): Boolean 
 
 private
 fun CtClass.isLikelyEquivalentTo(ktTypeReference: KtTypeReference): Boolean {
-    if (ktTypeReference.text.contains(" -> ")) {
+    val ktTypeAsText = ktTypeReference.text
+    if (ktTypeAsText.contains(" -> ")) {
         // This is a function of some sort
         return name.startsWith("kotlin.jvm.functions.Function")
     }
-    return (primitiveTypeStrings[name] ?: name).endsWith(ktTypeReference.text.substringBefore('<'))
+
+    val ktTypeRawName = ktTypeAsText
+        .trimEnd('?') // nullability is not part of JVM types
+        .substringBefore('<') // generics are not part of parameter types in JVM method signatures
+
+    val thisTypeAsKt = primitiveTypeStrings[name] ?: name
+    return thisTypeAsKt.endsWith(ktTypeRawName)
 }
 
 

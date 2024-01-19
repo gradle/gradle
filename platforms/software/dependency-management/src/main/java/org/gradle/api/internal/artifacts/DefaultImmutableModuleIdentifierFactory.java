@@ -15,21 +15,21 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DefaultImmutableModuleIdentifierFactory implements ImmutableModuleIdentifierFactory {
-    private final Map<String, Map<String, ModuleIdentifier>> groupIdToModules = Maps.newConcurrentMap();
-    private final Map<ModuleIdentifier, Map<String, ModuleVersionIdentifier>> idToVersions = Maps.newConcurrentMap();
+    private final Map<String, Map<String, ModuleIdentifier>> groupIdToModules = new ConcurrentHashMap<>();
+    private final Map<ModuleIdentifier, Map<String, ModuleVersionIdentifier>> idToVersions = new ConcurrentHashMap<>();
 
     @Override
     public ModuleIdentifier module(String group, String name) {
         Map<String, ModuleIdentifier> byName = groupIdToModules.get(group);
         if (byName == null) {
-            byName = groupIdToModules.computeIfAbsent(group, k -> Maps.newConcurrentMap());
+            byName = groupIdToModules.computeIfAbsent(group, k -> new ConcurrentHashMap<>());
         }
         ModuleIdentifier moduleIdentifier = byName.get(name);
         if (moduleIdentifier == null) {
@@ -49,7 +49,7 @@ public class DefaultImmutableModuleIdentifierFactory implements ImmutableModuleI
     public ModuleVersionIdentifier moduleWithVersion(ModuleIdentifier mi, String version) {
         Map<String, ModuleVersionIdentifier> byVersion = idToVersions.get(mi);
         if (byVersion == null) {
-            byVersion = idToVersions.computeIfAbsent(mi, k -> Maps.newConcurrentMap());
+            byVersion = idToVersions.computeIfAbsent(mi, k -> new ConcurrentHashMap<>());
         }
         ModuleVersionIdentifier identifier = byVersion.get(version);
         if (identifier == null) {

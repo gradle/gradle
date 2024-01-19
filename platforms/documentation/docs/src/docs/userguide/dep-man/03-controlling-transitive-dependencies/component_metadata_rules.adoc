@@ -96,7 +96,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 [[sec:component_metadata_rules_details]]
 == Which parts of metadata can be modified?
 
-The component metadata rules API is oriented at the features supported by link:https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md[Gradle Module Metadata] and the _dependencies_ API in build scripts.
+The component metadata rules API is oriented at the features supported by link:https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md[Gradle Module Metadata] and the _dependencies_ API in build scripts.
 The main difference between writing rules and defining dependencies and artifacts in the build script is that component metadata rules, following the structure of Gradle Module Metadata, operate on <<variant_model.adoc#understanding-variant-selection,variants>> directly.
 On the contrary, in build scripts you often influence the shape of multiple variants at once (e.g. an _api_ dependency is added to the _api_ and _runtime_ variant of a Java library, the artifact produced by the _jar_ task is also added to these two variants).
 

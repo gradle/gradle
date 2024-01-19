@@ -23,11 +23,9 @@ For details on how toolchain auto-provisioning interacts with these plugins, see
 
 Toolchain resolver plugins provide logic to map a link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainRequest.html[toolchain request] to a link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainDownload.html[download response].
 At the moment the download response only contains a download URL, but may be extended in the future.
-[WARNING]
-====
-For the download URL only secure protocols like `https` are accepted.
+
+WARNING: For the download URL only secure protocols like `https` are accepted.
 This is required to make sure no one can tamper with the download in flight.
-====
 
 The plugins provide the mapping logic via an implementation of link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainResolver.html[JavaToolchainResolver]:
 

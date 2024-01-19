@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.FileResolver;
@@ -57,6 +56,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -72,7 +72,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     private final ExecActionFactory execActionFactory;
     private final ToolSearchPath toolSearchPath;
     private final List<TargetPlatformConfiguration> platformConfigs = new ArrayList<TargetPlatformConfiguration>();
-    private final Map<NativePlatform, PlatformToolProvider> toolProviders = Maps.newHashMap();
+    private final Map<NativePlatform, PlatformToolProvider> toolProviders = new HashMap<>();
     private final CompilerMetaDataProvider<GccMetadata> metaDataProvider;
     private final SystemLibraryDiscovery standardLibraryDiscovery;
     private final Instantiator instantiator;

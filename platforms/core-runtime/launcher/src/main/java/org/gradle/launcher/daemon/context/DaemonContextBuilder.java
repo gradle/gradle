@@ -15,13 +15,13 @@
  */
 package org.gradle.launcher.daemon.context;
 
-import com.google.common.collect.Lists;
 import org.gradle.internal.Factory;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -41,7 +41,7 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
     private Long pid;
     private Integer idleTimeout;
     private Locale locale = Locale.getDefault();
-    private List<String> daemonOpts = Lists.newArrayList();
+    private List<String> daemonOpts = new ArrayList<>();
     private boolean applyInstrumentationAgent;
     private DaemonParameters.Priority priority;
 

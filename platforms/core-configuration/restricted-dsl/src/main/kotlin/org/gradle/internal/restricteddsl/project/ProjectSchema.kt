@@ -52,7 +52,9 @@ import org.gradle.internal.restricteddsl.evaluationSchema.InterpretationSequence
 import org.gradle.internal.restricteddsl.plugins.RuntimeTopLevelPluginsReceiver
 import org.gradle.internal.restricteddsl.plugins.schemaForPluginsBlock
 import org.gradle.plugin.management.internal.DefaultPluginRequest
+import org.gradle.plugin.management.internal.PluginRequestInternal
 import org.gradle.plugin.management.internal.PluginRequests
+import org.gradle.plugin.use.internal.DefaultPluginId
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createType
@@ -87,10 +89,11 @@ fun step1Plugins(target: ProjectInternal, targetScope: ClassLoaderScope, scriptS
         override fun topLevelReceiver() = RuntimeTopLevelPluginsReceiver()
 
         override fun whenEvaluated(resultReceiver: RuntimeTopLevelPluginsReceiver) {
-            val pluginRequests = resultReceiver.plugins.specs.map { DefaultPluginRequest(it.id, it.version, it.apply, 0, scriptSource.displayName) }
+            val pluginRequests = resultReceiver.plugins.specs.map {
+                DefaultPluginRequest(DefaultPluginId.unvalidated(it.id), it.apply, PluginRequestInternal.Origin.OTHER, scriptSource.displayName, null, it.version, null, null, null) }
             val scriptHandler = target.services.get(ScriptHandlerFactory::class.java).create(scriptSource, targetScope)
             target.services.get(PluginRequestApplicator::class.java)
-                .applyPlugins(PluginRequests.of(pluginRequests), scriptHandler, target.pluginManager, targetScope)
+                .applyPlugins(PluginRequests.of(pluginRequests), PluginRequests.of(emptyList()), scriptHandler, target.pluginManager, targetScope)
 
             targetScope.lock()
         }

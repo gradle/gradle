@@ -187,7 +187,7 @@
                 <td>org.gradle.api.artifacts.ComponentSelectionRules</td>
             </tr>
             <tr>
-                <td>org.gradle.api.artifacts.dsl.DependencyAdder</td>
+                <td>org.gradle.api.artifacts.dsl.DependencyCollector</td>
             </tr>
             <tr>
                 <td>org.gradle.api.plugins.ExtensionAware</td>

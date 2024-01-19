@@ -18,6 +18,7 @@ package org.gradle.workers.internal
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.model.ObjectFactory
+import org.gradle.initialization.layout.ProjectCacheDir
 import org.gradle.internal.Actions
 import org.gradle.internal.classloader.VisitableURLClassLoader
 import org.gradle.internal.classpath.CachedClasspathTransformer
@@ -64,6 +65,7 @@ class DefaultWorkerExecutorTest extends Specification {
     def worker = Mock(BuildOperationAwareWorker)
     def actionExecutionSpecFactory = Mock(ActionExecutionSpecFactory)
     def instantiator = Mock(Instantiator)
+    def projectCacheDir = Mock(ProjectCacheDir)
     def classpathTransformer = Mock(CachedClasspathTransformer)
     ConditionalExecution task
     DefaultWorkerExecutor workerExecutor
@@ -75,7 +77,8 @@ class DefaultWorkerExecutorTest extends Specification {
         _ * instantiator.newInstance(DefaultProcessWorkerSpec, _) >> { args -> new DefaultProcessWorkerSpec(args[1][0], objectFactory) }
         _ * instantiator.newInstance(DefaultWorkerExecutor.DefaultWorkQueue, _, _, _) >> { args -> new DefaultWorkerExecutor.DefaultWorkQueue(args[1][0], args[1][1], args[1][2]) }
         _ * classpathTransformer.transform(_, _) >> { args -> args[0] }
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, workerThreadRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, classpathTransformer, temporaryFolder.testDirectory)
+        _ * projectCacheDir.getDir() >> temporaryFolder.testDirectory
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, workerThreadRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, classpathTransformer, temporaryFolder.testDirectory, projectCacheDir)
         _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
     }
 

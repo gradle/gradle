@@ -18,7 +18,7 @@ package configurations
 
 import common.applyDefaultSettings
 import common.uuidPrefix
-import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
+import jetbrains.buildServer.configs.kotlin.DslContext
 import model.CIBuildModel
 
 class PartialTrigger<T : BaseGradleBuildType>(triggerName: String, triggerId: String, model: CIBuildModel, dependencies: Iterable<T>) : BaseGradleBuildType(init = {

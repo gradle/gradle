@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.plugins;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
@@ -53,6 +52,7 @@ import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
 import org.gradle.testing.base.TestSuiteContainer;
 import org.gradle.testing.base.plugins.TestingModelBasePlugin;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -120,7 +120,7 @@ public abstract class NativeBinariesTestPlugin implements Plugin<Project> {
                 Callable<Iterable<Task>> deferredDependencies = new Callable<Iterable<Task>>() {
                     @Override
                     public Iterable<Task> call() {
-                        List<Task> dependencies = Lists.newArrayList();
+                        List<Task> dependencies = new ArrayList<>();
                         DependentBinariesResolvedResult result = dependentsResolver.resolve(binary).getRoot();
                         for (DependentBinariesResolvedResult dependent : result.getChildren()) {
                             if (dependent.isBuildable() && dependent.isTestSuite()) {

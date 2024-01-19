@@ -38,4 +38,9 @@ public class NonInteractiveUserInputHandler implements UserInputHandler {
     public String askQuestion(String question, String defaultValue) {
         return defaultValue;
     }
+
+    @Override
+    public boolean interrupted() {
+        return false;
+    }
 }

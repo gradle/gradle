@@ -5,18 +5,26 @@ plugins {
 description = "JVM invocation and inspection abstractions"
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":core-api"))
-    implementation(project(":file-temp"))
-    implementation(project(":file-collections"))
+    api(project(":logging-api"))
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":core-api"))
+    api(project(":enterprise-logging"))
+    api(project(":file-temp"))
+    api(project(":file-collections"))
+    api(project(":process-services"))
+
+    api(libs.inject)
+    api(libs.jsr305)
+    api(libs.nativePlatform)
+
+    implementation(project(":build-operations"))
     implementation(project(":functional"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(libs.inject)
-    implementation(libs.nativePlatform)
+
     implementation(libs.guava)
     implementation(libs.asm)
     implementation(libs.xmlApis)
+    implementation(libs.slf4jApi)
 
     testImplementation(project(":native"))
     testImplementation(project(":file-collections"))

@@ -127,7 +127,7 @@ public interface Settings extends PluginAware, ExtensionAware {
     /**
      * This is a version of {@link Settings#include(String...)} for just one argument.
      * FIXME: this public API should not be released!
-     * @since 8.6
+     * @since 8.7
      */
     @Adding // TODO: support varargs and remove the workaround
     @Incubating

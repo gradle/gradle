@@ -16,8 +16,18 @@
 
 package org.gradle.internal.snapshot;
 
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import javax.annotation.Nullable;
 
+/**
+ * A factory for creating snapshots and hashes of an object graph. This should be used instead of {@link org.gradle.internal.isolation.IsolatableFactory} when
+ * you only need hashes of an object graph, as this service more efficient than the general purpose factory.
+ *
+ * @see org.gradle.internal.isolation.IsolatableFactory
+ */
+@ServiceScope(Scopes.BuildSession.class)
 public interface ValueSnapshotter {
     /**
      * Creates a {@link ValueSnapshot} of the given value, that contains a snapshot of the current state of the value. A snapshot represents an immutable fingerprint of the value that can be later used to determine if a value has changed.

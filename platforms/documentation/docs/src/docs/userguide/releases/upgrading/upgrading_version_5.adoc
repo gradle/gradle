@@ -259,7 +259,7 @@ The following rules are verified when publishing Gradle Module Metadata:
 * Two variants cannot have the <<variant_model.adoc#understanding-variant-selection,exact same attributes and capabilities>>,
 * If there are dependencies, at least one, across all variants, must carry <<rich_versions.adoc#rich-version-constraints,version information>>.
 
-These are documented in the link:https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md[specification] as well.
+These are documented in the link:https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md[specification] as well.
 
 ==== Maven or Ivy repositories are no longer queried for artifacts without metadata by default
 
@@ -624,7 +624,7 @@ The built-in <<play_plugin.adoc#play_plugin, Play plugin>> has been deprecated a
 
 The _build comparison_ plugin has been deprecated and will be removed in the next major version of Gradle.
 
-link:https://gradle.com/build-scans[Build scans] show much deeper insights into your build and you can use link:https://gradle.com/[Develocity] to directly compare two build's build-scans.
+link:https://gradle.com/build-scans[Build scans] show much deeper insights into your build and you can use link:https://gradle.com/develocity[Develocity] to directly compare two build's build-scans.
 
 === Potential breaking changes
 

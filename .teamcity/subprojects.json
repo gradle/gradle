@@ -113,7 +113,7 @@
   },
   {
     "name": "build-profile",
-    "path": "subprojects/build-profile",
+    "path": "platforms/core-runtime/build-profile",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -183,14 +183,14 @@
   },
   {
     "name": "distributions-basics",
-    "path": "subprojects/distributions-basics",
+    "path": "platforms/core-runtime/distributions-basics",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "distributions-core",
-    "path": "subprojects/distributions-core",
+    "path": "platforms/core-runtime/distributions-core",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -379,7 +379,7 @@
   },
   {
     "name": "installation-beacon",
-    "path": "subprojects/installation-beacon",
+    "path": "platforms/core-runtime/installation-beacon",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -393,7 +393,7 @@
   },
   {
     "name": "instrumentation-declarations",
-    "path": "subprojects/instrumentation-declarations",
+    "path": "platforms/core-runtime/instrumentation-declarations",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -521,7 +521,7 @@
     "name": "kotlin-dsl-tooling-builders",
     "path": "platforms/core-configuration/kotlin-dsl-tooling-builders",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": true
   },
   {
@@ -736,7 +736,7 @@
   },
   {
     "name": "precondition-tester",
-    "path": "subprojects/precondition-tester",
+    "path": "platforms/build-infrastructure/precondition-tester",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
@@ -844,6 +844,13 @@
     "path": "platforms/software/signing",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "smoke-ide-test",
+    "path": "subprojects/smoke-ide-test",
+    "unitTests": false,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {

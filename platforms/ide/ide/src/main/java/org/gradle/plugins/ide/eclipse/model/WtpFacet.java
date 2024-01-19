@@ -25,13 +25,14 @@ import groovy.util.NodeList;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Creates the .settings/org.eclipse.wst.common.project.facet.core.xml file for WTP projects.
  */
 public class WtpFacet extends XmlPersistableConfigurationObject {
-    private List<Facet> facets = Lists.newArrayList(); // TODO: turn into Set?
+    private List<Facet> facets = new ArrayList<>(); // TODO: turn into Set?
 
     public WtpFacet(XmlTransformer xmlTransformer) {
         super(xmlTransformer);

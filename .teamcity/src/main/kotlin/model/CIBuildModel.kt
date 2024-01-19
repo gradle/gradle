@@ -20,6 +20,7 @@ import configurations.FlakyTestQuarantine
 import configurations.FunctionalTest
 import configurations.Gradleception
 import configurations.SanityCheck
+import configurations.SmokeIdeTests
 import configurations.SmokeTests
 import configurations.TestPerformanceTest
 import projects.DEFAULT_FUNCTIONAL_TEST_BUCKET_SIZE
@@ -82,7 +83,8 @@ data class CIBuildModel(
                 SpecificBuild.ConfigCacheSantaTrackerSmokeTests,
                 SpecificBuild.GradleBuildSmokeTests,
                 SpecificBuild.ConfigCacheSmokeTestsMaxJavaVersion,
-                SpecificBuild.ConfigCacheSmokeTestsMinJavaVersion
+                SpecificBuild.ConfigCacheSmokeTestsMinJavaVersion,
+                SpecificBuild.SmokeIdeTests
             ),
             functionalTests = listOf(
                 TestCoverage(3, TestType.platform, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
@@ -113,7 +115,7 @@ data class CIBuildModel(
                 SpecificBuild.TestPerformanceTest,
                 SpecificBuild.FlakyTestQuarantineLinux,
                 SpecificBuild.FlakyTestQuarantineMacOs,
-                SpecificBuild.FlakyTestQuarantineMacOsM1,
+                SpecificBuild.FlakyTestQuarantineMacOsAppleSilicon,
                 SpecificBuild.FlakyTestQuarantineWindows,
                 SpecificBuild.GradleceptionWithMaxLtsJdk,
             ),
@@ -126,7 +128,7 @@ data class CIBuildModel(
                 TestCoverage(11, TestType.allVersionsCrossVersion, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS, ALL_CROSS_VERSION_BUCKETS.size),
                 TestCoverage(12, TestType.noDaemon, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
                 TestCoverage(13, TestType.noDaemon, Os.WINDOWS, JvmCategory.MAX_LTS_VERSION),
-                TestCoverage(14, TestType.platform, Os.MACOS, JvmCategory.MIN_VERSION, expectedBucketNumber = 20, arch = Arch.AMD64),
+                TestCoverage(14, TestType.platform, Os.MACOS, JvmCategory.MIN_VERSION, expectedBucketNumber = 5, arch = Arch.AMD64),
                 TestCoverage(15, TestType.forceRealizeDependencyManagement, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
                 TestCoverage(33, TestType.allVersionsIntegMultiVersion, Os.LINUX, JvmCategory.MIN_VERSION, ALL_CROSS_VERSION_BUCKETS.size),
                 TestCoverage(34, TestType.allVersionsIntegMultiVersion, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS, ALL_CROSS_VERSION_BUCKETS.size),
@@ -429,7 +431,7 @@ enum class SpecificBuild {
             return FlakyTestQuarantine(model, stage, Os.MACOS)
         }
     },
-    FlakyTestQuarantineMacOsM1 {
+    FlakyTestQuarantineMacOsAppleSilicon {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return FlakyTestQuarantine(model, stage, Os.MACOS, Arch.AARCH64)
         }
@@ -437,6 +439,11 @@ enum class SpecificBuild {
     FlakyTestQuarantineWindows {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return FlakyTestQuarantine(model, stage, Os.WINDOWS)
+        }
+    },
+    SmokeIdeTests {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return SmokeIdeTests(model, stage)
         }
     };
 

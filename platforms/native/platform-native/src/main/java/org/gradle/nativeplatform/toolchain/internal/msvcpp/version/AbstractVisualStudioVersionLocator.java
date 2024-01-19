@@ -16,13 +16,12 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 
-import com.google.common.collect.Lists;
-
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class AbstractVisualStudioVersionLocator implements VisualStudioVersionLocator {
-    private final List<VisualStudioInstallCandidate> installs = Lists.newArrayList();
+    private final List<VisualStudioInstallCandidate> installs = new ArrayList<>();
     private boolean initialized;
 
     @Nonnull

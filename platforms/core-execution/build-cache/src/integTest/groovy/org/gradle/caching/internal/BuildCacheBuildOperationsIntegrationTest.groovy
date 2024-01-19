@@ -16,14 +16,18 @@
 
 package org.gradle.caching.internal
 
+import com.google.common.collect.Iterables
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.internal.operations.BuildCacheArchivePackBuildOperationType
 import org.gradle.caching.internal.operations.BuildCacheArchiveUnpackBuildOperationType
+import org.gradle.caching.internal.operations.BuildCacheLocalLoadBuildOperationType
+import org.gradle.caching.internal.operations.BuildCacheLocalStoreBuildOperationType
+import org.gradle.caching.internal.operations.BuildCacheRemoteDisabledDueToFailureProgressDetails
 import org.gradle.caching.internal.operations.BuildCacheRemoteLoadBuildOperationType
 import org.gradle.caching.internal.operations.BuildCacheRemoteStoreBuildOperationType
-import org.gradle.caching.local.internal.DefaultBuildCacheTempFileStore
-import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildCacheOperationFixtures
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.internal.io.NullOutputStream
@@ -33,15 +37,10 @@ import spock.lang.Shared
 class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
     @Shared
-    String localCacheClass = "LocalBuildCache"
-    @Shared
     String remoteCacheClass = "RemoteBuildCache"
 
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
-
-    void local(String loadBody, String storeBody) {
-        register(localCacheClass, loadBody, storeBody, true)
-    }
+    def cacheOperations = new BuildCacheOperationFixtures(operations)
 
     void remote(String loadBody, String storeBody) {
         register(remoteCacheClass, loadBody, storeBody)
@@ -51,7 +50,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         executer.beforeExecute { it.withBuildCacheEnabled() }
     }
 
-    void register(String className, String loadBody, String storeBody, boolean isLocal = false) {
+    void register(String className, String loadBody, String storeBody) {
         settingsFile << """
             class ${className} extends AbstractBuildCache {}
             class ${className}ServiceFactory implements BuildCacheServiceFactory<${className}> {
@@ -59,32 +58,18 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
                     return new ${className}Service(configuration)
                 }
             }
-            class ${className}Service implements BuildCacheService ${isLocal ? ", ${LocalBuildCacheService.name}" : ""} {
+            class ${className}Service implements BuildCacheService {
                 ${className}Service(${className} configuration) {
                 }
 
                 @Override
                 boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-                    ${isLocal ? "" : loadBody ?: ""}
+                    ${loadBody ?: ""}
                 }
 
                 @Override
                 void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-                    ${isLocal ? "" : storeBody ?: ""}
-                }
-
-                // @Override
-                void loadLocally(BuildCacheKey key, Action<? super File> reader) {
-                    ${isLocal ? loadBody ?: "" : ""}
-                }
-
-                // @Override
-                void storeLocally(BuildCacheKey key, File file) {
-                    ${isLocal ? storeBody ?: "" : ""}
-                }
-
-                void withTempFile(BuildCacheKey key, Action<? super File> action) {
-                    new $DefaultBuildCacheTempFileStore.name(new File("${TextUtil.normaliseFileSeparators(file("tmp").absolutePath)}")).withTempFile(key, action)
+                    ${storeBody ?: ""}
                 }
 
                 @Override
@@ -127,7 +112,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def "emits only pack/unpack operations for local"() {
+    def "emits pack/unpack and store/load operations for local"() {
         def localCache = new TestBuildCache(file("local-cache"))
         settingsFile << localCache.localCacheConfiguration()
 
@@ -142,25 +127,47 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         then:
         operations.none(BuildCacheRemoteLoadBuildOperationType)
         operations.none(BuildCacheRemoteStoreBuildOperationType)
-        def packOp = operations.only(BuildCacheArchivePackBuildOperationType)
+        def localMissLoadOp = cacheOperations.getOnlyLocalLoadOperationForTask(":t")
+        def packOp = cacheOperations.getOnlyPackOperationForTask(":t")
+        def storeOp = cacheOperations.getOnlyLocalStoreOperationForTask(":t")
 
-        packOp.details.cacheKey != null
-        packOp.result.archiveSize == localCache.cacheArtifact(packOp.details.cacheKey.toString()).length()
+        def cacheKey = localMissLoadOp.details.cacheKey
+        cacheKey != null
+        def archiveSize = localCache.getCacheEntry(cacheKey.toString()).bytes.length
+
+        !localMissLoadOp.result.hit
+
+        packOp.details.cacheKey == cacheKey
+
+        packOp.result.archiveSize == archiveSize
         packOp.result.archiveEntryCount == 5
+
+        storeOp.details.cacheKey == cacheKey
+        storeOp.details.archiveSize == archiveSize
+        storeOp.result.stored
 
         when:
         succeeds("clean", "t")
 
         then:
         operations.none(BuildCacheRemoteStoreBuildOperationType)
-        def unpackOp = operations.only(BuildCacheArchiveUnpackBuildOperationType)
-        unpackOp.details.cacheKey == packOp.details.cacheKey
+        operations.none(BuildCacheRemoteLoadBuildOperationType)
+        operations.none(BuildCacheLocalStoreBuildOperationType)
+
+        def localHitLoadOp = cacheOperations.getOnlyLocalLoadOperationForTask(":t")
+        def unpackOp = cacheOperations.getOnlyUnpackOperationForTask(":t")
+
+        localHitLoadOp.details.cacheKey == cacheKey
+        localHitLoadOp.result.hit == true
+        localHitLoadOp.result.archiveSize == archiveSize
+
+        unpackOp.details.cacheKey == cacheKey
 
         // Not all of the tar.gz bytes need to be read in order to unpack the archive.
         // On Linux at least, the archive may have redundant padding bytes
         // Furthermore, the exact amount of padding appears to be non deterministic.
-        def cacheArtifact = localCache.cacheArtifact(unpackOp.details.cacheKey.toString())
-        def sizeDiff = cacheArtifact.length() - unpackOp.details.archiveSize.toLong()
+        def cacheArtifact = localCache.getCacheEntry(unpackOp.details.cacheKey.toString())
+        def sizeDiff = cacheArtifact.bytes.length - unpackOp.details.archiveSize.toLong()
         sizeDiff > -100 && sizeDiff < 100
 
         unpackOp.result.archiveEntryCount == 5
@@ -179,15 +186,31 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: "base"
             tasks.create("t", CustomTask).paths << "out1" << "out2"
         """
+        def failureMessage = "${exceptionType.name}: !"
 
         executer.withStackTraceChecksDisabled()
         succeeds("t")
 
         then:
         def failedLoadOp = operations.only(BuildCacheRemoteLoadBuildOperationType)
-        failedLoadOp.details.cacheKey != null
+        def cacheKey = failedLoadOp.details.cacheKey
+        cacheKey != null
         failedLoadOp.result == null
-        failedLoadOp.failure == "${exceptionType.name}: !"
+
+        failedLoadOp.failure == failureMessage
+
+        def taskBuildOp = operations.only(ExecuteTaskBuildOperationType)
+        def remoteDisableProgress = Iterables.getOnlyElement(taskBuildOp.progress(BuildCacheRemoteDisabledDueToFailureProgressDetails))
+        with(remoteDisableProgress.details) {
+            buildCacheConfigurationIdentifier == ':'
+            it.cacheKey == cacheKey
+            failure != null
+            operationType == 'LOAD'
+        }
+        with(taskBuildOp.result) {
+            cachingDisabledReasonMessage == null
+            cachingDisabledReasonCategory == null
+        }
 
         where:
         exceptionType << [RuntimeException, IOException]
@@ -213,10 +236,24 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         succeeds("t")
 
         then:
-        def failedLoadOp = operations.only(BuildCacheRemoteStoreBuildOperationType)
-        failedLoadOp.details.cacheKey != null
-        failedLoadOp.result == null
-        failedLoadOp.failure == "${exceptionType.name}: !"
+        def failedStoreOp = operations.only(BuildCacheRemoteStoreBuildOperationType)
+        def cacheKey = failedStoreOp.details.cacheKey
+        cacheKey != null
+        failedStoreOp.result == null
+        failedStoreOp.failure == "${exceptionType.name}: !"
+
+        def taskBuildOp = operations.only(ExecuteTaskBuildOperationType)
+        def remoteDisableProgress = Iterables.getOnlyElement(taskBuildOp.progress(BuildCacheRemoteDisabledDueToFailureProgressDetails))
+        with(remoteDisableProgress.details) {
+            buildCacheConfigurationIdentifier == ':'
+            it.cacheKey == cacheKey
+            failure != null
+            operationType == 'STORE'
+        }
+        with(taskBuildOp.result) {
+            cachingDisabledReasonMessage == null
+            cachingDisabledReasonCategory == null
+        }
 
         where:
         exceptionType << [RuntimeException, BuildCacheException, IOException]
@@ -266,24 +303,33 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
             tasks.create("t", CustomTask).paths << "out1" << "out2"
         """
 
-        if (expectDeprecation) {
-            executer.expectDeprecationWarning()
-        }
-
         when:
         succeeds("t")
 
         then:
         def remoteMissLoadOp = operations.only(BuildCacheRemoteLoadBuildOperationType)
+        if (localEnabled) {
+            operations.only(BuildCacheLocalLoadBuildOperationType)
+        } else {
+            operations.none(BuildCacheLocalLoadBuildOperationType)
+        }
+
         def packOp = operations.only(BuildCacheArchivePackBuildOperationType)
         def remoteStoreOp = operations.only(BuildCacheRemoteStoreBuildOperationType)
+        def cacheKey = packOp.details.cacheKey
 
-        packOp.details.cacheKey == remoteStoreOp.details.cacheKey
-        def localCacheArtifact = localCache.cacheArtifact(packOp.details.cacheKey.toString())
+        remoteStoreOp.details.cacheKey == cacheKey
+
         if (localStore) {
-            assert packOp.result.archiveSize == localCacheArtifact.length()
+            def localCacheArtifact = localCache.getCacheEntry(cacheKey.toString())
+            assert packOp.result.archiveSize == localCacheArtifact.bytes.length
+            def localStoreOp = operations.only(BuildCacheLocalStoreBuildOperationType)
+            assert localStoreOp.details.cacheKey == cacheKey
+            assert localStoreOp.details.archiveSize == localCacheArtifact.bytes.length
+            assert localStoreOp.result.stored
         } else {
-            assert !localCacheArtifact.exists()
+            assert !localCache.hasCacheEntry(cacheKey.toString())
+            operations.none(BuildCacheLocalStoreBuildOperationType)
         }
 
         packOp.result.archiveEntryCount == 5
@@ -292,10 +338,10 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         operations.orderedSerialSiblings(remoteMissLoadOp, packOp, remoteStoreOp)
 
         where:
-        localStore | expectDeprecation | config
-        true       | false             | "remote($remoteCacheClass) { push = true }"
-        false      | false             | "local.push = false; remote($remoteCacheClass) { push = true }"
-        false      | false             | "local.enabled = false; remote($remoteCacheClass) { push = true }"
+        localStore | localEnabled | config
+        true       | true         | "remote($remoteCacheClass) { push = true }"
+        false      | true         | "local.push = false; remote($remoteCacheClass) { push = true }"
+        false      | false        | "local.enabled = false; remote($remoteCacheClass) { push = true }"
     }
 
     def "records ops for remote hit"() {
@@ -312,8 +358,9 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         def initialPackOp = operations.only(BuildCacheArchivePackBuildOperationType)
         def artifactFileCopy = file("artifact")
         // move it out of the local for us to use
-        assert buildCache.cacheArtifact(initialPackOp.details.cacheKey.toString()).renameTo(artifactFileCopy)
-        assert !buildCache.cacheArtifact(initialPackOp.details.cacheKey.toString()).exists()
+        buildCache.getCacheEntry(initialPackOp.details.cacheKey.toString()).copyBytesTo(artifactFileCopy)
+        buildCache.deleteCacheEntry(initialPackOp.details.cacheKey.toString())
+        assert !buildCache.hasCacheEntry(initialPackOp.details.cacheKey.toString())
 
         when:
         settingsFile.text = ""
@@ -331,12 +378,13 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         def remoteHitLoadOp = operations.only(BuildCacheRemoteLoadBuildOperationType)
         def unpackOp = operations.only(BuildCacheArchiveUnpackBuildOperationType)
 
-        unpackOp.details.cacheKey == remoteHitLoadOp.details.cacheKey
-        def localCacheArtifact = buildCache.cacheArtifact(remoteHitLoadOp.details.cacheKey.toString())
+        def remoteHitLoadOpKey = remoteHitLoadOp.details.cacheKey.toString()
+        unpackOp.details.cacheKey == remoteHitLoadOpKey
         if (localStore) {
-            assert remoteHitLoadOp.result.archiveSize == localCacheArtifact.length()
+            def localCacheArtifact = buildCache.getCacheEntry(remoteHitLoadOpKey)
+            assert remoteHitLoadOp.result.archiveSize == localCacheArtifact.bytes.length
         } else {
-            assert !localCacheArtifact.exists()
+            assert !buildCache.hasCacheEntry(remoteHitLoadOpKey)
         }
 
         unpackOp.result.archiveEntryCount == 5

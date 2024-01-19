@@ -49,6 +49,7 @@ import org.gradle.execution.plan.ToPlannedNodeConverterRegistry;
 import org.gradle.execution.plan.ToPlannedTaskConverter;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
+import org.gradle.groovy.scripts.internal.GroovyDslWorkspaceProvider;
 import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHasher;
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.ClassLoaderRegistry;
@@ -60,10 +61,10 @@ import org.gradle.initialization.layout.GlobalCacheDir;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
-import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
 import org.gradle.internal.classpath.DefaultClasspathTransformerCacheFactory;
+import org.gradle.internal.classpath.DefaultClasspathBuilder;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForAgent;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
@@ -109,7 +110,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         super.configure(registration);
         registration.addProvider(new GradleUserHomeCleanupServices());
         registration.add(ClasspathWalker.class);
-        registration.add(ClasspathBuilder.class);
+        registration.add(DefaultClasspathBuilder.class);
         registration.add(GradleUserHomeTemporaryFileProvider.class);
         registration.add(DefaultClasspathTransformerCacheFactory.class);
         registration.add(GradleUserHomeScopeFileTimeStampInspector.class);
@@ -248,5 +249,13 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
     }
     protected CacheConfigurationsInternal createCachesConfiguration(ObjectFactory objectFactory, LegacyCacheCleanupEnablement legacyCacheCleanupEnablement) {
         return objectFactory.newInstance(DefaultCacheConfigurations.class, legacyCacheCleanupEnablement);
+    }
+
+    GroovyDslWorkspaceProvider createGroovyDslWorkspaceProvider(
+        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+        FileAccessTimeJournal fileAccessTimeJournal,
+        CacheConfigurationsInternal cacheConfigurations
+    ) {
+       return new GroovyDslWorkspaceProvider(cacheBuilderFactory, fileAccessTimeJournal, cacheConfigurations);
     }
 }

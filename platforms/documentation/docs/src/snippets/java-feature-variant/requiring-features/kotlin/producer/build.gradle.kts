@@ -9,9 +9,17 @@ repositories {
 // tag::producer[]
 group = "org.gradle.demo"
 
+sourceSets {
+    create("mysqlSupport") {
+        java {
+            srcDir("src/mysql/java")
+        }
+    }
+}
+
 java {
     registerFeature("mysqlSupport") {
-        usingSourceSet(sourceSets["main"])
+        usingSourceSet(sourceSets["mysqlSupport"])
     }
 }
 

@@ -8,15 +8,20 @@ description = """Persistent caches on disk and cross process locking.
 """.trimMargin()
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":messaging"))
-    implementation(project(":native"))
-    implementation(project(":files"))
-    implementation(project(":resources"))
-    implementation(project(":logging"))
+    api(project(":base-annotations"))
+    api(project(":enterprise-logging"))
+    api(project(":base-services"))
+    api(project(":messaging"))
+    api(project(":native"))
+    api(project(":files"))
+    api(project(":logging"))
+
+    api(libs.jsr305)
+    api(libs.guava)
+
+    implementation(project(":build-operations"))
 
     implementation(libs.slf4jApi)
-    implementation(libs.guava)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
 

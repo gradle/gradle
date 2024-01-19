@@ -18,7 +18,6 @@ package org.gradle.api.internal.catalog;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -58,11 +57,6 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     @Override
     public Path getIdentityPath() {
         return delegate.getIdentityPath();
-    }
-
-    @Override
-    public Configuration findProjectConfiguration() {
-        return delegate.findProjectConfiguration();
     }
 
     @Override
@@ -196,16 +190,19 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     }
 
     @Override
+    @Deprecated
     public Set<File> resolve() {
         return delegate.resolve();
     }
 
     @Override
+    @Deprecated
     public Set<File> resolve(boolean transitive) {
         return delegate.resolve(transitive);
     }
 
     @Override
+    @Deprecated
     public TaskDependency getBuildDependencies() {
         return delegate.getBuildDependencies();
     }

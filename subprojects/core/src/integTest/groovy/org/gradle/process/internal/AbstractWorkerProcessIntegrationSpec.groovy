@@ -76,7 +76,7 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
     final CacheFactory factory = services.get(CacheFactory.class)
     final GlobalCacheDir globalCacheDir = new GlobalCacheDir({ tmpDir.testDirectory })
     final CacheScopeMapping scopeMapping = new DefaultCacheScopeMapping(globalCacheDir.dir, GradleVersion.current())
-    final UnscopedCacheBuilderFactory cacheRepository = new DefaultUnscopedCacheBuilderFactory(scopeMapping, factory)
+    final UnscopedCacheBuilderFactory cacheRepository = new DefaultUnscopedCacheBuilderFactory(factory)
     final GlobalScopedCacheBuilderFactory globalScopedCache = new DefaultGlobalScopedCacheBuilderFactory(globalCacheDir.dir, cacheRepository)
     final ModuleRegistry moduleRegistry = services.get(ModuleRegistry)
     final WorkerProcessClassPathProvider workerProcessClassPathProvider = new WorkerProcessClassPathProvider(globalScopedCache, moduleRegistry)

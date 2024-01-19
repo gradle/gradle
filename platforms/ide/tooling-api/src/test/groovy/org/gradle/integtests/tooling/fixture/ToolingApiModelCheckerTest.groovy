@@ -114,11 +114,11 @@ class ToolingApiModelCheckerTest extends Specification {
         error.message.contains("              |       |  'notOne'")
     }
 
-    def "fails with not equal domain set sizes"() {
+    def "fails with not equal #type sizes"() {
         when:
         ToolingApiModelChecker.checkModel(
-            dummyDomainSetModel(dummyModel("one")),
-            dummyDomainSetModel(dummyModel("one"), dummyModel("two")),
+            createModel([dummyModel("one")]),
+            createModel([dummyModel("one"), dummyModel("two")]),
             [
                 [{ it.values }, { a, e ->
                     throw new RuntimeException("Never called")
@@ -131,13 +131,37 @@ class ToolingApiModelCheckerTest extends Specification {
         error.message.contains("assert actual.size() == expected.size()")
         error.message.contains("       |      |      |  |        |")
         error.message.contains("       |      1      |  |        2")
+
+        where:
+        type         | createModel                 | extractValues
+        "domain set" | { dummyDomainSetModel(it) } | { it.values }
+        "list"       | { dummyListModel(it) }      | { it.values }
     }
 
-    def "fails with not equal domain set items"() {
+    def "fails with not equal map sizes"() {
         when:
         ToolingApiModelChecker.checkModel(
-            dummyDomainSetModel(dummyModel("one"), dummyModel("two")),
-            dummyDomainSetModel(dummyModel("one"), dummyModel("three")),
+            dummyMapModel(["one": dummyModel("one")]),
+            dummyMapModel(["one": dummyModel("one"), "two": dummyModel("two")]),
+            [
+                [{ it.map }, { a, e ->
+                    throw new RuntimeException("Never called")
+                }]
+            ]
+        )
+
+        then:
+        def error = thrown(AssertionError)
+        error.message.contains("assert actual.size() == expected.size()")
+        error.message.contains("       |      |      |  |        |")
+        error.message.contains("       |      1      |  |        2")
+    }
+
+    def "fails with not equal #type items"() {
+        when:
+        ToolingApiModelChecker.checkModel(
+            createModel([dummyModel("one"), dummyModel("two")]),
+            createModel([dummyModel("one"), dummyModel("three")]),
             [
                 [{ it.values }, { a, e ->
                     ToolingApiModelChecker.checkModel(a, e, [{ it.value }])
@@ -151,6 +175,50 @@ class ToolingApiModelCheckerTest extends Specification {
         error.message.contains("       |      |       |  |")
         error.message.contains("       'two'  |       |  |")
         error.message.contains("              |       |  'three'")
+
+        where:
+        type         | createModel                 | extractValues
+        "domain set" | { dummyDomainSetModel(it) } | { it.values }
+        "list"       | { dummyListModel(it) }      | { it.values }
+    }
+
+    def "fails with not equal map keys"() {
+        when:
+        ToolingApiModelChecker.checkModel(
+            dummyMapModel(["one": dummyModel("one")]),
+            dummyMapModel(["two": dummyModel("one")]),
+            [
+                [{ it.map }, { a, e ->
+                    throw new RuntimeException("Never called")
+                }]
+            ]
+        )
+
+        then:
+        def error = thrown(AssertionError)
+        error.message.contains("assert actualKeyValue.key == expectedKeyValue.key")
+        error.message.contains("       |              |   |  |                |")
+        error.message.contains("       |              |   |  |                'two'")
+        error.message.contains("       |              'one'")
+    }
+
+    def "fails with not equal map values"() {
+        when:
+        ToolingApiModelChecker.checkModel(
+            dummyMapModel(["one": dummyModel("one")]),
+            dummyMapModel(["one": dummyModel("two")]),
+            [
+                [{ it.map }, { a, e ->
+                    ToolingApiModelChecker.checkModel(a, e, [{ it.value }])
+                }]
+            ]
+        )
+
+        then:
+        def error = thrown(AssertionError)
+        error.message.contains("assert getter(actual) == getter(expected)")
+        error.message.contains("       |      |       |  |")
+        error.message.contains("       'one'  |       |  'two'")
     }
 
     private DummyModel dummyModel(String value) {
@@ -158,6 +226,11 @@ class ToolingApiModelCheckerTest extends Specification {
             @Override
             String getValue() {
                 return value
+            }
+
+            @Override
+            String toString() {
+                return "DummyModel('$value')"
             }
         }
     }
@@ -171,16 +244,30 @@ class ToolingApiModelCheckerTest extends Specification {
         }
     }
 
-    private DummyDomainSetModel dummyDomainSetModel(DummyModel... values) {
-        return dummyDomainSetModel(values.toList())
-    }
-
-    private DummyDomainSetModel dummyDomainSetModel(Collection<? extends DummyModel> values) {
+    private DummyDomainSetModel dummyDomainSetModel(List<? extends DummyModel> values) {
         def domainObjectSet = ImmutableDomainObjectSet.of(values)
         return new DummyDomainSetModel() {
             @Override
             DomainObjectSet<? extends DummyModel> getValues() {
                 return domainObjectSet
+            }
+        }
+    }
+
+    private DummyListModel dummyListModel(List<? extends DummyModel> values) {
+        return new DummyListModel() {
+            @Override
+            List<? extends DummyModel> getValues() {
+                return values
+            }
+        }
+    }
+
+    private DummyMapModel dummyMapModel(Map<String, ? extends DummyModel> values) {
+        return new DummyMapModel() {
+            @Override
+            Map<String, ? extends DummyModel> getMap() {
+                return values
             }
         }
     }
@@ -195,6 +282,14 @@ class ToolingApiModelCheckerTest extends Specification {
 
     interface DummyDomainSetModel {
         DomainObjectSet<? extends DummyModel> getValues()
+    }
+
+    interface DummyListModel {
+        List<? extends DummyModel> getValues()
+    }
+
+    interface DummyMapModel {
+        Map<String, ? extends DummyModel> getMap()
     }
 
 }

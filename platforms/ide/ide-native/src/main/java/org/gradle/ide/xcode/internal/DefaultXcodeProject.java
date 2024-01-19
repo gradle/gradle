@@ -16,7 +16,6 @@
 
 package org.gradle.ide.xcode.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.TaskDependency;
@@ -54,7 +53,7 @@ public class DefaultXcodeProject implements XcodeProject {
         return new Callable<List<TaskDependency>>() {
             @Override
             public List<TaskDependency> call() throws Exception {
-                List<TaskDependency> result = Lists.newArrayList();
+                List<TaskDependency> result = new ArrayList<>();
                 for (XcodeTarget xcodeTarget : getTargets()) {
                     result.addAll(xcodeTarget.getTaskDependencies());
                 }

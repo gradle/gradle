@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.provider;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ChangingValueHandler<T> implements ChangingValue<T> {
@@ -27,7 +27,7 @@ public class ChangingValueHandler<T> implements ChangingValue<T> {
     @Override
     public void onValueChange(Action<T> action) {
         if (handlers == null) {
-            handlers = Lists.newArrayList();
+            handlers = new ArrayList<>();
         }
         handlers.add(action);
     }

@@ -21,17 +21,21 @@ plugins {
 description = "Plugin used to package a project as a distribution."
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":core-api"))
-    implementation(project(":core"))
+    api(libs.inject)
+
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+
     implementation(project(":dependency-management"))
     implementation(project(":file-collections"))
     implementation(project(":model-core"))
     implementation(project(":platform-base"))
 
     implementation(libs.commonsLang)
-    implementation(libs.groovy)
-    implementation(libs.inject)
+
+    runtimeOnly(libs.groovy)
 
     testImplementation(testFixtures(project(":core")))
 

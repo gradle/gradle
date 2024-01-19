@@ -18,6 +18,7 @@ package org.gradle.workers.internal
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.model.ObjectFactory
+import org.gradle.initialization.layout.ProjectCacheDir
 import org.gradle.internal.Actions
 import org.gradle.internal.Factory
 import org.gradle.internal.classpath.CachedClasspathTransformer
@@ -62,6 +63,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def classLoaderStructureProvider = Mock(ClassLoaderStructureProvider)
     def actionExecutionSpecFactory = Mock(ActionExecutionSpecFactory)
     def instantiator = Mock(Instantiator)
+    def projectCacheDir = Mock(ProjectCacheDir)
     def classpathTransformer = Mock(CachedClasspathTransformer)
     DefaultWorkerExecutor workerExecutor
 
@@ -72,7 +74,8 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         _ * instantiator.newInstance(DefaultProcessWorkerSpec, _) >> { args -> new DefaultProcessWorkerSpec(args[1][0], objectFactory) }
         _ * instantiator.newInstance(DefaultWorkerExecutor.DefaultWorkQueue, _, _, _) >> { args -> new DefaultWorkerExecutor.DefaultWorkQueue(args[1][0], args[1][1], args[1][2]) }
         _ * classpathTransformer.transform(_, _) >> { args -> args[0] }
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, workerThreadRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, classpathTransformer, temporaryFolder)
+        _ * projectCacheDir.getDir() >> temporaryFolder
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, workerThreadRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, classpathTransformer, temporaryFolder, projectCacheDir)
         _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
     }
 

@@ -18,5 +18,5 @@ package org.gradle.tooling.internal.protocol.problem;
 
 public interface InternalTaskPathLocation extends InternalLocation {
 
-    String getIdentityPath();
+    String getBuildTreePath();
 }

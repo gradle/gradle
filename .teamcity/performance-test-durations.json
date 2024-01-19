@@ -99,18 +99,6 @@
     "linux" : 261000
   } ]
 }, {
-  "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidStudioPerformanceTest.run Android Studio sync",
-  "durations" : [ {
-    "testProject" : "largeAndroidBuild",
-    "linux" : 1395000
-  }, {
-    "testProject" : "santaTrackerAndroidBuild",
-    "linux" : 522000
-  }, {
-    "testProject" : "nowInAndroidBuild",
-    "linux" : 522000
-  } ]
-}, {
   "scenario" : "org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest.clean assemble for abi change with local cache",
   "durations" : [ {
     "testProject" : "largeJavaMultiProject",

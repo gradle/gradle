@@ -16,6 +16,7 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.internal.HasInternalProtocol;
@@ -33,7 +34,7 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @HasInternalProtocol
 @NonExtensible
-public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
+public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Describable {
     /**
      * Excludes this file from the copy.
      */

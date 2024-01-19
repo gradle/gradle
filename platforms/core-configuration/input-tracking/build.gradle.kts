@@ -5,8 +5,8 @@ plugins {
 description = "Configuration input discovery code"
 
 dependencies {
-    implementation(project(":base-annotations"))
-    implementation(libs.guava)
+    api(libs.jsr305)
+    api(libs.guava)
 
-    testImplementation(libs.guava)
+    implementation(project(":base-annotations"))
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 
 import java.util.List;
@@ -29,13 +30,16 @@ public class CompositePluginResolver implements PluginResolver {
     }
 
     @Override
-    public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) {
+    public PluginResolutionResult resolve(PluginRequestInternal pluginRequest) {
+        ImmutableList.Builder<PluginResolutionResult.NotFound> notFoundList = ImmutableList.builder();
         for (PluginResolver repository : repositories) {
-            repository.resolve(pluginRequest, result);
-            if (result.isFound()) {
-                break;
+            PluginResolutionResult result = repository.resolve(pluginRequest);
+            if (result.isSuccess()) {
+                return result;
             }
+            notFoundList.addAll(result.getNotFound());
         }
+        return PluginResolutionResult.notFound(notFoundList.build());
     }
 
 }

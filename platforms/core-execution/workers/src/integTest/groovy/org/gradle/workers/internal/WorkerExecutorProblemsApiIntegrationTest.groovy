@@ -16,14 +16,26 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.workers.fixtures.WorkerExecutorFixture
-import spock.lang.Ignore
 
-@Ignore("https://github.com/gradle/gradle/issues/27213")
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.jvm.Jvm
+import org.gradle.workers.fixtures.WorkerExecutorFixture
+
 class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
-    def setup() {
+    // Worker-written file containing the build operation id
+    // We will use this to verify if the problem was reported in the correct build operation
+    def buildOperationIdFile = file('build-operation-id.txt')
+
+    def forkingOptions(Jvm javaVersion) {
+        return """
+            options.fork = true
+            // We don't use toolchains here for consistency with the rest of the test suite
+            options.forkOptions.javaHome = file('${javaVersion.javaHome}')
+        """
+    }
+
+    def setupBuild(Jvm javaVersion) {
         file('buildSrc/build.gradle') << """
             plugins {
                 id 'java'
@@ -31,6 +43,10 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
             dependencies {
                 implementation(gradleApi())
+            }
+
+            tasks.withType(JavaCompile) {
+                ${javaVersion == null ? '' : forkingOptions(javaVersion)}
             }
         """
         file('buildSrc/src/main/java/org/gradle/test/ProblemsWorkerTaskParameter.java') << """
@@ -40,11 +56,14 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
             public interface ProblemsWorkerTaskParameter extends WorkParameters { }
         """
-
         file('buildSrc/src/main/java/org/gradle/test/ProblemWorkerTask.java') << """
             package org.gradle.test;
 
+            import java.io.File;
+            import java.io.FileWriter;
             import org.gradle.api.problems.Problems;
+            import org.gradle.internal.operations.CurrentBuildOperationRef;
+
             import org.gradle.workers.WorkAction;
 
             import javax.inject.Inject;
@@ -56,18 +75,34 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
                 @Override
                 public void execute() {
-                    getProblems().create(problem -> problem
+                    Exception wrappedException = new Exception("Wrapped cause");
+                    // Create and report a problem
+                    // This needs to be Java 6 compatible, as we are in a worker
+                     getProblems().forNamespace("org.example.plugin").reporting(problem -> problem
                             .label("label")
-                            .undocumented()
                             .stackLocation()
                             .category("type")
-                    ).report();
+                            .withException(new RuntimeException("Exception message", wrappedException))
+                    );
+
+                    // Write the current build operation id to a file
+                    // This needs to be Java 6 compatible, as we are in a worker
+                    // Backslashes need to be escaped, so test works on Windows
+                    File buildOperationIdFile = new File("${buildOperationIdFile.absolutePath.replace('\\', '\\\\')}");
+                    try {
+                        FileWriter writer = new FileWriter(buildOperationIdFile);
+                        writer.write(CurrentBuildOperationRef.instance().get().getId().toString());
+                        writer.close();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
         """
     }
 
-    def "problems are logged worker lifecycle is logged in #isolationMode"() {
+    def "problems are emitted correctly from a worker when using #isolationMode"() {
+        setupBuild(null)
         enableProblemsApiCheck()
 
         given:
@@ -93,9 +128,13 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
         run("reportProblem")
 
         then:
-        collectedProblems.size() == 1
+        def problem = collectedProblem
+        problem.operationId == Long.parseLong(buildOperationIdFile.text)
+        problem.exception.message == "Exception message"
+        problem.exception.stackTrace.contains("Caused by: java.lang.Exception: Wrapped cause")
 
         where:
         isolationMode << WorkerExecutorFixture.ISOLATION_MODES
     }
+
 }

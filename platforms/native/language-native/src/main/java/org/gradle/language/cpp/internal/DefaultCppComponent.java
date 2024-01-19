@@ -109,7 +109,17 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
 
     @Override
     public FileTree getHeaderFiles() {
-        return getAllHeaderDirs().getAsFileTree().matching(new PatternSet().include("**/*.h"));
+        PatternSet patterns = new PatternSet();
+        // if you would like to add more endings to this pattern, make sure to also edit DefaultCppLibrary.java and default.vcxproj.filters
+        patterns.include("**/*.h");
+        patterns.include("**/*.hpp");
+        patterns.include("**/*.h++");
+        patterns.include("**/*.hxx");
+        patterns.include("**/*.hm");
+        patterns.include("**/*.inl");
+        patterns.include("**/*.inc");
+        patterns.include("**/*.xsd");
+        return getAllHeaderDirs().getAsFileTree().matching(patterns);
     }
 
     public FileCollection getAllHeaderDirs() {

@@ -18,8 +18,8 @@ package org.gradle.internal.restricteddsl.evaluator
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ErrorReason
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionError
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.FailingResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.MultipleFailuresResult
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParsingError
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.SingleFailureResult
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedConstruct
 import com.h0tk3y.kotlin.staticObjectNotation.language.LanguageTreeElement
 import com.h0tk3y.kotlin.staticObjectNotation.language.SourceData
@@ -68,20 +68,24 @@ class RestrictedDslNotEvaluatedException(
         }
 
     private
-    fun formatFailuresInLanguageTree(failures: List<FailingResult>): List<String> = buildList {
-        fun failure(failingResult: FailingResult) {
-            when (failingResult) {
-                is MultipleFailuresResult -> failingResult.failures.forEach(::failure)
-                is UnsupportedConstruct -> add(formatUnsupportedConstruct(failingResult))
+    fun formatFailuresInLanguageTree(failures: List<SingleFailureResult>): List<String> = buildList {
+        failures.forEach { failure ->
+            when (failure) {
+                is UnsupportedConstruct -> add(formatUnsupportedConstruct(failure))
+                is ParsingError -> add(formatParsingError(failure))
             }
         }
-        failures.forEach { failure(it) }
     }
 
     private
     fun formatUnsupportedConstruct(unsupportedConstruct: UnsupportedConstruct) =
         // TODO: use a proper phrase instead of the feature enum value name
-        "${astLocationPrefixString(unsupportedConstruct.erroneousSource)}: unsupported language feature: ${unsupportedConstruct.languageFeature}"
+        "${locationPrefixString(unsupportedConstruct.erroneousSource)}: unsupported language feature: ${unsupportedConstruct.languageFeature}"
+
+    private
+    fun formatParsingError(parsingError: ParsingError) =
+        "${locationPrefixString(parsingError.erroneousSource)}: parsing error: ${parsingError.message}"
+
 
     private
     fun formatResolutionError(resolutionError: ResolutionError): String =
@@ -120,10 +124,10 @@ class RestrictedDslNotEvaluatedException(
 
     private
     fun elementLocationString(languageTreeElement: LanguageTreeElement): String =
-        astLocationPrefixString(languageTreeElement.sourceData)
+        locationPrefixString(languageTreeElement.sourceData)
 
     private
-    fun astLocationPrefixString(ast: SourceData): String =
+    fun locationPrefixString(ast: SourceData): String =
         if (ast.lineRange.first != -1) "${ast.lineRange.first}:${ast.startColumn}" else ""
 
     private

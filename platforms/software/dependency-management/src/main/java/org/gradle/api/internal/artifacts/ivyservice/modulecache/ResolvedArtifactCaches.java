@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import com.google.common.collect.MapMaker;
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BaseModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
@@ -28,6 +27,7 @@ import org.gradle.internal.component.external.model.ModuleComponentGraphResolveS
 import org.gradle.internal.concurrent.Stoppable;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Caches the dependency metadata (descriptors, artifact files) in memory.
@@ -52,7 +52,7 @@ public class ResolvedArtifactCaches implements Stoppable {
         Map<ComponentArtifactIdentifier, ResolvableArtifact> resolvedArtifactCache = cache.get(input.getId());
         if (resolvedArtifactCache == null) {
             LOG.debug("Creating new in-memory cache for repo '{}' [{}].", input.getName(), input.getId());
-            resolvedArtifactCache = Maps.newConcurrentMap();
+            resolvedArtifactCache = new ConcurrentHashMap<>();
             cache.put(input.getId(), resolvedArtifactCache);
         } else {
             LOG.debug("Reusing in-memory cache for repo '{}' [{}].", input.getName(), input.getId());

@@ -16,14 +16,14 @@
 
 package org.gradle.initialization.definition;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.initialization.definition.InjectedPluginDependencies;
 import org.gradle.api.initialization.definition.InjectedPluginDependency;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultInjectedPluginDependencies implements InjectedPluginDependencies {
-    private final List<DefaultInjectedPluginDependency> dependencies = Lists.newArrayList();
+    private final List<DefaultInjectedPluginDependency> dependencies = new ArrayList<>();
 
     @Override
     public InjectedPluginDependency id(String id) {

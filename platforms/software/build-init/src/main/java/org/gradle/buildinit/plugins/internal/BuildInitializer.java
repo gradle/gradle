@@ -28,6 +28,12 @@ import java.util.Set;
  * Initializes a Gradle build.
  */
 public interface BuildInitializer {
+
+    /**
+     * Unique and user-friendly ID for the type of the initialized build like 'java-application' or 'kotlin-library'.
+     * <p>
+     * Users can select the desired type by providing a value of a known ID on the command line.
+     */
     String getId();
 
     /**
@@ -81,6 +87,7 @@ public interface BuildInitializer {
      * Returns a collection of further reading related to this type of build (may be empty).
      */
     Optional<String> getFurtherReading(InitSettings settings);
+
     /**
      * Generates content for the given build.
      */

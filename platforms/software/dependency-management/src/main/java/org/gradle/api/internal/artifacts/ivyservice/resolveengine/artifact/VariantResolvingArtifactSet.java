@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
@@ -28,8 +29,9 @@ import org.gradle.api.internal.artifacts.transform.VariantDefinition;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
-import org.gradle.internal.component.model.ComponentArtifactResolveState;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.GraphVariantSelectionResult;
+import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantArtifactResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
@@ -37,23 +39,27 @@ import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.Set;
 
 /**
  * An {@link ArtifactSet} representing the artifacts contributed by a single variant in a dependency
  * graph, in the context of the dependency referencing it.
  */
-public class VariantResolvingArtifactSet implements ArtifactSet, ArtifactVariantSelector.ResolvedArtifactTransformer {
+public class VariantResolvingArtifactSet implements ArtifactSet {
 
     private final VariantArtifactResolver variantResolver;
     private final ComponentGraphResolveState component;
     private final VariantGraphResolveState variant;
     private final ComponentIdentifier componentId;
-    private final AttributesSchemaInternal schema;
+    private final AttributesSchemaInternal producerSchema;
     private final ImmutableAttributes overriddenAttributes;
     private final List<IvyArtifactName> artifacts;
     private final ExcludeSpec exclusions;
+    private final List<Capability> capabilities;
+    private final GraphVariantSelector graphVariantSelector;
+    private final AttributesSchemaInternal consumerSchema;
 
     private final Lazy<ImmutableSet<ResolvedVariant>> ownArtifacts = Lazy.locking().of(this::calculateOwnArtifacts);
 
@@ -61,16 +67,21 @@ public class VariantResolvingArtifactSet implements ArtifactSet, ArtifactVariant
         VariantArtifactResolver variantResolver,
         ComponentGraphResolveState component,
         VariantGraphResolveState variant,
-        DependencyGraphEdge dependency
+        DependencyGraphEdge dependency,
+        GraphVariantSelector graphVariantSelector,
+        AttributesSchemaInternal consumerSchema
     ) {
         this.variantResolver = variantResolver;
         this.component = component;
         this.variant = variant;
         this.componentId = component.getId();
-        this.schema = component.getMetadata().getAttributesSchema();
+        this.producerSchema = component.getMetadata().getAttributesSchema();
         this.overriddenAttributes = dependency.getAttributes();
         this.artifacts = dependency.getDependencyMetadata().getArtifacts();
         this.exclusions = dependency.getExclusions();
+        this.capabilities = dependency.getSelector().getRequested().getRequestedCapabilities();
+        this.graphVariantSelector = graphVariantSelector;
+        this.consumerSchema = consumerSchema;
     }
 
     @Override
@@ -88,19 +99,27 @@ public class VariantResolvingArtifactSet implements ArtifactSet, ArtifactVariant
                 return ResolvedArtifactSet.EMPTY;
             }
 
-            ResolvedVariantSet variants;
+            ImmutableSet<ResolvedVariant> variants;
             try {
-                variants = getVariants(spec.getSelectFromAllVariants());
+                if (!spec.getSelectFromAllVariants()) {
+                    variants = ownArtifacts.get();
+                } else {
+                    variants = getArtifactVariantsForReselection(spec.getRequestAttributes());
+                }
             } catch (Exception e) {
                 return new BrokenResolvedArtifactSet(e);
             }
 
-            return variantSelector.select(variants, spec.getRequestAttributes(), spec.getAllowNoMatchingVariants(), this);
+            if (variants.isEmpty() && spec.getAllowNoMatchingVariants()) {
+                return ResolvedArtifactSet.EMPTY;
+            }
+
+            ResolvedVariantSet variantSet = new DefaultResolvedVariantSet(componentId, producerSchema, overriddenAttributes, variants);
+            return variantSelector.select(variantSet, spec.getRequestAttributes(), spec.getAllowNoMatchingVariants(), this::asTransformed);
         }
     }
 
-    @Override
-    public ResolvedArtifactSet asTransformed(ResolvedVariant sourceVariant, VariantDefinition variantDefinition, TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory, TransformedVariantFactory transformedVariantFactory) {
+    private ResolvedArtifactSet asTransformed(ResolvedVariant sourceVariant, VariantDefinition variantDefinition, TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory, TransformedVariantFactory transformedVariantFactory) {
         if (componentId instanceof ProjectComponentIdentifier) {
             return transformedVariantFactory.transformedProjectArtifacts(componentId, sourceVariant, variantDefinition, dependenciesResolverFactory);
         } else {
@@ -108,78 +127,66 @@ public class VariantResolvingArtifactSet implements ArtifactSet, ArtifactVariant
         }
     }
 
-    public ResolvedVariantSet getVariants(boolean selectFromAllVariants) {
-        ImmutableSet<ResolvedVariant> variants;
-        if (!selectFromAllVariants) {
-            variants = ownArtifacts.get();
-        } else {
-            variants = getComponentVariants();
-        }
-
-        return new DefaultResolvedVariantSet(
-            componentId,
-            schema,
-            overriddenAttributes,
-            variants
-        );
-    }
-
     public ImmutableSet<ResolvedVariant> calculateOwnArtifacts() {
-        VariantArtifactResolveState variantState = variant.prepareForArtifactResolution();
-
         if (artifacts.isEmpty()) {
-            ComponentArtifactResolveMetadata componentMetadata = component.prepareForArtifactResolution().getResolveMetadata();
-
-            ImmutableSet.Builder<ResolvedVariant> ownArtifacts = ImmutableSet.builder();
-            visitResolvedArtifacts(componentMetadata, variantState, ownArtifacts::add, exclusions.mayExcludeArtifacts());
-            return ownArtifacts.build();
+            return getArtifactsForGraphVariant(variant);
         } else {
-            return ImmutableSet.of(variantState.resolveAdhocVariant(variantResolver, artifacts));
+            return ImmutableSet.of(variant.prepareForArtifactResolution().resolveAdhocVariant(variantResolver, artifacts));
         }
     }
 
     /**
-     * Gets all artifact variants ("sub-variants") for the component. This is used when
-     * artifact view variant-reselection is enabled.
+     * Gets all artifact variants that should be considered for artifact selection.
      *
-     * TODO: Currently, this contains all variants in the entire component,
-     * however in practice when using withVariantReselection the user likely
-     * does not want to select from variants with a different capability than
-     * the current variant.
+     * <p>This emulates the normal variant selection process where graph variants are first
+     * considered, then artifact variants. We first consider graph variants, which leverages the
+     * same algorithm used during graph variant selection. This considers requested and declared
+     * capabilities.</p>
      */
-    private ImmutableSet<ResolvedVariant> getComponentVariants() {
-        ComponentArtifactResolveState componentState = component.prepareForArtifactResolution();
-        List<VariantArtifactResolveState> componentVariants = componentState.getVariantsForArtifactSelection().orElse(null);
+    private ImmutableSet<ResolvedVariant> getArtifactVariantsForReselection(ImmutableAttributes requestAttributes) {
+        // First, find the graph variant containing the artifact variants to select among.
+        GraphVariantSelectionResult selectedGraphVariants = graphVariantSelector.selectVariantsLenient(
+            requestAttributes,
+            capabilities,
+            component,
+            consumerSchema,
+            Collections.emptyList()
+        );
 
-        if (componentVariants == null) {
-            return ownArtifacts.get();
+        // It is fine if no graph variants satisfy our request.
+        // Variant reselection allows no target variants to be found.
+        if (selectedGraphVariants.getVariants().isEmpty()) {
+            return ImmutableSet.of();
         }
 
-        boolean applyExclusions = exclusions.mayExcludeArtifacts();
-        ImmutableSet.Builder<ResolvedVariant> builder = ImmutableSet.builder();
-        ComponentArtifactResolveMetadata componentMetadata = componentState.getResolveMetadata();
+        // The graphVariantSelector will always select a single variant.
+        // However, the interface does not reflect that since the type used here is shared with Ivy, which can select multiple variants.
+        assert selectedGraphVariants.getVariants().size() == 1;
+        VariantGraphResolveState graphVariant = selectedGraphVariants.getVariants().get(0);
 
-        for (VariantArtifactResolveState componentVariant : componentVariants) {
-            visitResolvedArtifacts(componentMetadata, componentVariant, builder::add, applyExclusions);
-        }
-
-        return builder.build();
+        // Next, return all artifact variants for the selected graph variant.
+        return getArtifactsForGraphVariant(graphVariant);
     }
 
-    private void visitResolvedArtifacts(
-        ComponentArtifactResolveMetadata component,
-        VariantArtifactResolveState variant,
-        Consumer<ResolvedVariant> visitor,
-        boolean applyExclusions
-    ) {
-        if (applyExclusions) {
-            for (VariantResolveMetadata subvariant : variant.getArtifactVariants()) {
-                visitor.accept(variantResolver.resolveVariant(component, subvariant, exclusions));
+    /**
+     * Resolve all artifact variants for the given graph variant.
+     */
+    private ImmutableSet<ResolvedVariant> getArtifactsForGraphVariant(VariantGraphResolveState graphVariant) {
+        VariantArtifactResolveState variantState = graphVariant.prepareForArtifactResolution();
+        Set<? extends VariantResolveMetadata> artifactVariants = variantState.getArtifactVariants();
+        ImmutableSet.Builder<ResolvedVariant> resolved = ImmutableSet.builderWithExpectedSize(artifactVariants.size());
+
+        ComponentArtifactResolveMetadata componentMetadata = component.prepareForArtifactResolution().getResolveMetadata();
+        if (exclusions.mayExcludeArtifacts()) {
+            for (VariantResolveMetadata artifactVariant : artifactVariants) {
+                resolved.add(variantResolver.resolveVariant(componentMetadata, artifactVariant, exclusions));
             }
         } else {
-            for (VariantResolveMetadata subvariant : variant.getArtifactVariants()) {
-                visitor.accept(variantResolver.resolveVariant(component, subvariant));
+            for (VariantResolveMetadata artifactVariant : artifactVariants) {
+                resolved.add(variantResolver.resolveVariant(componentMetadata, artifactVariant));
             }
         }
+
+        return resolved.build();
     }
 }

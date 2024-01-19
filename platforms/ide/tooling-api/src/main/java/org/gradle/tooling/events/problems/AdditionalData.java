@@ -25,10 +25,17 @@ import java.util.Map;
  * Additional data attached to the problem.
  * <p>
  * The only supported value type is {@link String}.
+ *
  * @since 8.6
  */
 @Incubating
 @NonNullApi
 public interface AdditionalData {
+
+    /**
+     * Returns additional data as a map.
+     *
+     * @since 8.6
+     */
     Map<String, Object> getAsMap();
 }

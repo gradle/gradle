@@ -33,6 +33,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapsh
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -64,11 +65,11 @@ public class DependencyLockingGraphVisitor implements DependencyGraphVisitor {
                 modulesToBeLocked.put(lockedModule.getModuleIdentifier(), lockedModule);
             }
             allResolvedModules = Sets.newHashSetWithExpectedSize(this.modulesToBeLocked.size());
-            extraModules = Sets.newHashSet();
-            forcedModules = Maps.newHashMap();
+            extraModules = new HashSet<>();
+            forcedModules = new HashMap<>();
         } else {
             modulesToBeLocked = Collections.emptyMap();
-            allResolvedModules = Sets.newHashSet();
+            allResolvedModules = new HashSet<>();
         }
     }
 

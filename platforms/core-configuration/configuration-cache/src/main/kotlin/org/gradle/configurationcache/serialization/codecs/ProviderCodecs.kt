@@ -30,6 +30,8 @@ import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueSourceProvider
+import org.gradle.api.internal.provider.EvaluationContext
+import org.gradle.api.internal.provider.GuardedData
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
@@ -445,5 +447,32 @@ class MapPropertyCodec(
         return propertyFactory.mapProperty(keyType, valueType).apply {
             fromState(state)
         }
+    }
+}
+
+
+internal
+object GuardedDataCodec : Codec<GuardedData<*>> {
+    private
+    const val NO_OWNER = -1
+
+    override suspend fun WriteContext.encode(value: GuardedData<*>) {
+        // GuardedData.owner must be a back-reference to the object being serialized up the stack.
+        // This object should not be "expanded", but only a reference should be stored.
+        val ownerId = when (val owner = value.owner) {
+            null -> NO_OWNER
+            else -> isolate.identities.getId(owner) ?: throw IllegalStateException("Cannot write guarded data before writing its owner")
+        }
+        writeSmallInt(ownerId)
+        write(value.unsafeGet())
+    }
+
+    override suspend fun ReadContext.decode(): GuardedData<*> {
+        val owner = when (val ownerId = readSmallInt()) {
+            NO_OWNER -> null
+            else -> isolate.identities.getInstance(ownerId) as EvaluationContext.EvaluationOwner
+        }
+        val value = readNonNull<Any>()
+        return GuardedData.of(owner, value)
     }
 }

@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
@@ -51,7 +50,6 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         runner('build').build()
     }
 
-    @Ignore("Plugin incompatible with removal of MavenPlugin in Gradle 8 - enable static check for this when removing ignore, see below - https://github.com/nebula-plugins/gradle-extra-configurations-plugin/issues/53")
     @Issue('https://plugins.gradle.org/plugin/com.netflix.nebula.plugin-plugin')
     def 'nebula plugin plugin'() {
         when:
@@ -87,7 +85,7 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
             }
 
             plugins {
-                id "nebula.lint" version "${TestedVersions.nebulaLint}"
+                id "com.netflix.nebula.lint" version "${TestedVersions.nebulaLint}"
             }
 
             apply plugin: 'java'
@@ -121,7 +119,6 @@ testImplementation('junit:junit:4.7')""")
     }
 
     @Issue('https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-lock')
-    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished, TaskExecutionGraph.addTaskExecutionListener and Task.project at execution time")
     def 'nebula dependency lock plugin #nebulaDepLockVersion'() {
         when:
         buildFile << """
@@ -242,9 +239,9 @@ testImplementation('junit:junit:4.7')""")
     Map<String, Versions> getPluginsToValidate() {
         [
             'com.netflix.nebula.dependency-recommender': Versions.of(TestedVersions.nebulaDependencyRecommender),
-            // Enable back once compatible, see @Ignore above
-//            'nebula.plugin-plugin': Versions.of(TestedVersions.nebulaPluginPlugin),
-            'nebula.lint': Versions.of(TestedVersions.nebulaLint),
+            // The plugin-plugin still has validation errors - see https://github.com/nebula-plugins/nebula-plugin-plugin/issues/72
+//            'com.netflix.nebula.plugin-plugin': Versions.of(TestedVersions.nebulaPluginPlugin),
+            'com.netflix.nebula.lint': Versions.of(TestedVersions.nebulaLint),
             'com.netflix.nebula.dependency-lock': TestedVersions.nebulaDependencyLock,
             'com.netflix.nebula.resolution-rules': Versions.of(TestedVersions.nebulaResolutionRules)
         ]

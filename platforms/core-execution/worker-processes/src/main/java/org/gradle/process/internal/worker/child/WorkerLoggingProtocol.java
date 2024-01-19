@@ -19,7 +19,17 @@ package org.gradle.process.internal.worker.child;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 
+/**
+ * Protocol for sending logging information back from a worker process to the daemon.
+ */
 public interface WorkerLoggingProtocol {
+    /**
+     * Sends a log event to the daemon to be logged.
+     */
     void sendOutputEvent(LogEvent event);
+
+    /**
+     * Sends a log event to the daemon to be logged.
+     */
     void sendOutputEvent(StyledTextOutputEvent event);
 }

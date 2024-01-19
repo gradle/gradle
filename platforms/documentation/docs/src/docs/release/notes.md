@@ -10,6 +10,8 @@ Include only their name, impactful features should be called out separately belo
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
 
+Be sure to check out the [Public Roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
+
 ## Upgrade instructions
 
 Switch your build to use Gradle @version@ by updating your wrapper:
@@ -18,7 +20,7 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
+For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
 
 ## New features and usability improvements
 
@@ -50,18 +52,38 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-### Public API improvements
+### Configuration cache
 
-### Enhanced name-based filtering on NamedDomainObject containers
+The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
+This feature can significantly improve build performance.
 
-A new [`named(Spec<String>)` method](javadoc/org/gradle/api/NamedDomainObjectCollection.html#named-org.gradle.api.specs.Spec-) has been added to all NamedDomainObject containers, which simplifies name-based filtering and eliminates the need to touch any of the values, may they be realized or unrealized.
+#### Supporting standard streams as task property values
 
-#### Allow Providers to be used with capabilities
+The standard streams (`System.in`, `System.out`, and `System.err`) can now be used as
+`standardInput`, `standardOutput`, and `errorOutput` of [`Exec`](javadoc/org/gradle/api/tasks/Exec.html) and [`JavaExec`](javadoc/org/gradle/api/tasks/JavaExec.html) tasks.
+Other tasks with properties of types `java.io.InputStream` and `java.io.OutputStream` can also use the standard streams as property values.
+Setting up custom standard streams with `System.setIn`, `System.setOut` and `System.setErr` isn't supported.
 
-[`Providers`](javadoc/org/gradle/api/provider/Provider.html) can now be passed to capability methods
-[`ConfigurationPublications#capability(Object)`](javadoc/org/gradle/api/artifacts/ConfigurationPublications.html#capability-java.lang.Object-),
-[`ModuleDependencyCapabilitiesHandler#requireCapability(Object)`](javadoc/org/gradle/api/artifacts/ModuleDependencyCapabilitiesHandler.html#requireCapability-java.lang.Object-),
-and [`CapabilitiesResolution#withCapability(Object, Action)`](javadoc/org/gradle/api/artifacts/CapabilitiesResolution.html#withCapability-java.lang.Object-org.gradle.api.Action-).
+### Documentation
+
+#### Kotlin DSL Reference
+
+Content derived from Javadoc contains a "Since" section now, specifying the Gradle version when the particular functionality has been introduced.
+The information comes from `@since` tags in the Javadoc, but which weren't displayed until now. 
+
+### Other improvements
+
+#### Generating tidy projects with Gradle init
+
+Using the new `--no-comments` option allows generating projects that contain only code without clarifying comments.
+The resulting build files and source files are smaller and less noisy.
+
+```
+gradle init --use-defaults --type kotlin-library --no-comments
+```
+
+It is possible to persist the preference by setting the `org.gradle.buildinit.comments` property to `false`.
+
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

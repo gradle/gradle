@@ -21,6 +21,7 @@ package gradlebuild.cleanup
 
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.logging.Logging
 import org.gradle.api.specs.Spec
 import org.gradle.kotlin.dsl.*
 import org.gradle.util.GradleVersion
@@ -29,6 +30,9 @@ import java.io.File
 
 private
 val dirVersionPattern = "\\d+\\.\\d+(\\.\\d+)?(-\\w+)*(-\\d{14}[+-]\\d{4})?".toRegex()
+
+
+val logger = Logging.getLogger("gradlebuild.cleanup")
 
 
 /**
@@ -55,7 +59,7 @@ fun FileSystemOperations.removeOldVersionsFromDir(dir: Directory, shouldDelete: 
                 }
 
             if (shouldDelete(cacheVersion)) {
-                println("Removing old cache directory : $cacheDir")
+                logger.lifecycle("Removing old cache directory : $cacheDir")
                 delete {
                     delete(cacheDir)
                 }
@@ -71,7 +75,7 @@ fun FileSystemOperations.removeCachedScripts(cachesDir: File) {
             .filter { it.isDirectory }
             .flatMap { scriptsCacheDirsUnder(it) }
             .forEach { scriptsCacheDir ->
-                println("Removing scripts cache directory : $scriptsCacheDir")
+                logger.lifecycle("Removing scripts cache directory : $scriptsCacheDir")
                 delete { delete(scriptsCacheDir) }
             }
     }
@@ -83,7 +87,7 @@ fun FileSystemOperations.removeTransformDir(cachesDir: File) {
         cachesDir.listFiles()
             .filter { it.isDirectory && it.name.startsWith("transforms-") }
             .forEach { transformDir ->
-                println("Removing transforms directory : $transformDir")
+                logger.lifecycle("Removing transforms directory : $transformDir")
                 delete { delete(transformDir) }
             }
     }
@@ -115,7 +119,7 @@ fun FileSystemOperations.removeDodgyCacheFiles(dir: Directory) {
             for (name in listOf("fileHashes", "outputFileStates", "fileSnapshots")) {
                 val stateDir = File(cacheDir, name)
                 if (stateDir.isDirectory) {
-                    println("Removing old cache directory : $stateDir")
+                    logger.lifecycle("Removing old cache directory : $stateDir")
                     delete { delete(stateDir) }
                 }
             }

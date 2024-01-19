@@ -53,7 +53,7 @@ class ArtifactDownloadProgressCrossVersionSpec extends AbstractHttpCrossVersionS
         def applyRootBuildScript = configureBuild.child("Configure project :").child(applyRootProjectBuildScript())
 
         def resolveCompileDependencies = events.operation("Resolve dependencies :compileClasspath", "Resolve dependencies of :compileClasspath")
-        def resolveCompileFiles = events.operation("Resolve files :compileClasspath", "Resolve files of :compileClasspath")
+        def resolveCompileFiles = events.operation(resolveConfigurationFiles(":compileClasspath"), resolveConfigurationFiles(":compileClasspath"))
         def resolveB = events.operation("Resolve group:projectB:1.0")
         def resolveD = events.operation("Resolve group:projectD:2.0-SNAPSHOT")
         def resolveArtifactB = events.operation("Resolve projectB-1.0.jar (group:projectB:1.0)")
@@ -95,6 +95,14 @@ class ArtifactDownloadProgressCrossVersionSpec extends AbstractHttpCrossVersionS
             return "Apply build file 'build.gradle' to root project 'root'"
         } else {
             return "Apply script build.gradle to root project 'root'"
+        }
+    }
+
+    private String resolveConfigurationFiles(String path) {
+        if (targetVersion.baseVersion >= GradleVersion.version("8.7")) {
+            return "Resolve files of configuration '" + path + "'"
+        } else {
+            return "Resolve files of " + path
         }
     }
 }

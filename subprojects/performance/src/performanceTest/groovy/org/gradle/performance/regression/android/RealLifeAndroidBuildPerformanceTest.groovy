@@ -16,20 +16,19 @@
 
 package org.gradle.performance.regression.android
 
-
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
 import org.gradle.performance.fixture.IncrementalAndroidTestProject
+import org.gradle.performance.mutator.ClearArtifactTransformCacheWithoutInstrumentedJarsMutator
 import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.ScenarioContext
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.AbstractFileChangeMutator
-import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
 import spock.lang.Issue
 
 import java.util.regex.Matcher
@@ -104,7 +103,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         runner.cleanTasks = ["clean"]
         runner.useDaemon = false
         runner.addBuildMutator { invocationSettings ->
-            new ClearArtifactTransformCacheMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.BUILD)
+            new ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.BUILD)
         }
         if (IncrementalAndroidTestProject.NOW_IN_ANDROID == testProject) {
             configureRunnerSpecificallyForNowInAndroid()

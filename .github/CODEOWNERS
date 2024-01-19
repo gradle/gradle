@@ -27,10 +27,15 @@ subprojects/internal-build-reports/         @gradle/bt-developer-productivity
 subprojects/internal-integ-testing/         @gradle/bt-developer-productivity
 subprojects/internal-performance-testing/   @gradle/bt-developer-productivity
 subprojects/internal-testing/               @gradle/bt-developer-productivity
-subprojects/precondition-tester/            @gradle/bt-developer-productivity
+
+# Cross-cutting architecture checks and decisions
+.github/CODEOWNERS                          @gradle/bt-architecture-council
+architecture-standards/                     @gradle/bt-architecture-council
+subprojects/architecture-test               @gradle/bt-architecture-council
 
 # Core automation platform (core/configuration)
 platforms/core-configuration/               @gradle/bt-configuration
+subprojects/smoke-ide-test/                 @gradle/bt-configuration
 
 # Core automation platform (Kotlin DSL)
 build-logic/kotlin-dsl/                                     @gradle/bt-kotlin-dsl-maintainers
@@ -47,9 +52,6 @@ platforms/core-runtime/                                     @gradle/bt-core-runt
 platforms/core-runtime/build-operations/                    @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-ge-build-cache
 platforms/core-runtime/functional/                          @gradle/bt-core-runtime-maintainers @gradle/bt-execution @bamboo
 platforms/core-runtime/files/                               @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-ge-build-cache
-subprojects/build-profile/                                  @gradle/bt-core-runtime-maintainers
-subprojects/installation-beacon/                            @gradle/bt-core-runtime-maintainers
-subprojects/instrumentation-declarations/                   @gradle/bt-core-runtime-maintainers
 
 # Core automation platform (core/execution)
 platforms/core-execution/                                   @gradle/bt-execution
@@ -89,9 +91,6 @@ platforms/native/                   @gradle/bt-native-maintainers
 .cm/                                @tresat
 .github/workflows/gitstream.yml     @tresat
 
-# Architecture council
-.github/CODEOWNERS @gradle/bt-architecture-council
-
 # IDE Experience team
 platforms/ide/                    @gradle/bt-ide-experience
 # Eventually be moved to the core platform.
@@ -106,6 +105,9 @@ subprojects/distributions-full/         @gradle/bt-support
 subprojects/performance/                @gradle/bt-support
 subprojects/smoke-test/                 @gradle/bt-support
 subprojects/soak/                       @gradle/bt-support
+
+# Build infrastructure
+platforms/build-infrastructure/ @gradle/bt-developer-productivity
 
 # Documentation
 platforms/documentation/docs/src/docs/                                                        @gradle/bt-devrel-education

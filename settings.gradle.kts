@@ -24,9 +24,9 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.15.1") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
+    id("com.gradle.enterprise").version("3.16.1") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
-    id("org.gradle.toolchains.foojay-resolver-convention") version("0.7.0")
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.8.0")
 }
 
 includeBuild("build-logic-commons")
@@ -46,8 +46,6 @@ unassigned {
 
 // Gradle Distributions - for testing and for publishing a full distribution
 unassigned {
-    subproject("distributions-core")
-    subproject("distributions-basics")
     subproject("distributions-full")
 }
 
@@ -57,11 +55,8 @@ unassigned {
     subproject("plugins")
     subproject("build-events")
     subproject("diagnostics")
-    subproject("installation-beacon")
     subproject("composite-builds")
     subproject("core-api")
-    subproject("build-profile")
-    subproject("instrumentation-declarations")
 }
 
 // Core Runtime Platform
@@ -71,11 +66,16 @@ platform("core-runtime") {
     subproject("bootstrap")
     subproject("build-operations")
     subproject("build-option")
+    subproject("build-profile")
     subproject("cli")
+    subproject("distributions-basics")
+    subproject("distributions-core")
     subproject("file-temp")
     subproject("files")
     subproject("functional")
+    subproject("installation-beacon")
     subproject("instrumentation-agent")
+    subproject("instrumentation-declarations")
     subproject("internal-instrumentation-api")
     subproject("internal-instrumentation-processor")
     subproject("launcher")
@@ -220,6 +220,10 @@ platform("enterprise") {
     subproject("enterprise-workers")
 }
 
+platform("build-infrastructure") {
+    subproject("precondition-tester")
+}
+
 // Internal utility and verification projects
 unassigned {
     subproject("architecture-test")
@@ -233,7 +237,7 @@ unassigned {
     subproject("soak")
     subproject("smoke-test")
     subproject("performance")
-    subproject("precondition-tester")
+    subproject("smoke-ide-test") // eventually should be owned by IDEX team
 }
 
 rootProject.name = "gradle"

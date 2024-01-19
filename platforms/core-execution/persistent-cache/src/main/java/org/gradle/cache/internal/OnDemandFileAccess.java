@@ -23,7 +23,7 @@ import org.gradle.internal.Factory;
 
 import java.io.File;
 
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode;
 
 public class OnDemandFileAccess extends AbstractFileAccess {
     private final String displayName;

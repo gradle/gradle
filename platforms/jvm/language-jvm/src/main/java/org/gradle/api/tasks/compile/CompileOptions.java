@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -44,6 +43,7 @@ import org.gradle.util.internal.CollectionUtils;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -77,8 +77,8 @@ public abstract class CompileOptions extends AbstractOptions {
 
     private String extensionDirs;
 
-    private List<String> compilerArgs = Lists.newArrayList();
-    private final List<CommandLineArgumentProvider> compilerArgumentProviders = Lists.newArrayList();
+    private List<String> compilerArgs = new ArrayList<>();
+    private final List<CommandLineArgumentProvider> compilerArgumentProviders = new ArrayList<>();
 
     private boolean incremental = true;
 

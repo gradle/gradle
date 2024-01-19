@@ -99,4 +99,31 @@ class RestrictedDslProjectBuildFileIntegrationSpec extends AbstractIntegrationSp
             file("sub/.gradle/restricted-schema/project.something.schema")
         ].every { it.isFile() && it.text != "" }
     }
+
+    def 'reports #kind errors in project file #part'() {
+        given:
+        file("build.gradle.something") << """
+        plugins {
+            id("java")
+            $pluginsCode
+        }
+
+        $bodyCode
+        """
+
+        when:
+        def failure = fails(":help")
+
+        then:
+        failure.assertHasErrorOutput(expectedMessage)
+
+        where:
+        kind               | part          | pluginsCode              | bodyCode              | expectedMessage
+        "syntax"           | "plugins DSL" | "..."                    | ""                    | "3:13: parsing error: Expecting an element"
+        "language feature" | "plugins DSL" | "@A id(\"application\")" | ""                    | "3:13: unsupported language feature: AnnotationUsage"
+        "semantic"         | "plugins DSL" | "x = 1"                  | ""                    | "3:13: unresolved reference 'x'"
+        "syntax"           | "body"        | ""                       | "..."                 | "4:9: parsing error: Expecting an element"
+        "language feature" | "body"        | ""                       | "@A dependencies { }" | "4:9: unsupported language feature: AnnotationUsage"
+        "semantic"         | "body"        | ""                       | "x = 1"               | "4:9: unresolved reference 'x'"
+    }
 }

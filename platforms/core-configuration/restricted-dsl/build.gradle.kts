@@ -19,16 +19,16 @@ plugins {
 }
 
 dependencies {
-    api(libs.futureKotlin("stdlib"))
-    api(libs.futureKotlin("reflect"))
+    implementation(libs.futureKotlin("reflect"))
+    implementation(kotlin("compiler-embeddable"))
 
-    implementation(project(":core"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
+    api(libs.futureKotlin("stdlib"))
+    api(project(":core"))
+    api(project(":core-api"))
     implementation(project(":resources"))
-    implementation(project(":base-services"))
-    implementation(libs.inject)
-    implementation(libs.restrictedKotlin)
+    api(project(":base-services"))
+    api(libs.inject)
+    api(libs.restrictedKotlin)
 
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(project(":logging"))

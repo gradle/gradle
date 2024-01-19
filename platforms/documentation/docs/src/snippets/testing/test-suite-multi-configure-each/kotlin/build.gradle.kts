@@ -28,12 +28,10 @@ repositories {
 // tag::multi-configure[]
 testing {
     suites {
-        configureEach { // <1>
-            if (this is JvmTestSuite) {
-                useJUnitJupiter()
-                dependencies { // <2>
-                    implementation("org.mockito:mockito-junit-jupiter:4.6.1")
-                }
+        withType<JvmTestSuite> { // <1>
+            useJUnitJupiter()
+            dependencies { // <2>
+                implementation("org.mockito:mockito-junit-jupiter:4.6.1")
             }
         }
         // <3>

@@ -178,7 +178,6 @@ class ProjectMetadataController(
             val constraint = readBoolean()
             LocalComponentDependencyMetadata(
                 selector,
-                ImmutableAttributes.EMPTY,
                 null,
                 emptyList(),
                 emptyList(),

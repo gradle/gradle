@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.ResolvedModuleVersion
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.artifacts.configurations.ResolutionHost
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults
@@ -43,13 +43,8 @@ class DefaultLenientConfigurationTest extends Specification {
     def resultsLoader = Mock(TransientConfigurationResultsLoader)
     def artifactsResults = Stub(VisitedArtifactsResults)
     def fileDependencyResults = Stub(VisitedFileDependencyResults)
-    def configuration = Stub(ConfigurationInternal)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def dependencyVerificationOverride = DependencyVerificationOverride.NO_VERIFICATION
-
-    def setup() {
-        _ * configuration.attributes >> ImmutableAttributes.EMPTY
-    }
 
     def "should resolve first level dependencies in tree"() {
         given:
@@ -122,7 +117,7 @@ class DefaultLenientConfigurationTest extends Specification {
 
     private DefaultLenientConfiguration newConfiguration() {
         VisitedGraphResults visitedGraphResults = new DefaultVisitedGraphResults(Stub(MinimalResolutionResult), [] as Set, null)
-        new DefaultLenientConfiguration(configuration, visitedGraphResults, artifactsResults, fileDependencyResults, resultsLoader, buildOperationExecutor, dependencyVerificationOverride, new TestWorkerLeaseService(), Mock(ArtifactVariantSelector))
+        new DefaultLenientConfiguration(Stub(ResolutionHost), ImmutableAttributes.EMPTY, visitedGraphResults, artifactsResults, fileDependencyResults, resultsLoader, buildOperationExecutor, dependencyVerificationOverride, new TestWorkerLeaseService(), Mock(ArtifactVariantSelector))
     }
 
     def generateDependenciesWithChildren(Map treeStructure) {

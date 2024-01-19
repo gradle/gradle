@@ -69,7 +69,7 @@ public class WithSideEffectProvider<T> extends AbstractMinimalProvider<T> {
     }
 
     @Override
-    public String toString() {
+    protected String toStringNoReentrance() {
         return "" + provider + " (with side effect " + sideEffect + ")";
     }
 }

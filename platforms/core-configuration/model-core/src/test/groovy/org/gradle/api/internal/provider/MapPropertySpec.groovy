@@ -18,13 +18,21 @@ package org.gradle.api.internal.provider
 
 import com.google.common.collect.ImmutableMap
 import org.gradle.api.Task
+import org.gradle.api.Transformer
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.internal.Describables
 import org.gradle.internal.state.ManagedFactory
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.TextUtil
 import org.spockframework.util.Assert
 import spock.lang.Issue
+
+import java.util.function.Consumer
+import java.util.function.Function
+
+import static org.gradle.api.internal.provider.CircularEvaluationSpec.ProviderConsumer.GET_PRODUCER
 
 class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
@@ -1194,6 +1202,100 @@ The value of this property is derived from: <source>""")
         "getOrElse" | _
     }
 
+    def "may configure convention value incrementally"() {
+        given:
+        property.convention(['k0': '1'])
+        property.withActualValue {
+            it.putAll(['k1': '2', 'k2': '3'])
+            it.put('k2', '4')
+        }
+        expect:
+        assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
+        assert property.explicit
+    }
+
+    def "may configure explicit value incrementally"() {
+        given:
+        property.set([:])
+        property.withActualValue {
+            it.put('k0', '1')
+            it.putAll(['k1': '2', 'k2': '3'])
+            it.put('k2', '4')
+        }
+        expect:
+        assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
+        assert property.explicit
+    }
+
+    def "may configure actual value incrementally"() {
+        given:
+        property.withActualValue {
+            it.put('k0', '1')
+            it.putAll(['k1': '2', 'k2': '3'])
+            it.put('k2', '4')
+        }
+        expect:
+        assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
+        assert property.explicit
+    }
+
+    def "may replace convention values"() {
+        given:
+        property.convention(['k0': '1', 'k1': '2', 'k2': '3'])
+        property.withActualValue {
+            it.put('k1', '4')
+        }
+        expect:
+        assertValueIs(['k0': '1', 'k1': '4', 'k2': '3'])
+        property.explicit
+    }
+
+    def "can set explicit value to convention"() {
+        given:
+        property.convention(['k0': '1'])
+        property.value(['k1': '4'])
+
+        when:
+        property.setToConvention()
+
+        then:
+        assertValueIs(['k0': '1'])
+        property.explicit
+
+        when:
+        property.put('k2', '3')
+
+        then:
+        assertValueIs(['k0': '1', 'k2': '3'])
+
+        when:
+        property.unset()
+
+        then:
+        assertValueIs(['k0': '1'])
+        !property.explicit
+    }
+
+    def "can set explicit value to convention if not set yet"() {
+        given:
+        property.convention(['k0': '1'])
+        property.value(['k1': '4'])
+
+        when:
+        property.setToConventionIfUnset()
+
+        then:
+        assertValueIs(['k1': '4'])
+
+        when:
+        property.unset()
+        property.setToConventionIfUnset()
+
+        then:
+        assertValueIs(['k0': '1'])
+        property.explicit
+    }
+
     private ProviderInternal<String> brokenValueSupplier() {
         return brokenSupplier(String)
     }
@@ -1215,6 +1317,265 @@ The value of this property is derived from: <source>""")
             Assert.fail('Map is not immutable')
         } catch (UnsupportedOperationException ignored) {
             // expected
+        }
+    }
+
+    def "update can modify property"() {
+        given:
+        property.set(someValue())
+
+        when:
+        property.update { it.map { someOtherValue() } }
+
+        then:
+        property.get() == someOtherValue()
+    }
+
+    def "update can modify property with convention"() {
+        given:
+        property.convention(someValue())
+
+        when:
+        property.update { it.map { someOtherValue() } }
+
+        then:
+        property.get() == someOtherValue()
+    }
+
+    def "update is not applied to later property modifications"() {
+        given:
+        property.set(someValue())
+
+        when:
+        property.update { it.map { m -> m.collectEntries { k, v -> [v, k] } } }
+        property.set(someOtherValue())
+
+        then:
+        property.get() == someOtherValue()
+    }
+
+    def "update argument is live"() {
+        given:
+        def upstream = property().value(someValue())
+        property.set(upstream)
+
+        when:
+        property.update { it.map { m -> m.collectEntries { k, v -> [v, k] } } }
+        upstream.set(someOtherValue())
+
+        then:
+        property.get() == someOtherValue().collectEntries { k, v -> [v, k] }
+    }
+
+    def "returning null from update unsets the property"() {
+        given:
+        property.set(someValue())
+
+        when:
+        property.update { null }
+
+        then:
+        !property.isPresent()
+    }
+
+    def "returning null from update unsets the property falling back to convention"() {
+        given:
+        property.value(someValue()).convention(someOtherValue())
+
+        when:
+        property.update { null }
+
+        then:
+        property.get() == someOtherValue()
+    }
+
+    def "update transformation runs eagerly"() {
+        given:
+        Transformer<Provider<String>, Provider<String>> transform = Mock()
+        property.set(someValue())
+
+        when:
+        property.update(transform)
+
+        then:
+        1 * transform.transform(_)
+    }
+
+    static class MapPropertyCircularChainEvaluationTest extends PropertySpec.PropertyCircularChainEvaluationSpec<Map<String, String>> {
+        @Override
+        DefaultMapProperty<String, String> property() {
+            return new DefaultMapProperty(host, String, String)
+        }
+
+        def "calling #consumer throws exception if added item provider references the property"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<String> item = property.map { it.toString() }
+            property.put("item", item)
+
+            when:
+            consumer.accept(property)
+
+            then:
+            thrown(EvaluationContext.CircularEvaluationException)
+
+            where:
+            consumer << throwingConsumers()
+        }
+
+        def "calling #consumer throws exception if added item provider references the property and discards producer"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<String> item = property.map { it.toString() }
+            property.put("item", new ProducerDiscardingProvider(item))
+
+            when:
+            consumer.accept(property)
+
+            then:
+            thrown(EvaluationContext.CircularEvaluationException)
+
+            where:
+            consumer << throwingConsumers() - [GET_PRODUCER]
+        }
+
+        def "calling #consumer is safe even if added item provider referencing the property"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<String> item = property.map { it.toString() }
+            property.put("item", item)
+
+            when:
+            consumer.accept(property)
+
+            then:
+            noExceptionThrown()
+
+            where:
+            consumer << safeConsumers()
+        }
+
+        def "calling #consumer throws exception if added collection provider references the property"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<Map<String, String>> items = property.map { it }
+            property.putAll(items)
+
+            when:
+            consumer.accept(property)
+
+            then:
+            thrown(EvaluationContext.CircularEvaluationException)
+
+            where:
+            consumer << throwingConsumers()
+        }
+
+        def "calling #consumer throws exception if added collection provider references the property and discards producer"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<Map<String, String>> items = property.map { it }
+            property.putAll(new ProducerDiscardingProvider(items))
+
+            when:
+            consumer.accept(property)
+
+            then:
+            thrown(EvaluationContext.CircularEvaluationException)
+
+            where:
+            consumer << throwingConsumers() - [GET_PRODUCER]
+        }
+
+        def "calling #consumer is safe even if added collection provider references the property"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            Provider<Map<String, String>> items = property.map { it }
+            property.putAll(items)
+
+            when:
+            consumer.accept(property)
+
+            then:
+            noExceptionThrown()
+
+            where:
+            consumer << safeConsumers()
+        }
+
+        @Override
+        List<Consumer<ProviderInternal<?>>> throwingConsumers() {
+            return super.throwingConsumers() + super.throwingConsumers().collectMany {
+                it != GET_PRODUCER ? combineWithExtraGetters(it) : []
+            }
+        }
+
+        @Override
+        List<? extends Consumer<ProviderInternal<?>>> safeConsumers() {
+            return super.safeConsumers() +
+                extraMapPropertyProviderGetters() as List<Consumer<ProviderInternal<?>>> +
+                super.safeConsumers().collectMany { combineWithExtraGetters(it) } +
+                combineWithExtraGetters(GET_PRODUCER)
+        }
+
+        private List<Consumer<ProviderInternal<?>>> combineWithExtraGetters(Consumer<ProviderInternal<?>> targetConsumer) {
+            if (!(targetConsumer instanceof ProviderConsumer)) {
+                // Map-derived providers do not support consumers for properties.
+                return []
+            }
+
+            extraMapPropertyProviderGetters().collect {
+                new Consumer<ProviderInternal<?>>() {
+                    @Override
+                    void accept(ProviderInternal<?> providerInternal) {
+                        targetConsumer.accept(it.apply(providerInternal))
+                    }
+
+                    @Override
+                    String toString() {
+                        return "${it}.${targetConsumer}"
+                    }
+                }
+            }
+        }
+
+        private List<MapPropertyProviderGetter> extraMapPropertyProviderGetters() {
+            return [
+                new MapPropertyProviderGetter(name: "keySet", impl: { it.keySet() }),
+                new MapPropertyProviderGetter(name: "getting", impl: { it.getting("item") }),
+            ]
+        }
+
+        private static class MapPropertyProviderGetter implements Function<ProviderInternal<?>, ProviderInternal<?>>, Consumer<ProviderInternal<?>> {
+            String name
+            Function<MapProperty<String, String>, ProviderInternal<?>> impl
+
+            @Override
+            void accept(ProviderInternal<?> property) {
+                impl.apply(property as MapProperty<String, String>)
+            }
+
+            @Override
+            ProviderInternal<?> apply(ProviderInternal<?> property) {
+                return impl.apply(property as MapProperty<String, String>)
+            }
+
+            @Override
+            String toString() {
+                return name
+            }
         }
     }
 }

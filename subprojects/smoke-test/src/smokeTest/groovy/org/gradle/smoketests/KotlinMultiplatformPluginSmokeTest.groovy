@@ -140,6 +140,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
             expectConventionTypeDeprecation(kotlinVersionNumber)
             2.times { expectJavaPluginConventionDeprecation(kotlinVersionNumber) }
             expectBuildIdentifierNameDeprecation(kotlinVersionNumber)
+            expectAllowedUsageChangingDeprecation(kotlinVersionNumber)
             if (GradleContextualExecuter.configCache || kotlinVersionNumber == VersionNumber.parse("1.7.22")) {
                 expectForUseAtConfigurationTimeDeprecation(kotlinVersionNumber)
             }

@@ -39,6 +39,7 @@ public class DefaultUserInputHandler implements UserInputHandler {
     private final Clock clock;
     private final UserInputReader userInputReader;
     private final AtomicBoolean hasAsked = new AtomicBoolean();
+    private final AtomicBoolean interrupted = new AtomicBoolean();
 
     public DefaultUserInputHandler(OutputEventListener outputEventBroadcaster, Clock clock, UserInputReader userInputReader) {
         this.outputEventBroadcaster = outputEventBroadcaster;
@@ -118,6 +119,11 @@ public class DefaultUserInputHandler implements UserInputHandler {
         });
     }
 
+    @Override
+    public boolean interrupted() {
+        return interrupted.get();
+    }
+
     private <T> T prompt(String prompt, final T defaultValue, final Transformer<T, String> parser) {
         T result = prompt(prompt, new Transformer<T, String>() {
             @Override
@@ -136,6 +142,10 @@ public class DefaultUserInputHandler implements UserInputHandler {
 
     @Nullable
     private <T> T prompt(String prompt, Transformer<T, String> parser) {
+        if (interrupted.get()) {
+            return null;
+        }
+
         outputEventBroadcaster.onOutput(new UserInputRequestEvent());
         try {
             // Add a line before the first question that has been asked of the user
@@ -148,6 +158,7 @@ public class DefaultUserInputHandler implements UserInputHandler {
             while (true) {
                 String input = userInputReader.readInput();
                 if (input == null) {
+                    interrupted.set(true);
                     return null;
                 }
 

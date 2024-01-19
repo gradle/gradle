@@ -5,19 +5,25 @@ plugins {
 description = "Implementation of types that represent containers of files"
 
 dependencies {
-    implementation(project(":base-services"))
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":core-api"))
+    api(project(":files"))
+    api(project(":model-core"))
+    api(project(":logging"))
+    api(project(":native"))
+
+    api(libs.groovy)
+    api(libs.guava)
+    api(libs.inject)
+    api(libs.jsr305)
+
     implementation(project(":base-services-groovy"))
-    implementation(project(":core-api"))
-    implementation(project(":files"))
-    implementation(project(":model-core"))
-    implementation(project(":logging"))
-    implementation(project(":native"))
 
     implementation(libs.slf4jApi)
-    implementation(libs.groovy)
-    implementation(libs.guava)
     implementation(libs.commonsIo)
-    implementation(libs.inject)
+
+    compileOnly(libs.jetbrainsAnnotations)
 
     testImplementation(project(":process-services"))
     testImplementation(project(":resources"))

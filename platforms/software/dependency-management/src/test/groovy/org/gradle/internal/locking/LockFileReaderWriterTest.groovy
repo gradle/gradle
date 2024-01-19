@@ -159,7 +159,8 @@ empty=d
 
         then:
         def ex = thrown(InvalidLockFileException)
-        ex.message == "Invalid lock state for lock file specified in '${lockFile.path}'. Line: <<<<<<< HEAD For more information on formatting, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/dependency_locking.html#lock_state_location_and_format in the Gradle documentation."
+        ex.message == "Invalid lock state for lock file specified in '${lockFile.path}'. Line: '<<<<<<< HEAD'"
+        ex.resolutions == ["Verify the lockfile content. For more information on lock file format, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/dependency_locking.html#lock_state_location_and_format in the Gradle documentation."]
     }
 
     def 'reads a unique lock file from a custom location'() {
@@ -228,7 +229,7 @@ empty=d
         then:
         result == [a: ['bar', 'foo'], b: ['foo'], c: ['bar', 'foo'], d: []]
     }
-    
+
     def 'reads an invalid unique lock file with prefix'() {
         given:
         context.isScript() >> true
@@ -248,7 +249,8 @@ empty=d
 
         then:
         def ex = thrown(InvalidLockFileException)
-        ex.message == "Invalid lock state for lock file specified in '${lockFile.path}'. Line: <<<<<<< HEAD For more information on formatting, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/dependency_locking.html#lock_state_location_and_format in the Gradle documentation."
+        ex.message == "Invalid lock state for lock file specified in '${lockFile.path}'. Line: '<<<<<<< HEAD'"
+        ex.resolutions == ["Verify the lockfile content. For more information on lock file format, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/dependency_locking.html#lock_state_location_and_format in the Gradle documentation."]
     }
 
     def 'fails to read a unique lockfile if root could not be determined'() {

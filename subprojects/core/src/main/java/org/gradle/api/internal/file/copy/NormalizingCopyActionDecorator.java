@@ -108,7 +108,9 @@ public class NormalizingCopyActionDecorator implements CopyAction {
         delegateAction.processFile(dir);
     }
 
-    private static class ParentDirectoryStub extends AbstractFileTreeElement implements FileCopyDetailsInternal {
+    // should be private, but it is used by Spring.
+    // see https://github.com/gradle/gradle/issues/27635
+    public static class ParentDirectoryStub extends AbstractFileTreeElement implements FileCopyDetailsInternal {
         private final RelativePath path;
 
         private final long lastModified = System.currentTimeMillis();

@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
+import org.gradle.util.GradleVersion
 
 import java.lang.reflect.Proxy
 
@@ -71,11 +72,12 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinDslScriptsMode
         def model = loadValidatedToolingModel(KotlinDslScriptsModel) {
             setModelParameters(it, true, true, [buildFileKts])
         }
-
+        def source = Proxy.getInvocationHandler(model).sourceObject
 
         then:
-        def source = Proxy.getInvocationHandler(model).sourceObject
-        source.scripts == [buildFileKts]
+        if (targetVersion.baseVersion < GradleVersion.version("8.6")) {
+            assert source.scripts == [buildFileKts]
+        }
 
         and:
         def commonModel = source.commonModel

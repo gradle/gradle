@@ -17,17 +17,22 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.HashCode;
+
+import java.util.function.Supplier;
 
 public class RunPhasedActionRequirements extends AbstractToolingModelRequirements {
-    public RunPhasedActionRequirements(StartParameterInternal startParameter,
-                                       boolean runsTasks) {
-        super(startParameter, runsTasks);
+
+    public RunPhasedActionRequirements(
+        StartParameterInternal startParameter,
+        boolean runsTasks,
+        Supplier<HashCode> payloadHashProvider
+    ) {
+        super(startParameter, runsTasks, payloadHashProvider);
     }
 
     @Override
-    public void appendKeyTo(Hasher hasher) {
-        // Identify the type of action
-        hasher.putByte((byte) 4);
+    protected byte getActionTypeId() {
+        return 4;
     }
 }

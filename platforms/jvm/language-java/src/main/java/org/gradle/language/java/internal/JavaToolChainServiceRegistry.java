@@ -19,7 +19,8 @@ package org.gradle.language.java.internal;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
-import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.jvm.toolchain.internal.JavaCompilerFactory;
@@ -44,7 +45,8 @@ public class JavaToolChainServiceRegistry extends AbstractPluginServiceRegistry 
             AnnotationProcessorDetector processorDetector,
             ClassPathRegistry classPathRegistry,
             ActionExecutionSpecFactory actionExecutionSpecFactory,
-            Problems problems
+            InternalProblems problems,
+            ProjectCacheDir projectCacheDir
         ) {
             return new DefaultJavaCompilerFactory(
                 workerDirectoryProvider,
@@ -54,7 +56,8 @@ public class JavaToolChainServiceRegistry extends AbstractPluginServiceRegistry 
                 processorDetector,
                 classPathRegistry,
                 actionExecutionSpecFactory,
-                problems
+                problems,
+                projectCacheDir
             );
         }
 

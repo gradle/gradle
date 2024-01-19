@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Task;
+import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
@@ -27,7 +28,7 @@ import org.gradle.internal.state.ModelObject;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public abstract class AbstractProperty<T, S extends ValueSupplier> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
+public abstract class AbstractProperty<T, S extends AbstractMinimalProvider.GuardedValueSupplier<? extends S>> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
     private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this property");
     private static final DisplayName DEFAULT_VALIDATION_DISPLAY_NAME = Describables.of("a property");
 
@@ -49,13 +50,13 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         init(initialValue, initialValue);
     }
 
-    /**
-     * A simple getter that checks if this property has been finalized.
-     *
-     * @return {@code true} if this property has been finalized, {@code false} otherwise
-     */
+    @Override
     public boolean isFinalized() {
         return state.isFinalized();
+    }
+
+    protected boolean isExplicit() {
+        return state.isExplicit();
     }
 
     @Override
@@ -123,6 +124,10 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         return value;
     }
 
+    protected S getConventionSupplier() {
+        return state.convention();
+    }
+
     protected Value<? extends T> calculateOwnValueNoProducer(ValueConsumer consumer) {
         beforeReadNoProducer(consumer);
         return doCalculateValue(consumer);
@@ -168,7 +173,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     // This method is final - implement describeContents() instead
     @Override
-    public final String toString() {
+    protected final String toStringNoReentrance() {
         if (displayName != null) {
             return displayName.toString();
         } else {
@@ -208,6 +213,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         state.disallowChangesAndFinalizeOnNextGet();
     }
 
+    @Override
     public void disallowUnsafeRead() {
         state.disallowUnsafeRead();
     }
@@ -267,6 +273,60 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         value = state.implicitValue();
     }
 
+    /**
+     * Discards the convention of this property.
+     */
+    protected void discardConvention() {
+        assertCanMutate();
+        value = state.applyConvention(value, getDefaultConvention());
+    }
+
+    @Override
+    public SupportsConvention unsetConvention() {
+        discardConvention();
+        return this;
+    }
+
+    @Override
+    public SupportsConvention unset() {
+        discardValue();
+        return this;
+    }
+
+    /**
+     * Sets the value of the property to the current convention value, replacing whatever explicit value the property already had.
+     *
+     * If the property has no convention set at the time this method is invoked,
+     * the effect of invoking it is similar to invoking {@link #unset()}.
+     */
+    protected SupportsConvention setToConvention() {
+        assertCanMutate();
+        this.value = state.setToConvention();
+        return this;
+    }
+
+    /**
+     * Sets the value of the property to the current convention value, if an explicit
+     * value has not been set yet.
+     *
+     * If the property has no convention set at the time this method is invoked,
+     * or if an explicit value has already been set, it has no effect.
+     */
+    protected SupportsConvention setToConventionIfUnset() {
+        assertCanMutate();
+        if (!isDefaultConvention()) {
+            this.value = state.setToConventionIfUnset(value);
+        }
+        return this;
+    }
+
+    protected abstract S getDefaultConvention();
+
+    /**
+     * Is convention set to the initial convention value?
+     */
+    protected abstract boolean isDefaultConvention();
+
     protected void assertCanMutate() {
         state.beforeMutate(this.getDisplayName());
     }
@@ -312,4 +372,51 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         }
     }
 
+    /**
+     * Creates a shallow copy of this property. Further changes to this property (via {@code set(...)}, or {@code convention(Object...)}) do not
+     * change the copy. However, the copy still reflects changes to the underlying providers that constitute this property. Consider the following snippet:
+     * <pre>
+     *     def upstream = objects.property(String).value("foo")
+     *     def property = objects.property(String).value(upstream)
+     *     def copy = property.shallowCopy()
+     *     property.set("bar")  // does not affect contents of the copy
+     *     upstream.set("qux")  // does affect the content of the copy
+     *
+     *     println(copy.get())  // prints qux
+     * </pre>
+     * <p>
+     * The copy doesn't share the producer of this property, but inherits producers of the current property value.
+     *
+     * @return the shallow copy of this property
+     */
+    public ProviderInternal<T> shallowCopy() {
+        return new ShallowCopyProvider();
+    }
+
+    private class ShallowCopyProvider extends AbstractMinimalProvider<T> {
+        // the value of "value" is immutable but the field is not, so copy it
+        // (but use a different owner)
+        private final S copiedValue = AbstractProperty.this.value.withOwner(this);
+
+        @Override
+        public ValueProducer getProducer() {
+            return copiedValue.getProducer();
+        }
+
+        @Override
+        public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+            return calculateOwnExecutionTimeValue(copiedValue);
+        }
+
+        @Override
+        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+            return calculateValueFrom(copiedValue, consumer);
+        }
+
+        @Override
+        @Nullable
+        public Class<T> getType() {
+            return AbstractProperty.this.getType();
+        }
+    }
 }

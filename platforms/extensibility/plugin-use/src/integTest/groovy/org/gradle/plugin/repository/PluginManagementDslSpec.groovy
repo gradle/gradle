@@ -25,6 +25,10 @@ import static org.hamcrest.CoreMatchers.containsString
 
 class PluginManagementDslSpec extends AbstractIntegrationSpec {
 
+    def setup() {
+        enableProblemsApiCheck()
+    }
+
     def "pluginManagement block can be read from settings.gradle"() {
         given:
         settingsFile << """

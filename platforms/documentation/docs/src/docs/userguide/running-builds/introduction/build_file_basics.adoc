@@ -76,7 +76,7 @@ Plugins extend Gradle's functionality and can contribute tasks to a project.
 
 Adding a plugin to a build is called _applying_ a plugin and makes additional functionality available.
 
-[source]
+[source,kotlin]
 ----
 plugins {
     id("application")
@@ -96,7 +96,7 @@ The `application` plugin defines tasks that package and distribute an applicatio
 
 The Application plugin provides a way to declare the main class of a Java application, which is required to execute the code.
 
-[source]
+[source,kotlin]
 ----
 application {
     mainClass = "com.example.Main"

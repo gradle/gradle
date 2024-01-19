@@ -15,14 +15,24 @@
  */
 package org.gradle.api.internal.attributes;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.attributes.Attribute;
 
+import javax.annotation.Nullable;
 import java.util.Map;
-import java.util.Set;
 
 public interface AttributeDescriber {
-    Set<Attribute<?>> getAttributes();
+    /**
+     * Returns the set of attributes that this describer can describe.
+     *
+     * @return set of describable attributes
+     */
+    ImmutableSet<Attribute<?>> getDescribableAttributes();
+
     String describeAttributeSet(Map<Attribute<?>, ?> attributes);
+
+    @Nullable
     String describeMissingAttribute(Attribute<?> attribute, Object consumerValue);
+
     String describeExtraAttribute(Attribute<?> attribute, Object producerValue);
 }

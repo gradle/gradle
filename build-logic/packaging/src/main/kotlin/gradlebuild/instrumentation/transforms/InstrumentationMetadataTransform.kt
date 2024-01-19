@@ -17,7 +17,6 @@
 package gradlebuild.instrumentation.transforms
 
 import gradlebuild.basics.classanalysis.getClassSuperTypes
-import org.gradle.api.artifacts.transform.CacheableTransform
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
@@ -29,6 +28,7 @@ import org.gradle.api.tasks.Classpath
 import org.gradle.work.ChangeType.ADDED
 import org.gradle.work.ChangeType.MODIFIED
 import org.gradle.work.ChangeType.REMOVED
+import org.gradle.work.DisableCachingByDefault
 import org.gradle.work.FileChange
 import org.gradle.work.InputChanges
 import java.io.File
@@ -36,7 +36,7 @@ import java.util.Properties
 import javax.inject.Inject
 
 
-@CacheableTransform
+@DisableCachingByDefault(because = "This transform introduces negative savings when caching is enabled")
 abstract class InstrumentationMetadataTransform : TransformAction<TransformParameters.None> {
 
     companion object {
