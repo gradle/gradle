@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.internal.component.NoMatchingGraphVariantsException;
+import org.gradle.internal.component.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.ResolutionFailure;
 import org.gradle.internal.component.ResolutionFailure.ResolutionFailureType;
 import org.gradle.internal.component.ResolutionFailureDescriber;
-import org.gradle.internal.component.NoMatchingGraphVariantsException;
-import org.gradle.internal.component.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.util.GradleVersion;
 
 import java.util.List;
@@ -43,9 +42,7 @@ public class GradlePluginVariantsResolutionFailureDescriber implements Resolutio
 
     @Override
     public boolean canDescribeFailure(ResolutionFailure failure) {
-        return failure.getType() == ResolutionFailureType.NO_MATCHING_VARIANTS
-            && isPluginRequestUsingApiVersionAttribute(failure.getRequestedAttributes())
-            && failure.allCandidatesAreIncompatible();
+        return failure.getType() == ResolutionFailureType.NO_MATCHING_VARIANTS && isIncompatibilityFailureDueToGradleVersion(failure);
     }
 
     @Override
@@ -62,8 +59,12 @@ public class GradlePluginVariantsResolutionFailureDescriber implements Resolutio
         }
     }
 
-    private boolean isPluginRequestUsingApiVersionAttribute(AttributeContainer requestedAttributes) {
-        return requestedAttributes.contains(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
+    private boolean isIncompatibilityFailureDueToGradleVersion(ResolutionFailure failure) {
+        boolean requestingPluginApi = failure.getRequestedAttributes().contains(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
+        boolean allIncompatibleDueToGradleVersion = failure.getCandidates().stream()
+            .allMatch(candidate -> candidate.getIncompatibleAttributes().stream()
+                .anyMatch(incompatibleAttribute -> incompatibleAttribute.getAttribute().getName().equals(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE.getName())));
+        return requestingPluginApi && allIncompatibleDueToGradleVersion;
     }
 
     private Optional<String> findHigherRequiredVersionOfGradle(List<AssessedCandidate> candidates) {
