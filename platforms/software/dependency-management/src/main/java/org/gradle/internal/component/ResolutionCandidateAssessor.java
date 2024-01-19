@@ -115,17 +115,17 @@ public final class ResolutionCandidateAssessor {
 
         private final ImmutableList<AssessedAttribute<?>> compatible;
         private final ImmutableList<AssessedAttribute<?>> incompatible;
-        private final ImmutableList<AssessedAttribute<?>> onlyOnConsumer;
-        private final ImmutableList<AssessedAttribute<?>> onlyOnProducer;
+        private final ImmutableList<AssessedAttribute<?>> onlyOnRequest;
+        private final ImmutableList<AssessedAttribute<?>> onlyOnCandidate;
 
-        private AssessedCandidate(String name, AttributeContainerInternal attributes, ImmutableCapabilities candidateCapabilities, ImmutableList<AssessedAttribute<?>> compatible, ImmutableList<AssessedAttribute<?>> incompatible, ImmutableList<AssessedAttribute<?>> onlyOnConsumer, ImmutableList<AssessedAttribute<?>> onlyOnProducer) {
+        private AssessedCandidate(String name, AttributeContainerInternal attributes, ImmutableCapabilities candidateCapabilities, ImmutableList<AssessedAttribute<?>> compatible, ImmutableList<AssessedAttribute<?>> incompatible, ImmutableList<AssessedAttribute<?>> onlyOnRequest, ImmutableList<AssessedAttribute<?>> onlyOnCandidate) {
             this.name = name;
             this.candidateAttributes = attributes.asImmutable();
             this.candidateCapabilities = candidateCapabilities;
             this.compatible = compatible;
             this.incompatible = incompatible;
-            this.onlyOnConsumer = onlyOnConsumer;
-            this.onlyOnProducer = onlyOnProducer;
+            this.onlyOnRequest = onlyOnRequest;
+            this.onlyOnCandidate = onlyOnCandidate;
         }
 
         @Override
@@ -153,12 +153,16 @@ public final class ResolutionCandidateAssessor {
             return incompatible;
         }
 
-        public ImmutableList<AssessedAttribute<?>> getOnlyOnConsumerAttributes() {
-            return onlyOnConsumer;
+        public ImmutableList<AssessedAttribute<?>> getOnlyOnRequestAttributes() {
+            return onlyOnRequest;
         }
 
-        public ImmutableList<AssessedAttribute<?>> getOnlyOnProducerAttributes() {
-            return onlyOnProducer;
+        public ImmutableList<AssessedAttribute<?>> getOnlyOnCandidateAttributes() {
+            return onlyOnCandidate;
+        }
+
+        public boolean hasNoAttributes() {
+            return getAllCandidateAttributes().isEmpty();
         }
     }
 

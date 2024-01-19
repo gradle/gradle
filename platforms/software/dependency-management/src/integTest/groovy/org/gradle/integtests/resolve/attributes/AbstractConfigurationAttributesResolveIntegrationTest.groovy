@@ -649,18 +649,7 @@ All of them match the consumer attributes:
 
         then:
         failure.assertHasCause """No matching configuration of project :b was found. The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free' but:
-  - Configuration 'archives':
-      - Other compatible attributes:
-          - Doesn't say anything about buildType (required 'debug')
-          - Doesn't say anything about flavor (required 'free')
-  - Configuration 'bar':
-      - Other compatible attributes:
-          - Doesn't say anything about buildType (required 'debug')
-          - Doesn't say anything about flavor (required 'free')
-  - Configuration 'foo':
-      - Other compatible attributes:
-          - Doesn't say anything about buildType (required 'debug')
-          - Doesn't say anything about flavor (required 'free')"""
+  - None of the consumable configurations have attributes."""
     }
 
     def "does not select explicit configuration when it's not consumable"() {

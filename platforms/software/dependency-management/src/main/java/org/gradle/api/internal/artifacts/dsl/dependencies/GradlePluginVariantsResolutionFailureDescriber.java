@@ -20,6 +20,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.component.ResolutionFailure;
+import org.gradle.internal.component.ResolutionFailure.ResolutionFailureType;
 import org.gradle.internal.component.ResolutionFailureDescriber;
 import org.gradle.internal.component.NoMatchingGraphVariantsException;
 import org.gradle.internal.component.ResolutionCandidateAssessor.AssessedCandidate;
@@ -42,7 +43,9 @@ public class GradlePluginVariantsResolutionFailureDescriber implements Resolutio
 
     @Override
     public boolean canDescribeFailure(ResolutionFailure failure) {
-        return failure.getType() == ResolutionFailure.ResolutionFailureType.NO_MATCHING_VARIANTS && isPluginRequestUsingApiVersionAttribute(failure.getRequestedAttributes());
+        return failure.getType() == ResolutionFailureType.NO_MATCHING_VARIANTS
+            && isPluginRequestUsingApiVersionAttribute(failure.getRequestedAttributes())
+            && !failure.allCandidatesAreIncompatible();
     }
 
     @Override
