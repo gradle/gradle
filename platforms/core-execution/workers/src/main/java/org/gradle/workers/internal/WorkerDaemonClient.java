@@ -79,7 +79,7 @@ class WorkerDaemonClient implements Stoppable, Describable {
     }
 
     public boolean isFailed() {
-        return workerProcess.getExecResult().map(execResult -> execResult.getExitValue() > 0).orElse(false);
+        return workerProcess.getExecResult().map(execResult -> execResult.getExitValue() != 0).orElse(false);
     }
 
     public Optional<Integer> getExitCode() {

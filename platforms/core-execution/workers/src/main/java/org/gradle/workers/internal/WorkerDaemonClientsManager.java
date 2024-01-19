@@ -26,6 +26,7 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.session.BuildSessionLifecycleListener;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.OsMemoryInfo;
@@ -103,13 +104,11 @@ public class WorkerDaemonClientsManager implements Stoppable {
     private static void emitUnexpectedWorkerFailureWarning(WorkerDaemonClient candidate) {
         if (candidate.getExitCode().isPresent()) {
             int exitCode = candidate.getExitCode().get();
-            if (exitCode > 127) {
+            if (OperatingSystem.current().isUnix() && exitCode > 127) {
                 LOGGER.warn("Worker daemon '" + candidate.getDisplayName() + "' exited unexpectedly after being killed with signal " + (exitCode - 128) + ".  This is likely because an external process has killed the worker.");
             } else {
                 LOGGER.warn("Worker daemon '" + candidate.getDisplayName() + "' exited unexpectedly with exit code " + exitCode + ".");
             }
-        } else {
-            LOGGER.warn("Worker daemon '" + candidate.getDisplayName() + "' exited unexpectedly.");
         }
     }
 
