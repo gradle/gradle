@@ -41,16 +41,14 @@ import static java.util.Objects.requireNonNull;
  * A base class that represents a work for compilation for Kotlin and Groovy build scripts.
  * This work unit first compiles the build script to a directory, and then instruments the directory for configuration cache and returns instrumented output.
  */
-public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWork {
-
-    public static final String TRANSFORMED_BUILD_SCRIPT_JAR = "transformed_build_script.jar";
+public abstract class BuildScriptCompileAndInstrumentUnitOfWork implements ImmutableUnitOfWork {
 
     private final ImmutableWorkspaceProvider workspaceProvider;
-    private final FileCollectionFactory fileCollectionFactory;
     private final InputFingerprinter inputFingerprinter;
     private final ClasspathElementTransformFactoryForLegacy transformFactory;
+    protected final FileCollectionFactory fileCollectionFactory;
 
-    public BuildScriptCompileUnitOfWork(
+    public BuildScriptCompileAndInstrumentUnitOfWork(
         ImmutableWorkspaceProvider workspaceProvider,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
@@ -65,18 +63,15 @@ public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWor
     @Override
     public abstract void visitIdentityInputs(InputVisitor visitor);
 
-    @Override
-    public abstract String getDisplayName();
+    /**
+     * A compile operation. It should return the root classes dir.
+     */
+    protected abstract File compile(File workspace);
 
     /**
-     * Compiles the build script using given compile workspace and returns the final output location.
+     * Returns the File where instrumented jar will be written to.
      */
-    public abstract File compileTo(File compileWorkspace);
-
-    @Override
-    public ImmutableWorkspaceProvider getWorkspaceProvider() {
-        return workspaceProvider;
-    }
+    protected abstract File instrumentedJar(File workspace);
 
     @Override
     public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
@@ -87,12 +82,19 @@ public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWor
     }
 
     @Override
+    public void visitOutputs(File workspace, OutputVisitor visitor) {
+        File instrumentedJar = instrumentedJar(workspace);
+        OutputFileValueSupplier instrumentedJarValue = OutputFileValueSupplier.fromStatic(instrumentedJar, fileCollectionFactory.fixed(instrumentedJar));
+        visitor.visitOutputProperty("instrumentedJar", TreeType.FILE, instrumentedJarValue);
+    }
+
+    @Override
     public WorkOutput execute(ExecutionRequest executionRequest) {
         File workspace = executionRequest.getWorkspace();
-        File output = compileTo(originalDir(workspace));
+        File compileOutput = compile(workspace);
         // We should instrument output of classes directory to the classes directory instead of a jar,
         // but currently instrumentation classloader doesn't support that yet.
-        instrument(output, transformedJar(workspace));
+        instrument(compileOutput, instrumentedJar(workspace));
         return new UnitOfWork.WorkOutput() {
             @Override
             public WorkResult getDidWork() {
@@ -115,7 +117,7 @@ public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWor
     @Nullable
     @Override
     public Object loadAlreadyProducedOutput(File workspace) {
-        return new BuildScriptCompilationOutput(originalDir(workspace), transformedJar(workspace));
+        return instrumentedJar(workspace);
     }
 
     @Override
@@ -124,44 +126,10 @@ public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWor
     }
 
     @Override
-    public void visitOutputs(File workspace, OutputVisitor visitor) {
-        File originalDir = originalDir(workspace);
-        OutputFileValueSupplier originalDirValue = OutputFileValueSupplier.fromStatic(originalDir, fileCollectionFactory.fixed(originalDir));
-        visitor.visitOutputProperty("originalDir", TreeType.DIRECTORY, originalDirValue);
-
-        File transformedDir = transformedDir(workspace);
-        OutputFileValueSupplier transformedDirValue = OutputFileValueSupplier.fromStatic(transformedDir, fileCollectionFactory.fixed(transformedDir));
-        visitor.visitOutputProperty("transformedDir", TreeType.DIRECTORY, transformedDirValue);
+    public ImmutableWorkspaceProvider getWorkspaceProvider() {
+        return workspaceProvider;
     }
 
-    private static File originalDir(File workspace) {
-        return new File(workspace, "original");
-    }
-
-    private static File transformedDir(File workspace) {
-        return new File(workspace, "transformed");
-    }
-
-    private static File transformedJar(File workspace) {
-        return new File(transformedDir(workspace), TRANSFORMED_BUILD_SCRIPT_JAR);
-    }
-
-    public static class BuildScriptCompilationOutput {
-
-        private final File originalDir;
-        private final File output;
-
-        public BuildScriptCompilationOutput(File originalDir, File output) {
-            this.originalDir = originalDir;
-            this.output = output;
-        }
-
-        public File getOutput() {
-            return output;
-        }
-
-        public File getOriginalDir() {
-            return originalDir;
-        }
-    }
+    @Override
+    public abstract String getDisplayName();
 }

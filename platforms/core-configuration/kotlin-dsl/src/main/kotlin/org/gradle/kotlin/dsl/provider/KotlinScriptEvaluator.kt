@@ -42,8 +42,7 @@ import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.CallableBuildOperation
-import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork
-import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork.BuildScriptCompilationOutput
+import org.gradle.internal.scripts.BuildScriptCompileAndInstrumentUnitOfWork
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
@@ -255,7 +254,7 @@ class StandardKotlinScriptEvaluator(
             accessorsClassPath: ClassPath,
             initializer: (File) -> Unit
         ): File = try {
-            val output = executionEngineFor(scriptHost)
+            executionEngineFor(scriptHost)
                 .createRequest(
                     KotlinScriptCompileUnitOfWork(
                         programId,
@@ -270,9 +269,8 @@ class StandardKotlinScriptEvaluator(
                     )
                 )
                 .execute()
-                .getOutputAs(BuildScriptCompilationOutput::class.java)
+                .getOutputAs(File::class.java)
                 .get()
-            output.output
         } catch (e: CacheOpenException) {
             throw e.cause as? ScriptCompilationException ?: e
         }
@@ -358,7 +356,7 @@ class StandardKotlinScriptEvaluator(
         fileCollectionFactory: FileCollectionFactory,
         inputFingerprinter: InputFingerprinter,
         transformFactory: ClasspathElementTransformFactoryForLegacy
-    ) : BuildScriptCompileUnitOfWork(workspaceProvider.scripts, fileCollectionFactory, inputFingerprinter, transformFactory) {
+    ) : BuildScriptCompileAndInstrumentUnitOfWork(workspaceProvider.scripts, fileCollectionFactory, inputFingerprinter, transformFactory) {
 
         companion object {
             const val JVM_TARGET = "jvmTarget"
@@ -383,9 +381,15 @@ class StandardKotlinScriptEvaluator(
             visitor.visitInputProperty(ACCESSORS_CLASS_PATH) { classpathHasher.hash(accessorsClassPath) }
         }
 
-        override fun compileTo(compileWorkspace: File): File {
-            compileTo.invoke(compileWorkspace)
-            return compileWorkspace
+        override fun compile(workspace: File): File {
+            return File(workspace, "classes").apply {
+                mkdirs()
+                compileTo.invoke(this)
+            }
+        }
+
+        override fun instrumentedJar(workspace: File): File {
+            return File(workspace, "instrumented/classes.jar")
         }
     }
 }
