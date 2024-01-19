@@ -44,6 +44,20 @@ abstract class InstrumentationMetadataTransform : TransformAction<TransformParam
         const val DIRECT_SUPER_TYPES_FILE = "direct-super-types.properties"
         const val INSTRUMENTED_CLASSES_FILE = "instrumented-classes.txt"
         const val UPGRADED_PROPERTIES_FILE = "upgraded-properties.json"
+        const val KEY_VALUE_SEPARATOR = "="
+
+        fun readSuperTypes(superTypesFile: File): Properties {
+            val superTypes = Properties()
+            if (superTypesFile.exists()) {
+                superTypesFile.reader().use { reader ->
+                    reader.forEachLine { line ->
+                        val (key, value) = line.split(KEY_VALUE_SEPARATOR)
+                        superTypes[key] = value
+                    }
+                }
+            }
+            return superTypes
+        }
     }
 
     @get:Inject
@@ -54,20 +68,19 @@ abstract class InstrumentationMetadataTransform : TransformAction<TransformParam
     abstract val classesDir: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
-        val oldSuperTypes = Properties()
         val outputDir = outputs.dir("instrumentation")
         val superTypesFile = File(outputDir, DIRECT_SUPER_TYPES_FILE)
-        if (superTypesFile.exists()) {
-            superTypesFile.inputStream().use { oldSuperTypes.load(it) }
-        }
         val instrumentedClassesFile = File(outputDir, INSTRUMENTED_CLASSES_FILE)
         val upgradedPropertiesFile = File(outputDir, UPGRADED_PROPERTIES_FILE)
+
+        // Load super types
+        val oldSuperTypes = readSuperTypes(superTypesFile)
 
         // Find changes
         val (newSuperTypes, instrumentedClassesFileChange, upgradedPropertiesFileChange) = findChanges(oldSuperTypes)
 
         // Print output
-        superTypesFile.outputStream().use { newSuperTypes.store(it, null) }
+        writeSuperTypes(superTypesFile, newSuperTypes)
         instrumentedClassesFileChange.writeChange(instrumentedClassesFile)
         upgradedPropertiesFileChange.writeChange(upgradedPropertiesFile)
     }
@@ -118,6 +131,16 @@ abstract class InstrumentationMetadataTransform : TransformAction<TransformParam
             is MetadataNotChanged -> Unit
             is MetadataRemoved -> output.delete()
             is MetadataModified -> this.newFile.copyTo(output, overwrite = true)
+        }
+    }
+
+    private
+    fun writeSuperTypes(superTypesFile: File, superTypes: Properties) {
+        superTypesFile.writer().use {
+            superTypes.toSortedMap(compareBy { it.toString() }).forEach {
+                    (key, value) ->
+                it.write("$key$KEY_VALUE_SEPARATOR$value\n")
+            }
         }
     }
 

@@ -18,6 +18,7 @@ package gradlebuild.instrumentation.tasks
 
 import gradlebuild.instrumentation.transforms.InstrumentationMetadataTransform.Companion.DIRECT_SUPER_TYPES_FILE
 import gradlebuild.instrumentation.transforms.InstrumentationMetadataTransform.Companion.INSTRUMENTED_CLASSES_FILE
+import gradlebuild.instrumentation.transforms.InstrumentationMetadataTransform.Companion.readSuperTypes
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
@@ -28,7 +29,6 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import java.util.ArrayDeque
-import java.util.Properties
 import java.util.Queue
 
 
@@ -85,8 +85,7 @@ abstract class InstrumentedSuperTypesMergeTask : DefaultTask() {
             .map { it.resolve(DIRECT_SUPER_TYPES_FILE) }
             .filter { it.exists() }
             .forEach { file ->
-                val properties = Properties()
-                file.inputStream().use { properties.load(it) }
+                val properties = readSuperTypes(file)
                 properties.forEach { key, value ->
                     val className = key.toString()
                     val superTypeNames = value.toString().split(",")
