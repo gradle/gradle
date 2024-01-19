@@ -77,18 +77,18 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
     public static class DaemonSideCompiler implements Compiler<GroovyJavaJointCompileSpec> {
         private final ProjectLayout projectLayout;
         private final List<File> javaCompilerPlugins;
-        private final InternalProblems problems;
+        private final InternalProblems problemsService;
 
         @Inject
-        public DaemonSideCompiler(ProjectLayout projectLayout, List<File> javaCompilerPlugins, InternalProblems problems) {
+        public DaemonSideCompiler(ProjectLayout projectLayout, List<File> javaCompilerPlugins, InternalProblems problemsService) {
             this.projectLayout = projectLayout;
             this.javaCompilerPlugins = javaCompilerPlugins;
-            this.problems = problems;
+            this.problemsService = problemsService;
         }
 
         @Override
         public WorkResult execute(GroovyJavaJointCompileSpec spec) {
-            Compiler<JavaCompileSpec> javaCompiler = new JdkJavaCompiler(new JavaHomeBasedJavaCompilerFactory(javaCompilerPlugins), problems);
+            Compiler<JavaCompileSpec> javaCompiler = new JdkJavaCompiler(new JavaHomeBasedJavaCompilerFactory(javaCompilerPlugins), problemsService);
             Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler, projectLayout);
             return groovyCompiler.execute(spec);
         }
