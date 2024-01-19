@@ -45,9 +45,9 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     private final DiagnosticToProblemListener diagnosticToProblemListener;
 
     @Inject
-    public JdkJavaCompiler(Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory, InternalProblems problems) {
+    public JdkJavaCompiler(Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory, InternalProblems problemsService) {
         this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
-        this.diagnosticToProblemListener = new DiagnosticToProblemListener(problems.getInternalReporter());
+        this.diagnosticToProblemListener = new DiagnosticToProblemListener(problemsService.getInternalReporter());
     }
 
     @Override
