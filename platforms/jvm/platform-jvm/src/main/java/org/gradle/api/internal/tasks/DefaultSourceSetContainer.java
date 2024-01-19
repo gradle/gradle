@@ -19,6 +19,7 @@ import org.gradle.api.Namer;
 import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reflect.TypeOf;
@@ -36,9 +37,10 @@ public class DefaultSourceSetContainer extends AbstractValidatingNamedDomainObje
     private final FileCollectionFactory fileCollectionFactory;
     private final TaskDependencyFactory taskDependencyFactory;
     private final Instantiator instantiator;
+    private final FileFactory fileFactory;
 
     @Inject
-    public DefaultSourceSetContainer(FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public DefaultSourceSetContainer(FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory, FileFactory fileFactory, Instantiator instantiator, ObjectFactory objectFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         super(SourceSet.class, instantiator, new Namer<SourceSet>() {
             @Override
             public String determineName(SourceSet ss) {
@@ -50,12 +52,13 @@ public class DefaultSourceSetContainer extends AbstractValidatingNamedDomainObje
         this.taskDependencyFactory = taskDependencyFactory;
         this.instantiator = instantiator;
         this.objectFactory = objectFactory;
+        this.fileFactory = fileFactory;
     }
 
     @Override
     protected SourceSet doCreate(String name) {
         DefaultSourceSet sourceSet = instantiator.newInstance(DefaultSourceSet.class, name, objectFactory);
-        sourceSet.setClasses(instantiator.newInstance(DefaultSourceSetOutput.class, sourceSet.getDisplayName(), taskDependencyFactory, fileResolver, fileCollectionFactory));
+        sourceSet.setClasses(instantiator.newInstance(DefaultSourceSetOutput.class, sourceSet.getDisplayName(), taskDependencyFactory, fileResolver, fileCollectionFactory, fileFactory, objectFactory));
         return sourceSet;
     }
 

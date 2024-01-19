@@ -25,9 +25,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.GeneratedSubclasses;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCreationRequest;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
@@ -217,8 +215,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
     private TaskProvider<JavaCompile> createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet javaSource, final Project project) {
         final TaskProvider<JavaCompile> compileTask = project.getTasks().register(sourceSet.getCompileJavaTaskName(), JavaCompile.class, javaCompile -> {
-            ConventionMapping conventionMapping = javaCompile.getConventionMapping();
-            conventionMapping.map("classpath", sourceSet::getCompileClasspath);
+            javaCompile.setClasspath(project.getObjects().fileCollection().convention(project.provider(sourceSet::getCompileClasspath)));
 
             JvmPluginsHelper.configureAnnotationProcessorPath(sourceSet, javaSource, javaCompile.getOptions(), project);
             javaCompile.setDescription("Compiles " + javaSource + ".");
@@ -262,12 +259,9 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void definePathsForSourceSet(final SourceSet sourceSet, final Project project) {
-        ConventionMapping outputConventionMapping = ((IConventionAware) sourceSet.getOutput()).getConventionMapping();
-        outputConventionMapping.map("resourcesDir", () -> {
-            String classesDirName = "resources/" + sourceSet.getName();
-            return project.getLayout().getBuildDirectory().dir(classesDirName).get().getAsFile();
-        });
-
+        sourceSet.getOutput().getResourcesDirectory().convention(
+            project.getLayout().getBuildDirectory().dir("resources/" + sourceSet.getName())
+        );
         sourceSet.getJava().srcDir("src/" + sourceSet.getName() + "/java");
         sourceSet.getResources().srcDir("src/" + sourceSet.getName() + "/resources");
     }
