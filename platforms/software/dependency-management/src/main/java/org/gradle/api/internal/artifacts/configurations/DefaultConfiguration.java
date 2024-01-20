@@ -79,7 +79,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolverFactory;
@@ -93,8 +92,6 @@ import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.initialization.ResettableConfiguration;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -148,7 +145,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.GRAPH_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNRESOLVED;
 import static org.gradle.util.internal.ConfigureUtil.configure;
@@ -180,7 +176,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private DefaultPublishArtifactSet allArtifacts;
     private final ConfigurationResolvableDependencies resolvableDependencies;
     private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
-    private final ProjectDependencyObservedListener dependencyObservedBroadcast;
     private final BuildOperationExecutor buildOperationExecutor;
     private final Instantiator instantiator;
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
@@ -254,7 +249,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         ConfigurationsProvider configurationsProvider,
         ConfigurationResolver resolver,
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
-        ProjectDependencyObservedListener dependencyObservedBroadcast,
         DependencyMetaDataProvider metaDataProvider,
         ComponentIdentifierFactory componentIdentifierFactory,
         DependencyLockingProvider dependencyLockingProvider,
@@ -294,7 +288,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.fileCollectionFactory = fileCollectionFactory;
         this.dependencyResolutionListeners = dependencyResolutionListeners;
-        this.dependencyObservedBroadcast = dependencyObservedBroadcast;
         this.buildOperationExecutor = buildOperationExecutor;
         this.instantiator = instantiator;
         this.attributesFactory = attributesFactory;
@@ -698,7 +691,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
                 // Mark all affected configurations as observed
                 markParentsObserved(GRAPH_RESOLVED);
-                markReferencedProjectConfigurationsObserved(GRAPH_RESOLVED, results);
 
                 // TODO: Currently afterResolve runs if there is not an non-unresolved-dependency failure
                 //       We should either _always_ run afterResolve, or only run it if _no_ failure occurred
@@ -814,15 +806,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
     }
 
-    private void markReferencedProjectConfigurationsObserved(InternalState requestedState, ResolverResults results) {
-        ProjectInternal consumingProject = domainObjectContext.getProject();
-        ProjectState consumingProjectState = consumingProject == null ? null : consumingProject.getOwner();
-        for (ResolvedProjectConfiguration projectResult : results.getResolvedLocalComponents().getResolvedProjectConfigurations()) {
-            ProjectState targetProjectState = projectStateRegistry.stateFor(projectResult.getId());
-            dependencyObservedBroadcast.dependencyObserved(consumingProjectState, targetProjectState, requestedState, projectResult);
-        }
-    }
-
     @Override
     public TransformUpstreamDependenciesResolverFactory getDependenciesResolverFactory() {
         warnOnInvalidInternalAPIUsage("getDependenciesResolverFactory()", ProperMethodUsage.RESOLVABLE);
@@ -871,7 +854,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return currentResolveState.update(initial -> {
             if (!initial.isPresent()) {
                 ResolverResults results = resolver.resolveBuildDependencies(this);
-                markReferencedProjectConfigurationsObserved(BUILD_DEPENDENCIES_RESOLVED, results);
                 return Optional.of(results);
             } // Otherwise, already have a result, so reuse it
             return initial;

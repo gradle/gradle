@@ -31,8 +31,8 @@ import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.Factory;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -51,7 +51,6 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
         ConfigurationsProvider configurationsProvider,
         ConfigurationResolver resolver,
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
-        ProjectDependencyObservedListener dependencyObservedBroadcast,
         DependencyMetaDataProvider metaDataProvider,
         ComponentIdentifierFactory componentIdentifierFactory,
         DependencyLockingProvider dependencyLockingProvider,
@@ -78,7 +77,6 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
-            dependencyObservedBroadcast,
             metaDataProvider,
             componentIdentifierFactory,
             dependencyLockingProvider,

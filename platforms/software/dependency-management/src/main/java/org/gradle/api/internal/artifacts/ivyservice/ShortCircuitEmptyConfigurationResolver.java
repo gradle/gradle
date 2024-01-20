@@ -40,8 +40,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Selec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
@@ -78,8 +76,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
 
         VisitedGraphResults graphResults = emptyGraphResults(resolveContext);
-        ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor(thisBuild);
-        return DefaultResolverResults.buildDependenciesResolved(graphResults, emptyProjectResult, EmptyResults.INSTANCE);
+        return DefaultResolverResults.buildDependenciesResolved(graphResults, EmptyResults.INSTANCE);
     }
 
     @Override
@@ -99,8 +96,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
 
         VisitedGraphResults graphResults = emptyGraphResults(resolveContext);
-        ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor(thisBuild);
-        return DefaultResolverResults.graphResolved(graphResults, emptyProjectResult, new EmptyResolvedConfiguration(), EmptyResults.INSTANCE);
+        return DefaultResolverResults.graphResolved(graphResults, new EmptyResolvedConfiguration(), EmptyResults.INSTANCE);
     }
 
     private VisitedGraphResults emptyGraphResults(ResolveContext resolveContext) {
