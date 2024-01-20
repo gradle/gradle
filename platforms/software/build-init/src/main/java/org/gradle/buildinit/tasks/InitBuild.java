@@ -99,7 +99,7 @@ public abstract class InitBuild extends DefaultTask {
     public abstract Property<Boolean> getUseDefaults();
 
     /**
-     * The desired type of project to generate like 'java-application' or 'kotlin-library'.
+     * The desired type of project to generate, such as 'java-application' or 'kotlin-library'.
      * <p>
      * This property can be set via command-line option '--type'.
      * <p>
@@ -163,7 +163,7 @@ public abstract class InitBuild extends DefaultTask {
     /**
      * Java version to be used by generated Java projects.
      *
-     * When set, Gradle will and use the provided value as the target major Java version
+     * When set, Gradle will use the provided value as the target major Java version
      * for all relevant generated projects.  Gradle will validate the number to ensure
      * it is a valid and supported major version.
      *
@@ -470,7 +470,10 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private static BuildInitializer selectTypeOfProject(UserInputHandler inputHandler, ProjectLayoutSetupRegistry projectLayoutRegistry) {
-        ComponentType componentType = inputHandler.selectOption("Select type of project to generate", projectLayoutRegistry.getComponentTypes(), projectLayoutRegistry.getDefault().getComponentType());
+        ComponentType componentType = inputHandler.choice("Select type of project to generate", projectLayoutRegistry.getComponentTypes())
+            .defaultOption(projectLayoutRegistry.getDefaultComponentType())
+            .whenNotConnected(projectLayoutRegistry.getDefault().getComponentType())
+            .ask();
         List<Language> languages = projectLayoutRegistry.getLanguagesFor(componentType);
         if (languages.size() == 1) {
             return projectLayoutRegistry.get(componentType, languages.get(0));

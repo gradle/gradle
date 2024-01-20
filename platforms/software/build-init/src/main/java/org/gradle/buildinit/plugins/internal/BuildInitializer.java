@@ -54,7 +54,7 @@ public interface BuildInitializer {
     Set<ModularizationOption> getModularizationOptions();
 
     /**
-     * Returns the set of DSLs supported for this type of project.
+     * Returns the set of DSLs supported for this type of project, in display order.
      */
     Set<BuildInitDsl> getDsls();
 

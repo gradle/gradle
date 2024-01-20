@@ -68,6 +68,7 @@ class InitBuildSpec extends Specification {
         given:
         projectLayoutRegistry.buildConverter >> buildConverter
         buildConverter.canApplyToCurrentDirectory() >> false
+        projectLayoutRegistry.componentTypes >> ComponentType.values().toList()
         projectLayoutRegistry.default >> projectSetupDescriptor
         projectLayoutRegistry.getLanguagesFor(ComponentType.BASIC) >> [Language.NONE]
         projectLayoutRegistry.get(ComponentType.BASIC, Language.NONE) >> projectSetupDescriptor

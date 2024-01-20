@@ -54,8 +54,18 @@ public class ProjectLayoutSetupRegistry {
         return templateOperationFactory;
     }
 
+    /**
+     * Returns the component types, in display order.
+     */
     public List<ComponentType> getComponentTypes() {
-        return ImmutableList.copyOf(ComponentType.values());
+        return ImmutableList.of(ComponentType.APPLICATION, ComponentType.LIBRARY, ComponentType.GRADLE_PLUGIN, ComponentType.BASIC);
+    }
+
+    /**
+     * Returns the default component type to use for interactive initialization.
+     */
+    public ComponentType getDefaultComponentType() {
+        return getComponentTypes().get(0);
     }
 
     // This should turn into a set of converters at some point
