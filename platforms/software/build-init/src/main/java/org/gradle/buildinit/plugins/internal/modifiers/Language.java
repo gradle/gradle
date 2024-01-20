@@ -19,8 +19,8 @@ package org.gradle.buildinit.plugins.internal.modifiers;
 public enum Language {
     NONE("none"),
     JAVA("Java"),
-    GROOVY("Groovy"),
     KOTLIN("kotlin", "Kotlin", "kt"),
+    GROOVY("Groovy"),
     SCALA("Scala"),
     CPP("cpp", "C++", "cpp"),
     SWIFT("swift", "Swift", "swift");

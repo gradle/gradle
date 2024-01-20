@@ -30,7 +30,6 @@ import org.gradle.buildinit.plugins.internal.BuildConverter;
 import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
-import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.util.internal.IncubationLogger;
@@ -40,6 +39,7 @@ import org.gradleinternal.buildinit.plugins.internal.maven.MavenConversionExcept
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -67,11 +67,6 @@ public class PomProjectInitDescriptor implements BuildConverter {
     }
 
     @Override
-    public ComponentType getComponentType() {
-        return ComponentType.BASIC;
-    }
-
-    @Override
     public Language getLanguage() {
         return Language.NONE;
     }
@@ -89,6 +84,11 @@ public class PomProjectInitDescriptor implements BuildConverter {
     @Override
     public String getSourceBuildDescription() {
         return "Maven";
+    }
+
+    @Override
+    public List<String> getDefaultProjectNames() {
+        return Collections.emptyList();
     }
 
     @Override

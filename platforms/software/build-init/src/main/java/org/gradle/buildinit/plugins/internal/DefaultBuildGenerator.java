@@ -29,11 +29,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class CompositeProjectInitDescriptor implements BuildInitializer {
+public class DefaultBuildGenerator implements BuildGenerator {
     private final ProjectGenerator descriptor;
     private final List<? extends BuildContentGenerator> generators;
 
-    public CompositeProjectInitDescriptor(ProjectGenerator projectGenerator, List<? extends BuildContentGenerator> generators) {
+    public DefaultBuildGenerator(ProjectGenerator projectGenerator, List<? extends BuildContentGenerator> generators) {
         this.generators = generators;
         this.descriptor = projectGenerator;
     }
@@ -51,6 +51,11 @@ public class CompositeProjectInitDescriptor implements BuildInitializer {
     @Override
     public Language getLanguage() {
         return descriptor.getLanguage();
+    }
+
+    @Override
+    public List<String> getDefaultProjectNames() {
+        return getComponentType().getDefaultProjectNames();
     }
 
     @Override
@@ -109,6 +114,7 @@ public class CompositeProjectInitDescriptor implements BuildInitializer {
     }
 
     // This is used by our build-logic to generate samples, see `SamplesGenerator`
+    @SuppressWarnings("unused")
     public Map<String, List<String>> generateWithExternalComments(InitSettings settings) {
         BuildContentGenerationContext buildContentGenerationContext = new BuildContentGenerationContext(new VersionCatalogDependencyRegistry(false));
         if (!(descriptor instanceof LanguageSpecificAdaptor)) {

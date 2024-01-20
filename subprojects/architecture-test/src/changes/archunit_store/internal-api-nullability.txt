@@ -1235,7 +1235,7 @@ Class <org.gradle.buildinit.plugins.internal.BuildScriptBuilder$TestingBlock> is
 Class <org.gradle.buildinit.plugins.internal.BuildScriptBuilder$TopLevelBlock> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildScriptBuilder.java:0)
 Class <org.gradle.buildinit.plugins.internal.BuildScriptBuilder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildScriptBuilder.java:0)
 Class <org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildScriptBuilderFactory.java:0)
-Class <org.gradle.buildinit.plugins.internal.CompositeProjectInitDescriptor> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CompositeProjectInitDescriptor.java:0)
+Class <org.gradle.buildinit.plugins.internal.DefaultBuildGenerator> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CompositeProjectInitDescriptor.java:0)
 Class <org.gradle.buildinit.plugins.internal.ConditionalTemplateOperation> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ConditionalTemplateOperation.java:0)
 Class <org.gradle.buildinit.plugins.internal.CppApplicationProjectInitDescriptor> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CppApplicationProjectInitDescriptor.java:0)
 Class <org.gradle.buildinit.plugins.internal.CppLibraryProjectInitDescriptor> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CppLibraryProjectInitDescriptor.java:0)

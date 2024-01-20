@@ -272,7 +272,7 @@ public abstract class InitBuild extends DefaultTask {
         boolean useIncubatingAPIs = shouldUseIncubatingAPIs(inputHandler);
         boolean generateComments = getComments().get();
 
-        List<String> subprojectNames = initDescriptor.getComponentType().getDefaultProjectNames();
+        List<String> subprojectNames = initDescriptor.getDefaultProjectNames();
         InitSettings settings = new InitSettings(
             projectName,
             useIncubatingAPIs,

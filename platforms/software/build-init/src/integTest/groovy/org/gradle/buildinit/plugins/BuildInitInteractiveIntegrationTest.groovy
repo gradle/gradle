@@ -25,15 +25,24 @@ import spock.lang.Issue
 
 class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
-    String buildTypePrompt = "Select type of build to generate:"
-    String dslPrompt = "Select build script DSL:"
-    String incubatingPrompt = "Generate build using new APIs and behavior (some features may change in the next minor release)?"
-    String basicType = "4: Basic (build structure only)"
-    String basicTypeOption = 4
-    String applicationOption = 1
-    String projectNamePrompt = "Project name (default: some-thing)"
-    String convertMavenBuildPrompt = "Found a Maven build. Generate a Gradle build from this?"
-    List<String> languageSelectionOptions = ["Select implementation language:", "1: C++", "2: Groovy", "3: Java", "4: Kotlin", "5: Scala", "6: Swift"]
+    def buildTypePrompt = "Select type of build to generate:"
+    def dslPrompt = "Select build script DSL:"
+    def incubatingPrompt = "Generate build using new APIs and behavior (some features may change in the next minor release)?"
+    def basicType = "4: Basic (build structure only)"
+    def basicTypeOption = 4
+    def applicationOption = 1
+    def projectNamePrompt = "Project name (default: some-thing)"
+    def convertMavenBuildPrompt = "Found a Maven build. Generate a Gradle build from this?"
+    def javaOption = 1
+    def languageSelectionOptions = [
+        "Select implementation language:",
+        "1: Java",
+        "2: Kotlin",
+        "3: Groovy",
+        "4: Scala",
+        "5: C++",
+        "6: Swift"
+    ]
 
     @Override
     String subprojectName() { 'app' }
@@ -131,7 +140,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
                 assert handle.standardOutput.contains(it)
             }
         }
-        handle.stdinPipe.write(("3" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write((javaOption + TextUtil.platformLineSeparator).bytes)
 
         // Select 'Single project'
         ConcurrentTestUtil.poll(60) {
@@ -218,7 +227,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
                 assert handle.standardOutput.contains(it)
             }
         }
-        handle.stdinPipe.write(("3" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write((javaOption + TextUtil.platformLineSeparator).bytes)
 
         // Interrupt input
         handle.stdinPipe.close()
