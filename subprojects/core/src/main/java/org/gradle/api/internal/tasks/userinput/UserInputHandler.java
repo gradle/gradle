@@ -45,6 +45,7 @@ public interface UserInputHandler {
     /**
      * Prompts the user to select an option from the given list and returns the answer.
      * Uses the {@link Object#toString()} representation of the options to format the prompt.
+     * Does not prompt the user when there is only one option in the given list.
      *
      * @param question The text of the question.
      * @param defaultOption The option to present to the user as the default selection, and also the value to use when not connected to a console.
@@ -54,7 +55,8 @@ public interface UserInputHandler {
 
     /**
      * Prompts the user to select an option from the given list and returns the answer.
-     * Uses the {@link Object#toString()} representation of the options to format the prompt.
+     * Uses the {@link Object#toString()} representation of the options to format the prompt, the returned builder can be used to change this.
+     * Does not prompt the user when there is only one option in the given list.
      *
      * @param question The text of the question.
      * @return A builder that can be used to configure the choice and ask the user to select an option.

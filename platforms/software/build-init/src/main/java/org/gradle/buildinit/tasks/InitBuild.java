@@ -364,10 +364,7 @@ public abstract class InitBuild extends DefaultTask {
     private BuildInitDsl getBuildInitDsl(UserInputHandler inputHandler, BuildInitializer initDescriptor) {
         BuildInitDsl dsl;
         if (isNullOrEmpty(this.dsl)) {
-            dsl = initDescriptor.getDefaultDsl();
-            if (initDescriptor.getDsls().size() > 1) {
-                dsl = inputHandler.selectOption("Select build script DSL", initDescriptor.getDsls(), dsl);
-            }
+            dsl = inputHandler.selectOption("Select build script DSL", initDescriptor.getDsls(), initDescriptor.getDefaultDsl());
         } else {
             dsl = BuildInitDsl.fromName(getDsl());
             if (!initDescriptor.getDsls().contains(dsl)) {
@@ -412,10 +409,7 @@ public abstract class InitBuild extends DefaultTask {
         }
 
         BuildInitTestFramework testFramework = initDescriptor.getDefaultTestFramework();
-        if (initDescriptor.getTestFrameworks().size() > 1) {
-            return inputHandler.selectOption("Select test framework", initDescriptor.getTestFrameworks(), testFramework);
-        }
-        return testFramework;
+        return inputHandler.selectOption("Select test framework", initDescriptor.getTestFrameworks(), testFramework);
     }
 
     private GradleException createNotSupportedTestFrameWorkException(BuildInitializer initDescriptor) {
@@ -476,14 +470,11 @@ public abstract class InitBuild extends DefaultTask {
             .whenNotConnected(projectLayoutRegistry.getDefault().getComponentType())
             .ask();
         List<Language> languages = projectLayoutRegistry.getLanguagesFor(componentType);
-        if (languages.size() == 1) {
-            return projectLayoutRegistry.get(componentType, languages.get(0));
+        Language defaultLanguage = Language.JAVA;
+        if (!languages.contains(defaultLanguage)) {
+            defaultLanguage = languages.get(0);
         }
-        if (!languages.contains(Language.JAVA)) {
-            // Not yet implemented
-            throw new UnsupportedOperationException();
-        }
-        Language language = inputHandler.selectOption("Select implementation language", languages, Language.JAVA);
+        Language language = inputHandler.selectOption("Select implementation language", languages, defaultLanguage);
         return projectLayoutRegistry.get(componentType, language);
     }
 

@@ -71,6 +71,12 @@ public class DefaultUserInputHandler implements UserInputHandler {
     }
 
     private <T> T selectOption(String question, Collection<T> options, T defaultOption, Function<T, String> renderer) {
+        if (!options.contains(defaultOption)) {
+            throw new IllegalArgumentException();
+        }
+        if (options.size() == 1) {
+            return defaultOption;
+        }
         final List<T> values = new ArrayList<T>(options);
         StringBuilder builder = new StringBuilder();
         builder.append(question);

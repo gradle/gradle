@@ -200,6 +200,17 @@ Enter selection (default: 11!) [1..3] """)
         input == 13
     }
 
+    def "select question does not prompt user when there is only one option"() {
+        when:
+        def input = userInputHandler.selectOption(TEXT, [11], 11)
+
+        then:
+        0 * outputEventBroadcaster.onOutput(_)
+
+        and:
+        input == 11
+    }
+
     def "select question returns default when empty input line received"() {
         when:
         def input = userInputHandler.selectOption(TEXT, [11, 12, 13], 12)

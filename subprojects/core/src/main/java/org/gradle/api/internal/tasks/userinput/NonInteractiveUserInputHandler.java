@@ -53,7 +53,9 @@ public class NonInteractiveUserInputHandler implements UserInputHandler {
     private static class DefaultChoiceBuilder<T> implements ChoiceBuilder<T> {
         private T defaultOption;
 
-        DefaultChoiceBuilder(Collection<T> options) {defaultOption = options.iterator().next();}
+        DefaultChoiceBuilder(Collection<T> options) {
+            defaultOption = options.iterator().next();
+        }
 
         @Override
         public ChoiceBuilder<T> renderUsing(Function<T, String> renderer) {
