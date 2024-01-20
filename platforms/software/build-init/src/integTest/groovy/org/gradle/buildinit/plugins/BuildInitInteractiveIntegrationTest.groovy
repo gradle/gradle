@@ -28,7 +28,9 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
     String projectTypePrompt = "Select type of project to generate:"
     String dslPrompt = "Select build script DSL:"
     String incubatingPrompt = "Generate build using new APIs and behavior (some features may change in the next minor release)?"
-    String basicType = "1: basic"
+    String basicType = "4: Basic (project structure only)"
+    String basicTypeOption = 4
+    String applicationOption = 1
     String projectNamePrompt = "Project name (default: some-thing)"
     String convertMavenBuildPrompt = "Found a Maven build. Generate a Gradle build from this?"
     List<String> languageSelectionOptions = ["Select implementation language:", "1: C++", "2: Groovy", "3: Java", "4: Kotlin", "5: Scala", "6: Swift"]
@@ -46,13 +48,13 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         // Select 'basic'
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(projectTypePrompt)
+            assert handle.standardOutput.contains("1: Application")
+            assert handle.standardOutput.contains("2: Library")
+            assert handle.standardOutput.contains("3: Gradle plugin")
             assert handle.standardOutput.contains(basicType)
-            assert handle.standardOutput.contains("2: application")
-            assert handle.standardOutput.contains("3: library")
-            assert handle.standardOutput.contains("4: Gradle plugin")
             assert !handle.standardOutput.contains("pom")
         }
-        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write((basicTypeOption + TextUtil.platformLineSeparator).bytes)
 
         // Select 'kotlin'
         ConcurrentTestUtil.poll(60) {
@@ -110,7 +112,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
     }
 
-    def "user can provide details for JVM based build"() {
+    def "user can provide details for Java build"() {
         when:
         executer.withForceInteractive(true)
         executer.withStdinPipe()
@@ -121,7 +123,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(projectTypePrompt)
         }
-        handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write((applicationOption + TextUtil.platformLineSeparator).bytes)
 
         // Select 'java'
         ConcurrentTestUtil.poll(60) {
@@ -208,7 +210,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(projectTypePrompt)
         }
-        handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write((applicationOption + TextUtil.platformLineSeparator).bytes)
 
         // Select 'java'
         ConcurrentTestUtil.poll(60) {
@@ -292,7 +294,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
             assert handle.standardOutput.contains(basicType)
             assert !handle.standardOutput.contains("pom")
         }
-        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write((basicTypeOption + TextUtil.platformLineSeparator).bytes)
 
         // Select 'kotlin'
         ConcurrentTestUtil.poll(60) {

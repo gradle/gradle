@@ -471,6 +471,7 @@ public abstract class InitBuild extends DefaultTask {
 
     private static BuildInitializer selectTypeOfProject(UserInputHandler inputHandler, ProjectLayoutSetupRegistry projectLayoutRegistry) {
         ComponentType componentType = inputHandler.choice("Select type of project to generate", projectLayoutRegistry.getComponentTypes())
+            .renderUsing(ComponentType::getDisplayName)
             .defaultOption(projectLayoutRegistry.getDefaultComponentType())
             .whenNotConnected(projectLayoutRegistry.getDefault().getComponentType())
             .ask();
