@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public enum ComponentType {
-    BASIC("Basic (project structure only)"),
+    BASIC("Basic (build structure only)"),
     APPLICATION("Application", "app", "list", "utilities"),
     LIBRARY("Library", "lib"),
     GRADLE_PLUGIN("Gradle plugin", "plugin");

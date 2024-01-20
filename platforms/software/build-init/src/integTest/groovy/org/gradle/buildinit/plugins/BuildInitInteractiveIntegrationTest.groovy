@@ -25,10 +25,10 @@ import spock.lang.Issue
 
 class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
-    String projectTypePrompt = "Select type of project to generate:"
+    String buildTypePrompt = "Select type of build to generate:"
     String dslPrompt = "Select build script DSL:"
     String incubatingPrompt = "Generate build using new APIs and behavior (some features may change in the next minor release)?"
-    String basicType = "4: Basic (project structure only)"
+    String basicType = "4: Basic (build structure only)"
     String basicTypeOption = 4
     String applicationOption = 1
     String projectNamePrompt = "Project name (default: some-thing)"
@@ -47,7 +47,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // Select 'basic'
         ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains(projectTypePrompt)
+            assert handle.standardOutput.contains(buildTypePrompt)
             assert handle.standardOutput.contains("1: Application")
             assert handle.standardOutput.contains("2: Library")
             assert handle.standardOutput.contains("3: Gradle plugin")
@@ -121,7 +121,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // Select 'application'
         ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains(projectTypePrompt)
+            assert handle.standardOutput.contains(buildTypePrompt)
         }
         handle.stdinPipe.write((applicationOption + TextUtil.platformLineSeparator).bytes)
 
@@ -208,7 +208,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // Select 'application'
         ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains(projectTypePrompt)
+            assert handle.standardOutput.contains(buildTypePrompt)
         }
         handle.stdinPipe.write((applicationOption + TextUtil.platformLineSeparator).bytes)
 
@@ -265,7 +265,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         handle.stdinPipe.close()
         handle.waitForFinish()
 
-        !handle.standardOutput.contains(projectTypePrompt)
+        !handle.standardOutput.contains(buildTypePrompt)
         !handle.standardOutput.contains(dslPrompt)
         !handle.standardOutput.contains(projectNamePrompt)
 
@@ -290,7 +290,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // Select 'basic'
         ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains(projectTypePrompt)
+            assert handle.standardOutput.contains(buildTypePrompt)
             assert handle.standardOutput.contains(basicType)
             assert !handle.standardOutput.contains("pom")
         }
