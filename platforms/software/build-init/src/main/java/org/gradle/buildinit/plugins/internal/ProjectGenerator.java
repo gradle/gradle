@@ -33,7 +33,8 @@ public interface ProjectGenerator extends BuildContentGenerator {
 
     ComponentType getComponentType();
 
-    Language getLanguage();
+    boolean productionCodeUses(Language language);
+
     boolean isJvmLanguage();
 
     Set<ModularizationOption> getModularizationOptions();

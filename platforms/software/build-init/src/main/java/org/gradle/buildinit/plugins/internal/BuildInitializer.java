@@ -17,7 +17,6 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
-import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
 import java.util.List;
@@ -28,18 +27,12 @@ import java.util.Set;
  * Initializes a Gradle build.
  */
 public interface BuildInitializer {
-
     /**
      * Unique and user-friendly ID for the type of the initialized build like 'java-application' or 'kotlin-library'.
      * <p>
      * Users can select the desired type by providing a value of a known ID on the command line.
      */
     String getId();
-
-    /**
-     * Which language does the production source files created by this initializer use?
-     */
-    Language getLanguage();
 
     boolean supportsJavaTargets();
 

@@ -63,8 +63,8 @@ public class BasicProjectGenerator implements ProjectGenerator {
     }
 
     @Override
-    public Language getLanguage() {
-        return Language.NONE;
+    public boolean productionCodeUses(Language language) {
+        return false;
     }
 
     @Override

@@ -17,10 +17,16 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
 public interface BuildGenerator extends BuildInitializer {
     /**
      * What kind of component does this initializer create?
      */
     ComponentType getComponentType();
+
+    /**
+     * Does this generator use the given language for production code?
+     */
+    boolean productionCodeUses(Language language);
 }

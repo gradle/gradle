@@ -20,10 +20,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public enum ComponentType {
-    BASIC("Basic (build structure only)"),
+    // These are in display order
     APPLICATION("Application", "app", "list", "utilities"),
     LIBRARY("Library", "lib"),
-    GRADLE_PLUGIN("Gradle plugin", "plugin");
+    GRADLE_PLUGIN("Gradle plugin", "plugin"),
+    BASIC("Basic (build structure only)");
 
     private final String displayName;
     private final List<String> defaultProjectNames;

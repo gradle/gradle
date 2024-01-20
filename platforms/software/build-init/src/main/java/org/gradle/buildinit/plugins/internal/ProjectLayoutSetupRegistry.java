@@ -15,13 +15,12 @@
  */
 package org.gradle.buildinit.plugins.internal;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
-import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -58,7 +57,7 @@ public class ProjectLayoutSetupRegistry {
      * Returns the component types, in display order.
      */
     public List<ComponentType> getComponentTypes() {
-        return ImmutableList.of(ComponentType.APPLICATION, ComponentType.LIBRARY, ComponentType.GRADLE_PLUGIN, ComponentType.BASIC);
+        return Arrays.asList(ComponentType.values());
     }
 
     /**
@@ -104,27 +103,15 @@ public class ProjectLayoutSetupRegistry {
         return result;
     }
 
-    public List<Language> getLanguagesFor(ComponentType componentType) {
+    public List<BuildGenerator> getGeneratorsFor(ComponentType componentType) {
         List<BuildGenerator> generators = getGenerators();
-        List<Language> result = new ArrayList<>(generators.size());
-        for (Language language : Language.values()) {
-            for (BuildGenerator generator : generators) {
-                if (generator.getComponentType().equals(componentType) && generator.getLanguage().equals(language)) {
-                    result.add(language);
-                    break;
-                }
+        List<BuildGenerator> result = new ArrayList<>(generators.size());
+        for (BuildGenerator generator : generators) {
+            if (generator.getComponentType().equals(componentType)) {
+                result.add(generator);
             }
         }
         return result;
-    }
-
-    public BuildGenerator get(ComponentType componentType, Language language) {
-        for (BuildGenerator generator : getGenerators()) {
-            if (generator.getComponentType().equals(componentType) && generator.getLanguage().equals(language)) {
-                return generator;
-            }
-        }
-        throw new IllegalArgumentException("No initializer with component type " + componentType + " and language " + language);
     }
 
     public List<String> getAllTypes() {

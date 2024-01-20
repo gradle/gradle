@@ -49,8 +49,8 @@ public class DefaultBuildGenerator implements BuildGenerator {
     }
 
     @Override
-    public Language getLanguage() {
-        return descriptor.getLanguage();
+    public boolean productionCodeUses(Language language) {
+        return descriptor.productionCodeUses(language);
     }
 
     @Override

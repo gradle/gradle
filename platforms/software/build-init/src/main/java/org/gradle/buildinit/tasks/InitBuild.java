@@ -37,6 +37,7 @@ import org.gradle.api.tasks.wrapper.internal.WrapperDefaults;
 import org.gradle.api.tasks.wrapper.internal.WrapperGenerator;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.BuildConverter;
+import org.gradle.buildinit.plugins.internal.BuildGenerator;
 import org.gradle.buildinit.plugins.internal.BuildInitializer;
 import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
@@ -55,7 +56,9 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.lang.model.SourceVersion;
 import java.io.File;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Objects.requireNonNull;
@@ -463,19 +466,28 @@ public abstract class InitBuild extends DefaultTask {
         return selectTypeOfBuild(inputHandler, projectLayoutRegistry);
     }
 
-    private static BuildInitializer selectTypeOfBuild(UserInputHandler inputHandler, ProjectLayoutSetupRegistry projectLayoutRegistry) {
+    private static BuildGenerator selectTypeOfBuild(UserInputHandler inputHandler, ProjectLayoutSetupRegistry projectLayoutRegistry) {
         ComponentType componentType = inputHandler.choice("Select type of build to generate", projectLayoutRegistry.getComponentTypes())
             .renderUsing(ComponentType::getDisplayName)
             .defaultOption(projectLayoutRegistry.getDefaultComponentType())
             .whenNotConnected(projectLayoutRegistry.getDefault().getComponentType())
             .ask();
-        List<Language> languages = projectLayoutRegistry.getLanguagesFor(componentType);
-        Language defaultLanguage = Language.JAVA;
-        if (!languages.contains(defaultLanguage)) {
-            defaultLanguage = languages.get(0);
+        List<BuildGenerator> generators = projectLayoutRegistry.getGeneratorsFor(componentType);
+        if (generators.size() == 1) {
+            return generators.get(0);
         }
-        Language language = inputHandler.selectOption("Select implementation language", languages, defaultLanguage);
-        return projectLayoutRegistry.get(componentType, language);
+
+        Map<Language, BuildGenerator> generatorsByLanguage = new LinkedHashMap<>();
+        for (Language language : Language.values()) {
+            for (BuildGenerator generator : generators) {
+                if (generator.productionCodeUses(language)) {
+                    generatorsByLanguage.put(language, generator);
+                    break;
+                }
+            }
+        }
+        Language language = inputHandler.choice("Select implementation language", generatorsByLanguage.keySet()).ask();
+        return generatorsByLanguage.get(language);
     }
 
     @Option(option = "type", description = "Set the type of project to generate.")
