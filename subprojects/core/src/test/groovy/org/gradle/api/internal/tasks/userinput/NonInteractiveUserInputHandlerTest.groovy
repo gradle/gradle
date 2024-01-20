@@ -32,6 +32,17 @@ class NonInteractiveUserInputHandlerTest extends Specification {
         userInputHandler.selectOption('Select count', [1, 2, 3], 2) == 2
     }
 
+    def "returns first option when no default"() {
+        expect:
+        userInputHandler.choice('Select count', [1, 2, 3]).ask() == 1
+    }
+
+    def "returns default option for choice"() {
+        expect:
+        userInputHandler.choice('Select count', [1, 2, 3]).defaultOption(2).ask() == 2
+        userInputHandler.choice('Select count', [1, 2, 3]).whenNotConnected(2).ask() == 2
+    }
+
     def "always returns default for text question"() {
         expect:
         userInputHandler.askQuestion('Enter something', 'ok') == 'ok'

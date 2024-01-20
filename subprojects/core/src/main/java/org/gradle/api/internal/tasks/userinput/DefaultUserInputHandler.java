@@ -105,6 +105,11 @@ public class DefaultUserInputHandler implements UserInputHandler {
     }
 
     @Override
+    public <T> ChoiceBuilder<T> choice(String question, Collection<T> options) {
+        return new DefaultChoiceBuilder<>(options, question);
+    }
+
+    @Override
     public String askQuestion(String question, final String defaultValue) {
         StringBuilder builder = new StringBuilder();
         builder.append(question);
@@ -169,7 +174,7 @@ public class DefaultUserInputHandler implements UserInputHandler {
                 }
             }
         } finally {
-            // Send a end-of-line. This is a workaround to convince the console that the cursor is at the start of the line to avoid indenting the next line of text that is displayed
+            // Send an end-of-line. This is a workaround to convince the console that the cursor is at the start of the line to avoid indenting the next line of text that is displayed
             // It would be better for the console to listen for stuff read from stdin that would also be echoed to the output and update its state based on this
             sendPrompt(TextUtil.getPlatformLineSeparator());
             outputEventBroadcaster.onOutput(new UserInputResumeEvent());
@@ -192,6 +197,35 @@ public class DefaultUserInputHandler implements UserInputHandler {
             }
             sendPrompt("Please enter 'yes' or 'no': ");
             return null;
+        }
+    }
+
+    private class DefaultChoiceBuilder<T> implements ChoiceBuilder<T> {
+        private final Collection<T> options;
+        private final String question;
+        private T defaultOption;
+
+        public DefaultChoiceBuilder(Collection<T> options, String question) {
+            this.options = options;
+            this.question = question;
+            defaultOption = options.iterator().next();
+        }
+
+        @Override
+        public ChoiceBuilder<T> defaultOption(T defaultOption) {
+            this.defaultOption = defaultOption;
+            return this;
+        }
+
+        @Override
+        public ChoiceBuilder<T> whenNotConnected(T defaultOption) {
+            // Ignore
+            return this;
+        }
+
+        @Override
+        public T ask() {
+            return selectOption(question, options, defaultOption);
         }
     }
 }

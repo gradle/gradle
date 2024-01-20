@@ -35,6 +35,11 @@ public class NonInteractiveUserInputHandler implements UserInputHandler {
     }
 
     @Override
+    public <T> ChoiceBuilder<T> choice(String question, Collection<T> options) {
+        return new DefaultChoiceBuilder<>(options);
+    }
+
+    @Override
     public String askQuestion(String question, String defaultValue) {
         return defaultValue;
     }
@@ -42,5 +47,28 @@ public class NonInteractiveUserInputHandler implements UserInputHandler {
     @Override
     public boolean interrupted() {
         return false;
+    }
+
+    private static class DefaultChoiceBuilder<T> implements ChoiceBuilder<T> {
+        private T defaultOption;
+
+        DefaultChoiceBuilder(Collection<T> options) {defaultOption = options.iterator().next();}
+
+        @Override
+        public ChoiceBuilder<T> defaultOption(T defaultOption) {
+            this.defaultOption = defaultOption;
+            return this;
+        }
+
+        @Override
+        public ChoiceBuilder<T> whenNotConnected(T defaultOption) {
+            this.defaultOption = defaultOption;
+            return this;
+        }
+
+        @Override
+        public T ask() {
+            return defaultOption;
+        }
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.userinput
 
+
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.PromptOutputEvent
 import org.gradle.internal.logging.events.UserInputRequestEvent
@@ -218,6 +219,36 @@ Enter selection (default: 12) [1..3] """)
 
         and:
         input == 12
+    }
+
+    def "choice returns first option on end-of-input when no default specified"() {
+        when:
+        def choice = userInputHandler.choice(TEXT, [11, 12, 13])
+
+        then:
+        choiceUsesDefault(choice, 11)
+    }
+
+    def "choice returns default option on end-of-input"() {
+        when:
+        def choice = userInputHandler.choice(TEXT, [11, 12, 13]).defaultOption(12)
+
+        then:
+        choiceUsesDefault(choice, 12)
+    }
+
+    def "choice ignores non-interactive default value"() {
+        when:
+        def choice = userInputHandler.choice(TEXT, [11, 12, 13]).whenNotConnected(12)
+
+        then:
+        choiceUsesDefault(choice, 11)
+    }
+
+    <T> void choiceUsesDefault(UserInputHandler.ChoiceBuilder<T> choice, T expected) {
+        1 * userInputReader.readInput() >> null
+        def input = choice.ask()
+        assert input == expected
     }
 
     def "can ask text question"() {
