@@ -175,6 +175,31 @@ Enter selection (default: 12) [1..3] """)
         input == 13
     }
 
+    def "can define how to render select options"() {
+        when:
+        def input = userInputHandler.choice("select option", [11, 12, 13])
+            .renderUsing { it + "!" }
+            .ask()
+
+        then:
+        1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event ->
+            assert event.prompt == TextUtil.toPlatformLineSeparators("""select option:
+  1: 11!
+  2: 12!
+  3: 13!
+Enter selection (default: 11!) [1..3] """)
+        }
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
+        0 * outputEventBroadcaster._
+        1 * userInputReader.readInput() >> " 3  "
+
+        and:
+        input == 13
+    }
+
     def "select question returns default when empty input line received"() {
         when:
         def input = userInputHandler.selectOption(TEXT, [11, 12, 13], 12)

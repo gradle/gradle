@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 
 public class DefaultUserInputHandler implements UserInputHandler {
     private static final List<String> YES_NO_CHOICES = Lists.newArrayList("yes", "no");
@@ -69,8 +70,7 @@ public class DefaultUserInputHandler implements UserInputHandler {
         return prompt(builder.toString(), defaultValue, new BooleanParser());
     }
 
-    @Override
-    public <T> T selectOption(String question, final Collection<T> options, final T defaultOption) {
+    private <T> T selectOption(String question, Collection<T> options, T defaultOption, Function<T, String> renderer) {
         final List<T> values = new ArrayList<T>(options);
         StringBuilder builder = new StringBuilder();
         builder.append(question);
@@ -81,11 +81,11 @@ public class DefaultUserInputHandler implements UserInputHandler {
             builder.append("  ");
             builder.append(i + 1);
             builder.append(": ");
-            builder.append(option);
+            builder.append(renderer.apply(option));
             builder.append(TextUtil.getPlatformLineSeparator());
         }
         builder.append("Enter selection (default: ");
-        builder.append(defaultOption);
+        builder.append(renderer.apply(defaultOption));
         builder.append(") [1..");
         builder.append(options.size());
         builder.append("] ");
@@ -102,6 +102,11 @@ public class DefaultUserInputHandler implements UserInputHandler {
                 return null;
             }
         });
+    }
+
+    @Override
+    public <T> T selectOption(String question, final Collection<T> options, final T defaultOption) {
+        return choice(question, options).defaultOption(defaultOption).ask();
     }
 
     @Override
@@ -204,11 +209,18 @@ public class DefaultUserInputHandler implements UserInputHandler {
         private final Collection<T> options;
         private final String question;
         private T defaultOption;
+        private Function<T, String> renderer = Object::toString;
 
         public DefaultChoiceBuilder(Collection<T> options, String question) {
             this.options = options;
             this.question = question;
             defaultOption = options.iterator().next();
+        }
+
+        @Override
+        public ChoiceBuilder<T> renderUsing(Function<T, String> renderer) {
+            this.renderer = renderer;
+            return this;
         }
 
         @Override
@@ -225,7 +237,7 @@ public class DefaultUserInputHandler implements UserInputHandler {
 
         @Override
         public T ask() {
-            return selectOption(question, options, defaultOption);
+            return selectOption(question, options, defaultOption, renderer);
         }
     }
 }

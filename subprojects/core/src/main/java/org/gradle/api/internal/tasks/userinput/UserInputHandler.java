@@ -20,6 +20,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.function.Function;
 
 public interface UserInputHandler {
     /**
@@ -62,6 +63,7 @@ public interface UserInputHandler {
 
     /**
      * Prompts the user to provide a string value.
+     *
      * @param question The text of the question.
      * @param defaultValue The option to present to the user as the default choice, and the value to use when not connected to a console
      * @return The answer or the given default if not connected to a console.
@@ -75,7 +77,7 @@ public interface UserInputHandler {
 
     interface ChoiceBuilder<T> {
         /**
-         * Specifies the option to present to the user as the default selection, and the value to use when not connected to a console.
+         * Specifies the option to present to the user as the default selection, and the option to use when not connected to a console.
          * Both of these values default to the first option.
          *
          * <p>Replaces any value set using {@link #whenNotConnected(Object)}.
@@ -83,10 +85,18 @@ public interface UserInputHandler {
         ChoiceBuilder<T> defaultOption(T defaultOption);
 
         /**
-         * Specifies the option to use when not connected to a console.
+         * Specifies the option to use when not connected to a console. This can be different to the default option presented to the user.
          */
         ChoiceBuilder<T> whenNotConnected(T defaultOption);
 
+        /**
+         * Specifies how to display each option.
+         */
+        ChoiceBuilder<T> renderUsing(Function<T, String> renderer);
+
+        /**
+         * Prompts the user to select an option.
+         */
         T ask();
     }
 }

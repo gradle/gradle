@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.userinput;
 
 import java.util.Collection;
+import java.util.function.Function;
 
 public class NonInteractiveUserInputHandler implements UserInputHandler {
     @Override
@@ -53,6 +54,12 @@ public class NonInteractiveUserInputHandler implements UserInputHandler {
         private T defaultOption;
 
         DefaultChoiceBuilder(Collection<T> options) {defaultOption = options.iterator().next();}
+
+        @Override
+        public ChoiceBuilder<T> renderUsing(Function<T, String> renderer) {
+            // Ignore, the values are never rendered
+            return this;
+        }
 
         @Override
         public ChoiceBuilder<T> defaultOption(T defaultOption) {
