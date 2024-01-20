@@ -31,6 +31,7 @@ public class ServiceScopeValidatorWorkarounds {
 
     private static final Set<String> SUPPRESSED_VALIDATION_CLASSES = ImmutableSet.of(
         "org.gradle.api.internal.file.FileCollectionFactory",
+        "org.gradle.api.internal.file.FileResolver",
         "org.gradle.api.problems.Problems"
     );
 
