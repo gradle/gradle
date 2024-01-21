@@ -22,18 +22,17 @@ import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
 
-public class DefaultBuildGenerator implements BuildGenerator {
+public class SourceGeneratingBuildGenerator extends AbstractBuildGenerator implements CompositeProjectInitDescriptor {
     private final ProjectGenerator descriptor;
     private final List<? extends BuildContentGenerator> generators;
 
-    public DefaultBuildGenerator(ProjectGenerator projectGenerator, List<? extends BuildContentGenerator> generators) {
+    public SourceGeneratingBuildGenerator(ProjectGenerator projectGenerator, List<? extends BuildContentGenerator> generators) {
+        super(projectGenerator, generators);
         this.generators = generators;
         this.descriptor = projectGenerator;
     }
@@ -49,8 +48,13 @@ public class DefaultBuildGenerator implements BuildGenerator {
     }
 
     @Override
+    public Language getLanguage() {
+        return descriptor.getLanguage();
+    }
+
+    @Override
     public boolean productionCodeUses(Language language) {
-        return descriptor.productionCodeUses(language);
+        return descriptor.getLanguage().equals(language);
     }
 
     @Override
@@ -69,11 +73,6 @@ public class DefaultBuildGenerator implements BuildGenerator {
     }
 
     @Override
-    public boolean supportsProjectName() {
-        return true;
-    }
-
-    @Override
     public boolean supportsPackage() {
         return descriptor.supportsPackage();
     }
@@ -81,11 +80,6 @@ public class DefaultBuildGenerator implements BuildGenerator {
     @Override
     public BuildInitDsl getDefaultDsl() {
         return descriptor.getDefaultDsl();
-    }
-
-    @Override
-    public Set<BuildInitDsl> getDsls() {
-        return new TreeSet<>(Arrays.asList(BuildInitDsl.values()));
     }
 
     @Override
@@ -104,17 +98,6 @@ public class DefaultBuildGenerator implements BuildGenerator {
     }
 
     @Override
-    public void generate(InitSettings settings) {
-        BuildContentGenerationContext buildContentGenerationContext = new BuildContentGenerationContext(new VersionCatalogDependencyRegistry(false));
-        for (BuildContentGenerator generator : generators) {
-            generator.generate(settings, buildContentGenerationContext);
-        }
-        descriptor.generate(settings, buildContentGenerationContext);
-        VersionCatalogGenerator.create(settings.getTarget()).generate(buildContentGenerationContext, settings.isWithComments());
-    }
-
-    // This is used by our build-logic to generate samples, see `SamplesGenerator`
-    @SuppressWarnings("unused")
     public Map<String, List<String>> generateWithExternalComments(InitSettings settings) {
         BuildContentGenerationContext buildContentGenerationContext = new BuildContentGenerationContext(new VersionCatalogDependencyRegistry(false));
         if (!(descriptor instanceof LanguageSpecificAdaptor)) {

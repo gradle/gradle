@@ -17,6 +17,7 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.ArrayList;
@@ -51,6 +52,23 @@ public class ProjectLayoutSetupRegistry {
     @SuppressWarnings("unused")
     public TemplateOperationFactory getTemplateOperationFactory() {
         return templateOperationFactory;
+    }
+
+    // Currently used by `build-logic/build-init-samples/src/main/kotlin/gradlebuild/samples/SamplesGenerator.kt`
+    @SuppressWarnings("unused")
+    public List<Language> getLanguagesFor(ComponentType componentType) {
+        List<BuildGenerator> generators = getGeneratorsFor(componentType);
+
+        List<Language> result = new ArrayList<>();
+        for (Language language : Language.values()) {
+            for (BuildGenerator generator : generators) {
+                if (generator.productionCodeUses(language)) {
+                    result.add(language);
+                    break;
+                }
+            }
+        }
+        return result;
     }
 
     /**

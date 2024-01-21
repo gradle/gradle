@@ -58,10 +58,6 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
     }
 
     @Override
-    public boolean productionCodeUses(Language language) {
-        return language.equals(descriptor.getLanguage());
-    }
-
     public Language getLanguage() {
         return descriptor.getLanguage();
     }
