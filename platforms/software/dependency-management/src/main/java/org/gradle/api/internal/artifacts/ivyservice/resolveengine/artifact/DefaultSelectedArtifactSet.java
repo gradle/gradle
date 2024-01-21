@@ -56,6 +56,6 @@ public class DefaultSelectedArtifactSet implements SelectedArtifactSet {
             }
         }
 
-        artifactResolver.visitInUnmanagedWorker(resolvedArtifacts, visitor, resolutionHost);
+        artifactResolver.visitInUnmanagedWorkerThread(resolvedArtifacts, visitor, resolutionHost);
     }
 }

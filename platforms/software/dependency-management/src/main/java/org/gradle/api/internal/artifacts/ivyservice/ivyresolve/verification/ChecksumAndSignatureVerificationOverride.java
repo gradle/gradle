@@ -77,7 +77,8 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     private final AtomicBoolean closed = new AtomicBoolean();
     private final DependencyVerificationReportWriter reportWriter;
 
-    // Must hold lock on `failures` to access `failures` or `hasFatalFailure`
+    // Must hold lock on `failuresLock` to access `failures` or `hasFatalFailure`
+    private final Object failuresLock = new Object();
     private final Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failures = LinkedHashMultimap.create();
     private boolean hasFatalFailure = false;
 
@@ -144,7 +145,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                         @Override
                         public void run(BuildOperationContext context) {
                             verifier.verify(checksumService, signatureVerificationService, ve.kind, ve.artifact, observed(ve.mainFile), observed(ve.signatureFile.create()), f -> {
-                                synchronized (failures) {
+                                synchronized (failuresLock) {
                                     failures.put(ve.artifact, new RepositoryAwareVerificationFailure(f, ve.repositoryName));
                                     if (f.isFatal()) {
                                         hasFatalFailure = true;
@@ -173,7 +174,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     @Override
     public void artifactsAccessed(String displayName) {
         verifyConcurrently();
-        synchronized (failures) {
+        synchronized (failuresLock) {
             if (hasFatalFailure) {
                 // There are fatal failures, but not necessarily on all artifacts so we first filter out
                 // the artifacts which only have not fatal errors

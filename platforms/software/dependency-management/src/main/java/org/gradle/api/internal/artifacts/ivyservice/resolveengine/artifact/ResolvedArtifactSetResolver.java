@@ -47,7 +47,7 @@ public class ResolvedArtifactSetResolver {
         this.dependencyVerificationOverride = dependencyVerificationOverride;
     }
 
-    public void visitInUnmanagedWorker(ResolvedArtifactSet artifacts, ArtifactVisitor visitor, ResolutionHost resolutionHost) {
+    public void visitInUnmanagedWorkerThread(ResolvedArtifactSet artifacts, ArtifactVisitor visitor, ResolutionHost resolutionHost) {
         // This may be called from an unmanaged thread, so temporarily enlist the current thread
         // as a worker if it is not already so that it can visit the results. It would be better
         // to instead to memoize the results on the first visit so that this is not required.
