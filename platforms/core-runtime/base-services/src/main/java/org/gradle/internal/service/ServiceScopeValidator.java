@@ -58,6 +58,10 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
             return;
         }
 
+        if (serviceScopes.length == 0) {
+            throw new IllegalArgumentException(String.format("Service '%s' is declared with empty scope list", serviceType.getName()));
+        }
+
         if (!containsScope(scope, serviceScopes)) {
             throw new IllegalArgumentException(invalidScopeMessage(serviceType, serviceScopes));
         }
