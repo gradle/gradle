@@ -64,6 +64,15 @@ public interface UserInputHandler {
     <T> ChoiceBuilder<T> choice(String question, Collection<T> options);
 
     /**
+     * Prompts the user to provide an integer value.
+     *
+     * @param question The text of the question.
+     * @param defaultValue The option to present to the user as the default choice, and the value to use when not connected to a console
+     * @return The answer or the given default if not connected to a console.
+     */
+    int askIntQuestion(String question, int minValue, int defaultValue);
+
+    /**
      * Prompts the user to provide a string value.
      *
      * @param question The text of the question.

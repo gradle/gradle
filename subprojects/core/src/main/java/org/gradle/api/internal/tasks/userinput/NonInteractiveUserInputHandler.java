@@ -41,6 +41,11 @@ public class NonInteractiveUserInputHandler implements UserInputHandler {
     }
 
     @Override
+    public int askIntQuestion(String question, int minValue, int defaultValue) {
+        return defaultValue;
+    }
+
+    @Override
     public String askQuestion(String question, String defaultValue) {
         return defaultValue;
     }

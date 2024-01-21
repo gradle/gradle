@@ -56,6 +56,11 @@ class NonInteractiveUserInputHandlerTest extends Specification {
             .ask() == 1
     }
 
+    def "always returns default for int question"() {
+        expect:
+        userInputHandler.askIntQuestion('Enter something', 1, 2) == 2
+    }
+
     def "always returns default for text question"() {
         expect:
         userInputHandler.askQuestion('Enter something', 'ok') == 'ok'

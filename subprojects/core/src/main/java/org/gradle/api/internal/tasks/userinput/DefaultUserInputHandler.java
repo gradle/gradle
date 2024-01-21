@@ -77,6 +77,7 @@ public class DefaultUserInputHandler implements UserInputHandler {
         if (options.size() == 1) {
             return defaultOption;
         }
+
         final List<T> values = new ArrayList<T>(options);
         StringBuilder builder = new StringBuilder();
         builder.append(question);
@@ -118,6 +119,33 @@ public class DefaultUserInputHandler implements UserInputHandler {
     @Override
     public <T> ChoiceBuilder<T> choice(String question, Collection<T> options) {
         return new DefaultChoiceBuilder<>(options, question);
+    }
+
+    @Override
+    public int askIntQuestion(String question, int minValue, int defaultValue) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(question);
+        builder.append(" (min: ");
+        builder.append(minValue);
+        builder.append(", default: ");
+        builder.append(defaultValue);
+        builder.append("): ");
+        return prompt(builder.toString(), defaultValue, new Transformer<Integer, String>() {
+            @Override
+            public Integer transform(String sanitizedValue) {
+                try {
+                    int result = Integer.parseInt(sanitizedValue);
+                    if (result >= minValue) {
+                        return result;
+                    }
+                    sendPrompt("Please enter an integer value >= " + minValue + " (default: " + defaultValue + "): ");
+                    return null;
+                } catch (NumberFormatException e) {
+                    sendPrompt("Please enter an integer value (min: " + minValue + ", default: " + defaultValue + "): ");
+                    return null;
+                }
+            }
+        });
     }
 
     @Override

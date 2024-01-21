@@ -71,7 +71,7 @@ class DefaultUserInputHandlerTest extends Specification {
         input == null
     }
 
-    def "re-requests user input if invalid response to required yes/no question"() {
+    def "prompts user again on invalid response to required yes/no question"() {
         when:
         def input = userInputHandler.askYesNoQuestion(TEXT)
 
@@ -133,7 +133,7 @@ class DefaultUserInputHandlerTest extends Specification {
         input == true
     }
 
-    def "re-requests user input if invalid response to yes/no question"() {
+    def "prompts user again on invalid response to yes/no question"() {
         when:
         def input = userInputHandler.askYesNoQuestion(TEXT, true)
 
@@ -222,7 +222,7 @@ Enter selection (default: 11!) [1..3] """)
         input == 12
     }
 
-    def "re-requests user input if invalid response to select question"() {
+    def "prompts user again on invalid response to select question"() {
         when:
         def input = userInputHandler.selectOption(TEXT, [11, 12, 13], 12)
 
@@ -287,6 +287,95 @@ Enter selection (default: 11!) [1..3] """)
         assert input == expected
     }
 
+    def "can ask int question"() {
+        when:
+        def input = userInputHandler.askIntQuestion("enter value", 1, 2)
+
+        then:
+        1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "enter value (min: 1, default: 2):" }
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
+        0 * outputEventBroadcaster._
+        1 * userInputReader.readInput() >> "12"
+
+        and:
+        input == 12
+    }
+
+    def "prompts user again on invalid response to int question"() {
+        when:
+        def input = userInputHandler.askIntQuestion("enter value", 1, 2)
+
+        then:
+        1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "enter value (min: 1, default: 2):" }
+        1 * userInputReader.readInput() >> "not an int"
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter an integer value (min: 1, default: 2):" }
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
+        0 * outputEventBroadcaster._
+        1 * userInputReader.readInput() >> "12"
+
+        and:
+        input == 12
+    }
+
+    def "prompts user again on int question response below minimum value"() {
+        when:
+        def input = userInputHandler.askIntQuestion("enter value", 10, 12)
+
+        then:
+        1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "enter value (min: 10, default: 12):" }
+        1 * userInputReader.readInput() >> "9"
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter an integer value >= 10 (default: 12):" }
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
+        0 * outputEventBroadcaster._
+        1 * userInputReader.readInput() >> "10"
+
+        and:
+        input == 10
+    }
+
+    def "uses default value for int question when empty line input received"() {
+        when:
+        def input = userInputHandler.askIntQuestion("enter value", 1, 2)
+
+        then:
+        1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "enter value (min: 1, default: 2):" }
+        1 * userInputReader.readInput() >> ""
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
+        0 * outputEventBroadcaster._
+
+        and:
+        input == 2
+    }
+
+    def "uses default value for int question when end-of-input received"() {
+        when:
+        def input = userInputHandler.askIntQuestion("enter value", 1, 2)
+
+        then:
+        1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "enter value (min: 1, default: 2):" }
+        1 * userInputReader.readInput() >> null
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
+        0 * outputEventBroadcaster._
+
+        and:
+        input == 2
+    }
+
     def "can ask text question"() {
         when:
         def input = userInputHandler.askQuestion("enter value", "value")
@@ -304,7 +393,7 @@ Enter selection (default: 11!) [1..3] """)
         input == "thing"
     }
 
-    def "select text returns default when empty input line received"() {
+    def "text question returns default when empty input line received"() {
         when:
         def input = userInputHandler.askQuestion(TEXT, "default")
 
@@ -315,7 +404,7 @@ Enter selection (default: 11!) [1..3] """)
         input == "default"
     }
 
-    def "select text returns default on end of input"() {
+    def "text question returns default on end of input"() {
         when:
         def input = userInputHandler.askQuestion(TEXT, "default")
 
