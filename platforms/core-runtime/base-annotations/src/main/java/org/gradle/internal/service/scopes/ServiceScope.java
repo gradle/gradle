@@ -23,11 +23,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Attached to a service interface to indicate in which scope it is defined in.
+ * Attached to a service interface to indicate in which scopes it is defined in.
  * Services are lifecycled with their scope, and stopped/closed when the scope is closed.
- *
+ * <p>
  * Services are visible to other services in the same scope and descendent scopes.
  * Services are not visible to services in ancestor scopes.
+ * When service is defined in multiple scopes, the highest scope determines the visibility
+ * for descendent scopes.
  *
  * @see org.gradle.internal.service.scopes.Scopes
  */
@@ -36,6 +38,10 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface ServiceScope {
 
+    /**
+     * One or more scopes in which the service is declared,
+     * from the longest lifecycle to the shortest.
+     */
     Class<? extends Scope>[] value();
 
 }
