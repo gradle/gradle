@@ -258,6 +258,8 @@ public abstract class InitBuild extends DefaultTask {
 
         BuildInitializer initializer = getBuildInitializer(inputHandler, projectLayoutRegistry);
 
+        JavaLanguageVersion javaLanguageVersion = getJavaLanguageVersion(inputHandler, initializer);
+
         ModularizationOption modularizationOption = getModularizationOption(inputHandler, initializer);
 
         BuildInitDsl dsl = getBuildInitDsl(inputHandler, initializer);
@@ -269,8 +271,6 @@ public abstract class InitBuild extends DefaultTask {
         String packageName = getEffectivePackageName(initializer);
 
         validatePackageName(packageName);
-
-        JavaLanguageVersion javaLanguageVersion = getJavaLanguageVersion(inputHandler, initializer);
 
         boolean useIncubatingAPIs = shouldUseIncubatingAPIs(inputHandler);
         boolean generateComments = getComments().get();
@@ -356,11 +356,11 @@ public abstract class InitBuild extends DefaultTask {
         try {
             int parsedVersion = Integer.parseInt(version);
             if (parsedVersion < MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API) {
-                throw new GradleException("Java target version: '" + version + "' is not a supported target version. It must be equal to or greater than " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API);
+                throw new GradleException("Target Java version: '" + version + "' is not a supported target version. It must be equal to or greater than " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API);
             }
             return JavaLanguageVersion.of(parsedVersion);
         } catch (NumberFormatException e) {
-            throw new GradleException("Invalid Java target version '" + version + "'. The version must be an integer.", e);
+            throw new GradleException("Invalid target Java version '" + version + "'. The version must be an integer.", e);
         }
     }
 

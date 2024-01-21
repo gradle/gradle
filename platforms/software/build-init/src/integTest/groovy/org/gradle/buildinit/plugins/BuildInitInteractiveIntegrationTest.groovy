@@ -142,6 +142,12 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         }
         handle.stdinPipe.write((javaOption + TextUtil.platformLineSeparator).bytes)
 
+        // Enter a Java version
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains("Enter target Java version (min: 7, default: ${Jvm.current().javaVersion.majorVersion})")
+        }
+        handle.stdinPipe.write(("15" + TextUtil.platformLineSeparator).bytes)
+
         // Select 'Single project'
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains("Generate multiple subprojects for application?")
@@ -166,12 +172,6 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
             assert handle.standardOutput.contains(projectNamePrompt)
         }
         handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
-
-        // Enter a Java version
-        ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains("Enter target Java version (min: 7, default: ${Jvm.current().javaVersion.majorVersion})")
-        }
-        handle.stdinPipe.write(("15" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'no' for incubating APIs
         ConcurrentTestUtil.poll(60) {
