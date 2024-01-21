@@ -54,7 +54,7 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
     private void validateScope(Class<?> serviceType) {
         Class<? extends Scope>[] serviceScopes = scopeOf(serviceType);
 
-        if (serviceScopes == null || ServiceScopeValidatorWorkarounds.shouldSuppressValidation(serviceType)) {
+        if (serviceScopes == null) {
             return;
         }
 
