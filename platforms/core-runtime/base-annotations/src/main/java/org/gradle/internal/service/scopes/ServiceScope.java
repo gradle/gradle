@@ -28,8 +28,10 @@ import java.lang.annotation.Target;
  * <p>
  * Services are visible to other services in the same scope and descendent scopes.
  * Services are not visible to services in ancestor scopes.
- * When service is defined in multiple scopes, the highest scope determines the visibility
- * for descendent scopes.
+ * <p>
+ * When a service is defined in multiple scopes, the highest scope determines the visibility.
+ * The additional instances of the service in lower scopes "override" the instance from the parent
+ * for their scope and its children.
  *
  * @see org.gradle.internal.service.scopes.Scopes
  */
