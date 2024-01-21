@@ -46,7 +46,6 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.util.GradleVersion;
@@ -61,7 +60,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static java.util.Objects.requireNonNull;
 
 /**
  * Generates a Gradle project structure.
@@ -71,7 +69,8 @@ public abstract class InitBuild extends DefaultTask {
 
     private static final String SOURCE_PACKAGE_DEFAULT = "org.example";
     private static final String SOURCE_PACKAGE_PROPERTY = "org.gradle.buildinit.source.package";
-    private static final int MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API = 7;
+    static final int MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API = 7;
+    static final int DEFAULT_JAVA_VERSION = 21;
 
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
     private String type;
@@ -349,8 +348,7 @@ public abstract class InitBuild extends DefaultTask {
 
         String version = javaVersion.getOrNull();
         if (isNullOrEmpty(version)) {
-            JavaLanguageVersion current = JavaLanguageVersion.of(requireNonNull(Jvm.current().getJavaVersion()).getMajorVersion());
-            return JavaLanguageVersion.of(inputHandler.askIntQuestion("Enter target Java version", MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API, current.asInt()));
+            return JavaLanguageVersion.of(inputHandler.askIntQuestion("Enter target Java version", MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API, DEFAULT_JAVA_VERSION));
         }
 
         try {

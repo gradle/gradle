@@ -23,7 +23,10 @@ abstract class AbstractJvmLibraryInitIntegrationSpec extends AbstractInitIntegra
 
     def setup() {
         executer.beforeExecute { e ->
+            // The init task defaults to Java 21, which may not be the current JVM.
+            // Enable discovery and download so the test builds can find a Java 21 installation.
             e.withToolchainDetectionEnabled()
+            e.withToolchainDownloadEnabled()
         }
     }
 }
