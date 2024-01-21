@@ -30,8 +30,7 @@ import java.util.Set;
 public class ServiceScopeValidatorWorkarounds {
 
     private static final Set<String> SUPPRESSED_VALIDATION_CLASSES = ImmutableSet.of(
-        "org.gradle.api.internal.file.FileCollectionFactory",
-        "org.gradle.api.problems.Problems"
+        "org.gradle.api.internal.file.FileCollectionFactory"
     );
 
     public static boolean shouldSuppressValidation(Class<?> serviceType) {
