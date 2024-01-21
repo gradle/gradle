@@ -167,9 +167,9 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         }
         handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
 
-        // Enter a package name
+        // Enter a Java version
         ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains("Enter target version of Java (min. 7) (default: ${Jvm.current().javaVersion.majorVersion})")
+            assert handle.standardOutput.contains("Enter target Java version (min: 7, default: ${Jvm.current().javaVersion.majorVersion})")
         }
         handle.stdinPipe.write(("15" + TextUtil.platformLineSeparator).bytes)
 
