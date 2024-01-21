@@ -259,13 +259,13 @@ public abstract class InitBuild extends DefaultTask {
 
         JavaLanguageVersion javaLanguageVersion = getJavaLanguageVersion(inputHandler, initializer);
 
+        String projectName = getEffectiveProjectName(inputHandler, initializer);
+
         ModularizationOption modularizationOption = getModularizationOption(inputHandler, initializer);
 
         BuildInitDsl dsl = getBuildInitDsl(inputHandler, initializer);
 
         BuildInitTestFramework testFramework = getBuildInitTestFramework(inputHandler, initializer, modularizationOption);
-
-        String projectName = getEffectiveProjectName(inputHandler, initializer);
 
         String packageName = getEffectivePackageName(initializer);
 

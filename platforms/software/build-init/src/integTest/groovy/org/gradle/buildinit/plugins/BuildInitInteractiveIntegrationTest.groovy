@@ -18,7 +18,6 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
-import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
@@ -65,19 +64,19 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         }
         handle.stdinPipe.write((basicTypeOption + TextUtil.platformLineSeparator).bytes)
 
-        // Select 'kotlin'
+        // Select default project name
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(projectNamePrompt)
+        }
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+
+        // Select 'kotlin DSL'
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(dslPrompt)
             assert handle.standardOutput.contains("1: Kotlin")
             assert handle.standardOutput.contains("2: Groovy")
         }
         handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
-
-        // Select default project name
-        ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains(projectNamePrompt)
-        }
-        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
 
         // Select 'no' for incubating APIs
         ConcurrentTestUtil.poll(60) {
@@ -148,13 +147,19 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         }
         handle.stdinPipe.write(("17" + TextUtil.platformLineSeparator).bytes)
 
+        // Select default project name
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(projectNamePrompt)
+        }
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+
         // Select 'Single project'
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains("Generate multiple subprojects for application?")
         }
         handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
 
-        // Select 'kotlin' DSL
+        // Select 'kotlin DSL'
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(dslPrompt)
         }
@@ -166,12 +171,6 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
             assert handle.standardOutput.contains("1: JUnit 4")
         }
         handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
-
-        // Select default project name
-        ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains(projectNamePrompt)
-        }
-        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
 
         // Select 'no' for incubating APIs
         ConcurrentTestUtil.poll(60) {
@@ -255,7 +254,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         }
         handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
 
-        // Select 'groovy' DSL
+        // Select 'groovy DSL'
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(dslPrompt)
         }
@@ -305,17 +304,17 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         }
         handle.stdinPipe.write((basicTypeOption + TextUtil.platformLineSeparator).bytes)
 
-        // Select 'kotlin'
-        ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains(dslPrompt)
-        }
-        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
-
         // Select default project name
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(projectNamePrompt)
         }
         handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+
+        // Select 'kotlin DSL'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(dslPrompt)
+        }
+        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'no' for incubating APIs
         ConcurrentTestUtil.poll(60) {
