@@ -52,24 +52,48 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
     }
 
     private void validateScope(Class<?> serviceType) {
-        Class<? extends Scope> serviceScope = scopeOf(serviceType);
+        Class<? extends Scope>[] serviceScopes = scopeOf(serviceType);
 
-        if (serviceScope == null || ServiceScopeValidatorWorkarounds.shouldSuppressValidation(serviceType)) {
+        if (serviceScopes == null || ServiceScopeValidatorWorkarounds.shouldSuppressValidation(serviceType)) {
             return;
         }
 
-        if (!scope.equals(serviceScope)) {
-            throw new IllegalArgumentException(invalidScopeMessage(serviceType, serviceScope));
+        if (!containsScope(scope, serviceScopes)) {
+            throw new IllegalArgumentException(invalidScopeMessage(serviceType, serviceScopes));
         }
     }
 
-    private String invalidScopeMessage(Class<?> serviceType, Class<? extends Scope> actualScope) {
-        return String.format("Service '%s' was declared in scope '%s' but registered in scope '%s'",
-            serviceType.getName(), actualScope.getSimpleName(), scope.getSimpleName());
+    private static boolean containsScope(Class<? extends Scope> expectedScope, Class<? extends Scope>[] actualScopes) {
+        for (Class<? extends Scope> declScope : actualScopes) {
+            if (expectedScope.equals(declScope)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private String invalidScopeMessage(Class<?> serviceType, Class<? extends Scope>[] actualScopes) {
+        return String.format("Service '%s' was declared in scopes %s but registered in scope '%s'",
+            serviceType.getName(), scopeDisplayList(actualScopes), scope.getSimpleName());
+    }
+
+    private static String scopeDisplayList(Class<? extends Scope>[] scopes) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        for (int i = 0; i < scopes.length; i++) {
+            Class<? extends Scope> scope = scopes[i];
+            if (i > 0) {
+                sb.append(", ");
+            }
+            sb.append(scope.getSimpleName());
+        }
+        sb.append("]");
+        return sb.toString();
     }
 
     @Nullable
-    private static Class<? extends Scope> scopeOf(Class<?> serviceType) {
+    private static Class<? extends Scope>[] scopeOf(Class<?> serviceType) {
         ServiceScope scopeAnnotation = serviceType.getAnnotation(ServiceScope.class);
         return scopeAnnotation != null ? scopeAnnotation.value() : null;
     }

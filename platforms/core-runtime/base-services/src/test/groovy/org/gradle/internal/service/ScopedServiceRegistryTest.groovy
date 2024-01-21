@@ -32,7 +32,7 @@ class ScopedServiceRegistryTest extends Specification {
 
         then:
         def exception = thrown(IllegalArgumentException)
-        exception.message.contains("Service '${BuildTreeScopedService.name}' was declared in scope 'BuildTree' but registered in scope 'Build'")
+        exception.message.contains("Service '${BuildTreeScopedService.name}' was declared in scopes [BuildTree] but registered in scope 'Build'")
 
         where:
         method     | registration
@@ -62,7 +62,7 @@ class ScopedServiceRegistryTest extends Specification {
 
         then:
         def exception = thrown(IllegalArgumentException)
-        exception.message.contains("Service '${BuildTreeScopedService.name}' was declared in scope 'BuildTree' but registered in scope 'Build'")
+        exception.message.contains("Service '${BuildTreeScopedService.name}' was declared in scopes [BuildTree] but registered in scope 'Build'")
     }
 
     def "succeeds when registering an unscoped service"() {

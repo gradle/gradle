@@ -36,6 +36,6 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface ServiceScope {
 
-    Class<? extends Scope> value();
+    Class<? extends Scope>[] value();
 
 }
