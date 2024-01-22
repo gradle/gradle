@@ -25,6 +25,7 @@ import org.gradle.api.internal.provider.MapCollectors.EntriesFromMap;
 import org.gradle.api.internal.provider.MapCollectors.EntriesFromMapProvider;
 import org.gradle.api.internal.provider.MapCollectors.EntryWithValueFromProvider;
 import org.gradle.api.internal.provider.MapCollectors.SingleEntry;
+import org.gradle.api.internal.provider.support.SupportsCompoundAssignment;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -55,7 +56,8 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
  * @param <K> the type of entry key
  * @param <V> the type of entry value
  */
-public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSupplier<K, V>> implements MapProperty<K, V>, MapProviderInternal<K, V>, MapPropertyInternal<K, V> {
+public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSupplier<K, V>> implements MapProperty<K, V>, MapProviderInternal<K, V>, MapPropertyInternal<K, V>,
+    SupportsCompoundAssignment<DefaultMapProperty<K, V>.CompoundAssignmentStandIn> {
     private static final String NULL_KEY_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null key to a property of type %s.", Map.class.getSimpleName());
     private static final String NULL_VALUE_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null value to a property of type %s.", Map.class.getSimpleName());
 
@@ -145,9 +147,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     @SuppressWarnings("unchecked")
     public void setFromAnyValue(@Nullable Object object) {
         if (object == null || object instanceof Map<?, ?>) {
-            set((Map) object);
+            set((Map<K, V>) object);
+        } else if (object instanceof CompoundAssignmentResult<?> && ((CompoundAssignmentResult<?>) object).isOwnedBy(this)) {
+            ((CompoundAssignmentResult<?>) object).assignToOwner();
         } else if (object instanceof Provider<?>) {
-            set((Provider) object);
+            set((Provider<Map<K, V>>) object);
         } else {
             throw new IllegalArgumentException(String.format(
                 "Cannot set the value of a property of type %s using an instance of type %s.", Map.class.getName(), object.getClass().getName()));
@@ -677,5 +681,32 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         public String toString() {
             return entries.toString();
         }
+    }
+
+    @Override
+    public CompoundAssignmentStandIn toCompoundOperand() {
+        return new CompoundAssignmentStandIn();
+    }
+
+    public class CompoundAssignmentStandIn {
+        public Object plus(Provider<? extends Map<K, V>> provider) {
+            return new CompoundAssignmentResult<>(
+                Providers.internal(zip(provider, DefaultMapProperty::concat)),
+                DefaultMapProperty.this,
+                () -> DefaultMapProperty.this.putAll(provider));
+
+        }
+
+        public Object plus(Map<K, V> map) {
+            return new CompoundAssignmentResult<>(
+                Providers.internal(map(left -> concat(left, map))),
+                DefaultMapProperty.this, () -> DefaultMapProperty.this.putAll(map));
+        }
+    }
+
+    private static <K, V> Map<K, V> concat(Map<? extends K, ? extends V> left, Map<? extends K, ? extends V> right) {
+        Map<K, V> result = new LinkedHashMap<>(left);
+        result.putAll(right);
+        return result;
     }
 }

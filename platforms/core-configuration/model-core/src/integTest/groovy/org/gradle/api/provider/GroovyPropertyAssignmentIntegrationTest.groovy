@@ -16,9 +16,13 @@
 
 package org.gradle.api.provider
 
+import org.gradle.util.internal.ToBeImplemented
+
 import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.configCache
 
 class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIntegrationTest {
+    protected static final String EXPRESSION_PREFIX = "Expression value: "
+
     def "eager object properties assignment for #description"() {
         def inputDeclaration = "$inputType input"
         groovyBuildFile(inputDeclaration, inputValue, "=")
@@ -48,7 +52,7 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
 
         where:
         description                                     | inputType            | inputValue                               | expectedResult
-        "T = null" | "Property<MyObject>" | 'null' | "undefined"
+        "T = null"                                      | "Property<MyObject>" | 'null'                                   | "undefined"
         "T = T"                                         | "Property<MyObject>" | 'new MyObject("hello")'                  | "hello"
         "T = provider { null }"                         | "Property<MyObject>" | 'provider { null }'                      | "undefined"
         "T = Provider<T>"                               | "Property<MyObject>" | 'provider { new MyObject("hello") }'     | "hello"
@@ -119,32 +123,39 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
 
         expect:
         runAndAssert("myTask", expectedResult)
+        if (expectedResult !instanceof Failure) {
+            assertExpression(expressionValue)
+        }
 
         where:
-        description                              | operation | inputType                       | inputValue                                               | expectedResult
-        "Collection<T> = null"                   | "="       | "ListProperty<MyObject>"        | 'null'                                                   | 'undefined'
-        "Collection<T> = T[]"                    | "="       | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | unsupportedWithCause("Cannot set the value of a property of type java.util.List using an instance of type [LMyObject;")
-        "Collection<T> = Iterable<T>"            | "="       | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | '[a]'
-        "Collection<T> = provider { null }"      | "="       | "ListProperty<MyObject>"        | 'provider { null }'                                      | 'undefined'
-        "Collection<T> = Provider<Iterable<T>>"  | "="       | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | '[a]'
-        "Collection<T> += T"                     | "+="      | "ListProperty<MyObject>"        | 'new MyObject("a")'                                      | unsupportedWithCause("No signature of method")
-        "Collection<T> << T"                     | "<<"      | "ListProperty<MyObject>"        | 'new MyObject("a")'                                      | unsupportedWithCause("No signature of method")
-        "Collection<T> += Provider<T>"           | "+="      | "ListProperty<MyObject>"        | 'provider { new MyObject("a") }'                         | unsupportedWithCause("No signature of method")
-        "Collection<T> << Provider<T>"           | "<<"      | "ListProperty<MyObject>"        | 'provider { new MyObject("a") }'                         | unsupportedWithCause("No signature of method")
-        "Collection<T> += T[]"                   | "+="      | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | unsupportedWithCause("No signature of method")
-        "Collection<T> << T[]"                   | "<<"      | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | unsupportedWithCause("No signature of method")
-        "Collection<T> += Iterable<T>"           | "+="      | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | unsupportedWithCause("No signature of method")
-        "Collection<T> << Iterable<T>"           | "<<"      | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | unsupportedWithCause("No signature of method")
-        "Collection<T> += Provider<Iterable<T>>" | "+="      | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | unsupportedWithCause("No signature of method")
-        "Collection<T> << Provider<Iterable<T>>" | "<<"      | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | unsupportedWithCause("No signature of method")
-        "Map<K, V> = null"                       | "="       | "MapProperty<String, MyObject>" | 'null'                                                   | 'undefined'
-        "Map<K, V> = Map<K, V>"                  | "="       | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | '{a=b}'
-        "Map<K, V> = provider { null }"          | "="       | "MapProperty<String, MyObject>" | 'provider { null }'                                      | 'undefined'
-        "Map<K, V> = Provider<Map<K, V>>"        | "="       | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | '{a=b}'
-        "Map<K, V> += Map<K, V>"                 | "+="      | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | unsupportedWithCause("No signature of method")
-        "Map<K, V> << Map<K, V>"                 | "<<"      | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | unsupportedWithCause("No signature of method")
-        "Map<K, V> += Provider<Map<K, V>>"       | "+="      | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | unsupportedWithCause("No signature of method")
-        "Map<K, V> << Provider<Map<K, V>>"       | "<<"      | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | unsupportedWithCause("No signature of method")
+        description                               | operation | inputType                       | inputValue                                               | expressionValue | expectedResult
+        "Collection<T> = null"                    | "="       | "ListProperty<MyObject>"        | 'null'                                                   | 'null'          | 'undefined'
+        "Collection<T> = T[]"                     | "="       | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | _               | unsupportedWithCause("Cannot set the value of a property of type java.util.List using an instance of type [LMyObject;")
+        "Collection<T> = Iterable<T>"             | "="       | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | '[a]'           | '[a]'
+        "Collection<T> = provider { null }"       | "="       | "ListProperty<MyObject>"        | 'provider { null }'                                      | 'undefined'     | 'undefined'
+        "Collection<T> = Provider<Iterable<T>>"   | "="       | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | '[a]'           | '[a]'
+        "Collection<T> += T"                      | "+="      | "ListProperty<MyObject>"        | 'new MyObject("a")'                                      | 'null'          | '[a]'
+        "Collection<T> += !T"                     | "+="      | "ListProperty<MyObject>"        | '"a"'                                                    | _               | unsupportedWithCause("Cannot add an element of type String to a property of type List<MyObject>")
+        "Collection<T> << T"                      | "<<"      | "ListProperty<MyObject>"        | 'new MyObject("a")'                                      | _               | unsupportedWithCause("No signature of method")
+        "Collection<T> += provider { null }"      | "+="      | "ListProperty<MyObject>"        | 'provider { null }'                                      | 'null'          | 'undefined'
+        "Collection<T> += Provider<T>"            | "+="      | "ListProperty<MyObject>"        | 'provider { new MyObject("a") }'                         | 'null'          | '[a]'
+        "Collection<T> += Provider<!T>"           | "+="      | "ListProperty<MyObject>"        | 'provider { "a" }'                                       | _               | unsupportedWithCause("Cannot get the value of a property of type java.util.List with element type MyObject as the source value contains an element of type java.lang.String")
+        "Collection<T> << Provider<T>"            | "<<"      | "ListProperty<MyObject>"        | 'provider { new MyObject("a") }'                         | _               | unsupportedWithCause("No signature of method")
+        "Collection<T> += T[]"                    | "+="      | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | 'null'          | '[a]'
+        "Collection<T> << T[]"                    | "<<"      | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | _               | unsupportedWithCause("No signature of method")
+        "Collection<T> += Iterable<T>"            | "+="      | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | 'null'          | '[a]'
+        "Collection<T> << Iterable<T>"            | "<<"      | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | _               | unsupportedWithCause("No signature of method")
+        "Collection<T> += Provider<Iterable<T>>"  | "+="      | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | 'null'          | '[a]'
+        "Collection<T> += Provider<Iterable<!T>>" | "+="      | "ListProperty<MyObject>"        | 'provider { ["a"] as Iterable<String> }'                 | _               | unsupportedWithCause("Cannot get the value of a property of type java.util.List with element type MyObject as the source value contains an element of type java.lang.String.")
+        "Collection<T> << Provider<Iterable<T>>"  | "<<"      | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | _               | unsupportedWithCause("No signature of method")
+        "Map<K, V> = null"                        | "="       | "MapProperty<String, MyObject>" | 'null'                                                   | 'null'          | 'undefined'
+        "Map<K, V> = Map<K, V>"                   | "="       | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | '[a:b]'         | '{a=b}'
+        "Map<K, V> = provider { null }"           | "="       | "MapProperty<String, MyObject>" | 'provider { null }'                                      | 'undefined'     | 'undefined'
+        "Map<K, V> = Provider<Map<K, V>>"         | "="       | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | '[a:b]'         | '{a=b}'
+        "Map<K, V> += Map<K, V>"                  | "+="      | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | 'null'          | '{a=b}'
+        "Map<K, V> << Map<K, V>"                  | "<<"      | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | _               | unsupportedWithCause("No signature of method")
+        "Map<K, V> += Provider<Map<K, V>>"        | "+="      | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | 'null'          | '{a=b}'
+        "Map<K, V> << Provider<Map<K, V>>"        | "<<"      | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | _               | unsupportedWithCause("No signature of method")
     }
 
     def "lazy collection variables assignment for #description"() {
@@ -153,32 +164,36 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
 
         expect:
         runAndAssert("myTask", expectedResult)
+        if (expectedResult !instanceof Failure) {
+            assertExpression(expressionValue)
+        }
 
         where:
-        description                              | operation | inputType                       | inputValue                                               | expectedResult
-        "Collection<T> = null"                   | "="       | "ListProperty<MyObject>"        | 'null'                                                   | 'null'
-        "Collection<T> = T[]"                    | "="       | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | '[a]'
-        "Collection<T> = Iterable<T>"            | "="       | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | '[a]'
-        "Collection<T> = provider { null }"      | "="       | "ListProperty<MyObject>"        | 'provider { null }'                                      | 'undefined'
-        "Collection<T> = Provider<Iterable<T>>"  | "="       | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | '[a]'
-        "Collection<T> += T"                     | "+="      | "ListProperty<MyObject>"        | 'new MyObject("a")'                                      | unsupportedWithCause("No signature of method")
-        "Collection<T> << T"                     | "<<"      | "ListProperty<MyObject>"        | 'new MyObject("a")'                                      | unsupportedWithCause("No signature of method")
-        "Collection<T> += Provider<T>"           | "+="      | "ListProperty<MyObject>"        | 'provider { new MyObject("a") }'                         | unsupportedWithCause("No signature of method")
-        "Collection<T> << Provider<T>"           | "<<"      | "ListProperty<MyObject>"        | 'provider { new MyObject("a") }'                         | unsupportedWithCause("No signature of method")
-        "Collection<T> += T[]"                   | "+="      | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | unsupportedWithCause("No signature of method")
-        "Collection<T> << T[]"                   | "<<"      | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | unsupportedWithCause("No signature of method")
-        "Collection<T> += Iterable<T>"           | "+="      | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | unsupportedWithCause("No signature of method")
-        "Collection<T> << Iterable<T>"           | "<<"      | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | unsupportedWithCause("No signature of method")
-        "Collection<T> += Provider<Iterable<T>>" | "+="      | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | unsupportedWithCause("No signature of method")
-        "Collection<T> << Provider<Iterable<T>>" | "<<"      | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | unsupportedWithCause("No signature of method")
-        "Map<K, V> = null"                       | "="       | "MapProperty<String, MyObject>" | 'null'                                                   | 'null'
-        "Map<K, V> = Map<K, V>"                  | "="       | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | '[a:b]'
-        "Map<K, V> = provider { null }"          | "="       | "MapProperty<String, MyObject>" | 'provider { null }'                                      | 'undefined'
-        "Map<K, V> = Provider<Map<K, V>>"        | "="       | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | '[a:b]'
-        "Map<K, V> += Map<K, V>"                 | "+="      | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | unsupportedWithCause("No signature of method")
-        "Map<K, V> << Map<K, V>"                 | "<<"      | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | unsupportedWithCause("No signature of method")
-        "Map<K, V> += Provider<Map<K, V>>"       | "+="      | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | unsupportedWithCause("No signature of method")
-        "Map<K, V> << Provider<Map<K, V>>"       | "<<"      | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | unsupportedWithCause("No signature of method")
+        description                              | operation | inputType                       | inputValue                                               | expressionValue | expectedResult
+        "Collection<T> = null"                   | "="       | "ListProperty<MyObject>"        | 'null'                                                   | 'null'          | 'null'
+        "Collection<T> = T[]"                    | "="       | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | '[a]'           | '[a]'
+        "Collection<T> = Iterable<T>"            | "="       | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | '[a]'           | '[a]'
+        "Collection<T> = provider { null }"      | "="       | "ListProperty<MyObject>"        | 'provider { null }'                                      | 'undefined'     | 'undefined'
+        "Collection<T> = Provider<Iterable<T>>"  | "="       | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | '[a]'           | '[a]'
+        "Collection<T> += T"                     | "+="      | "ListProperty<MyObject>"        | 'new MyObject("a")'                                      | 'null'          | '[a]'
+        "Collection<T> << T"                     | "<<"      | "ListProperty<MyObject>"        | 'new MyObject("a")'                                      | _               | unsupportedWithCause("No signature of method")
+        "Collection<T> += provider { null }"     | "+="      | "ListProperty<MyObject>"        | 'provider { null }'                                      | 'null'          | 'undefined'
+        "Collection<T> += Provider<T>"           | "+="      | "ListProperty<MyObject>"        | 'provider { new MyObject("a") }'                         | 'null'          | '[a]'
+        "Collection<T> << Provider<T>"           | "<<"      | "ListProperty<MyObject>"        | 'provider { new MyObject("a") }'                         | _               | unsupportedWithCause("No signature of method")
+        "Collection<T> += T[]"                   | "+="      | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | 'null'          | '[a]'
+        "Collection<T> << T[]"                   | "<<"      | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | _               | unsupportedWithCause("No signature of method")
+        "Collection<T> += Iterable<T>"           | "+="      | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | 'null'          | '[a]'
+        "Collection<T> << Iterable<T>"           | "<<"      | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | _               | unsupportedWithCause("No signature of method")
+        "Collection<T> += Provider<Iterable<T>>" | "+="      | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | 'null'          | '[a]'
+        "Collection<T> << Provider<Iterable<T>>" | "<<"      | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | _               | unsupportedWithCause("No signature of method")
+        "Map<K, V> = null"                       | "="       | "MapProperty<String, MyObject>" | 'null'                                                   | 'null'          | 'null'
+        "Map<K, V> = Map<K, V>"                  | "="       | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | '[a:b]'         | '[a:b]'
+        "Map<K, V> = provider { null }"          | "="       | "MapProperty<String, MyObject>" | 'provider { null }'                                      | 'undefined'     | 'undefined'
+        "Map<K, V> = Provider<Map<K, V>>"        | "="       | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | '[a:b]'         | '[a:b]'
+        "Map<K, V> += Map<K, V>"                 | "+="      | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | 'null'          | '[a:b]'
+        "Map<K, V> << Map<K, V>"                 | "<<"      | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | _               | unsupportedWithCause("No signature of method")
+        "Map<K, V> += Provider<Map<K, V>>"       | "+="      | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | 'null'          | '[a:b]'
+        "Map<K, V> << Provider<Map<K, V>>"       | "<<"      | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | _               | unsupportedWithCause("No signature of method")
     }
 
     def "eager FileCollection properties assignment for #description"() {
@@ -307,6 +322,74 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
         run("help")
     }
 
+    @ToBeImplemented
+    def "compound assignments work in plugins too"() {
+        given:
+        createDir("plugin") {
+            buildFile(file("build.gradle"), """
+                plugins {
+                    id "groovy"
+                    id "java-gradle-plugin"
+                }
+
+                dependencies {
+                    implementation gradleApi()
+                    implementation localGroovy()
+                }
+
+                gradlePlugin {
+                    plugins {
+                        pluginInGroovy {
+                            id = "org.example.plugin-in-groovy"
+                            implementationClass = "org.example.PluginInGroovy"
+                        }
+                    }
+                }
+            """)
+
+            file("src/main/groovy/org/example/PluginInGroovy.groovy") << """
+                package org.example
+
+                import org.gradle.api.Plugin
+                import org.gradle.api.Project
+                import org.gradle.api.provider.ListProperty
+
+                abstract class PluginInGroovy implements Plugin<Project> {
+                    abstract ListProperty<String> getStringList()
+
+                    @Override
+                    void apply(Project target) {
+                        stringList += ["a", "b"]
+
+                        target.tasks.register("printProperties") {
+                            doLast {
+                                println("stringList = \${stringList.get()}")
+                            }
+                        }
+                    }
+                }
+            """
+        }
+
+        settingsFile """
+            pluginManagement {
+                includeBuild("plugin")
+            }
+        """
+
+        buildFile """
+            plugins {
+                id("org.example.plugin-in-groovy")
+            }
+        """
+
+        expect:
+        fails("printProperties")
+
+        // TODO(mlopatkin): With the AST transformation applied globally this should succeed and print the property.
+        // outputContains("stringList = [a, b]")
+    }
+
     private void groovyBuildFile(String inputDeclaration, String inputValue, String operation) {
         buildFile.text = """
             ${groovyTypesDefinition()}
@@ -317,12 +400,16 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
 
                 @TaskAction
                 void run() {
-                    ${groovyInputPrintRoutine()}
+                    ${groovyInputPrintRoutine(RESULT_PREFIX, "input")}
                 }
             }
 
             tasks.register("myTask", MyTask) {
-                input $operation $inputValue
+                def result = (input $operation $inputValue)
+
+                doLast {
+                    ${groovyInputPrintRoutine(EXPRESSION_PREFIX, "result")}
+                }
             }
         """
     }
@@ -333,10 +420,11 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
 
             tasks.register("myTask") {
                 def input = $inputInitializer
-                input $operation $inputValue
+                def result = (input $operation $inputValue)
                 ${expectedType ? "assert input instanceof $expectedType" : ""}
                 doLast {
-                    ${groovyInputPrintRoutine()}
+                    ${groovyInputPrintRoutine(RESULT_PREFIX, "input")}
+                    ${groovyInputPrintRoutine(EXPRESSION_PREFIX, "result")}
                 }
             }
         """
@@ -360,21 +448,27 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
         """
     }
 
-    private String groovyInputPrintRoutine() {
+    private String groovyInputPrintRoutine(String prefix = RESULT_PREFIX, String variable = "input") {
         """
-            if (input instanceof FileSystemLocationProperty) {
-                println("$RESULT_PREFIX" + input.map { it.asFile.name }.getOrElse("undefined"))
-            } else if (input instanceof File) {
-               println("$RESULT_PREFIX" + input.name)
-            } else if (input instanceof Provider) {
-                println("$RESULT_PREFIX" + input.map { it.toString() }.getOrElse("undefined"))
-            } else if (input instanceof FileCollection) {
-                println("$RESULT_PREFIX" + input.files.collect { it.name })
-            } else if (input instanceof Iterable) {
-                println("$RESULT_PREFIX" + input.collect { it instanceof File ? it.name : it })
+            if (${variable} instanceof FileSystemLocationProperty) {
+                println("$prefix" + ${variable}.map { it.asFile.name }.getOrElse("undefined"))
+            } else if (${variable} instanceof File) {
+               println("$prefix" + ${variable}.name)
+            } else if (${variable} instanceof Provider) {
+                println("$prefix" + ${variable}.map { it.toString() }.getOrElse("undefined"))
+            } else if (${variable} instanceof FileCollection) {
+                println("$prefix" + ${variable}.files.collect { it.name })
+            } else if (${variable} instanceof Iterable) {
+                println("$prefix" + ${variable}.collect { it instanceof File ? it.name : it })
+            } else if (${variable}?.getClass()?.isArray()) {
+                println("$prefix" + Arrays.toString(${variable}))
             } else {
-                println("$RESULT_PREFIX" + input.toString())
+                println("$prefix" + ${variable})
             }
         """
+    }
+
+    private void assertExpression(def value) {
+        outputContains(EXPRESSION_PREFIX + value)
     }
 }
