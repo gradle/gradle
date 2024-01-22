@@ -26,9 +26,10 @@ import org.junit.Rule
 
 @Requires(UnitTestPreconditions.Jdk9OrLater)
 class WorkerDaemonProcessFailureIntegrationTest extends AbstractDaemonWorkerExecutorIntegrationSpec {
+    private static final String ANNOTATION_PROCESSOR_PROJECT_NAME = "processor"
+
     @Rule
     final BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
-    boolean pidProcessorProjectGenerated
 
     def setup() {
         blockingHttpServer.start()
@@ -37,6 +38,11 @@ class WorkerDaemonProcessFailureIntegrationTest extends AbstractDaemonWorkerExec
             // so we disable stack trace checks to avoid the test failing.
             executer.withStackTraceChecksDisabled()
         }
+
+        settingsFile << """
+            include '${ANNOTATION_PROCESSOR_PROJECT_NAME}'
+        """
+        writeAnnotationProcessorProject()
     }
 
     void "daemon is gracefully removed if it is killed while idle in between builds"() {
@@ -194,7 +200,7 @@ class WorkerDaemonProcessFailureIntegrationTest extends AbstractDaemonWorkerExec
         and:
         pidFile().exists()
         def pid1 = pidFile().text.strip() as long
-        new ProcessFixture(pid1).kill(false)
+        kill(pid1)
 
         when:
         handler.releaseAll()
@@ -202,6 +208,10 @@ class WorkerDaemonProcessFailureIntegrationTest extends AbstractDaemonWorkerExec
 
         then:
         outputContainsKilledWorkerWarning()
+    }
+
+    static void kill(long pid1) {
+        new ProcessFixture(pid1).kill(false)
     }
 
     void outputContainsKilledWorkerWarning() {
@@ -217,72 +227,67 @@ class WorkerDaemonProcessFailureIntegrationTest extends AbstractDaemonWorkerExec
         return root.file('build/generated/sources/annotationProcessor/java/main/resources/pid.txt')
     }
 
-    String getDependsOnPidCapturingAnnotationProcessor() {
-        if (!pidProcessorProjectGenerated) {
-            settingsFile << """
-                include 'processor'
-            """
-            file('processor/build.gradle') << """
-                plugins {
-                    id 'java'
-                }
-            """
-            file('processor/src/main/java/WorkerPid.java') << """
-                import java.lang.annotation.ElementType;
-                import java.lang.annotation.Retention;
-                import java.lang.annotation.RetentionPolicy;
-                import java.lang.annotation.Target;
-
-                @Retention(RetentionPolicy.SOURCE)
-                @Target(ElementType.TYPE)
-                public @interface WorkerPid {
-                }
-            """
-            file('processor/src/main/java/WorkerPidProcessor.java') << """
-                import javax.annotation.processing.AbstractProcessor;
-                import javax.annotation.processing.RoundEnvironment;
-                import javax.annotation.processing.SupportedAnnotationTypes;
-                import javax.annotation.processing.SupportedSourceVersion;
-                import javax.lang.model.SourceVersion;
-                import javax.lang.model.element.TypeElement;
-                import java.util.Set;
-                import javax.tools.FileObject;
-                import javax.tools.StandardLocation;
-                import java.io.Writer;
-
-                @SupportedAnnotationTypes("WorkerPid")
-                @SupportedSourceVersion(SourceVersion.RELEASE_9)
-                public class WorkerPidProcessor extends AbstractProcessor {
-                    private boolean pidWritten;
-
-                    @Override
-                    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-                        try {
-                            if (!pidWritten) {
-                                System.out.println("Worker daemon pid is " + ProcessHandle.current().pid());
-                                FileObject file = processingEnv.getFiler().createResource(StandardLocation.SOURCE_OUTPUT, "resources", "pid.txt");
-                                Writer writer = file.openWriter();
-                                writer.write(String.valueOf(ProcessHandle.current().pid()));
-                                writer.close();
-                                pidWritten = true;
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        return false;
-                    }
-                }
-            """
-            file('processor/src/main/resources/META-INF/services/javax.annotation.processing.Processor') << "WorkerPidProcessor\n"
-
-            pidProcessorProjectGenerated = true
-        }
-
+    static String getDependsOnPidCapturingAnnotationProcessor() {
         return """
             dependencies {
-                compileOnly project(':processor')
-                annotationProcessor project(':processor')
+                compileOnly project(':${ANNOTATION_PROCESSOR_PROJECT_NAME}')
+                annotationProcessor project(':${ANNOTATION_PROCESSOR_PROJECT_NAME}')
             }
         """
+    }
+
+    private void writeAnnotationProcessorProject() {
+        file("${ANNOTATION_PROCESSOR_PROJECT_NAME}/build.gradle") << """
+            plugins {
+                id 'java'
+            }
+        """
+        file("${ANNOTATION_PROCESSOR_PROJECT_NAME}/src/main/java/WorkerPid.java") << """
+            import java.lang.annotation.ElementType;
+            import java.lang.annotation.Retention;
+            import java.lang.annotation.RetentionPolicy;
+            import java.lang.annotation.Target;
+
+            @Retention(RetentionPolicy.SOURCE)
+            @Target(ElementType.TYPE)
+            public @interface WorkerPid {
+            }
+        """
+        file("${ANNOTATION_PROCESSOR_PROJECT_NAME}/src/main/java/WorkerPidProcessor.java") << """
+            import javax.annotation.processing.AbstractProcessor;
+            import javax.annotation.processing.RoundEnvironment;
+            import javax.annotation.processing.SupportedAnnotationTypes;
+            import javax.annotation.processing.SupportedSourceVersion;
+            import javax.lang.model.SourceVersion;
+            import javax.lang.model.element.TypeElement;
+            import java.util.Set;
+            import javax.tools.FileObject;
+            import javax.tools.StandardLocation;
+            import java.io.Writer;
+
+            @SupportedAnnotationTypes("WorkerPid")
+            @SupportedSourceVersion(SourceVersion.RELEASE_9)
+            public class WorkerPidProcessor extends AbstractProcessor {
+                private boolean pidWritten;
+
+                @Override
+                public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+                    try {
+                        if (!pidWritten) {
+                            System.out.println("Worker daemon pid is " + ProcessHandle.current().pid());
+                            FileObject file = processingEnv.getFiler().createResource(StandardLocation.SOURCE_OUTPUT, "resources", "pid.txt");
+                            Writer writer = file.openWriter();
+                            writer.write(String.valueOf(ProcessHandle.current().pid()));
+                            writer.close();
+                            pidWritten = true;
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    return false;
+                }
+            }
+        """
+        file("${ANNOTATION_PROCESSOR_PROJECT_NAME}/src/main/resources/META-INF/services/javax.annotation.processing.Processor") << "WorkerPidProcessor\n"
     }
 }
