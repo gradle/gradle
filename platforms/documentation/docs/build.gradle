@@ -95,6 +95,9 @@ gradleDocumentation {
         javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
         groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-${libs.groovyVersion}/html/gapi")
     }
+    kotlinDslReference {
+        dokkaVersionOverride = "1.9.10"
+    }
 }
 
 tasks.named("stageDocs") {

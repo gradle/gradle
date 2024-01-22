@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.initialization.StartParameterBuildOptions.BuildCacheDebugLoggingOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildCacheOperationFixtures
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
@@ -26,6 +27,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
 
 class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
+
     public static final String ORIGINAL_HELLO_WORLD = """
             public class Hello {
                 public static void main(String... args) {
@@ -33,6 +35,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
                 }
             }
         """
+
     public static final String CHANGED_HELLO_WORLD = """
             public class Hello {
                 public static void main(String... args) {
@@ -40,6 +43,8 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
                 }
             }
         """
+
+    def cacheOperations = new BuildCacheOperationFixtures(executer, temporaryFolder)
 
     def setup() {
         setupProjectInDirectory(testDirectory)
@@ -87,6 +92,8 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
     }
 
     def "cached tasks are executed with #rerunMethod"() {
+        def taskPath = ":compileJava"
+
         expect:
         cacheDir.listFiles() as List == []
         buildFile << """
@@ -95,26 +102,30 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         """
 
         when:
-        withBuildCache().run "jar"
-        def originalCacheContents = listCacheFiles()
-        def originalModificationTimes = originalCacheContents.collect { file -> TestFile.makeOlder(file); file.lastModified() }
+        withBuildCache().run taskPath
+        def originalCacheKey = cacheOperations.getCacheKeyForTask(taskPath)
+        def originalCacheFile = listCacheFiles().find { it.name == originalCacheKey }
+        TestFile.makeOlder(originalCacheFile)
+        def originalModificationTime = originalCacheFile.lastModified()
+
         then:
         noneSkipped()
-        originalCacheContents.size() > 0
+        originalCacheFile.exists()
 
         expect:
         withBuildCache().run "clean"
 
         when:
-        withBuildCache().run "jar", rerunMethod
-        def updatedCacheContents = listCacheFiles()
-        def updatedModificationTimes = updatedCacheContents*.lastModified()
+        withBuildCache().run taskPath, rerunMethod
+        def updatedCacheKey = cacheOperations.getCacheKeyForTask(taskPath)
+        def updatedCacheFile = listCacheFiles().find { it.name == updatedCacheKey }
+        def updatedModificationTimes = updatedCacheFile.lastModified()
+
         then:
-        executedAndNotSkipped ":compileJava", ":jar"
-        updatedCacheContents == originalCacheContents
-        originalModificationTimes.size().times { i ->
-            assert originalModificationTimes[i] < updatedModificationTimes[i]
-        }
+        executedAndNotSkipped taskPath
+        updatedCacheKey == originalCacheKey
+        updatedCacheFile == originalCacheFile
+        updatedModificationTimes > originalModificationTime
 
         where:
         rerunMethod << ["--rerun-tasks", "-PupToDateWhenFalse=true"]

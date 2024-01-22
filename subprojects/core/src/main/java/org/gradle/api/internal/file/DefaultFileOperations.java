@@ -36,6 +36,7 @@ import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.FileCopier;
 import org.gradle.api.internal.file.delete.DefaultDeleteSpec;
 import org.gradle.api.internal.file.delete.DeleteSpecInternal;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
@@ -50,9 +51,7 @@ import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.cache.internal.DecompressionCache;
-import org.gradle.cache.internal.DecompressionCacheFactory;
-import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
+import org.gradle.cache.internal.DecompressionCoordinator;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
@@ -87,8 +86,8 @@ public class DefaultFileOperations implements FileOperations {
     private final FileCollectionFactory fileCollectionFactory;
     private final TaskDependencyFactory taskDependencyFactory;
     private final ProviderFactory providers;
-    private final DecompressionCacheFactory decompressionCacheFactory;
-    private final ScopedCacheBuilderFactory cacheBuilderFactory;
+    private final TemporaryFileProvider temporaryFileProvider;
+    private final DecompressionCoordinator decompressionCoordinator;
 
     public DefaultFileOperations(
         FileResolver fileResolver,
@@ -104,8 +103,8 @@ public class DefaultFileOperations implements FileOperations {
         DocumentationRegistry documentationRegistry,
         TaskDependencyFactory taskDependencyFactory,
         ProviderFactory providers,
-        DecompressionCacheFactory decompressionCacheFactory,
-        ScopedCacheBuilderFactory cacheBuilderFactory
+        DecompressionCoordinator decompressionCoordinator,
+        TemporaryFileProvider temporaryFileProvider
     ) {
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileResolver = fileResolver;
@@ -117,6 +116,7 @@ public class DefaultFileOperations implements FileOperations {
         this.patternSetFactory = patternSetFactory;
         this.taskDependencyFactory = taskDependencyFactory;
         this.providers = providers;
+        this.temporaryFileProvider = temporaryFileProvider;
         this.fileCopier = new FileCopier(
             deleter,
             directoryFileTreeFactory,
@@ -130,8 +130,7 @@ public class DefaultFileOperations implements FileOperations {
         );
         this.fileSystem = fileSystem;
         this.deleter = deleter;
-        this.decompressionCacheFactory = decompressionCacheFactory;
-        this.cacheBuilderFactory = cacheBuilderFactory;
+        this.decompressionCoordinator = decompressionCoordinator;
     }
 
     @Override
@@ -181,28 +180,25 @@ public class DefaultFileOperations implements FileOperations {
     @Override
     public FileTreeInternal zipTree(Object zipPath) {
         Provider<File> fileProvider = asFileProvider(zipPath);
-        return new FileTreeAdapter(new ZipFileTree(fileProvider, fileSystem, directoryFileTreeFactory, fileHasher, decompressionCacheFactory.create()), taskDependencyFactory, patternSetFactory);
+        return new FileTreeAdapter(new ZipFileTree(fileProvider, fileSystem, directoryFileTreeFactory, fileHasher, decompressionCoordinator, temporaryFileProvider), taskDependencyFactory, patternSetFactory);
     }
 
     @Override
     public FileTreeInternal zipTreeNoLocking(Object zipPath) {
         Provider<File> fileProvider = asFileProvider(zipPath);
-        DecompressionCache nonLockingCache = new DecompressionCache() {
+        DecompressionCoordinator nonLockingCache = new DecompressionCoordinator() {
             @Override
-            public File getBaseDir() {
-                return directoryFileTreeFactory.create(cacheBuilderFactory.baseDirForCrossVersionCache(DecompressionCache.EXPANSION_CACHE_KEY)).getDir();
+            public void close() throws IOException {
+
             }
 
             @Override
-            public void useCache(Runnable action) {
+            public void exclusiveAccessTo(File expandedDir, Runnable action) {
                 action.run();
             }
-
-            @Override
-            public void close() throws IOException {}
         };
 
-        return new FileTreeAdapter(new ZipFileTree(fileProvider, fileSystem, directoryFileTreeFactory, fileHasher, nonLockingCache), taskDependencyFactory, patternSetFactory);
+        return new FileTreeAdapter(new ZipFileTree(fileProvider, fileSystem, directoryFileTreeFactory, fileHasher, nonLockingCache, temporaryFileProvider), taskDependencyFactory, patternSetFactory);
     }
 
     @Override
@@ -217,7 +213,7 @@ public class DefaultFileOperations implements FileOperations {
             }
         });
 
-        TarFileTree tarTree = new TarFileTree(fileProvider, resource.map(MaybeCompressedFileResource::new), fileSystem, directoryFileTreeFactory, fileHasher, decompressionCacheFactory.create());
+        TarFileTree tarTree = new TarFileTree(fileProvider, resource.map(MaybeCompressedFileResource::new), fileSystem, directoryFileTreeFactory, fileHasher, decompressionCoordinator, temporaryFileProvider);
         return new FileTreeAdapter(tarTree, taskDependencyFactory, patternSetFactory);
     }
 
@@ -326,14 +322,14 @@ public class DefaultFileOperations implements FileOperations {
         DocumentationRegistry documentationRegistry = services.get(DocumentationRegistry.class);
         ProviderFactory providers = services.get(ProviderFactory.class);
         TaskDependencyFactory taskDependencyFactory = services.get(TaskDependencyFactory.class);
-        DecompressionCacheFactory decompressionCacheFactory = services.get(DecompressionCacheFactory.class);
-        ScopedCacheBuilderFactory cacheBuilderFactory = services.get(ScopedCacheBuilderFactory.class);
+        DecompressionCoordinator decompressionCoordinator = services.get(DecompressionCoordinator.class);
+        TemporaryFileProvider temporaryFileProvider = services.get(TemporaryFileProvider.class);
 
         DefaultResourceHandler.Factory resourceHandlerFactory = DefaultResourceHandler.Factory.from(
             fileResolver,
             taskDependencyFactory,
             fileSystem,
-            null,
+            temporaryFileProvider,
             textResourceAdapterFactory
         );
 
@@ -351,7 +347,8 @@ public class DefaultFileOperations implements FileOperations {
             documentationRegistry,
             taskDependencyFactory,
             providers,
-            decompressionCacheFactory,
-            cacheBuilderFactory);
+            decompressionCoordinator,
+            temporaryFileProvider
+        );
     }
 }

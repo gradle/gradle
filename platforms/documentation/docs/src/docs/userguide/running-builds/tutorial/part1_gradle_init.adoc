@@ -38,7 +38,7 @@ The Community Edition is a free version of IntelliJ IDEA.
 
 == Step 1. Initializing the Project
 To test the Gradle installation, run Gradle from the command-line:
-[source]
+[source,text]
 ----
 $ gradle
 
@@ -52,17 +52,17 @@ To create a new build in this directory, run gradle init
 If Gradle is not installed, please refer to the <<installation.adoc#installation, installation section>>.
 
 Create a new directory called `tutorial` and `cd` into it:
-[source]
+[source,text]
 ----
 $ mkdir tutorial
 ----
-[source]
+[source,text]
 ----
 $ cd tutorial
 ----
 
 Run `gradle init` with parameters to generate a Java application:
-[source]
+[source,text]
 ----
 $ gradle init --use-defaults --type java-application
 ----
@@ -107,13 +107,13 @@ From now on, you will never invoke Gradle directly; instead, you will use the Gr
 
 == Step 3. Invoking the Gradle Wrapper
 Use the wrapper by entering the following command:
-[source]
+[source,text]
 ----
 $ ./gradlew build
 ----
 
 In Windows, the command is:
-[source]
+[source,text]
 ----
 $ .\gradlew.bat build
 ----
@@ -123,11 +123,11 @@ The first time you run the wrapper, it downloads and caches the Gradle binaries 
 The Gradle Wrapper is designed to be committed to source control so that anyone can build the project without having to first install and configure a specific version of Gradle.
 
 In this case, we invoked Gradle through the wrapper to build our project, so we can see that the `app` directory now includes a new `build` folder:
-[source]
+[source,text]
 ----
 $ cd app
 ----
-[source]
+[source,text]
 ----
 $ ls -al
 ----
@@ -187,11 +187,11 @@ A project is composed of one or more subprojects (sometimes called modules).
 Gradle reads the `settings.gradle.kts` file to figure out which subprojects comprise a project build.
 
 Take a look at the file in your project:
-[source]
+[source,kotlin]
 ----
 plugins {
     // Apply the foojay-resolver plugin to allow automatic download of JDKs
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.7.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
 }
 
 rootProject.name = "tutorial"
@@ -209,7 +209,7 @@ The `build.gradle.kts` file is the core component of the build process and defin
 The `build.gradle.kts` file is read and executed by Gradle.
 
 Take a closer look at the build file in your `app` subproject (under the `app` directory):
-[source]
+[source,kotlin]
 ----
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.

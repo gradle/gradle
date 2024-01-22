@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector
 import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.initialization.layout.ProjectCacheDir
 import org.gradle.process.internal.ExecHandleFactory
 import org.gradle.process.internal.JavaForkOptionsFactory
 import org.gradle.workers.internal.ActionExecutionSpecFactory
@@ -35,7 +36,8 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         Stub(AnnotationProcessorDetector),
         Stub(ClassPathRegistry),
         Stub(ActionExecutionSpecFactory),
-        Stub(InternalProblems)
+        Stub(InternalProblems),
+        Stub(ProjectCacheDir)
     )
 
     def "creates in-process compiler when JavaCompileSpec is provided"() {

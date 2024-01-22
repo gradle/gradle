@@ -25,8 +25,10 @@ import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollection;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvider;
 import org.gradle.api.internal.provider.Collectors.SingleElement;
+import org.gradle.api.provider.CollectionPropertyConfigurer;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
@@ -55,6 +57,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
         init(defaultValue, noValueSupplier());
     }
 
+    @Override
+    protected CollectionSupplierGuard<T, C> getDefaultConvention() {
+        return noValueSupplier();
+    }
+
     private CollectionSupplierGuard<T, C> emptySupplier() {
         return guard(new EmptySupplier());
     }
@@ -76,32 +83,51 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
      */
     protected abstract C emptyCollection();
 
+    public CollectionPropertyConfigurer<T> getExplicitValue() {
+        return new ExplicitValueConfigurer();
+    }
+
+    @Override
+    public HasMultipleValues<T> withActualValue(Action<CollectionPropertyConfigurer<T>> action) {
+        setToConventionIfUnset();
+        action.execute(getExplicitValue());
+        return this;
+    }
+
+    @Override
+    protected boolean isDefaultConvention() {
+        return isNoValueSupplier(getConventionSupplier());
+    }
+
+    private boolean isNoValueSupplier(CollectionSupplierGuard<T, C> valueSupplier) {
+        return valueSupplier.supplier instanceof NoValueSupplier;
+    }
+
     @Override
     public void add(final T element) {
-        Preconditions.checkNotNull(element, "Cannot add a null element to a property of type %s.", collectionType.getSimpleName());
-        addCollector(new SingleElement<>(element));
+        getExplicitValue().add(element);
     }
 
     @Override
     public void add(final Provider<? extends T> providerOfElement) {
-        addCollector(new ElementFromProvider<>(Providers.internal(providerOfElement)));
+        getExplicitValue().add(providerOfElement);
     }
 
     @Override
     @SafeVarargs
     @SuppressWarnings("varargs")
     public final void addAll(T... elements) {
-        addCollector(new ElementsFromArray<>(elements));
+        getExplicitValue().addAll(elements);
     }
 
     @Override
     public void addAll(Iterable<? extends T> elements) {
-        addCollector(new ElementsFromCollection<>(elements));
+        getExplicitValue().addAll(elements);
     }
 
     @Override
     public void addAll(Provider<? extends Iterable<? extends T>> provider) {
-        addCollector(new ElementsFromCollectionProvider<>(Providers.internal(provider)));
+        getExplicitValue().addAll(provider);
     }
 
     @Override
@@ -109,7 +135,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
         return calculateOwnPresentValue().getWithoutSideEffect().size();
     }
 
-    private void addCollector(Collector<T> collector) {
+    private void addExplicitCollector(Collector<T> collector) {
         assertCanMutate();
         setSupplier(getExplicitValue(defaultValue).plus(collector));
     }
@@ -153,8 +179,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
     @Override
     public void set(@Nullable final Iterable<? extends T> elements) {
         if (elements == null) {
-            discardValue();
-            defaultValue = noValueSupplier();
+            unset();
         } else {
             setSupplier(new CollectingSupplier(new ElementsFromCollection<>(elements)));
         }
@@ -176,6 +201,13 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
             }
         }
         setSupplier(new CollectingSupplier(new ElementsFromCollectionProvider<>(p)));
+    }
+
+    @Override
+    public SupportsConvention unset() {
+        discardValue();
+        defaultValue = noValueSupplier();
+        return this;
     }
 
     @Override
@@ -221,7 +253,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
     @Override
     public HasMultipleValues<T> convention(@Nullable Iterable<? extends T> elements) {
         if (elements == null) {
-            setConvention(noValueSupplier());
+            unsetConvention();
         } else {
             setConvention(new CollectingSupplier(new ElementsFromCollection<>(elements)));
         }
@@ -567,6 +599,45 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
             try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().open(owner)) {
                 return supplier.calculatePresence(consumer);
             }
+        }
+    }
+
+    private abstract class Configurer implements CollectionPropertyConfigurer<T> {
+        protected abstract void addCollector(Collector<T> collector);
+
+        @Override
+        public void add(final T element) {
+            Preconditions.checkNotNull(element, "Cannot add a null element to a property of type %s.", collectionType.getSimpleName());
+            addCollector(new SingleElement<>(element));
+        }
+
+        @Override
+        public void add(final Provider<? extends T> providerOfElement) {
+            addCollector(new ElementFromProvider<>(Providers.internal(providerOfElement)));
+        }
+
+        @Override
+        @SafeVarargs
+        @SuppressWarnings("varargs")
+        public final void addAll(T... elements) {
+            addCollector(new ElementsFromArray<>(elements));
+        }
+
+        @Override
+        public void addAll(Iterable<? extends T> elements) {
+            addCollector(new ElementsFromCollection<>(elements));
+        }
+
+        @Override
+        public void addAll(Provider<? extends Iterable<? extends T>> provider) {
+            addCollector(new ElementsFromCollectionProvider<>(Providers.internal(provider)));
+        }
+    }
+
+    private class ExplicitValueConfigurer extends Configurer {
+        @Override
+        protected void addCollector(Collector<T> collector) {
+            addExplicitCollector(collector);
         }
     }
 }

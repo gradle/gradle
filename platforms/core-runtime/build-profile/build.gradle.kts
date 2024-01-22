@@ -5,12 +5,14 @@ plugins {
 description = "Provides high-level insights into a Gradle build (--profile)"
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":messaging"))
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":enterprise-logging"))
+
     implementation(project(":logging"))
-    implementation(project(":core-api"))
-    implementation(project(":core"))
-    implementation(project(":build-option"))
+    implementation(project(":logging-api"))
 
     implementation(libs.guava)
 

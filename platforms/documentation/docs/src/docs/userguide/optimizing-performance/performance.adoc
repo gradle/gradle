@@ -98,7 +98,7 @@ Neither will a project with lots of inter-subproject dependencies.
 But most multi-subproject builds see a reduction in build times.
 
 For more information about parallel builds, check out the
-<<multi_project_configuration_and_execution.adoc#sec:parallel_execution,parallel builds documentation>>.
+<<structuring_software_products_details.adoc#sec:parallel_execution,parallel builds documentation>>.
 
 === Visualize parallelism with build scans
 
@@ -369,7 +369,7 @@ In this situation, there are several ways to reduce the delay:
   by two seconds in each Gradle invocation.
 
 * If multiple subprojects, but not all, use the script, you could refactor the script and
-  all surrounding logic into a custom plugin located in <<organizing_gradle_projects#sec:build_sources,`buildSrc`>>.
+  all surrounding logic into a custom plugin located in <<multi_project_builds.adoc#sec:multiproject_buildsrc,`buildSrc`>>.
   Apply the custom plugin to only the relevant subprojects, reducing configuration delay and avoiding code duplication.
 
 === Statically compile tasks and plugins

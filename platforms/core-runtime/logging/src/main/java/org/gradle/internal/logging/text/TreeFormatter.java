@@ -172,7 +172,12 @@ public class TreeFormatter implements DiagnosticsVisitor {
         if (value == null) {
             append("null");
         } else if (value.getClass().isArray()) {
-            appendValues((Object[]) value);
+            Class<?> componentType = value.getClass().getComponentType();
+            if (componentType.isPrimitive()) {
+                append(value.toString());
+            } else {
+                appendValues((Object[]) value);
+            }
         } else if (value instanceof String) {
             append("'");
             append(value.toString());

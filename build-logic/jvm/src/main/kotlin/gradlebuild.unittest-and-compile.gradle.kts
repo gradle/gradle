@@ -21,7 +21,7 @@ import com.gradle.enterprise.gradleplugin.testselection.PredictiveTestSelectionE
 import com.gradle.enterprise.gradleplugin.testselection.internal.PredictiveTestSelectionExtensionInternal
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
-import gradlebuild.basics.accessors.kotlin
+import gradlebuild.basics.accessors.kotlinMainSourceSet
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.maxParallelForks
 import gradlebuild.basics.maxTestDistributionRemoteExecutors
@@ -102,7 +102,7 @@ fun configureSourcesVariant() {
             outgoing.artifact(it)
         }
         pluginManager.withPlugin("org.jetbrains.kotlin.jvm") {
-            main.kotlin.srcDirs.forEach {
+            kotlinMainSourceSet.srcDirs.forEach {
                 outgoing.artifact(it)
             }
         }
@@ -332,7 +332,7 @@ fun Project.isPerformanceProject() = setOf("build-scan-performance", "performanc
  * Smoke and soak tests are hard to grasp for PTS, that is why we run them without.
  * When running on Windows with PTS, SimplifiedKotlinScriptEvaluatorTest fails. See https://github.com/gradle/gradle-private/issues/3615.
  */
-fun Project.supportsPredictiveTestSelection() = !isPerformanceProject() && !setOf("smoke-test", "soak", "kotlin-dsl").contains(name)
+fun Project.supportsPredictiveTestSelection() = !isPerformanceProject() && !setOf("smoke-test", "soak", "kotlin-dsl", "smoke-ide-test").contains(name)
 
 /**
  * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).

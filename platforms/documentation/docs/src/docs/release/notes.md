@@ -10,6 +10,8 @@ Include only their name, impactful features should be called out separately belo
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
 
+Be sure to check out the [Public Roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
+
 ## Upgrade instructions
 
 Switch your build to use Gradle @version@ by updating your wrapper:
@@ -50,6 +52,37 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+### Configuration cache
+
+The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
+This feature can significantly improve build performance.
+
+#### Supporting standard streams as task property values
+
+The standard streams (`System.in`, `System.out`, and `System.err`) can now be used as
+`standardInput`, `standardOutput`, and `errorOutput` of [`Exec`](javadoc/org/gradle/api/tasks/Exec.html) and [`JavaExec`](javadoc/org/gradle/api/tasks/JavaExec.html) tasks.
+Other tasks with properties of types `java.io.InputStream` and `java.io.OutputStream` can also use the standard streams as property values.
+Setting up custom standard streams with `System.setIn`, `System.setOut` and `System.setErr` isn't supported.
+
+### Documentation
+
+#### Kotlin DSL Reference
+
+Content derived from Javadoc contains a "Since" section now, specifying the Gradle version when the particular functionality has been introduced.
+The information comes from `@since` tags in the Javadoc, but which weren't displayed until now. 
+
+### Other improvements
+
+#### Generating tidy projects with Gradle init
+
+Using the new `--no-comments` option allows generating projects that contain only code without clarifying comments.
+The resulting build files and source files are smaller and less noisy.
+
+```
+gradle init --use-defaults --type kotlin-library --no-comments
+```
+
+It is possible to persist the preference by setting the `org.gradle.buildinit.comments` property to `false`.
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

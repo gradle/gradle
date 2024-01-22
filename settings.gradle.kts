@@ -26,7 +26,7 @@ pluginManagement {
 plugins {
     id("com.gradle.enterprise").version("3.16.1") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
-    id("org.gradle.toolchains.foojay-resolver-convention") version("0.7.0")
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.8.0")
 }
 
 includeBuild("build-logic-commons")
@@ -235,6 +235,7 @@ unassigned {
     subproject("soak")
     subproject("smoke-test")
     subproject("performance")
+    subproject("smoke-ide-test") // eventually should be owned by IDEX team
 }
 
 rootProject.name = "gradle"

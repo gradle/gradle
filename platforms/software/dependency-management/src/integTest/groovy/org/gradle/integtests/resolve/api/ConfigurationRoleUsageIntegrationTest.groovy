@@ -441,13 +441,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         configuration << ['api', 'implementation', 'compileOnly', 'runtimeOnly', 'archives']
     }
 
-    /**
-     * This test ensures that the Kotlin plugin will not emit deprecation warnings when it prevents these configurations created by the
-     * Java plugin from being consumed.
-     *
-     * @see <a href="https://github.com/JetBrains/kotlin/blob/4be359ba02fba4c5539ba50392126b5367fa9169/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/targets/jvm/KotlinJvmTarget.kt#L101">KotlinJvmTarget.kt</a>
-     */
-    def "setting consumable = false is permitted without warning for special cases to support Kotlin plugin (can change #configuration usage without warning = #allowed)"() {
+    def "setting consumable = false is deprecated for consumable configurations added by java plugin"() {
         given: "a buildscript which attempts to change a configuration's usage"
         buildFile << """
             plugins {
@@ -463,17 +457,11 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         expect: "the build succeeds and a deprecation warning is logged if the configuration is not allowed to change"
-        if (!allowed) {
-            expectConsumableChanging(":$configuration", false)
-        }
+        expectConsumableChanging(":$configuration", false)
         succeeds 'help'
 
         where: "a non-exhaustive list of configurations is tested"
-        configuration           || allowed
-        'apiElements'           || true
-        'runtimeElements'       || true
-        'default'               || false
-        'archives'              || false
+        configuration << ['default', 'archives', 'apiElements', 'runtimeElements']
     }
 
     def "changing consumable to true always warns for non-LEGACY configurations (can not change #configuration usage)"() {

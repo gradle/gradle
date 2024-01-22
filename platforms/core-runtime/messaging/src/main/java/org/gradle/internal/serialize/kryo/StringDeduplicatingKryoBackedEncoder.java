@@ -23,6 +23,7 @@ import org.gradle.internal.serialize.FlushableEncoder;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
 
@@ -67,6 +68,21 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
     @Override
     public void writeSmallInt(int value) {
         output.writeInt(value, true);
+    }
+
+    @Override
+    public void writeShort(short value) throws IOException {
+        output.writeShort(value);
+    }
+
+    @Override
+    public void writeFloat(float value) throws IOException {
+        output.writeFloat(value);
+    }
+
+    @Override
+    public void writeDouble(double value) throws IOException {
+        output.writeDouble(value);
     }
 
     @Override

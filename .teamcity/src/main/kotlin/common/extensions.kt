@@ -193,9 +193,9 @@ fun BuildSteps.checkCleanM2AndAndroidUserHome(os: Os = Os.LINUX, buildType: Buil
     }
 }
 
-fun BuildStep.onlyRunOnPreTestedCommitBuildBranch() {
+fun BuildStep.onlyRunOnGitHubMergeQueueBranch() {
     conditions {
-        contains("teamcity.build.branch", "pre-test/")
+        matches("teamcity.build.branch", "(pre-test/.*)|(gh-readonly-queue/.*)")
     }
 }
 
@@ -288,7 +288,7 @@ fun BuildSteps.killProcessStep(buildType: BuildType?, mode: KillProcessMode, os:
             if (os == Os.WINDOWS) "\nwmic Path win32_process Where \"name='java.exe'\"" else ""
         skipConditionally(buildType)
         if (mode == KILL_ALL_GRADLE_PROCESSES && buildType is FunctionalTest) {
-            onlyRunOnPreTestedCommitBuildBranch()
+            onlyRunOnGitHubMergeQueueBranch()
         }
     }
 }

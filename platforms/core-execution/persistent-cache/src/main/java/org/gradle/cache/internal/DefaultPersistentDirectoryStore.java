@@ -15,7 +15,6 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.FileLockManager;
@@ -48,13 +47,13 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     public static final int CLEANUP_INTERVAL_IN_HOURS = 24;
 
     private final File dir;
-    private final CacheBuilder.LockTarget lockTarget;
     private final LockOptions lockOptions;
     @Nullable
     private final CacheCleanupStrategy cacheCleanupStrategy;
     private final FileLockManager lockManager;
     private final ExecutorFactory executorFactory;
     private final String displayName;
+
     protected final File propertiesFile;
     private final File gcFile;
     private final ProgressLoggerFactory progressLoggerFactory;
@@ -63,7 +62,6 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     public DefaultPersistentDirectoryStore(
         File dir,
         @Nullable String displayName,
-        CacheBuilder.LockTarget lockTarget,
         LockOptions lockOptions,
         @Nullable CacheCleanupStrategy cacheCleanupStrategy,
         FileLockManager fileLockManager,
@@ -71,7 +69,6 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         ProgressLoggerFactory progressLoggerFactory
     ) {
         this.dir = dir;
-        this.lockTarget = lockTarget;
         this.lockOptions = lockOptions;
         this.cacheCleanupStrategy = cacheCleanupStrategy;
         this.lockManager = fileLockManager;
@@ -100,15 +97,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     private File getLockTarget() {
-        switch (lockTarget) {
-            case CacheDirectory:
-            case DefaultTarget:
-                return dir;
-            case CachePropertiesFile:
-                return propertiesFile;
-            default:
-                throw new IllegalArgumentException("Unsupported lock target: " + lockTarget);
-        }
+        return dir;
     }
 
     protected CacheInitializationAction getInitAction() {
@@ -140,13 +129,8 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         return Arrays.asList(propertiesFile, gcFile, determineLockTargetFile(getLockTarget()));
     }
 
-    // TODO: Duplicated in DefaultFileLockManager
     static File determineLockTargetFile(File target) {
-        if (target.isDirectory()) {
-            return new File(target, target.getName() + ".lock");
-        } else {
-            return new File(target.getParentFile(), target.getName() + ".lock");
-        }
+        return new File(target, target.getName() + ".lock");
     }
 
     @Override

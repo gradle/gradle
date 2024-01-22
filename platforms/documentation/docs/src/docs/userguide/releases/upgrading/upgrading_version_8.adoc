@@ -35,6 +35,104 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.7]]
+== Upgrading from 8.6 and earlier
+
+=== Potential breaking changes
+
+==== Upgrade to Kotlin 1.9.22
+
+The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.22[Kotlin 1.9.22].
+
+=== Deprecations
+
+[[deprecated_invalid_url_decoding]]
+==== Deprecated invalid URL decoding behavior
+Prior to Gradle 8.3, Gradle would decode a `CharSequence` given to `link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:uri(java.lang.Object)[Project.uri(Object)]` using an algorithm that accepted invalid URLs and improperly decoded others.
+Gradle now uses the `URI` class to parse and decode URLs, but with a fallback to the legacy behavior in the event of an error.
+
+Starting in Gradle 9.0, the fallback will be removed, and an error will be thrown instead.
+
+To fix a deprecation warning, invalid URLs that require the legacy behavior should be re-encoded to be valid URLs, such as in the following examples:
+
+.Legacy URL Conversions
+|===
+| Original Input | New Input | Reasoning
+
+| `file:relative/path` | `relative/path` | The `file` scheme does not support relative paths.
+| `file:relative/path%21` | `relative/path!` | Without a scheme, the path is taken as-is, without decoding.
+| `https://example.com/my folder/` | `https://example.com/my%20folder/` | Spaces are not valid in URLs.
+| `https://example.com/my%%badly%encoded%path` | `https://example.com/my%25%25badly%25encoded%25path` | `%` must be encoded as `%25` in URLs, and no `%`-escapes should be invalid.
+|===
+
+[[deprecate_self_resolving_dependency]]
+==== Deprecated `SelfResolvingDependency`
+
+The `SelfResolvingDependency` interface has been deprecated for removal in Gradle 9.0.
+This type dates back to the first versions of Gradle, where some dependencies could be resolved independently.
+Now, all dependencies should be resolved as part of a dependency graph using a `Configuration`.
+
+Currently, `ProjectDependency` and `FileCollectionDependency` implement this interface.
+In Gradle 9.0, these types will no longer implement `SelfResolvingDependency`.
+Instead, they will both directly implement `Dependency`.
+
+As such, the following methods of `ProjectDependency` and `FileCollectionDependency` will no longer be avaDilable:
+
+- `resolve`
+- `resolve(boolean)`
+- `getBuildDependencies`
+
+Consider the following scripts that showcase the deprecated interface and its replacement:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+}
+
+dependencies {
+    implementation(files("bar.txt"))
+    implementation(project(":foo"))
+}
+
+tasks.register("resolveDeprecated") {
+    // Wire build dependencies (calls getBuildDependencies)
+    dependsOn(configurations["implementation"].dependencies.toSet())
+
+    // Resolve dependencies
+    doLast {
+        configurations["implementation"].dependencies.withType<FileCollectionDependency>() {
+            assert(resolve().map { it.name } == listOf("bar.txt"))
+            assert(resolve(true).map { it.name } == listOf("bar.txt"))
+        }
+        configurations["implementation"].dependencies.withType<ProjectDependency>() {
+            // These methods do not even work properly.
+            assert(resolve().map { it.name } == listOf<String>())
+            assert(resolve(true).map { it.name } == listOf<String>())
+        }
+    }
+}
+
+tasks.register("resolveReplacement") {
+    val conf = configurations["runtimeClasspath"]
+
+    // Wire build dependencies
+    dependsOn(conf)
+
+    // Resolve dependencies
+    val files = conf.files
+    doLast {
+        assert(files.map { it.name } == listOf("bar.txt", "foo.jar"))
+    }
+}
+----
+======
+=====
+
 [[changes_8.6]]
 == Upgrading from 8.5 and earlier
 
@@ -213,6 +311,75 @@ dependencies {
 ==== Deprecated `ArtifactIdentifier`
 The `ArtifactIdentifier` class has been deprecated for removal in Gradle 9.0.
 
+[[dependency_mutate_dependency_collector_after_finalize]]
+==== Deprecate mutating `DependencyCollector` dependencies after observation
+
+Starting in Gradle 9.0, mutating dependencies sourced from a link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyCollector.html[DependencyCollector] after those dependencies have been observed will result in an error.
+The `DependencyCollector` interface is used to declare dependencies within the test suites DSL.
+
+Consider the following example where a test suite's dependency is mutated after it is observed:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+}
+
+testing.suites {
+    named<JvmTestSuite>("test") {
+        dependencies {
+            // Dependency is declared on a `DependencyCollector`
+            implementation("com:foo")
+        }
+    }
+}
+
+configurations.testImplementation {
+    // Calling `all` here realizes/observes all lazy sources, including the `DependencyCollector`
+    // from the test suite block. Operations like resolving a configuration similarly realize lazy sources.
+    dependencies.all {
+        if (this is ExternalDependency && group == "com" && name == "foo" && version == null) {
+            // Dependency is mutated after observation
+            version {
+                require("2.0")
+            }
+        }
+    }
+}
+----
+======
+=====
+
+In the above example, the build logic uses iteration and mutation to try to set a default version for a particular dependency if the version is not already set.
+Build logic like the above example creates challenges in resolving declared dependencies, as reporting tools will display this dependency as if the user declared the version as "2.0", even though they never did.
+Instead, the build logic can avoid iteration and mutation by declaring a `preferred` version constraint on the dependency's coordinates.
+This allows the dependency management engine to use the version declared on the constraint if no other version is declared.
+
+Consider the following example that replaces the above iteration with an indiscriminate <<rich_versions.adoc#sec:preferred-version,preferred>> version constraint:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    constraints {
+        testImplementation("com:foo") {
+            version {
+                prefer("2.0")
+            }
+        }
+    }
+}
+----
+======
+=====
+
 [[changes_8.5]]
 == Upgrading from 8.4 and earlier
 
@@ -360,7 +527,7 @@ You can work around this by running your build with the `javax.xml.accessExterna
 
 On the command line, add this to your Gradle invocation:
 
-[source]
+[source,properties]
 ----
 -Djavax.xml.accessExternalDTD=http
 ----
@@ -648,6 +815,7 @@ output.map { it.asFile.path }
 ======
 =====
 
+[[declaring_client_module_dependencies]]
 ==== Deprecated `ClientModule` dependencies
 
 `link:{javadocPath}/org/gradle/api/artifacts/ClientModule.html[ClientModule]` dependencies are deprecated and will be removed in Gradle 9.0.

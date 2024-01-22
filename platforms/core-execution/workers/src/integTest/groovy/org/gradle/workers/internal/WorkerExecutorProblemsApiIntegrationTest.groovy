@@ -128,8 +128,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
         run("reportProblem")
 
         then:
-        collectedProblems.size() == 1
-        def problem = collectedProblems[0]
+        def problem = collectedProblem
         problem.operationId == Long.parseLong(buildOperationIdFile.text)
         problem.exception.message == "Exception message"
         problem.exception.stackTrace.contains("Caused by: java.lang.Exception: Wrapped cause")

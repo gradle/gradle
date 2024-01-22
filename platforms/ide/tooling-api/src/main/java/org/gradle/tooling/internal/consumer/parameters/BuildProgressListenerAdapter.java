@@ -765,8 +765,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             toLocations(details.getLocations()),
             toDocumentationLink(details.getDocumentationLink()),
             toSolutions(details.getSolutions()),
-            toAdditionalData(details.getAdditionalData()),
-            toExceptionContainer(details.getException())
+            toAdditionalData(details.getAdditionalData())
+//            ,            toExceptionContainer(details.getException())
         );
     }
 

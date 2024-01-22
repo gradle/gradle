@@ -42,7 +42,7 @@ public interface ConfigurableValue<C extends ConfigurableValue.Configurer> {
 
     /**
      * Applies the action to the current value of the property, be it defined via convention,
-     * or as an explicit value.
+     * or as an explicit value, committing the resulting value as the new explicit value.
      *
      * @param action an action to incrementally configure this object
      *

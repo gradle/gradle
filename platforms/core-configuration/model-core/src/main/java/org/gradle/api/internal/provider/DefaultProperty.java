@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
 public class DefaultProperty<T> extends AbstractProperty<T, AbstractMinimalProvider.ProviderGuard<? extends T>> implements Property<T> {
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
+    private final static ProviderGuard<?> NOT_DEFINED = Cast.uncheckedCast(GuardedData.of(Providers.notDefined(), Providers.notDefined()));
 
     public DefaultProperty(PropertyHost propertyHost, Class<T> type) {
         super(propertyHost);
@@ -121,6 +122,18 @@ public class DefaultProperty<T> extends AbstractProperty<T, AbstractMinimalProvi
     }
 
     @Override
+    public Property<T> unset() {
+        discardValue();
+        return this;
+    }
+
+    @Override
+    public Property<T> unsetConvention() {
+        discardConvention();
+        return this;
+    }
+
+    @Override
     protected ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(ProviderGuard<? extends T> value) {
         // Discard this property from a provider chain, as it does not contribute anything to the calculation.
         return value.calculateExecutionTimeValue();
@@ -137,12 +150,21 @@ public class DefaultProperty<T> extends AbstractProperty<T, AbstractMinimalProvi
     }
 
     @Override
+    protected ProviderGuard<? extends T> getDefaultConvention() {
+        return Cast.uncheckedCast(NOT_DEFINED);
+    }
+
+    @Override
+    protected boolean isDefaultConvention() {
+        return getConventionSupplier() == NOT_DEFINED;
+    }
+
+    @Override
     protected String describeContents() {
         // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
         return String.format("property(%s, %s)", type.getName(), getSupplier());
     }
 
-    @Override
     public void update(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends T>, ? super Provider<T>> transform) {
         Provider<? extends T> newValue = transform.transform(shallowCopy());
         if (newValue != null) {

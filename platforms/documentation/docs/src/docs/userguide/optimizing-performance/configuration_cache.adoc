@@ -697,6 +697,8 @@ In all cases the reason these types are disallowed is that their state cannot ea
 
 Live JVM state types (e.g. `ClassLoader`, `Thread`, `OutputStream`, `Socket` etc...) are simply disallowed.
 These types almost never represent a task input or output.
+The only exceptions are the standard streams: `System.in`, `System.out`, and `System.err`.
+These streams can be used, for example, as parameters to link:{groovyDslPath}/org.gradle.api.tasks.Exec.html[`Exec`] and link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html[`JavaExec`] tasks.
 
 Gradle model types (e.g. `Gradle`, `Settings`, `Project`, `SourceSet`, `Configuration` etc...) are usually used to carry some task input that should be explicitly and precisely declared instead.
 
@@ -1120,12 +1122,12 @@ or else Gradle will not be able to reuse existing cached configurations.
 === Generating an encryption key that is compatible with GRADLE_ENCRYPTION_KEY
 
 For Gradle to encrypt the configuration cache using a user-specified encryption key,
-you must run Gradle while having the GRADLE_ENCRYPTION_KEY environment variable set with a valid AES 128-bit key, encoded as a Base64 string.
+you must run Gradle while having the GRADLE_ENCRYPTION_KEY environment variable set with a valid AES key, encoded as a Base64 string.
 
-One way of generating a Base64-encoded AES-128 key is by using a command like this:
+One way of generating a Base64-encoded AES-compatible key is by using a command like this:
 
 ```
-❯ openssl enc -aes-128-cbc -P -base64 -pbkdf2 -nosalt -k YOUR-PASSPHRASE | grep key | cut -f 2 -d =
+❯ openssl rand -base64 16
 ```
 
 This command should work on Linux, Mac OS, or on Windows, if using a tool like Cygwin.

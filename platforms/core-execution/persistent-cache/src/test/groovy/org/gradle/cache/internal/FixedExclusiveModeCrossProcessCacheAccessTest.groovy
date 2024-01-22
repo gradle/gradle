@@ -19,7 +19,7 @@ package org.gradle.cache.internal
 import org.gradle.api.Action
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
-import org.gradle.cache.internal.filelock.LockOptionsBuilder
+import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Specification
 
@@ -29,7 +29,7 @@ class FixedExclusiveModeCrossProcessCacheAccessTest extends Specification {
     def initAction = Mock(CacheInitializationAction)
     def onOpenAction = Mock(Action)
     def onCloseAction = Mock(Action)
-    def cacheAccess = new FixedExclusiveModeCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, initAction, onOpenAction, onCloseAction)
+    def cacheAccess = new FixedExclusiveModeCrossProcessCacheAccess("<cache>", file, DefaultLockOptions.mode(FileLockManager.LockMode.Exclusive), lockManager, initAction, onOpenAction, onCloseAction)
 
     def "acquires lock then validates cache and runs handler action on open"() {
         def lock = Mock(FileLock)

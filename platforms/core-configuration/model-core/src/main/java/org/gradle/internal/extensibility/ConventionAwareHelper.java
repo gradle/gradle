@@ -23,6 +23,8 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.provider.HasMultipleValues;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Cast;
@@ -73,8 +75,8 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
             // Java bean to Property where old code uses ConventionMapping to set conventions.
             Class<? extends IConventionAware> sourceType = _source.getClass();
             Method getter = JavaPropertyReflectionUtil.findGetterMethod(sourceType, propertyName);
-            if (getter != null && (Property.class.isAssignableFrom(getter.getReturnType()) || SupportsConvention.class.isAssignableFrom(getter.getReturnType()))) {
-                Object target;
+            if (getter != null && SupportsConvention.class.isAssignableFrom(getter.getReturnType())) {
+                SupportsConvention target;
                 try {
                     target = Cast.uncheckedNonnullCast(getter.invoke(_source));
                 } catch (IllegalAccessException | InvocationTargetException e) {
@@ -95,10 +97,17 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
         return mapping;
     }
 
-    private boolean mapConventionOn(Object target, MappedPropertyImpl mapping) {
+    private boolean mapConventionOn(SupportsConvention target, MappedPropertyImpl mapping) {
         if (target instanceof Property) {
             Property<Object> asProperty = Cast.uncheckedNonnullCast(target);
             asProperty.convention(new DefaultProvider<>(() -> mapping.getValue(_convention, _source)));
+        } else if (target instanceof MapProperty) {
+            MapProperty<Object, Object> asMapProperty = Cast.uncheckedNonnullCast(target);
+            DefaultProvider<Map<Object, Object>> convention = new DefaultProvider<>(() -> Cast.uncheckedNonnullCast(mapping.getValue(_convention, _source)));
+            asMapProperty.convention(convention);
+        } else if (target instanceof HasMultipleValues) {
+            HasMultipleValues<Object> asCollectionProperty = Cast.uncheckedNonnullCast(target);
+            asCollectionProperty.convention(new DefaultProvider<>(() -> Cast.uncheckedNonnullCast(mapping.getValue(_convention, _source))));
         } else if (target instanceof ConfigurableFileCollection) {
             ConfigurableFileCollection asFileCollection = Cast.uncheckedNonnullCast(target);
             asFileCollection.convention((Callable) () -> mapping.getValue(_convention, _source));

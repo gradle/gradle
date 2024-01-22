@@ -36,7 +36,7 @@ class ConfigurationCacheFixture {
         this.spec = spec
         buildOperations = new BuildOperationsFixture(spec.executer, spec.temporaryFolder)
         configurationCacheBuildOperations = new ConfigurationCacheBuildOperationsFixture(buildOperations)
-        problems = new ConfigurationCacheProblemsFixture(spec.executer, spec.testDirectory)
+        problems = new ConfigurationCacheProblemsFixture(spec.testDirectory)
     }
 
     /**
@@ -111,7 +111,11 @@ class ConfigurationCacheFixture {
 
     void assertStateStoredAndDiscarded(HasBuildActions details, HasProblems problemDetails) {
         assertHasStoreReason(details)
-        configurationCacheBuildOperations.assertStateStored(false)
+        if (details.hasStoreFailure) {
+            configurationCacheBuildOperations.assertStateStoreFailed()
+        } else {
+            configurationCacheBuildOperations.assertStateStored(false)
+        }
 
         def message = "Configuration cache entry ${details.storeAction}"
         boolean isFailure = spec.result instanceof ExecutionFailure
@@ -345,6 +349,7 @@ class ConfigurationCacheFixture {
     trait HasBuildActions {
         boolean runsTasks = true
         boolean loadsOnStore = true
+        boolean hasStoreFailure = true
 
         abstract String getStoreAction()
     }

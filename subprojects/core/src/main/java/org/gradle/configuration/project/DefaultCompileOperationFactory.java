@@ -51,7 +51,7 @@ public class DefaultCompileOperationFactory implements CompileOperationFactory {
 
     public CompileOperation<BuildScriptData> getScriptCompileOperation(ScriptSource scriptSource, ScriptTarget scriptTarget) {
         BuildScriptTransformer buildScriptTransformer = new BuildScriptTransformer(scriptSource, scriptTarget);
-        String operationId = scriptTarget.getId();
-        return new FactoryBackedCompileOperation<>(operationId, BODY_COMPILE_STAGE, buildScriptTransformer, buildScriptTransformer, buildScriptDataSerializer);
+        String templateId = scriptTarget.getId();
+        return new FactoryBackedCompileOperation<>(templateId, BODY_COMPILE_STAGE, buildScriptTransformer, buildScriptTransformer, buildScriptDataSerializer);
     }
 }

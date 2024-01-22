@@ -16,6 +16,7 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultClassPathProvider;
@@ -36,6 +37,11 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.resources.TextResourceFactory;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
+import org.gradle.cache.internal.DecompressionCoordinator;
+import org.gradle.cache.internal.DefaultDecompressionCoordinator;
+import org.gradle.cache.internal.scopes.DefaultBuildTreeScopedCacheBuilderFactory;
+import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
@@ -91,7 +97,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
     @Override
     public DefaultWorkResult run(TransportableActionExecutionSpec spec) {
         try {
-            try (WorkerProjectServices internalServices = new WorkerProjectServices(spec.getBaseDir(), this.internalServices)) {
+            try (WorkerProjectServices internalServices = new WorkerProjectServices(spec.getBaseDir(), spec.getProjectCacheDir(), this.internalServices)) {
                 RequestHandler<TransportableActionExecutionSpec, DefaultWorkResult> worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure(), internalServices);
                 return worker.run(spec);
             }
@@ -160,10 +166,34 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
         }
     }
 
+    /**
+     * This is not correct!
+     *
+     * These services are normally available in the build session scope, not the project scope.
+     * However, workers do not observe the same lifecycle as the build and do not stop or recreate build session services between builds.
+     * This works around that by recreating the build session scope services for every request.
+     */
+    @NonNullApi
+    static class WorkerBuildSessionScopeWorkaroundServices {
+        private final File projectCacheDir;
+
+        WorkerBuildSessionScopeWorkaroundServices(File projectCacheDir) {
+            this.projectCacheDir = projectCacheDir;
+        }
+
+        protected BuildTreeScopedCacheBuilderFactory createBuildTreeScopedCache(UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+            return new DefaultBuildTreeScopedCacheBuilderFactory(projectCacheDir, unscopedCacheBuilderFactory);
+        }
+        protected DecompressionCoordinator createDecompressionCoordinator(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
+            return new DefaultDecompressionCoordinator(cacheBuilderFactory);
+        }
+    }
+
     static class WorkerProjectServices extends DefaultServiceRegistry {
-        public WorkerProjectServices(File baseDir, ServiceRegistry... parents) {
-            super("worker file services for " + baseDir.getAbsolutePath(), parents);
+        public WorkerProjectServices(File baseDir, File projectCacheDir, ServiceRegistry... parents) {
+            super("worker request services for " + baseDir.getAbsolutePath(), parents);
             addProvider(new WorkerSharedProjectScopeServices(baseDir));
+            addProvider(new WorkerBuildSessionScopeWorkaroundServices(projectCacheDir));
         }
 
         protected Instantiator createInstantiator(InstantiatorFactory instantiatorFactory) {

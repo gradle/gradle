@@ -106,11 +106,12 @@ public class DefaultProblemDetails implements InternalBasicProblemDetails, Seria
         return solutions;
     }
 
-    @Nullable
-    @Override
-    public RuntimeException getException() {
-        return exception;
-    }
+    //TODO: fix in 8.7
+//    @Nullable
+//    @Override
+//    public RuntimeException getException() {
+//        return exception;
+//    }
 
     @Override
     public InternalAdditionalData getAdditionalData() {

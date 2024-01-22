@@ -50,7 +50,7 @@ Builds with slow configuration time might affect the IDE responsiveness, please 
 * Knowledge of Kotlin syntax and basic language features is very helpful. The link:{kotlin-reference}[Kotlin reference documentation] and link:https://kotlinlang.org/docs/tutorials/koans.html[Kotlin Koans] should be useful to you.
 * Use of the `plugins {}` block to declare Gradle plugins significantly improves the editing experience, and is highly recommended. Consider adopting it in your Groovy build scripts before converting them to Kotlin.
 * The Kotlin DSL will not support `model {}` elements. This is part of the link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[discontinued Gradle Software Model].
-* Enabling the incubating <<multi_project_configuration_and_execution.adoc#sec:configuration_on_demand, configuration on demand>> feature is not recommended as it can lead to very hard-to-diagnose problems.
+* Enabling the incubating <<structuring_software_products_details.adoc#sec:configuration_on_demand, configuration on demand>> feature is not recommended as it can lead to very hard-to-diagnose problems.
 
 Read more in the <<kotlin_dsl.adoc#kotlin_dsl,Gradle Kotlin DSL Primer>>.
 
@@ -303,7 +303,7 @@ Working with containers in the Gradle Kotlin DSL is <<kotlin_dsl.adoc#kotdsl:con
 If you don't know what type a task has, then you can find that information out via the built-in `help` task.
 Simply pass it the name of the task you're interested in using the `--task` option, like so:
 
-[source]
+[source,text]
 ----
 ❯ ./gradlew help --task jar
 ...
@@ -327,7 +327,7 @@ Now, for the sake of the example, let's look at the same configuration applied u
 
 We first determine the types of the `bootJar` and `bootRun` tasks via the `help` task:
 
-[source]
+[source,text]
 ----
 ❯ ./gradlew help --task bootJar
 ...
@@ -335,7 +335,7 @@ Type
      BootJar (org.springframework.boot.gradle.tasks.bundling.BootJar)
 ----
 
-[source]
+[source,text]
 ----
 ❯ ./gradlew help --task bootRun
 ...
@@ -478,7 +478,7 @@ There are two key best practices that make it easier to work within the static c
 
 The <<plugins.adoc#sec:plugins_block,`plugins {}` block>> is about keeping your build scripts declarative in order to get the best out of the Kotlin DSL.
 
-Utilizing the <<organizing_gradle_projects.adoc#sec:build_sources,_buildSrc_ project>> is about organizing your build logic into shared local plugins and conventions that are easily testable and provide good IDE support.
+Utilizing the <<multi_project_builds.adoc#sec:multiproject_buildsrc,_buildSrc_ project>> is about organizing your build logic into shared local plugins and conventions that are easily testable and provide good IDE support.
 
 === Kotlin DSL build structure samples
 

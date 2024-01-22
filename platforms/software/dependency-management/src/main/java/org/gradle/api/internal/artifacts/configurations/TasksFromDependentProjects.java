@@ -20,9 +20,12 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.Set;
@@ -73,13 +76,19 @@ class TasksFromDependentProjects implements TaskDependencyContainerInternal {
         //checks if candidate project is dependent of the origin project with given configuration
         boolean isDependent(Project originProject, String configurationName, Project candidateProject) {
             Configuration configuration = candidateProject.getConfigurations().findByName(configurationName);
-            return configuration != null && doesConfigurationDependOnProject(configuration, originProject);
+            if (configuration == null) {
+                return false;
+            }
+
+            Path identityPath = ((ProjectInternal) originProject).getIdentityPath();
+            return doesConfigurationDependOnProject(configuration, identityPath);
         }
 
-        private static boolean doesConfigurationDependOnProject(Configuration configuration, Project project) {
+        private static boolean doesConfigurationDependOnProject(Configuration configuration, Path identityPath) {
             Set<ProjectDependency> projectDependencies = configuration.getAllDependencies().withType(ProjectDependency.class);
             for (ProjectDependency projectDependency : projectDependencies) {
-                if (projectDependency.getDependencyProject().equals(project)) {
+                Path dependencyIdentityPath = ((ProjectDependencyInternal) projectDependency).getIdentityPath();
+                if (dependencyIdentityPath.equals(identityPath)) {
                     return true;
                 }
             }

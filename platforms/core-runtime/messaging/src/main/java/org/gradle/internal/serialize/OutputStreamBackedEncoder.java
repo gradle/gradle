@@ -39,6 +39,21 @@ public class OutputStreamBackedEncoder extends AbstractEncoder implements Closea
     }
 
     @Override
+    public void writeShort(short value) throws IOException {
+        outputStream.writeShort(value);
+    }
+
+    @Override
+    public void writeFloat(float value) throws IOException {
+        outputStream.writeFloat(value);
+    }
+
+    @Override
+    public void writeDouble(double value) throws IOException {
+        outputStream.writeDouble(value);
+    }
+
+    @Override
     public void writeBoolean(boolean value) throws IOException {
         outputStream.writeBoolean(value);
     }

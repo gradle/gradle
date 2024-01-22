@@ -13,22 +13,22 @@
 // limitations under the License.
 
 [[tweaking_structure]]
-= Tweaking Project Structure
+= Multi-project Build Considerations and Optimizations
 
-This chapter covers more details on selected topics related to <<structuring_software_products.adoc#structure_large_projects,structuring and building a software product with Gradle>>.
+There are more considerations when structuring and building a software product with Gradle: umbrella builds, component isolation, multi- and mono-repo setups, and re-using build login in convention plugins.
 
-== Working with the software project
+image::structuring-builds-5.png[]
 
-You have several options to interact with a build that is a composition of multiple builds.
+Gradle offers several optimizations for multi-project builds including parallel project execution and configuration on-demand.
 
-=== Using an umbrella build
+== Umbrella builds
 
-If all your builds are located in one folder structure, you can have an umbrella build in a root folder that includes all builds.
+If all your builds are in one folder structure, an *umbrella build* in the root folder can include all builds.
 You can then <<composite_builds.adoc#composite_build_executing_tasks,call tasks from the root project by addressing one of the builds>>.
-Usually, you would then put the <<gradle_wrapper.adoc#sec:adding_wrapper,Gradle wrapper>> into the root as well.
-link:../samples/sample_structuring_software_projects.html[The sample]
-on structuring software projects contains such an umbrella build in the root.
-You can address tasks from there:
+
+The <<gradle_wrapper.adoc#sec:adding_wrapper,Gradle wrapper>> should also be located in the root.
+
+You can address tasks as such:
 
 [listing.terminal.sample-command]
 ----
@@ -38,22 +38,22 @@ $ ./gradlew :android-app:app:installDebug
 ----
 
 The umbrella build is a good place to define cross-build  <<more_about_tasks.adoc#sec:lifecycle_tasks,lifecycle tasks>>.
-For example, you can define a `checkFeatures` task for conveniently running all checks in selected components by adding a `build.gradle(.kts)` file to your umbrella build.
+For example, you can define a `checkFeatures` task for conveniently running all checks in selected components by adding a `build.gradle(.kts)` file to your umbrella build:
 
 ====
 include::sample[dir="samples/build-organization/structuring-software-projects/kotlin",files="build.gradle.kts"]
 include::sample[dir="samples/build-organization/structuring-software-projects/groovy",files="build.gradle"]
 ====
 
-In your IDE, you can import the umbrella build and then will have all Gradle builds as projects/modules visible in the workspace.
+You can import the umbrella build in your IDE, and the component builds will be visible in the workspace.
 
-=== Working with components in isolation
+== Component isolation
 
-Independent of whether you have an umbrella build or not, you can work with each component independently.
+Independent of an umbrella build, you can *work with each component independently*.
 That is, you can pick any component build and build it individually.
 
-In link:../samples/sample_structuring_software_projects.html[the sample], the umbrella build is a convenience.
-The whole project can also be used without it, if you work with the components independently.
+In <<structuring_software_products.adoc#structure_large_projects,the sample>>, the umbrella build is convenient.
+The whole project can also be used without it, and you can work with the components independently:
 
 [listing.terminal.sample-command]
 ----
@@ -68,70 +68,158 @@ $ ../gradlew check
 ----
 
 You can also import components independently in the IDE.
+
 This allows you to focus only on the parts important for the component you work on in your IDE's workspace.
-It might also speed up the IDE performance in the case of a very large code base.
+It may also speed up the IDE performance for a very large code base.
 
 [NOTE]
 ====
-If all components live in the same repository, you should only have one <<gradle_wrapper.adoc#sec:adding_wrapper,Gradle wrapper>> in the root of the repository.
+If all components live in the same repository, you should only have one <<gradle_wrapper.adoc#sec:adding_wrapper,Gradle wrapper>> in the repository's root.
 If you have an umbrella build there, you can use that to manage the wrapper.
-====
 
-However, if you import an individual component in an IDE, it might have issues finding the wrapper and you might need to configure a Gradle installation manually.
-
+However, if you import an individual component in an IDE, it might have issues finding the wrapper, and you might need to configure a Gradle installation manually.
 If your components are scattered over multiple repositories, each should have its own wrapper, but you should ensure that you upgrade them simultaneously.
 ====
 
-== Using multiple source repositories
+== Multiple repositories
 
-Multi-repo development is a well known alternative to mono-repo development.
+*Multi-repo* development is a well known alternative to *mono-repo* development.
 Both have advantages and disadvantages.
-It depends on many different factors which setup works best for the development of your product.
+Gradle supports both setups equally well.
 
-Gradle aims to support both setups equally well.
-When you split your product into components, each represented by an independent build, switching a Gradle build between mono- and multi-repo development is simple.
-In mono-repo development, you put all builds under a common root.
-In multi-repo development, you place each build into a separate source repository.
+When you split your product into components, each represented by an independent build, switching a Gradle build between mono-repo and multi-repo development is simple:
 
-Multi-repo development possibly needs some additional guidlines and tooling, so that builds can still find each other.
-A simple solution is that users who want to build a certain component need to clone all repositories of dependent components next to each other in a file hierarchy.
+- In *mono-repo* development, you put all builds under a common root.
+- In *multi-repo* development, you place each build into a separate source repository.
+
+Multi-repo development may need additional guidelines and tooling so that builds can still find each other.
+A simple solution is that users who want to build a certain component must clone all repositories of dependent components next to each other in a file hierarchy.
 If you follow this pattern, builds can find each other with `includeBuild("../other-component")` statements.
 If locations are more flexible, you can also <<composite_builds.adoc#command_line_composite,invoke Gradle with `--include-build` flags>> to provide locations dynamically.
 
-Another more evolved setup can involve versioning all components and, instead of including the source versions of all components, depend on published versions of them from binary repositories.
-This is described next.
+Another more evolved setup can involve versioning all components and, instead of including the source versions of all components, depending on their published versions from binary repositories.
 
 [[binary_vs_source_components]]
 == Publishing and using binary components
 
 You can also decide to <<publishing_setup.adoc#publishing_components,publish your components to a binary repository>>.
-If you make the decision to do so at some point and you want to work with binary versions of certain components instead of the source versions, you can do that by
-<<declaring_repositories.adoc#sub:centralized-repository-declaration,adding the repository to which you published>> instead of the corresponding `includeBuild("...")` statements in your `settings.gradle(.kts)` file.
-If the components keep their coordinates, you do not need to adjust any dependencies.
-You just need to define versions for the components, ideally in a <<platforms.adoc#sec:sharing-dep-versions-between-projects,platform project>>.
+
+To work with binary versions of certain components instead of the source versions, you can <<declaring_repositories.adoc#sub:centralized-repository-declaration,add the published repository>> in your `settings.gradle(.kts)` file.
+You must define versions for the components, ideally in a <<platforms.adoc#sec:sharing-dep-versions-between-projects,platform project>>.
 
 [[publish-convention-plugins]]
 === Publishing components with convention plugins
 
-Note that when publishing build logic components, the `maven-publish` will also publish so called <<plugins.adoc#sec:plugin_markers,plugin markers>> that allow Gradle to find plugins by ID – even if they are located in a repository.
-For that you only need to <<publishing_gradle_plugins.adoc#custom-plugin-repositories,declare the repositories you want to publish to>> in your build the same way you do it for other components.
+When publishing build logic components, the `maven-publish` plugin will also publish <<plugins.adoc#sec:plugin_markers,plugin markers>> that allow Gradle to find plugins by ID – even if they are located in a repository.
+You need to <<publishing_gradle_plugins.adoc#custom-plugin-repositories,declare the repositories you want to publish to>> in your build, the same way you do for other components.
 
 [[settings_convention_plugins]]
 == Sharing repository and included build declarations between builds
 
 Each component build has its own `settings.gradle(.kts)` file to describe the location of other components.
-Which is done by declaring repositories with binary components and by declaring file system locations of included builds.
+This is done by declaring repositories with binary components and by declaring file system locations of the included builds.
 
-If components are developed independently, it often makes sense to define these individually for each one.
-Then it is individually controlled where the other components originate from.
-Furthermore, the declarations might vary from build to build.
-For example, you might only include the builds that are needed to build a certain component and not all builds that make up the product.
+If components are developed independently, it often makes sense to define these individually, especially when declarations vary from build to build.
+For example, you might only include the builds needed to build a certain component, not all the builds that make up the product.
+However, it may also lead to redundancy as you declare the same repositories and included builds in each `settings.gradle(.kts)` file.
 
-However, it may also lead to redundancy as you declare the same repositories and included builds in each `settings.gradle(.kts)` file again.
-In particular, if all builds live in the same repository.
+Instead, you can define _settings convention plugins_ in the `settings.gradle(.kts)` file to reuse configuration.
+For this, you should create a separate build.
 
-Similar as for build scripts, you can define _settings convention plugins_ for the `settings.gradle(.kts)` file to reuse configuration.
-For that, you should create a separate build.
 _Settings convention plugins_ can be <<custom_plugins.adoc#sec:precompiled_plugins,written in Groovy DSL or Kotlin DSL similar to other convention plugins>>.
-The script file name has to end with `.settings.gradle(.kts)`.
-A build providing a settings plugin needs to be <<composite_builds.adoc#included_plugin_builds,included as plugin builds in the `pluginManagement {}` block>>.
+The script file name must end with `.settings.gradle(.kts)`.
+
+A build providing a settings plugin needs to be <<composite_builds.adoc#included_plugin_builds,included as a build in the `pluginManagement {}` block>>.
+
+[[configuration_and_execution]]
+== Configuration time and execution time
+
+<<build_lifecycle.adoc#sec:build_phases,Build phases>> describes the phases of every Gradle build.
+
+Let's zoom into the configuration and execution phases of a multi-project build.
+Configuration here means evaluating the build script file of a project, which includes downloading all plugins and build script dependencies.
+
+By default, the configuration of all projects happens before any task is executed.
+This means that when a single task from a single project is requested, _all_ projects of a multi-project build are configured first.
+
+[[sec:decoupled_projects]]
+== Decoupled Projects
+
+Gradle allows any project to access other projects during the configuration and execution phases.
+
+While this provides a great deal of power and flexibility to the build author, it also limits the flexibility that Gradle has when building those projects.
+For instance, this effectively prevents Gradle from building multiple projects in parallel, configuring only a subset of projects, or substituting a pre-built artifact in place of a project dependency.
+
+Two projects are said to be _decoupled_ if they do not directly access each other's project model.
+
+Decoupled projects may only interact in terms of declared dependencies: <<declaring_dependencies.adoc#sub:project_dependencies,project dependencies>> and/or <<tutorial_using_tasks.adoc#sec:task_dependencies,task dependencies>>.
+Any other form of project interaction (i.e. modifying another project object or reading a value from another project object), causes the projects to be coupled.
+
+Coupling has consequences:
+
+1. during the configuration phase, if gradle is invoked with the <<#sec:configuration_on_demand,configuration on-demand>> option, the result of the build can be flawed in several ways.
+2. during the execution phase, if gradle is invoked with the <<#sec:parallel_execution,parallel option>>, the result of a task that depends on another task that runs too late can be flawed.
+
+IMPORTANT: Gradle does not attempt to detect coupling and warn the user.
+
+A very common way for projects to be coupled is by using <<sharing_build_logic_between_subprojects#sec:convention_plugins_vs_cross_configuration,configuration injection>>.
+APIs like the `allprojects` and `subprojects` methods automatically cause your projects to be coupled.
+
+To make good use of cross-project configuration without running into issues with <<#sec:parallel_execution,parallel execution>> and <<#sec:configuration_on_demand,configuration on-demand>>, follow these recommendations:
+
+* Avoid referencing another subproject in a subproject's build script.
+* Avoid changing the configuration of other projects at execution time.
+
+[[sec:parallel_execution]]
+== Parallel project execution
+
+Parallel project execution allows the separate projects in a decoupled multi-project build to be executed in parallel.
+
+While parallel execution does not strictly require decoupling at configuration time, the long-term goal is to provide a powerful set of features that will be available for fully decoupled projects.
+Such features include:
+
+* <<#sec:configuration_on_demand,Configuration on-demand>>.
+* Configuration of projects in parallel.
+* Re-use of configuration for unchanged projects.
+* Project-level up-to-date checks.
+* Using pre-built artifacts in the place of building dependent projects.
+
+To enable parallel mode, use the <<command_line_interface.adoc#sec:command_line_performance,`--parallel` command line argument>> or configure your build environment (<<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>>).
+
+Enabling parallel execution at a project level includes several considerations:
+
+- Unless you provide a specific number of parallel threads, Gradle attempts to choose the right number based on available CPU cores.
+- Every parallel worker exclusively owns a given project while executing a task.
+- Task dependencies are fully supported, and parallel workers will start executing upstream tasks first.
+- The alphabetical ordering of decoupled tasks, as seen during sequential execution, is not guaranteed in parallel mode. In other words, in parallel mode, tasks will run as soon as their dependencies are complete _and a task worker is available to run them_, which may be earlier than they would start during a sequential build. To avoid ordering issues, you should ensure task dependencies and task inputs/outputs are declared correctly.
+
+[[sec:configuration_on_demand]]
+== Configuration on-demand
+
+The _configuration injection_ feature and access to the complete project model are possible because every project is configured before the execution phase.
+Yet, there may be more efficient approaches in a substantial multi-project build.
+
+There are Gradle builds with a hierarchy of hundreds of subprojects.
+The configuration time of large multi-project builds may be noticeable.
+
+Configuration on-demand attempts to configure only relevant projects for requested tasks (i.e., it only executes the build script file of projects participating in the build).
+This way, the configuration time of a large multi-project build can be reduced.
+
+NOTE: The configuration on-demand feature is incubating, so not every build is guaranteed to work correctly.
+
+The feature should work very well for multi-project builds that have <<#sec:decoupled_projects,decoupled projects>>.
+
+In "configuration on-demand" mode, projects are configured as follows:
+
+* The root project is always configured.
+* The project in the directory where the build is executed is also configured, but only when Gradle is executed without any tasks.
+This way the default tasks behave correctly when projects are configured on-demand.
+* The standard project dependencies are supported and makes relevant projects configured.
+If project A has a compile dependency on project B then building A causes configuration of both projects.
+* The task dependencies declared via task path are supported and cause relevant projects to be configured.
+Example: `someTask.dependsOn(":some-other-project:someOtherTask")`
+* A task requested via task path from the command line (or Tooling API) causes the relevant project to be configured.
+For example, building 'project-a:project-b:someTask' causes configuration of project-b.
+
+To configure on-demand with every build run see <<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>>.
+To configure on-demand just for a given build, see <<command_line_interface.adoc#sec:command_line_performance,command-line performance-oriented options>>.

@@ -29,4 +29,21 @@ class WrapperUpgradeIntegrationTest extends AbstractWrapperIntegrationSpec {
         expect:
         wrapperExecuter.withTasks('wrapper').run()
     }
+
+    def "prints helpful error message on invalid version argument format: #badVersion"() {
+        given:
+        prepareWrapper()
+
+        expect:
+        def failure = wrapperExecuter.withTasks("wrapper", "--gradle-version", badVersion).runWithFailure()
+
+        and:
+        failure.assertHasDescription("Invalid version specified for argument '--gradle-version'")
+        failure.assertHasCause("'$badVersion' is not a valid Gradle version string (examples: '1.0', '1.0-rc-1')")
+        failure.assertHasResolution("Specify a valid Gradle release listed on https://gradle.org/releases/.")
+        failure.assertHasResolution("Use one of the following dynamic version specifications: 'latest', 'release-candidate', 'release-nightly', 'nightly'.")
+
+        where:
+        badVersion << ["bad-version", "next", "new", "5.x", "x.3", "x+1", "8.5.x", "8.5.latest", "later", "prerelease", "nightly-release", "latest-release", "rc", "current"]
+    }
 }

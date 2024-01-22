@@ -21,10 +21,10 @@ import org.gradle.api.Incubating;
 import java.util.List;
 
 /**
- * Describes a problem operation.
+ * Describes a problem event.
  * <p>
- * The Problems API in an incubating stage and the associated classes are likely to change in a non-compatible way.
- * Consequently, the Tooling API only exposes problem instances with dynamic data in json format without any guarantees.
+ *
+ * Provides all details provided for problem events. The events are generated via the Problems API.
  *
  * @since 8.4
  */
@@ -93,5 +93,6 @@ public interface ProblemDescriptor extends BaseProblemDescriptor {
      * @return the exception
      * @since 8.6
      */
-    ExceptionContainer getException();
+    //TODO: fix in 8.7
+    //ExceptionContainer getException();
 }

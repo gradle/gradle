@@ -27,9 +27,9 @@ class RepositoryOrderingIntegrationSpec extends AbstractIntegrationSpec {
     def "buildscript repositories searched before plugin management repositories"() {
 
         given:
-        def pluginPortalUri = normalizedUriOf("pluginPortalRepo")
-        def buildscriptRepoUri = normalizedUriOf("buildscriptRepo")
-        def pluginManagementRepoUri = normalizedUriOf("pluginManagementRepo")
+        def pluginPortalUri = file("pluginPortalRepo").displayUri
+        def buildscriptRepoUri = file("buildscriptRepo").displayUri
+        def pluginManagementRepoUri = file("pluginManagementRepo").displayUri
         overridePluginPortalUri(pluginPortalUri)
 
         and:
@@ -78,9 +78,6 @@ class RepositoryOrderingIntegrationSpec extends AbstractIntegrationSpec {
         """.stripIndent().trim()
     }
 
-    private String normalizedUriOf(String path) {
-        file(path).toURI().toString().replace("%20", " ")
-    }
 
     private void overridePluginPortalUri(String uri) {
         executer.withArgument("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=$uri")

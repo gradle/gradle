@@ -43,6 +43,9 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         iterationMatchers = ['^.+PROGRAMMATIC$']
     )
     def "can configure with settings.gradle - enabled by #by"() {
+        // Build scripts are cached in global cache since they are compiled as ImmutableUnitOfWork,
+        // so to avoid flakiness we run with own GradleUserHome
+        executer.requireOwnGradleUserHomeDir()
         def enablingCode = by == EnabledBy.PROGRAMMATIC ? """\ngradle.startParameter.buildCacheEnabled = true\n""" : ""
         if (by == EnabledBy.INVOCATION_SWITCH) {
             executer.beforeExecute {
@@ -102,8 +105,8 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         i1BuildSrcCache.empty
         i2Cache.empty
         buildSrcCache.empty
-        mainCache.listCacheFiles().size() == 5 // root, i1, i1BuildSrc, i2, buildSrc
-        isConfigCache() || i3Cache.listCacheFiles().size() == 1
+        mainCache.listCacheFiles().size() == 15 // 10 (plugins block and script body block for every project) + 5 (root, i1, i1BuildSrc, i2, buildSrc tasks) = 15
+        isConfigCache() || i3Cache.listCacheFiles().size() == 3
 
         and:
         if (isNotConfigCache()) {

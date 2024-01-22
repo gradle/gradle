@@ -154,5 +154,4 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
             }
         """
     }
-
 }

@@ -8,6 +8,7 @@ description = "Common shared annotations"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
+    compileOnly(libs.jetbrainsAnnotations)
+
     api(libs.jsr305)
-    api(libs.jetbrainsAnnotations)
 }

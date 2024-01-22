@@ -35,7 +35,7 @@ dependencies {
         api(kotlin("compiler-embeddable")) { version { strictly(kotlinVersion) } }
         api("org.jlleitschuh.gradle:ktlint-gradle:10.3.0")
         api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.8.0")
-        api("com.autonomousapps:dependency-analysis-gradle-plugin:0.71.0")
+        api("com.autonomousapps:dependency-analysis-gradle-plugin:1.28.0")
 
         // Java Libraries
         api("com.github.javaparser:javaparser-core:$javaParserVersion")
@@ -62,7 +62,7 @@ dependencies {
         api("org.spockframework:spock-junit4:$spockVersion")
         api("org.asciidoctor:asciidoctorj:2.4.3")
         api("org.asciidoctor:asciidoctorj-pdf:1.5.4")
-        api("dev.adamko.dokkatoo:dokkatoo-plugin:1.5.0")
+        api("dev.adamko.dokkatoo:dokkatoo-plugin:2.0.0")
         api("org.jetbrains.dokka:dokka-core:1.8.10")
         api("com.beust:jcommander:1.78")
         api("org.codehaus.groovy:$groovyVersion")

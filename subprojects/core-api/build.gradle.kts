@@ -5,22 +5,30 @@ plugins {
 description = "Public and internal 'core' Gradle APIs that are required by other subprojects"
 
 dependencies {
+    compileOnly(libs.jetbrainsAnnotations)
+
     api(project(":process-services"))
+    api(project(":base-annotations"))
+    api(project(":logging-api"))
+    api(project(":base-services"))
+    api(project(":files"))
+    api(project(":resources"))
+    api(project(":persistent-cache"))
 
-    implementation(project(":base-services"))
+    api(libs.jsr305)
+    api(libs.groovy)
+    api(libs.groovyAnt)
+    api(libs.guava)
+    api(libs.ant)
+    api(libs.inject)
+
+    compileOnly(libs.jetbrainsAnnotations)
+
     implementation(project(":base-services-groovy"))
-    implementation(project(":enterprise-operations"))
-    implementation(project(":files"))
     implementation(project(":logging"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":resources"))
 
-    implementation(libs.groovy)
-    implementation(libs.groovyAnt)
-    implementation(libs.ant)
-    implementation(libs.guava)
     implementation(libs.commonsLang)
-    implementation(libs.inject)
+    implementation(libs.slf4jApi)
 
     testImplementation(libs.asm)
     testImplementation(libs.asmCommons)

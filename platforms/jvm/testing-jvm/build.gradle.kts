@@ -11,6 +11,8 @@ dependency for any projects working directly with Test tasks.
 """
 
 dependencies {
+    api(project(":testing-base"))
+
     implementation(project(":functional"))
     implementation(project(":base-services"))
     implementation(project(":messaging"))
@@ -21,7 +23,6 @@ dependencies {
     implementation(project(":reporting"))
     implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))
-    implementation(project(":testing-base"))
     implementation(project(":testing-jvm-infrastructure"))
     implementation(project(":toolchains-jvm"))
 
