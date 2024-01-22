@@ -76,6 +76,7 @@
             <trusting group="^com[.]sun($|([.].*))" regex="true"/>
          </trusted-key>
          <trusted-key id="06D34ED6FF73DE368A772A781063FE98BCECB758" group="com.puppycrawl.tools" name="checkstyle"/>
+         <trusted-key id="073F7A9345756F3B40CDB99E6C70A3B7599C5736" group="org.apache.sshd"/>
          <trusted-key id="0785B3EFF60B1B1BEA94E0BB7C25280EAE63EBE5" group="org.apache.httpcomponents"/>
          <trusted-key id="07DBC3C1AB1F4468471656061C8D5EF0DF2B70D4" group="cglib"/>
          <trusted-key id="07E20F0103D9DFC697C490D0368557390486F2C5" group="org.awaitility"/>
@@ -272,6 +273,7 @@
             <trusting group="org.antlr"/>
             <trusting group="org.antlr" name="antlr4-runtime"/>
          </trusted-key>
+         <trusted-key id="D5FC4D8E6FF704C573819555BF7CC7DEFE9389D7" group="com.github.docker-java"/>
          <trusted-key id="D9AA7402BA75F78720D975211D185615D0A84648" group="net.sf.saxon" name="Saxon-HE"/>
          <trusted-key id="DB467D22A2666D061FDD120DB5BD4591883D638C" group="com.tngtech.archunit"/>
          <trusted-key id="DBD744ACE7ADE6AA50DD591F66B50994442D2D40" group="com.squareup.moshi"/>
@@ -329,11 +331,11 @@
          <artifact name="android-studio-2023.2.1.16.linux.tar.gz">
             <sha256 value="6bd59abffdd3b68274be54dd104c2a44254a54fa5ad19390c1be2489a66f51d8" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2023.2.1.16.mac_arm.zip">
-            <sha256 value="3a8788bbc4a0f051d86d5a51789a446405764825d16c9d44622232dc110c517d" origin="Verified" reason="Artifact is not signed"/>
-         </artifact>
          <artifact name="android-studio-2023.2.1.16.mac.zip">
             <sha256 value="260898e96f1ec21bbc00ac7d0878f5a1037b024b128caf5c71fe9ef05dd5e0d0" origin="Verified" reason="Artifact is not signed"/>
+         </artifact>
+         <artifact name="android-studio-2023.2.1.16.mac_arm.zip">
+            <sha256 value="3a8788bbc4a0f051d86d5a51789a446405764825d16c9d44622232dc110c517d" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
          <artifact name="android-studio-2023.2.1.16.windows.zip">
             <sha256 value="dbe764371f40869cf199e02d538b305656f49fb930afe072a1c929b881a035cf" origin="Verified" reason="Artifact is not signed"/>
@@ -538,6 +540,11 @@
       <component group="com.github.javaparser" name="javaparser-core" version="3.25.1">
          <artifact name="javaparser-core-3.25.1.jar">
             <pgp value="FC2C31FC25FEDE4E7AD0D18C2BFD7825A8984FBE"/>
+         </artifact>
+      </component>
+      <component group="com.github.mwiede" name="jsch" version="0.2.16">
+         <artifact name="jsch-0.2.16.jar">
+            <pgp value="D4D4DEC73685B1A135E45E5C47933D17F199636B"/>
          </artifact>
       </component>
       <component group="com.github.siom79.japicmp" name="japicmp" version="0.15.7">
@@ -1513,6 +1520,11 @@
       <component group="org.spire-math" name="jawn-parser_2.12" version="0.10.4">
          <artifact name="jawn-parser_2.12-0.10.4.jar">
             <pgp value="8B16E798477BE6DC10127D11AA6917FA45E67F20"/>
+         </artifact>
+      </component>
+      <component group="org.testcontainers" name="testcontainers" version="1.16.2">
+         <artifact name="testcontainers-1.16.2.jar">
+            <pgp value="D022218DCC08AAD6EF3AF876B3DE72E647D35161"/>
          </artifact>
       </component>
       <component group="org.testng" name="testng" version="6.3.1">
