@@ -82,12 +82,12 @@ public class BasicBuildGenerator extends AbstractBuildGenerator {
     }
 
     @Override
-    public BuildInitTestFramework getDefaultTestFramework() {
+    public BuildInitTestFramework getDefaultTestFramework(ModularizationOption modularizationOption) {
         return NONE;
     }
 
     @Override
-    public Set<BuildInitTestFramework> getTestFrameworks() {
+    public Set<BuildInitTestFramework> getTestFrameworks(ModularizationOption modularizationOption) {
         return singleton(NONE);
     }
 

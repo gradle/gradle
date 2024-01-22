@@ -379,14 +379,9 @@ public abstract class InitBuild extends DefaultTask {
         if (splitProject.isPresent()) {
             return splitProject.get() ? ModularizationOption.WITH_LIBRARY_PROJECTS : ModularizationOption.SINGLE_PROJECT;
         }
-        if (initializer.getModularizationOptions().size() == 1) {
-            return initializer.getModularizationOptions().iterator().next();
-        }
-        if (!isNullOrEmpty(type)) {
-            return ModularizationOption.SINGLE_PROJECT;
-        }
-        boolean multipleSubprojects = inputHandler.askYesNoQuestion("Generate multiple subprojects for application?", false);
-        return multipleSubprojects ? ModularizationOption.WITH_LIBRARY_PROJECTS : ModularizationOption.SINGLE_PROJECT;
+        return inputHandler.choice("Select application structure", initializer.getModularizationOptions())
+            .renderUsing(ModularizationOption::getDisplayName)
+            .ask();
     }
 
     private boolean shouldUseIncubatingAPIs(UserInputHandler inputHandler) {
@@ -397,27 +392,22 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private BuildInitTestFramework getBuildInitTestFramework(UserInputHandler inputHandler, BuildInitializer initializer, ModularizationOption modularizationOption) {
-        if (modularizationOption == ModularizationOption.WITH_LIBRARY_PROJECTS) {
-            // currently we only support JUnit5 tests for this combination
-            return BuildInitTestFramework.JUNIT_JUPITER;
-        }
-
         if (!isNullOrEmpty(this.testFramework)) {
-            return initializer.getTestFrameworks().stream()
+            return initializer.getTestFrameworks(modularizationOption).stream()
                 .filter(candidate -> this.testFramework.equals(candidate.getId()))
                 .findFirst()
-                .orElseThrow(() -> createNotSupportedTestFrameWorkException(initializer));
+                .orElseThrow(() -> createNotSupportedTestFrameWorkException(initializer, modularizationOption));
         }
 
-        BuildInitTestFramework testFramework = initializer.getDefaultTestFramework();
-        return inputHandler.selectOption("Select test framework", initializer.getTestFrameworks(), testFramework);
+        BuildInitTestFramework testFramework = initializer.getDefaultTestFramework(modularizationOption);
+        return inputHandler.selectOption("Select test framework", initializer.getTestFrameworks(modularizationOption), testFramework);
     }
 
-    private GradleException createNotSupportedTestFrameWorkException(BuildInitializer initDescriptor) {
+    private GradleException createNotSupportedTestFrameWorkException(BuildInitializer initDescriptor, ModularizationOption modularizationOption) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("The requested test framework '" + getTestFramework() + "' is not supported for '" + initDescriptor.getId() + "' build type. Supported frameworks");
         formatter.startChildren();
-        for (BuildInitTestFramework framework : initDescriptor.getTestFrameworks()) {
+        for (BuildInitTestFramework framework : initDescriptor.getTestFrameworks(modularizationOption)) {
             formatter.node("'" + framework.getId() + "'");
         }
         formatter.endChildren();

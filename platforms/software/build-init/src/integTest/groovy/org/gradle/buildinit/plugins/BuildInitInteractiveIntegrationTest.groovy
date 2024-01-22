@@ -155,9 +155,11 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // Select 'Single project'
         ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains("Generate multiple subprojects for application?")
+            assert handle.standardOutput.contains("Select application structure:")
+            assert handle.standardOutput.contains("1: Single application project")
+            assert handle.standardOutput.contains("2: Application and library project")
         }
-        handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'kotlin DSL'
         ConcurrentTestUtil.poll(60) {

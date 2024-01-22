@@ -75,8 +75,8 @@ class InitBuildSpec extends Specification {
         defaultGenerator.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
         defaultGenerator.dsls >> [KOTLIN]
         defaultGenerator.defaultDsl >> KOTLIN
-        defaultGenerator.testFrameworks >> [NONE]
-        defaultGenerator.defaultTestFramework >> NONE
+        defaultGenerator.getTestFrameworks(_) >> [NONE]
+        defaultGenerator.getDefaultTestFramework(_) >> NONE
         defaultGenerator.defaultProjectNames >> ["thing"]
         defaultGenerator.getFurtherReading(_ as InitSettings) >> empty()
 
@@ -91,7 +91,7 @@ class InitBuildSpec extends Specification {
         given:
         projectLayoutRegistry.get("java-library") >> defaultGenerator
         defaultGenerator.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
-        defaultGenerator.testFrameworks >> [SPOCK]
+        defaultGenerator.getTestFrameworks(_) >> [SPOCK]
         defaultGenerator.dsls >> [GROOVY, KOTLIN]
         defaultGenerator.defaultProjectNames >> ["thing"]
         defaultGenerator.getFurtherReading(_ as InitSettings) >> empty()
@@ -113,7 +113,7 @@ class InitBuildSpec extends Specification {
         defaultGenerator.id >> "some-type"
         defaultGenerator.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
         defaultGenerator.dsls >> [KOTLIN]
-        defaultGenerator.testFrameworks >> [NONE, JUNIT]
+        defaultGenerator.getTestFrameworks(_) >> [NONE, JUNIT]
         init.type = "some-type"
         init.testFramework = "spock"
 
@@ -325,7 +325,7 @@ class InitBuildSpec extends Specification {
         given:
         projectLayoutRegistry.get("java-library") >> defaultGenerator
         defaultGenerator.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
-        defaultGenerator.testFrameworks >> [SPOCK]
+        defaultGenerator.getTestFrameworks(_) >> [SPOCK]
         defaultGenerator.dsls >> [GROOVY]
         defaultGenerator.getFurtherReading(_ as InitSettings) >> empty()
         defaultGenerator.getDefaultProjectNames() >> ["thing"]

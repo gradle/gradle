@@ -146,12 +146,12 @@ public class PomProjectInitDescriptor implements BuildConverter {
     }
 
     @Override
-    public BuildInitTestFramework getDefaultTestFramework() {
+    public BuildInitTestFramework getDefaultTestFramework(ModularizationOption modularizationOption) {
         return BuildInitTestFramework.NONE;
     }
 
     @Override
-    public Set<BuildInitTestFramework> getTestFrameworks() {
+    public Set<BuildInitTestFramework> getTestFrameworks(ModularizationOption modularizationOption) {
         return Collections.singleton(BuildInitTestFramework.NONE);
     }
 
