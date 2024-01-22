@@ -677,8 +677,8 @@
             <pgp value="015479E1055341431B4545AB72475FD306B9CAB7"/>
          </artifact>
       </component>
-      <component group="com.googlecode.javaewah" name="JavaEWAH" version="1.1.7">
-         <artifact name="JavaEWAH-1.1.7.jar">
+      <component group="com.googlecode.javaewah" name="JavaEWAH" version="1.2.3">
+         <artifact name="JavaEWAH-1.2.3.jar">
             <pgp value="015479E1055341431B4545AB72475FD306B9CAB7"/>
          </artifact>
       </component>
