@@ -22,12 +22,12 @@ import org.gradle.api.provider.Provider;
 import javax.annotation.Nullable;
 
 public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
-    private final DataGuard<ProviderInternal<? extends T>> provider;
-    private final DataGuard<Transformer<? extends Provider<? extends S>, ? super T>> transformer;
+    private final ProviderInternal<? extends T> provider;
+    private final Transformer<? extends Provider<? extends S>, ? super T> transformer;
 
     FlatMapProvider(ProviderInternal<? extends T> provider, Transformer<? extends Provider<? extends S>, ? super T> transformer) {
-        this.provider = guardData(provider);
-        this.transformer = guardData(transformer);
+        this.provider = provider;
+        this.transformer = transformer;
     }
 
     @Nullable
@@ -46,7 +46,7 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
     @Override
     protected Value<? extends S> calculateOwnValue(ValueConsumer consumer) {
         try (EvaluationContext.ScopeContext context = openScope()) {
-            Value<? extends T> value = provider.get(context).calculateValue(consumer);
+            Value<? extends T> value = provider.calculateValue(consumer);
             if (value.isMissing()) {
                 return value.asType();
             }
@@ -54,9 +54,9 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
         }
     }
 
-    private ProviderInternal<? extends S> doMapValue(EvaluationContext.ScopeContext context, Value<? extends T> value) {
+    private ProviderInternal<? extends S> doMapValue(@SuppressWarnings("unused") EvaluationContext.ScopeContext context, Value<? extends T> value) {
         T unpackedValue = value.getWithoutSideEffect();
-        Provider<? extends S> transformedProvider = transformer.get(context).transform(unpackedValue);
+        Provider<? extends S> transformedProvider = transformer.transform(unpackedValue);
         if (transformedProvider == null) {
             return Providers.notDefined();
         }
@@ -69,7 +69,7 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
     }
 
     private ProviderInternal<? extends S> backingProvider(EvaluationContext.ScopeContext context, ValueConsumer consumer) {
-        Value<? extends T> value = provider.get(context).calculateValue(consumer);
+        Value<? extends T> value = provider.calculateValue(consumer);
         if (value.isMissing()) {
             return Providers.notDefined();
         }
