@@ -15,8 +15,8 @@ dependencies {
     api(libs.inject)
 
     implementation(project(":platform-jvm"))
-    implementation(project(":plugins"))
     implementation(project(":plugins-java-base"))
+    implementation(project(":plugins-java-library"))
 
     implementation(libs.guava)
     implementation(libs.jsr305)
@@ -27,6 +27,7 @@ dependencies {
     }
 
     runtimeOnly(project(":language-jvm"))
+    runtimeOnly(project(":plugins"))
     runtimeOnly(project(":workers"))
 
     testImplementation(project(":base-services-groovy"))
