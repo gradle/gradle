@@ -24,7 +24,7 @@ import java.util.function.Function;
 
 public interface UserInputHandler {
     /**
-     * Prompts the user with a yes/no question and returns the answer.
+     * Prompts the user with a yes/no question and returns the answer. Requires that the user explicitly type "yes" or "no".
      *
      * @param question The text of the question.
      * @return the answer or {@code null} if not connected to a console.
@@ -34,13 +34,13 @@ public interface UserInputHandler {
     Boolean askYesNoQuestion(String question);
 
     /**
-     * Prompts the user with a yes/no question and returns the answer.
+     * Prompts the user with a boolean question and returns the answer.
      *
      * @param question The text of the question.
      * @param defaultValue The option to present to the user as the default choice, and the value to use when not connected to a console
      * @return the answer or the given default if not connected to a console.
      */
-    boolean askYesNoQuestion(String question, boolean defaultValue);
+    boolean askBooleanQuestion(String question, boolean defaultValue);
 
     /**
      * Prompts the user to select an option from the given list and returns the answer.

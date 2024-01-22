@@ -79,9 +79,7 @@ class DefaultUserInputHandlerTest extends Specification {
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
         1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
         1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == 'Accept license? [yes, no]' }
-        1 * userInputReader.readInput() >> 'bla'
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter 'yes' or 'no':" }
-        1 * userInputReader.readInput() >> ''
+        1 * userInputReader.readInput() >> invalidInput
         1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter 'yes' or 'no':" }
         1 * userInputReader.readInput() >> 'no'
         1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
@@ -90,11 +88,22 @@ class DefaultUserInputHandlerTest extends Specification {
 
         and:
         input == false
+
+        where:
+        invalidInput | _
+        ''           | _
+        'bla'        | _
+        'y'          | _
+        'Y'          | _
+        'ye'         | _
+        'YES'        | _
+        'n'          | _
+        'NO'         | _
     }
 
     def "can ask yes/no question"() {
         when:
-        def input = userInputHandler.askYesNoQuestion(TEXT, true)
+        def input = userInputHandler.askBooleanQuestion(TEXT, true)
 
         then:
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
@@ -106,19 +115,27 @@ class DefaultUserInputHandlerTest extends Specification {
         1 * userInputReader.readInput() >> enteredUserInput
 
         and:
-        input == sanitizedUserInput
+        input == expected
 
         where:
-        enteredUserInput | sanitizedUserInput
+        enteredUserInput | expected
         null             | true
-        'yes   '         | true
         'yes'            | true
+        'y'              | true
+        'Y'              | true
+        'YES'            | true
+        'yes   '         | true
+        ' y   '          | true
+        'no'             | false
+        'n'              | false
+        'N'              | false
         '   no   '       | false
+        '   n   '        | false
     }
 
     def "yes/no question returns default when empty input line received"() {
         when:
-        def input = userInputHandler.askYesNoQuestion(TEXT, true)
+        def input = userInputHandler.askBooleanQuestion(TEXT, true)
 
         then:
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
@@ -135,14 +152,14 @@ class DefaultUserInputHandlerTest extends Specification {
 
     def "prompts user again on invalid response to yes/no question"() {
         when:
-        def input = userInputHandler.askYesNoQuestion(TEXT, true)
+        def input = userInputHandler.askBooleanQuestion(TEXT, true)
 
         then:
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
         1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
         1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == 'Accept license? (default: yes) [yes, no]' }
-        1 * userInputReader.readInput() >> 'bla'
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter 'yes' or 'no':" }
+        1 * userInputReader.readInput() >> invalidInput
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter 'yes' or 'no' (default: 'yes'):" }
         1 * userInputReader.readInput() >> 'no'
         1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
@@ -150,6 +167,12 @@ class DefaultUserInputHandlerTest extends Specification {
 
         and:
         input == false
+
+        where:
+        invalidInput | _
+        'bla'        | ''
+        'nope'       | ''
+        'yep'        | ''
     }
 
     def "can ask select question"() {

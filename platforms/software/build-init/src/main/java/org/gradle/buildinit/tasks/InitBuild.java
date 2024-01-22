@@ -388,7 +388,7 @@ public abstract class InitBuild extends DefaultTask {
         if (this.useIncubatingAPIs.isPresent()) {
             return this.useIncubatingAPIs.get();
         }
-        return inputHandler.askYesNoQuestion("Generate build using new APIs and behavior (some features may change in the next minor release)?", false);
+        return inputHandler.askBooleanQuestion("Generate build using new APIs and behavior (some features may change in the next minor release)?", false);
     }
 
     private BuildInitTestFramework getBuildInitTestFramework(UserInputHandler inputHandler, BuildInitializer initializer, ModularizationOption modularizationOption) {
@@ -447,7 +447,7 @@ public abstract class InitBuild extends DefaultTask {
 
         BuildConverter converter = projectLayoutRegistry.getBuildConverter();
         if (converter.canApplyToCurrentDirectory(projectDir)) {
-            if (inputHandler.askYesNoQuestion("Found a " + converter.getSourceBuildDescription() + " build. Generate a Gradle build from this?", true)) {
+            if (inputHandler.askBooleanQuestion("Found a " + converter.getSourceBuildDescription() + " build. Generate a Gradle build from this?", true)) {
                 return converter;
             }
         }

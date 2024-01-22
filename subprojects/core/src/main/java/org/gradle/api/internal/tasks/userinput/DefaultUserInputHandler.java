@@ -31,11 +31,13 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 public class DefaultUserInputHandler implements UserInputHandler {
     private static final List<String> YES_NO_CHOICES = Lists.newArrayList("yes", "no");
+    private static final List<String> LENIENT_YES_NO_CHOICES = Lists.newArrayList("yes", "no", "y", "n");
     private final OutputEventListener outputEventBroadcaster;
     private final Clock clock;
     private final UserInputReader userInputReader;
@@ -55,24 +57,37 @@ public class DefaultUserInputHandler implements UserInputHandler {
         builder.append(" [");
         builder.append(StringUtils.join(YES_NO_CHOICES, ", "));
         builder.append("] ");
-        return prompt(builder.toString(), new BooleanParser());
+        return prompt(builder.toString(), value -> {
+            if (YES_NO_CHOICES.contains(value)) {
+                return BooleanUtils.toBoolean(value);
+            }
+            sendPrompt("Please enter 'yes' or 'no': ");
+            return null;
+        });
     }
 
     @Override
-    public boolean askYesNoQuestion(String question, final boolean defaultValue) {
+    public boolean askBooleanQuestion(String question, final boolean defaultValue) {
         StringBuilder builder = new StringBuilder();
         builder.append(question);
         builder.append(" (default: ");
-        builder.append(defaultValue ? "yes" : "no");
+        String defaultString = defaultValue ? "yes" : "no";
+        builder.append(defaultString);
         builder.append(") [");
         builder.append(StringUtils.join(YES_NO_CHOICES, ", "));
         builder.append("] ");
-        return prompt(builder.toString(), defaultValue, new BooleanParser());
+        return prompt(builder.toString(), defaultValue, value -> {
+            if (LENIENT_YES_NO_CHOICES.contains(value.toLowerCase(Locale.US))) {
+                return BooleanUtils.toBoolean(value);
+            }
+            sendPrompt("Please enter 'yes' or 'no' (default: '" + defaultString + "'): ");
+            return null;
+        });
     }
 
     private <T> T selectOption(String question, Collection<T> options, T defaultOption, Function<T, String> renderer) {
         if (!options.contains(defaultOption)) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Default value is not one of the provided options.");
         }
         if (options.size() == 1) {
             return defaultOption;
@@ -118,6 +133,9 @@ public class DefaultUserInputHandler implements UserInputHandler {
 
     @Override
     public <T> ChoiceBuilder<T> choice(String question, Collection<T> options) {
+        if (options.isEmpty()) {
+            throw new IllegalArgumentException("No options provided.");
+        }
         return new DefaultChoiceBuilder<>(options, question);
     }
 
@@ -226,17 +244,6 @@ public class DefaultUserInputHandler implements UserInputHandler {
 
     private String sanitizeInput(String input) {
         return CharMatcher.javaIsoControl().removeFrom(StringUtils.trim(input));
-    }
-
-    private class BooleanParser implements Transformer<Boolean, String> {
-        @Override
-        public Boolean transform(String value) {
-            if (YES_NO_CHOICES.contains(value)) {
-                return BooleanUtils.toBoolean(value);
-            }
-            sendPrompt("Please enter 'yes' or 'no': ");
-            return null;
-        }
     }
 
     private class DefaultChoiceBuilder<T> implements ChoiceBuilder<T> {
