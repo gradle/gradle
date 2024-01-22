@@ -28,7 +28,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             tasks {

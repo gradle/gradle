@@ -39,7 +39,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
             allprojects {
                 ${mavenCentralRepository()}
 
-                apply plugin: 'java'
+                apply plugin: 'java-library'
 
                 ${requiredSourceCompatibility()}
             }

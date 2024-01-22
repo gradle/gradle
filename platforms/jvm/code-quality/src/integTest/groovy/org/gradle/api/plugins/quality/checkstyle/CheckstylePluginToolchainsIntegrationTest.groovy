@@ -196,9 +196,8 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
     private void writeBuildFile() {
         buildFile << """
             plugins {
-                id 'groovy'
-                id 'java'
-                id 'checkstyle'
+                id("groovy")
+                id("checkstyle")
             }
 
             checkstyle {
@@ -218,8 +217,7 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
     private void writeBuildFileWithoutApplyingCheckstylePlugin() {
         buildFile << """
             plugins {
-                id 'groovy'
-                id 'java'
+                id("groovy")
             }
 
             repositories {

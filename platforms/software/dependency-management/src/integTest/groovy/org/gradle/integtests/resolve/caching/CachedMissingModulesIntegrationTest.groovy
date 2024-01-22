@@ -555,7 +555,7 @@ Required by:
         createDirs("subproject")
         settingsFile << "include 'subproject'"
         buildFile << """
-            allprojects{
+            allprojects {
                 repositories {
                     maven {
                         name 'repo1'

@@ -24,8 +24,11 @@ import org.junit.Test
 class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
     void compilationFailureBreaksBuild() {
-        TestFile buildFile = testFile("build.gradle")
-        buildFile.writelns("apply plugin: 'java'")
+        testFile("build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
         testFile("src/main/java/org/gradle/broken.java") << "broken"
 
         ExecutionFailure failure = executer.withTasks("build").runWithFailure()
@@ -36,8 +39,11 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void testCompilationFailureBreaksBuild() {
-        TestFile buildFile = testFile("build.gradle")
-        buildFile.writelns("apply plugin: 'java'")
+        testFile("build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
         testFile("src/main/java/org/gradle/ok.java") << "package org.gradle; class ok { }"
         testFile("src/test/java/org/gradle/broken.java") << "broken"
 
@@ -52,7 +58,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         given:
         testFile("build.gradle") << """
             plugins {
-                id("java")
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -73,8 +79,11 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void javadocGenerationFailureBreaksBuild() throws IOException {
-        TestFile buildFile = testFile("build.gradle")
-        buildFile.write("apply plugin: 'java'")
+        testFile("build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
         testFile("src/main/java/org/gradle/broken.java") << "class Broken { }"
 
         ExecutionFailure failure = executer.withTasks("javadoc").runWithFailure()
@@ -85,8 +94,11 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void handlesResourceOnlyProject() throws IOException {
-        TestFile buildFile = testFile("build.gradle")
-        buildFile.write("apply plugin: 'java'")
+        testFile("build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
         testFile("src/main/resources/org/gradle/resource.file") << "test resource"
 
         executer.withTasks("build").run()
@@ -98,7 +110,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         given:
         testFile("build.gradle") << """
             plugins {
-                id("java")
+                id("java-library")
             }
 
            ${mavenCentralRepository()}
@@ -134,7 +146,10 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         testFile("settings.gradle") << "rootProject.name = 'empty'"
         def buildFile = testFile("build.gradle")
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             version = ''
         """
 
@@ -148,7 +163,9 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     void "task registered as a builder of resources is executed"() {
         TestFile buildFile = testFile("build.gradle")
         buildFile << '''
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             task generateResource
             task generateTestResource

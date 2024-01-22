@@ -41,7 +41,10 @@ class UnsupportedJavaVersionCrossCompilationIntegrationTest extends MultiVersion
         def javadoc = TextUtil.escapeString(target.getExecutable("javadoc"))
 
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
+
 sourceCompatibility = ${version}
 targetCompatibility = ${version}
 ${mavenCentralRepository()}

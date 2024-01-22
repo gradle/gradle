@@ -54,14 +54,17 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
     }
 
     def "Project has some classpath containers"() {
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           eclipse {
-               classpath {
-                   containers 'containerPath1', 'containerPath2'
-               }
-           }
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+
+            eclipse {
+                classpath {
+                    containers 'containerPath1', 'containerPath2'
+                }
+            }
         """
 
         when:
@@ -75,18 +78,21 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
     }
 
     def "Classpath container defined in beforeMerged"() {
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           eclipse {
-               classpath {
-                   file {
-                      beforeMerged { classpath ->
-                          classpath.entries.add(new org.gradle.plugins.ide.eclipse.model.Container('beforeMergedContainerPath'))
-                      }
-                   }
-               }
-           }
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+
+            eclipse {
+                classpath {
+                    file {
+                       beforeMerged { classpath ->
+                           classpath.entries.add(new org.gradle.plugins.ide.eclipse.model.Container('beforeMergedContainerPath'))
+                       }
+                    }
+                }
+            }
         """
 
         when:
@@ -121,20 +127,23 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
     }
 
     def "Classpath container can be configured"() {
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           eclipse {
-               classpath {
-                   file {
-                      whenMerged { classpath ->
-                          def container = new org.gradle.plugins.ide.eclipse.model.Container('whenMergedContainerPath')
-                          container.exported = true
-                          classpath.entries.add(container)
-                      }
-                   }
-               }
-           }
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+
+            eclipse {
+                classpath {
+                    file {
+                       whenMerged { classpath ->
+                           def container = new org.gradle.plugins.ide.eclipse.model.Container('whenMergedContainerPath')
+                           container.exported = true
+                           classpath.entries.add(container)
+                       }
+                    }
+                }
+            }
         """
 
         when:
@@ -148,10 +157,13 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
 
     def "Respects targetCompatibility customization"() {
         setup:
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_4)}
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+
+            ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_4)}
         """
 
         when:
@@ -182,15 +194,18 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
 
     def "javaRuntimeName customization wins over targetCompatibility"() {
         setup:
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_4)}
-           eclipse {
-               jdt {
-                    javaRuntimeName = "customJavaRuntime"
-               }
-           }
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+
+            ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_4)}
+            eclipse {
+                jdt {
+                     javaRuntimeName = "customJavaRuntime"
+                }
+            }
         """
 
         when:
@@ -204,7 +219,10 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
     def "Whether or not the eclipse plugin is explicitly applied, the same model is retrieved "() {
         setup:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${eclipsePluginApplied ? "apply plugin: 'eclipse'" : ""}
         """
 

@@ -68,7 +68,9 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
     def "will rebuild on change for included build library dependency"() {
         def includedLibrary = singleProjectBuild("library") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
         }
         def librarySource = includedLibrary.file("src/main/java/org/test/Library.java")
@@ -86,8 +88,9 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
             includeBuild "library"
         """
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'application'
+            plugins {
+                id("application")
+            }
             group = 'com.example'
             application {
                 mainClass = 'com.example.Main'
@@ -185,7 +188,9 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
     def "will rebuild on change for build included into a multi-project build"() {
         def includedLibrary = singleProjectBuild("library") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
         }
         def librarySource = includedLibrary.file("src/main/java/org/test/Library.java")
@@ -206,7 +211,6 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
         """
         buildFile << """
             subprojects {
-                apply plugin: 'java'
                 apply plugin: 'application'
                 group = 'com.example'
                 application {

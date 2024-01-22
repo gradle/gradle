@@ -1114,7 +1114,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         def repoDir = testDirectory.createDir("repo")
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
             @CacheableRule
             abstract class SamplesVariantRule implements ComponentMetadataRule {

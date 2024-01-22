@@ -184,7 +184,7 @@ class NamedContainersDslTest : AbstractDslTest() {
                     extendsFrom(valley.get())
                 }
             }
-            apply(plugin = "java")
+            apply(plugin = "java-library")
         }
     }
 

@@ -73,16 +73,18 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
-"""
+            """
         }
         includedBuilds << buildB
 
         buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
-"""
+                plugins {
+                    id("java-library")
+                }
+            """
         }
         includedBuilds << buildC
     }

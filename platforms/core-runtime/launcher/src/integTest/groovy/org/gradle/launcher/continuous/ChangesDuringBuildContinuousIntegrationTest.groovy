@@ -38,7 +38,9 @@ class ChangesDuringBuildContinuousIntegrationTest extends AbstractContinuousInte
 
         when:
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
 
 task postCompile {
     doLast {

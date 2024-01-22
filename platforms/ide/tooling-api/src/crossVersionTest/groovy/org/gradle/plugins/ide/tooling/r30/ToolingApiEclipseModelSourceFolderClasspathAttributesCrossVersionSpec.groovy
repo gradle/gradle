@@ -29,18 +29,21 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
     @TargetGradleVersion(">=2.6 <3.0")
     def "Older versions throw runtime exception when querying classpath attributes"() {
         settingsFile << 'rootProject.name = "root"'
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           eclipse {
-               classpath {
-                   file {
-                       whenMerged { classpath ->
-                           classpath.entries.find { it.kind == 'src' && it.path == 'src/main/java' }.entryAttributes.customKey = 'customValue'
-                       }
-                   }
-               }
-           }
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+
+            eclipse {
+                classpath {
+                    file {
+                        whenMerged { classpath ->
+                            classpath.entries.find { it.kind == 'src' && it.path == 'src/main/java' }.entryAttributes.customKey = 'customValue'
+                        }
+                    }
+                }
+            }
         """
         file('src/main/java').mkdirs()
 
@@ -56,7 +59,11 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
     def "Source folder doesn't define classpath attributes"() {
         setup:
         settingsFile << 'rootProject.name = "root"'
-        buildFile << "apply plugin: 'java'"
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+        """
         file('src/main/java').mkdirs()
 
         when:
@@ -69,18 +76,21 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
     @TargetGradleVersion(">=3.0 <4.4")
     def "Source folder defines one classpath attribute"() {
         settingsFile << 'rootProject.name = "root"'
-        buildFile <<
-            """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           eclipse {
-               classpath {
-                   file {
-                       whenMerged { classpath ->
-                           classpath.entries.find { it.kind == 'src' && it.path == 'src/main/java' }.entryAttributes.customKey = 'customValue'
-                       }
-                   }
-               }
-           }
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+
+            eclipse {
+                classpath {
+                    file {
+                        whenMerged { classpath ->
+                            classpath.entries.find { it.kind == 'src' && it.path == 'src/main/java' }.entryAttributes.customKey = 'customValue'
+                        }
+                    }
+                }
+            }
         """
         file('src/main/java').mkdirs()
 
@@ -97,19 +107,22 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
     @TargetGradleVersion(">=3.0 <4.4")
     def "Source folder defines multiple classpath attributes"() {
         settingsFile << 'rootProject.name = "root"'
-        buildFile <<
-            """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           eclipse {
-               classpath {
-                   file {
-                       whenMerged { classpath ->
-                           classpath.entries.find { it.kind == 'src' && it.path == 'src/main/java' }.entryAttributes.key1 = 'value1'
-                           classpath.entries.find { it.kind == 'src' && it.path == 'src/main/java' }.entryAttributes.key2 = 'value2'
-                       }
-                   }
-               }
-           }
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+
+            eclipse {
+                classpath {
+                    file {
+                        whenMerged { classpath ->
+                            classpath.entries.find { it.kind == 'src' && it.path == 'src/main/java' }.entryAttributes.key1 = 'value1'
+                            classpath.entries.find { it.kind == 'src' && it.path == 'src/main/java' }.entryAttributes.key2 = 'value2'
+                        }
+                    }
+                }
+            }
         """
         file('src/main/java').mkdirs()
 

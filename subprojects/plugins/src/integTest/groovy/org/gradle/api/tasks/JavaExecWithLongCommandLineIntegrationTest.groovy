@@ -36,7 +36,9 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         """
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             def extraClasspath = files()
             task run(type: JavaExec) {

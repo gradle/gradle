@@ -33,7 +33,7 @@ class BuildSrcCrossVersionSpec extends ToolingApiSpecification {
         """
         buildSrc.file("build.gradle") << '''
             plugins {
-                id 'java'
+                id("java-library")
             }
         '''
     }

@@ -31,7 +31,10 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
         createDirs("impl")
         settingsFile << "include 'impl'"
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             dependencies {
                 implementation project(":impl")
             }
@@ -44,7 +47,9 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
 
         mavenRepo.module("org", "foo").publish()
         file("impl/build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
             dependencies {
                 implementation "org:foo:1.0"
             }

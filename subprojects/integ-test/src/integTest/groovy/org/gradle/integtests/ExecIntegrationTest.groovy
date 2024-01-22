@@ -31,7 +31,9 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     def 'can execute java with #task'() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             task javaexecTask(type: JavaExec) {
                 def testFile = file("${'$'}buildDir/${'$'}name")
@@ -86,9 +88,11 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     def 'can execute commands with #task'() {
         given:
         buildFile << """
-            import org.gradle.internal.jvm.Jvm
+            plugins {
+                id("java-library")
+            }
 
-            apply plugin: 'java'
+            import org.gradle.internal.jvm.Jvm
 
             task execTask(type: Exec) {
                 dependsOn sourceSets.main.runtimeClasspath
@@ -166,7 +170,9 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     def "when the user declares outputs it becomes incremental"() {
         given:
         buildFile << '''
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             task run(type: Exec) {
                 inputs.files sourceSets.main.runtimeClasspath
@@ -205,7 +211,9 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     def "arguments can be passed by using argument providers"() {
         given:
         buildFile << '''
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             class JavaTestCommand implements CommandLineArgumentProvider {
                 @Internal
@@ -265,10 +273,12 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
         given:
         buildFile << """
+            plugins {
+                id("java-library")
+            }
+
             import org.gradle.internal.jvm.Jvm
             import static org.gradle.util.internal.TextUtil.normaliseFileAndLineSeparators
-
-            apply plugin: 'java'
 
             // Exec
 

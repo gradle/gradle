@@ -34,7 +34,10 @@ class JUnit4JUnitIntegrationTest extends AbstractJUnit4JUnitIntegrationTest impl
     def "can clean test after extracting class file with junit"() {
         when:
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

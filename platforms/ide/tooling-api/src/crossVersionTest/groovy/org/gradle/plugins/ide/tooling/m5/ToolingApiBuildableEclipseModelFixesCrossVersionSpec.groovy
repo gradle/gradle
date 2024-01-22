@@ -44,7 +44,7 @@ task b
     def "should hide not executable tasks when necessary for a multi module build"() {
         file('build.gradle').text = '''
 project(':api') {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'eclipse'
 }
 '''

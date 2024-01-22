@@ -32,7 +32,7 @@ class GradleRunnerFileSystemWatchingIntegrationTest extends BaseGradleRunnerInte
     def setup() {
         buildFile << """
             plugins {
-                id('java')
+                id("java-library")
             }
         """
         assumeTrue("File system watching is enabled by default", isCompatibleVersion("7.0"))

@@ -291,8 +291,8 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
 
     String simpleJavaProject() {
         """
-        allprojects{
-            apply plugin: 'java'
+        allprojects {
+            apply plugin: 'java-library'
             ${mavenCentralRepository()}
             dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
         }

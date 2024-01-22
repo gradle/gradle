@@ -98,7 +98,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
 
         subproject('b') {
             'build.gradle'('''
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             ''')
             src {
                 main {
@@ -121,7 +121,10 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         given:
         subproject('a') {
             'build.gradle'("""
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
+
                 dependencies {
                     implementation project(':b')
                 }
@@ -162,7 +165,10 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         given:
         subproject('a') {
             'build.gradle'("""
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
+
                 sourceSets {
                     foo {
                         java.srcDir 'src/foo/java'
@@ -211,7 +217,10 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         given:
         subproject('a') {
             'build.gradle'("""
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
+
                 dependencies {
                     testImplementation project(':b')
                 }
@@ -255,7 +264,9 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         given:
         subproject('a') {
             'build.gradle'("""
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
 
                 repositories {
                     maven { url '$mavenRepo.uri' }
@@ -328,7 +339,9 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         given:
         subproject('a') {
             'build.gradle'("""
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
 
                 dependencies {
                     implementation project(':b')
@@ -393,7 +406,9 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         given:
         settingsFile << "include 'a', 'b'"
         file('a/build.gradle') << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             dependencies {
                 implementation project(':b')

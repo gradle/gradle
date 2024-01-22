@@ -223,7 +223,9 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
         file('src/main/java/org/gradle/TestMain.java') << testMainSource
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             task runInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode
@@ -266,7 +268,9 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
         file('src/main/java/org/gradle/TestMain.java') << testMainSource
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             task runInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode

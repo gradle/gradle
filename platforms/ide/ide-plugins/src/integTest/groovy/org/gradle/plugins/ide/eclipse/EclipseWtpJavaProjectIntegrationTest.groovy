@@ -26,18 +26,20 @@ class EclipseWtpJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpe
 
         settingsFile << "rootProject.name = 'java'"
 
-        buildFile <<
-        """apply plugin: 'eclipse-wtp'
-           apply plugin: 'java'
+        buildFile <<"""
+            plugins {
+                id("java-library")
+                id("eclipse-wtp")
+            }
 
-           ${mavenCentralRepository()}
+            ${mavenCentralRepository()}
 
-           java.sourceCompatibility = 1.6
+            java.sourceCompatibility = 1.6
 
-           dependencies {
-               implementation 'com.google.guava:guava:18.0'
-               testImplementation "junit:junit:4.13"
-           }
+            dependencies {
+                implementation 'com.google.guava:guava:18.0'
+                testImplementation "junit:junit:4.13"
+            }
         """
 
         when:

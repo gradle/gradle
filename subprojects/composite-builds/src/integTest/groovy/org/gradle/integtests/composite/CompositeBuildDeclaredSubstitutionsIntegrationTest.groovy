@@ -38,7 +38,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                     version "2.0"
 
                     repositories {
@@ -50,8 +50,10 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
-"""
+                plugins {
+                    id("java-library")
+                }
+            """
         }
     }
 
@@ -184,7 +186,9 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
             rootProject.name = 'buildB2'
 """
         buildB2.file('build.gradle') << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
             group = 'org.test'
             version = '1.0'
 """

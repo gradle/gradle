@@ -191,8 +191,9 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         file('a/build.gradle') << '''
-
-        apply plugin: 'java'
+        plugins {
+            id("java-library")
+        }
 
         dependencies {
             implementation project(path: ':b', configuration: 'compile_output')
@@ -201,8 +202,9 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
         '''
         file('a/src/main/java/World.java') << 'public class World extends Hello {}'
         file('b/build.gradle') << '''
-
-        apply plugin: 'java'
+        plugins {
+            id("java-library")
+        }
 
         configurations {
             compile_output
@@ -227,10 +229,11 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         file('a/build.gradle') << """
+        plugins {
+            id("java-library")
+        }
 
         ${mavenCentralRepository()}
-
-        apply plugin: 'java'
 
         dependencies {
             implementation project(path: ':b', configuration: 'compile_output')
@@ -248,8 +251,9 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         file('b/build.gradle') << """
-
-        apply plugin: 'java'
+        plugins {
+            id("java-library")
+        }
 
         ${mavenCentralRepository()}
 

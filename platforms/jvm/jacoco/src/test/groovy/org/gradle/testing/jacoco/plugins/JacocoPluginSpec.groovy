@@ -49,7 +49,7 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
     @Issue("GRADLE-3498")
     def 'jacoco task extension can be configured. includeNoLocationClasses: #includeNoLocationClassesValue'() {
         given:
-        project.apply plugin: 'java'
+        project.apply plugin: 'java-library'
         RepoScriptBlockUtil.configureMavenCentral(project.repositories)
         def testTask = project.tasks.getByName('test')
         JacocoTaskExtension extension = testTask.extensions.getByType(JacocoTaskExtension)
@@ -97,7 +97,7 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
 
     def "declares task property values for group and description"() {
         given:
-        project.apply plugin: 'java'
+        project.apply plugin: 'java-library'
 
         expect:
         def jacocoTestReportTask = project.tasks.getByName('jacocoTestReport')

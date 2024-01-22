@@ -150,10 +150,12 @@ class CompositeBuildContinueOnSingleFailureIntegrationTest extends AbstractCompo
     def "passes continueOnFailure flag when building dependency artifact"() {
         when:
         buildB.buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             jar.dependsOn 'checkContinueFlag'
-"""
+        """
         dependency "org.test:buildB:1.0"
 
         executer.withArguments("--continue")

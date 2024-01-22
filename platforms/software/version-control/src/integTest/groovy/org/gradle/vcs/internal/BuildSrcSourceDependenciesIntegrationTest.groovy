@@ -31,7 +31,10 @@ class BuildSrcSourceDependenciesIntegrationTest extends AbstractIntegrationSpec 
         vcsMapping('org.test:first', first)
         singleProjectBuild("first") {
             buildFile << """
-                apply plugin: "java"
+                plugins {
+                    id("java-library")
+                }
+
                 def foo = new Foo()
             """
             file("buildSrc/src/main/java/Foo.java") << """

@@ -47,7 +47,9 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         }
         testSourceGenerator.writeAllSources(testSources)
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
             dependencies {
@@ -112,7 +114,9 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
 
         """
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
             dependencies {
@@ -154,7 +158,9 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
             }
         """.stripIndent()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
 
@@ -191,8 +197,11 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         }
         testSourceGenerator.writeAllSources(testSources)
         buildFile << """
+            plugins {
+                id("java-library")
+            }
+
             testing {
-               apply plugin: 'java'
                ${mavenCentralRepository()}
                suites {
                    $suiteDeclaration {
@@ -219,7 +228,10 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
 
         when:
         buildFile.text = """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             testing {
                suites {
@@ -264,7 +276,10 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         }
         testSourceGenerator.writeAllSources(testSources)
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             testing {
                suites {

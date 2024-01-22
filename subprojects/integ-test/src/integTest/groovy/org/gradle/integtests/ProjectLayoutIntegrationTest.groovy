@@ -42,9 +42,11 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationTest {
     void canHaveSomeSourceAndResourcesInSameDirectoryAndSomeInDifferentDirectories() {
         file('settings.gradle') << 'rootProject.name = "sharedSource"'
         file('build.gradle') << """
-apply plugin: 'java'
-apply plugin: 'groovy'
-apply plugin: 'scala'
+plugins {
+    id("java-library")
+    id("scala")
+    id("groovy")
+}
 
 ${mavenCentralRepository()}
 dependencies {
@@ -162,14 +164,20 @@ sourceSets.each {
     void multipleProjectsCanShareTheSameSourceDirectory() {
         file('settings.gradle') << 'include "a", "b"'
         file('a/build.gradle') << '''
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
+
 sourceSets.main.java {
     srcDirs '../src'
     include 'org/gradle/a/**'
 }
 '''
         file('b/build.gradle') << '''
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
+
 dependencies { implementation project(':a') }
 sourceSets.main.java {
     srcDirs '../src'

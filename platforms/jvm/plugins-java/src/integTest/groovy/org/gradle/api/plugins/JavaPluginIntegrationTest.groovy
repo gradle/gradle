@@ -26,7 +26,9 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements Inspe
     def "main component is java component"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             task expect {
                 assert project.components.mainComponent.get() == components.java
@@ -40,7 +42,7 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements Inspe
     def "Java plugin adds outgoing variant for main source set"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
             """
 
@@ -70,7 +72,7 @@ Artifacts
     def "Java plugin adds outgoing variant for main source set containing additional directories"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             sourceSets.main.java.srcDir 'src/more/java'
@@ -104,7 +106,7 @@ Artifacts
     def "mainSourceElements can be consumed by another task via Dependency Management"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             // A resolvable configuration to collect source data
@@ -151,7 +153,7 @@ Artifacts
         def subADir = createDir("subA")
         def buildFileA = subADir.file("build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
             """.stripIndent()
 
@@ -168,7 +170,7 @@ Artifacts
         def subBDir = createDir("subB")
         def buildFileB = subBDir.file("build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
             """.stripIndent()
 
@@ -189,7 +191,7 @@ Artifacts
 
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             dependencies {
@@ -233,7 +235,7 @@ Artifacts
         given:
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -279,7 +281,7 @@ Artifacts
         given:
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -327,7 +329,7 @@ Artifacts
         given:
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -376,7 +378,7 @@ Artifacts
         def subADir = createDir("subA")
         subADir.file("build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -413,7 +415,7 @@ Artifacts
         def subBDir = createDir("subB")
         subBDir.file("build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -461,7 +463,7 @@ Artifacts
         settingsFile << "include 'consumer'"
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             TaskProvider<JavaCompile> taskProvider = tasks.register("customCompile", JavaCompile) {
@@ -507,7 +509,7 @@ Artifacts
     def "executing task which depends on source set classes does not build resources"() {
         buildFile("""
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             def fooTask = tasks.register("foo") {
@@ -539,7 +541,10 @@ Artifacts
     def "accessing reportsDir convention from the java plugin convention is deprecated"() {
         given:
         buildScript("""
-            plugins { id 'java' }
+            plugins {
+                id("java-library")
+            }
+
             println(reportsDir)
         """)
 

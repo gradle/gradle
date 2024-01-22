@@ -34,7 +34,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification implem
 
         file('build.gradle').text = """
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 }
 
 project(':impl') {
@@ -69,7 +69,7 @@ project(':impl') {
 
         file('build.gradle').text = """
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 }
 
 project(':impl') {

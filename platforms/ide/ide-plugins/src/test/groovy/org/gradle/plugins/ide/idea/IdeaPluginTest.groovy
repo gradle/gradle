@@ -121,7 +121,7 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
     def "adds special configuration if Java plugin is applied"() {
         when:
         applyPluginToProjects()
-        project.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
 
         then:
         project.idea.project.languageLevel.level == new IdeaLanguageLevel(project.sourceCompatibility).level
@@ -137,7 +137,7 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
     def "picks up late changes to build dir"() {
         when:
         applyPluginToProjects()
-        project.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
         project.buildDir = project.file('target')
 
         then:
@@ -156,7 +156,7 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
      def "adds single entry libraries from source sets"() {
         when:
         applyPluginToProjects()
-        project.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
 
         project.sourceSets.main.output.dir 'generated-folder'
         project.sourceSets.main.output.dir 'ws-generated'

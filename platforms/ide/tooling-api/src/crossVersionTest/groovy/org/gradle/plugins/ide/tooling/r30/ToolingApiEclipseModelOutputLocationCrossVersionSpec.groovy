@@ -54,7 +54,11 @@ class ToolingApiEclipseModelOutputLocationCrossVersionSpec extends ToolingApiSpe
     @TargetGradleVersion(">=3.0 <4.4")
     def "Java project has default output location"() {
         setup:
-        buildFile << "apply plugin: 'java'"
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+        """
         EclipseProject project = loadToolingModel(EclipseProject)
 
         when:
@@ -66,14 +70,17 @@ class ToolingApiEclipseModelOutputLocationCrossVersionSpec extends ToolingApiSpe
 
     def "Custom output location defined in dsl"() {
         setup:
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           eclipse {
-               classpath {
-                   defaultOutputDir = file('custom-bin')
-               }
-           }
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+
+            eclipse {
+                classpath {
+                    defaultOutputDir = file('custom-bin')
+                }
+            }
         """
 
         when:
@@ -86,18 +93,21 @@ class ToolingApiEclipseModelOutputLocationCrossVersionSpec extends ToolingApiSpe
 
     def "Custom output location defined in whenMerged"() {
         setup:
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           eclipse {
-               classpath {
-                   file {
-                       whenMerged { classpath ->
-                           classpath.entries.find { it.kind == 'output' }.path = 'custom-bin'
-                       }
-                   }
-               }
-           }
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+
+            eclipse {
+                classpath {
+                    file {
+                        whenMerged { classpath ->
+                            classpath.entries.find { it.kind == 'output' }.path = 'custom-bin'
+                        }
+                    }
+                }
+            }
         """
 
         when:
@@ -110,18 +120,21 @@ class ToolingApiEclipseModelOutputLocationCrossVersionSpec extends ToolingApiSpe
 
     def "If output location removed during configuration, then the default path is returned"() {
         setup:
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           eclipse {
-               classpath {
-                   file {
-                       whenMerged { classpath ->
-                           classpath.entries.removeAll { it.kind == 'output' }
-                       }
-                   }
-               }
-           }
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+
+            eclipse {
+                classpath {
+                    file {
+                        whenMerged { classpath ->
+                            classpath.entries.removeAll { it.kind == 'output' }
+                        }
+                    }
+                }
+            }
         """
 
         when:
@@ -134,20 +147,23 @@ class ToolingApiEclipseModelOutputLocationCrossVersionSpec extends ToolingApiSpe
 
     def "If multiple output folder is configured, then the last one is used"() {
         setup:
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           eclipse {
-               classpath {
-                   file {
-                       whenMerged { classpath ->
-                           classpath.entries.removeAll { it.kind == 'output' }
-                           classpath.entries.add(new org.gradle.plugins.ide.eclipse.model.Output('$firstPath'))
-                           classpath.entries.add(new org.gradle.plugins.ide.eclipse.model.Output('$secondPath'))
-                       }
-                   }
-               }
-           }
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+
+            eclipse {
+                classpath {
+                    file {
+                        whenMerged { classpath ->
+                            classpath.entries.removeAll { it.kind == 'output' }
+                            classpath.entries.add(new org.gradle.plugins.ide.eclipse.model.Output('$firstPath'))
+                            classpath.entries.add(new org.gradle.plugins.ide.eclipse.model.Output('$secondPath'))
+                        }
+                    }
+                }
+            }
         """
 
         when:

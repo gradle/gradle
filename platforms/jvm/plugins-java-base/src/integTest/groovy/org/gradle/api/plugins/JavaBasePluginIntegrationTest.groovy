@@ -27,7 +27,7 @@ class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
         """
         buildFile << """
             project(':main') {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
             project(':tests') {
                 apply plugin: 'java-base'

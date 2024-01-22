@@ -1,6 +1,6 @@
 plugins {
     id("org.springframework.boot") version("2.7.8")
-    java
+    id("application")
 }
 
 version = "1.0.2"

@@ -220,7 +220,7 @@ project(":project1") {
     }
 }
 project(":project2") {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     base {
         archivesName = "changed"
     }
@@ -249,7 +249,7 @@ allprojects {
 }
 
 project(':project1') {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 
     ${mavenCentralRepository()}
 
@@ -259,7 +259,7 @@ project(':project1') {
 }
 
 project(':project2') {
-    apply plugin: "java"
+    apply plugin: "java-library"
     apply plugin: "ivy-publish"
 
     version = '2.0'

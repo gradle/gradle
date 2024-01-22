@@ -29,7 +29,10 @@ abstract class AbstractJUnitClassDetectionIntegrationTest extends AbstractTestin
 
     def setup() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

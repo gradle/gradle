@@ -48,7 +48,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier as DMI
 
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     repositories {
        maven { url '${blockingServer.uri}/repo' }
     }
@@ -100,7 +100,10 @@ project('resolve') {
         module.artifact.allowGetOrHead()
 
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             repositories {
                 maven {
                     url '${mavenHttpRepo.uri}'

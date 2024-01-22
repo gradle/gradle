@@ -45,7 +45,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
             """
             file("application/build.gradle") << """
                 plugins {
-                    id 'java'
+                    id("java-library")
                 }
 
                 dependencies {
@@ -80,7 +80,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
 
             file("direct/build.gradle") << """
                 plugins {
-                    id 'java'
+                    id("java-library")
                 }
 
                 dependencies {
@@ -114,7 +114,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
             """
             file("transitive/build.gradle") << """
                 plugins {
-                    id 'java'
+                    id("java-library")
                 }
             """
             file("transitive/src/main/java/transitive/Powerize.java").java """
@@ -420,8 +420,8 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         // Reordering the plugins so that Java is applied later
         file("application/build.gradle").text = """
                 plugins {
-                    id 'org.gradle.test-report-aggregation'
-                    id 'java'
+                    id("org.gradle.test-report-aggregation")
+                    id("java-library")
                 }
 
                 java {

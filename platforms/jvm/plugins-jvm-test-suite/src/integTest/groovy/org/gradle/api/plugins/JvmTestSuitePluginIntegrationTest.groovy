@@ -27,7 +27,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
 
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
             """
 
@@ -69,7 +69,7 @@ Artifacts
 
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             testing {
@@ -114,7 +114,7 @@ Artifacts
         file("src/primaryIntTest/java/com/example/FooTest.java") << "package com.example; class FooTest {}"
         settingsFile << """rootProject.name = 'Test'"""
         buildFile << """plugins {
-                id 'java'
+                id("java-library")
             }
 
             testing {
@@ -140,7 +140,7 @@ Artifacts
 
         settingsFile << """rootProject.name = 'Test'"""
         buildFile << """plugins {
-                id 'java'
+                id("java-library")
             }
 
             testing {
@@ -161,7 +161,7 @@ Artifacts
         file("src/integrationTest/java/com/example/FooTest.java") << "package com.example; class FooTest {}"
         settingsFile << """rootProject.name = 'Test'"""
         buildFile << """plugins {
-                id 'java'
+                id("java-library")
             }
 
             testing {
@@ -184,7 +184,7 @@ Artifacts
         def subADir = createDir("subA")
         subADir.file("build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -200,7 +200,7 @@ Artifacts
         def subBDir = createDir("subB")
         subBDir.file("build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -220,7 +220,7 @@ Artifacts
 
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             tasks.register('allIntegrationTests') {

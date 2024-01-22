@@ -1,6 +1,6 @@
 plugins {
-    id('java')
-    id('com.example.jacoco')
+    id("java-library")
+    id("com.example.jacoco")
 }
 
 group = 'com.example.myproduct'

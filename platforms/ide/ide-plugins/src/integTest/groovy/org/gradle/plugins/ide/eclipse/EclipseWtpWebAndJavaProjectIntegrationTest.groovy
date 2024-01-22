@@ -46,7 +46,7 @@ class EclipseWtpWebAndJavaProjectIntegrationTest extends AbstractEclipseIntegrat
                }
            }
             project(':java') {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
 
                 java.sourceCompatibility = 1.6
 

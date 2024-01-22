@@ -23,8 +23,8 @@ class EclipseTestSourcesIntegrationTest extends AbstractEclipseTestSourcesIntegr
     def "source directories from main source sets are not marked with test classpath attribute"() {
         buildFile << """
             plugins {
-                id 'java'
-                id 'eclipse'
+                id("java-library")
+                id("eclipse")
             }
         """
         file('src/main/java').mkdirs()
@@ -40,8 +40,8 @@ class EclipseTestSourcesIntegrationTest extends AbstractEclipseTestSourcesIntegr
     def "source directories from test source sets are marked with test classpath attribute"() {
         buildFile << """
             plugins {
-                id 'java'
-                id 'eclipse'
+                id("java-library")
+                id("eclipse")
             }
         """
         file('src/test/java').mkdirs()
@@ -57,8 +57,8 @@ class EclipseTestSourcesIntegrationTest extends AbstractEclipseTestSourcesIntegr
     def "source directories defined in custom source sets are marked with test classpath attribute if source set name contains 'test' substring"() {
         buildFile << """
             plugins {
-                id 'java'
-                id 'eclipse'
+                id("java-library")
+                id("eclipse")
             }
 
             sourceSets {
@@ -112,8 +112,8 @@ class EclipseTestSourcesIntegrationTest extends AbstractEclipseTestSourcesIntegr
         setup:
         buildFile << """
             plugins {
-                id 'java'
-                id 'eclipse'
+                id("java-library")
+                id("eclipse")
             }
 
             eclipse {

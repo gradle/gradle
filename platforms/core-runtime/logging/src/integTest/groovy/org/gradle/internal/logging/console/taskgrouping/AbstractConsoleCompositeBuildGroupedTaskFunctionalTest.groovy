@@ -83,7 +83,9 @@ abstract class AbstractConsoleCompositeBuildGroupedTaskFunctionalTest extends Ab
 
     static String javaProject() {
         """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             group = 'org.gradle'
             version = '1.0'

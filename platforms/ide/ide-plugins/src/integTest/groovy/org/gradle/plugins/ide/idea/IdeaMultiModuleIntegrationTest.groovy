@@ -40,7 +40,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         def buildFile = file("build.gradle")
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'idea'
             }
 
@@ -92,7 +92,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
 
                     file("build.gradle") << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'idea'
             }
 
@@ -131,7 +131,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         def buildFile = file("build.gradle")
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'idea'
             }
 
@@ -181,10 +181,12 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         """
 
         file("build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             subprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'idea'
             }
 
@@ -252,7 +254,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         def buildFile = file("build.gradle")
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'idea'
             }
 
@@ -336,7 +338,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         def buildFile = file("build.gradle")
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'idea'
             }
 
@@ -503,7 +505,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         def buildFile = file("build.gradle")
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'idea'
             }
 
@@ -539,7 +541,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         def buildFile = file("build.gradle")
         buildFile << """
             subprojects {
-              apply plugin: 'java'
+              apply plugin: 'java-library'
             }
 
             project(':api') {
@@ -571,7 +573,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         def buildFile = file("build.gradle")
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'idea'
             }
         """
@@ -599,7 +601,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         def buildFile = file("build.gradle")
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'idea'
             }
 

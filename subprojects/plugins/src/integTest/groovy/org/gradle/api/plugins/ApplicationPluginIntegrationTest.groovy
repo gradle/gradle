@@ -317,8 +317,9 @@ application.executableDir = 'foo/bar'
         createDirs("utils", "core")
         file('settings.gradle') << "include 'utils', 'core'"
         buildFile << '''
-            apply plugin: 'java'
-            apply plugin: 'application'
+            plugins {
+                id("application")
+            }
 
             dependencies {
                implementation project(':utils')
@@ -358,15 +359,16 @@ application.executableDir = 'foo/bar'
             repositories {
                 maven { url '$mavenRepo.uri' }
             }
-            apply plugin: 'java'
+            apply plugin: 'java-library'
         }
         """
 
         createDirs("utils", "core", "foo", "bar")
         file('settings.gradle') << "include 'utils', 'core', 'foo', 'bar'"
         buildFile << '''
-            apply plugin: 'java'
-            apply plugin: 'application'
+            plugins {
+                id("application")
+            }
 
             dependencies {
                implementation project(':utils')
@@ -412,14 +414,15 @@ dependencies {
             repositories {
                 maven { url '$mavenRepo.uri' }
             }
-            apply plugin: 'java'
+            apply plugin: 'java-library'
         }
         """
         createDirs("utils", "core", "foo", "bar")
         file('settings.gradle') << "include 'utils', 'core', 'foo', 'bar'"
         buildFile << '''
-            apply plugin: 'java'
-            apply plugin: 'application'
+            plugins {
+                id("application")
+            }
 
             dependencies {
                implementation project(':utils')

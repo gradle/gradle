@@ -153,7 +153,9 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
         file('src/main/java').createDir()
         file('src/main/java/Test.java') << "public class Test {}"
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             task runInWorker(type: WorkerTask) {
                 isolationMode = 'processIsolation'

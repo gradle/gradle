@@ -31,7 +31,9 @@ class HttpBuildCacheRequestHeadersIntegrationTest extends HttpBuildCacheFixture 
     def "sends X-Gradle-Version header with store and load requests"() {
         given:
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
         """
 
         file("src/main/java/Hello.java") << """

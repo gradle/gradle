@@ -29,7 +29,9 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec imp
 
     def setup() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
         """
         expectReindentedValidationMessage()
     }

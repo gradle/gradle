@@ -155,7 +155,10 @@ class TestTaskToolchainIntegrationTest extends AbstractIntegrationSpec implement
         def executable = TextUtil.normaliseFileSeparators(Jvm.current().javaExecutable.toString())
 
         buildFile << """
-            apply plugin:'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 testImplementation 'junit:junit:4.13'
@@ -177,7 +180,9 @@ class TestTaskToolchainIntegrationTest extends AbstractIntegrationSpec implement
 
     private TestFile configureProjectWithJavaPlugin(JavaVersion compileJavaVersion) {
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
 

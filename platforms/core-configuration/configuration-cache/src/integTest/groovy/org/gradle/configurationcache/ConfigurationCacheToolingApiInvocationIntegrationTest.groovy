@@ -30,7 +30,7 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
     def "can run tasks via tooling API when configuration cache is enabled"() {
         buildFile << """
             plugins {
-                id("java")
+                id("java-library")
             }
             println("script log statement")
         """
@@ -52,7 +52,7 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         withConfigurationCacheEnabledInGradleProperties()
         buildFile << """
             plugins {
-                id("java")
+                id("java-library")
             }
             println("script log statement")
         """
@@ -73,7 +73,7 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
     def "can enable configuration cache using system property in build arguments"() {
         buildFile << """
             plugins {
-                id("java")
+                id("java-library")
             }
             println("script log statement")
         """
@@ -94,7 +94,7 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
     def "can enable configuration cache using system property in build JVM arguments"() {
         buildFile << """
             plugins {
-                id("java")
+                id("java-library")
             }
             println("script log statement")
         """
@@ -121,7 +121,7 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         settingsFile << ""
         buildFile << """
             plugins {
-                id("java")
+                id("java-library")
             }
             ${mavenCentralRepository()}
             dependencies { testImplementation("junit:junit:4.13") }
@@ -219,7 +219,7 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         settingsFile << ""
         buildFile << """
             plugins {
-                id("java")
+                id("java-library")
             }
             plugins.apply(my.MyPlugin)
             println("script log statement")

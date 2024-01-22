@@ -1,3 +1,3 @@
 plugins {
-    java
+    id("java-library")
 }

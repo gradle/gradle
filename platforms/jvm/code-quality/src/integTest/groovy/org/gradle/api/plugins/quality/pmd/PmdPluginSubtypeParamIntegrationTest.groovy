@@ -27,8 +27,10 @@ class PmdPluginSubtypeParamIntegrationTest extends AbstractPmdPluginVersionInteg
 
     def setup() {
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'pmd'
+            plugins {
+                id("java-libary")
+                id("pmd")
+            }
 
             ${mavenCentralRepository()}
 

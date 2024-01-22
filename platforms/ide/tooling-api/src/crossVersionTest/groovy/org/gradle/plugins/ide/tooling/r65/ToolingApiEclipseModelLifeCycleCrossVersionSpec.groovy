@@ -39,8 +39,10 @@ class ToolingApiEclipseModelLifeCycleCrossVersionSpec extends ToolingApiSpecific
 
         settingsFile << 'rootProject.name = "root"'
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'eclipse'
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
 
             repositories {
                 $localMaven

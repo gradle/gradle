@@ -79,7 +79,7 @@ Create a file called `build.gradle.kts` and add the following lines to it:
 [source,kotlin]
 ----
 plugins {
-    id("java")
+    id("java-library")
 }
 
 repositories {

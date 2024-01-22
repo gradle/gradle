@@ -1,9 +1,9 @@
 // tag::use-plugin[]
 plugins {
 // end::use-plugin[]
-    id 'java'
+    id("java-library")
 // tag::use-plugin[]
-    id 'signing'
+    id("signing")
 }
 // end::use-plugin[]
 

@@ -137,9 +137,8 @@ class CodeNarcPluginToolchainsIntegrationTest extends MultiVersionIntegrationSpe
     private void writeBuildFile() {
         buildFile << """
             plugins {
-                id 'groovy'
-                id 'java'
-                id 'codenarc'
+                id("groovy")
+                id("codenarc")
             }
             codenarc {
                 toolVersion = '$version'
@@ -151,8 +150,7 @@ class CodeNarcPluginToolchainsIntegrationTest extends MultiVersionIntegrationSpe
     private void writeBuildFileWithoutApplyingCodeNarcPlugin() {
         buildFile << """
             plugins {
-                id 'groovy'
-                id 'java'
+                id("groovy")
             }
             ${mavenCentralRepository()}
         """

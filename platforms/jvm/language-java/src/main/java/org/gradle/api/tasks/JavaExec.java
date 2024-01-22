@@ -62,7 +62,7 @@ import static java.util.Collections.emptyList;
  * </p>
  * <pre class='autoTested'>
  * plugins {
- *     id 'java'
+ *     id("java-library")
  * }
  *
  * task runApp(type: JavaExec) {

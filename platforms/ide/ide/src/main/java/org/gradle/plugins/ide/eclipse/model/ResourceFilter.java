@@ -27,8 +27,8 @@ import org.gradle.api.Action;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java'
- *     id 'eclipse'
+ *     id("java-library")
+ *     id("eclipse")
  * }
  *
  * eclipse {

@@ -30,8 +30,8 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         when:
         buildScript """
           plugins {
-            id "java"
-            id "noop" version "1.0"
+            id("java-library"
+            id("noop") version "1.0"
           }
         """
 
@@ -200,7 +200,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         2          | "apply false"                          | BASE_MESSAGE
         2          | "id 'foo' apply"                       | BASE_MESSAGE
         2          | "id 'foo' apply('foo')"                | NEED_SINGLE_BOOLEAN
-        2          | "apply plugin: 'java'"                 | NEED_SINGLE_BOOLEAN
+        2          | "apply plugin: 'java-library'"         | NEED_SINGLE_BOOLEAN
         2          | "id null"                              | NEED_LITERAL_STRING
         2          | "id 'foo' version null"                | NEED_INTERPOLATED_STRING
         2          | "file('foo')" /* script api */         | BASE_MESSAGE
@@ -222,13 +222,13 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
                 "id('noop').version('bar')",
                 "id 'noop' version 'bar'",
                 "id('noop').\nversion 'bar'",
-                "id('java');id('noop')",
-                "id('java')\nid('noop')",
-                "id('noop').version('bar');id('java')",
-                "id('noop').version('bar')\nid('java')",
+                "id('java-library');id('noop')",
+                "id('java-library')\nid('noop')",
+                "id('noop').version('bar');id('java-library')",
+                "id('noop').version('bar')\nid('java-library')",
                 "id 'noop' apply false",
                 "id('noop').apply(false)",
-                "id('noop').apply(false);id('java')",
+                "id('noop').apply(false);id('java-library')",
                 "id 'noop' version 'bar' apply false",
                 "id('noop').version('bar').apply(false)",
         ]

@@ -22,8 +22,10 @@ class Idea13ModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "provides generated sources dir information"() {
         file('build.gradle').text = """
-            apply plugin: 'java'
-            apply plugin: 'idea'
+            plugins {
+                id("java-library")
+                id("idea")
+            }
 
             idea {
               module {

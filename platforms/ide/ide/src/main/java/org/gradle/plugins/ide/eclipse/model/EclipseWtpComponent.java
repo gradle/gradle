@@ -49,8 +49,8 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'war' // or 'ear' or 'java'
- *     id 'eclipse-wtp'
+ *     id("war") // or 'ear' or 'java-library'
+ *     id("eclipse-wtp")
  * }
  *
  * configurations {

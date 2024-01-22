@@ -40,7 +40,10 @@ abstract class AbstractJUnit4TestListenerIntegrationTest extends AbstractJUnitTe
         """.stripIndent()
 
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkJUnit3Dependencies}
@@ -88,7 +91,10 @@ abstract class AbstractJUnit4TestListenerIntegrationTest extends AbstractJUnitTe
         """.stripIndent()
 
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

@@ -182,14 +182,14 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
     }
 """
         buildB.buildFile << """
-    allprojects {
-        apply plugin: 'java'
-    }
+            allprojects {
+                apply plugin: 'java-library'
+            }
 
-    dependencies {
-        implementation "org.test:b1:1.0"
-    }
-"""
+            dependencies {
+                implementation "org.test:b1:1.0"
+            }
+        """
 
         when:
         execute(buildA, ":delegate")

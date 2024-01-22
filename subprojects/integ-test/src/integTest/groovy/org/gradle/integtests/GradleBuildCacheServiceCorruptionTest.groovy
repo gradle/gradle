@@ -29,7 +29,7 @@ class GradleBuildCacheServiceCorruptionTest extends AbstractIntegrationSpec {
         """
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
             subprojects {
                 task breakBuild(type: GradleBuild) {

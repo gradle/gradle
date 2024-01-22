@@ -32,7 +32,7 @@ class BuildActionCompatibilityMappingCrossVersionSpec extends ToolingApiSpecific
         """
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
             project(':a') {
                 dependencies {

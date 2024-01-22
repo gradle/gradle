@@ -36,7 +36,9 @@ class CacheTaskOutputIntegrationTest extends AbstractIntegrationSpec {
         file("input.txt") << "data"
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
         """
 
         file("src/main/java/Hello.java") << """

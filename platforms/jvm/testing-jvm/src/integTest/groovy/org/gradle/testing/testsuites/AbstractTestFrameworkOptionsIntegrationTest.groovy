@@ -24,7 +24,7 @@ abstract class AbstractTestFrameworkOptionsIntegrationTest extends AbstractInteg
     def setup() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}

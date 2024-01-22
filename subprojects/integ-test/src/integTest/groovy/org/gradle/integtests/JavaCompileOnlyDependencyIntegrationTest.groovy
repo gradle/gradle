@@ -34,7 +34,9 @@ public class Test {
 
         and:
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
 
 ${mavenCentralRepository()}
 
@@ -62,7 +64,9 @@ public class Test {
 
         and:
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
 
 ${mavenCentralRepository()}
 
@@ -86,7 +90,9 @@ dependencies {
         def runtimeModule = mavenRepo.module('org.gradle.test', 'runtime', '1.1').publish()
 
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
 
 repositories {
     maven { url '$mavenRepo.uri' }
@@ -131,7 +137,9 @@ task checkRuntimeClasspath {
         def compileOnlyModule = mavenRepo.module('org.gradle.test', 'compileOnly', '1.0').dependsOn(shared10).publish()
 
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
 
 repositories {
     maven { url '$mavenRepo.uri' }
@@ -291,7 +299,9 @@ project(':projectB') {
 
         and:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
 

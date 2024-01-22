@@ -39,7 +39,10 @@ class SourceDependencyIncludedBuildIntegrationTest extends AbstractIntegrationSp
             }
         """
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             dependencies { implementation 'org.test:buildB:1.2' }
         """
 

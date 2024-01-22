@@ -33,7 +33,7 @@ class ConfigurationOnDemandPluginsIntegrationTest extends AbstractIntegrationSpe
                     apply plugin: '${plugin}'
                 }
                 subprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
             """.stripIndent()
 

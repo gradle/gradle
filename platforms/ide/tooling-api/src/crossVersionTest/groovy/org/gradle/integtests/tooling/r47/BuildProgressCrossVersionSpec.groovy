@@ -78,8 +78,10 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'maven-publish'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
             version = '1'
             group = 'group'
 

@@ -21,12 +21,16 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
     def "can apply a transform to the outputs of included builds"() {
         def buildB = singleProjectBuild("buildB") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
         }
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
         }
         includedBuilds << buildB

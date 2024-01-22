@@ -31,8 +31,10 @@ class IdeaProjectIntegrationTest extends AbstractIdeIntegrationTest {
     void "allows configuring the VCS"() {
         //when
         runTask('idea', '''
-apply plugin: "java"
-apply plugin: "idea"
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 idea.project {
     vcs = 'Git'
@@ -52,7 +54,7 @@ idea.project {
         createDirs("someProjectThatWillBeExcluded", "api")
         def result = runTask ':idea', 'include "someProjectThatWillBeExcluded", "api"', '''
 allprojects {
-    apply plugin: "java"
+    apply plugin: "java-library"
     apply plugin: "idea"
 }
 
@@ -119,8 +121,10 @@ idea {
 
         //when
         runTask 'idea', '''
-apply plugin: "java"
-apply plugin: "idea"
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 def hooks = []
 

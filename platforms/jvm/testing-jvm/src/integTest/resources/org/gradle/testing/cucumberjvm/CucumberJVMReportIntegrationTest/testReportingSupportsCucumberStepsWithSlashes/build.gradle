@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 plugins {
-    id("java")
+    id("java-library")
 }
 
 repositories {

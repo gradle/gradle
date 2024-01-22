@@ -23,10 +23,12 @@ class IvyPublishEarIntegTest extends AbstractIvyPublishIntegTest {
 
         and:
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'war'
-            apply plugin: 'ear'
-            apply plugin: 'ivy-publish'
+            plugins {
+                id("java-library")
+                id("war")
+                id("ear")
+                id("ivy-publish")
+            }
 
             group = 'org.gradle.test'
             version = '1.9'

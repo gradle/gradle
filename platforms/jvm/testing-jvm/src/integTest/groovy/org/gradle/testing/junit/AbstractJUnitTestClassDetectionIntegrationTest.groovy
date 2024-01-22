@@ -26,7 +26,10 @@ abstract class AbstractJUnitTestClassDetectionIntegrationTest extends AbstractTe
     def "test class detection works for custom test tasks"() {
         given:
         buildFile << """
-            apply plugin:'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
 
             sourceSets {
@@ -69,7 +72,10 @@ abstract class AbstractJUnitTestClassDetectionIntegrationTest extends AbstractTe
     def "test class detection works when '-parameters' compiler option is used (JEP 118)"() {
         when:
         buildScript """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

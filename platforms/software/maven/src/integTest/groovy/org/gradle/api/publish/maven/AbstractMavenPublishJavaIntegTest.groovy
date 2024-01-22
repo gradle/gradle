@@ -568,7 +568,9 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         '''
 
         file('b/build.gradle') << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             group = 'org.gradle.test'
             version = '1.2'
@@ -843,7 +845,10 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
             include "subproject"
         """
         file('subproject/build.gradle') << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             group = 'org.gradle.test'
             version = '1.2'
         """

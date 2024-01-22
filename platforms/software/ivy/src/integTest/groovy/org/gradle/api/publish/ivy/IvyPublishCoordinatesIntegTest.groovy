@@ -26,8 +26,10 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
         and:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: 'ivy-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
 
             group = 'group'
             version = '1.0'
@@ -69,8 +71,10 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
         and:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: 'ivy-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
 
             group = 'group'
             version = '1.0'
@@ -149,8 +153,10 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
         given:
         settingsFile << "rootProject.name = 'duplicate-publications'"
         buildFile << """
-            apply plugin: 'ivy-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
 
             group = 'org.example'
             version = '1.0'
@@ -198,8 +204,10 @@ include 'projectB'
 """
         buildFile << """
         subprojects {
-            apply plugin: 'ivy-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
 
             group = 'org.example'
             version = '1.0'
@@ -229,8 +237,10 @@ include 'projectB'
         given:
         settingsFile << "rootProject.name = 'duplicate-repos'"
         buildFile << """
-            apply plugin: 'ivy-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
 
             group = 'org.example'
             version = '1.0'

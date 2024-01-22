@@ -100,11 +100,8 @@ see more at gradle.org""")
  */
 
 plugins {
-    // Add support for the Java language
-    java
-
     // Add support for Java libraries
-    `java-library`
+    id("java-library")
 
     // Add support for the Kotlin language
     id("org.jetbrains.kotlin.jvm") version "1.3.41"

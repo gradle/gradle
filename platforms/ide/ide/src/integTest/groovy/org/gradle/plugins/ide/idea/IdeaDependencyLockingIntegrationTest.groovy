@@ -35,8 +35,10 @@ class IdeaDependencyLockingIntegrationTest extends AbstractIdeIntegrationTest {
 
         //when
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 repositories {
     maven { url "${mvnRepo.uri}" }
@@ -72,8 +74,10 @@ dependencies {
 
         //when
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 repositories {
     maven { url "${mvnRepo.uri}" }

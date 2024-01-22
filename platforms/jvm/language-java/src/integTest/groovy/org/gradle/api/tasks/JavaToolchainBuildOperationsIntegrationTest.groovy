@@ -40,7 +40,9 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         captureBuildOperations()
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
             dependencies {

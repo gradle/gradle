@@ -27,7 +27,7 @@ class ErrorPronePluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         given:
         buildFile << """
             plugins {
-                id('java')
+                id("java-library")
                 id("net.ltgt.errorprone") version "${TestedVersions.errorProne}"
             }
 

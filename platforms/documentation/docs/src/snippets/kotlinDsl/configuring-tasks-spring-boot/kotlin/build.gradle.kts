@@ -5,7 +5,7 @@ import org.springframework.boot.gradle.tasks.run.BootRun
 // TODO:Finalize Upload Removal - Issue #21439
 // tag::accessors[]
 plugins {
-    java
+    id("application")
     id("org.springframework.boot") version "2.7.8"
 }
 

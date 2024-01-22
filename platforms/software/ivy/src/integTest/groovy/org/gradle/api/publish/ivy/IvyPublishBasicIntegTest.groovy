@@ -95,8 +95,10 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         and:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: 'ivy-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
 
             group = 'group'
             version = '1.0'
@@ -197,8 +199,11 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: 'ivy-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
+
             group = 'org.gradle.test'
             version = '1.0'
             def writeFileProvider = tasks.register("writeFile") {
@@ -269,8 +274,10 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         and:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: 'ivy-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
 
             group = 'group'
             version = '1.0'
@@ -309,8 +316,8 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         """
         buildFile << """
             plugins {
-                id 'java'
-                id 'ivy-publish'
+                id("java-library")
+                id("ivy-publish")
             }
 
             dependencies {
@@ -347,8 +354,8 @@ In general publishing dependencies to enforced platforms is a mistake: enforced 
         """
         buildFile << """
             plugins {
-                id 'java'
-                id 'ivy-publish'
+                id("java-library")
+                id("ivy-publish")
             }
 
             group = 'com.acme'

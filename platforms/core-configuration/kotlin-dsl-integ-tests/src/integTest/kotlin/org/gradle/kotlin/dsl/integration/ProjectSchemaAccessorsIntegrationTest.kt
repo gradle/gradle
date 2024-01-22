@@ -1134,7 +1134,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
         withBuildScript(
             """
             plugins {
-                java
+                id("java-library")
             }
 
             configurations {
@@ -1160,7 +1160,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
         withBuildScript(
             """
             plugins {
-                java
+                id("java-library")
             }
 
             tasks.compileJava {
@@ -1190,7 +1190,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
         withBuildScript(
             """
             plugins {
-                java
+                id("java-library")
             }
 
             sourceSets {

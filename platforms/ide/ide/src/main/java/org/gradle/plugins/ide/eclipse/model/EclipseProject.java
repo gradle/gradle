@@ -43,8 +43,8 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java'
- *     id 'eclipse'
+ *     id("java-library")
+ *     id("eclipse")
  * }
  *
  * eclipse {
@@ -99,8 +99,8 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java'
- *     id 'eclipse'
+ *     id("java-library")
+ *     id("eclipse")
  * }
  *
  * eclipse {

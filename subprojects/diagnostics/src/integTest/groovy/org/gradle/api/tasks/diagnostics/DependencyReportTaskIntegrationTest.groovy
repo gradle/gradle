@@ -1015,7 +1015,9 @@ conf
                 .publish()
 
         buildFile << """
-            apply plugin: 'java' // Java plugin required for BOM import
+            plugins {
+                id("java-library")  // Java plugin required for BOM import
+            }
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }

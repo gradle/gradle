@@ -27,7 +27,7 @@ import java.util.Collection;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java'
+ *     id("java-library")
  * }
  *
  * task resolveCompileSources {

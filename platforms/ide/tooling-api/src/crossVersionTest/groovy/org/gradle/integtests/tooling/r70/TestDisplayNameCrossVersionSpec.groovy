@@ -33,8 +33,8 @@ class TestDisplayNameCrossVersionSpec extends TestLauncherSpec {
     @Override
     String simpleJavaProject() {
         """
-        allprojects{
-            apply plugin: 'java'
+        allprojects {
+            apply plugin: 'java-library'
             ${mavenCentralRepository()}
             dependencies {
                 testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")

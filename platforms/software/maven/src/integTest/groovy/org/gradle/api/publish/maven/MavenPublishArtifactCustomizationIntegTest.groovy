@@ -516,8 +516,10 @@ Cannot publish module metadata because an artifact from the 'java' component has
     private createBuildScripts(def publications, def append = "") {
         settingsFile << "rootProject.name = 'projectText'"
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'maven-publish'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = 'group'
             version = '1.0'
@@ -653,7 +655,7 @@ Cannot publish module metadata because an artifact from the 'java' component has
 
         file('lib/build.gradle') << '''
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             configurations.create("srcLicense") {

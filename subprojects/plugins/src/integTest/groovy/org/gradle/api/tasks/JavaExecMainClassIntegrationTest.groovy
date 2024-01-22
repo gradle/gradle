@@ -31,7 +31,7 @@ class JavaExecMainClassIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
 
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             interface BootExtension {

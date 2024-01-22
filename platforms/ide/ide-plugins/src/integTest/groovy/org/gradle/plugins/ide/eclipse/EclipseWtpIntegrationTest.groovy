@@ -75,13 +75,14 @@ dependencies {
 
         // when:
         createDirs("sub")
-        runEclipseTask "include 'sub'",
-        """apply plugin: 'java'
-           apply plugin: 'war'
-           apply plugin: 'eclipse-wtp'
+        runEclipseTask "include 'sub'", """
+            plugins {
+                id("war")
+                id("eclipse-wtp")
+            }
 
            project(':sub') {
-               apply plugin : 'java'
+               apply plugin : 'java-library'
            }
 
            repositories {
@@ -126,7 +127,7 @@ dependencies {
     private createIncludedBuild() {
         file("includedBuild/build.gradle.kts") << """
             plugins {
-                id("java")
+                id("java-library")
             }
             group = "org.example"
             version = "1.0-SNAPSHOT"
@@ -152,7 +153,6 @@ dependencies {
     private createRootProject() {
         file("build.gradle.kts") << """
             plugins {
-                id("java")
                 id("eclipse")
                 id("ear")
             }
@@ -224,8 +224,10 @@ dependencies {
         createJavaSourceDirs(java1BuildFile)
 
         java1BuildFile << """
-apply plugin: "eclipse-wtp"
-apply plugin: "java"
+plugins {
+    id("java-library")
+    id("eclipse-wtp")
+}
 
 repositories {
     maven { url "${repoDir.toURI()}" }
@@ -241,8 +243,10 @@ dependencies {
         createJavaSourceDirs(java2BuildFile)
 
         java2BuildFile << """
-apply plugin: "eclipse-wtp"
-apply plugin: "java"
+plugins {
+    id("java-library")
+    id("eclipse-wtp")
+}
 
 repositories {
     maven { url "${repoDir.toURI()}" }

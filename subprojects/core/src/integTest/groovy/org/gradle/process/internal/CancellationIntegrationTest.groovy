@@ -35,8 +35,11 @@ class CancellationIntegrationTest extends DaemonIntegrationSpec implements Direc
         given:
         blockCode()
         buildFile << """
+            plugins {
+                id("java-library")
+            }
+
             import java.util.concurrent.CountDownLatch
-            apply plugin: 'java'
             task execTask(type: Exec) {
                 dependsOn 'compileJava'
                 commandLine '${fileToPath(Jvm.current().javaExecutable)}', '-cp', '${fileToPath(file('build/classes/java/main'))}', 'Block'
@@ -79,7 +82,9 @@ class CancellationIntegrationTest extends DaemonIntegrationSpec implements Direc
         file('outputFile') << ''
         blockCode()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             @CacheableTask
             class MyJavaExec extends JavaExec {
@@ -113,7 +118,9 @@ class CancellationIntegrationTest extends DaemonIntegrationSpec implements Direc
         file('outputFile') << ''
         blockCode()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             @CacheableTask
             abstract class MyExec extends DefaultTask {

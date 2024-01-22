@@ -65,8 +65,8 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java'
- *     id 'ivy-publish'
+ *     id("java-library")
+ *     id("ivy-publish")
  * }
  *
  * task sourceJar(type: Jar) {
@@ -134,8 +134,8 @@ public interface IvyPublication extends Publication {
      * The following example demonstrates how to publish the 'java' component to a ivy repository.
      * <pre class='autoTested'>
      * plugins {
-     *     id 'java'
-     *     id 'ivy-publish'
+     *     id("java-library")
+     *     id("ivy-publish")
      * }
      *
      * publishing {
@@ -157,8 +157,8 @@ public interface IvyPublication extends Publication {
      * The following example demonstrates how to add a "testCompile" configuration, and a "testRuntime" configuration that extends it.
      * <pre class='autoTested'>
      * plugins {
-     *     id 'java'
-     *     id 'ivy-publish'
+     *     id("java-library")
+     *     id("ivy-publish")
      * }
      *
      * publishing {
@@ -285,8 +285,8 @@ public interface IvyPublication extends Publication {
      * For example, to exclude the dependencies declared by a component and instead use a custom set of artifacts:
      * <pre class='autoTested'>
      * plugins {
-     *     id 'java'
-     *     id 'ivy-publish'
+     *     id("java-library")
+     *     id("ivy-publish")
      * }
      *
      * task sourceJar(type: Jar) {
@@ -350,8 +350,8 @@ public interface IvyPublication extends Publication {
      * For example, to use resolved versions for runtime dependencies:
      * <pre class='autoTested'>
      * plugins {
-     *     id 'java'
-     *     id 'ivy-publish'
+     *     id("java-library")
+     *     id("ivy-publish")
      * }
      *
      * publishing {

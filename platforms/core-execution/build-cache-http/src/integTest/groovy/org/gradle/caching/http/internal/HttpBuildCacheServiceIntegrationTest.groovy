@@ -49,7 +49,9 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         settingsFile << withHttpBuildCacheServer()
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
         """
 
         file("src/main/java/Hello.java") << ORIGINAL_HELLO_WORLD

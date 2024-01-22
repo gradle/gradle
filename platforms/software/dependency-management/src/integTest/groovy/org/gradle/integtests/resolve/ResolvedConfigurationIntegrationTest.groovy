@@ -25,7 +25,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
     def setup() {
         buildFile << """
             allprojects {
-                apply plugin: "java"
+                apply plugin: "java-library"
             }
             repositories {
                 maven { url '${mavenHttpRepo.uri}' }

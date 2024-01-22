@@ -30,7 +30,10 @@ abstract class AbstractTestListenerBuildOperationAdapterIntegrationTest extends 
     def "emits build operations for junit tests"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             repositories { mavenCentral() }
             dependencies {
                 ${testFrameworkDependencies}

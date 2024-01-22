@@ -25,7 +25,9 @@ class TestKitDependencyClassVisibilityIntegrationTest extends AbstractIntegratio
     def "test kit dependency is not implicitly put on the test compile classpath"() {
         when:
         buildScript """
-            plugins { id "org.gradle.java" }
+            plugins {
+                id("java-library")
+            }
         """
 
         file("src/test/java/Test.java") << """
@@ -41,7 +43,10 @@ class TestKitDependencyClassVisibilityIntegrationTest extends AbstractIntegratio
     def "gradle implementation dependencies are not visible to gradleTestKit() users"() {
         when:
         buildScript """
-            plugins { id "org.gradle.java" }
+            plugins {
+                id("java-library")
+            }
+
             dependencies { testImplementation gradleTestKit() }
         """
 
@@ -58,7 +63,10 @@ class TestKitDependencyClassVisibilityIntegrationTest extends AbstractIntegratio
     def "gradle implementation dependencies do not conflict with user classes"() {
         when:
         buildScript """
-            plugins { id "org.gradle.java" }
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 testImplementation gradleTestKit()

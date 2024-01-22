@@ -35,8 +35,10 @@ class JavaProjectUnderTest {
 
     JavaProjectUnderTest writeBuildScript() {
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'jacoco'
+            plugins {
+                id("java-library")
+                id("jacoco")
+            }
 
             ${mavenCentralRepository()}
 

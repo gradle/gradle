@@ -1,5 +1,5 @@
 plugins {
-    id("java")
+    id("java-library")
     id("com.example.jacoco")
 }
 

@@ -45,7 +45,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
         def buildFile = file("build.gradle")
         buildFile << """
             plugins {
-                id("java")
+                id("java-library")
                 id("idea")
             }
         """
@@ -170,7 +170,12 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     @Test
     @ToBeFixedForConfigurationCache
     void outputDirsDefaultToToIdeaDefaults() {
-        runIdeaTask("apply plugin: 'java'; apply plugin: 'idea'")
+        runIdeaTask("""
+            plugins {
+                id("java-library")
+                id("idea")
+            }
+        """)
 
         def module = parseImlFile("root")
         assert module.component.@"inherit-compiler-output" == "true"
@@ -184,8 +189,10 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
         def artifact2 = maven(repoDir).module("myGroup", "myArtifact2").dependsOnModules("myArtifact1").publish().artifactFile
 
         runIdeaTask """
-apply plugin: "java"
-apply plugin: "idea"
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 repositories {
     maven { url "${repoDir.toURI()}" }
@@ -209,8 +216,10 @@ dependencies {
         def artifact1 = maven(repoDir).module("myGroup", "myArtifact1").publish().artifactFile
 
         runIdeaTask """
-    apply plugin: "java"
-    apply plugin: "idea"
+    plugins {
+        id("java-library")
+        id("idea")
+    }
 
     repositories {
         maven { url "${repoDir.toURI()}" }
@@ -237,9 +246,10 @@ dependencies {
     @ToBeFixedForConfigurationCache
     void onlyAddsSourceDirsThatExistOnFileSystem() {
         runIdeaTask """
-apply plugin: "java"
-apply plugin: "groovy"
-apply plugin: "idea"
+plugins {
+    id("groovy")
+    id("idea")
+}
 
 sourceSets.main.java.srcDirs.each { it.mkdirs() }
 sourceSets.main.resources.srcDirs.each { it.mkdirs() }
@@ -263,8 +273,10 @@ sourceSets.test.groovy.srcDirs.each { it.mkdirs() }
     @ToBeFixedForConfigurationCache
     void triggersWithXmlConfigurationHooks() {
         runIdeaTask '''
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 def hookActivated = 0
 
@@ -288,8 +300,10 @@ tasks.idea {
         maven(repoDir).module("myGroup", "myArtifact2").publish()
 
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 repositories {
     maven { url "${repoDir.toURI()}" }
@@ -317,8 +331,10 @@ dependencies {
         maven(repoDir).module("myGroup", "myArtifact2").publish()
 
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 repositories {
     maven { url "${repoDir.toURI()}" }
@@ -340,8 +356,10 @@ dependencies {
     @ToBeFixedForConfigurationCache
     void allowsCustomOutputFolders() {
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 idea.module {
     inheritOutputDirs = false
@@ -408,8 +426,10 @@ idea.project {
         file('root.iml') << 'messed up iml file'
 
         file('build.gradle') << '''
-apply plugin: "java"
-apply plugin: "idea"
+plugins {
+    id("java-library")
+    id("idea")
+}
 '''
         file('settings.gradle') << 'rootProject.name = "root"'
 

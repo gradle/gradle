@@ -1,4 +1,6 @@
-apply plugin: 'java'
+plugins {
+    id("java-library")\
+}
 
 dependencies {
     runtimeOnly 'commons-collections:commons-collections:3.2.2@jar'

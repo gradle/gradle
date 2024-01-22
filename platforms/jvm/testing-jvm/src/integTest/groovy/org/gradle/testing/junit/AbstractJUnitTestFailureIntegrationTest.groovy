@@ -244,7 +244,10 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMu
         writeBrokenRunnerOrExtension('BrokenRunnerOrExtension')
         writeClassUsingBrokenRunnerOrExtension('ClassWithBrokenRunnerOrExtension', 'BrokenRunnerOrExtension')
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}
@@ -294,7 +297,10 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMu
     def "handles unserializable exception thrown from test"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}
@@ -368,7 +374,10 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMu
             }
         """.stripIndent()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}
@@ -413,7 +422,10 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMu
             }
         """.stripIndent()
         file('build.gradle') << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

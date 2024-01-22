@@ -28,7 +28,7 @@ class ProtobufPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         given:
         buildFile << """
             plugins {
-                id('java')
+                id("java-library")
                 id("com.google.protobuf") version "${TestedVersions.protobufPlugin}"
             }
 

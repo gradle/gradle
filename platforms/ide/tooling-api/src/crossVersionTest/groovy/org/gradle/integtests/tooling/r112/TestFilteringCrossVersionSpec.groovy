@@ -24,7 +24,10 @@ class TestFilteringCrossVersionSpec extends ToolingApiSpecification implements W
     @Issue("GRADLE-2972")
     def "tooling api support test filtering when tasks configured via command line"() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
             compileTestJava.options.fork = true

@@ -44,9 +44,9 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
-"""
+            """
         }
         includedBuilds << buildB
     }
@@ -158,7 +158,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         def buildC = multiProjectBuild("buildC", ["someLib"]) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
             """
         }
@@ -213,7 +213,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         def buildC = multiProjectBuild("buildC", ["someLib"]) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
             """
         }
@@ -367,7 +367,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         def buildC = multiProjectBuild("buildC", ["someLib"]) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
             """
         }
@@ -400,7 +400,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         def buildC = multiProjectBuild("buildC", ["someLib"]) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
             """ << registration("buildC")
         }

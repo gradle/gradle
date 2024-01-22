@@ -53,8 +53,8 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractWorkerExecutor
             }
 
             plugins {
-                id "java"
-                id "org.gradle.test.${pluginId}"
+                id("java-library")
+                id("org.gradle.test.${pluginId}")
             }
 
             group = "org.gradle.test"
@@ -67,8 +67,8 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractWorkerExecutor
 
         buildFile << """
             plugins {
-                id "java"
-                id "org.gradle.test.${pluginId}"
+                id("java-library")
+                id("org.gradle.test.${pluginId}")
             }
 
             dependencies {

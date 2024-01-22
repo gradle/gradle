@@ -76,8 +76,8 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
         and:
         buildFile << """
             plugins {
-                id 'java'
-                id 'test-plugin'
+                id("java-library")
+                id("test-plugin")
             }
             ${mavenCentralRepository()}
             dependencies {
@@ -176,7 +176,7 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
         """
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
             ${mavenCentralRepository()}
             testing.suites.test.useJUnit()

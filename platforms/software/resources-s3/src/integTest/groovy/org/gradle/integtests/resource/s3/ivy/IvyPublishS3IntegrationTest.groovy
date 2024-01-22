@@ -38,8 +38,10 @@ class IvyPublishS3IntegrationTest extends AbstractIvyPublishIntegTest {
         settingsFile << 'rootProject.name = "publishS3Test"'
         configureRepositoryKeys("someKey", "someSecret", "ivy")
         buildFile << """
-apply plugin: 'java'
-apply plugin: 'ivy-publish'
+plugins {
+    id("java-library")
+    id("ivy-publish")
+}
 
 group = 'org.gradle.test'
 version = '1.0'

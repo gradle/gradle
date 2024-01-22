@@ -46,12 +46,12 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
             }
 
             project(':child2') {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 ${javaSourceCompatibility(targetVersion, JavaVersion.VERSION_1_2)}
             }
 
             project(':child3') {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 ${javaSourceCompatibility(targetVersion, JavaVersion.VERSION_1_5)}
             }
 

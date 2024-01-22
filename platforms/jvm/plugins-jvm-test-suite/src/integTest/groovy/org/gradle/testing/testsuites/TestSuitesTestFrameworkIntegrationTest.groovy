@@ -25,7 +25,7 @@ class TestSuitesTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
         plugins {
-          id 'java'
+            id("java-library")
         }
 
         ${mavenCentralRepository()}
@@ -89,7 +89,7 @@ class TestSuitesTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
         plugins {
-          id 'java'
+            id("java-library")
         }
 
         ${mavenCentralRepository()}

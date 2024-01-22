@@ -5,10 +5,10 @@ plugins {
     // end::use-eclipse-plugin[]
 // end::use-plugin[]
 // tag::use-plugin[]
-    java
+    id("java-library")
 // end::use-plugin[]
 // tag::use-eclipse-plugin[]
-    eclipse
+    id("eclipse")
 // end::use-eclipse-plugin[]
 // tag::use-plugin[]
 // tag::use-eclipse-plugin[]
@@ -19,7 +19,7 @@ plugins {
 
 
 // tag::use-plugin-legacy[]
-apply(plugin = "java")
+apply(plugin = "java-library")
 // end::use-plugin-legacy[]
 
 // tag::complete-example[]

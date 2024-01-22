@@ -45,8 +45,10 @@ class MavenPublishSftpIntegrationTest extends AbstractMavenPublishIntegTest {
         configureRepositoryCredentials("sftp", "sftp", "maven")
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'maven-publish'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             version = '2'
             group = 'org.group.name'

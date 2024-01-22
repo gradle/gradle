@@ -74,7 +74,7 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
             pluginId,
             """
                 plugins {
-                    id("java")
+                    id("java-library")
                 }
                 println("bar")
             """

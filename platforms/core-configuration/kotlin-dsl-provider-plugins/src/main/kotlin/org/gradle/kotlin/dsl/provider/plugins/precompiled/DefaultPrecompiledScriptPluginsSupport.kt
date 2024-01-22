@@ -109,10 +109,10 @@ import javax.inject.Inject
  * // java7-project.gradle.kts
  *
  * plugins {
- *     java
+ *     id("java-library")
  * }
  *
- * java { // type-safe model accessor to the `java` extension contributed by the `java` plugin
+ * java { // type-safe model accessor to the `java` extension contributed by the `java-library` plugin
  *     sourceCompatibility = JavaVersion.VERSION_1_7
  *     targetCompatibility = JavaVersion.VERSION_1_7
  * }

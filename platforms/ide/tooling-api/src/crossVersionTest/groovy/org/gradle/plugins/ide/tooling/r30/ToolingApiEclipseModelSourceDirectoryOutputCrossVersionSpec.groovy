@@ -31,7 +31,11 @@ class ToolingApiEclipseModelSourceDirectoryOutputCrossVersionSpec extends Toolin
     def "Old versions throw runtime exception when querying source directory output"() {
         setup:
         settingsFile << 'rootProject.name = "root"'
-        buildFile << "apply plugin: 'java'"
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+        """
         file('src/main/java').mkdirs()
         EclipseProject project = loadToolingModel(EclipseProject)
         EclipseSourceDirectory sourceDirectory = project.sourceDirectories.find { it.path == 'src/main/java' }
@@ -47,7 +51,11 @@ class ToolingApiEclipseModelSourceDirectoryOutputCrossVersionSpec extends Toolin
     def "Source directory has no output specified"() {
         setup:
         settingsFile << 'rootProject.name = "root"'
-        buildFile << "apply plugin: 'java'"
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+        """
         file('src/main/java').mkdirs()
 
         when:
@@ -61,18 +69,21 @@ class ToolingApiEclipseModelSourceDirectoryOutputCrossVersionSpec extends Toolin
     def "Source directory has output specified"() {
         setup:
         settingsFile << 'rootProject.name = "root"'
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           eclipse {
-               classpath {
-                   file {
-                       whenMerged { classpath ->
-                           classpath.entries.find { it.kind == 'src' && it.path == 'src/main/java' }.output = 'customOutput'
-                       }
-                   }
-               }
-           }
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+
+            eclipse {
+                classpath {
+                    file {
+                        whenMerged { classpath ->
+                            classpath.entries.find { it.kind == 'src' && it.path == 'src/main/java' }.output = 'customOutput'
+                        }
+                    }
+                }
+            }
         """
         file('src/main/java').mkdirs()
 

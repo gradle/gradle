@@ -41,7 +41,9 @@ class JvmBlockingTestClassGenerator {
 
     String initBuildFile(int maxWorkers = DEFAULT_MAX_WORKERS, int forkEvery = 0) {
         return """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             ${RepoScriptBlockUtil.mavenCentralRepository()}
 

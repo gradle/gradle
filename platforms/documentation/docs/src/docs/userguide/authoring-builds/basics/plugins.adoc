@@ -80,7 +80,7 @@ Gradle provides the *core plugins* (e.g., `JavaPlugin`, `GroovyPlugin`, `MavenPu
 [source,kotlin]
 ----
 plugins {
-  id("java")
+  id("java-library")
 }
 ----
 
@@ -179,13 +179,13 @@ The plugins block configures an instance of link:{javadocPath}/org/gradle/plugin
 ----
 plugins {
     application                                     // by name
-    java                                            // by name
-    id("java")                                      // by id - recommended
+    `java-library`                                  // by name
+    id("application")                               // by id - recommended
     id("org.jetbrains.kotlin.jvm") version "1.9.0"  // by id - recommended
 }
 ----
 
-Core Gradle plugins are unique in that they provide short names, such as `java` for the core link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin].
+Core Gradle plugins are unique in that they provide short names, such as `java-library` for the core link:{javadocPath}/org/gradle/api/plugins/JavaLibraryPlugin.html[JavaLibraryPlugin].
 
 To apply a core plugin, the short *name* can be used:
 

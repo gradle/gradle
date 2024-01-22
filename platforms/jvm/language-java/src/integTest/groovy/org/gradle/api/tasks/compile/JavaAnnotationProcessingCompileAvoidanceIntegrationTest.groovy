@@ -26,7 +26,7 @@ class JavaAnnotationProcessingCompileAvoidanceIntegrationTest extends AbstractIn
         settingsFile << "include 'a', 'b'"
         buildFile << '''
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
         '''
 

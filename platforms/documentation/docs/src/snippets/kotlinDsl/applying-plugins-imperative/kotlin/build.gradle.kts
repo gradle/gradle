@@ -9,7 +9,7 @@ buildscript {
     }
 }
 
-apply(plugin = "java")
+apply(plugin = "java-library")
 apply(plugin = "jacoco")
 apply(plugin = "org.springframework.boot")
 // end::script[]

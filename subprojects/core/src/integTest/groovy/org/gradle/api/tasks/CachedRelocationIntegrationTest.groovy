@@ -36,10 +36,13 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
             }
         """
         originalLocation.file("build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
             println "Running build from: \$projectDir"
             println "Running in Gradle home: \${gradle.gradleUserHomeDir}"
 
-            apply plugin: "java"
             apply from: "external.gradle"
         """
         originalLocation.file('settings.gradle') << localCacheConfiguration()

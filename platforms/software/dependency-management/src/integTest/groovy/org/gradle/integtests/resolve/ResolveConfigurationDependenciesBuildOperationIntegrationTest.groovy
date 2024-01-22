@@ -40,7 +40,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         setup:
         buildFile << """
             allprojects {
-                apply plugin: "java"
+                apply plugin: "java-library"
                 repositories {
                     maven { url '${mavenHttpRepo.uri}' }
                 }
@@ -124,7 +124,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         setupComposite()
         buildFile << """
             allprojects {
-                apply plugin: "java"
+                apply plugin: "java-library"
                 repositories {
                     maven { url '${mavenHttpRepo.uri}' }
                 }
@@ -185,7 +185,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 }
             }
 
-            apply plugin: "java"
+            apply plugin: "java-library"
         """
 
 
@@ -300,7 +300,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                     }
                 }
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                     group "org.sample"
                     version "1.0"
                 }
@@ -336,10 +336,13 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
     private void setupComposite() {
         file("my-composite-app/src/main/java/App.java") << "public class App {}"
         file("my-composite-app/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
             group = "org.foo"
             version = '1.0'
 
-            apply plugin: "java"
             repositories {
                 maven { url '${mavenHttpRepo.uri}' }
             }
@@ -468,7 +471,10 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         secondMavenHttpRepo.module('org.foo', 'child-transitive2').publish().allowAll()
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
+
             repositories {
                 maven {
                     name 'maven1'
@@ -491,7 +497,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             }
 
             project(':child') {
-                apply plugin: "java"
+                apply plugin: "java-library"
                 dependencies {
                     implementation 'org.foo:child-transitive1:1.0'
                     implementation 'org.foo:child-transitive2:1.0'
@@ -543,7 +549,10 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             .publish().allowAll()
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
+
             repositories {
                 maven {
                     name 'maven1'
@@ -557,7 +566,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             }
 
             project(':child') {
-                apply plugin: "java"
+                apply plugin: "java-library"
                 dependencies {
                     implementation 'org.foo:broken-transitive:1.0' // throws exception trying to resolve
                 }
@@ -590,7 +599,10 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
     def "resolved components contain their source repository id, even when they are structurally identical"() {
         setup:
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
+
             repositories {
                 maven {
                     name 'withoutCreds'
@@ -655,7 +667,10 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         setup:
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
+
             repositories {
                 maven {
                     name 'one'

@@ -66,7 +66,9 @@ class NamedDomainObjectCollectionSchemaIntegrationTest extends AbstractIntegrati
 
     def "built-in container types presents public type in schema"() {
         buildFile """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             repositories {
                 maven {}

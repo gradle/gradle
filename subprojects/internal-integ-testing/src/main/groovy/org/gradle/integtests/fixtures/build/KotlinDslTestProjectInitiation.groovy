@@ -238,7 +238,9 @@ trait KotlinDslTestProjectInitiation {
             dependencies { implementation(project(":c")) }
         """)
         withBuildScriptIn("buildSrc/c", """
-            plugins { java }
+            plugins {
+                id("java-library")
+            }
             $repositoriesBlock
         """)
 

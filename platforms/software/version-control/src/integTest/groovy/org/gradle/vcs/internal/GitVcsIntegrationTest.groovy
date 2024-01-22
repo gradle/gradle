@@ -38,7 +38,10 @@ class GitVcsIntegrationTest extends AbstractIntegrationSpec implements SourceDep
 
     def setup() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             group = 'org.gradle'
             version = '2.0'
 
@@ -259,7 +262,10 @@ The following types/formats are supported:
         """
 
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             group = 'org.gradle'
             version = '2.0'
 
@@ -302,7 +308,9 @@ The following types/formats are supported:
 
         singleProjectBuild("deeperDep") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
             file("src/main/java/DeeperDep.java") << "public class DeeperDep {}"
         }
@@ -367,7 +375,7 @@ The following types/formats are supported:
         """
         buildFile << """
             project(':bar') {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 dependencies {
                     implementation 'org.test:dep:latest.integration'
                 }

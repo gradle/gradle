@@ -27,7 +27,7 @@ class UploadTaskIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             tasks.register('upload', Upload) {

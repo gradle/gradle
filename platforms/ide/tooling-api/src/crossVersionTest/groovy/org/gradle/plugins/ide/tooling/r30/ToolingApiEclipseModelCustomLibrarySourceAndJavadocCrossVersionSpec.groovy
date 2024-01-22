@@ -36,8 +36,10 @@ class ToolingApiEclipseModelCustomLibrarySourceAndJavadocCrossVersionSpec extend
         String customJavadocPath = customJavadoc.absolutePath.replace('\\', '\\\\')
 
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'eclipse'
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
 
            ${mavenCentralRepository()}
 

@@ -366,7 +366,7 @@ BUILD SUCCESSFUL"""
         setup:
         createDirs("subproj1")
         settingsFile << "include ':subproj1'"
-        buildFile << "allprojects{ apply plugin:'java'}"
+        buildFile << "allprojects { apply plugin:'java-library'}"
         when:
         run "help", "--task", ":jar"
         then:

@@ -1,5 +1,5 @@
 plugins {
-    java
+    id("java-library")
 }
 
 val testToolchain = System.getProperty("testToolchain", "knownVendor")

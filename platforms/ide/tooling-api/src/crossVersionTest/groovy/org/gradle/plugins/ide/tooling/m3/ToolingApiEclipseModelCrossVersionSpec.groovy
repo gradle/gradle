@@ -30,7 +30,10 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification imp
     def "can build the eclipse model for a java project"() {
 
         projectDir.file('build.gradle').text = '''
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
+
 description = 'this is a project'
 '''
         projectDir.file('settings.gradle').text = 'rootProject.name = \"test project\"'
@@ -86,7 +89,10 @@ description = 'this is a project'
     def "does not run any tasks when fetching model"() {
         when:
         projectDir.file('build.gradle').text = '''
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
+
 gradle.taskGraph.beforeTask { throw new RuntimeException() }
 '''
         HierarchicalEclipseProject project = loadToolingModel(HierarchicalEclipseProject)
@@ -97,7 +103,11 @@ gradle.taskGraph.beforeTask { throw new RuntimeException() }
 
     def "can build the eclipse source directories for a java project"() {
 
-        projectDir.file('build.gradle').text = "apply plugin: 'java'"
+        projectDir.file('build.gradle').text = """
+            plugins {
+                id("java-library")
+            }
+        """
 
         projectDir.create {
             src {
@@ -152,7 +162,7 @@ include "a"
 rootProject.name = 'root'
 '''
         projectDir.file('build.gradle').text = """
-allprojects { apply plugin: 'java' }
+allprojects { apply plugin: 'java-library' }
 ${mavenCentralRepository()}
 dependencies {
     ${implementationConfiguration} 'commons-lang:commons-lang:2.5'
@@ -177,8 +187,10 @@ dependencies {
     def "can build the minimal Eclipse model for a java project with the idea plugin applied"() {
 
         projectDir.file('build.gradle').text = """
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 dependencies {
     ${implementationConfiguration} files { throw new RuntimeException('should not be resolving this') }
@@ -202,7 +214,7 @@ rootProject.name = 'root'
 '''
         projectDir.file('build.gradle').text = """
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 }
 project(':a') {
     dependencies {
@@ -246,7 +258,7 @@ rootProject.name = 'root'
 '''
         projectDir.file('build.gradle').text = """
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 }
 project(':a') {
     dependencies {
@@ -337,7 +349,7 @@ project(':c') {
         settingsFile.text = "include ':foo', ':bar'"
         buildFile.text = """
 allprojects {
-    apply plugin:'java'
+    apply plugin:'java-library'
     apply plugin:'eclipse'
 }
 

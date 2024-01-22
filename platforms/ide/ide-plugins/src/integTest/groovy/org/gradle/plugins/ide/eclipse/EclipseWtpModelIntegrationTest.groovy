@@ -42,9 +42,10 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
 
         //when
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'war'
-apply plugin: 'eclipse-wtp'
+plugins {
+    id("war")
+    id("eclipse-wtp")
+}
 
 configurations {
   configOne
@@ -116,9 +117,10 @@ eclipse {
 
         //when
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'war'
-apply plugin: 'eclipse-wtp'
+plugins {
+    id("war")
+    id("eclipse-wtp")
+}
 
 repositories {
   maven { url "${mavenRepo.uri}" }
@@ -154,9 +156,10 @@ configurations.all {
 
         //when
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'war'
-apply plugin: 'eclipse-wtp'
+plugins {
+    id("war")
+    id("eclipse-wtp")
+}
 
 def hooks = []
 
@@ -210,11 +213,12 @@ eclipseWtpComponent.doLast() {
 
         //when
         runEclipseTask """
-import org.gradle.plugins.ide.eclipse.model.Facet
+plugins {
+    id("war")
+    id("eclipse-wtp")
+}
 
-apply plugin: 'java'
-apply plugin: 'war'
-apply plugin: 'eclipse-wtp'
+import org.gradle.plugins.ide.eclipse.model.Facet
 
 eclipse {
   wtp {
@@ -251,9 +255,10 @@ eclipse {
     void "file dependencies respect plus minus configurations"() {
         //when
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'war'
-apply plugin: 'eclipse-wtp'
+plugins {
+    id("war")
+    id("eclipse-wtp")
+}
 
 configurations {
   configOne
@@ -294,7 +299,6 @@ eclipse {
         def build = file('build.gradle')
         build << """
 project(':impl') {
-  apply plugin: 'java'
   apply plugin: 'war'
   apply plugin: 'eclipse-wtp'
 
@@ -304,7 +308,7 @@ project(':impl') {
 }
 
 project(':contrib') {
-  apply plugin: 'java'
+  apply plugin: 'java-library'
   apply plugin: 'eclipse-wtp'
   //should not have war nor ear applied
 
@@ -335,7 +339,6 @@ project(':contrib') {
         def build = file('build.gradle')
         build << """
 project(':impl') {
-  apply plugin: 'java'
   apply plugin: 'war'
   apply plugin: 'eclipse-wtp'
 
@@ -345,7 +348,7 @@ project(':impl') {
 }
 
 project(':contrib') {
-  apply plugin: 'java'
+  apply plugin: 'java-library'
 }
 """
         //when
@@ -364,9 +367,10 @@ project(':contrib') {
 
         //when
         runEclipseTask """
-          apply plugin: 'java'
-          apply plugin: 'war'
-          apply plugin: 'eclipse-wtp'
+            plugins {
+                id("war")
+                id("eclipse-wtp")
+            }
 
           sourceSets.main.java.srcDirs 'yyySource', 'xxxSource'
 
@@ -395,9 +399,10 @@ project(':contrib') {
 
         //when
         runEclipseTask """
-          apply plugin: 'java'
-          apply plugin: 'ear'
-          apply plugin: 'eclipse-wtp'
+            plugins {
+                id("ear")
+                id("eclipse-wtp")
+            }
 
           sourceSets.main.java.srcDirs 'yyySource', 'xxxSource'
 
@@ -428,9 +433,10 @@ project(':contrib') {
 
         //when
         runEclipseTask """
-          apply plugin: 'java'
-          apply plugin: 'ear'
-          apply plugin: 'eclipse-wtp'
+            plugins {
+                id("ear")
+                id("eclipse-wtp")
+            }
 
           ear.appDirectory = file 'coolAppDir'
 """
@@ -455,7 +461,7 @@ project(':contrib') {
             apply plugin: 'eclipse-wtp'
 
             project(':someCoolLib') {
-              apply plugin: 'java'
+              apply plugin: 'java-library'
               apply plugin: 'eclipse-wtp'
             }
 
@@ -480,8 +486,10 @@ project(':contrib') {
     void "the web container is not present without war+wtp combo"() {
         //given
         file("build.gradle") << """
-            apply plugin: 'java' //anything but not war
-            apply plugin: 'eclipse-wtp'
+            plugins {
+                id("java-library") // Anything but not war
+                id("eclipse-wtp")
+            }
         """
 
         //when
@@ -536,9 +544,11 @@ project(':contrib') {
         createDirs("someLib")
         file('settings.gradle') << "include 'someLib'"
 
-        file("build.gradle") <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse-wtp'
+        file("build.gradle") << """
+            plugins {
+                id("java-library")
+                id("eclipse-wtp")
+            }
 
            ${mavenCentralRepository()}
 

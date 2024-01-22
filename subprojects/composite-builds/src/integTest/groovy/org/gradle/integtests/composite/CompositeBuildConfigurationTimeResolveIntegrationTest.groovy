@@ -46,7 +46,7 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
             buildFile << """
                 println "Configured buildB"
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                     repositories {
                         maven { url "${mavenRepo.uri}" }
                     }
@@ -59,8 +59,10 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
 
         buildC = singleProjectBuild("buildC") {
             buildFile << """
+                plugins {
+                    id("java-library")
+                }
                 println "Configured buildC"
-                apply plugin: 'java'
 """
         }
         includedBuilds << buildC

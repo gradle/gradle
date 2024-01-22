@@ -41,7 +41,7 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
             def artifactType = Attribute.of('artifactType', String)
             subprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
             project(":app") {
                 dependencies {

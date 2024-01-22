@@ -23,9 +23,11 @@ class IvyPublishWarIntegTest extends AbstractIvyPublishIntegTest {
 
         and:
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'war'
-            apply plugin: 'ivy-publish'
+            plugins {
+                id("java-library")
+                id("war")
+                id("ivy-publish")
+            }
 
             group = 'org.gradle.test'
             version = '1.9'

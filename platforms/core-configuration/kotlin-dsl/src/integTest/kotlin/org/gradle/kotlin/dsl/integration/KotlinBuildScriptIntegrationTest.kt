@@ -213,7 +213,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
             dependencies {
                 plugins {
-                    id("java")
+                    id("java-library")
                 }
             }
             """

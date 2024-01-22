@@ -162,7 +162,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         given:
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             configurations {
@@ -223,13 +223,13 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         given:
         file("projectA/build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
         """
 
         file("projectB/build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
         """
 
@@ -295,7 +295,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         given:
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
             configurations {
                 $configuration {
@@ -529,8 +529,8 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
 
         buildFile << """
             plugins {
-                id 'my-plugin'
-                id 'java'
+                id("my-plugin")
+                id("java-library")
             }
         """
 
@@ -584,7 +584,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
 
         file("producer/build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${confCreationCode}

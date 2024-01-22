@@ -36,8 +36,10 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
 
         settingsFile << "rootProject.name = '${sq(moduleName)}'"
         buildFile.text = """
-            apply plugin: 'ivy-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
 
             group = '${sq(organisation)}'
             version = '${sq(version)}'

@@ -33,7 +33,11 @@ class PublicationsCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def "project without any configured publications"() {
-        buildFile << "apply plugin: 'java'"
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+        """
 
         when:
         ProjectPublications publications = withConnection { connection ->
@@ -80,9 +84,11 @@ uploadArchives {
         settingsFile << "rootProject.name = 'test.project'"
         buildFile <<
                 """
-apply plugin: "ivy-publish"
-apply plugin: "maven-publish"
-apply plugin: "java"
+plugins {
+    id("ivy-publish")
+    id("maven-publish")
+    id("java-library")
+}
 
 version = 1.0
 group = "test.group"

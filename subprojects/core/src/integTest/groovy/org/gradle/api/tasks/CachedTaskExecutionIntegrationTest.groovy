@@ -52,7 +52,9 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
     private static void setupProjectInDirectory(TestFile dir, String sourceDir = "main") {
         dir.file("build.gradle") << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
         """
 
         dir.file("src/$sourceDir/java/Hello.java") << ORIGINAL_HELLO_WORLD

@@ -19,7 +19,9 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 class PmdPluginIntegrationTest extends WellBehavedPluginTest {
     def setup() {
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
         """
     }
 

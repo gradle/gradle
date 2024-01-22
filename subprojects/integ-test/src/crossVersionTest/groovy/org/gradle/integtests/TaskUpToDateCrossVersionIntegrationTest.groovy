@@ -21,7 +21,9 @@ class TaskUpToDateCrossVersionIntegrationTest extends CrossVersionIntegrationSpe
     public void "task is not up-to-date when Gradle version changes"() {
         given:
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
         """
 
         and:
