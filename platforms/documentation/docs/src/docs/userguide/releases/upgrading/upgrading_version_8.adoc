@@ -1293,7 +1293,7 @@ The following code will now emit deprecation warnings:
 [source,kotlin]
 ----
 plugins {
-    id("java")
+    id("java-library")
 }
 
 configure<JavaPluginConvention> { // Accessing a convention
@@ -1307,7 +1307,7 @@ configure<JavaPluginConvention> { // Accessing a convention
 [source,groovy]
 ----
 plugins {
-    id 'java'
+    id("java-library")
 }
 
 sourceCompatibility = 18 // Accessing a convention
@@ -1324,7 +1324,7 @@ This should be changed to use the `java { }` configuration block, backed by link
 [source,kotlin]
 ----
 plugins {
-    id("java")
+    id("java-library")
 }
 
 java {
@@ -1338,7 +1338,7 @@ java {
 [source,groovy]
 ----
 plugins {
-    id 'java'
+    id("java-library")
 }
 
 java {

@@ -71,7 +71,7 @@ public class GradleBackedArtifactBuilder implements ArtifactBuilder {
         rootDir.file("settings.gradle").touch();
         try {
             try (PrintWriter writer = new PrintWriter(rootDir.file("build.gradle"))) {
-                writer.println("apply plugin: 'java'");
+                writer.println("apply plugin: 'java-library'");
                 writer.println(String.format("dependencies { %s gradleApi() }", conf));
                 writer.println("jar {");
                 if (shouldPreserveTimestamps != null) {

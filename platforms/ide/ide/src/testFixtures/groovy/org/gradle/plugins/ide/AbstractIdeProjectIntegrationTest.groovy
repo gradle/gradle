@@ -39,7 +39,7 @@ abstract class AbstractIdeProjectIntegrationTest extends AbstractIntegrationSpec
         String applyTo = allProjects ? "allprojects" : "subprojects"
         buildFile.createFile().text = """
 $applyTo {
-    apply plugin:'java'
+    apply plugin:'java-library'
     apply plugin:'$ideName'
 }
 """

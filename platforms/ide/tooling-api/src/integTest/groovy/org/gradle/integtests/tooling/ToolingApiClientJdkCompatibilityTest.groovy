@@ -34,7 +34,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
         }
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             repositories {

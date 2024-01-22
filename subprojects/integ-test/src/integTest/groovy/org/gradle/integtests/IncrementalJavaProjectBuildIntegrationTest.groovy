@@ -42,7 +42,11 @@ class IncrementalJavaProjectBuildIntegrationTest extends AbstractIntegrationTest
         executer.requireOwnGradleUserHomeDir()
 
         file("src/main/java/BuildClass.java") << 'public class BuildClass { }'
-        file("build.gradle") << "apply plugin: 'java'"
+        file("build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
         file("settings.gradle") << "rootProject.name = 'project'"
 
         executer.withTasks("jar").run();

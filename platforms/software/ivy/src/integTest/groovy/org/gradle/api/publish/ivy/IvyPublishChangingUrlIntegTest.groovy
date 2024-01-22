@@ -43,8 +43,8 @@ class IvyPublishChangingUrlIntegTest extends AbstractIvyPublishIntegTest {
         settingsFile << "rootProject.name = '${moduleName}'"
         buildFile << """
             plugins {
-                id 'java'
-                id 'ivy-publish'
+                id("java-library")
+                id("ivy-publish")
             }
 
             group = '${org}'

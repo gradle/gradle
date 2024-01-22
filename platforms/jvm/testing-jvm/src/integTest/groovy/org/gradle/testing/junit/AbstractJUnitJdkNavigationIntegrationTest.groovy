@@ -52,7 +52,10 @@ abstract class AbstractJUnitJdkNavigationIntegrationTest extends AbstractTesting
             }
         """.stripIndent()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

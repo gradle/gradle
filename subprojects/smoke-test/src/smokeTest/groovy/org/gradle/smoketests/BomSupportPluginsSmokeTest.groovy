@@ -39,7 +39,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
         """
         buildFile << """
             plugins {
-                id "java"
+                id("java-library")
                 ${dependencyManagementPlugin}
             }
             ${mavenCentralRepository()}

@@ -47,7 +47,7 @@ class ExtractPrecompiledScriptPluginPluginsTest : TestWithTempFiles() {
                 """
                 // this comment will be removed
                 plugins {
-                    java
+                    id("java-library")
                 }
                 // and so will the rest of the script
                 """
@@ -60,7 +60,7 @@ class ExtractPrecompiledScriptPluginPluginsTest : TestWithTempFiles() {
                 """
                 ${"// this comment will be removed".replacedBySpaces()}
                 plugins {
-                    java
+                    id("java-library")
                 }"""
             )
         )
@@ -76,7 +76,7 @@ class ExtractPrecompiledScriptPluginPluginsTest : TestWithTempFiles() {
                 "buildscript-and-plugins.gradle.kts",
                 """
                 buildscript {}
-                plugins { java }
+                plugins { id("java-library") }
                 """
             )
         )
@@ -86,7 +86,7 @@ class ExtractPrecompiledScriptPluginPluginsTest : TestWithTempFiles() {
             equalTo(
                 """
                 ${"buildscript {}".replacedBySpaces()}
-                plugins { java }"""
+                plugins { id("java-library") }"""
             )
         )
     }

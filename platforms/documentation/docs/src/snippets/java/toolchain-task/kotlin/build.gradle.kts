@@ -25,7 +25,7 @@ abstract class CustomTaskUsingToolchains : DefaultTask() {
 
 // tag::custom-toolchain-task-with-java-usage[]
 plugins {
-    java
+    id("java-library")
 }
 
 java {

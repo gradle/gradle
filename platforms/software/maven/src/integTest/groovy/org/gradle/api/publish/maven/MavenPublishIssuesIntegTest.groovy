@@ -87,8 +87,11 @@ class MavenPublishIssuesIntegTest extends AbstractMavenPublishIntegTest {
         and:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-apply plugin: 'java'
-apply plugin: 'maven-publish'
+plugins {
+    id("java-library")
+    id("maven-publish")
+}
+
 group = 'group'
 version = '1.0'
 
@@ -228,8 +231,10 @@ subprojects {
 
         [file("sub1/build.gradle"), file("sub2/build.gradle")].each { File f ->
             f << """
-            apply plugin: "java"
-            apply plugin: "maven-publish"
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             publishing {
                 repositories{ maven{ url '${normaliseFileSeparators(repo.getAbsolutePath())}'}}
@@ -375,9 +380,9 @@ subprojects {
     void "warn deprecated behavior when GMM is modified after a Maven publication is populated"() {
         given:
         buildKotlinFile << """
-             plugins {
-                java
-                `maven-publish`
+            plugins {
+                id("java-library")
+                id("maven-publish")
                 kotlin("jvm") version "1.9.22"
             }
             repositories {
@@ -416,8 +421,8 @@ subprojects {
         given:
         buildKotlinFile << """
              plugins {
-                java
-                `ivy-publish`
+                id("java-library")
+                id("maven-publish")
                 kotlin("jvm") version "1.9.22"
             }
             repositories {

@@ -253,7 +253,9 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
 
     def "GradleBuild tasks do not try to clean build cache"() {
         file("included/build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
             group = "com.example"
             version = "2.0"
         """

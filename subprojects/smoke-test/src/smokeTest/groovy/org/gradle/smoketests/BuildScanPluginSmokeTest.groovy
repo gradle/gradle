@@ -371,7 +371,9 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
     private setupJavaProject() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
             ${mavenCentralRepository()}
 
             dependencies {

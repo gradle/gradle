@@ -269,8 +269,14 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
     }
 
     private static File withVariants(File buildFile) {
-        buildFile << 'apply plugin: "java"\n'
-        buildFile << 'apply plugin: VariantsPlugin\n'
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            apply plugin: VariantsPlugin
+        """
+
         buildFile
     }
 

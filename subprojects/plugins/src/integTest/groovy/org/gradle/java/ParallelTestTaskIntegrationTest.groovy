@@ -52,7 +52,7 @@ class ParallelTestTaskIntegrationTest extends AbstractIntegrationSpec {
 import ${CountDownLatch.canonicalName}
 def latch = new CountDownLatch(${subprojects.size()})
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     java.sourceCompatibility = ${version}
     java.targetCompatibility = ${version}
 

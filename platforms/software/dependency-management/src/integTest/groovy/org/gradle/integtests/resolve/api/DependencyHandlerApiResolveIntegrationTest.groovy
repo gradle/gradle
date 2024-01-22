@@ -27,7 +27,9 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
 
     def setup() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             def libsDir = file("\$buildDir/libs")
             task resolveLibs(type: Copy) {

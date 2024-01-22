@@ -27,7 +27,7 @@ class CompositeBuildDestroyablesIntegrationTest extends AbstractCompositeBuildIn
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                     version "2.0"
 
                     repositories {

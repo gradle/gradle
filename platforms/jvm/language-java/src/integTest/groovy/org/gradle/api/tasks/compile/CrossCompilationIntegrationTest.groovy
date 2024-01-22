@@ -36,7 +36,7 @@ class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "rootProject.name = 'oldjava'"
         buildFile << """
             plugins {
-                id "java"
+                id("java-library")
             }
             ${mavenCentralRepository()}
             dependencies {

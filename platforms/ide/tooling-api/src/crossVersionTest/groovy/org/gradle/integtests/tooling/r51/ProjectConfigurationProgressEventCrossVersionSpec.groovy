@@ -119,17 +119,17 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         given:
         file("buildSrc/build.gradle") << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
         """
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
         """
         file("included/build.gradle") << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
         """
 
@@ -149,7 +149,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         given:
         def escapedRootDir = escapeString(projectDir.absolutePath)
         file("script.gradle") << """
-            apply plugin: 'java'
+            apply plugin: 'java-library'
         """
         file("buildSrc/build.gradle") << """
             allprojects {
@@ -182,7 +182,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
     def "reports plugin configuration results for subprojects"() {
         given:
         file("script.gradle") << """
-            apply plugin: 'java'
+            apply plugin: 'java-library'
         """
         file("b/build.gradle") << """
             apply from: "\$rootDir/script.gradle"
@@ -198,7 +198,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
     def "reports plugin configuration results in reliable order"() {
         given:
         file("script.gradle") << """
-            apply plugin: 'java'
+            apply plugin: 'java-library'
         """
         file("build.gradle") << """
             apply from: "script.gradle"
@@ -283,7 +283,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         server.start()
         def scriptUri = server.uri("script.gradle")
         server.expect(server.get("script.gradle").send("""
-            apply plugin: 'java'
+            apply plugin: 'java-library'
         """))
         file("build.gradle") << """
             apply from: '$scriptUri'

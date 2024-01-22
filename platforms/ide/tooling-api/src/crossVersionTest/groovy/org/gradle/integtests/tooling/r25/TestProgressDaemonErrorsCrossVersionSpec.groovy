@@ -63,7 +63,10 @@ class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification i
     def goodCode() {
         server.start()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
             test.doLast {

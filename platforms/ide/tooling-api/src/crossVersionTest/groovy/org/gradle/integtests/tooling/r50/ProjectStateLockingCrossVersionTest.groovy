@@ -27,7 +27,9 @@ class ProjectStateLockingCrossVersionTest extends ToolingApiSpecification {
     def "does not emit deprecation warnings when idea model builder resolves a configuration"() {
         singleProjectBuildInRootFolder("root") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
         }
 
@@ -49,7 +51,9 @@ class ProjectStateLockingCrossVersionTest extends ToolingApiSpecification {
     def "does not emit deprecation warnings when eclipse model builder resolves a configuration"() {
         singleProjectBuildInRootFolder("root") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
         }
 

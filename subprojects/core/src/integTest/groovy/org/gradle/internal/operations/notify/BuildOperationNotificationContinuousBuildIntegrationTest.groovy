@@ -29,7 +29,9 @@ class BuildOperationNotificationContinuousBuildIntegrationTest extends AbstractC
         when:
         settingsFile << notifications.registerListener()
         buildScript """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
         """
         file("src/main/java/Thing.java") << "class Thing {}"
 

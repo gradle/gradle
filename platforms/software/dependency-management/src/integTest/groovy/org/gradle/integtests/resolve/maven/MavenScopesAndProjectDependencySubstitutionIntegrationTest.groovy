@@ -115,7 +115,7 @@ project(':child1') {
     }
 }
 project(':child2') {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     dependencies {
         implementation 'org.test:m1:1.0'
         runtimeOnly 'org.test:m2:1.0'
@@ -208,7 +208,7 @@ project(':child1') {
     }
 }
 project(':child2') {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     dependencies {
         implementation 'org.test:m1:1.0'
         runtimeOnly 'org.test:m2:1.0'

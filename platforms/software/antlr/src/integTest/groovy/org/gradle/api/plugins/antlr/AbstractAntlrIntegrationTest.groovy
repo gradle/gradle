@@ -25,7 +25,7 @@ abstract class AbstractAntlrIntegrationTest extends AbstractIntegrationSpec {
         executer.withArgument("-i")
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 ${mavenCentralRepository()}
                 tasks.withType(JavaCompile) {
                     options.compilerArgs << "-proc:none"

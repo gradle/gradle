@@ -26,7 +26,10 @@ class TestNGGroupByInstancesNotSupportedIntegrationTest extends AbstractIntegrat
     def "run tests using TestNG version not supporting groupByInstances"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies { testImplementation 'org.testng:testng:6.0.1' }
             test { useTestNG { groupByInstances true } }

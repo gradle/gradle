@@ -123,8 +123,10 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
 
     static String javaProjectUsingCheckstyle() {
         """
-            apply plugin: 'java'
-            apply plugin: 'checkstyle'
+            plugins {
+                id("java-library")
+                id("checkstyle")
+            }
 
             ${mavenCentralRepository()}
         """

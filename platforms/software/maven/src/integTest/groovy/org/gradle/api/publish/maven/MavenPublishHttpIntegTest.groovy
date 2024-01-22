@@ -442,9 +442,10 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     private static String publicationBuild(String version, String group, URI uri, String repoName = "maven", String credentialsBlock = "credentials(PasswordCredentials)") {
         return """
             plugins {
-                id 'java'
-                id 'maven-publish'
+                id("java-library")
+                id("maven-publish")
             }
+
             version = '$version'
             group = '$group'
 

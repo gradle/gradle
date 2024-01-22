@@ -243,7 +243,7 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgr
         """.stripIndent()
         buildFile << """
             allprojects {
-                apply plugin:'java'
+                apply plugin:'java-library'
             }
             repositories {
                maven { url '${mavenHttpRepo.uri}' }
@@ -309,7 +309,7 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgr
             include 'a', 'b'
         """
         buildFile << """
-            allprojects { apply plugin: 'java' }
+            allprojects { apply plugin: 'java-library' }
             dependencies {
                 implementation project(':a')
             }

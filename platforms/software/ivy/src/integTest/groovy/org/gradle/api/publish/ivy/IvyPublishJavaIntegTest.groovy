@@ -104,7 +104,9 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         """
 
         file('b/build.gradle') << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             group = 'org.gradle.test'
             version = '1.2'

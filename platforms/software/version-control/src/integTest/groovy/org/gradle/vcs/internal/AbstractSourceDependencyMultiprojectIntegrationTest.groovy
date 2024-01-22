@@ -51,7 +51,7 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
         """
         buildB.buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 group = 'org.test'
                 version = '1.0'
             }
@@ -190,7 +190,10 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
             rootProject.name = "bar"
         """
         repo2.file("build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             group = "org.test"
             version = "2.0"
         """

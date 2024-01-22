@@ -54,7 +54,9 @@ class TaskOriginCrossVersionSpec extends ToolingApiSpecification {
     def "reports task origin for binary plugins"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
         """
 
         when:

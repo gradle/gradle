@@ -56,8 +56,8 @@ import java.util.Set;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java'
- *     id 'eclipse'
+ *     id("java-library")
+ *     id("eclipse")
  * }
  *
  * configurations {
@@ -108,8 +108,8 @@ import java.util.Set;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java'
- *     id 'eclipse'
+ *     id("java-library")
+ *     id("eclipse")
  * }
  *
  * eclipse {

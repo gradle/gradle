@@ -27,7 +27,9 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
 
     def setup() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
         """
     }
 

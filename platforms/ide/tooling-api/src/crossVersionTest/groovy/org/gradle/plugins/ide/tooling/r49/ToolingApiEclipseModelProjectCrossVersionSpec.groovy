@@ -27,9 +27,11 @@ import spock.lang.Issue
 class ToolingApiEclipseModelProjectCrossVersionSpec extends ToolingApiSpecification {
 
     def "EclipseProject with default java attributes"() {
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
         """
 
         when:
@@ -43,15 +45,17 @@ class ToolingApiEclipseModelProjectCrossVersionSpec extends ToolingApiSpecificat
     }
 
     def "EclipseProject attributes defined"() {
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           import org.gradle.plugins.ide.eclipse.model.BuildCommand
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+            import org.gradle.plugins.ide.eclipse.model.BuildCommand
 
-           eclipse.project {
-               natures += ['nature.a']
-               buildCommand 'command1', argumentKey: 'arg'
-           }
+            eclipse.project {
+                natures += ['nature.a']
+                buildCommand 'command1', argumentKey: 'arg'
+            }
         """
 
         when:
@@ -64,15 +68,18 @@ class ToolingApiEclipseModelProjectCrossVersionSpec extends ToolingApiSpecificat
 
     @Issue('eclipse/buildship#694')
     def "EclipseProject attributes modified via beforeMerged"() {
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           import org.gradle.plugins.ide.eclipse.model.BuildCommand
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
 
-           eclipse.project.file.beforeMerged {
-               it.natures = ['nature.a']
-               it.buildCommands += new BuildCommand('command1', [:])
-           }
+            import org.gradle.plugins.ide.eclipse.model.BuildCommand
+
+            eclipse.project.file.beforeMerged {
+                it.natures = ['nature.a']
+                it.buildCommands += new BuildCommand('command1', [:])
+            }
         """
 
         when:
@@ -85,15 +92,17 @@ class ToolingApiEclipseModelProjectCrossVersionSpec extends ToolingApiSpecificat
 
     @Issue('eclipse/buildship#694')
     def "EclipseProject attributes modified via whenMerged"() {
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           import org.gradle.plugins.ide.eclipse.model.BuildCommand
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+            import org.gradle.plugins.ide.eclipse.model.BuildCommand
 
-           eclipse.project.file.whenMerged {
-               it.natures.clear()
-               it.buildCommands.clear()
-           }
+            eclipse.project.file.whenMerged {
+                it.natures.clear()
+                it.buildCommands.clear()
+            }
         """
 
         when:

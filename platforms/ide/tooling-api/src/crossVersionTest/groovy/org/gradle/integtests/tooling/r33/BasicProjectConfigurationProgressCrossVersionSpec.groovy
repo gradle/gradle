@@ -202,7 +202,7 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
     def javaProjectWithTests() {
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 ${mavenCentralRepository()}
                 dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
             }
@@ -220,7 +220,7 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
         file("buildSrc/settings.gradle") << "include 'a', 'b'"
         file("buildSrc/build.gradle") << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 ${mavenCentralRepository()}
                 dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
             }

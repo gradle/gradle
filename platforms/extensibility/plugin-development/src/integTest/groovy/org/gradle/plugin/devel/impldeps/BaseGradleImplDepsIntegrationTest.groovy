@@ -25,7 +25,7 @@ abstract class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec
     }
 
     static String applyJavaPlugin() {
-        applyPlugins(['java'])
+        applyPlugins(['java-library'])
     }
 
     static String applyGroovyPlugin() {

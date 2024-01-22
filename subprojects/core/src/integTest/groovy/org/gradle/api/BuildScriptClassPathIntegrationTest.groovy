@@ -31,7 +31,7 @@ buildscript {
     }
 }
 plugins {
-    id 'java'
+    id("java-library")
 }
 
 ${mavenCentralRepository()}

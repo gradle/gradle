@@ -111,7 +111,10 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification implements WithOl
 
     def goodCode() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
             compileTestJava.options.fork = true

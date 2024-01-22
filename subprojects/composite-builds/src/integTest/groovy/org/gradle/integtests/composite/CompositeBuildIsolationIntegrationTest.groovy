@@ -24,7 +24,9 @@ class CompositeBuildIsolationIntegrationTest extends AbstractIntegrationSpec {
         buildTestFixture.withBuildInSubDir()
         singleProjectBuild("included") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
 
                 def rootGradleBuild = gradle
                 while (rootGradleBuild.parent != null) {
@@ -36,7 +38,7 @@ class CompositeBuildIsolationIntegrationTest extends AbstractIntegrationSpec {
         }
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
             dependencies {
                 implementation("org.test:included")
@@ -56,7 +58,9 @@ class CompositeBuildIsolationIntegrationTest extends AbstractIntegrationSpec {
         buildTestFixture.withBuildInSubDir()
         singleProjectBuild("included") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
 
                 def rootGradleBuild = gradle
                 while (rootGradleBuild.parent != null) {

@@ -42,9 +42,9 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
-"""
+            """
         }
         includedBuilds << buildB
     }
@@ -130,8 +130,10 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 """
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
-"""
+                plugins {
+                    id("java-library")
+                }
+            """
         }
         includedBuilds << buildC
 
@@ -156,8 +158,10 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 """
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
-"""
+                plugins {
+                    id("java-library")
+                }
+            """
         }
         includedBuilds << buildC
 
@@ -387,8 +391,10 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         given:
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
-"""
+                plugins {
+                    id("java-library")
+                }
+            """
         }
 
         buildB.buildFile << """
@@ -430,7 +436,9 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 dependencies {
                     implementation group: 'org.test', name: 'buildB', version: '1.0', configuration: 'other'
                 }
@@ -465,11 +473,13 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 dependencies {
                     implementation 'org.test:b2:1.0'
                 }
-"""
+            """
         }
         includedBuilds << buildC
 
@@ -508,8 +518,10 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
-"""
+                plugins {
+                    id("java-library")
+                }
+            """
         }
         includedBuilds << buildC
 
@@ -527,7 +539,9 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 dependencies {
                     compileOnly 'org.test:buildB:1.0'
                 }
@@ -549,11 +563,13 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 dependencies {
                     compileOnly 'org.test:b2:1.0'
                 }
-"""
+            """
         }
         includedBuilds << buildC
 
@@ -578,12 +594,14 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 dependencies {
                     implementation 'org.test:b1:1.0'
                     compileOnly 'org.test:b2:1.0'
                 }
-"""
+            """
         }
         includedBuilds << buildC
 
@@ -624,11 +642,13 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 """
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 jar.doLast {
                     throw new GradleException("jar task failed")
                 }
-"""
+            """
         }
         includedBuilds << buildC
 
@@ -695,7 +715,9 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         firstLevel.each { buildName ->
             def build = singleProjectBuild(buildName) {
                 buildFile << """
-                    apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                     dependencies {
                         //compileOnly ensures that this is not already found in the dependency graph of the root build
                         compileOnly 'org.test:secondLevel:1.0'
@@ -706,7 +728,9 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         }
         def secondLevel = singleProjectBuild("secondLevel") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
         }
         includeBuild secondLevel

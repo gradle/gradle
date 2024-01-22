@@ -41,9 +41,9 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java'
- *     id 'eclipse'
- *     id 'eclipse-wtp' // for web projects only
+ *     id("java-library")
+ *     id("eclipse")
+ *     id("eclipse-wtp") // for web projects only
  * }
  *
  * eclipse {

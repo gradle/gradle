@@ -49,7 +49,10 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
 
     def setup() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}
@@ -81,7 +84,10 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
             }
         """.stripIndent()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

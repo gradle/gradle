@@ -29,8 +29,10 @@ class CompositeBuildInitScriptIntegrationTest extends AbstractCompositeBuildInte
 
         buildB = singleProjectBuild("buildB") {
             buildFile << """
-                apply plugin: 'java'
-"""
+                plugins {
+                    id("java-library")
+                }
+            """
         }
         file('gradle-user-home/init.gradle') << """
 allprojects { project ->

@@ -42,7 +42,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
 allprojects {
-	apply plugin: 'java'
+    apply plugin: 'java-library'
 	repositories {
 		maven { url "${mavenRepo.uri}" }
 	}
@@ -83,7 +83,7 @@ project(':tool') {
 
         buildFile << """
 allprojects {
-	apply plugin: 'java'
+    apply plugin: 'java-library'
 	repositories {
 		maven { url "${mavenRepo.uri}" }
 	}
@@ -126,7 +126,7 @@ include 'api', 'impl', 'tool'
 
         buildFile << """
 allprojects {
-	apply plugin: 'java'
+    apply plugin: 'java-library'
 	repositories {
 		maven { url "${mavenRepo.uri}" }
 	}
@@ -180,7 +180,10 @@ project(':tool') {
         mavenRepo.module("org", "baz", "1.0").dependsOn(foo144).publish()
 
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
+
 group = 'org'
 version = '1.0'
 repositories {
@@ -461,7 +464,7 @@ dependencies {
 
         buildFile << """
 allprojects {
-	apply plugin: 'java'
+    apply plugin: 'java-library'
 	repositories {
 		maven { url "${mavenRepo.uri}" }
 	}
@@ -535,7 +538,10 @@ project(':tool') {
         dep.publish()
 
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
+
 repositories {
     maven { url "${mavenRepo.uri}" }
 }
@@ -757,7 +763,9 @@ parentFirst
         mavenRepo.module("org", "other", "1.7").dependsOn("org", "test", "1.2").publish()
 
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
 
 group "org"
 version "1.3"
@@ -793,7 +801,9 @@ dependencies {
         mavenRepo.module("org", "other", "1.7").dependsOn("org", "test", "2.1").publish()
 
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
 
 group "org"
 version "1.3"
@@ -2085,7 +2095,9 @@ dependencies {
         bom.publish()
 
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
 
 repositories {
     maven {
@@ -2142,7 +2154,9 @@ include 'sub'
 """
 
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
 
 repositories {
     maven {
@@ -2163,7 +2177,7 @@ dependencies {
 }
 
 project(':sub') {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 
     group = 'org'
     version = '1.0'

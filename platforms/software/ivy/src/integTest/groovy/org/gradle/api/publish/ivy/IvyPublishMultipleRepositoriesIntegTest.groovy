@@ -39,8 +39,10 @@ class IvyPublishMultipleRepositoriesIntegTest extends AbstractIvyPublishIntegTes
         given:
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'ivy-publish'
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
 
             version = '2'
             group = 'org.gradle'

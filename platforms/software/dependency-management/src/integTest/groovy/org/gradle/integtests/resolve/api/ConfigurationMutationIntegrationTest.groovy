@@ -229,7 +229,7 @@ configurations.compile.withDependencies {
         mavenRepo.module("org", "added-dependency", "3.4").publish()
         buildFile.text = """
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 
     repositories {
         maven { url '${mavenRepo.uri}' }
@@ -285,7 +285,9 @@ include 'consumer', 'producer'
 
         def producer = singleProjectBuild("producer") {
             buildFile << """
-    apply plugin: 'java'
+    plugins {
+        id("java-library")
+    }
 
     repositories {
         maven { url '${mavenRepo.uri}' }
@@ -312,7 +314,10 @@ include 'consumer', 'producer'
     includeBuild '${producer.toURI()}'
 """
         buildFile << """
-    apply plugin: 'java'
+    plugins {
+        id("java-library")
+    }
+
     repositories {
         maven { url '${mavenRepo.uri}' }
     }

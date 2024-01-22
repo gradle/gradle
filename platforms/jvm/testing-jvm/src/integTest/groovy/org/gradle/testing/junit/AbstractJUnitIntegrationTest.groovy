@@ -35,7 +35,10 @@ abstract class AbstractJUnitIntegrationTest extends AbstractTestingMultiVersionI
         given:
         file('settings.gradle').write("include 'a', 'b'")
         file('b/build.gradle') << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${getTestFrameworkDependencies('main')}
@@ -50,7 +53,10 @@ abstract class AbstractJUnitIntegrationTest extends AbstractTestingMultiVersionI
             }
         """.stripIndent()
         file('a/build.gradle') << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}
@@ -76,7 +82,10 @@ abstract class AbstractJUnitIntegrationTest extends AbstractTestingMultiVersionI
     def "can exclude super classes from execution"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}
@@ -126,7 +135,9 @@ abstract class AbstractJUnitIntegrationTest extends AbstractTestingMultiVersionI
             }
         """.stripIndent()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
 
@@ -175,7 +186,10 @@ abstract class AbstractJUnitIntegrationTest extends AbstractTestingMultiVersionI
         def testWorkingDir = testDirectory.createDir("$alphanumeric")
 
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

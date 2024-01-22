@@ -24,7 +24,9 @@ class TestTaskLocaleIntegrationTest extends AbstractIntegrationSpec {
     def "test logging can be configured on turkish locale"() {
         given:
         buildFile << """
-            apply plugin:'java'
+            plugins {
+                id("java-library")
+            }
             test {
                 testLogging {
                     events "passed", "skipped", "failed"

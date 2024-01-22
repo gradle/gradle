@@ -41,7 +41,10 @@ abstract class AbstractJUnitAssumptionsIntegrationTest extends AbstractTestingMu
             }
         """.stripIndent()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

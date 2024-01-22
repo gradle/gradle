@@ -70,7 +70,10 @@ abstract class ToolingApiVersionSpecification extends ToolingApiSpecification {
     // since 2.6
     def testExecution() {
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
+
 repositories {
     maven {
         url '${buildContext.localRepository.toURI()}'

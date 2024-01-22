@@ -42,14 +42,17 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
         given:
         createDirs("sub")
         settingsFile << "include 'sub'"
-        buildFile <<
-        """apply plugin: 'java'
-           repositories { $localMaven }
-           dependencies {
-               ${implementationConfiguration} 'org.example:example-api:1.0'
-               ${implementationConfiguration} project(':sub')
-           }
-           project(':sub') { apply plugin : 'java' }
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            repositories { $localMaven }
+            dependencies {
+                ${implementationConfiguration} 'org.example:example-api:1.0'
+                ${implementationConfiguration} project(':sub')
+            }
+            project(':sub') { apply plugin : 'java-library' }
         """
 
         when:
@@ -67,12 +70,15 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
     def "Web project dependencies have wtp deployment attributes"() {
         given:
         String pluginDeclaration = appliedPlugins.collect { "apply plugin: '$it'" }.join('\n')
-        buildFile <<
-         """apply plugin: 'java'
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
             $pluginDeclaration
             repositories { $localMaven }
             dependencies { ${implementationConfiguration} 'org.example:example-api:1.0' }
-         """
+        """
 
         when:
         EclipseProject eclipseProject = loadToolingModel(EclipseProject)
@@ -92,11 +98,14 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
 
     def "Wtp utility projects do not deploy any dependencies"() {
         given:
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse-wtp'
-           repositories { $localMaven }
-           dependencies { ${implementationConfiguration} 'org.example:example-lib:1.0' }
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse-wtp")
+            }
+
+            repositories { $localMaven }
+            dependencies { ${implementationConfiguration} 'org.example:example-lib:1.0' }
         """
 
         when:
@@ -111,13 +120,15 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
 
     def "Root wtp dependencies and their transitives are deployed to '/'"() {
         given:
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'war'
-           apply plugin: 'eclipse-wtp'
-           repositories { $localMaven }
-           dependencies { ${implementationConfiguration} 'org.example:example-lib:1.0' }
-           eclipse.wtp.component.rootConfigurations += [ configurations.compileClasspath ]
+        buildFile << """
+            plugins {
+                id("war")
+                id("eclipse-wtp")
+            }
+
+            repositories { $localMaven }
+            dependencies { ${implementationConfiguration} 'org.example:example-lib:1.0' }
+            eclipse.wtp.component.rootConfigurations += [ configurations.compileClasspath ]
         """
 
         when:
@@ -132,16 +143,17 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
 
     def "Root wtp dependencies present in minusConfigurations are excluded from deployment"() {
         given:
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'war'
-           apply plugin: 'eclipse-wtp'
-           repositories { $localMaven }
-           dependencies {
-               providedRuntime 'org.example:example-api:1.0'
-               ${implementationConfiguration} 'org.example:example-lib:1.0'
-           }
-           eclipse.wtp.component.rootConfigurations += [ configurations.compileClasspath ]
+        buildFile << """
+            plugins {
+                id("war")
+                id("eclipse-wtp")
+            }
+            repositories { $localMaven }
+            dependencies {
+                providedRuntime 'org.example:example-api:1.0'
+                ${implementationConfiguration} 'org.example:example-lib:1.0'
+            }
+            eclipse.wtp.component.rootConfigurations += [ configurations.compileClasspath ]
         """
 
         when:
@@ -154,11 +166,12 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
     }
 
     def "Library wtp dependencies and their transitives are deployed to '/WEB-INF/lib'"() {
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'war'
-           repositories { $localMaven }
-           dependencies { ${implementationConfiguration} 'org.example:example-lib:1.0' }
+        buildFile << """
+            plugins {
+                id("war")
+            }
+            repositories { $localMaven }
+            dependencies { ${implementationConfiguration} 'org.example:example-lib:1.0' }
         """
 
         when:
@@ -173,15 +186,16 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
 
     def "Lib wtp dependencies present in minusConfigurations are excluded from deployment"() {
         given:
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'war'
-           apply plugin: 'eclipse-wtp'
-           repositories { $localMaven }
-           dependencies {
-               providedRuntime 'org.example:example-api:1.0'
-               ${implementationConfiguration} 'org.example:example-lib:1.0'
-           }
+        buildFile <<"""
+            plugins {
+                id("war")
+                id("eclipse-wtp")
+            }
+            repositories { $localMaven }
+            dependencies {
+                providedRuntime 'org.example:example-api:1.0'
+                ${implementationConfiguration} 'org.example:example-lib:1.0'
+            }
         """
 
         when:
@@ -194,14 +208,16 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
     }
 
     def "Deployment folder follows ear app dir name configuration"() {
-        buildFile <<
-        """apply plugin: 'ear'
-           apply plugin: 'java'
-           apply plugin: 'eclipse'
-           repositories { $localMaven }
-           dependencies { earlib 'org.example:example-api:1.0' }
-           eclipse.classpath.plusConfigurations << configurations.earlib
-           ear { libDirName = '/custom/lib/dir' }
+        buildFile << """
+            plugins {
+                id("ear")
+                id("eclipse")
+            }
+
+            repositories { $localMaven }
+            dependencies { earlib 'org.example:example-api:1.0' }
+            eclipse.classpath.plusConfigurations << configurations.earlib
+            ear { libDirName = '/custom/lib/dir' }
         """
 
         when:
@@ -217,11 +233,13 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
 
     def "All non-wtp dependencies are marked as not deployed"() {
         given:
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'war'
-           repositories { $localMaven }
-           dependencies { compileOnly 'org.example:example-lib:1.0' }
+        buildFile << """
+            plugins {
+                id("war")
+            }
+
+            repositories { $localMaven }
+            dependencies { compileOnly 'org.example:example-lib:1.0' }
         """
 
         when:
@@ -238,15 +256,16 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
         given:
         createDirs("sub")
         settingsFile << 'include "sub"'
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'war'
-           repositories { $localMaven }
-           dependencies {
-               ${implementationConfiguration} 'org.example:example-api:1.0'
-               ${implementationConfiguration} project(':sub')
-           }
-           project(':sub') { apply plugin : 'java' }
+        buildFile << """
+            plugins {
+                id("war")
+            }
+            repositories { $localMaven }
+            dependencies {
+                ${implementationConfiguration} 'org.example:example-api:1.0'
+                ${implementationConfiguration} project(':sub')
+            }
+            project(':sub') { apply plugin : 'java-library' }
         """
 
         when:

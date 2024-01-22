@@ -44,7 +44,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
 
     def "no dependencies test"() {
         applyPluginToProjects()
-        project.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
 
         def module = project.ideaModule.module // Mock(IdeaModule)
         module.offline = true
@@ -58,7 +58,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
 
     def "dependencies are added to each required scope"() {
         applyPluginToProjects()
-        project.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
 
         def module = project.ideaModule.module // Mock(IdeaModule)
         module.offline = true
@@ -76,7 +76,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
 
     def "dependency is excluded if added to minus configuration"() {
         applyPluginToProjects()
-        project.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
 
         def module = project.ideaModule.module // Mock(IdeaModule)
         project.configurations.create('excluded')
@@ -94,7 +94,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
 
     def "dependency is excluded if added to any minus configuration"() {
         applyPluginToProjects()
-        project.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
 
         def module = project.ideaModule.module // Mock(IdeaModule)
         project.configurations.create('excluded1')
@@ -116,7 +116,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
 
     def "dependency is added from plus detached configuration"() {
         applyPluginToProjects()
-        project.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
 
         def module = project.ideaModule.module
         def extraDependency = project.dependencies.create(project.layout.files('lib/guava.jar'))
@@ -134,8 +134,8 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
 
     def "compile dependency on child project"() {
         applyPluginToProjects()
-        project.apply(plugin: 'java')
-        childProject.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
+        childProject.apply(plugin: 'java-library')
 
         def module = project.ideaModule.module // Mock(IdeaModule)
         module.offline = true
@@ -151,8 +151,8 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
 
     def "testCompile dependency on current project (self-dependency)"() {
         applyPluginToProjects()
-        project.apply(plugin: 'java')
-        childProject.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
+        childProject.apply(plugin: 'java-library')
 
         def module = project.ideaModule.module // Mock(IdeaModule)
         module.offline = true
@@ -167,7 +167,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
 
     def "test and runtime scope for the same dependency"() {
         applyPluginToProjects()
-        project.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
 
         def module = project.ideaModule.module // Mock(IdeaModule)
         module.offline = true
@@ -185,7 +185,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
 
     def "compile only dependencies"() {
         applyPluginToProjects()
-        project.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
 
         def module = project.ideaModule.module // Mock(IdeaModule)
         module.offline = true
@@ -203,7 +203,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
 
     def "compile only dependency conflicts with runtime dependencies"() {
         applyPluginToProjects()
-        project.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
 
         def module = project.ideaModule.module // Mock(IdeaModule)
         module.offline = true
@@ -223,7 +223,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
 
     def "ignore unknown configurations"() {
         applyPluginToProjects()
-        project.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
 
         def module = project.ideaModule.module // Mock(IdeaModule)
         module.offline = true

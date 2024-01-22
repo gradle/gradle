@@ -36,7 +36,7 @@ class JavaToolchainDownloadSpiKotlinIntegrationTest extends AbstractIntegrationS
 
         buildKotlinFile << """
             plugins {
-                java
+                id("java-library")
             }
 
             java {

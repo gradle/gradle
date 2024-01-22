@@ -40,7 +40,9 @@ class JUnit4CategoriesNotSupportedIntegrationTest extends AbstractSampleIntegrat
             }
         """.stripIndent()
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
 

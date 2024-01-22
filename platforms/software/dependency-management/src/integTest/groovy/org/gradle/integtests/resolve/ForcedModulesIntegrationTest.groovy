@@ -30,7 +30,9 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org", "foo", '1.4.4').publish()
 
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
 repositories { maven { url "${mavenRepo.uri}" } }
 
 dependencies {
@@ -60,7 +62,10 @@ task checkDeps {
         mavenRepo.module("org", "bar", '1.0').publish()
 
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
+
 repositories { maven { url "${mavenRepo.uri}" } }
 
 dependencies {
@@ -92,7 +97,7 @@ task checkDeps {
 
         buildFile << """
 allprojects {
-	apply plugin: 'java'
+    apply plugin: 'java-library'
 	repositories { maven { url "${mavenRepo.uri}" } }
 }
 
@@ -142,7 +147,7 @@ allprojects {
 
         buildFile << """
 allprojects {
-	apply plugin: 'java'
+    apply plugin: 'java-library'
 	repositories { maven { url "${mavenRepo.uri}" } }
 	group = 'org.foo.unittests'
 	version = '1.0'
@@ -205,7 +210,7 @@ allprojects {
 
         buildFile << """
 allprojects {
-	apply plugin: 'java'
+    apply plugin: 'java-library'
 	repositories { maven { url "${mavenRepo.uri}" } }
 }
 
@@ -250,7 +255,10 @@ project(':tool') {
         mavenRepo.module("hello", "world", '1.4.4').publish()
 
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
+
 repositories { maven { url "${mavenRepo.uri}" } }
 
 dependencies {
@@ -277,7 +285,10 @@ task checkDeps {
         mavenRepo.module("org", "foo", '1.9').publish()
 
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
+
 repositories { maven { url "${mavenRepo.uri}" } }
 
 dependencies {

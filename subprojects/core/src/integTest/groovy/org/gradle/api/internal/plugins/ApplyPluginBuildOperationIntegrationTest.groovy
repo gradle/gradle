@@ -25,7 +25,11 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
     def "captures plugin application events"() {
         given:
-        file("build.gradle") << "apply plugin: 'java'"
+        file("build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
 
         when:
         succeeds "build"

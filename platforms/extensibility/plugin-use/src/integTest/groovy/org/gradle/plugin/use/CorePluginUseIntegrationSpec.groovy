@@ -29,7 +29,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         when:
         buildScript """
             plugins {
-              id 'java'
+                id("java-library")
             }
         """
 
@@ -41,7 +41,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         when:
         buildScript """
             plugins {
-              id 'org.gradle.java'
+                id("org.gradle.java-library")
             }
         """
 
@@ -53,7 +53,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         given:
         buildScript """
             plugins {
-                id "java" version "1.0"
+                id("java-library") version "1.0"
             }
         """
 
@@ -61,7 +61,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         fails "help"
 
         then:
-        failure.assertHasDescription("Error resolving plugin [id: 'java', version: '1.0']")
+        failure.assertHasDescription("Error resolving plugin [id: 'java-library', version: '1.0']")
         failure.assertHasCause("Plugin 'java' is a core Gradle plugin, which cannot be specified with a version number")
         failure.assertHasFileName("Build file '$buildFile.absolutePath'")
         failure.assertHasLineNumber(3)
@@ -71,7 +71,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         given:
         buildScript """
             plugins {
-                id "org.gradle.java" version "1.0"
+                id("org.gradle.java-library") version "1.0"
             }
         """
 
@@ -88,8 +88,8 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
     void "core plugins cannot be used with apply false"() {
         given:
         buildScript """
-            plugins {
-                id "java" apply false
+           plugins {
+                id("java-library") apply false
             }
         """
 
@@ -97,7 +97,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         fails "help"
 
         then:
-        failure.assertHasDescription("Error resolving plugin [id: 'java', apply: false]")
+        failure.assertHasDescription("Error resolving plugin [id: 'java-library', apply: false]")
         failure.assertHasCause("Plugin 'java' is a core Gradle plugin, which is already on the classpath")
         failure.assertHasFileName("Build file '$buildFile.absolutePath'")
         failure.assertHasLineNumber(3)
@@ -107,8 +107,8 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         given:
         buildScript """
             plugins {
-                id "java"
-                id "java"
+                id("java-library")
+                id("java-library")
             }
         """
 
@@ -116,7 +116,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         fails "help"
 
         then:
-        failure.assertThatDescription(startsWith("Plugin with id 'java' was already requested at line 3"))
+        failure.assertThatDescription(startsWith("Plugin with id 'java-library' was already requested at line 3"))
         failure.assertHasFileName("Build file '$buildFile.absolutePath'")
         failure.assertHasLineNumber(4)
     }
@@ -125,9 +125,9 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         given:
         buildScript """
             plugins {
-                id "base"
-                id "java"
-                id "java"
+                id("base")
+                id("java-library")
+                id("java-library")
             }
         """
 
@@ -135,7 +135,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         fails "help"
 
         then:
-        failure.assertThatDescription(startsWith("Plugin with id 'java' was already requested at line 4"))
+        failure.assertThatDescription(startsWith("Plugin with id 'java-library' was already requested at line 4"))
         failure.assertHasFileName("Build file '$buildFile.absolutePath'")
         failure.assertHasLineNumber(5)
     }
@@ -144,12 +144,12 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         when:
         buildScript """
             plugins {
-                id "java"
+                id "java-library"
             }
 
-            assert plugins.hasPlugin("java")
+            assert plugins.hasPlugin("java-library")
 
-            apply plugin: "java"
+            apply plugin: "java-library"
         """
 
         then:
@@ -160,12 +160,12 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         when:
         buildScript """
             plugins {
-                id "org.gradle.java"
+                id "org.gradle.java-library"
             }
 
-            assert plugins.hasPlugin("java")
+            assert plugins.hasPlugin("java-library")
 
-            apply plugin: "java"
+            apply plugin: "java-library"
         """
 
         then:

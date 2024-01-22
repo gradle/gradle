@@ -48,7 +48,7 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
 
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
 
             dependencies {

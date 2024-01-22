@@ -242,7 +242,7 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
             it.buildFile << """
                 subprojects {
                     // The Java plugin forces the configuration of the included builds
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
             """
         }

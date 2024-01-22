@@ -30,8 +30,8 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         when:
         buildFile << """
             plugins {
-                id "java"
-                id "com.netflix.nebula.dependency-recommender" version "${TestedVersions.nebulaDependencyRecommender}"
+                id("java-library")
+                id("com.netflix.nebula.dependency-recommender") version "${TestedVersions.nebulaDependencyRecommender}"
             }
 
             ${mavenCentralRepository()}
@@ -85,10 +85,9 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
             }
 
             plugins {
-                id "com.netflix.nebula.lint" version "${TestedVersions.nebulaLint}"
+                id("com.netflix.nebula.lint") version "${TestedVersions.nebulaLint}"
+                id("java-library")
             }
-
-            apply plugin: 'java'
 
             gradleLint.rules = ['dependency-parentheses']
 

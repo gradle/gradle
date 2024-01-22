@@ -70,7 +70,7 @@ import static org.gradle.util.internal.GUtil.isTrue;
  * Without source the Javadoc task will not create any documentation. Example:
  * <pre class='autoTested'>
  * plugins {
- *     id 'java'
+ *     id("java-library")
  * }
  *
  * task myJavadocs(type: Javadoc) {
@@ -82,7 +82,7 @@ import static org.gradle.util.internal.GUtil.isTrue;
  * An example how to create a task that runs a custom doclet implementation:
  * <pre class='autoTested'>
  * plugins {
- *     id 'java'
+ *     id("java-library")
  * }
  *
  * configurations {

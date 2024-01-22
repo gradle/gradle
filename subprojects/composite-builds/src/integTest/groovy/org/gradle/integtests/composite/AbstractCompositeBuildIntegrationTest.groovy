@@ -38,7 +38,9 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
         buildTestFixture.withBuildInSubDir()
         buildA = singleProjectBuild("buildA") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }

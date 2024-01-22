@@ -33,7 +33,10 @@ class TestNGSuiteIntegrationTest extends MultiVersionIntegrationSpec {
     def "can reference suiteXmlBuilder"() {
         given:
         buildFile << '''
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             test {
               useTestNG {
                 println "Property from task: $name"
@@ -56,7 +59,10 @@ class TestNGSuiteIntegrationTest extends MultiVersionIntegrationSpec {
 
     def "methodMissing propagates failures"() {
         buildFile << """
-    apply plugin: 'java'
+    plugins {
+        id("java-library")
+    }
+
     ${mavenCentralRepository()}
     dependencies {
         testImplementation 'org.testng:testng:$version'
@@ -86,7 +92,10 @@ class TestNGSuiteIntegrationTest extends MultiVersionIntegrationSpec {
     @Issue("GRADLE-3020")
     def "can specify test suite by string"() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 testImplementation 'org.testng:testng:$version'

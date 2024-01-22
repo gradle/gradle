@@ -30,16 +30,16 @@ class BuildCacheErrorIntegrationTest extends AbstractIntegrationSpec {
             class TestBuildCacheService implements BuildCacheService {
                 TestBuildCacheService(TestBuildCache configuration) {
                 }
-                
+
                 @Override
                 boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
                     return false
                 }
-    
+
                 @Override
                 void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
                 }
-    
+
                 @Override
                 void close() throws IOException {
                 }
@@ -93,7 +93,9 @@ class BuildCacheErrorIntegrationTest extends AbstractIntegrationSpec {
 
     def "attempting to use an unknown build cache type fails with a reasonable message"() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
         """
         file("src/main/java/Main.java") << "class Main {}"
         settingsFile << """

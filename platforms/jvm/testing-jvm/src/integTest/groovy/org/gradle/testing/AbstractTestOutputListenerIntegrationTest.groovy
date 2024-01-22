@@ -45,7 +45,10 @@ abstract class AbstractTestOutputListenerIntegrationTest extends AbstractTesting
             }
         """.stripIndent()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}
@@ -100,7 +103,10 @@ abstract class AbstractTestOutputListenerIntegrationTest extends AbstractTesting
             }
         """.stripIndent()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}
@@ -145,7 +151,10 @@ abstract class AbstractTestOutputListenerIntegrationTest extends AbstractTesting
             }
         """.stripIndent()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

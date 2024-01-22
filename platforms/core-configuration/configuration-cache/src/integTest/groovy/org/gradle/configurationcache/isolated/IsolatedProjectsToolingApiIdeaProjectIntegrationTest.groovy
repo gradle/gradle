@@ -143,7 +143,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
 
         file("lib1/build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
             java.targetCompatibility = JavaVersion.VERSION_1_9
             java.sourceCompatibility = JavaVersion.VERSION_1_8
@@ -234,13 +234,13 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
 
         file("a/build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
             java.sourceCompatibility = JavaVersion.VERSION_1_8
         """
         file("b/build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
             java.sourceCompatibility = JavaVersion.VERSION_1_9
         """
@@ -306,7 +306,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
 
         file("api/build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
         """
 
@@ -351,7 +351,9 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
     def "ensures unique name for all Idea modules in composite"() {
         singleProjectBuildInRootDir("buildA") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 dependencies {
                     testImplementation "org.test:b1:1.0"
 
@@ -368,34 +370,46 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
 
         multiProjectBuildInSubDir("buildB", ['b1', 'b2']) {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
             project("b1").buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 dependencies {
                     testImplementation "org.test:buildC:1.0"
                 }
             """
             project("b2").buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
         }
 
         singleProjectBuildInSubDir("buildC") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
         }
 
         multiProjectBuildInSubDir("buildD", ["b1", "buildC"]) {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 group = 'org.buildD'
             """
 
             ["b1", "buildC"].each {
                 project(it).buildFile << """
-                    apply plugin: 'java'
+                    plugins {
+                        id("java-library")
+                    }
                     group = 'org.buildD'
                 """
             }

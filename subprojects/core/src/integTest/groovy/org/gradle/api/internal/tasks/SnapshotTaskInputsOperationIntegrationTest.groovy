@@ -213,7 +213,11 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         withBuildCache()
         settingsFile << "include 'a', 'b'"
         createDir("a") {
-            file("build.gradle") << "plugins { id 'java' }"
+            file("build.gradle") << """
+                plugins {
+                    id("java-library")
+                }
+            """
             dir("src/main/java") {
                 file("A.java") << "class A {}"
                 file("B.java") << "class B {}"
@@ -237,7 +241,9 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
         createDir("b") {
             file("build.gradle") << """
-                plugins { id 'java' }
+                plugins {
+                    id("java-library")
+                }
                 dependencies { implementation project(":a") }
                 sourceSets.main.java.srcDir "other"
             """

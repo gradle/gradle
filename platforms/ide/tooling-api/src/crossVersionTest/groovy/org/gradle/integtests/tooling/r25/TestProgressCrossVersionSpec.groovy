@@ -118,7 +118,10 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
     def "receive test progress events for successful test run"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
@@ -185,7 +188,10 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
     def "receive test progress events for failed test run"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
@@ -266,7 +272,10 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
     def "receive test progress events for skipped test run"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
@@ -298,7 +307,10 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
     def "test progress event ids are unique across multiple test workers"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
@@ -373,7 +385,10 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
 
         [projectDir.createDir('sub1'), projectDir.createDir('sub2')].eachWithIndex { TestFile it, def index ->
             it.file('build.gradle') << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
             compileTestJava.options.fork = true
@@ -481,7 +496,10 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
 
     def goodCode() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'

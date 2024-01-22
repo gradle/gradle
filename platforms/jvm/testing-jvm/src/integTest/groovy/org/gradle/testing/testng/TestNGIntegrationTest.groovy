@@ -392,7 +392,10 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
     def "can clean test after extracting class file"() {
         when:
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 testImplementation 'org.testng:testng:6.3.1'

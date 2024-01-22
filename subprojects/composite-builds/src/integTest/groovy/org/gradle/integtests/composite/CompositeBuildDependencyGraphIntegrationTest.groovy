@@ -146,7 +146,9 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         given:
         singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
         }
         withArgs(["--include-build", '../buildB', "--include-build", '../buildC'])
@@ -340,7 +342,9 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         """
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
         }
         includedBuilds << buildC
@@ -497,7 +501,9 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
             rootProject.name = 'buildC'
         """
         buildC.file('build.gradle') << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
             group = 'org.test'
             version = '1.0'
         """
@@ -525,7 +531,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         def buildC = multiProjectBuild("buildC", ['a2', 'b2', 'c1']) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
             """
         }
@@ -559,7 +565,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         def buildC = multiProjectBuild("buildC", ['a1', 'b1']) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                     version = '3.0'
                 }
             """
@@ -589,7 +595,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         """
         buildC.buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
         """
         includedBuilds << buildC
@@ -639,7 +645,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         def buildC = multiProjectBuild("buildC", ['b1']) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                     version = '3.0'
                 }
             """

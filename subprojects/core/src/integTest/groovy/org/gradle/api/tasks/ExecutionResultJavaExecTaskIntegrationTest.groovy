@@ -25,7 +25,7 @@ class ExecutionResultJavaExecTaskIntegrationTest extends AbstractExecutionResult
     protected void makeExecProject() {
         buildFile.text = """
             plugins {
-                id("java")
+                id("java-library")
             }
 
             task run(type: JavaExec) {

@@ -57,8 +57,10 @@ class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegr
         ['buildB', 'buildC', 'buildD'].each { buildName ->
             def build = singleProjectBuild(buildName) {
                 buildFile << """
-                    apply plugin: 'java'
-"""
+                plugins {
+                    id("java-library")
+                }
+            """
             }
             dependency previousBuild, "org.test:${buildName}:1.0"
             includedBuilds << build
@@ -78,7 +80,9 @@ class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegr
         included.each { buildName ->
             def build = singleProjectBuild(buildName) {
                 buildFile << """
-                    apply plugin: 'java'
+                    plugins {
+                        id("java-library")
+                    }
                     compileJava.doLast {
                         ${server.callFromBuild(buildName)}
                     }
@@ -103,7 +107,7 @@ class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegr
         includedBuilds << multiProjectBuild("buildB", (1..maxWorkers).collect { "sub" + it }) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                     compileJava {
                         def projectName = project.name
                         doLast {

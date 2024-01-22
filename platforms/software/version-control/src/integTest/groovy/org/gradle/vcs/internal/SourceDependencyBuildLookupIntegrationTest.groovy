@@ -40,7 +40,10 @@ class SourceDependencyBuildLookupIntegrationTest extends AbstractIntegrationSpec
         """
 
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             dependencies { implementation 'org.test:buildB:2.0' }
         """
 
@@ -48,7 +51,10 @@ class SourceDependencyBuildLookupIntegrationTest extends AbstractIntegrationSpec
             rootProject.name = 'buildB'
         """
         repo.file("build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             group = 'org.test'
         """
         repo.commit("version 2")

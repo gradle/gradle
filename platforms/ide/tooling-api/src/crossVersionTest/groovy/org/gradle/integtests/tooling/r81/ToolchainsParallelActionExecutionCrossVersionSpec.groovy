@@ -103,7 +103,7 @@ class ToolchainsParallelActionExecutionCrossVersionSpec extends ToolingApiSpecif
         buildFile << """
             allprojects {
                 apply plugin: ToolchainPlugin
-                apply plugin: 'java'
+                apply plugin: 'java-library'
 
                 java {
                     toolchain {

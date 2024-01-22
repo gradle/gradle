@@ -20,8 +20,8 @@ class IdeaExtSmokeTest extends AbstractSmokeTest {
     def "can use org.jetbrains.gradle.plugin.idea-ext"() {
         buildFile << """
             plugins {
-                id "org.jetbrains.gradle.plugin.idea-ext" version "${TestedVersions.ideaExt}"
-                id "java"
+                id("org.jetbrains.gradle.plugin.idea-ext") version "${TestedVersions.ideaExt}"
+                id("java-library")
             }
         """
         expect:

@@ -1386,7 +1386,7 @@ Artifacts
         given:
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             configurations.create("custom") {

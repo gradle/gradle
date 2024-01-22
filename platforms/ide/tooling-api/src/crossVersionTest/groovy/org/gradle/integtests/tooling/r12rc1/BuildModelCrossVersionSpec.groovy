@@ -24,7 +24,9 @@ import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 class BuildModelCrossVersionSpec extends ToolingApiSpecification {
     def "can run tasks before building Eclipse model"() {
         file('build.gradle').text = '''
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
 
 task setup {
     doLast {

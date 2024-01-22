@@ -36,7 +36,9 @@ class AccessorsClassPathModelCrossVersionSpec extends AbstractKotlinScriptModelC
         given:
         withDefaultSettings()
         withBuildScript("""
-            plugins { java }
+            plugins {
+                id("java-library")
+            }
         """)
 
         expect:
@@ -48,7 +50,9 @@ class AccessorsClassPathModelCrossVersionSpec extends AbstractKotlinScriptModelC
         given:
         withDefaultSettings()
         withBuildScript("""
-            plugins { java }
+            plugins {
+                id("java-library")
+            }
         """)
 
         and:

@@ -27,7 +27,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
     def "capabilities resolution shouldn't put graph in inconsistent state"() {
         file("shared/build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             sourceSets {
@@ -75,7 +75,9 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             }
         """
         file("p1/build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             dependencies {
                 implementation project(':p2')
@@ -110,7 +112,9 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             }
         """
         file("p2/build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             dependencies {
                 implementation(project(':shared')) {

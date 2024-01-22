@@ -124,7 +124,9 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
             task block(type: JavaExec) {
                 classpath = sourceSets.main.output
                 mainClass = 'Block'
@@ -157,7 +159,9 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
             """
         }
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
             ${mavenCentralRepository()}
             dependencies {
                 testImplementation 'junit:junit:4.13'

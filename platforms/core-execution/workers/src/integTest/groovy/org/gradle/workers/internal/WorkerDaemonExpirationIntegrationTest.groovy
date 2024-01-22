@@ -57,7 +57,7 @@ class WorkerDaemonExpirationIntegrationTest extends AbstractIntegrationSpec {
             }
 
             subprojects { p ->
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 tasks.withType(JavaCompile) { task ->
                     task.options.fork = true
                     rootProject.tasks.expireWorkers.dependsOn task

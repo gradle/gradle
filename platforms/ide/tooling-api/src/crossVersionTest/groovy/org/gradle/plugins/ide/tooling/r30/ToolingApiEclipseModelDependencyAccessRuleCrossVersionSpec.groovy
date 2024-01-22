@@ -40,22 +40,24 @@ class ToolingApiEclipseModelDependencyAccessRuleCrossVersionSpec extends Tooling
            include 'sub'
         """
 
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
 
-           repositories {
-               maven { url '${mavenRepo.uri}' }
-           }
+            repositories {
+                maven { url '${mavenRepo.uri}' }
+            }
 
-           dependencies {
-               ${implementationConfiguration} project(':sub')
-               ${implementationConfiguration} 'org.example:example-lib:1.0'
-           }
+            dependencies {
+                ${implementationConfiguration} project(':sub')
+                ${implementationConfiguration} 'org.example:example-lib:1.0'
+            }
 
-           project(':sub') {
-               apply plugin: 'java'
-           }
+            project(':sub') {
+                apply plugin: 'java-library'
+            }
         """
     }
 

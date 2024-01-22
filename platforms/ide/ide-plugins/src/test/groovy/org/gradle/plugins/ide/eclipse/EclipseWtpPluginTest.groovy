@@ -60,7 +60,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
 
     def applyToJavaProject_shouldHaveWebProjectAndClasspathTask() {
         when:
-        project.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
         project.sourceCompatibility = 1.6
         wtpPlugin.apply(project)
 
@@ -79,7 +79,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
     def applyFirstToJavaProject_shouldHaveWebProjectAndClasspathTask() {
         when:
         wtpPlugin.apply(project)
-        project.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
         project.sourceCompatibility = 1.7
 
         then:
@@ -96,7 +96,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
 
     def "can add custom facets to java default facets"() {
         when:
-        project.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
         wtpPlugin.apply(project)
         project.sourceCompatibility = 1.3
 
@@ -303,7 +303,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
     @Issue('gradle/gradle#17681')
     def "add 'jst.ejb' facet should remove incompatible 'jst.utility' facet"() {
         when:
-        project.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
         project.apply(plugin: 'eclipse-wtp')
         project.sourceCompatibility = 1.8
 
@@ -324,7 +324,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
     @Issue(['GRADLE-2186', 'GRADLE-2221', 'gradle/gradle#17681'])
     def "can change WTP components and add facets when java plugin is applied"() {
         when:
-        project.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
         wtpPlugin.apply(project)
         project.sourceCompatibility = 1.7
 

@@ -27,8 +27,8 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
         testSourceFile()
         buildFile << """
             plugins {
-                id "java"
-                id "org.gradle.test-retry" version "${TestedVersions.testRetryPlugin}"
+                id("java-library")
+                id("org.gradle.test-retry") version "${TestedVersions.testRetryPlugin}"
             }
 
             ${mavenCentralRepository()}

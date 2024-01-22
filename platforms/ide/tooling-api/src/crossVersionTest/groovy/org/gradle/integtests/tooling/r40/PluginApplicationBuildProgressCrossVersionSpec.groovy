@@ -32,7 +32,9 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         def events = ProgressEvents.create()
         settingsFile << "rootProject.name = 'single'"
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
         """
 
         when:
@@ -63,7 +65,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         settingsFile << "rootProject.name = 'single'"
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
         """
 
@@ -185,7 +187,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         buildFile << ""
         initScript << """
             rootProject {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
         """
 
@@ -220,7 +222,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         buildFile << ""
         initScript << """
             rootProject {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
         """
 
@@ -255,7 +257,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         buildFile << ""
         initScript << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
         """
 
@@ -290,7 +292,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         buildFile << ""
         initScript << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
         """
 
@@ -385,7 +387,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
             include 'a', 'b'
         """
         buildFile << """
-            allprojects { apply plugin: 'java' }
+            allprojects { apply plugin: 'java-library' }
         """
 
 
@@ -426,7 +428,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
             include 'a', 'b'
         """
         buildFile << """
-            subprojects { apply plugin: 'java' }
+            subprojects { apply plugin: 'java-library' }
         """
 
         when:
@@ -451,7 +453,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
             include 'a', 'b'
         """
         buildFile << """
-            project(':a') { apply plugin: 'java' }
+            project(':a') { apply plugin: 'java-library' }
         """
 
         when:
@@ -475,7 +477,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
             include 'a', 'b'
         """
         buildFile << """
-            project(':b', new Action<Project>() { void execute(Project project) { project.apply plugin: 'java' } })
+            project(':b', new Action<Project>() { void execute(Project project) { project.apply plugin: 'java-library' } })
         """
 
         when:
@@ -496,7 +498,9 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         def events = ProgressEvents.create()
         buildSrc()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
         """
 
         when:
@@ -540,7 +544,9 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         def events = ProgressEvents.create()
         buildSrc()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
         """
 
         when:
@@ -565,7 +571,9 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         def events = ProgressEvents.create()
         buildSrc()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
         """
 
         when:
@@ -587,7 +595,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         file("buildSrc/settings.gradle") << "include 'a', 'b'"
         file("buildSrc/build.gradle") << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
             dependencies {
                 implementation project(':a')

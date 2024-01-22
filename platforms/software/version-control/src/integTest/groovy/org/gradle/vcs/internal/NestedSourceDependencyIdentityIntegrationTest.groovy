@@ -42,18 +42,27 @@ class NestedSourceDependencyIdentityIntegrationTest extends AbstractIntegrationS
             }
         """
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             dependencies { implementation 'org.test:buildB:1.2' }
         """
 
         repoB.file("build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             group = 'org.test'
             version = '1.2'
         """
 
         repoC.file("build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             group = 'org.test'
             version = '1.2'
         """

@@ -37,7 +37,10 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification implem
     def "builds the model even if idea plugin not applied"() {
 
         buildFile.text = '''
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
+
 description = 'this is a project'
 '''
         settingsFile.text = 'rootProject.name = \"test project\"'
@@ -57,8 +60,10 @@ description = 'this is a project'
     def "provides basic project information"() {
 
         buildFile.text = """
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 idea.project {
   languageLevel = '1.5'
@@ -78,7 +83,7 @@ idea.project {
 
         file('build.gradle').text = '''
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 }
 '''
         file('settings.gradle').text = "include 'api', 'impl'"
@@ -95,8 +100,10 @@ subprojects {
     def "provides basic module information"() {
 
         file('build.gradle').text = """
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 idea.module.inheritOutputDirs = false
 idea.module.outputDir = file('someDir')
@@ -124,7 +131,11 @@ idea.module.testOutputDir = file('someTestDir')
     @TargetGradleVersion(">=2.6 <5.0")
     def "provides source dir information"() {
 
-        file('build.gradle').text = "apply plugin: 'java'"
+        file('build.gradle').text = """
+            plugins {
+                id("java-library")
+            }
+        """
 
         projectDir.create {
             src {
@@ -157,8 +168,10 @@ idea.module.testOutputDir = file('someTestDir')
     def "provides exclude dir information"() {
 
         file('build.gradle').text = """
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 idea.module.excludeDirs += file('foo')
 """
@@ -186,7 +199,7 @@ idea.module.excludeDirs += file('foo')
         """
         file('build.gradle').text = """
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 }
 
 project(':impl') {
@@ -241,7 +254,7 @@ project(':impl') {
 
         file('build.gradle').text = """
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 }
 
 task rootTask {}
@@ -271,7 +284,7 @@ project(':impl') {
 
         file('build.gradle').text = """
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 }
 
 project(':impl') {

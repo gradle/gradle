@@ -30,7 +30,7 @@ class EclipseDependencySubstitutionIntegrationTest extends AbstractEclipseIntegr
         createDirs("project1", "project2")
         runEclipseTask("include 'project1', 'project2'", """
 allprojects {
-    apply plugin: "java"
+    apply plugin: "java-library"
     apply plugin: "eclipse"
 }
 
@@ -61,7 +61,7 @@ project(":project2") {
         createDirs("project1", "project2")
         runEclipseTask("include 'project1', 'project2'", """
 allprojects {
-    apply plugin: "java"
+    apply plugin: "java-library"
     apply plugin: "eclipse"
 }
 
@@ -94,7 +94,7 @@ project(":project2") {
         createDirs("project1", "project2")
         runEclipseTask("include 'project1', 'project2'", """
  allprojects {
-    apply plugin: "java"
+    apply plugin: "java-library"
     apply plugin: "eclipse"
 }
 

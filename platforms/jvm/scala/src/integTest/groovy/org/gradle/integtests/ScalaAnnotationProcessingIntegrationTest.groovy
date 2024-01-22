@@ -259,8 +259,10 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         private void writeBuildFile() {
             def processorBuildFile = file("$name/build.gradle")
             processorBuildFile << """
-                apply plugin: 'java'
-                apply plugin: 'maven-publish'
+                plugins {
+                    id("java-library")
+                    id("maven-publish")
+                }
 
                 group = '$group'
                 version = '$version'

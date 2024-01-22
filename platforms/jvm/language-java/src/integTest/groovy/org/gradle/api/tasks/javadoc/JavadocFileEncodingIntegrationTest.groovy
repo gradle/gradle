@@ -23,7 +23,10 @@ class JavadocFileEncodingIntegrationTest extends AbstractIntegrationSpec {
     @NotYetImplemented
     def "build is not up-to-date when file.encoding changes"() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             javadoc {
                 options {
                     windowTitle = "💩 💩 💩 💩"

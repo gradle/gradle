@@ -84,7 +84,10 @@ class TestNGXmlResultAndHtmlReportIntegrationTest extends
     def runWithTestConfig(String testConfiguration) {
         def buildFile = file('build.gradle')
         buildFile.text = """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies { testImplementation 'org.testng:testng:6.3.1' }
 

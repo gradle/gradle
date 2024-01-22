@@ -160,7 +160,10 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
         """.stripIndent()
 
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${stableEnvironmentDependencies}
@@ -222,7 +225,10 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
             }
         """.stripIndent()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}
@@ -268,7 +274,10 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
             }
         """.stripIndent()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}
@@ -295,7 +304,10 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
         given:
         file('build/classes/java/test/com/example/Foo.class').text = "invalid class file"
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}
@@ -316,7 +328,10 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
     def "test interrupting its own thread does not kill test execution"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}
@@ -365,7 +380,7 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
             .withToolchainDetectionEnabled()
         buildFile << """
             plugins {
-                id("java")
+                id("java-library")
             }
             ${javaPluginToolchainVersion(11)}
             ${mavenCentralRepository()}
@@ -406,7 +421,10 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
     def "tests are re-executed when set of candidate classes change"() {
         given:
         buildFile << """
-            apply plugin:'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}
@@ -471,7 +489,7 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
         withInstallations(AvailableJavaHomes.getAvailableJvms())
         buildFile << """
             plugins {
-                id("java")
+                id("java-library")
             }
             ${javaPluginToolchainVersion(11)}
             ${mavenCentralRepository()}

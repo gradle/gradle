@@ -29,7 +29,9 @@ class NoDaemonFilesystemWatchingIntegrationTest extends AbstractIntegrationSpec 
 
     def "is disabled by default for --no-daemon"() {
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
         """
 
         when:

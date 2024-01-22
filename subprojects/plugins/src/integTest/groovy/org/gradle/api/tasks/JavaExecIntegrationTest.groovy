@@ -43,7 +43,9 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
 
         buildFile.text = """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             task run(type: JavaExec) {
                 classpath = project.layout.files(compileJava)
@@ -271,7 +273,9 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
     def "classpath can be replaced with a file collection including the replaced value"() {
         given:
         buildFile.text = """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             task run(type: JavaExec) {
                 classpath = project.layout.files(compileJava)

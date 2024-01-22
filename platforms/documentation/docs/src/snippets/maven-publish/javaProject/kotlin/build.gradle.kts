@@ -1,6 +1,6 @@
 plugins {
-    java
-    `maven-publish`
+    id("java-library")
+    id("maven-publish")
 }
 
 group = "org.gradle.sample"

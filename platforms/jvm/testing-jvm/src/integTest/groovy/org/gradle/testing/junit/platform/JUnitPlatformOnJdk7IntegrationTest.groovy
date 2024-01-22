@@ -29,7 +29,10 @@ class JUnitPlatformOnJdk7IntegrationTest extends AbstractIntegrationSpec {
         assumeNotNull(jdk7)
         file("gradle.properties").writeProperties("org.gradle.java.installations.paths": jdk7.javaHome.canonicalPath)
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 testImplementation 'org.junit.jupiter:junit-jupiter:${LATEST_JUPITER_VERSION}'

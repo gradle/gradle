@@ -50,7 +50,7 @@ project(':web') {
     }
 }
 project(':java') {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 
     dependencies {
         implementation 'com.google.guava:guava:18.0'

@@ -27,7 +27,9 @@ class JavaCompilerDaemonFailureIntegrationTest extends AbstractIntegrationSpec {
         def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             tasks.compileJava {
                 options.fork = true

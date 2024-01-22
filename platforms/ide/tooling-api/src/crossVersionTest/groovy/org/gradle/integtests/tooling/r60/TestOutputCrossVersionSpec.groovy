@@ -68,7 +68,9 @@ class TestOutputCrossVersionSpec extends ToolingApiSpecification implements With
 
     def setup() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
             ${mavenCentralRepository()}
             dependencies.${testImplementationConfiguration} 'junit:junit:4.13'
             test.ignoreFailures = true

@@ -31,11 +31,16 @@ class SourceDependencyIdentityIntegrationTest extends AbstractIntegrationSpec {
             rootProject.name = 'buildA'
         """
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
         """
 
         repo.file("build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             group = 'org.test'
             version = '1.2'
         """

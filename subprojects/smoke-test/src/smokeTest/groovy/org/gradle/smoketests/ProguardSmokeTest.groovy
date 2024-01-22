@@ -33,7 +33,7 @@ class ProguardSmokeTest extends AbstractPluginValidatingSmokeTest implements Val
         """
         file("buildSrc/src/main/groovy/proguard.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             repositories {

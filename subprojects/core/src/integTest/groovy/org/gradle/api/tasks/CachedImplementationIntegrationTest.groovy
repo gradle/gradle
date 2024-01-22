@@ -126,7 +126,9 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
         """)
 
         file("build.gradle") << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
         """
 
         file("src/main/java/Hello.java") << """

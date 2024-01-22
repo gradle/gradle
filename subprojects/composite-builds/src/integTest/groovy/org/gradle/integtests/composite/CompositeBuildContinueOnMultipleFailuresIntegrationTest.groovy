@@ -113,7 +113,7 @@ class CompositeBuildContinueOnMultipleFailuresIntegrationTest extends AbstractCo
 
     private String javaProject() {
         """
-            apply plugin: 'java'
+            apply plugin: 'java-library'
 
             ${mavenCentralRepository()}
             ${junitDependency()}

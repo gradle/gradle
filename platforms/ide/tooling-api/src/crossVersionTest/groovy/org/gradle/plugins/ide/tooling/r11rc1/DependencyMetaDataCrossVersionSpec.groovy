@@ -56,7 +56,9 @@ class DependencyMetaDataCrossVersionSpec extends ToolingApiSpecification impleme
         file("yetAnotherJar.jar").createFile()
 
         file('build.gradle').text = """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
 
 repositories {
     maven { url "${fakeRepo.toURI()}" }

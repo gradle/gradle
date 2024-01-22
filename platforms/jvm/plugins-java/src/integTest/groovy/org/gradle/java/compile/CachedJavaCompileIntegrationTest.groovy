@@ -28,8 +28,7 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
             file('settings.gradle') << localCacheConfiguration()
             file('build.gradle').text = """
             plugins {
-                id 'java'
-                id 'application'
+                id("application")
             }
 
             application {

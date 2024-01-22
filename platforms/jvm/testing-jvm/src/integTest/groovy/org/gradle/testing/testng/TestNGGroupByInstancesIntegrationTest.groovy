@@ -25,7 +25,10 @@ public class TestNGGroupByInstancesIntegrationTest extends MultiVersionIntegrati
 
     def "run tests using groupByInstances"() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies { testImplementation 'org.testng:testng:$version' }
             test {

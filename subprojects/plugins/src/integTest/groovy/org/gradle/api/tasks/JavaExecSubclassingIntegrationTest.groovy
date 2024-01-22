@@ -33,7 +33,9 @@ class JavaExecSubclassingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             class MyJavaExec extends JavaExec {
 

@@ -519,7 +519,9 @@ model {
     def "can configure legacy plugin"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
         """
 
         when:

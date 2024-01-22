@@ -25,7 +25,7 @@ import org.gradle.api.logging.LogLevel;
  * specifying a log level) apply to log level LIFECYCLE. Example:
  *
  * <pre class='autoTested'>
- * apply plugin: 'java'
+ * apply plugin: 'java-library'
  *
  * test {
  *     testLogging {

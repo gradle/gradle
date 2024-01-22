@@ -455,8 +455,9 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
     def "can create distribution with .tar in project name"() {
         when:
         buildFile << """
-            apply plugin: 'application'
-            apply plugin: 'java'
+            plugins {
+                id("application")
+            }
 
             application {
                 mainClass = "Main"

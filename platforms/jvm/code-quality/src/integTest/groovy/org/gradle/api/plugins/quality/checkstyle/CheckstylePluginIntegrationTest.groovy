@@ -29,7 +29,9 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
 
     def setup() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             // Necessary to make CC tests pass, though it appears unused here
             ${mavenCentralRepository()}

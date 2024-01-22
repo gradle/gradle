@@ -111,11 +111,11 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
     def "plugin manager with id is fired after the plugin is applied for imperative plugins"() {
         when:
         buildFile """
-            pluginManager.withPlugin("java") {
-              assert tasks.jar
+            pluginManager.withPlugin("base") {
+              assert tasks.assemble
             }
 
-            apply plugin: "java"
+            apply plugin: "base"
         """
 
         then:

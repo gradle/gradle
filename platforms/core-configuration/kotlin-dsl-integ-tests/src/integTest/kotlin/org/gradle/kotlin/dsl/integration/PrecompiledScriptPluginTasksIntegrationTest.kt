@@ -253,7 +253,7 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
     @Test
     fun `no warnings on absent directories in compilation classpath`() {
         withDefaultSettings().appendText("""include("producer", "consumer")""")
-        withFile("producer/build.gradle.kts", """plugins { java }""")
+        withFile("producer/build.gradle.kts", """plugins { id("java-library") }""")
         withKotlinDslPluginIn("consumer").appendText("""dependencies { implementation(project(":producer")) }""")
         withFile("consumer/src/main/kotlin/some.gradle.kts", "")
         build(":consumer:classes").apply {

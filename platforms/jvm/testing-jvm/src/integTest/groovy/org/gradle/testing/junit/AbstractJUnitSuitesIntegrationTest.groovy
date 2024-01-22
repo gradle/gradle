@@ -56,7 +56,10 @@ abstract class AbstractJUnitSuitesIntegrationTest extends AbstractTestingMultiVe
             }
         """.stripIndent()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

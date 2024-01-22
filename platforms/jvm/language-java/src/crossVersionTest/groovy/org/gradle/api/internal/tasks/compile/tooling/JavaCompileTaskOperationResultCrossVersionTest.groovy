@@ -41,7 +41,7 @@ class JavaCompileTaskOperationResultCrossVersionTest extends ToolingApiSpecifica
         """
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
             dependencies {
                 compileOnly project(':processor')

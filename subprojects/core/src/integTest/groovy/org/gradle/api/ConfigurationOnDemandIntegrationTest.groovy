@@ -274,7 +274,11 @@ project(':api') {
             apply plugin: 'java-library'
             dependencies { implementation project(":api") }
         """
-        file("api/build.gradle") << "apply plugin: 'java'"
+        file("api/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
         // Provide a source file so that the compile task doesn't skip resolving inputs
         file("impl/src/main/java/Foo.java") << "public class Foo {}"
 
@@ -359,9 +363,15 @@ project(':api') {
     def "handles buildNeeded"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
-        file("a/build.gradle") << """ apply plugin: 'java' """
+        file("a/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
         file("b/build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
             project(':b') {
                 dependencies { implementation project(':a') }
             }
@@ -378,9 +388,15 @@ project(':api') {
     def "handles buildDependents"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
-        file("a/build.gradle") << """ apply plugin: 'java' """
+        file("a/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
         file("b/build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
             project(':b') {
                 dependencies { implementation project(':a') }
             }

@@ -77,12 +77,16 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         buildTestFixture.withBuildInSubDir()
         def includedBuild = singleProjectBuild("includedBuild") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
         }
         def consumer = singleProjectBuild("consumer") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
 
                 dependencies {
                     implementation "org.test:includedBuild:1.0"
@@ -124,12 +128,16 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         buildTestFixture.withBuildInSubDir()
         def buildInBuild = singleProjectBuild("buildInBuild") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
         }
         def consumer = singleProjectBuild("consumer") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
 
                 task buildInBuild(type: GradleBuild) {
                     startParameter.currentDir = file('../buildInBuild')
@@ -313,12 +321,16 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         buildTestFixture.withBuildInSubDir()
         def includedBuild = singleProjectBuild("includedBuild") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
         }
         def consumer = singleProjectBuild("consumer") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
 
                 dependencies {
                     implementation "org.test:includedBuild:1.0"

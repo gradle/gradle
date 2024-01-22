@@ -27,7 +27,9 @@ class JavaApplicationDeploymentIntegrationTest extends AbstractContinuousIntegra
 
     def setup() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             task run(type: ${RunApplication.canonicalName}) {
                 classpath = sourceSets.main.runtimeClasspath

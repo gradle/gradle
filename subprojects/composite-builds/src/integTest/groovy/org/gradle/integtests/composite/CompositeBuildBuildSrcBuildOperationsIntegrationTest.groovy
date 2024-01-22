@@ -38,7 +38,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
             file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
 """
         }

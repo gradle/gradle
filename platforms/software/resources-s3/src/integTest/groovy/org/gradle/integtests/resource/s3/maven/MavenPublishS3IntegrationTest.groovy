@@ -150,8 +150,8 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
     private static String publicationBuild(URI repoUrl, String authentication) {
         return """
             plugins {
-                id 'java'
-                id 'maven-publish'
+                id("java-library")
+                id("maven-publish")
             }
 
             group = 'org.gradle.test'

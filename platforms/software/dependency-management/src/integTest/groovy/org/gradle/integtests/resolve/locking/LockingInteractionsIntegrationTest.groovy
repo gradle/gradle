@@ -454,7 +454,9 @@ task resolve {
 rootProject.name = 'composite'
 """
         file("composite/build.gradle") << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
 group = 'org'
 version = '1.1'
 """

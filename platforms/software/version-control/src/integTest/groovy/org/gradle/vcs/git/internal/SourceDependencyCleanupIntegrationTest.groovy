@@ -36,7 +36,10 @@ class SourceDependencyCleanupIntegrationTest extends AbstractIntegrationSpec imp
 
     def setup() {
         repo.workTree.file("build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             group = 'org.test'
             version = file("version").text
             jar {

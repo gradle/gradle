@@ -44,7 +44,7 @@ public abstract class JavaPluginConvention {
      *
      * <pre class='autoTested'>
      * plugins {
-     *     id 'java'
+     *     id("java-library")
      * }
      *
      * sourceSets {

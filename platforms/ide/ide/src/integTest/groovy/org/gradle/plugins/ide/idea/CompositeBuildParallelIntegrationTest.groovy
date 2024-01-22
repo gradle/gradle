@@ -34,8 +34,10 @@ class CompositeBuildParallelIntegrationTest extends AbstractIntegrationSpec {
         buildTestFixture.withBuildInSubDir()
         def buildA = singleProjectBuild("buildA") {
             buildFile << """
-                apply plugin: 'java'
-                apply plugin: 'idea'
+                plugins {
+                    id("java-library")
+                    id("idea")
+                }
             """
         }
 
@@ -43,8 +45,10 @@ class CompositeBuildParallelIntegrationTest extends AbstractIntegrationSpec {
         included.each { buildName ->
             def build = singleProjectBuild(buildName) {
                 buildFile << """
-                    apply plugin: 'java'
-                    apply plugin: 'idea'
+                    plugins {
+                        id("java-library")
+                        id("idea")
+                    }
 
                     ideaModule.doLast {
                         ${server.callFromBuild(buildName)}

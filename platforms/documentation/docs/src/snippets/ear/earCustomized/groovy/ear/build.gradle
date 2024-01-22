@@ -1,6 +1,5 @@
 plugins {
-    id 'ear'
-    id 'java'
+    id("ear")
 }
 
 repositories { mavenCentral() }

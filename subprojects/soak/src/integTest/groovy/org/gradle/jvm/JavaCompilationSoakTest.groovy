@@ -31,7 +31,7 @@ class JavaCompilationSoakTest extends AbstractIntegrationSpec {
         multiProjectBuild("root", subprojects) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
 
                     // ~25MB
                     ext.memoryHog = new byte[1024*1024*25]

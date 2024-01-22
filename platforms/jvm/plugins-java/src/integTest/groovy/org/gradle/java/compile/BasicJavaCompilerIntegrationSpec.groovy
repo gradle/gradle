@@ -444,7 +444,10 @@ compileJava.options.release.set(11)
 
     def buildScript() {
         """
-apply plugin: "java"
+plugins {
+    id("java-library")
+}
+
 ${mavenCentralRepository()}
 
 dependencies {
@@ -526,7 +529,10 @@ class Main {
     def "can use annotation processor"() {
         when:
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
+
             dependencies {
                 compileOnly project(":processor")
                 annotationProcessor project(":processor")
@@ -547,7 +553,9 @@ class Main {
     def writeAnnotationProcessorProject() {
         file("processor").create {
             file("build.gradle") << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
             "src/main" {
                 file("resources/META-INF/services/javax.annotation.processing.Processor") << "com.test.SimpleAnnotationProcessor"

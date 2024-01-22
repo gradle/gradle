@@ -29,7 +29,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "include 'a', 'b'"
         buildFile << '''
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
         '''
 

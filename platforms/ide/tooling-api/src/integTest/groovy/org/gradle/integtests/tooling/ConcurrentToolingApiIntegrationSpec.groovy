@@ -63,7 +63,11 @@ class ConcurrentToolingApiIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "handles the same target gradle version concurrently"() {
-        buildFile << "apply plugin: 'java'"
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+        """
 
         when:
         threads.times {
@@ -83,7 +87,11 @@ class ConcurrentToolingApiIntegrationSpec extends AbstractIntegrationSpec {
         println "Combination of versions used: current - $dist, last - $last"
         def oldDistApi = new ToolingApi(last, temporaryFolder)
 
-        buildFile << "apply plugin: 'java'"
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+        """
 
         when:
         concurrent.start { useToolingApi(toolingApi) }
@@ -246,7 +254,11 @@ project.description = text
     def "during model building receives distribution progress"() {
         given:
         threads.times { idx ->
-            file("build$idx/build.gradle") << "apply plugin: 'java'"
+            file("build$idx/build.gradle") << """
+                plugins {
+                    id("java-library")
+                }
+        """
         }
 
         when:

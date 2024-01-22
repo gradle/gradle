@@ -24,7 +24,7 @@ class ProviderApiDependenciesIntegrationTest extends AbstractIntegrationSpec {
     def "can add dependency with addLater derived from another provider with Java plugin"() {
         buildFile << """
 plugins {
-    id 'java'
+    id("java-library")
 }
 
 def version = objects.property(String)
@@ -35,7 +35,7 @@ tasks.all {} // force realize all tasks
 
 version.set('5.6')
 
-assert configurations.testRuntimeClasspath.allDependencies.size() == 1 
+assert configurations.testRuntimeClasspath.allDependencies.size() == 1
         """
         expect:
         succeeds("help")
@@ -44,14 +44,14 @@ assert configurations.testRuntimeClasspath.allDependencies.size() == 1
     def "can add dependency with addLater derived from another provider indirectly with Java plugin"() {
         buildFile << """
 plugins {
-    id 'java'
+    id("java-library")
 }
 
 def version = objects.property(String)
 
 configurations.testImplementation.dependencies.addLater(provider { project.dependencies.create("com.example:artifact:\${version.get()}") })
 
-tasks.all {} // force realize all tasks 
+tasks.all {} // force realize all tasks
 
 version.set('5.6') // later set the provider value
 

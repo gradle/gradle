@@ -76,7 +76,9 @@ class JavaToolchainUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
     private TestFile buildscriptWithToolchain(Jvm someJdk) {
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
             dependencies {

@@ -28,9 +28,9 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         buildB = multiProjectBuild("buildB", []) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
-"""
+            """
         }
         includedBuilds << buildB
     }

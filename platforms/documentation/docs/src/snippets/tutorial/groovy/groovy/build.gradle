@@ -1,5 +1,5 @@
 plugins {
-    id 'java'
+    id("java-library")
 }
 
 // tag::groovyJdk[]
@@ -36,7 +36,7 @@ Map<String, String> map = [key1:'value1', key2: 'value2']
 
 // Groovy will coerce named arguments
 // into a single map argument
-apply plugin: 'java'
+apply plugin: 'java-library'
 // end::listAndMapLiterals[]
 
 // tag::closureAsLastParam[]

@@ -86,7 +86,7 @@ class JavaCompileAvoidanceWithBuildCacheServiceIntegrationTest extends AbstractI
         settingsFile << "include 'a', 'b'"
         buildFile << '''
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
         '''
         file('a/build.gradle') << '''

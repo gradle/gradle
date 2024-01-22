@@ -1,7 +1,7 @@
 // tag::zip[]
 // tag::tar[]
 plugins {
-    java
+    id("java-library")
 }
 
 // end::tar[]

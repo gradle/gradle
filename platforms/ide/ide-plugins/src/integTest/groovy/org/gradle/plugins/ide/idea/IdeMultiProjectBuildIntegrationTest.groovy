@@ -35,7 +35,7 @@ class IdeMultiProjectBuildIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'idea'
             }
 

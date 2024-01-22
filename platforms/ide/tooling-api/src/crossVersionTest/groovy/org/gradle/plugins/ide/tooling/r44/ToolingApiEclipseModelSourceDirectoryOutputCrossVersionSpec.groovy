@@ -28,7 +28,11 @@ class ToolingApiEclipseModelSourceDirectoryOutputCrossVersionSpec extends Toolin
     def "Source directories have default output"() {
         setup:
         settingsFile << 'rootProject.name = "root"'
-        buildFile << "apply plugin: 'java'"
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+        """
         file('src/main/java').mkdirs()
 
         when:
@@ -43,8 +47,10 @@ class ToolingApiEclipseModelSourceDirectoryOutputCrossVersionSpec extends Toolin
         setup:
         settingsFile << 'rootProject.name = "root"'
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'eclipse'
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
 
             eclipse.classpath.file.whenMerged {
                 entries.find { entry -> entry.path == 'src/test/java' }.output = null

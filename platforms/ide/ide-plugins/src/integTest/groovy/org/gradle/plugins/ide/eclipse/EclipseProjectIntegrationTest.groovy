@@ -27,8 +27,10 @@ class EclipseProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
     void allowsConfiguringEclipseProject() {
         given:
         buildScript """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 eclipse {
   project {
@@ -83,8 +85,10 @@ eclipse {
     void "allows custom matcher resource filter"() {
         given:
         buildScript """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 eclipse {
   project {
@@ -124,8 +128,10 @@ eclipse {
     void "allows configuring multiple resource filters"() {
         given:
         buildScript """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 eclipse {
   project {
@@ -182,8 +188,10 @@ eclipse {
     void "allows 'include only' type resource filter"() {
         given:
         buildScript """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 eclipse {
   project {
@@ -223,8 +231,10 @@ eclipse {
     void "allows resource filter for files"() {
         given:
         buildScript """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 eclipse {
   project {
@@ -264,8 +274,10 @@ eclipse {
     void "allows resource filter for folders"() {
         given:
         buildScript """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 eclipse {
   project {
@@ -305,8 +317,10 @@ eclipse {
     void "allows non-recursive resource filter"() {
         given:
         buildScript """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 eclipse {
   project {
@@ -365,8 +379,10 @@ eclipse {
 
         and:
         buildScript """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 eclipse {
   project {
@@ -467,8 +483,10 @@ eclipse {
 
         and:
         buildScript """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 eclipse {
   project {
@@ -528,8 +546,10 @@ eclipse {
     void "allows nested matcher"() {
         given:
         buildScript """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 eclipse {
   project {
@@ -606,8 +626,10 @@ eclipse {
 
         and:
         buildScript """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 eclipse {
   project {
@@ -643,8 +665,10 @@ org.eclipse.jdt.core.compiler.codegen.targetPlatform=1.3
 
         and:
         buildScript """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 ext.hooks = []
 
@@ -686,8 +710,10 @@ eclipseJdt.doLast() {
         given:
 
         buildScript """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 eclipse {
   project {

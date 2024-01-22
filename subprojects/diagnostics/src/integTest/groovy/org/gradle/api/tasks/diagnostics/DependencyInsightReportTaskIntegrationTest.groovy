@@ -65,7 +65,9 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         mavenRepo.module("org", "top").dependsOnModules("middle", "leaf2").publish()
 
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             repositories {
                 maven { url "${mavenRepo.uri}" }
@@ -95,7 +97,9 @@ No dependencies matching given input were found in configuration ':compileClassp
         mavenRepo.module("org", "top").dependsOnModules("middle", "leaf2").publish()
 
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             repositories {
                 maven { url "${mavenRepo.uri}" }

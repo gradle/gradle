@@ -205,7 +205,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             "my-java-library.gradle.kts",
             replaceLineSeparatorsOf(
                 """
-                plugins { java }
+                plugins { id("java-library") }
 
                 java { }
 
@@ -395,7 +395,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         withPrecompiledKotlinScript(
             "my-java-library.gradle.kts",
             """
-            plugins { java }
+            plugins { id("java-library") }
             """
         )
 
@@ -490,7 +490,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         withPrecompiledKotlinScript(
             "java-plugin.gradle.kts",
             """
-            plugins { java }
+            plugins { id("java-library") }
             """
         )
 
@@ -520,7 +520,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             "my/java-plugin.gradle.kts",
             """
             package my
-            plugins { java }
+            plugins { id("java-library") }
             """
         )
 
@@ -544,7 +544,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         givenPrecompiledKotlinScript(
             "java-project.gradle.kts",
             """
-            plugins { java }
+            plugins { id("java-library") }
             """
         )
 
@@ -605,7 +605,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             """
 
             plugins {
-                java
+                id("java-library")
             }
 
             """

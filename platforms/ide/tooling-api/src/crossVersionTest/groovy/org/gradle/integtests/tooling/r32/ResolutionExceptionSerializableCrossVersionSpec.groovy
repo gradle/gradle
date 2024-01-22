@@ -30,7 +30,7 @@ import org.gradle.tooling.provider.model.ToolingModelBuilder
 import javax.inject.Inject
 
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: CustomPlugin
 }
 

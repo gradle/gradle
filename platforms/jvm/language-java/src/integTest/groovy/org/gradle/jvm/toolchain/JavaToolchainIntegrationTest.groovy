@@ -62,7 +62,9 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
         def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
 
         buildScript """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             javaToolchains.launcherFor {
                 ${languageVersion ? "languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})" : ""}
@@ -87,7 +89,9 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
         def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(jvm as Jvm)
 
         buildScript """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             def tool = javaToolchains.${toolMethod} {
                 languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})
@@ -121,7 +125,9 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
         def jdkMetadata2 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
         buildScript """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -147,10 +153,12 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
         def jdkMetadata1 = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
         def jdkMetadata2 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
         buildScript """
+            plugins {
+                id("java-library")
+            }
+
             import java.util.concurrent.atomic.AtomicReference
             import org.gradle.jvm.toolchain.JavaToolchainSpec
-
-            apply plugin: "java"
 
             def toolchainSpecRef = new AtomicReference<JavaToolchainSpec>()
 
@@ -172,7 +180,9 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
     def "nag user when toolchain spec is IBM_SEMERU"() {
         given:
         buildScript """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {

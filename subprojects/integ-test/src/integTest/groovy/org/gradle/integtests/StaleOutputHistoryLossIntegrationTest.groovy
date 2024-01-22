@@ -56,7 +56,11 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     def "production class files are removed in a single project build for #description"() {
         given:
         def javaProject = new StaleOutputJavaProject(testDirectory, buildDirName)
-        buildFile << "apply plugin: 'java'"
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+        """
 
         if (!defaultDir) {
             buildFile << """
@@ -97,7 +101,9 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         given:
         def javaProject = new StaleOutputJavaProject(testDirectory, 'out')
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             sourceSets {
                 main {
@@ -135,7 +141,9 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         given:
         def javaProject = new StaleOutputJavaProject(testDirectory)
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             task configureCompileJava {
                 doLast {
@@ -180,7 +188,11 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def projectCount = 3
         def javaProjects = (1..projectCount).collect {
             def projectName = createProjectName(it)
-            file("${projectName}/build.gradle") << "apply plugin: 'java'"
+            file("${projectName}/build.gradle") << """
+                plugins {
+                    id("java-library")
+                }
+            """
             new StaleOutputJavaProject(testDirectory, "build", projectName)
         }
 
@@ -225,7 +237,11 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def projectCount = 3
         def javaProjects = (1..projectCount).collect {
             def projectName = createProjectName(it)
-            file("${projectName}/build.gradle") << "apply plugin: 'java'"
+            file("${projectName}/build.gradle") << """
+                plugins {
+                    id("java-library")
+                }
+            """
             new StaleOutputJavaProject(testDirectory, "build", projectName)
         }
 
@@ -278,7 +294,11 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/821")
     def "task history is deleted"() {
         def javaProject = new StaleOutputJavaProject(testDirectory)
-        buildFile << "apply plugin: 'java'"
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+        """
 
         when:
         succeeds JAR_TASK_NAME

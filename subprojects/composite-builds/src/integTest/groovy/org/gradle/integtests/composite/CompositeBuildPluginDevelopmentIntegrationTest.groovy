@@ -162,7 +162,9 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         given:
         def buildB = singleProjectBuild("buildB") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 version "2.0"
             """
         }
@@ -197,7 +199,9 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         given:
         def buildB = singleProjectBuild("buildB") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 version "2.0"
             """
         }
@@ -359,7 +363,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         def buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
             """
         }
@@ -440,7 +444,9 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         disableProblemsApiCheck()
         def pluginDependencyB = singleProjectBuild("pluginDependencyB") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 version "2.0"
             """
         }

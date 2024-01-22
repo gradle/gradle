@@ -93,7 +93,10 @@ abstract class AbstractJUnit4IgnoreClassIntegrationTest extends AbstractJUnitIgn
             }
         """
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

@@ -39,7 +39,9 @@ class TestNGDryRunFilteringIntegrationTest extends AbstractTestNGFilteringIntegr
 
     def "dry-run property is not preserved across invocations"() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
 

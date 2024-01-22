@@ -110,7 +110,7 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java' // adds 'test' task
+ *     id("java-library") // adds 'test' task
  * }
  *
  * test {
@@ -851,7 +851,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * Typically, this would be configured to use the output of a source set:
      * <pre class='autoTested'>
      * plugins {
-     *     id 'java'
+     *     id("java-library")
      * }
      *
      * sourceSets {

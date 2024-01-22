@@ -33,8 +33,10 @@ class ConfigurationHooksIntegrationTest extends AbstractIdeIntegrationTest {
         //this test is a bit peculiar as it has assertions inside the gradle script
         //couldn't find a better way of asserting on before/when configured hooks
         runIdeaTask '''
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 def beforeConfiguredObjects = 0
 def whenConfiguredObjects = 0
@@ -74,8 +76,10 @@ tasks.idea {
     void whenHooksApplyChangesToGeneratedFile() {
         //when
         runIdeaTask '''
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 idea {
     module {

@@ -480,17 +480,17 @@ ear {
                 }
             }
             project(":c") {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 dependencies {
                     implementation project(':d')
                     compileOnly project(':e')
                 }
             }
             project(":d") {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
             project(":e") {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
         """
 

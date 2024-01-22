@@ -30,8 +30,10 @@ class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
         def jreJavaHome = AvailableJavaHomes.bestJre
         writeJavaTestSource("src/main/java");
         file('build.gradle') << """
+        plugins {
+            id("java-library")
+        }
         println "Used JRE: ${jreJavaHome.absolutePath.replace(File.separator, '/')}"
-        apply plugin:'java'
         compileJava {
             options.fork = ${forkMode}
         }
@@ -50,7 +52,10 @@ class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
         given:
         writeJavaTestSource("src/main/java");
         file('build.gradle') << """
-        apply plugin:'java'
+        plugins {
+            id("java-library")
+        }
+
         compileJava {
             options.fork = ${forkMode}
         }

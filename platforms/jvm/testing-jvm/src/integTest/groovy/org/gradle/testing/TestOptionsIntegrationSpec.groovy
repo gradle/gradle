@@ -29,7 +29,7 @@ class TestOptionsIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
         plugins {
-            id 'java'
+            id("java-library")
         }
 
         ${mavenCentralRepository()}
@@ -349,7 +349,7 @@ public class SomeIntegTestClass {
                 }
             }
 
-            apply plugin: 'java'
+            apply plugin: 'java-library'
 
             ${mavenCentralRepository()}
             dependencies {

@@ -27,7 +27,7 @@ class PalantirConsistentVersionsPluginSmokeTest extends AbstractSmokeTest {
         given:
         buildFile << """
             plugins {
-                id('java')
+                id("java-library")
                 id("com.palantir.consistent-versions") version "${TestedVersions.palantirConsistentVersions}"
             }
             ${mavenCentralRepository()}
@@ -36,7 +36,7 @@ class PalantirConsistentVersionsPluginSmokeTest extends AbstractSmokeTest {
         file("settings.gradle") << "include 'other'"
         file("other/build.gradle") << """
             plugins {
-                id("java")
+                id("java-library")
             }
 
             ${mavenCentralRepository()}

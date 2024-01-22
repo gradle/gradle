@@ -25,7 +25,7 @@ class CompositeBuildIdentityIntegrationTest extends AbstractCompositeBuildIntegr
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
             """
         }
@@ -198,7 +198,11 @@ Required by:
 
     def "project component identifiers know if projects belong to the current build or not"() {
         def buildC = singleProjectBuild('buildC') {
-            buildFile << "apply plugin: 'java'"
+            buildFile << """
+                plugins {
+                    id("java-library")
+                }
+            """
         }
         includeBuild(buildC)
 

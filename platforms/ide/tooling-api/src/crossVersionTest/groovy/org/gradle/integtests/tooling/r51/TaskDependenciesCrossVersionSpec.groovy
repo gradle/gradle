@@ -128,13 +128,19 @@ class TaskDependenciesCrossVersionSpec extends ToolingApiSpecification {
             includeBuild 'included'
         """
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             dependencies {
                 implementation 'org.example:included:0.1'
             }
         """
         file('included/build.gradle') << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             group = 'org.example'
             version = '0.1'
         """
