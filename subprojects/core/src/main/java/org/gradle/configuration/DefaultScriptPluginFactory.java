@@ -96,7 +96,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
         @Override
         public void apply(final Object target) {
-            DefaultServiceRegistry services = new DefaultServiceRegistry(scriptServices);
+            DefaultServiceRegistry services = new DefaultServiceRegistry("Script plugin services", scriptServices);
             services.add(ScriptPluginFactory.class, scriptPluginFactory);
             services.add(ClassLoaderScope.class, baseScope);
             services.add(LoggingManagerInternal.class, loggingFactoryManager.create());

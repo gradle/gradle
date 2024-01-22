@@ -25,7 +25,7 @@ class ScopedServiceRegistryTest extends Specification {
 
     def "fails when registering a service by adding #method in a wrong scope"() {
         given:
-        def registry = new ScopedServiceRegistry(Scopes.Build)
+        def registry = new ScopedServiceRegistry(Scopes.Build, "Test services")
 
         when:
         registration(registry)
@@ -43,7 +43,7 @@ class ScopedServiceRegistryTest extends Specification {
 
     def "fails when registering a multi-scoped service by adding #method in a wrong scope"() {
         given:
-        def registry = new ScopedServiceRegistry(Scopes.BuildTree)
+        def registry = new ScopedServiceRegistry(Scopes.BuildTree, "Test services")
 
         when:
         registration(registry)
@@ -61,7 +61,7 @@ class ScopedServiceRegistryTest extends Specification {
 
     def "succeeds when registering a service in the correct scope"() {
         given:
-        def registry = new ScopedServiceRegistry(Scopes.BuildTree)
+        def registry = new ScopedServiceRegistry(Scopes.BuildTree, "Test services")
         def service = new BuildTreeScopedService()
 
         when:
@@ -85,7 +85,7 @@ class ScopedServiceRegistryTest extends Specification {
 
     def "succeeds when registering an unscoped service"() {
         given:
-        def registry = new ScopedServiceRegistry(Scopes.BuildTree)
+        def registry = new ScopedServiceRegistry(Scopes.BuildTree, "Test services")
         def service = new UnscopedService()
 
         when:
@@ -100,7 +100,7 @@ class ScopedServiceRegistryTest extends Specification {
 
     def "succeeds when registering a multi-scoped service in the correct scope (#scopeName)"() {
         given:
-        def registry = new ScopedServiceRegistry(scope)
+        def registry = new ScopedServiceRegistry(scope, "Test services")
         def service = new GlobalAndBuildScopedService()
 
         when:
@@ -141,7 +141,7 @@ class ScopedServiceRegistryTest extends Specification {
 
     static class BrokenScopedServiceRegistry extends ScopedServiceRegistry {
         BrokenScopedServiceRegistry() {
-            super(Scopes.Build)
+            super(Scopes.Build, "Broken-scope services")
         }
 
         @SuppressWarnings('unused')

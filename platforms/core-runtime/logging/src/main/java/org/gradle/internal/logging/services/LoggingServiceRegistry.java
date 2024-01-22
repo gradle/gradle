@@ -57,6 +57,14 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     protected final OutputEventRenderer renderer = makeOutputEventRenderer();
     protected final OutputEventListenerManager outputEventListenerManager = new OutputEventListenerManager(renderer);
 
+    public LoggingServiceRegistry() {
+        super("Logging services registry");
+    }
+
+    public LoggingServiceRegistry(String displayName) {
+        super(displayName);
+    }
+
     /**
      * Creates a set of logging services which are suitable to use globally in a process. In particular:
      *
@@ -155,9 +163,16 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     private static class CommandLineLogging extends LoggingServiceRegistry {
+        public CommandLineLogging() {
+            super("Command-line logging");
+        }
     }
 
     private static class NestedLogging extends LoggingServiceRegistry {
+
+        public NestedLogging() {
+            super("Nested logging services");
+        }
 
         @Override
         protected DefaultLoggingManagerFactory createLoggingManagerFactory() {

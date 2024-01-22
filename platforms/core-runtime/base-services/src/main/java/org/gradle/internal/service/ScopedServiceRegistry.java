@@ -25,18 +25,6 @@ import org.gradle.internal.service.scopes.Scope;
 @NonNullApi
 public class ScopedServiceRegistry extends DefaultServiceRegistry {
 
-    public ScopedServiceRegistry(Class<? extends Scope> scope) {
-        addServiceValidator(scope);
-    }
-
-    public ScopedServiceRegistry(
-        Class<? extends Scope> scope,
-        ServiceRegistry... parents
-    ) {
-        super(parents);
-        addServiceValidator(scope);
-    }
-
     public ScopedServiceRegistry(
         Class<? extends Scope> scope,
         String displayName,

@@ -171,7 +171,7 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
      * @return a dependency injecting instantiator, aware of services we want to expose
      */
     ImplicitInputsCapturingInstantiator createInjectorForMetadataSuppliers(final RepositoryTransport transport, InstantiatorFactory instantiatorFactory, final URI rootUri, final FileStore<String> externalResourcesFileStore) {
-        DefaultServiceRegistry registry = new DefaultServiceRegistry();
+        DefaultServiceRegistry registry = new DefaultServiceRegistry("Metadata suppliers registry");
         registry.addProvider(new Object() {
             RepositoryResourceAccessor createResourceAccessor() {
                 return createRepositoryAccessor(transport, rootUri, externalResourcesFileStore);

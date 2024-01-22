@@ -42,7 +42,7 @@ class DaemonClientServicesTest extends Specification {
         .provider(new BasicGlobalScopeServices())
         .provider(new DaemonClientGlobalServices())
         .build()
-    final services = new DaemonClientServices(parentServices, parameters, System.in)
+    final services = new DaemonClientServices("Build-client services", parentServices, parameters, System.in)
 
     def "makes a DaemonRegistry available"() {
         expect:

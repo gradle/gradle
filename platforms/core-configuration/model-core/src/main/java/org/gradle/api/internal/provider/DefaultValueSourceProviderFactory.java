@@ -129,7 +129,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         @Nullable Class<P> parametersType,
         @Nullable P isolatedParameters
     ) {
-        DefaultServiceRegistry services = new DefaultServiceRegistry();
+        DefaultServiceRegistry services = new DefaultServiceRegistry("Value source services");
         services.add(GradleProperties.class, gradleProperties);
         services.add(ExecOperations.class, execOperations);
         if (isolatedParameters != null) {

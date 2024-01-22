@@ -215,6 +215,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         private final WorkerProcessContext workerProcessContext;
 
         public TestFrameworkServiceRegistry(WorkerProcessContext workerProcessContext) {
+            super("Test framework service registry");
             this.workerProcessContext = workerProcessContext;
         }
 

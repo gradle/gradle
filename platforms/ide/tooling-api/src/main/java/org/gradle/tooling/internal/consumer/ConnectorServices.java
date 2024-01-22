@@ -58,6 +58,10 @@ public class ConnectorServices {
     }
 
     private static class ConnectorServiceRegistry extends DefaultServiceRegistry {
+        public ConnectorServiceRegistry() {
+            super("Connector service registry");
+        }
+
         protected Factory<DefaultGradleConnector> createConnectorFactory(final ConnectionFactory connectionFactory, final DistributionFactory distributionFactory) {
             return new Factory<DefaultGradleConnector>() {
                 @Override

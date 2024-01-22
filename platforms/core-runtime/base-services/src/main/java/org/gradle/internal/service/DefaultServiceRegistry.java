@@ -45,6 +45,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -87,30 +88,39 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     private final static ServiceRegistry[] NO_PARENTS = new ServiceRegistry[0];
     private final static Service[] NO_DEPENDENTS = new Service[0];
     private final static Object[] NO_PARAMS = new Object[0];
+    private final static AtomicInteger ID_COUNTER = new AtomicInteger();
 
+    private final int id;
     private final ClassInspector inspector;
     private final OwnServices ownServices;
     private final ServiceProvider allServices;
     private final ServiceProvider parentServices;
-    @Nullable
     private final String displayName;
     private final ServiceProvider thisAsServiceProvider;
 
     private final AtomicReference<State> state = new AtomicReference<State>(State.INIT);
 
-    public DefaultServiceRegistry() {
-        this(null, NO_PARENTS);
-    }
-
     public DefaultServiceRegistry(String displayName) {
         this(displayName, NO_PARENTS);
     }
 
-    public DefaultServiceRegistry(ServiceRegistry... parents) {
-        this(null, parents);
-    }
+    public DefaultServiceRegistry(String displayName, ServiceRegistry... parents) {
+        //noinspection ConstantValue
+        if (displayName == null) {
+            throw new IllegalArgumentException("Expected display name");
+        }
 
-    public DefaultServiceRegistry(@Nullable String displayName, ServiceRegistry... parents) {
+        this.id = ID_COUNTER.incrementAndGet();
+        System.out.printf("YYY: sr%d[\"%s (id=%d)\"]%n", id, displayName, id);
+        for (ServiceRegistry parent : parents) {
+            if (parent instanceof DefaultServiceRegistry) {
+                int parentId = ((DefaultServiceRegistry) parent).id;
+                System.out.printf("YYY: sr%d --> sr%d%n", id, parentId);
+            } else {
+                throw new RuntimeException("YYY: Unexpected parent class");
+            }
+        }
+
         this.displayName = displayName;
         this.ownServices = new OwnServices();
         if (parents.length == 0) {
@@ -156,8 +166,8 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     /**
      * Creates a service registry that uses the given providers.
      */
-    public static ServiceRegistry create(Object... providers) {
-        DefaultServiceRegistry registry = new DefaultServiceRegistry();
+    public static ServiceRegistry create(String displayName, Object... providers) {
+        DefaultServiceRegistry registry = new DefaultServiceRegistry(displayName);
         for (Object provider : providers) {
             registry.addProvider(provider);
         }

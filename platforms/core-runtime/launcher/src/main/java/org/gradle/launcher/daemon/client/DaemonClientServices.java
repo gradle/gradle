@@ -29,8 +29,8 @@ import java.io.InputStream;
 public class DaemonClientServices extends DaemonClientServicesSupport {
     private final DaemonParameters daemonParameters;
 
-    public DaemonClientServices(ServiceRegistry parent, DaemonParameters daemonParameters, InputStream buildStandardInput) {
-        super(parent, buildStandardInput);
+    public DaemonClientServices(String displayName, ServiceRegistry parent, DaemonParameters daemonParameters, InputStream buildStandardInput) {
+        super(displayName, parent, buildStandardInput);
         this.daemonParameters = daemonParameters;
         addProvider(new DaemonRegistryServices(daemonParameters.getBaseDir()));
     }

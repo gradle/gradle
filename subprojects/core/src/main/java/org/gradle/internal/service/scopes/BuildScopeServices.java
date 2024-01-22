@@ -229,7 +229,7 @@ import java.util.List;
 public class BuildScopeServices extends ScopedServiceRegistry {
 
     public BuildScopeServices(ServiceRegistry parent, BuildModelControllerServices.Supplier supplier) {
-        super(Scopes.Build.class, parent);
+        super(Scopes.Build.class, "Build scope services", parent);
         addProvider(new BuildCacheServices());
         register(registration -> {
             registration.add(DefaultExecOperations.class);

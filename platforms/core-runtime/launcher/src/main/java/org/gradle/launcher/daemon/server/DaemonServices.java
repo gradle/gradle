@@ -78,7 +78,7 @@ public class DaemonServices extends DefaultServiceRegistry {
     private static final Logger LOGGER = Logging.getLogger(DaemonServices.class);
 
     public DaemonServices(DaemonServerConfiguration configuration, ServiceRegistry loggingServices, LoggingManagerInternal loggingManager, ClassPath additionalModuleClassPath) {
-        super(NativeServices.getInstance(), loggingServices);
+        super("Daemon services", NativeServices.getInstance(), loggingServices);
         this.configuration = configuration;
         this.loggingManager = loggingManager;
 

@@ -169,7 +169,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
     @Override
     public DependencyResolutionServices create(FileResolver resolver, FileCollectionFactory fileCollectionFactory, DependencyMetaDataProvider dependencyMetaDataProvider, ProjectFinder projectFinder, DomainObjectContext domainObjectContext) {
-        DefaultServiceRegistry services = new DefaultServiceRegistry(parent);
+        DefaultServiceRegistry services = new DefaultServiceRegistry("Dependency resolution services", parent);
         services.add(FileResolver.class, resolver);
         services.add(FileCollectionFactory.class, fileCollectionFactory);
         services.add(DependencyMetaDataProvider.class, dependencyMetaDataProvider);

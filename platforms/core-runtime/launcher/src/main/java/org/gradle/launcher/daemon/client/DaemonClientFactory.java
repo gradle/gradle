@@ -35,18 +35,18 @@ public class DaemonClientFactory {
      * Creates the services for a {@link DaemonClient} that can be used to run builds.
      */
     public ServiceRegistry createBuildClientServices(OutputEventListener loggingReceiver, DaemonParameters daemonParameters, InputStream stdin) {
-        DefaultServiceRegistry loggingServices = new DefaultServiceRegistry(sharedServices);
+        DefaultServiceRegistry loggingServices = new DefaultServiceRegistry("Logging services", sharedServices);
         loggingServices.add(OutputEventListener.class, loggingReceiver);
-        return new DaemonClientServices(loggingServices, daemonParameters, stdin);
+        return new DaemonClientServices("Build-client services", loggingServices, daemonParameters, stdin);
     }
 
     /**
      * Creates the services for a {@link DaemonClient} that can be used to run a build in a single-use daemon.
      */
     public ServiceRegistry createSingleUseDaemonClientServices(OutputEventListener loggingReceiver, DaemonParameters daemonParameters, InputStream stdin) {
-        DefaultServiceRegistry loggingServices = new DefaultServiceRegistry(sharedServices);
+        DefaultServiceRegistry loggingServices = new DefaultServiceRegistry("Logging services", sharedServices);
         loggingServices.add(OutputEventListener.class, loggingReceiver);
-        return new SingleUseDaemonClientServices(loggingServices, daemonParameters, stdin);
+        return new SingleUseDaemonClientServices("Single-use daemon services", loggingServices, daemonParameters, stdin);
     }
 
     /**
@@ -57,8 +57,8 @@ public class DaemonClientFactory {
      *   - {@link NotifyDaemonAboutChangedPathsClient} that can be used to notify daemons about changed paths.
      */
     public ServiceRegistry createMessageDaemonServices(OutputEventListener loggingReceiver, DaemonParameters daemonParameters) {
-        DefaultServiceRegistry loggingServices = new DefaultServiceRegistry(sharedServices);
+        DefaultServiceRegistry loggingServices = new DefaultServiceRegistry("Logging services", sharedServices);
         loggingServices.add(OutputEventListener.class, loggingReceiver);
-        return new DaemonClientServices(loggingServices, daemonParameters, new ByteArrayInputStream(new byte[0]));
+        return new DaemonClientServices("Message-daemon services", loggingServices, daemonParameters, new ByteArrayInputStream(new byte[0]));
     }
 }

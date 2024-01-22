@@ -86,7 +86,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         // Configure services
         File gradleUserHomeDir = new File(config.getGradleUserHomeDirPath());
         NativeServices.initializeOnWorker(gradleUserHomeDir);
-        DefaultServiceRegistry basicWorkerServices = new DefaultServiceRegistry(NativeServices.getInstance(), loggingServiceRegistry);
+        DefaultServiceRegistry basicWorkerServices = new DefaultServiceRegistry("Basic worker services", NativeServices.getInstance(), loggingServiceRegistry);
         basicWorkerServices.add(ExecutorFactory.class, new DefaultExecutorFactory());
         basicWorkerServices.addProvider(new MessagingServices());
         final WorkerServices workerServices = new WorkerServices(basicWorkerServices, gradleUserHomeDir);
@@ -178,7 +178,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
     private static class WorkerServices extends DefaultServiceRegistry {
         public WorkerServices(ServiceRegistry parent, final File gradleUserHomeDir) {
-            super(parent);
+            super("Worker services", parent);
             addProvider(new Object() {
                 GradleUserHomeDirProvider createGradleUserHomeDirProvider() {
                     return new GradleUserHomeDirProvider() {

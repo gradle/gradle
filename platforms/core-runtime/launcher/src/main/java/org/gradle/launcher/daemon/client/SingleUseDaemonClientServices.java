@@ -31,8 +31,8 @@ import java.io.InputStream;
 import java.util.UUID;
 
 public class SingleUseDaemonClientServices extends DaemonClientServices {
-    public SingleUseDaemonClientServices(ServiceRegistry loggingServices, DaemonParameters daemonParameters, InputStream buildStandardInput) {
-        super(loggingServices, daemonParameters, buildStandardInput);
+    public SingleUseDaemonClientServices(String s, ServiceRegistry loggingServices, DaemonParameters daemonParameters, InputStream buildStandardInput) {
+        super(s, loggingServices, daemonParameters, buildStandardInput);
     }
 
     @Override

@@ -52,8 +52,8 @@ import java.util.UUID;
 public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry {
     private final InputStream buildStandardInput;
 
-    public DaemonClientServicesSupport(ServiceRegistry parent, InputStream buildStandardInput) {
-        super(parent);
+    public DaemonClientServicesSupport(String displayName, ServiceRegistry parent, InputStream buildStandardInput) {
+        super(displayName, parent);
         this.buildStandardInput = buildStandardInput;
     }
 

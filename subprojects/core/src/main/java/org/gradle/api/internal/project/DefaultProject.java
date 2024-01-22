@@ -1515,7 +1515,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public DetachedResolver newDetachedResolver() {
         DependencyManagementServices dms = getServices().get(DependencyManagementServices.class);
         InstantiatorFactory instantiatorFactory = services.get(InstantiatorFactory.class);
-        DefaultServiceRegistry lookup = new DefaultServiceRegistry(services);
+        DefaultServiceRegistry lookup = new DefaultServiceRegistry("Temporary detached resolver services", services);
         lookup.addProvider(new Object() {
             public DependencyResolutionServices createServices() {
                 return dms.create(

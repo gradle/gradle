@@ -24,7 +24,7 @@ import org.gradle.internal.service.scopes.ExecutionGlobalServices;
 public class ValidationServicesFixture {
 
     public static ServiceRegistry getServices() {
-        DefaultServiceRegistry registry = new DefaultServiceRegistry();
+        DefaultServiceRegistry registry = new DefaultServiceRegistry("Validation services fixture");
         registry.addProvider(new Object() {
             ExecutionGlobalServices.AnnotationHandlerRegistration createAnnotationRegistration() {
                 return () -> ImmutableList.of(ValidationProblem.class);

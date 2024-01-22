@@ -241,6 +241,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     }
 
     private NativeServices() {
+        super("Native services");
         addProvider(new FileSystemServices());
         register(new Action<ServiceRegistration>() {
             @Override
