@@ -15,6 +15,7 @@ dependencies {
     api(project(":messaging"))
     api(project(":problems-api"))
     api(project(":process-services"))
+    api("com.google.code.findbugs:jsr305:3.0.2")
 
     implementation(project(":enterprise-logging"))
     implementation(project(":native"))
