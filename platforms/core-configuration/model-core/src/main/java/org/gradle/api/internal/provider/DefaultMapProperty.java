@@ -27,6 +27,8 @@ import org.gradle.api.internal.provider.MapCollectors.EntriesFromMap;
 import org.gradle.api.internal.provider.MapCollectors.EntriesFromMapProvider;
 import org.gradle.api.internal.provider.MapCollectors.EntryWithValueFromProvider;
 import org.gradle.api.internal.provider.MapCollectors.SingleEntry;
+import org.gradle.api.internal.provider.support.CompoundAssignmentResult;
+import org.gradle.api.internal.provider.support.SupportsCompoundAssignment;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 
@@ -55,7 +57,7 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
  * @param <K> the type of entry key
  * @param <V> the type of entry value
  */
-public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSupplier<K, V>> implements MapProperty<K, V>, MapProviderInternal<K, V> {
+public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSupplier<K, V>> implements MapProperty<K, V>, MapProviderInternal<K, V>, SupportsCompoundAssignment<DefaultMapProperty<K, V>.CompoundAssignmentStandIn> {
     private static final String NULL_KEY_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null key to a property of type %s.", Map.class.getSimpleName());
     private static final String NULL_VALUE_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null value to a property of type %s.", Map.class.getSimpleName());
 
@@ -136,6 +138,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     public void setFromAnyValue(@Nullable Object object) {
         if (object == null || object instanceof Map<?, ?>) {
             set((Map) object);
+        } else if (object instanceof CompoundAssignmentResult && ((CompoundAssignmentResult) object).isOwnedBy(this)) {
+            ((CompoundAssignmentResult) object).assignToOwner();
         } else if (object instanceof Provider<?>) {
             set((Provider) object);
         } else {
@@ -150,13 +154,13 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         if (entries == null) {
             doUnset(true);
         } else {
-            setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMap<>(entries), false));
+            setSupplier(new CollectingSupplier(new EntriesFromMap<>(entries), false));
         }
     }
 
     @Override
     public void set(Provider<? extends Map<? extends K, ? extends V>> provider) {
-        setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(checkMapProvider(provider)), false));
+        setSupplier(new CollectingSupplier(new EntriesFromMapProvider<>(checkMapProvider(provider)), false));
     }
 
     @Override
@@ -865,6 +869,22 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             if (!anyMissing[0]) {
                 toVisit.build().forEach(it -> visitor.execute(it));
             }
+        }
+    }
+
+    @Override
+    public CompoundAssignmentStandIn toCompoundOperand() {
+        return new CompoundAssignmentStandIn();
+    }
+
+    public class CompoundAssignmentStandIn {
+        public Object plus(Provider<? extends Map<K, V>> provider) {
+            return new CompoundAssignmentResult(DefaultMapProperty.this, () -> DefaultMapProperty.this.putAll(provider));
+
+        }
+
+        public Object plus(Map<K, V> map) {
+            return new CompoundAssignmentResult(DefaultMapProperty.this, () -> DefaultMapProperty.this.putAll(map));
         }
     }
 }
