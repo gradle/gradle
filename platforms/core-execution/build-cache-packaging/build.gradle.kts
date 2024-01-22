@@ -6,7 +6,6 @@ plugins {
 description = "Package build cache results"
 
 dependencies {
-    api(libs.guava)
 
     api(project(":build-cache-base"))
     api(project(":files"))
@@ -16,6 +15,7 @@ dependencies {
     implementation(project(":base-annotations"))
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
+    implementation(libs.guava)
     implementation(libs.jsr305)
 
     testImplementation(project(":file-collections"))
