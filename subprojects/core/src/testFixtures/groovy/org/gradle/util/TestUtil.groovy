@@ -132,7 +132,7 @@ class TestUtil {
     }
 
     private static ServiceRegistry createServices(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Action<ServiceRegistration> registrations = {}) {
-        def services = new DefaultServiceRegistry()
+        def services = new DefaultServiceRegistry("TestUtil services")
         services.register {
             registrations.execute(it)
             it.add(ProviderFactory, new TestProviderFactory())
