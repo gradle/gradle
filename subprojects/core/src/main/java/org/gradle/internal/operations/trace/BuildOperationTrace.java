@@ -38,6 +38,7 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.util.internal.GFileUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -329,6 +330,8 @@ public class BuildOperationTrace implements Stoppable {
             final Map<Object, PendingOperation> pendings = new HashMap<>();
             final Map<Object, List<BuildOperationRecord>> childrens = new HashMap<>();
 
+            final List<SerializedOperationProgress> danglingProgress = new ArrayList<>();
+
             Files.asCharSource(logFile, Charsets.UTF_8).readLines(new LineProcessor<Void>() {
                 @Override
                 public boolean processLine(@SuppressWarnings("NullableProblems") String line) {
@@ -340,8 +343,15 @@ public class BuildOperationTrace implements Stoppable {
                     } else if (map.containsKey("time")) {
                         SerializedOperationProgress serialized = new SerializedOperationProgress(map);
                         PendingOperation pending = pendings.get(serialized.id);
-                        assert pending != null : "did not find owner of progress event with ID " + serialized.id;
-                        pending.progress.add(serialized);
+                        if (pending != null) {
+                            pending.progress.add(serialized);
+                        } else {
+                            if (completeTree) {
+                                throw new IllegalStateException("did not find owner of progress event with ID " + serialized.id);
+                            }
+
+                            danglingProgress.add(serialized);
+                        }
                     } else {
                         SerializedOperationFinish finish = new SerializedOperationFinish(map);
 
@@ -356,16 +366,6 @@ public class BuildOperationTrace implements Stoppable {
                         Map<String, ?> detailsMap = uncheckedCast(start.details);
                         Map<String, ?> resultMap = uncheckedCast(finish.result);
 
-                        List<BuildOperationRecord.Progress> progresses = new ArrayList<>();
-                        for (SerializedOperationProgress progress : pending.progress) {
-                            Map<String, ?> progressDetailsMap = uncheckedCast(progress.details);
-                            progresses.add(new BuildOperationRecord.Progress(
-                                progress.time,
-                                progressDetailsMap,
-                                progress.detailsClassName
-                            ));
-                        }
-
                         BuildOperationRecord record = new BuildOperationRecord(
                             start.id,
                             start.parentId,
@@ -377,7 +377,7 @@ public class BuildOperationTrace implements Stoppable {
                             resultMap == null ? null : Collections.unmodifiableMap(resultMap),
                             finish.resultClassName,
                             finish.failureMsg,
-                            progresses,
+                            convertProgressEvents(pending.progress),
                             BuildOperationRecord.ORDERING.immutableSortedCopy(children)
                         );
 
@@ -410,11 +410,37 @@ public class BuildOperationTrace implements Stoppable {
 
             assert pendings.isEmpty();
 
+            if (!completeTree && !danglingProgress.isEmpty()) {
+                // There were dangling progress events that have parent operations which were not serialized.
+                // Add a dummy root operation to hold these events.
+                roots.add(new BuildOperationRecord(
+                    -1L, null,
+                    "Dangling pending operations",
+                    0, 0, null, null, null, null, null,
+                    convertProgressEvents(danglingProgress),
+                    Collections.emptyList()
+                ));
+            }
+
             return roots;
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
 
+    }
+
+    @NotNull
+    private static List<BuildOperationRecord.Progress> convertProgressEvents(List<SerializedOperationProgress> toConvert) {
+        List<BuildOperationRecord.Progress> progresses = new ArrayList<>();
+        for (SerializedOperationProgress progress : toConvert) {
+            Map<String, ?> progressDetailsMap = uncheckedCast(progress.details);
+            progresses.add(new BuildOperationRecord.Progress(
+                progress.time,
+                progressDetailsMap,
+                progress.detailsClassName
+            ));
+        }
+        return progresses;
     }
 
     private static File logFile(String basePath) {
