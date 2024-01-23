@@ -62,7 +62,6 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -95,8 +94,8 @@ public class ResolutionFailureHandler {
     private static final String AMBIGUOUS_TRANSFORMATION_PREFIX = "Transformation failures are explained in more detail at ";
 
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
-    private static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";
     private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
+    private static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";
     private static final String AMBIGUOUS_TRANSFORMATION_SECTION = "sub:transform-ambiguity";
 
     private final List<ResolutionFailureDescriber<?>> defaultFailureDescribers;
@@ -141,7 +140,7 @@ public class ResolutionFailureHandler {
         return e;
     }
 
-    public AmbiguousArtifactTransformException ambiguousArtifactTransformationFailure(AttributesSchemaInternal schema, AttributeMatcher matcher, String selectedComponentName, ImmutableAttributes requestedAttributes, List<TransformedVariant> transformedVariants) {
+    public AmbiguousArtifactTransformException ambiguousArtifactTransformationFailure(@SuppressWarnings("unused") AttributesSchemaInternal schema, @SuppressWarnings("unused") AttributeMatcher matcher, String selectedComponentName, ImmutableAttributes requestedAttributes, List<TransformedVariant> transformedVariants) {
         String message = buildAmbiguousTransformMsg(selectedComponentName, requestedAttributes, transformedVariants);
         AmbiguousArtifactTransformException e = new AmbiguousArtifactTransformException(message);
         suggestSpecificDocumentation(e, AMBIGUOUS_TRANSFORMATION_PREFIX, AMBIGUOUS_TRANSFORMATION_SECTION);
@@ -150,11 +149,9 @@ public class ResolutionFailureHandler {
     }
 
     // TODO: Unify this failure in the exception hierarchy with the others
-    public BrokenResolvedArtifactSet unknownArtifactVariantSelectionFailure(AttributesSchema schema, ArtifactVariantSelectionException t) {
-        BrokenResolvedArtifactSet e = new BrokenResolvedArtifactSet(t);
-        // TODO: unify this with the other failures in the hierarchy so that basic resolution can be added
-        //addBasicResolution(e);
-        return e;
+    public BrokenResolvedArtifactSet unknownArtifactVariantSelectionFailure(@SuppressWarnings("unused") AttributesSchema schema, ArtifactVariantSelectionException t) {
+        return new BrokenResolvedArtifactSet(t);
+        // TODO: perhaps unify this with the other failures in the hierarchy so standard suggestions can be added?  Or maybe it's its own hierachy?
     }
 
     public BrokenResolvedArtifactSet unknownArtifactVariantSelectionFailure(AttributesSchema schema, ResolvedVariantSet producer, Exception cause) {
@@ -166,7 +163,9 @@ public class ResolutionFailureHandler {
     }
 
     public AbstractVariantSelectionException incompatibleArtifactVariantsFailure(AttributesSchemaInternal schema, ComponentState selectedComponent, Set<NodeState> incompatibleNodes) {
-        ResolutionFailure failure = new ResolutionFailure(schema, ResolutionFailureType.INCOMPATIBLE_ARTIFACT_VARIANTS, null, selectedComponent.getId().getName(), ImmutableAttributes.EMPTY, Collections.emptyList(), false);
+        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(ImmutableAttributes.EMPTY, schema.matcher());
+        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessCandidates(extractVariants(incompatibleNodes));
+        ResolutionFailure failure = new ResolutionFailure(schema, ResolutionFailureType.INCOMPATIBLE_ARTIFACT_VARIANTS, null, selectedComponent.toString(), ImmutableAttributes.EMPTY, assessedCandidates, false);
         return describeFailure(schema, failure);
     }
 
@@ -325,14 +324,14 @@ public class ResolutionFailureHandler {
             .orElseThrow(() -> new IllegalStateException("No describer found for failure: " + failure)); // TODO: a default describer at the end of the list that catches everything instead?
     }
 
-    public NoMatchingCapabilitiesException noMatchingCapabilitiesFailure(AttributesSchemaInternal schema, AttributeMatcher matcher, ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> requestedCapabilities, List<? extends VariantGraphResolveState> candidates) {
+    public NoMatchingCapabilitiesException noMatchingCapabilitiesFailure(@SuppressWarnings("unused") AttributesSchemaInternal schema, @SuppressWarnings("unused") AttributeMatcher matcher, ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> requestedCapabilities, List<? extends VariantGraphResolveState> candidates) {
         String message = buildNoMatchingCapabilitiesFailureMsg(targetComponent, requestedCapabilities, candidates);
         NoMatchingCapabilitiesException e = new NoMatchingCapabilitiesException(message);
         suggestReviewAlgorithm(e);
         return e;
     }
 
-    public ConfigurationNotFoundException configurationNotFoundFailure(AttributesSchemaInternal schema, String targetConfigurationName, ComponentIdentifier targetComponentId) {
+    public ConfigurationNotFoundException configurationNotFoundFailure(@SuppressWarnings("unused") AttributesSchemaInternal schema, String targetConfigurationName, ComponentIdentifier targetComponentId) {
         String message = buildConfigurationNotFoundFailureMsg(targetConfigurationName, targetComponentId);
         ConfigurationNotFoundException e = new ConfigurationNotFoundException(message);
         suggestReviewAlgorithm(e);
@@ -349,7 +348,7 @@ public class ResolutionFailureHandler {
         return e;
     }
 
-    public ConfigurationNotConsumableException configurationNotConsumableFailure(AttributesSchemaInternal schema, String targetComponentName, String targetConfigurationName) {
+    public ConfigurationNotConsumableException configurationNotConsumableFailure(@SuppressWarnings("unused") AttributesSchemaInternal schema, String targetComponentName, String targetConfigurationName) {
         String message = buildConfigurationNotConsumableFailureMsg(targetComponentName, targetConfigurationName);
         ConfigurationNotConsumableException e = new ConfigurationNotConsumableException(message);
         suggestReviewAlgorithm(e);
@@ -469,6 +468,7 @@ public class ResolutionFailureHandler {
         }
     }
 
+    @SuppressWarnings("DataFlowIssue")
     private void formatAttributeMatchesForIncompatibility(
         AssessedCandidate assessedCandidate,
         TreeFormatter formatter,
@@ -497,6 +497,7 @@ public class ResolutionFailureHandler {
         formatter.endChildren();
     }
 
+    @SuppressWarnings("DataFlowIssue")
     private void formatAttributeMatchesForAmbiguity(
         AssessedCandidate assessedCandidate,
         TreeFormatter formatter,
@@ -556,6 +557,19 @@ public class ResolutionFailureHandler {
 
         variants.sort(Comparator.comparing(VariantGraphResolveMetadata::getName));
         return variants;
+    }
+
+    /**
+     * Extracts variant metadata from the given {@link GraphSelectionCandidates}.
+     *
+     * @param candidates the candidates to extract variants from
+     * @return the extracted variants, sorted by name
+     */
+    private List<? extends VariantGraphResolveMetadata> extractVariants(Set<NodeState> candidates) {
+        return candidates.stream()
+            .map(NodeState::getMetadata)
+            .sorted(Comparator.comparing(VariantGraphResolveMetadata::getName))
+            .collect(Collectors.toList());
     }
     // endregion Graph Variant Selection Failures
 

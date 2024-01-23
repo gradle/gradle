@@ -22,11 +22,8 @@ import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.List;
 
-import static org.gradle.internal.component.ResolutionFailureHandler.DEFAULT_MESSAGE_PREFIX;
-
 public abstract class AbstractResolutionFailureDescriber<T extends AbstractVariantSelectionException> implements ResolutionFailureDescriber<T> {
-    protected static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
-    protected static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";
+    private static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
 
     protected final DocumentationRegistry documentationRegistry;
 
@@ -36,6 +33,10 @@ public abstract class AbstractResolutionFailureDescriber<T extends AbstractVaria
 
     protected void suggestReviewAlgorithm(AbstractVariantSelectionException exception) {
         exception.addResolution(DEFAULT_MESSAGE_PREFIX + documentationRegistry.getDocumentationFor("variant_attributes", "sec:abm_algorithm") + ".");
+    }
+
+    protected void suggestSpecificDocumentation(AbstractVariantSelectionException exception, String prefix, String section) {
+        exception.addResolution(prefix + documentationRegistry.getDocumentationFor("variant_model", section) + ".");
     }
 
     protected void formatAttributeSection(TreeFormatter formatter, String section, List<String> values) {
