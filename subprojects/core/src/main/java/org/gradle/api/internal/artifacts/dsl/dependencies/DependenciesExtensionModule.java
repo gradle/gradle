@@ -22,6 +22,7 @@ import groovy.transform.stc.ClosureParams;
 import groovy.transform.stc.SecondParam;
 import groovy.transform.stc.SimpleType;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -34,6 +35,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -45,12 +47,13 @@ import java.util.Set;
  * These extension methods allow an interface to implement a dependencies block in the Groovy DSL by
  * <ul>
  * <li>exposing an instance of {@link DependencyCollector} to add dependencies without explicitly calling {@link DependencyCollector#add(Dependency)}</li>
+ * <li>exposing an instance of {@link DependencyCollector} to add dependencies without explicitly calling {@link DependencyCollector#addConstraint(DependencyConstraint)} or {@link DependencyCollector#addConstraint(Provider)}</li>
  * <li>exposing an instance of {@link DependencyModifier} to modify dependencies without explicitly calling {@link DependencyModifier#modify(ModuleDependency)}</li>
  * </ul>
  * </p>
  *
  * <p>
- * There are {@code call(...)} equivalents for all the {@code add(...)} methods in {@link DependencyCollector}.
+ * There are {@code call(...)} equivalents for all the {@code add(...)} and {@code addConstraint(...)} methods in {@link DependencyCollector}.
  * </p>
  *
  * <p>
@@ -239,22 +242,83 @@ public class DependenciesExtensionModule {
         self.add(dependency, ConfigureUtil.configureUsing(configuration));
     }
 
+    @VisibleForTesting
+    public static final String ERROR_MESSAGE_PROVIDER = "Providers of non-Dependency(Constraint) types (java.lang.String) are not supported. Create a Dependency(Constraint) using Dependency(Constraint)Factory first.";
+
     /**
-     * Add a dependency.
+     * Add a dependency or dependency constraint.
      *
-     * @param dependency dependency to add
+     * <p>
+     * Unfortunately, this method cannot be split into two methods, one for {@link Dependency} and one for {@link DependencyConstraint},
+     * because Groovy cannot distinguish between the two.
+     * </p>
+     *
+     * @param dependencyOrDependencyConstraint dependency or dependency constraint to add
      */
-    public static void call(DependencyCollector self, Provider<? extends Dependency> dependency) {
-        self.add(dependency);
+    public static void call(DependencyCollector self, Provider<?> dependencyOrDependencyConstraint) {
+        self.add(dependencyOrDependencyConstraint.map(it -> {
+            if (it instanceof Dependency) {
+                return (Dependency) it;
+            }
+            if (it instanceof DependencyConstraint) {
+                return null;
+            }
+            throw new IllegalArgumentException(ERROR_MESSAGE_PROVIDER);
+        }));
+        self.addConstraint(dependencyOrDependencyConstraint.map(it -> {
+            if (it instanceof DependencyConstraint) {
+                return (DependencyConstraint) it;
+            }
+            if (it instanceof Dependency) {
+                return null;
+            }
+            throw new IllegalArgumentException(ERROR_MESSAGE_PROVIDER);
+        }));
     }
 
     /**
-     * Add a dependency.
+     * Add a dependency or dependency constraint.
      *
-     * @param dependency dependency to add
-     * @param configuration an action to configure the dependency
+     * @param dependencyOrDependencyConstraint dependency or dependency constraint to add
+     * @param configuration an action to configure the dependency or dependency constraint
      */
-    public static <D extends Dependency> void call(DependencyCollector self, Provider<? extends D> dependency, @ClosureParams(SecondParam.FirstGenericType.class) Closure<?> configuration) {
-        self.add(dependency, ConfigureUtil.configureUsing(configuration));
+    public static <D> void call(DependencyCollector self, Provider<? extends D> dependencyOrDependencyConstraint, @ClosureParams(SecondParam.FirstGenericType.class) Closure<?> configuration) {
+        self.add(dependencyOrDependencyConstraint.map(it -> {
+            if (it instanceof Dependency) {
+                return (Dependency) it;
+            }
+            if (it instanceof DependencyConstraint) {
+                return null;
+            }
+            throw new IllegalArgumentException(ERROR_MESSAGE_PROVIDER);
+        }), ConfigureUtil.configureUsing(configuration));
+        self.addConstraint(dependencyOrDependencyConstraint.map(it -> {
+            if (it instanceof DependencyConstraint) {
+                return (DependencyConstraint) it;
+            }
+            if (it instanceof Dependency) {
+                return null;
+            }
+            throw new IllegalArgumentException(ERROR_MESSAGE_PROVIDER);
+        }), ConfigureUtil.configureUsing(configuration));
+    }
+
+    /**
+     * Add a dependency constraint.
+     *
+     * @param dependencyConstraint dependency constraint to add
+     */
+    public static void call(DependencyCollector self, DependencyConstraint dependencyConstraint) {
+        self.addConstraint(dependencyConstraint);
+    }
+
+    /**
+     * Add a dependency constraint.
+     *
+     * @param dependencyConstraint dependency constraint to add
+     * @param configuration an action to configure the dependency constraint
+     */
+    public static void call(DependencyCollector self, DependencyConstraint dependencyConstraint, @ClosureParams(value = SecondParam.class) Closure<?> configuration) {
+        self.addConstraint(dependencyConstraint, ConfigureUtil.configureUsing(configuration));
     }
 }

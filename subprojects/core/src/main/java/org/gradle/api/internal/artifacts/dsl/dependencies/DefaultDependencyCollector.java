@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
@@ -28,6 +29,7 @@ import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency;
 import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -36,20 +38,27 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class DefaultDependencyCollector implements DependencyCollector {
     private final DependencyFactoryInternal dependencyFactory;
+    private final ProviderFactory providerFactory;
 
     @Inject
-    public DefaultDependencyCollector(DependencyFactoryInternal dependencyFactory) {
+    public DefaultDependencyCollector(DependencyFactoryInternal dependencyFactory, ProviderFactory providerFactory) {
         this.dependencyFactory = dependencyFactory;
+        this.providerFactory = providerFactory;
         this.getDependencies().finalizeValueOnRead();
+        this.getDependencyConstraints().finalizeValueOnRead();
     }
 
     @Nested
     @Override
     public abstract SetProperty<Dependency> getDependencies();
+
+    @Nested
+    public abstract SetProperty<DependencyConstraint> getDependencyConstraints();
 
     @SuppressWarnings("unchecked")
     private <D extends Dependency> D ensureMutable(D dependency) {
@@ -94,7 +103,10 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
             }
             return applyConfiguration((D) dep, config);
         });
-        getDependencies().add(provider);
+        getDependencies().addAll(providerFactory.provider(() -> {
+            Dependency value = provider.getOrNull();
+            return value != null ? Collections.singleton(value) : Collections.emptySet();
+        }));
     }
 
     private <D extends Dependency> List<Dependency> createDependencyList(Iterable<? extends D> bundle, @Nullable Action<? super D> config) {
@@ -165,6 +177,59 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
     @Override
     public <D extends Dependency> void add(Provider<? extends D> dependency, Action<? super D> configuration) {
         doAddLazy(dependency, configuration);
+    }
+
+
+    private static DependencyConstraint applyConstraintConfiguration(DependencyConstraint dependencyConstraint, @Nullable Action<? super DependencyConstraint> config) {
+        if (config != null) {
+            config.execute(dependencyConstraint);
+        }
+
+        // TODO DependencyConstraint mutation validator?
+
+        return dependencyConstraint;
+    }
+
+    private void doAddConstraintEager(DependencyConstraint dependencyConstraint, @Nullable Action<? super DependencyConstraint> config) {
+        getDependencyConstraints().add(applyConstraintConfiguration(dependencyConstraint, config));
+    }
+
+    private void doAddConstraintLazy(Provider<? extends DependencyConstraint> dependencyConstraint, @Nullable Action<? super DependencyConstraint> config) {
+        Provider<DependencyConstraint> provider = dependencyConstraint.map((Object dep) -> {
+            // Generic failure check (for Groovy which ignores this when dynamic)
+            if (!(dep instanceof DependencyConstraint)) {
+                throw new InvalidUserCodeException(
+                    "Providers of non-DependencyConstraint types ("
+                        + dep.getClass().getName()
+                        + ") are not supported. Create a DependencyConstraint using DependencyConstraintFactory first."
+                );
+            }
+            return applyConstraintConfiguration((DependencyConstraint) dep, config);
+        });
+        getDependencyConstraints().addAll(providerFactory.provider(() -> {
+            DependencyConstraint value = provider.getOrNull();
+            return value != null ? Collections.singleton(value) : Collections.emptySet();
+        }));
+    }
+
+    @Override
+    public void addConstraint(DependencyConstraint dependencyConstraint) {
+        doAddConstraintEager(dependencyConstraint, null);
+    }
+
+    @Override
+    public void addConstraint(DependencyConstraint dependencyConstraint, Action<? super DependencyConstraint> configuration) {
+        doAddConstraintEager(dependencyConstraint, configuration);
+    }
+
+    @Override
+    public void addConstraint(Provider<? extends DependencyConstraint> dependencyConstraint) {
+        doAddConstraintLazy(dependencyConstraint, null);
+    }
+
+    @Override
+    public void addConstraint(Provider<? extends DependencyConstraint> dependencyConstraint, Action<? super DependencyConstraint> configuration) {
+        doAddConstraintLazy(dependencyConstraint, configuration);
     }
 
     @Override

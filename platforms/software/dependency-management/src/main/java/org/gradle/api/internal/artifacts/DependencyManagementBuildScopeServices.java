@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFac
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyConstraintFactoryInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener;
@@ -249,10 +250,22 @@ class DependencyManagementBuildScopeServices {
         return new DefaultDependencyFactory(
             instantiator,
             DependencyNotationParser.create(instantiator, factory, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation, stringInterner),
-            DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner, attributesFactory),
             new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
             capabilityNotationParser, objectFactory, projectDependencyFactory,
             attributesFactory);
+    }
+
+    DependencyConstraintFactoryInternal createDependencyConstraintFactory(
+        Instantiator instantiator,
+        DefaultProjectDependencyFactory factory,
+        ImmutableAttributesFactory attributesFactory,
+        SimpleMapInterner stringInterner
+    ) {
+        return new DefaultDependencyConstraintFactory(
+            instantiator,
+            DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner, attributesFactory),
+            attributesFactory
+        );
     }
 
     RuntimeShadedJarFactory createRuntimeShadedJarFactory(GeneratedGradleJarCache jarCache, ProgressLoggerFactory progressLoggerFactory, ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder, BuildOperationExecutor executor) {

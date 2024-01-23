@@ -46,7 +46,6 @@ import java.util.Map;
 public class DefaultDependencyFactory implements DependencyFactoryInternal {
     private final Instantiator instantiator;
     private final DependencyNotationParser dependencyNotationParser;
-    private final NotationParser<Object, DependencyConstraint> dependencyConstraintNotationParser;
 
     @SuppressWarnings("deprecation")
     private final NotationParser<Object, org.gradle.api.artifacts.ClientModule> clientModuleNotationParser;
@@ -58,7 +57,6 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     public DefaultDependencyFactory(
         Instantiator instantiator,
         DependencyNotationParser dependencyNotationParser,
-        NotationParser<Object, DependencyConstraint> dependencyConstraintNotationParser,
         @SuppressWarnings("deprecation") NotationParser<Object, org.gradle.api.artifacts.ClientModule> clientModuleNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
         ObjectFactory objectFactory,
@@ -67,7 +65,6 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     ) {
         this.instantiator = instantiator;
         this.dependencyNotationParser = dependencyNotationParser;
-        this.dependencyConstraintNotationParser = dependencyConstraintNotationParser;
         this.clientModuleNotationParser = clientModuleNotationParser;
         this.capabilityNotationParser = capabilityNotationParser;
         this.objectFactory = objectFactory;
@@ -95,20 +92,6 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
             moduleDependency.setCapabilityNotationParser(capabilityNotationParser);
         }
     }
-
-    @Override
-    public DependencyConstraint createDependencyConstraint(Object dependencyNotation) {
-        DependencyConstraint dependencyConstraint = dependencyConstraintNotationParser.parseNotation(dependencyNotation);
-        injectServices(dependencyConstraint);
-        return dependencyConstraint;
-    }
-
-    private void injectServices(DependencyConstraint dependency) {
-        if (dependency instanceof DefaultDependencyConstraint) {
-            ((DefaultDependencyConstraint) dependency).setAttributesFactory(attributesFactory);
-        }
-    }
-
 
     @Override
     @Deprecated
