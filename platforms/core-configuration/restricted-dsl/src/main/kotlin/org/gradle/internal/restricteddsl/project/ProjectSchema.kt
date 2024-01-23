@@ -176,7 +176,7 @@ fun projectAccessorsSupport(targetScope: ClassLoaderScope): ProjectAccessorsSupp
         "projects",
         projectAccessorsClass.createType(),
         returnType = DataTypeRef.Name(FqName.parse(projectAccessorsClass.qualifiedName!!)),
-        isReadOnly = true,
+        propertyMode = DataProperty.PropertyMode.READ_ONLY,
         hasDefaultValue = true,
         isHiddenInRestrictedDsl = false,
         isDirectAccessOnly = false
