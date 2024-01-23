@@ -63,8 +63,15 @@ tasks {
 }
 ```
 
-The first notation is now deprecated and will be removed in Gradle 9.0.
+The first notation is deprecated and will be removed in Gradle 9.0.
 Instead of using `"name"()` to reference a task or domain object, use `named("name")` or one of the other supported notations.
+
+The above example would be written:
+```
+tasks {
+    named("wrapper") // returns TaskProvider<Task>
+}
+```
 
 Groovy DSL build scripts and the Gradle API are not impacted by this.
 
