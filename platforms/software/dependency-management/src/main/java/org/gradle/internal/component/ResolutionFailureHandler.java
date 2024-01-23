@@ -53,6 +53,7 @@ import org.gradle.internal.component.resolution.failure.ResolutionFailure.Resolu
 import org.gradle.internal.component.resolution.failure.describer.AmbiguousGraphVariantsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.CapabilitiesDescriber;
 import org.gradle.internal.component.resolution.failure.describer.IncompatibleArtifactVariantsFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.IncompatibleSelectedConfigurationFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.NonVariantAwareNoMatchingGraphVariantFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.VariantAwareNoMatchingGraphVariantFailureDescriber;
@@ -61,6 +62,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -88,12 +90,10 @@ public class ResolutionFailureHandler {
     public static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
 
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
-    private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
     private static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
     private static final String AMBIGUOUS_TRANSFORMATION_PREFIX = "Transformation failures are explained in more detail at ";
 
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
-    private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
     private static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";
     private static final String AMBIGUOUS_TRANSFORMATION_SECTION = "sub:transform-ambiguity";
 
@@ -107,7 +107,8 @@ public class ResolutionFailureHandler {
             new NonVariantAwareNoMatchingGraphVariantFailureDescriber(documentationRegistry),
             new AmbiguousGraphVariantsFailureDescriber(documentationRegistry),
             new IncompatibleArtifactVariantsFailureDescriber(documentationRegistry),
-            new AmbiguousGraphVariantsFailureDescriber(documentationRegistry)
+            new AmbiguousGraphVariantsFailureDescriber(documentationRegistry),
+            new IncompatibleSelectedConfigurationFailureDescriber(documentationRegistry)
         );
     }
 
@@ -208,19 +209,6 @@ public class ResolutionFailureHandler {
             formatAttributeMatchesForAmbiguity(assessedCandidate, formatter, describer);
         }
         formatter.endChildren();
-        if (!discarded.isEmpty()) {
-            formatter.node("The following variants were also considered but didn't match the requested attributes:");
-            formatter.startChildren();
-            discarded.stream()
-                .sorted(Comparator.comparing(v -> v.asDescribable().getCapitalizedDisplayName()))
-                .forEach(discardedVariant -> {
-                    String candidateName = discardedVariant.asDescribable().getCapitalizedDisplayName();
-                    AssessedCandidate assessedCandidate = resolutionCandidateAssessor.assessCandidate(candidateName, discardedVariant.getCapabilities(), discardedVariant.getAttributes().asImmutable());
-                    formatter.node(discardedVariant.asDescribable().getCapitalizedDisplayName());
-                    formatAttributeMatchesForIncompatibility(assessedCandidate, formatter, describer);
-                });
-            formatter.endChildren();
-        }
         return formatter.toString();
     }
 
@@ -279,21 +267,18 @@ public class ResolutionFailureHandler {
         return describeFailure(schema, failure);
     }
 
-    public IncompatibleGraphVariantsException incompatibleGraphVariantsFailure(
+    // TODO: rename to Incompatible Selected Configuration?
+    public AbstractVariantSelectionException incompatibleGraphVariantFailure(
         AttributesSchemaInternal schema,
         AttributeMatcher matcher,
         AttributeContainerInternal requestedAttributes,
         ComponentGraphResolveMetadata targetComponent,
-        ConfigurationGraphResolveState targetConfiguration,
-        boolean variantAware
+        ConfigurationGraphResolveState targetConfiguration
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
-        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(requestedAttributes, schema);
-        String message = buildIncompatibleGraphVariantsFailureMsg(resolutionCandidateAssessor, targetComponent, targetConfiguration, variantAware, describer);
-        IncompatibleGraphVariantsException e = new IncompatibleGraphVariantsException(message);
-        e.addResolution(INCOMPATIBLE_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", INCOMPATIBLE_VARIANTS_SECTION) + ".");
-        suggestReviewAlgorithm(e);
-        return e;
+        List<AssessedCandidate> assessedCandidates = Collections.singletonList(resolutionCandidateAssessor.assessCandidate(targetConfiguration.getName(), targetConfiguration.asVariant().getCapabilities(), targetConfiguration.asVariant().getMetadata().getAttributes()));
+        ResolutionFailure failure = new ResolutionFailure(schema, ResolutionFailureType.INCOMPATIBLE_SELECTED_CONFIGURATION, targetComponent, targetComponent.getId().getDisplayName(), requestedAttributes, assessedCandidates, true);
+        return describeFailure(schema, failure);
     }
 
     public AbstractVariantSelectionException noMatchingGraphVariantFailure(
@@ -364,21 +349,6 @@ public class ResolutionFailureHandler {
         return String.format("Selected configuration '" + targetConfigurationName + "' on '" + targetComponentName + "' but it can't be used as a project dependency because it isn't intended for consumption by other components.");
     }
 
-    private String buildIncompatibleGraphVariantsFailureMsg(
-        ResolutionCandidateAssessor resolutionCandidateAssessor,
-        ComponentGraphResolveMetadata targetComponent,
-        ConfigurationGraphResolveState targetConfiguration,
-        boolean variantAware,
-        AttributeDescriber describer
-    ) {
-        TreeFormatter formatter = new TreeFormatter();
-        String candidateName = targetConfiguration.getName();
-        AssessedCandidate assessedCandidate = resolutionCandidateAssessor.assessCandidate(candidateName, targetConfiguration.asVariant().getCapabilities(), targetConfiguration.asVariant().getMetadata().getAttributes());
-        formatter.node("Configuration '" + candidateName + "' in " + style(StyledTextOutput.Style.Info, targetComponent.getId().getDisplayName()) + " does not match the consumer attributes");
-        formatUnselectable(assessedCandidate, formatter, targetComponent, targetConfiguration.asVariant().getMetadata(), variantAware, describer);
-        return formatter.toString();
-    }
-
     private String buildNoMatchingCapabilitiesFailureMsg(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> requestedCapabilities, List<? extends VariantGraphResolveState> candidates) {
         StringBuilder sb = new StringBuilder("Unable to find a variant of ");
         sb.append(targetComponent.getId()).append(" providing the requested ");
@@ -389,28 +359,6 @@ public class ResolutionFailureHandler {
             sb.append(CapabilitiesDescriber.describeCapabilities(targetComponent, candidate.getCapabilities().asSet())).append("\n");
         }
         return sb.toString();
-    }
-
-    private void formatUnselectable(
-        AssessedCandidate assessedCandidate,
-        TreeFormatter formatter,
-        ComponentGraphResolveMetadata targetComponent,
-        VariantGraphResolveMetadata variant,
-        boolean variantAware,
-        AttributeDescriber describer
-    ) {
-        if (variantAware) {
-            formatter.node("Variant '");
-        } else {
-            formatter.node("Configuration '");
-        }
-        formatter.append(variant.getName());
-        formatter.append("'");
-        if (variantAware) {
-            formatter.append(" " + CapabilitiesDescriber.describeCapabilitiesWithTitle(targetComponent, variant.getCapabilities().asSet()));
-        }
-
-        formatAttributeMatchesForIncompatibility(assessedCandidate, formatter, describer);
     }
 
     @SuppressWarnings("DataFlowIssue")
