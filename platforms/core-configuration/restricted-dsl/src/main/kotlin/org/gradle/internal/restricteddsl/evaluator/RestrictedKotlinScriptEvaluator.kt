@@ -51,7 +51,7 @@ import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluat
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.FailuresInResolution
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.NoSchemaAvailable
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.UnassignedValuesUsed
-import org.gradle.internal.restricteddsl.plugins.RuntimeTopLevelPluginsReceiver
+import org.gradle.internal.restricteddsl.plugins.PluginsTopLevelReceiver
 
 
 interface RestrictedKotlinScriptEvaluator {
@@ -192,7 +192,7 @@ class DefaultRestrictedKotlinScriptEvaluator(
             require(evaluationContext is ScriptPluginEvaluationContext) { "restricted DSL for projects is only supported in script plugins" }
             RestrictedScriptContext.ProjectScript(evaluationContext.targetScope, scriptSource)
         }
-        is RuntimeTopLevelPluginsReceiver -> RestrictedScriptContext.PluginsBlock
+        is PluginsTopLevelReceiver -> RestrictedScriptContext.PluginsBlock
         else -> RestrictedScriptContext.UnknownScript
     }
 }

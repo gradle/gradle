@@ -23,6 +23,6 @@ internal
 val schemaForPluginsBlock by lazy {
     schemaFromTypes(
         PluginsTopLevelReceiver::class,
-        listOf(PluginsTopLevelReceiver::class, RestrictedPluginDependenciesSpecScope::class, PluginDependencySpecWithProperties::class)
+        listOf(PluginsTopLevelReceiver::class, PluginsCollectingPluginsBlock::class, MutablePluginDependencySpec::class)
     )
 }

@@ -36,53 +36,19 @@ import com.h0tk3y.kotlin.staticObjectNotation.AccessFromCurrentReceiverOnly
 import com.h0tk3y.kotlin.staticObjectNotation.Adding
 import com.h0tk3y.kotlin.staticObjectNotation.Builder
 import com.h0tk3y.kotlin.staticObjectNotation.Configuring
-import com.h0tk3y.kotlin.staticObjectNotation.HiddenInRestrictedDsl
 import com.h0tk3y.kotlin.staticObjectNotation.Restricted
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 
 
-internal
-abstract class PluginsTopLevelReceiver {
-    @Restricted
-    @HiddenInRestrictedDsl
-    abstract val plugins: RestrictedPluginDependenciesSpecScope
+class PluginsTopLevelReceiver {
+    val plugins = PluginsCollectingPluginsBlock()
 
     @Configuring
     @AccessFromCurrentReceiverOnly
-    fun plugins(configure: RestrictedPluginDependenciesSpecScope.() -> Unit) {
-        plugins.configure()
+    fun plugins(configure: PluginsCollectingPluginsBlock.() -> Unit) {
+        configure(plugins)
     }
-}
-
-
-internal
-abstract class RestrictedPluginDependenciesSpecScope : PluginDependenciesSpec {
-    @Adding
-    abstract override fun id(id: String): PluginDependencySpecWithProperties
-
-    @Adding
-    abstract fun kotlin(id: String): PluginDependencySpecWithProperties
-}
-
-
-abstract class PluginDependencySpecWithProperties : PluginDependencySpec {
-    @Restricted
-    abstract val version: String?
-
-    @Restricted
-    abstract val apply: Boolean
-
-    @Builder
-    abstract override fun version(version: String?): PluginDependencySpecWithProperties
-
-    @Builder
-    abstract override fun apply(apply: Boolean): PluginDependencySpecWithProperties
-}
-
-
-class RuntimeTopLevelPluginsReceiver {
-    val plugins = PluginsCollectingPluginsBlock()
 }
 
 
@@ -93,32 +59,35 @@ class PluginsCollectingPluginsBlock() : PluginDependenciesSpec {
     private
     val _specs = mutableListOf<MutablePluginDependencySpec>()
 
-    override fun id(id: String): PluginDependencySpec =
-        MutablePluginDependencySpec(id)
-            .also(_specs::add)
+    @Adding
+    override fun id(id: String): MutablePluginDependencySpec = MutablePluginDependencySpec(id).also(_specs::add)
 
-    fun kotlin(id: String) =
-        id("org.jetbrains.kotlin.$id")
+    @Adding
+    fun kotlin(id: String) = id("org.jetbrains.kotlin.$id")
 }
 
 
 class MutablePluginDependencySpec(
     val id: String
 ) : PluginDependencySpec {
+    @Restricted
     var version: String? = null
         private
         set
 
+    @Restricted
     var apply: Boolean = true
         private
         set
 
-    override fun version(version: String?): PluginDependencySpec {
+    @Builder
+    override fun version(version: String?): MutablePluginDependencySpec {
         this.version = version
         return this
     }
 
-    override fun apply(apply: Boolean): PluginDependencySpec {
+    @Builder
+    override fun apply(apply: Boolean): MutablePluginDependencySpec {
         this.apply = apply
         return this
     }

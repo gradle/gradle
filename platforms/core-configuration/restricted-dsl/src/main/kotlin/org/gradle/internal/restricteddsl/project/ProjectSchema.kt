@@ -52,7 +52,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.restricteddsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.restricteddsl.evaluationSchema.InterpretationSequence
 import org.gradle.internal.restricteddsl.evaluationSchema.InterpretationSequenceStep
-import org.gradle.internal.restricteddsl.plugins.RuntimeTopLevelPluginsReceiver
+import org.gradle.internal.restricteddsl.plugins.PluginsTopLevelReceiver
 import org.gradle.internal.restricteddsl.plugins.schemaForPluginsBlock
 import org.gradle.plugin.management.internal.DefaultPluginRequest
 import org.gradle.plugin.management.internal.PluginRequestInternal
@@ -80,7 +80,7 @@ fun projectInterpretationSequence(
 
 private
 fun step1Plugins(target: ProjectInternal, targetScope: ClassLoaderScope, scriptSource: ScriptSource) =
-    object : InterpretationSequenceStep<RuntimeTopLevelPluginsReceiver> {
+    object : InterpretationSequenceStep<PluginsTopLevelReceiver> {
         override val stepIdentifier: String = "plugins"
 
         override fun evaluationSchemaForStep(): EvaluationSchema =
@@ -89,9 +89,9 @@ fun step1Plugins(target: ProjectInternal, targetScope: ClassLoaderScope, scriptS
                 analysisStatementFilter = analyzeTopLevelPluginsBlockOnly
             )
 
-        override fun topLevelReceiver() = RuntimeTopLevelPluginsReceiver()
+        override fun topLevelReceiver() = PluginsTopLevelReceiver()
 
-        override fun whenEvaluated(resultReceiver: RuntimeTopLevelPluginsReceiver) {
+        override fun whenEvaluated(resultReceiver: PluginsTopLevelReceiver) {
             val pluginRequests = resultReceiver.plugins.specs.map {
                 DefaultPluginRequest(DefaultPluginId.unvalidated(it.id), it.apply, PluginRequestInternal.Origin.OTHER, scriptSource.displayName, null, it.version, null, null, null) }
             val scriptHandler = target.services.get(ScriptHandlerFactory::class.java).create(scriptSource, targetScope)

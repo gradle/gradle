@@ -18,10 +18,10 @@ package org.gradle.kotlin.dsl.execution
 
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.internal.resource.StringTextResource
-import org.gradle.internal.restricteddsl.plugins.MutablePluginDependencySpec
-import org.gradle.internal.restricteddsl.plugins.RuntimeTopLevelPluginsReceiver
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator
 import org.gradle.internal.restricteddsl.evaluator.defaultRestrictedKotlinScriptEvaluator
+import org.gradle.internal.restricteddsl.plugins.MutablePluginDependencySpec
+import org.gradle.internal.restricteddsl.plugins.PluginsTopLevelReceiver
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.jetbrains.kotlin.lexer.KtTokens.DOT
@@ -53,7 +53,7 @@ enum class RestrictedDslPluginsBlockMode {
 internal
 fun interpret(program: Program.Plugins, restrictedDslMode: RestrictedDslPluginsBlockMode = RestrictedDslPluginsBlockMode.OFF): PluginsBlockInterpretation {
     if (restrictedDslMode != RestrictedDslPluginsBlockMode.OFF) {
-        val pluginsTopLevelReceiver = RuntimeTopLevelPluginsReceiver()
+        val pluginsTopLevelReceiver = PluginsTopLevelReceiver()
         val isEvaluated = defaultRestrictedKotlinScriptEvaluator.evaluate(
             pluginsTopLevelReceiver,
             TextResourceScriptSource(StringTextResource("plugins block", program.fragment.identifierString)),
