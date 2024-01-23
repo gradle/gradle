@@ -84,7 +84,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         1 * delegate.run(buildAction, buildController)
 
         then:
-        1 * watchingHandler.beforeBuildFinished(watchMode, vfsLogging, watchLogging, buildOperationRunner, _)
+        1 * watchingHandler.beforeBuildFinished(watchMode, vfsLogging, watchLogging, buildOperationRunner)
 
         then:
         0 * _
@@ -120,7 +120,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         1 * delegate.run(buildAction, buildController)
 
         then:
-        1 * watchingHandler.beforeBuildFinished(WatchMode.DISABLED, _, _, buildOperationRunner, _)
+        1 * watchingHandler.beforeBuildFinished(WatchMode.DISABLED, _, _, buildOperationRunner)
 
         then:
         0 * _
@@ -159,7 +159,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         1 * delegate.run(buildAction, buildController)
 
         then:
-        1 * watchingHandler.beforeBuildFinished(WatchMode.ENABLED, _, _, buildOperationRunner, _)
+        1 * watchingHandler.beforeBuildFinished(WatchMode.ENABLED, _, _, buildOperationRunner)
 
         then:
         0 * _

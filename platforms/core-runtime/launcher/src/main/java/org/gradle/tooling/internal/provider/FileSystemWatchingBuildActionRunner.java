@@ -139,13 +139,11 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         try {
             return delegate.run(action, buildController);
         } finally {
-            int maximumNumberOfWatchedHierarchies = VirtualFileSystemServices.getMaximumNumberOfWatchedHierarchies(options);
             virtualFileSystem.beforeBuildFinished(
                 watchFileSystemMode,
                 verboseVfsLogging,
                 debugWatchLogging,
-                buildOperationRunner,
-                maximumNumberOfWatchedHierarchies
+                buildOperationRunner
             );
             if (verboseVfsLogging == VfsLogging.VERBOSE) {
                 logVfsStatistics("during current build", statStatisticsCollector, fileHasherStatisticsCollector, directorySnapshotterStatisticsCollector);

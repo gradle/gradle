@@ -86,8 +86,7 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
         WatchMode watchMode,
         VfsLogging vfsLogging,
         WatchLogging watchLogging,
-        BuildOperationRunner buildOperationRunner,
-        int maximumNumberOfWatchedHierarchies
+        BuildOperationRunner buildOperationRunner
     ) {
         updateRootUnderLock(vfsRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
