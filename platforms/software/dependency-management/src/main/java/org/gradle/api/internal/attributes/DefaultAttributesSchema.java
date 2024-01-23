@@ -24,13 +24,13 @@ import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.AbstractVariantSelectionException;
-import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeSelectionSchema;
 import org.gradle.internal.component.model.AttributeSelectionUtils;
 import org.gradle.internal.component.model.DefaultAttributeMatcher;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DefaultMultipleCandidateResult;
+import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 
