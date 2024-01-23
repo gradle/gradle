@@ -17,9 +17,10 @@
 package org.gradle.internal.restricteddsl.project
 
 import com.h0tk3y.kotlin.staticObjectNotation.Adding
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
+import com.h0tk3y.kotlin.staticObjectNotation.Restricted
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisStatementFilter
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataParameter
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataProperty
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataTypeRef
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.FqName
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ObjectOrigin
@@ -32,8 +33,10 @@ import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RestrictedRuntimeProp
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RuntimeFunctionResolver
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RuntimePropertyResolver
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.CollectedPropertyInformation
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.DefaultFunctionExtractor
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.DefaultPropertyExtractor
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.PropertyExtractor
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.isPublicAndRestricted
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.kotlinFunctionAsConfigureLambda
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.plus
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.schemaFromTypes
@@ -104,13 +107,41 @@ private
 fun step2Project(target: ProjectInternal, targetScope: ClassLoaderScope) = object : InterpretationSequenceStep<ProjectInternal> {
     override val stepIdentifier: String = "project"
 
-    override fun evaluationSchemaForStep(): EvaluationSchema =
-        EvaluationSchema(
-            createAnalysisSchemaForProject(targetScope),
+    override fun evaluationSchemaForStep(): EvaluationSchema {
+        val annotatedTypesChecker = CachedHierarchyAnnotationChecker(Restricted::class)
+
+        val projectAccessors = projectAccessorsSupport(targetScope)
+        val configureLambdas = treatInterfaceAsConfigureLambda(Action::class).plus(kotlinFunctionAsConfigureLambda)
+        val projectExtensionComponents = projectExtensionComponents(target) { annotatedTypesChecker.isAnnotatedMaybeInSupertypes(it) }
+        val propertiesComponents = schemaFromPropertiesComponents()
+
+        return EvaluationSchema(
+            schemaFromTypes(
+                ProjectTopLevelReceiver::class,
+                listOf(
+                    ProjectTopLevelReceiver::class,
+
+                    // Dependencies:
+                    RestrictedDependenciesHandler::class,
+                    ProjectDependency::class
+                ) + projectAccessors.typesFromExtensions,
+                configureLambdas = configureLambdas,
+                propertyExtractor = propertiesComponents.propertyExtractor +
+                    DefaultPropertyExtractor()
+                    + projectAccessors.propertyExtractor,
+                functionExtractor = DefaultFunctionExtractor({ isPublicAndRestricted.shouldIncludeMember(it) && !isGradlePropertyType(it.returnType) }, configureLambdas = configureLambdas)
+                    + projectExtensionComponents.functionExtractor,
+                typeDiscovery = DependencyDslTypeDiscovery()
+                    + projectExtensionComponents.typeDiscovery
+                    + ThirdPartyTypesDiscovery(isPublicAndRestricted, configureLambdas)
+                    + propertiesComponents.typeDiscovery,
+            ),
             analysisStatementFilter = analyzeEverythingExceptPluginsBlock,
             runtimePropertyResolvers = listOf(hardcodeProjectExtensionsProperties),
             runtimeFunctionResolvers = listOf(hardcodeDependencyExtensionFunctions),
+            runtimeCustomAccessors = listOf(projectExtensionComponents.runtimeCustomAccessors)
         )
+    }
 
     override fun topLevelReceiver(): ProjectInternal = target
 
@@ -137,27 +168,6 @@ val analyzeEverythingExceptPluginsBlock = AnalysisStatementFilter { statement, s
 private
 fun isPluginsCall(statement: DataStatement) =
     statement is FunctionCall && statement.name == "plugins" && statement.args.size == 1 && statement.args.single() is FunctionArgument.Lambda
-
-
-private
-fun createAnalysisSchemaForProject(targetScope: ClassLoaderScope): AnalysisSchema {
-    val projectAccessors = projectAccessorsSupport(targetScope)
-    val configureLambdas = treatInterfaceAsConfigureLambda(Action::class).plus(kotlinFunctionAsConfigureLambda)
-
-    return schemaFromTypes(
-        ProjectTopLevelReceiver::class,
-        listOf(
-            ProjectTopLevelReceiver::class,
-
-            // Dependencies:
-            RestrictedDependenciesHandler::class,
-            ProjectDependency::class
-        ) + projectAccessors.typesFromExtensions,
-        configureLambdas = configureLambdas,
-        propertyExtractor = DefaultPropertyExtractor() + projectAccessors.propertyExtractor,
-        typeDiscovery = DependencyDslTypeDiscovery(),
-    )
-}
 
 
 private
@@ -216,9 +226,9 @@ val hardcodeDependencyExtensionFunctions = object : RuntimeFunctionResolver {
     override fun resolve(receiverClass: KClass<*>, name: String, parameterValueBinding: ParameterValueBinding): RuntimeFunctionResolver.Resolution {
         if (receiverClass.isSubclassOf(DependencyHandler::class) && name in names && parameterValueBinding.bindingMap.size == 1) {
             return RuntimeFunctionResolver.Resolution.Resolved(object : RestrictedRuntimeFunction {
-                override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>): Any {
+                override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>): RestrictedRuntimeFunction.InvocationResult {
                     (receiver as DependencyHandler).add(name, binding.values.single() ?: error("null value in dependency DSL"))
-                    return Unit
+                    return RestrictedRuntimeFunction.InvocationResult(Unit, null)
                 }
             })
         }

@@ -25,6 +25,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeResu
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.SingleFailureResult
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.parseToLightTree
 import com.h0tk3y.kotlin.staticObjectNotation.language.SourceIdentifier
+import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.CompositeCustomAccessors
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.CompositeFunctionResolver
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.CompositePropertyResolver
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.MemberFunctionResolver
@@ -156,9 +157,10 @@ class DefaultRestrictedKotlinScriptEvaluator(
         val propertyResolver = CompositePropertyResolver(listOf(ReflectionRuntimePropertyResolver) + evaluationSchema.runtimePropertyResolvers)
         val configureLambdas = treatInterfaceAsConfigureLambda(Action::class).plus(evaluationSchema.configureLambdas)
         val functionResolver = CompositeFunctionResolver(listOf(MemberFunctionResolver(configureLambdas)) + evaluationSchema.runtimeFunctionResolvers)
+        val customAccessors = CompositeCustomAccessors(evaluationSchema.runtimeCustomAccessors)
 
         val topLevelReceiver = step.topLevelReceiver()
-        val converter = RestrictedReflectionToObjectConverter(emptyMap(), topLevelReceiver, functionResolver, propertyResolver)
+        val converter = RestrictedReflectionToObjectConverter(emptyMap(), topLevelReceiver, functionResolver, propertyResolver, customAccessors)
         converter.apply(topLevelObjectReflection)
 
         step.whenEvaluated(topLevelReceiver)

@@ -19,6 +19,7 @@ package org.gradle.internal.restricteddsl.evaluationSchema
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisStatementFilter
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.analyzeEverything
+import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RuntimeCustomAccessors
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RuntimeFunctionResolver
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RuntimePropertyResolver
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.ConfigureLambdaHandler
@@ -33,5 +34,6 @@ class EvaluationSchema(
     val analysisStatementFilter: AnalysisStatementFilter = analyzeEverything,
     val configureLambdas: ConfigureLambdaHandler = kotlinFunctionAsConfigureLambda.plus(treatInterfaceAsConfigureLambda(Action::class)),
     val runtimePropertyResolvers: List<RuntimePropertyResolver> = emptyList(),
-    val runtimeFunctionResolvers: List<RuntimeFunctionResolver> = emptyList()
+    val runtimeFunctionResolvers: List<RuntimeFunctionResolver> = emptyList(),
+    val runtimeCustomAccessors: List<RuntimeCustomAccessors> = emptyList()
 )
