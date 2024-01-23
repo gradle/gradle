@@ -92,5 +92,5 @@ public interface FlowProviders {
      * @since 8.7
      */
     @Incubating
-    ControlFlowProvider<Project> getConfigurableProject();
+    ControlFlowProvider<Project> getBeforeProject();
 }

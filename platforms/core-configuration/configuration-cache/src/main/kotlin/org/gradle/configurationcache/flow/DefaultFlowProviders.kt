@@ -38,7 +38,7 @@ class DefaultFlowProviders : FlowProviders {
     override fun getBuildWorkResult(): Provider<BuildWorkResult> =
         buildWorkResult
 
-    override fun getConfigurableProject(): ControlFlowProvider<Project> =
+    override fun getBeforeProject(): ControlFlowProvider<Project> =
         TODO("Gotcha!")
 }
 
