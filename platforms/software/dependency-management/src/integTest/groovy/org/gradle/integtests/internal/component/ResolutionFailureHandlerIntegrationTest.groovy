@@ -99,12 +99,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
                   - Provides org.gradle.dependency.bundling 'external' but the consumer didn't ask for it
                   - Provides org.gradle.docstype 'sources' but the consumer didn't ask for it
                   - Provides org.gradle.status 'release' but the consumer didn't ask for it
-                  - Provides org.gradle.usage 'java-runtime' but the consumer didn't ask for it
-        The following variants were also considered but didn't match the requested attributes:
-          - Variant 'apiElements' capability com.squareup.okhttp3:okhttp:4.4.0:
-              - Incompatible because this component declares attribute 'org.gradle.category' with value 'library' and the consumer needed attribute 'org.gradle.category' with value 'documentation'
-          - Variant 'runtimeElements' capability com.squareup.okhttp3:okhttp:4.4.0:
-              - Incompatible because this component declares attribute 'org.gradle.category' with value 'library' and the consumer needed attribute 'org.gradle.category' with value 'documentation'""")
+                  - Provides org.gradle.usage 'java-runtime' but the consumer didn't ask for it""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()

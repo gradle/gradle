@@ -46,7 +46,7 @@ import static org.gradle.internal.exceptions.StyledException.style;
         String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledAttributeDescriber(describer), failure);
         NoMatchingGraphVariantsException e = new NoMatchingGraphVariantsException(message);
         suggestReviewAlgorithm(e);
-        e.addResolution(NO_MATCHING_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", NO_MATCHING_VARIANTS_SECTION + "."));
+        suggestSpecificDocumentation(e, NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_SECTION);
         return e;
     }
 

@@ -16,11 +16,21 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.component.AbstractVariantSelectionException;
+import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedAttribute;
+import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.gradle.internal.exceptions.StyledException.style;
 
 public abstract class AbstractResolutionFailureDescriber<T extends AbstractVariantSelectionException> implements ResolutionFailureDescriber<T> {
     private static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
@@ -50,5 +60,33 @@ public abstract class AbstractResolutionFailureDescriber<T extends AbstractVaria
             values.forEach(formatter::node);
             formatter.endChildren();
         }
+    }
+
+    protected void formatAttributeMatchesForAmbiguity(
+        AssessedCandidate assessedCandidate,
+        TreeFormatter formatter,
+        AttributeDescriber describer
+    ) {
+        // None of the nullability warnings are relevant here because the attribute values are only retrieved from collections that will contain them
+        Map<Attribute<?>, ?> compatibleAttrs = assessedCandidate.getCompatibleAttributes().stream()
+            .collect(Collectors.toMap(AssessedAttribute::getAttribute, AssessedAttribute::getProvided, (a, b) -> a));
+        List<String> onlyOnProducer = assessedCandidate.getOnlyOnCandidateAttributes().stream()
+            .map(assessedAttribute -> "Provides " + describer.describeExtraAttribute(assessedAttribute.getAttribute(), assessedAttribute.getProvided()) + " but the consumer didn't ask for it")
+            .collect(Collectors.toList());
+        List<String> onlyOnConsumer = assessedCandidate.getOnlyOnRequestAttributes().stream()
+            .map(assessedAttribute -> "Doesn't say anything about " + describer.describeMissingAttribute(assessedAttribute.getAttribute(), assessedAttribute.getRequested()))
+            .collect(Collectors.toList());
+
+        List<String> other = new ArrayList<>(onlyOnProducer.size() + onlyOnConsumer.size());
+        other.addAll(onlyOnProducer);
+        other.addAll(onlyOnConsumer);
+        other.sort(String::compareTo);
+
+        if (!compatibleAttrs.isEmpty()) {
+            formatter.append(" declares ").append(style(StyledTextOutput.Style.SuccessHeader, describer.describeAttributeSet(compatibleAttrs)));
+        }
+        formatter.startChildren();
+        formatAttributeSection(formatter, "Unmatched attribute", other);
+        formatter.endChildren();
     }
 }

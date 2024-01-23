@@ -18,7 +18,6 @@ package org.gradle.internal.component.resolution.failure.describer;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.attributes.AttributeDescriber;
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.ResolutionFailure;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -28,7 +27,7 @@ import javax.inject.Inject;
 
 import static org.gradle.internal.exceptions.StyledException.style;
 
-public final class NonVariantAwareNoMatchingGraphVariantFailureDescriber extends AbstractNoMatchingGraphVariantFailureDescriber {
+public class NonVariantAwareNoMatchingGraphVariantFailureDescriber extends AbstractNoMatchingGraphVariantFailureDescriber {
     @Inject
     public NonVariantAwareNoMatchingGraphVariantFailureDescriber(DocumentationRegistry documentationRegistry) {
         super(documentationRegistry);
@@ -55,7 +54,7 @@ public final class NonVariantAwareNoMatchingGraphVariantFailureDescriber extends
             // We're sorting the names of the configurations and later attributes
             // to make sure the output is consistently the same between invocations
             for (ResolutionCandidateAssessor.AssessedCandidate candidate : failure.getCandidates()) {
-                formatUnselectableConfiguration(candidate, formatter, failure.getTargetComponent(), describer);
+                formatUnselectableConfiguration(candidate, formatter, describer);
             }
         }
         formatter.endChildren();
@@ -65,7 +64,6 @@ public final class NonVariantAwareNoMatchingGraphVariantFailureDescriber extends
     private void formatUnselectableConfiguration(
         ResolutionCandidateAssessor.AssessedCandidate assessedCandidate,
         TreeFormatter formatter,
-        ComponentGraphResolveMetadata targetComponent,
         AttributeDescriber describer
     ) {
         formatter.node("Configuration '");
