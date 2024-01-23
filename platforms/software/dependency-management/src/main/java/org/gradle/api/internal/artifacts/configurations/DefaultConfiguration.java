@@ -76,8 +76,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvi
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
@@ -297,7 +295,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.displayName = Describables.memoize(new ConfigurationDescription(identityPath));
         this.configurationAttributes = new FreezableAttributeContainer(attributesFactory.mutable(), this.displayName);
 
-        this.intrinsicFiles = fileCollectionFromSpec(Specs.satisfyAll());
+        this.intrinsicFiles = newFileCollection(false, this::getImplicitSelectionSpec);
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
 
         this.ownDependencies = (DefaultDomainObjectSet<Dependency>) domainObjectCollectionFactory.newDomainObjectSet(Dependency.class);
@@ -565,23 +563,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
-    public FileCollection fileCollection(Spec<? super Dependency> dependencySpec) {
-        assertIsResolvable();
-        // After asserting, we are definitely allowed, but might be deprecated, so check to warn now
-        warnOnDeprecatedUsage("fileCollection(Spec)", ProperMethodUsage.RESOLVABLE);
-        return fileCollectionFromSpec(dependencySpec);
-    }
-
-    private ResolutionBackedFileCollection fileCollectionFromSpec(Spec<? super Dependency> dependencySpec) {
-        return new ResolutionBackedFileCollection(
-            new SelectedArtifactsProvider(dependencySpec, configurationAttributes, Specs.satisfyAll(), false, false, new VisitedArtifactsSetProvider()),
-            false,
-            getResolutionHost(),
-            taskDependencyFactory
-        );
-    }
-
-    @Override
     public FileCollection fileCollection(Closure dependencySpecClosure) {
         warnOnDeprecatedUsage("fileCollection(Closure)", ProperMethodUsage.RESOLVABLE);
         return fileCollection(Specs.convertClosureToSpec(dependencySpecClosure));
@@ -592,6 +573,25 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         warnOnDeprecatedUsage("fileCollection(Dependency...)", ProperMethodUsage.RESOLVABLE);
         Set<Dependency> deps = WrapUtil.toLinkedSet(dependencies);
         return fileCollection(deps::contains);
+    }
+
+    @Override
+    public FileCollection fileCollection(Spec<? super Dependency> dependencySpec) {
+        assertIsResolvable();
+        // After asserting, we are definitely allowed, but might be deprecated, so check to warn now
+        warnOnDeprecatedUsage("fileCollection(Spec)", ProperMethodUsage.RESOLVABLE);
+        return new ResolutionBackedFileCollection(
+            new ResolverResultsResolutionResultProvider(false).map(resolverResults ->
+                resolverResults.getVisitedArtifacts().select(dependencySpec, getImplicitSelectionSpec())
+            ),
+            false,
+            getResolutionHost(),
+            taskDependencyFactory
+        );
+    }
+
+    private ArtifactSelectionSpec getImplicitSelectionSpec() {
+        return new ArtifactSelectionSpec(configurationAttributes.asImmutable(), Specs.satisfyAll(), false, false, getResolutionStrategy().getSortOrder());
     }
 
     @Override
@@ -622,12 +622,75 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public ResolvedConfiguration getResolvedConfiguration() {
         warnOnDeprecatedUsage("getResolvedConfiguration()", ProperMethodUsage.RESOLVABLE);
-        return resolveGraphIfRequired().getResolvedConfiguration();
+        return new ResolverResultsResolutionResultProvider(false).map(ResolverResults::getResolvedConfiguration).getValue();
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private static Boolean isFullyResoled(Optional<ResolverResults> currentState) {
         return currentState.map(ResolverResults::isFullyResolved).orElse(false);
+    }
+
+    /**
+     * Create a file collection that selects files based on the given spec.
+     *
+     * This specifically does not accept a dependencySpec, as that is a legacy method to
+     * filter selected artifacts. No new APIs should be added that accept a dependencySpec.
+     */
+    private ResolutionBackedFileCollection newFileCollection(boolean lenient, Supplier<ArtifactSelectionSpec> spec) {
+        return new ResolutionBackedFileCollection(
+            new ResolverResultsResolutionResultProvider(false).map(resolverResults ->
+                resolverResults.getVisitedArtifacts().select(Specs.satisfyAll(), spec.get())
+            ),
+            lenient,
+            getResolutionHost(),
+            taskDependencyFactory
+        );
+    }
+
+    /**
+     * A provider that lazily resolves this configuration.
+     */
+    private class ResolverResultsResolutionResultProvider implements ResolutionResultProvider<ResolverResults> {
+
+        private final boolean strict;
+
+        /**
+         * @param strict Whether to fail if the configuration has not yet been resolved when the provider is queried.
+         */
+        public ResolverResultsResolutionResultProvider(boolean strict) {
+            this.strict = strict;
+        }
+
+        @Override
+        public ResolverResults getTaskDependencyValue() {
+            if (strict) {
+                return currentResolveState.get().orElseThrow(() ->
+                    new IllegalStateException("Cannot query results until resolution has happened.")
+                );
+            }
+
+            if (getResolutionStrategy().resolveGraphToDetermineTaskDependencies()) {
+                // Force graph resolution as this is required to calculate build dependencies
+                return getValue();
+            } else {
+                return resolveGraphForBuildDependenciesIfRequired();
+            }
+        }
+
+        @Override
+        public ResolverResults getValue() {
+            if (strict) {
+                Optional<ResolverResults> currentState = currentResolveState.get();
+                if (!isFullyResoled(currentState)) {
+                    // Do not validate that the current thread holds the project lock.
+                    // TODO: Should instead assert that the results are available and fail if not.
+                    return resolveExclusivelyIfRequired();
+                }
+                return currentState.get();
+            }
+
+            return resolveGraphIfRequired();
+        }
     }
 
     private ResolverResults resolveGraphIfRequired() {
@@ -810,15 +873,22 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     public TransformUpstreamDependenciesResolverFactory getDependenciesResolverFactory() {
         warnOnInvalidInternalAPIUsage("getDependenciesResolverFactory()", ProperMethodUsage.RESOLVABLE);
         if (dependenciesResolverFactory == null) {
-            dependenciesResolverFactory = new DefaultTransformUpstreamDependenciesResolverFactory(getIdentity(), new DefaultResolutionResultProvider(), domainObjectContext, calculatedValueContainerFactory,
+            ResolutionResultProvider<ResolutionResult> resolutionResultProvider =
+                new ResolverResultsResolutionResultProvider(true)
+                    .map(results -> new DefaultResolutionResult(results.getVisitedGraph().getResolutionResult()));
+
+            dependenciesResolverFactory = new DefaultTransformUpstreamDependenciesResolverFactory(
+                getIdentity(),
+                resolutionResultProvider,
+                domainObjectContext,
+                calculatedValueContainerFactory,
                 (attributes, filter) -> {
                     ImmutableAttributes fullAttributes = attributesFactory.concat(configurationAttributes.asImmutable(), attributes);
-                    return new ResolutionBackedFileCollection(
-                        new SelectedArtifactsProvider(Specs.satisfyAll(), fullAttributes, filter, false, false, new VisitedArtifactsSetProvider()),
-                        false,
-                        getResolutionHost(),
-                        taskDependencyFactory);
-                });
+                    return newFileCollection(false, () -> new ArtifactSelectionSpec(
+                        fullAttributes, filter, false, false, getResolutionStrategy().getSortOrder()
+                    ));
+                }
+            );
         }
         return dependenciesResolverFactory;
     }
@@ -839,18 +909,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
     }
 
-    private ResolverResults getResultsForBuildDependencies() {
-        return currentResolveState.get()
-            .orElseThrow(() -> new IllegalStateException("Cannot query results until resolution has happened."));
-    }
-
     private ResolverResults resolveGraphForBuildDependenciesIfRequired() {
         assertIsResolvable();
-        if (getResolutionStrategy().resolveGraphToDetermineTaskDependencies()) {
-            // Force graph resolution as this is required to calculate build dependencies
-            return resolveGraphIfRequired();
-        }
-
         return currentResolveState.update(initial -> {
             if (!initial.isPresent()) {
                 ResolverResults results = resolver.resolveBuildDependencies(this);
@@ -858,16 +918,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             } // Otherwise, already have a result, so reuse it
             return initial;
         }).get();
-    }
-
-    private ResolverResults getResultsForGraph() {
-        Optional<ResolverResults> currentState = currentResolveState.get();
-        if (!isFullyResoled(currentState)) {
-            // Do not validate that the current thread holds the project lock
-            // Should instead assert that the results are available and fail if not
-            return resolveExclusivelyIfRequired();
-        }
-        return currentState.get();
     }
 
     @Override
@@ -1452,69 +1502,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
     }
 
-    private class DefaultResolutionResultProvider implements ResolutionResultProvider<ResolutionResult> {
-
-        @Override
-        public ResolutionResult getTaskDependencyValue() {
-            return new DefaultResolutionResult(getResultsForBuildDependencies().getVisitedGraph().getResolutionResult());
-        }
-
-        @Override
-        public ResolutionResult getValue() {
-            return new DefaultResolutionResult(getResultsForGraph().getVisitedGraph().getResolutionResult());
-        }
-    }
-
-    private class VisitedArtifactsSetProvider implements ResolutionResultProvider<VisitedArtifactSet> {
-
-        @Override
-        public VisitedArtifactSet getTaskDependencyValue() {
-            return resolveGraphForBuildDependenciesIfRequired().getVisitedArtifacts();
-        }
-
-        @Override
-        public VisitedArtifactSet getValue() {
-            return resolveGraphIfRequired().getVisitedArtifacts();
-        }
-    }
-
-    private static class SelectedArtifactsProvider implements ResolutionResultProvider<SelectedArtifactSet> {
-        private final Spec<? super Dependency> dependencySpec;
-        private final AttributeContainerInternal viewAttributes;
-        private final Spec<? super ComponentIdentifier> componentSpec;
-        private final boolean allowNoMatchingVariants;
-        private final boolean selectFromAllVariants;
-        private final ResolutionResultProvider<VisitedArtifactSet> resultProvider;
-
-        public SelectedArtifactsProvider(
-            Spec<? super Dependency> dependencySpec,
-            AttributeContainerInternal viewAttributes,
-            Spec<? super ComponentIdentifier> componentSpec,
-            boolean allowNoMatchingVariants,
-            boolean selectFromAllVariants,
-            ResolutionResultProvider<VisitedArtifactSet> resultProvider
-        ) {
-            this.dependencySpec = dependencySpec;
-            this.viewAttributes = viewAttributes;
-            this.componentSpec = componentSpec;
-            this.allowNoMatchingVariants = allowNoMatchingVariants;
-            this.selectFromAllVariants = selectFromAllVariants;
-            this.resultProvider = resultProvider;
-        }
-
-        @Override
-        public SelectedArtifactSet getTaskDependencyValue() {
-            ArtifactSelectionSpec artifactSpec = new ArtifactSelectionSpec(viewAttributes.asImmutable(), componentSpec, selectFromAllVariants, allowNoMatchingVariants);
-            return resultProvider.getTaskDependencyValue().select(dependencySpec, artifactSpec);
-        }
-
-        @Override
-        public SelectedArtifactSet getValue() {
-            ArtifactSelectionSpec artifactSpec = new ArtifactSelectionSpec(viewAttributes.asImmutable(), componentSpec, selectFromAllVariants, allowNoMatchingVariants);
-            return resultProvider.getValue().select(dependencySpec, artifactSpec);
-        }
-    }
-
     private void assertIsResolvable() {
         if (!canBeResolved) {
             throw new IllegalStateException("Resolving dependency configuration '" + name + "' is not allowed as it is defined as 'canBeResolved=false'.\nInstead, a resolvable ('canBeResolved=true') dependency configuration that extends '" + name + "' should be resolved.");
@@ -1810,16 +1797,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return roleAtCreation;
     }
 
-    private DefaultArtifactCollection artifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
-        ResolutionBackedFileCollection files = new ResolutionBackedFileCollection(
-            new SelectedArtifactsProvider(Specs.satisfyAll(), attributes, componentFilter, allowNoMatchingVariants, selectFromAllVariants, new VisitedArtifactsSetProvider()),
-            lenient,
-            getResolutionHost(),
-            taskDependencyFactory
-        );
-        return new DefaultArtifactCollection(files, lenient, getResolutionHost(), calculatedValueContainerFactory);
-    }
-
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
 
         @Override
@@ -1883,7 +1860,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public ArtifactCollection getArtifacts() {
-            return artifactCollection(configurationAttributes, Specs.satisfyAll(), false, false, false);
+            return new DefaultArtifactCollection(intrinsicFiles, false, getResolutionHost(), calculatedValueContainerFactory);
         }
 
         @Override
@@ -1916,17 +1893,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         @Override
         public ResolutionResultProvider<VisitedGraphResults> getGraphResultsProvider() {
             assertIsResolvable();
-            return new ResolutionResultProvider<VisitedGraphResults>() {
-                @Override
-                public VisitedGraphResults getTaskDependencyValue() {
-                    return resolveGraphForBuildDependenciesIfRequired().getVisitedGraph();
-                }
-
-                @Override
-                public VisitedGraphResults getValue() {
-                    return resolveGraphIfRequired().getVisitedGraph();
-                }
-            };
+            return new ResolverResultsResolutionResultProvider(false).map(ResolverResults::getVisitedGraph);
         }
 
         private class ConfigurationArtifactView implements ArtifactView {
@@ -1951,18 +1918,14 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
             @Override
             public ArtifactCollection getArtifacts() {
-                return artifactCollection(viewAttributes, componentFilter, lenient, allowNoMatchingVariants, selectFromAllVariants);
+                return new DefaultArtifactCollection(getFiles(), lenient, getResolutionHost(), calculatedValueContainerFactory);
             }
 
             @Override
-            public FileCollection getFiles() {
-                // TODO maybe make detached configuration is flag is true
-                return new ResolutionBackedFileCollection(
-                    new SelectedArtifactsProvider(Specs.satisfyAll(), viewAttributes, componentFilter, allowNoMatchingVariants, selectFromAllVariants, new VisitedArtifactsSetProvider()),
-                    lenient,
-                    getResolutionHost(),
-                    taskDependencyFactory
-                );
+            public ResolutionBackedFileCollection getFiles() {
+                return newFileCollection(lenient, () -> new ArtifactSelectionSpec(
+                    viewAttributes.asImmutable(), componentFilter, selectFromAllVariants, allowNoMatchingVariants, getResolutionStrategy().getSortOrder()
+                ));
             }
         }
 
