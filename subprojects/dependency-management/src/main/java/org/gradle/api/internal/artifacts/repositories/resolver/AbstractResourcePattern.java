@@ -16,9 +16,9 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.base.Strings;
-import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.repositories.PatternHelper;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResourceName;
@@ -49,12 +49,12 @@ abstract class AbstractResourcePattern implements ResourcePattern {
 
     private AbstractResourcePattern(ExternalResourceName pattern) {
         this.pattern = pattern;
-        this.revisionIsOptional = isOptionalToken(IvyPatternHelper.REVISION_KEY);
-        this.organisationIsOptional = isOptionalToken(IvyPatternHelper.ORGANISATION_KEY, IvyPatternHelper.ORGANISATION_KEY2);
-        this.artifactIsOptional = isOptionalToken(IvyPatternHelper.ARTIFACT_KEY);
+        this.revisionIsOptional = isOptionalToken(PatternHelper.REVISION_KEY);
+        this.organisationIsOptional = isOptionalToken(PatternHelper.ORGANISATION_KEY, PatternHelper.ORGANISATION_KEY2);
+        this.artifactIsOptional = isOptionalToken(PatternHelper.ARTIFACT_KEY);
         this.classifierIsOptional = isOptionalToken(CLASSIFIER_KEY);
-        this.extensionIsOptional = isOptionalToken(IvyPatternHelper.EXT_KEY);
-        this.typeIsOptional = isOptionalToken(IvyPatternHelper.TYPE_KEY);
+        this.extensionIsOptional = isOptionalToken(PatternHelper.EXT_KEY);
+        this.typeIsOptional = isOptionalToken(PatternHelper.TYPE_KEY);
     }
 
     @Override
@@ -67,7 +67,7 @@ abstract class AbstractResourcePattern implements ResourcePattern {
     }
 
     protected String substituteTokens(String pattern, Map<String, String> attributes) {
-        return IvyPatternHelper.substituteTokens(pattern, attributes);
+        return PatternHelper.substituteTokens(pattern, attributes);
     }
 
     protected Map<String, String> toAttributes(ModuleComponentArtifactMetadata artifact) {
@@ -84,25 +84,25 @@ abstract class AbstractResourcePattern implements ResourcePattern {
 
     protected Map<String, String> toAttributes(IvyArtifactName ivyArtifact) {
         HashMap<String, String> attributes = new HashMap<>();
-        attributes.put(IvyPatternHelper.ARTIFACT_KEY, ivyArtifact.getName());
-        attributes.put(IvyPatternHelper.TYPE_KEY, ivyArtifact.getType());
-        attributes.put(IvyPatternHelper.EXT_KEY, ivyArtifact.getExtension());
+        attributes.put(PatternHelper.ARTIFACT_KEY, ivyArtifact.getName());
+        attributes.put(PatternHelper.TYPE_KEY, ivyArtifact.getType());
+        attributes.put(PatternHelper.EXT_KEY, ivyArtifact.getExtension());
         attributes.put(CLASSIFIER_KEY, ivyArtifact.getClassifier());
         return attributes;
     }
 
     protected Map<String, String> toAttributes(ModuleIdentifier module) {
         HashMap<String, String> attributes = new HashMap<>();
-        attributes.put(IvyPatternHelper.ORGANISATION_KEY, module.getGroup());
-        attributes.put(IvyPatternHelper.MODULE_KEY, module.getName());
+        attributes.put(PatternHelper.ORGANISATION_KEY, module.getGroup());
+        attributes.put(PatternHelper.MODULE_KEY, module.getName());
         return attributes;
     }
 
     protected Map<String, String> toAttributes(ModuleComponentIdentifier componentIdentifier) {
         HashMap<String, String> attributes = new HashMap<>();
-        attributes.put(IvyPatternHelper.ORGANISATION_KEY, componentIdentifier.getGroup());
-        attributes.put(IvyPatternHelper.MODULE_KEY, componentIdentifier.getModule());
-        attributes.put(IvyPatternHelper.REVISION_KEY, componentIdentifier.getVersion());
+        attributes.put(PatternHelper.ORGANISATION_KEY, componentIdentifier.getGroup());
+        attributes.put(PatternHelper.MODULE_KEY, componentIdentifier.getModule());
+        attributes.put(PatternHelper.REVISION_KEY, componentIdentifier.getVersion());
         return attributes;
     }
 

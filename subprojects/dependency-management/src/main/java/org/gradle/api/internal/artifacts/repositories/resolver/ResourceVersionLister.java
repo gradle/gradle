@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.collect.Lists;
-import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.repositories.PatternHelper;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 
 public class ResourceVersionLister implements VersionLister {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResourceVersionLister.class);
-    private static final String REVISION_TOKEN = IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY);
+    private static final String REVISION_TOKEN = PatternHelper.getTokenString(PatternHelper.REVISION_KEY);
     public static final int REV_TOKEN_LENGTH = REVISION_TOKEN.length();
 
     private final ExternalResourceRepository repository;

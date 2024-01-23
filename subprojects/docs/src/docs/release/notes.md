@@ -214,7 +214,7 @@ testing {
             dependencies {
                 implementation(module(group = "com.google.guava",
                                name = "guava",
-                               version = "31.1-jre"))
+                               version = "32.1.3-jre"))
             }
         }
     }
