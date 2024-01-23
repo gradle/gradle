@@ -54,6 +54,35 @@ http://www.jcraft.com/jsch/[JSch] has been replaced by https://github.com/mwiede
 
 === Deprecations
 
+[[string_invoke]]
+==== Referencing tasks and domain objects by `"name"()` in Kotlin DSL
+
+In Kotlin DSL, it is possible to reference a task or other domain object by its name using the `"name"()` notation.
+
+There are several ways to look up an element in a container by name:
+```
+tasks {
+    "wrapper"() // 1 - returns TaskProvider<Task>
+    "wrapper"(Wrapper::class) // 2 - returns TaskProvider<Wrapper>
+    "wrapper"(Wrapper::class) { // 3 - configures a task named wrapper of type Wrapper
+    }
+    "wrapper" { // 4 - configures a task named wrapper of type Task
+    }
+}
+```
+
+The first notation is deprecated and will be removed in Gradle 9.0.
+Instead of using `"name"()` to reference a task or domain object, use `named("name")` or one of the other supported notations.
+
+The above example would be written:
+```
+tasks {
+    named("wrapper") // returns TaskProvider<Task>
+}
+```
+
+Groovy DSL build scripts and the Gradle API are not impacted by this.
+
 [[deprecated_invalid_url_decoding]]
 ==== Deprecated invalid URL decoding behavior
 Prior to Gradle 8.3, Gradle would decode a `CharSequence` given to `link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:uri(java.lang.Object)[Project.uri(Object)]` using an algorithm that accepted invalid URLs and improperly decoded others.
