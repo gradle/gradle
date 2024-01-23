@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
@@ -55,6 +56,7 @@ public final class EvaluationContext {
      * A scope context. One can obtain an instance by calling {@link #open(EvaluationOwner)}.
      * Closing this context removes the owner from the evaluation context.
      * The primary use case is to serve as an argument for the try-with-resources block.
+     * It can also serve as a token parameter of a method that must be executed within such a block.
      * <p>
      * It is not safe to call {@link #close()} multiple times.
      * The instances of the class may not be unique for different owners being added.
@@ -63,6 +65,12 @@ public final class EvaluationContext {
      * This context must be closed by the same thread that obtained it.
      */
     public interface ScopeContext extends AutoCloseable {
+        /**
+         * Returns the owner of the current scope, which is the last object that started its evaluation.
+         * @return the owner
+         */
+        EvaluationOwner getOwner();
+
         /**
          * Removes the owner added to evaluation context when obtaining this class from the context.
          * Must be called exactly once for every {@link #open(EvaluationOwner)} or {@link #nested()} call.
@@ -209,6 +217,12 @@ public final class EvaluationContext {
 
         public boolean isInScope(EvaluationOwner owner) {
             return objectsInScope.contains(owner);
+        }
+
+        @Override
+        public EvaluationOwner getOwner() {
+            Preconditions.checkState(!evaluationStack.isEmpty(), "No object is being evaluated right now");
+            return evaluationStack.get(evaluationStack.size() - 1);
         }
 
         private CircularEvaluationException prepareException(EvaluationOwner circular) {
