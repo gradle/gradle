@@ -33,7 +33,6 @@ import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFacto
 
 public class DependencyClassPathProvider implements ClassPathProvider {
     private static final List<String> MODULES = Arrays.asList(
-//        "gradle-core-api",
         "gradle-worker-processes",
         "gradle-launcher",
         "gradle-workers",
