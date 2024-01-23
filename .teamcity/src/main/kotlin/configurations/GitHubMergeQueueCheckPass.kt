@@ -32,7 +32,7 @@ class GitHubMergeQueueCheckPass(model: CIBuildModel) : BaseGradleBuildType(init 
         quietPeriodMode = VcsTrigger.QuietPeriodMode.DO_NOT_USE
         branchFilter = """
 +:gh-readonly-queue/${model.branch.branchName}/*
-+${model.branch.branchName}
++:${model.branch.branchName}
 """
     }
 
