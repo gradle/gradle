@@ -21,13 +21,16 @@ import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.ConfigureLambdaHandl
 import kotlin.reflect.KFunction
 
 interface RestrictedRuntimeFunction {
-    fun callBy(receiver: Any, binding: Map<DataParameter, Any?>): Any?
+    fun callBy(receiver: Any, binding: Map<DataParameter, Any?>): InvocationResult
+
+    data class InvocationResult(val result: Any?, val capturedValue: Any?)
 }
 
 internal class ReflectionFunction(private val kFunction: KFunction<*>, private val configureLambdaHandler: ConfigureLambdaHandler) : RestrictedRuntimeFunction {
-    override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>): Any? {
+    override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>): RestrictedRuntimeFunction.InvocationResult {
         val params = FunctionBinding.convertBinding(kFunction, receiver, binding, configureLambdaHandler)
             ?: error("signature of $kFunction does not match the arguments: $binding")
-        return kFunction.callBy(params)
+        val captor = params.valueCaptor
+        return RestrictedRuntimeFunction.InvocationResult(kFunction.callBy(params.map), captor?.value)
     }
 }

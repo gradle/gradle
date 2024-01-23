@@ -98,6 +98,16 @@ class RestrictedReflectionToObjectConverter(
         }
     }
 
+    private fun objectFromConfiguringLambda(
+        origin: ObjectOrigin.ConfiguringLambdaReceiver
+    ): Any? {
+        val function = origin.function
+        val receiverInstance = getObjectByResolvedOrigin(origin.receiver)
+            ?: error("Tried to invoke a function $function on a null receiver ${origin.receiver}")
+
+        return invokeFunctionAndGetResult(receiverInstance, origin).capturedValue
+    }
+
     private fun invokeBuilderFunction(receiverOrigin: ObjectOrigin, function: DataBuilderFunction, valueOrigin: ObjectOrigin) {
         val receiverInstance = getObjectByResolvedOrigin(receiverOrigin)
             ?: error("Tried to invoke a function $function on a null receiver $receiverOrigin")
@@ -105,7 +115,8 @@ class RestrictedReflectionToObjectConverter(
         val parameterBinding = ParameterValueBinding(mapOf(function.dataParameter to valueOrigin))
 
         when (val runtimeFunction = functionResolver.resolve(receiverKClass, function.simpleName, parameterBinding)) {
-            is RuntimeFunctionResolver.Resolution.Resolved -> runtimeFunction.function.callBy(receiverInstance, parameterBinding.bindingMap.mapValues { getObjectByResolvedOrigin(it.value) })
+            is RuntimeFunctionResolver.Resolution.Resolved ->
+                runtimeFunction.function.callBy(receiverInstance, parameterBinding.bindingMap.mapValues { getObjectByResolvedOrigin(it.value) }).result
             RuntimeFunctionResolver.Resolution.Unresolved -> error("could not resolve a member function $function call in the owner class $receiverKClass")
         }
     }

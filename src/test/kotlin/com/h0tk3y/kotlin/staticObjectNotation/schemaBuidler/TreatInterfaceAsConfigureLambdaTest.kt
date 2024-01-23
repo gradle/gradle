@@ -18,16 +18,16 @@ package com.example.com.h0tk3y.kotlin.staticObjectNotation.schemaBuidler
 
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.treatInterfaceAsConfigureLambda
 import org.junit.jupiter.api.assertThrows
-import java.lang.IllegalArgumentException
 import kotlin.reflect.typeOf
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class TreatInterfaceAsConfigureLambdaTest {
 
     private interface MyFunctionalInterface<T> {
-        fun configure(t: T): Unit
+        fun configure(t: T)
     }
 
     private val customConfigureLambdas =
@@ -35,22 +35,28 @@ class TreatInterfaceAsConfigureLambdaTest {
 
     @Test
     fun recognizesLambdaType() {
-        assertTrue { customConfigureLambdas.isConfigureLambda(typeOf<MyFunctionalInterface<Int>>()) }
+        assertEquals(typeOf<Int>(), customConfigureLambdas.getTypeConfiguredByLambda(typeOf<MyFunctionalInterface<Int>>()))
         assertTrue { customConfigureLambdas.isConfigureLambdaForType(typeOf<Int>(), typeOf<MyFunctionalInterface<Int>>()) }
         assertFalse { customConfigureLambdas.isConfigureLambdaForType(typeOf<String>(), typeOf<MyFunctionalInterface<Int>>()) }
     }
 
     @Test
     @Suppress("UNCHECKED_CAST")
-    fun producesNoopLambda() {
+    fun `value captor captures the argument`() {
         fun f(fn: MyFunctionalInterface<String>) {
             fn.configure("test")
         }
-        f(customConfigureLambdas.produceNoopConfigureLambda(typeOf<MyFunctionalInterface<Int>>()) as MyFunctionalInterface<String>)
-        f(customConfigureLambdas.produceNoopConfigureLambda(typeOf<MyFunctionalInterface<*>>()) as MyFunctionalInterface<String>)
+
+        val valueCaptor1 = customConfigureLambdas.produceValueCaptor(typeOf<MyFunctionalInterface<Int>>())
+        f(valueCaptor1.lambda as MyFunctionalInterface<String>)
+        assertEquals("test", valueCaptor1.value)
+
+        val valueCaptor2 = customConfigureLambdas.produceValueCaptor(typeOf<MyFunctionalInterface<*>>())
+        f(valueCaptor2.lambda as MyFunctionalInterface<String>)
+        assertEquals("test", valueCaptor2.value)
 
         assertThrows<IllegalArgumentException> {
-            customConfigureLambdas.produceNoopConfigureLambda(typeOf<Runnable>())
+            customConfigureLambdas.produceValueCaptor(typeOf<Runnable>())
         }
     }
 }

@@ -23,6 +23,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.Restricted
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.MemberFunctionResolver
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.ReflectionRuntimePropertyResolver
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RestrictedReflectionToObjectConverter
+import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RuntimeCustomAccessors
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.plus
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.schemaFromTypes
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.treatInterfaceAsConfigureLambda
@@ -63,7 +64,9 @@ class CustomLambdasTest {
         val reflection = schema.reflect(code)
 
         val outer = Outer()
-        val converter = RestrictedReflectionToObjectConverter(emptyMap(), outer, MemberFunctionResolver(functionalLambdaHandler), ReflectionRuntimePropertyResolver)
+        val converter = RestrictedReflectionToObjectConverter(
+            emptyMap(), outer, MemberFunctionResolver(functionalLambdaHandler), ReflectionRuntimePropertyResolver, RuntimeCustomAccessors.none
+        )
         converter.apply(reflection)
 
         return outer

@@ -108,7 +108,10 @@ class DefaultFunctionExtractor(
         val params = fnParams
             .filterIndexed { index, it ->
                 it != function.instanceParameter && run {
-                    index != fnParams.lastIndex || !configureLambdas.isConfigureLambdaForType(maybeConfigureType ?: function.returnType, it.type)
+                    // is value parameter, not a configuring block:
+                    val isNotLastParameter = index != fnParams.lastIndex
+                    val isNotConfigureLambda = configureLambdas.getTypeConfiguredByLambda(it.type)?.let { it.toDataTypeRefOrError() != maybeConfigureTypeRef } ?: true
+                    isNotLastParameter || isNotConfigureLambda
                 }
             }
             .map { fnParam -> dataParameter(function, fnParam, returnClass, semanticsFromSignature, preIndex) }
@@ -159,7 +162,7 @@ class DefaultFunctionExtractor(
 
         val fnParams = function.parameters
         val params = fnParams.filterIndexed { index, _ ->
-            index != fnParams.lastIndex || !configureLambdas.isConfigureLambda(returnTypeClassifier)
+            index != fnParams.lastIndex || configureLambdas.getTypeConfiguredByLambda(returnTypeClassifier) == null
         }.map { dataParameter(function, it, function.returnType.toKClass(), semanticsFromSignature, preIndex) }
 
         return DataTopLevelFunction(
