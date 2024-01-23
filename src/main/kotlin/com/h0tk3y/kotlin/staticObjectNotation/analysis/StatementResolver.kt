@@ -59,7 +59,7 @@ class StatementResolverImpl(
         } else {
             var hasErrors = false
             if (lhsResolution.property.isReadOnly) {
-                errorCollector.collect(ResolutionError(assignment, ErrorReason.ReadOnlyPropertyAssignment))
+                errorCollector.collect(ResolutionError(assignment, ErrorReason.ReadOnlyPropertyAssignment(lhsResolution.property)))
                 hasErrors = true
             }
             val rhsResolution = expressionResolver.doResolveExpression(this, assignment.rhs)

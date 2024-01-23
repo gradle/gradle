@@ -39,6 +39,5 @@ sealed interface ErrorReason {
     data object UnresolvedAssignmentLhs : ErrorReason // TODO: report candidate with rejection reasons
     data object UnresolvedAssignmentRhs : ErrorReason // TODO: resolution trace here, too?
     data object UnitAssignment : ErrorReason
-    data object ReadOnlyPropertyAssignment : ErrorReason
     data object DanglingPureExpression : ErrorReason
 }
