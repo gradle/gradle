@@ -105,6 +105,10 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
     }
 
     @Override
+    public void afterBuildFinished(int maximumNumberOfWatchedHierarchies) {
+    }
+
+    @Override
     public boolean isWatchingAnyLocations() {
         return false;
     }

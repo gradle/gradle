@@ -139,14 +139,16 @@ public class DaemonServices extends DefaultServiceRegistry {
     protected ImmutableList<DaemonCommandAction> createDaemonCommandActions(DaemonContext daemonContext, ProcessEnvironment processEnvironment, DaemonHealthStats healthStats, DaemonHealthCheck healthCheck, BuildExecuter buildActionExecuter, DaemonRunningStats runningStats) {
         File daemonLog = getDaemonLogFile();
         DaemonDiagnostics daemonDiagnostics = new DaemonDiagnostics(daemonLog, daemonContext.getPid());
+        GradleUserHomeScopeServiceRegistry gradleUserHomeScopeServiceRegistry = get(GradleUserHomeScopeServiceRegistry.class);
         return ImmutableList.of(
             new HandleStop(get(ListenerManager.class)),
-            new HandleInvalidateVirtualFileSystem(get(GradleUserHomeScopeServiceRegistry.class)),
+            new HandleInvalidateVirtualFileSystem(gradleUserHomeScopeServiceRegistry),
             new HandleCancel(),
+            new EstablishBuildEnvironment(processEnvironment),
+            new CleanUpVirtualFileSystemAfterBuild(gradleUserHomeScopeServiceRegistry),
             new HandleReportStatus(),
             new ReturnResult(),
             new StartBuildOrRespondWithBusy(daemonDiagnostics), // from this point down, the daemon is 'busy'
-            new EstablishBuildEnvironment(processEnvironment),
             new LogToClient(loggingManager, daemonDiagnostics), // from this point down, logging is sent back to the client
             new LogAndCheckHealth(healthStats, healthCheck, runningStats),
             new ForwardClientInput(),

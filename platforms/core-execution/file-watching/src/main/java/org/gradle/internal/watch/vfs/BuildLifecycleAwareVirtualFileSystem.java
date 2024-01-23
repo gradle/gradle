@@ -25,7 +25,7 @@ import org.gradle.internal.watch.registry.WatchMode;
 import java.io.File;
 
 /**
- * Controls the lifecycle and book-keeping for file system watching.
+ * Controls the lifecycle and bookkeeping for file system watching.
  */
 @ServiceScope(Scopes.UserHome.class)
 public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem, FileSystemWatchingInformation {
@@ -50,7 +50,16 @@ public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem,
 
     /**
      * Called when the build is finished.
+     *
+     * This operation happens in the context of executing the build from the client's perspective.
      */
     void beforeBuildFinished(WatchMode watchMode, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner, int maximumNumberOfWatchedHierarchies);
 
+    /**
+     * Called after the build is finished.
+     *
+     * This operation is happening outside the build's execution from the client's perspective,
+     * after the result of the build has already been reported to the client.
+     */
+    void afterBuildFinished(int maximumNumberOfWatchedHierarchies);
 }

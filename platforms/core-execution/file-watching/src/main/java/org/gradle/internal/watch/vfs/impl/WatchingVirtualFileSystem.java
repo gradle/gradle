@@ -244,13 +244,15 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                         if (hasDroppedStateBecauseOfErrorsReceivedWhileWatching(statistics)) {
                             newRoot = stopWatchingAndInvalidateHierarchyAfterError(currentRoot);
                         } else {
-                            newRoot = withWatcherChangeErrorHandling(currentRoot, () -> watchRegistry.updateVfsOnBuildFinished(currentRoot, maximumNumberOfWatchedHierarchies, unsupportedFileSystems));
+                            // We'll clean this up further after the daemon has finished with the build, see afterBuildFinished()
+                            newRoot = currentRoot;
                         }
                         statisticsDuringBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                         if (vfsLogging == VfsLogging.VERBOSE) {
                             LOGGER.warn("Received {} file system events during the current build while watching {} locations",
                                 statisticsDuringBuild.getNumberOfReceivedEvents(),
                                 statisticsDuringBuild.getNumberOfWatchedHierarchies());
+                            // TODO These numbers are not accurate anymore, as we don't clean up the VFS until after the build is finished
                             LOGGER.warn("Virtual file system retains information about {} files, {} directories and {} missing files until next build",
                                 statisticsDuringBuild.getRetainedRegularFiles(),
                                 statisticsDuringBuild.getRetainedDirectories(),
@@ -300,6 +302,14 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         }));
         // Log problems to daemon log
         warningLogger = LOGGER;
+    }
+
+    @Override
+    public void afterBuildFinished(int maximumNumberOfWatchedHierarchies) {
+        // TODO Wrap in build operation
+        updateRootUnderLock(currentRoot ->
+            withWatcherChangeErrorHandling(currentRoot, () ->
+                watchRegistry.updateVfsOnBuildFinished(currentRoot, maximumNumberOfWatchedHierarchies, unsupportedFileSystems)));
     }
 
     /**
