@@ -105,7 +105,7 @@ class RestrictedDslNotEvaluatedException(
         is ErrorReason.DuplicateLocalValue -> "duplicate local 'val ${errorReason.name}'"
         is ErrorReason.ExternalReassignment -> "assignment to external property"
         ErrorReason.MissingConfigureLambda -> "a configuring block expected but not found"
-        ErrorReason.ReadOnlyPropertyAssignment -> "read-only property assignment"
+        is ErrorReason.ReadOnlyPropertyAssignment -> "assignment to read-only property '${errorReason.property.name}"
         ErrorReason.UnitAssignment -> "assignment of a Unit value"
         ErrorReason.UnresolvedAssignmentLhs -> "unresolved assignment target"
         ErrorReason.UnresolvedAssignmentRhs -> "unresolved assigned value"
