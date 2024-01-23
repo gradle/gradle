@@ -38,6 +38,7 @@ import kotlin.reflect.KParameter
 import kotlin.reflect.KType
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.instanceParameter
+import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.jvm.javaMethod
 import kotlin.reflect.typeOf
@@ -244,24 +245,26 @@ class DefaultFunctionExtractor(
 
                 val annotation = function.annotations.filterIsInstance<Configuring>().singleOrNull()
                 check(annotation != null)
-                val propertyName = annotation.propertyName.ifEmpty { function.name }
-                val kProperty = preIndex.getProperty(inType, propertyName)
-                val originalType = preIndex.getPropertyType(inType, propertyName)
-                check(kProperty != null)
-                check(originalType != null)
+                val annotationPropertyName = annotation.propertyName
+                val propertyName = annotationPropertyName.ifEmpty { function.name }
+
+                val configuredType = configureLambdas.getTypeConfiguredByLambda(function.parameters.last().type)
+                check(configuredType != null) { "a @Configuring function must accept a configuring lambda" }
+
+                val propertyType = preIndex.getPropertyType(inType, propertyName)
+                check(propertyType == null || propertyType.isSubtypeOf(configuredType)) { "configure lambda type is inconsistent with property type" }
+
                 val property = preIndex.getProperty(inType, propertyName)
-                check(property != null)
+                check(annotationPropertyName.isEmpty() || propertyType != null) { "a property name '$annotationPropertyName' is specified for @Configuring function but no such property was found" }
 
-                val hasConfigureLambda =
-                    configureLambdas.isConfigureLambdaForType(originalType, function.parameters.last().type)
-
-                check(hasConfigureLambda)
                 val returnType = when (function.returnType) {
                     typeOf<Unit>() -> FunctionSemantics.AccessAndConfigure.ReturnType.UNIT
-                    originalType -> FunctionSemantics.AccessAndConfigure.ReturnType.CONFIGURED_OBJECT
+                    propertyType, configuredType -> FunctionSemantics.AccessAndConfigure.ReturnType.CONFIGURED_OBJECT
                     else -> error("cannot infer the return type of a configuring function; it must be Unit or the configured object type")
                 }
-                FunctionSemantics.AccessAndConfigure(ConfigureAccessor.Property(inType.toDataTypeRef(), property), returnType)
+                check(function.parameters.filter { it != function.instanceParameter }.size == 1) { "a configuring function may not accept any other parameters" }
+                val accessor = if (property != null) ConfigureAccessor.Property(property) else ConfigureAccessor.ConfiguringLambdaArgument(configuredType.toDataTypeRefOrError())
+                FunctionSemantics.AccessAndConfigure(accessor, returnType)
             }
 
             else -> FunctionSemantics.Pure(returnTypeClassifier.toDataTypeRefOrError())
