@@ -20,6 +20,9 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.buildoption.DefaultInternalOptions;
 import org.gradle.internal.buildoption.InternalOptions;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.VirtualFileSystemServices;
 import org.gradle.internal.vfs.VirtualFileSystem;
@@ -31,8 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Asynchronously cleans up the VFS after a build.
@@ -41,44 +42,61 @@ import java.util.concurrent.Executors;
  * However, the next build is not allowed to start until the cleanup is finished.
  */
 @NonNullApi
-public class CleanUpVirtualFileSystemAfterBuild extends BuildCommandOnly {
+public class CleanUpVirtualFileSystemAfterBuild extends BuildCommandOnly implements Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(CleanUpVirtualFileSystemAfterBuild.class);
-    private final GradleUserHomeScopeServiceRegistry gradleUserHomeScopeServiceRegistry;
 
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final GradleUserHomeScopeServiceRegistry userHomeServiceRegistry;
+    private final ManagedExecutor executor;
+
     private CompletableFuture<Void> pendingCleanup = CompletableFuture.completedFuture(null);
 
-    public CleanUpVirtualFileSystemAfterBuild(GradleUserHomeScopeServiceRegistry gradleUserHomeScopeServiceRegistry) {
-        this.gradleUserHomeScopeServiceRegistry = gradleUserHomeScopeServiceRegistry;
+    public CleanUpVirtualFileSystemAfterBuild(ExecutorFactory executorFactory, GradleUserHomeScopeServiceRegistry userHomeServiceRegistry) {
+        this.executor = executorFactory.create("VFS cleanup");
+        this.userHomeServiceRegistry = userHomeServiceRegistry;
     }
 
     @Override
     protected void doBuild(DaemonCommandExecution execution, Build build) {
-        // Ensure that the cleanup is finished before we start the next build
-        try {
-            pendingCleanup.get();
-        } catch (InterruptedException | ExecutionException e) {
-            LOGGER.error("Couldn't clean up VFS between builds, dropping content", e);
-            gradleUserHomeScopeServiceRegistry.getCurrentServices().ifPresent(serviceRegistry -> {
-                VirtualFileSystem virtualFileSystem = serviceRegistry.get(VirtualFileSystem.class);
-                virtualFileSystem.invalidateAll();
-            });
-        }
-
+        waitForPendingCleanupToFinish();
         try {
             execution.proceed();
         } finally {
-            gradleUserHomeScopeServiceRegistry.getCurrentServices().ifPresent(serviceRegistry -> {
-                pendingCleanup = CompletableFuture.runAsync(() -> {
-                    StartParameterInternal startParameter = build.getAction().getStartParameter();
-                    InternalOptions options = new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
-                    int maximumNumberOfWatchedHierarchies = VirtualFileSystemServices.getMaximumNumberOfWatchedHierarchies(options);
-
-                    LOGGER.debug("Cleaning virtual file system after build finished");
-                    BuildLifecycleAwareVirtualFileSystem virtualFileSystem = serviceRegistry.get(BuildLifecycleAwareVirtualFileSystem.class);
-                    virtualFileSystem.afterBuildFinished(maximumNumberOfWatchedHierarchies);
-                }, executor);
-            });
+            startAsyncCleanupAfterBuild(build);
         }
+    }
+
+    private void startAsyncCleanupAfterBuild(Build build) {
+        userHomeServiceRegistry.getCurrentServices().ifPresent(serviceRegistry ->
+            pendingCleanup = CompletableFuture.runAsync(() -> {
+                LOGGER.debug("Cleaning virtual file system after build finished");
+
+                StartParameterInternal startParameter = build.getAction().getStartParameter();
+                InternalOptions options = new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
+                int maximumNumberOfWatchedHierarchies = VirtualFileSystemServices.getMaximumNumberOfWatchedHierarchies(options);
+
+                BuildLifecycleAwareVirtualFileSystem virtualFileSystem = serviceRegistry.get(BuildLifecycleAwareVirtualFileSystem.class);
+                virtualFileSystem.afterBuildFinished(maximumNumberOfWatchedHierarchies);
+            }, executor));
+    }
+
+    private void waitForPendingCleanupToFinish() {
+        if (!pendingCleanup.isDone()) {
+            LOGGER.debug("Waiting for pending virtual file system cleanup to be finished");
+            try {
+                pendingCleanup.get();
+            } catch (InterruptedException | ExecutionException e) {
+                LOGGER.error("Couldn't clean up VFS between builds, dropping content", e);
+                userHomeServiceRegistry.getCurrentServices().ifPresent(serviceRegistry -> {
+                    VirtualFileSystem virtualFileSystem = serviceRegistry.get(VirtualFileSystem.class);
+                    virtualFileSystem.invalidateAll();
+                });
+            }
+        }
+    }
+
+    @Override
+    public void stop() {
+        // If we are shutting down, it's not important to finish cleaning the VFS
+        executor.shutdownNow();
     }
 }

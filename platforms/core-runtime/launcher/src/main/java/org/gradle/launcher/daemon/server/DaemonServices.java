@@ -137,7 +137,20 @@ public class DaemonServices extends DefaultServiceRegistry {
         return GarbageCollectorMonitoringStrategy.determineGcStrategy();
     }
 
-    protected ImmutableList<DaemonCommandAction> createDaemonCommandActions(DaemonContext daemonContext, ProcessEnvironment processEnvironment, DaemonHealthStats healthStats, DaemonHealthCheck healthCheck, BuildExecuter buildActionExecuter, DaemonRunningStats runningStats) {
+    protected CleanUpVirtualFileSystemAfterBuild createCleanUpVirtualFileSystemAfterBuild(ExecutorFactory executorFactory, GradleUserHomeScopeServiceRegistry userHomeServiceRegistry) {
+        return new CleanUpVirtualFileSystemAfterBuild(executorFactory, userHomeServiceRegistry);
+    }
+
+    protected ImmutableList<DaemonCommandAction> createDaemonCommandActions(
+        BuildExecuter buildActionExecuter,
+        DaemonContext daemonContext,
+        DaemonHealthCheck healthCheck,
+        DaemonHealthStats healthStats,
+        DaemonRunningStats runningStats,
+        ProcessEnvironment processEnvironment,
+
+        CleanUpVirtualFileSystemAfterBuild cleanUpVirtualFileSystemAfterBuild
+    ) {
         File daemonLog = getDaemonLogFile();
         DaemonDiagnostics daemonDiagnostics = new DaemonDiagnostics(daemonLog, daemonContext.getPid());
         GradleUserHomeScopeServiceRegistry gradleUserHomeScopeServiceRegistry = get(GradleUserHomeScopeServiceRegistry.class);
@@ -146,7 +159,7 @@ public class DaemonServices extends DefaultServiceRegistry {
             new HandleInvalidateVirtualFileSystem(gradleUserHomeScopeServiceRegistry),
             new HandleCancel(),
             new EstablishBuildEnvironment(processEnvironment),
-            new CleanUpVirtualFileSystemAfterBuild(gradleUserHomeScopeServiceRegistry),
+            cleanUpVirtualFileSystemAfterBuild,
             new HandleReportStatus(),
             new ReturnResult(),
             new StartBuildOrRespondWithBusy(daemonDiagnostics), // from this point down, the daemon is 'busy'
@@ -158,7 +171,6 @@ public class DaemonServices extends DefaultServiceRegistry {
             new WatchForDisconnection(),
             new ExecuteBuild(buildActionExecuter, runningStats)
         );
-
     }
 
     Serializer<BuildAction> createBuildActionSerializer() {
