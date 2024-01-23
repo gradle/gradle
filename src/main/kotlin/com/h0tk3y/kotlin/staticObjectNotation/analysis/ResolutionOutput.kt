@@ -127,11 +127,13 @@ sealed interface ObjectOrigin {
         override val originElement: FunctionCall,
         override val invocationId: Long,
         val accessor: ConfigureAccessor,
-    ) : FunctionOrigin, ReceiverOrigin, DelegatingObjectOrigin {
-        override fun toString(): String = accessor.access(receiver).toString()
+    ) : FunctionInvocationOrigin, ReceiverOrigin, DelegatingObjectOrigin {
+        override fun toString(): String = accessor.access(receiver, this).toString()
+
+        override val parameterBindings: ParameterValueBinding = ParameterValueBinding(emptyMap())
 
         override val delegate: ObjectOrigin
-            get() = accessor.access(receiver)
+            get() = accessor.access(receiver, this)
     }
 
     data class AddAndConfigureReceiver(
@@ -147,18 +149,46 @@ sealed interface ObjectOrigin {
     }
 
     data class PropertyReference(
-        val receiver: ObjectOrigin,
+        override val receiver: ObjectOrigin,
         val property: DataProperty,
         override val originElement: LanguageTreeElement
-    ) : ObjectOrigin {
+    ) : ObjectOrigin, HasReceiver {
         override fun toString(): String = "$receiver${'.'}${property.name}"
     }
 
+    data class CustomConfigureAccessor(
+        override val receiver: ObjectOrigin,
+        val accessor: ConfigureAccessor.Custom,
+        override val originElement: LanguageTreeElement
+    ) : ObjectOrigin, HasReceiver {
+        override fun toString(): String = "$receiver${'.'}${accessor.customAccessorIdentifier}"
+        val accessedType: DataTypeRef get() = accessor.objectType
+    }
+
+    data class ConfiguringLambdaReceiver(
+        override val function: SchemaFunction,
+        override val parameterBindings: ParameterValueBinding,
+        override val invocationId: Long,
+        val lambdaReceiverType: DataTypeRef,
+        override val originElement: LanguageTreeElement,
+        override val receiver: ObjectOrigin,
+    ) : FunctionInvocationOrigin, HasReceiver, ReceiverOrigin {
+        init {
+            val semantics = function.semantics
+            require(semantics is FunctionSemantics.AccessAndConfigure && semantics.accessor is ConfigureAccessor.ConfiguringLambdaArgument)
+        }
+
+        override fun toString(): String {
+            val functionInvocationString = functionInvocationString(function, receiver, invocationId, parameterBindings)
+            return "$functionInvocationString{}-receiver"
+        }
+    }
+
     data class PropertyDefaultValue(
-        val receiver: ObjectOrigin,
+        override val receiver: ObjectOrigin,
         val property: DataProperty,
         override val originElement: LanguageTreeElement
-    ) : ObjectOrigin {
+    ) : ObjectOrigin, HasReceiver {
         override fun toString(): String = "$receiver${'.'}${property.name}_default"
 
         override fun equals(other: Any?): Boolean {

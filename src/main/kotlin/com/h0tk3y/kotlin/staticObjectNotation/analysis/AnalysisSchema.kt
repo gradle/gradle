@@ -113,15 +113,7 @@ data class DataMemberFunction(
     override val parameters: List<DataParameter>,
     override val isDirectAccessOnly: Boolean,
     override val semantics: FunctionSemantics,
-) : SchemaMemberFunction {
-    init {
-        if (semantics is FunctionSemantics.AccessAndConfigure) {
-            if (semantics.accessor is ConfigureAccessor.Property) {
-                require(semantics.accessor.receiver == receiver)
-            }
-        }
-    }
-}
+) : SchemaMemberFunction
 
 @Serializable
 data class DataConstructor(
@@ -212,14 +204,27 @@ sealed interface FunctionSemantics {
 sealed interface ConfigureAccessor {
     val objectType: DataTypeRef
 
-    fun access(objectOrigin: ObjectOrigin): ObjectOrigin
+    fun access(objectOrigin: ObjectOrigin, inFunction: ObjectOrigin.AccessAndConfigureReceiver): ObjectOrigin
 
     @Serializable
-    data class Property(val receiver: DataTypeRef, val dataProperty: DataProperty) : ConfigureAccessor {
+    data class Property(val dataProperty: DataProperty) : ConfigureAccessor {
         override val objectType: DataTypeRef
             get() = dataProperty.type
 
-        override fun access(objectOrigin: ObjectOrigin): ObjectOrigin = ObjectOrigin.PropertyReference(objectOrigin, dataProperty, objectOrigin.originElement)
+        override fun access(objectOrigin: ObjectOrigin, inFunction: ObjectOrigin.AccessAndConfigureReceiver): ObjectOrigin =
+            ObjectOrigin.PropertyReference(objectOrigin, dataProperty, objectOrigin.originElement)
+    }
+
+    @Serializable
+    data class Custom(override val objectType: DataTypeRef, val customAccessorIdentifier: String) : ConfigureAccessor {
+        override fun access(objectOrigin: ObjectOrigin, inFunction: ObjectOrigin.AccessAndConfigureReceiver): ObjectOrigin =
+            ObjectOrigin.CustomConfigureAccessor(objectOrigin, this, objectOrigin.originElement)
+    }
+
+    @Serializable
+    data class ConfiguringLambdaArgument(override val objectType: DataTypeRef) : ConfigureAccessor {
+        override fun access(objectOrigin: ObjectOrigin, inFunction: ObjectOrigin.AccessAndConfigureReceiver): ObjectOrigin =
+            ObjectOrigin.ConfiguringLambdaReceiver(inFunction.function, inFunction.parameterBindings, inFunction.invocationId, objectType, inFunction.originElement, inFunction.receiver)
     }
 
     // TODO: configure all elements by addition key?

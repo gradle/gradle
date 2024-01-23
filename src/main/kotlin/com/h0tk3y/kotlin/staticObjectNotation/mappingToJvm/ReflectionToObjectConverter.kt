@@ -6,6 +6,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataProperty
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ExternalObjectProviderKey
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ObjectOrigin
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterValueBinding
+import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RestrictedReflectionToObjectConverter.ConversionFilter
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.ObjectReflection
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.PropertyValueReflection
 
@@ -14,6 +15,7 @@ class RestrictedReflectionToObjectConverter(
     private val topLevelObject: Any,
     private val functionResolver: RuntimeFunctionResolver,
     private val propertyResolver: RuntimePropertyResolver,
+    private val customAccessors: RuntimeCustomAccessors
 ) {
     fun interface ConversionFilter {
         fun filterProperties(dataObjectReflection: ObjectReflection.DataObjectReflection): Iterable<DataProperty>
@@ -38,6 +40,16 @@ class RestrictedReflectionToObjectConverter(
                 getObjectByResolvedOrigin(addedObject.objectOrigin)
                 apply(addedObject, conversionFilter)
                 // TODO: maybe add the "containers" to the schema, so that added objects can be better expressed in this interpretation step
+            }
+
+            objectReflection.customAccessorObjects.forEach { customAccessor ->
+                getObjectByResolvedOrigin(customAccessor.objectOrigin) ?: error("could not get object by custom accessor ${customAccessor.objectOrigin}")
+                apply(customAccessor, conversionFilter)
+            }
+
+            objectReflection.lambdaAccessedObjects.forEach { lambdaAccessedObject ->
+                getObjectByResolvedOrigin(lambdaAccessedObject.objectOrigin) ?: error("could not get object from lambda passed to ${lambdaAccessedObject.objectOrigin}")
+                apply(lambdaAccessedObject, conversionFilter)
             }
         }
     }
@@ -77,6 +89,10 @@ class RestrictedReflectionToObjectConverter(
             is ObjectOrigin.PropertyDefaultValue -> getPropertyValue(objectOrigin.receiver, objectOrigin.property)
             is ObjectOrigin.PropertyReference -> getPropertyValue(objectOrigin.receiver, objectOrigin.property)
             is ObjectOrigin.TopLevelReceiver -> topLevelObject
+            is ObjectOrigin.ConfiguringLambdaReceiver -> objectFromConfiguringLambda(objectOrigin)
+            is ObjectOrigin.CustomConfigureAccessor -> customAccessors.getObjectFromCustomAccessor(
+                getObjectByResolvedOrigin(objectOrigin.receiver) ?: error("receiver for custom accessor is null"), objectOrigin.accessor
+            )
         }
     }
 
@@ -87,6 +103,15 @@ class RestrictedReflectionToObjectConverter(
         val receiverInstance = getObjectByResolvedOrigin(origin.receiver)
             ?: error("Tried to invoke a function $dataFun on a null receiver ${origin.receiver}")
 
+        val callResult = invokeFunctionAndGetResult(receiverInstance, origin)
+        return callResult.result
+    }
+
+    private fun invokeFunctionAndGetResult(
+        receiverInstance: Any,
+        origin: ObjectOrigin.FunctionInvocationOrigin
+    ): RestrictedRuntimeFunction.InvocationResult {
+        val dataFun = origin.function
         val receiverKClass = receiverInstance::class
         return when (val runtimeFunction = functionResolver.resolve(receiverKClass, dataFun.simpleName, origin.parameterBindings)) {
             is RuntimeFunctionResolver.Resolution.Resolved -> {

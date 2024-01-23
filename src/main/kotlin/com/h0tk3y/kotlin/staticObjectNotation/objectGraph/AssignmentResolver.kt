@@ -126,22 +126,29 @@ class AssignmentResolver {
                 }
             }
 
-            is ObjectOrigin.NewObjectFromMemberFunction -> {
-                val receiver = objectOrigin.receiver
-                when (val receiverResolutionResult = resolveToObjectOrPropertyReference(receiver)) {
-                    is UnresolvedReceiver -> receiverResolutionResult
-                    is Ok -> Ok(objectOrigin.copy(receiver = receiverResolutionResult.objectOrigin))
-                }
-            }
+            is ObjectOrigin.NewObjectFromMemberFunction -> withResolvedReceiver(objectOrigin) { objectOrigin.copy(receiver = it) }
+            is ObjectOrigin.CustomConfigureAccessor -> withResolvedReceiver(objectOrigin) { objectOrigin.copy(receiver = it) }
+            is ObjectOrigin.ConfiguringLambdaReceiver -> withResolvedReceiver(objectOrigin) { objectOrigin.copy(receiver = it) }
 
-            is ObjectOrigin.NewObjectFromTopLevelFunction -> Ok(objectOrigin)
-
+            is ObjectOrigin.NewObjectFromTopLevelFunction,
             is ObjectOrigin.ConstantOrigin,
             is ObjectOrigin.External,
             is ObjectOrigin.NullObjectOrigin,
             is ObjectOrigin.PropertyDefaultValue, // TODO: is it so?
             is ObjectOrigin.TopLevelReceiver -> Ok(objectOrigin)
         }
+
+    private fun withResolved(other: ObjectOrigin, ifResolved: (receiver: ObjectOrigin) -> ObjectOrigin): ExpressionResolutionProgress {
+        return when (val receiverResolutionResult = resolveToObjectOrPropertyReference(other)) {
+            is UnresolvedReceiver -> receiverResolutionResult
+            is Ok -> Ok(ifResolved(receiverResolutionResult.objectOrigin))
+        }
+    }
+
+    private fun withResolvedReceiver(objectOrigin: ObjectOrigin.HasReceiver, ifReceiverResolved: (receiver: ObjectOrigin) -> ObjectOrigin): ExpressionResolutionProgress {
+        val receiver = objectOrigin.receiver
+        return withResolved(receiver, ifReceiverResolved)
+    }
 
     sealed interface ResolutionNode {
         data class Property(val propertyReferenceResolution: PropertyReferenceResolution) : ResolutionNode

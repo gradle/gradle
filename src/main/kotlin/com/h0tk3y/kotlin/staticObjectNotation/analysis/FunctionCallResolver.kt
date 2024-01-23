@@ -260,11 +260,10 @@ class FunctionCallResolverImpl(
         function: FunctionResolutionAndBinding,
         functionCall: FunctionCall,
         newFunctionCallId: Long
-    ) = when (val accessor = semantics.accessor) {
-        is ConfigureAccessor.Property -> {
-            require(function.receiver != null)
-            ObjectOrigin.AccessAndConfigureReceiver(function.receiver, function.schemaFunction, functionCall, newFunctionCallId, accessor)
-        }
+    ): ObjectOrigin.AccessAndConfigureReceiver {
+        require(function.receiver != null)
+        require(functionCall.args.all { it is FunctionArgument.Lambda })
+        return ObjectOrigin.AccessAndConfigureReceiver(function.receiver, function.schemaFunction, functionCall, newFunctionCallId, semantics.accessor)
     }
 
     private fun preFilterSignatures(

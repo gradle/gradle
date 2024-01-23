@@ -35,6 +35,8 @@ internal fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataType = 
     is ObjectOrigin.PropertyDefaultValue -> resolveRef(objectOrigin.property.type)
     is ObjectOrigin.TopLevelReceiver -> objectOrigin.type
     is ObjectOrigin.NullObjectOrigin -> DataType.NullType
+    is ObjectOrigin.CustomConfigureAccessor -> resolveRef(objectOrigin.accessedType)
+    is ObjectOrigin.ConfiguringLambdaReceiver -> resolveRef(objectOrigin.lambdaReceiverType)
 }
 
 internal fun AnalysisContext.checkAccessOnCurrentReceiver(

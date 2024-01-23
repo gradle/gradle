@@ -122,6 +122,7 @@ class StatementResolverImpl(
             is ObjectOrigin.PropertyReference -> true
             is ObjectOrigin.TopLevelReceiver -> true
             is ObjectOrigin.PropertyDefaultValue -> true
+            is ObjectOrigin.CustomConfigureAccessor -> true
         }
 
         return when {

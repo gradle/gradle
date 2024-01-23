@@ -15,7 +15,9 @@ sealed interface ObjectReflection {
         override val type: DataType.DataClass,
         override val objectOrigin: ObjectOrigin,
         val properties: Map<DataProperty, PropertyValueReflection>,
-        val addedObjects: List<ObjectReflection>
+        val addedObjects: List<ObjectReflection>,
+        val customAccessorObjects: List<ObjectReflection>,
+        val lambdaAccessedObjects: List<ObjectReflection>
     ) : ObjectReflection
 
     data class ConstantValue(
@@ -79,6 +81,8 @@ fun reflect(
 
         is ObjectOrigin.TopLevelReceiver -> reflectData(0, type as DataType.DataClass, objectOrigin, context)
 
+        is ObjectOrigin.ConfiguringLambdaReceiver -> reflectData(0, type as DataType.DataClass, objectOrigin, context)
+
         is ObjectOrigin.PropertyDefaultValue -> reflectDefaultValue(objectOrigin, context)
         is ObjectOrigin.FunctionInvocationOrigin -> context.functionCall(objectOrigin.invocationId) {
             when (objectOrigin.function.semantics) {
@@ -101,14 +105,19 @@ fun reflect(
                     objectOrigin.parameterBindings.bindingMap.mapValues { reflect(it.value, context) }
                 )
 
-                is FunctionSemantics.AccessAndConfigure,
+                is FunctionSemantics.AccessAndConfigure -> {
+                    when (objectOrigin) {
+                        is ObjectOrigin.AccessAndConfigureReceiver -> reflect(objectOrigin.delegate, context)
+                        else -> error("unexpected origin type")
+                    }
+                }
                 is FunctionSemantics.Builder -> error("can't appear here")
             }
         }
 
-        is ObjectOrigin.AccessAndConfigureReceiver,
         is ObjectOrigin.PropertyReference,
         is ObjectOrigin.FromLocalValue -> error("value origin needed")
+        is ObjectOrigin.CustomConfigureAccessor -> reflectData(0, type as DataType.DataClass, objectOrigin, context)
 
         is ObjectOrigin.ImplicitThisReceiver -> reflect(objectOrigin.resolvedTo, context)
         is ObjectOrigin.AddAndConfigureReceiver -> reflect(objectOrigin.receiver, context)
@@ -127,13 +136,6 @@ fun reflectDefaultValue(
     }
 }
 
-fun defaultConstantValue(type: DataType.ConstantType<*>) = when (type) {
-    DataType.BooleanDataType -> false
-    DataType.IntDataType -> 0
-    DataType.LongDataType -> 0L
-    DataType.StringDataType -> ""
-}
-
 fun reflectData(
     identity: Long,
     type: DataType.DataClass,
@@ -150,7 +152,15 @@ fun reflectData(
         }
     }.toMap()
     val added = context.additionsByResolvedContainer[objectOrigin].orEmpty().map { reflect(it, context) }
-    return ObjectReflection.DataObjectReflection(identity, type, objectOrigin, propertiesWithValue, added)
+    val customAccessors = context.customAccessorsUsedByReceiver[objectOrigin].orEmpty()
+    val lambdaReceiversAccessed = context.lambdaAccessorsUsedByReceiver[objectOrigin].orEmpty()
+    return ObjectReflection.DataObjectReflection(
+        identity, type, objectOrigin,
+        properties = propertiesWithValue,
+        addedObjects = added,
+        customAccessorObjects = customAccessors.map { reflect(it, context) },
+        lambdaAccessedObjects = lambdaReceiversAccessed.map { reflect(it, context) }
+    )
 }
 
 fun ReflectionContext.resolveAssignment(
@@ -170,6 +180,22 @@ class ReflectionContext(
             DataAddition(resolvedContainer.objectOrigin, obj.objectOrigin)
         } else null
     }.groupBy({ it.container }, valueTransform = { it.dataObject })
+
+    private val allReceiversResolved = (resolutionResult.additions.map { it.container } + resolutionResult.assignments.map { it.lhs.receiverObject })
+        .map(trace.resolver::resolveToObjectOrPropertyReference)
+        .filterIsInstance<Ok>()
+        .map { it.objectOrigin }
+        .flatMap { origin -> generateSequence(origin) { (it as? ObjectOrigin.HasReceiver)?.receiver } }
+
+    val customAccessorsUsedByReceiver: Map<ObjectOrigin, List<ObjectOrigin.CustomConfigureAccessor>> = run {
+        allReceiversResolved.mapNotNull { (it as? ObjectOrigin.CustomConfigureAccessor)?.let { custom -> custom.receiver to custom } }
+            .groupBy(keySelector = { it.first }, valueTransform = { it.second }).mapValues { it.value.distinct() }
+    }
+
+    val lambdaAccessorsUsedByReceiver: Map<ObjectOrigin, List<ObjectOrigin.ConfiguringLambdaReceiver>> = run {
+        allReceiversResolved.mapNotNull { (it as? ObjectOrigin.ConfiguringLambdaReceiver)?.let { access -> access.receiver to access } }
+            .groupBy(keySelector = { it.first }, valueTransform = { it.second }).mapValues { it.value.distinct() }
+    }
 
     fun functionCall(callId: Long, resolveIfNotResolved: () -> ObjectReflection) =
         functionCallResults.getOrPut(callId, resolveIfNotResolved)

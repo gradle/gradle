@@ -101,10 +101,10 @@ class DefaultFunctionExtractor(
         val fnParams = function.parameters
 
         val semanticsFromSignature = inferFunctionSemanticsFromSignature(function, function.returnType, inType, preIndex, configureLambdas)
-        val maybeConfigureType = if (semanticsFromSignature is FunctionSemantics.AccessAndConfigure) {
-            function.annotations.filterIsInstance<Configuring>().singleOrNull()?.propertyName?.let { preIndex.getPropertyType(inType, it) }
-                ?: preIndex.getPropertyType(inType, function.name)
-        } else null
+        val maybeConfigureTypeRef = when (semanticsFromSignature) { // there is not necessarily a lambda parameter of this type: it might by an adding function with no lambda
+            is FunctionSemantics.ConfigureSemantics -> semanticsFromSignature.configuredType
+            else -> null
+        }
 
         val params = fnParams
             .filterIndexed { index, it ->
