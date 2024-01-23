@@ -52,6 +52,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyGraphBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
@@ -179,6 +180,7 @@ class DependencyManagementBuildScopeServices {
         registration.add(FileResourceConnector.class);
         registration.add(DependencyGraphResolver.class);
         registration.add(ResolvedArtifactSetResolver.class);
+        registration.add(DependencyGraphBuilder.class);
     }
 
     DependencyResolutionManagementInternal createSharedDependencyResolutionServices(
