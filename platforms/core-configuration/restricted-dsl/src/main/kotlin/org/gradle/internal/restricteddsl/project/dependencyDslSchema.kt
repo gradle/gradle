@@ -62,9 +62,9 @@ class DependencyDslTypeDiscovery : TypeDiscovery {
 
 internal
 class DependencyDslAccessorsProducer : PropertyExtractor {
-    override fun extractProperties(kClass: KClass<*>): Iterable<CollectedPropertyInformation> =
+    override fun extractProperties(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> =
         if (kClass.isGeneratedAccessors()) {
-            dependencyGetters.extractProperties(kClass)
+            dependencyGetters.extractProperties(kClass, propertyNamePredicate)
         } else emptyList()
 }
 

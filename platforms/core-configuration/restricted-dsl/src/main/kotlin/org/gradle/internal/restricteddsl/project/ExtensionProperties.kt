@@ -23,5 +23,6 @@ import kotlin.reflect.KClass
 
 internal
 class ExtensionProperties(private val extensionPropertiesByClass: Map<KClass<*>, Iterable<CollectedPropertyInformation>>) : PropertyExtractor {
-    override fun extractProperties(kClass: KClass<*>): Iterable<CollectedPropertyInformation> = extensionPropertiesByClass[kClass] ?: emptyList()
+    override fun extractProperties(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> =
+        extensionPropertiesByClass[kClass]?.filter { propertyNamePredicate(it.name) } ?: emptyList()
 }
