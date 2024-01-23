@@ -236,8 +236,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertFullMessageCorrect("""     Required by:
          project :
       > Multiple incompatible variants of org.example:${temporaryFolder.getTestDirectory().getName()}:1.0 were selected:
-           - Variant org.example:${temporaryFolder.getTestDirectory().getName()}:1.0 variant blueElementsCapability1 has attributes {color=blue}
-           - Variant org.example:${temporaryFolder.getTestDirectory().getName()}:1.0 variant greenElementsCapability2 has attributes {color=green}""")
+           - Variant blueElementsCapability1 has attributes {color=blue}
+           - Variant greenElementsCapability2 has attributes {color=green}""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
