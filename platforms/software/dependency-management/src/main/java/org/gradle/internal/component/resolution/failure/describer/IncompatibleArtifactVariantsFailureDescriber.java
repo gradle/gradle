@@ -20,20 +20,20 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.IncompatibleArtifactVariantsException;
+import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.ResolutionFailure;
 import org.gradle.internal.component.resolution.failure.ResolutionFailure.ResolutionFailureType;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 
 public class IncompatibleArtifactVariantsFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleArtifactVariantsException> {
+    private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
+    private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
+
     @Inject
     public IncompatibleArtifactVariantsFailureDescriber(DocumentationRegistry documentationRegistry) {
         super(documentationRegistry);
@@ -46,19 +46,20 @@ public class IncompatibleArtifactVariantsFailureDescriber extends AbstractResolu
 
     @Override
     public IncompatibleArtifactVariantsException describeFailure(ResolutionFailure failure) {
-        return new IncompatibleArtifactVariantsException("BLAH BLAH BLAH I NEED TO BE WRITTEN");
-        turn incompatible nodes into candidates?
+        String msg = buildIncompatibleArtifactVariantsFailureMsg(failure);
+        IncompatibleArtifactVariantsException result = new IncompatibleArtifactVariantsException(msg);
+        suggestSpecificDocumentation(result, INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION);
+        suggestReviewAlgorithm(result);
+        return result;
     }
 
-    private String buildIncompatibleArtifactVariantsFailureMsg(ComponentState selected, Set<NodeState> incompatibleNodes) {
+    private String buildIncompatibleArtifactVariantsFailureMsg(ResolutionFailure failure) {
         StringBuilder sb = new StringBuilder("Multiple incompatible variants of ")
-            .append(selected.getId())
+            .append(failure.getRequestedName())
             .append(" were selected:\n");
-        ArrayList<NodeState> sorted = Lists.newArrayList(incompatibleNodes);
-        sorted.sort(Comparator.comparing(NodeState::getNameWithVariant));
-        for (NodeState node : sorted) {
-            sb.append("   - Variant ").append(node.getNameWithVariant()).append(" has attributes ");
-            formatAttributes(sb, node.getMetadata().getAttributes());
+        for (ResolutionCandidateAssessor.AssessedCandidate candidate : failure.getCandidates()) {
+            sb.append("   - Variant ").append(candidate.getDisplayName()).append(" has attributes ");
+            formatAttributes(sb, candidate.getAllCandidateAttributes());
             sb.append("\n");
         }
         return sb.toString();

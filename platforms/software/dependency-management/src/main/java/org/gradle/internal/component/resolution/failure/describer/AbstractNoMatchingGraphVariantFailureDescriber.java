@@ -33,6 +33,9 @@ import java.util.stream.Collectors;
 import static org.gradle.internal.exceptions.StyledException.style;
 
 /* package */ abstract class AbstractNoMatchingGraphVariantFailureDescriber extends AbstractResolutionFailureDescriber<NoMatchingGraphVariantsException> {
+    private static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
+    private static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";
+
     protected AbstractNoMatchingGraphVariantFailureDescriber(DocumentationRegistry documentationRegistry) {
         super(documentationRegistry);
     }
