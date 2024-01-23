@@ -864,6 +864,71 @@ public class DefaultCopySpec implements CopySpecInternal {
             }
             return Charset.defaultCharset().name();
         }
+
+//        @Override
+//        /*
+//          Go up the resolver hierarchy until we find the resolver with destDir set and with a path of the same or shorter length.
+//          Return the parent of that resolver.
+//         */
+//        public CopySpecResolver getResolverForPath(RelativePath targetPath) {
+//            DefaultCopySpecResolver current = this;
+//            int targetDepth = targetPath.getSegments().length;
+//            if (targetDepth > current.getDestPath().getSegments().length) {
+//                return this; // we are already in parentResolver
+//            }
+//            while (current.getParentResolver() != null && current.getDestPath().getSegments().length > targetDepth) {
+//                current = current.getParentResolver();
+//            }
+//            while (current.getParentResolver() != null && !current.hasDestination()){
+//                current = current.getParentResolver();
+//            }
+//            if (current.getParentResolver() != null){
+//                return current.getParentResolver();
+//            } else {
+//                return current;
+//            }
+//        }
+
+
+        @Override
+        /*
+          Go up the resolver hierarchy until we find the resolver with a path of the same or shorter length.
+         */
+        //TODO: probably it would be better to pass the path itself and find the resolver for it's parent
+        //TODO: optimize
+        public CopySpecResolver getResolverForPath(RelativePath targetPath) {
+            if (parentResolver == null) {
+                return this;
+            }
+
+            CopySpecResolver current = this;
+            int targetDepth = targetPath.getSegments().length;
+
+            if (current.hasDestination()) {
+                if (parentResolver.getDestPath().getSegments().length >= targetDepth) {
+                    return parentResolver.getResolverForPath(targetPath);
+                } else {
+                    return this;
+                }
+            } else {
+                while (current.getParentResolver() != null && current.getDestPath().getSegments().length > targetDepth) {
+                    current = current.getParentResolver();
+                }
+                while (current.getParentResolver() != null && !current.hasDestination()) {
+                    current = current.getParentResolver();
+                }
+            }
+            return current;
+        }
+
+        @Nullable
+        public CopySpecResolver getParentResolver() {
+            return parentResolver;
+        }
+
+        public boolean hasDestination() {
+            return DefaultCopySpec.this.destDir != null;
+        }
     }
 
     private static class DefaultCopySpecAddress implements CopySpecAddress {

@@ -58,6 +58,38 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(UnitTestPreconditions.FilePermissions)
+    def "file and directory permissions are preserved for intermediate directories when using #taskName task"() {
+        given:
+        createDir('parent') {
+            child {
+                mode = 0777
+                file('reference.txt').mode = 0746
+            }
+        }
+        def archName = "test.${taskName.toLowerCase()}"
+        and:
+        buildFile << """
+            task pack(type: $taskName) {
+                archiveFileName = "$archName"
+                destinationDirectory = projectDir
+                from 'parent'
+                into 'prefix'
+            }
+            """
+        when:
+        run "pack"
+        file(archName).usingNativeTools()."$unpackMethod"(file("build"))
+        then:
+        file("build/prefix").mode == 0755
+        file("build/prefix/child").mode == 0777
+        file("build/prefix/child/reference.txt").mode == 0746
+        where:
+        taskName | unpackMethod
+        "Zip"    | "unzipTo"
+        "Tar"    | "untarTo"
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
     def "file and directory permissions can be overridden in #taskName task"() {
         given:
         createDir('parent') {
@@ -89,7 +121,91 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         taskName | unpackMethod
         "Zip"    | "unzipTo"
         "Tar"    | "untarTo"
+    }
 
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "file and directory permissions can be overridden when prefix is present in #taskName task"() {
+        given:
+        createDir('parent') {
+            child {
+                mode = 0766
+                file('reference.txt').mode = 0777
+            }
+        }
+        def archName = "test.${taskName.toLowerCase()}"
+
+        and:
+        buildFile << """
+                task pack(type: $taskName) {
+                    archiveFileName = "$archName"
+                    destinationDirectory = projectDir
+                    filePermissions { unix("rwxr--r--") }
+                    dirPermissions { unix("rwx---rwx") }
+                    from 'parent'
+                    into 'prefix'
+                }
+                """
+        when:
+        run "pack"
+        and:
+        file(archName).usingNativeTools()."$unpackMethod"(file("build"))
+        then:
+        file("build/prefix").permissions == "rwxr-xr-x" //TODO: investigate
+        file("build/prefix/child").permissions == "rwx---rwx"
+        file("build/prefix/child/reference.txt").permissions == "rwxr--r--"
+        where:
+        taskName | unpackMethod
+        "Zip"    | "unzipTo"
+        "Tar"    | "untarTo"
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "file and directory permissions can be overridden for subpaths in #taskName task"() {
+        given:
+        def originalPermission = "rwxrwxrwx"
+        file("files/sub/a.txt").createFile().setPermissions(originalPermission)
+        file("files/sub/dir/b.txt").createFile().setPermissions(originalPermission)
+        file("files/c.txt").createFile().setPermissions(originalPermission)
+        file("files/sub/empty").createDir().setPermissions(originalPermission)
+
+        def mainDirPermissions = "rwxrwx---"
+        def subfolderPermissions = "rwx---rwx"
+        def subsubfolderPermissions = "rwx------"
+
+        def archName = "test.${taskName.toLowerCase()}"
+
+        and:
+        buildFile << """
+            task pack(type: $taskName) {
+                archiveFileName = "$archName"
+                destinationDirectory = projectDir
+
+                dirPermissions { unix("${mainDirPermissions}") }
+                into("prefix") {
+                  dirPermissions { unix("${subfolderPermissions}") } // ignored
+                  from("files") {
+                    dirPermissions { unix("${subsubfolderPermissions}") }
+                  }
+                }
+            }
+            """
+        when:
+        run "pack"
+        and:
+        file(archName).usingNativeTools()."$unpackMethod"(file("unpacked"))
+        then:
+        file('unpacked').assertHasDescendants(
+            'prefix/sub/a.txt',
+            'prefix/sub/dir/b.txt',
+            'prefix/c.txt',
+            'prefix/sub/empty'
+        )
+        file("unpacked/prefix").permissions == subfolderPermissions
+        file("unpacked/prefix/sub").permissions == subsubfolderPermissions
+        where:
+        taskName | unpackMethod
+        "Zip"    | "unzipTo"
+        "Tar"    | "untarTo"
     }
 
     @Requires(UnitTestPreconditions.FilePermissions)

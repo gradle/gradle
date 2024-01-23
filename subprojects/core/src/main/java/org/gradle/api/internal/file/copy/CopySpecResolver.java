@@ -20,9 +20,9 @@ import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -73,5 +73,10 @@ public interface CopySpecResolver {
 
     void walk(Action<? super CopySpecResolver> action);
 
+    CopySpecResolver getResolverForPath(RelativePath targetPath);
 
+    @Nullable
+    CopySpecResolver getParentResolver();
+
+    boolean hasDestination();
 }

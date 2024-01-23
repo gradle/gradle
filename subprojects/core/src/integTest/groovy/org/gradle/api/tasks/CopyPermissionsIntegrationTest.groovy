@@ -243,6 +243,559 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         mode << [0755, 0776]
     }
 
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "dirPermissions only affect subfolders2"() {
+        given:
+        withSourceFiles("rwxrwxrwx")
+
+        and:
+        buildFile << """
+            task copy(type:Copy) {
+              destinationDir = file("dest")
+              filePermissions { unix("rwxrwxrwx") }
+              dirPermissions { unix("rwxrwxrwx") }
+              from("files"){
+                filePermissions { unix("rwxrwxrw-") }
+                dirPermissions { unix("rwxrwxrw-") }
+                into(""){
+                  filePermissions { unix("rwxrwxr--") }
+                  dirPermissions { unix("rwxrwxr--") }
+                  from("files"){
+                    filePermissions { unix("rwxrwx---") }
+                    dirPermissions { unix("rwxrwx---") }
+                    into("."){
+                      filePermissions { unix("rwxrw----") }
+                      dirPermissions { unix("rwxrw----") }
+                      from("files"){
+                        filePermissions { unix("rwxr-----") }
+                        dirPermissions { unix("rwxr-----") }
+                        into("../dest")
+                      }
+                    }
+                  }
+                }
+              }
+              dirPermissions { unix("---------") }
+              duplicatesStrategy = DuplicatesStrategy.INCLUDE
+            }
+            """
+        when:
+        run "copy"
+        then:
+        assertDescendants()
+        file("dest/c.txt").permissions == "rwxr-----"
+        file("dest").permissions == "rwxr-----"
+        file("dest/sub").permissions == "rwxr-----"
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "dirPermissions only affect subfolders"() {
+        given:
+        withSourceFiles("rwxrwxrwx")
+        def topLevelPermissions = "rwxrwx---"
+
+        and:
+        buildFile << """
+            task copy(type:Copy) {
+              destinationDir = file("dest")
+              from("files")
+              dirPermissions { unix("${topLevelPermissions}") }
+            }
+            """
+        when:
+        run "copy"
+        then:
+        assertDescendants()
+        file("dest").permissions == "rwxr-xr-x" // default
+        file("dest/sub").permissions == topLevelPermissions
+        file("dest/sub/dir").permissions == topLevelPermissions
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "dirPermissions only affect subfolders - spec nested in from1"() {
+        given:
+        withSourceFiles("rwxrwxrwx")
+        def permissions = "rwxrwx---"
+        def topLevelPermissions = "rwx------"
+
+        and:
+        buildFile << """
+            task copy(type:Copy) {
+              destinationDir = file("dest")
+              from("files"){
+                dirPermissions { unix("${permissions}") }
+              }
+              dirPermissions { unix("${topLevelPermissions}") }
+            }
+            """
+        when:
+        run "copy"
+        then:
+        assertDescendants()
+        file("dest").permissions == "rwxr-xr-x" // default
+        file("dest/sub").permissions == permissions
+        file("dest/sub/dir").permissions == permissions
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "dirPermissions only affect subfolders - spec nested in from2"() {
+        given:
+        withSourceFiles("rwxrwxrwx")
+        def permissions = "rwxrwx---"
+        def fromPermissions = "rwx---rwx"
+        def topLevelPermissions = "rwx------"
+
+        and:
+        buildFile << """
+            task copy(type:Copy) {
+              destinationDir = file("dest")
+              from("files"){
+                dirPermissions { unix("${fromPermissions}") }
+                into("."){ // this creates a child spec and should be ignored
+                  dirPermissions { unix("${permissions}") }
+                }
+              }
+              dirPermissions { unix("${topLevelPermissions}") }
+            }
+            """
+        when:
+        run "copy"
+        then:
+        assertDescendants()
+        file("dest").permissions == "rwxr-xr-x" // default
+        file("dest/sub").permissions == fromPermissions
+        file("dest/sub/dir").permissions == fromPermissions
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "dirPermissions only affect subfolders - spec nested in from3"() {
+        given:
+        withSourceFiles("rwxrwxrwx")
+        def permissions = "rwxrwx---"
+        def fromPermissions = "rwx---rwx"
+        def topLevelPermissions = "rwx------"
+
+        and:
+        buildFile << """
+            task copy(type:Copy) {
+              destinationDir = file("dest")
+              from("files"){
+                dirPermissions { unix("${fromPermissions}") }
+                into(""){ // this creates a child spec and should be ignored
+                  dirPermissions { unix("${permissions}") }
+                }
+              }
+              dirPermissions { unix("${topLevelPermissions}") }
+            }
+            """
+        when:
+        run "copy"
+        then:
+        assertDescendants()
+        file("dest").permissions == "rwxr-xr-x" // default
+        file("dest/sub").permissions == fromPermissions
+        file("dest/sub/dir").permissions == fromPermissions
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "dirPermissions only affect subfolders - spec nested in from4"() {
+        given:
+        withSourceFiles("rwxrwxrwx")
+        def permissions = "rwxrwx---"
+        def fromPermissions = "rwx---rwx"
+        def topLevelPermissions = "rwx------"
+
+        and:
+        buildFile << """
+            task copy(type:Copy) {
+              destinationDir = file("dest")
+              from("files"){
+                dirPermissions { unix("${fromPermissions}") }
+                into("../dest"){
+                  dirPermissions { unix("${permissions}") }
+                }
+              }
+              dirPermissions { unix("${topLevelPermissions}") }
+            }
+            """
+        when:
+        run "copy"
+        then:
+        assertDescendants()
+        file("dest").permissions == "rwxr-xr-x" // default
+        file("dest/sub").permissions == fromPermissions
+        file("dest/sub/dir").permissions == fromPermissions
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "dirPermissions only affect subfolders - spec nested in from with into"() {
+        given:
+        withSourceFiles("rwxrwxrwx")
+        def permissions = "rwxrwx---"
+        def topLevelPermissions = "rwx------"
+        def fromPermissions = "rwx---rwx"
+
+        and:
+        buildFile << """
+            task copy(type:Copy) {
+              destinationDir = file("dest")
+              from("files"){
+                dirPermissions { unix("${fromPermissions}") }
+                into("prefix"){ // this creates a child spec and should be ignored
+                  dirPermissions { unix("${permissions}") }
+                }
+              }
+              dirPermissions { unix("${topLevelPermissions}") }
+            }
+            """
+        when:
+        run "copy"
+        then:
+        assertDescendants()
+        file("dest").permissions == "rwxr-xr-x" // default
+        file("dest/sub").permissions == fromPermissions
+        file("dest/sub/dir").permissions == fromPermissions
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "dirPermissions only affect subfolders - nested empty path spec1"() {
+        given:
+        withSourceFiles("rwxrwxrwx")
+        def permissions = "rwxrwx---"
+        def topLevelPermissions = "rwx------"
+
+        and:
+        buildFile << """
+            task copy(type:Copy) {
+              destinationDir = file("dest")
+              into("") {
+                from("files")
+                dirPermissions { unix("${permissions}") }
+              }
+              dirPermissions { unix("${topLevelPermissions}") }
+            }
+            """
+        when:
+        run "copy"
+        then:
+        assertDescendants()
+        file("dest").permissions == "rwxr-xr-x" // default
+        file("dest/sub").permissions == permissions
+        file("dest/sub/dir").permissions == permissions
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "dirPermissions only affect subfolders - nested empty path spec"() {
+        given:
+        withSourceFiles("rwxrwxrwx")
+        def permissions = "rwxrwx---"
+        def topLevelPermissions = "rwx------"
+
+        and:
+        buildFile << """
+            task copy(type:Copy) {
+              destinationDir = file("dest")
+              into("") { into(".") { into("") { into(".") { into("") { into(".") { into("") { into(".") {
+                from("files")
+                dirPermissions { unix("${permissions}") }
+              }}}}}}}}
+              dirPermissions { unix("${topLevelPermissions}") }
+            }
+            """
+        when:
+        run "copy"
+        then:
+        assertDescendants()
+        file("dest").permissions == "rwxr-xr-x" // default
+        file("dest/sub").permissions == permissions
+        file("dest/sub/dir").permissions == permissions
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "dirPermissions only affect subfolders - nested empty path spec2"() {
+        given:
+        withSourceFiles("rwxrwxrwx")
+        def permissions = "rwxrwx---"
+        def topLevelPermissions = "rwx------"
+
+        and:
+        buildFile << """
+            task copy(type:Copy) {
+              destinationDir = file("dest")
+              into("prefix") {
+                from("files")
+                dirPermissions { unix("${permissions}") }
+              }
+              dirPermissions { unix("${topLevelPermissions}") }
+            }
+            """
+        when:
+        run "copy"
+        then:
+        assertDescendants("prefix/")
+        file("dest").permissions == "rwxr-xr-x" // default, but expecting topLevelPermissions FIXME
+        file("dest/prefix").permissions == permissions
+        file("dest/prefix/sub").permissions == permissions
+        file("dest/prefix/sub/dir").permissions == permissions
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "dirPermissions only affect subfolders - include pattern"() {
+        given:
+        withSourceFiles("rwxrwxrwx")
+        def permissions = "rwxrwx---"
+        def topLevelPermissions = "rwx------"
+
+        and:
+        buildFile << """
+            task copy(type:Copy) {
+              destinationDir = file("dest")
+              from("."){
+                dirPermissions { unix("${permissions}") }
+                include("files/**")
+              }
+              dirPermissions { unix("${topLevelPermissions}") }
+            }
+            """
+        when:
+        run "copy"
+        then:
+        assertDescendants("files/")
+        file("dest").permissions == "rwxr-xr-x" // default
+        file("dest/files").permissions == permissions
+        file("dest/files/sub").permissions == permissions
+        file("dest/files/sub/dir").permissions == permissions
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "dirPermissions only affect subfolders - spec"() {
+        given:
+        withSourceFiles("rwxrwxrwx")
+        def permissions = "rwxrwx---"
+        def topLevelPermissions = "rwx------"
+
+        and:
+        buildFile << """
+            CopySpec spec = copySpec {
+                from("files")
+                dirPermissions { unix("${permissions}") }
+            }
+            task copy(type:Copy) {
+              destinationDir = file("dest")
+              with spec
+              dirPermissions { unix("${topLevelPermissions}") }
+            }
+            """
+        when:
+        run "copy"
+        then:
+        assertDescendants()
+        file("dest").permissions == "rwxr-xr-x" // default
+        file("dest/sub").permissions == permissions
+        file("dest/sub/dir").permissions == permissions
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "dirPermissions can be modified for subpaths with single from"() {
+        given:
+        withSourceFiles("rwxrwxrwx")
+
+        def mainDirPermissions = "rwxrwx---"
+        def subfolderPermissions = "rwx---rwx"
+        def subsubfolderPermissions = "rwx------"
+
+        and:
+        buildFile << """
+            task copy(type:Copy) {
+              destinationDir = file("dest")
+              dirPermissions { unix("${mainDirPermissions}") }
+              into("prefix/sub") {
+                dirPermissions { unix("${subfolderPermissions}") }
+                from ("files/sub") {
+                  dirPermissions { unix("${subsubfolderPermissions}") }
+                }
+              }
+            }
+            """
+        when:
+        run "copy"
+        then:
+        file("dest").assertHasDescendants('prefix/sub/a.txt', 'prefix/sub/dir/b.txt', 'prefix/sub/empty')
+        file("dest").permissions == "rwxr-xr-x" // default, but I'd expect mainDirPermissions FIXME
+        file("dest/prefix").permissions == subfolderPermissions
+        file("dest/prefix/sub").permissions == file("dest/prefix").permissions
+        file("dest/prefix/sub/dir").permissions == subsubfolderPermissions
+    }
+
+    //TODO: cover legit nested "into" case
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "dirPermissions can be modified for subpaths"() { //TODO: how to edit permissions for dirs
+        given:
+        withSourceFiles("rwxrwxrwx")
+
+        def mainDirPermissions = "rwxrwx---"
+        def subfolderPermissions = "rwx---rwx"
+        def subsubfolderPermissions = "rwx------"
+
+        and:
+        buildFile << """
+            task copy(type: Copy) {
+                into("dest")
+                from("files"){
+                    exclude("sub")
+                }
+                from("files/sub"){
+                    exclude("dir")
+                    into("sub")
+                    dirPermissions {
+                        unix("${subfolderPermissions}") //ignored for sub/dir because it is in unrelated spec
+                    }
+                }
+                from("files/sub/dir"){
+                    into("sub/dir")
+                    dirPermissions {
+                        unix("${subsubfolderPermissions}")
+                    }
+                }
+                dirPermissions {
+                  unix("${mainDirPermissions}") // ignored for dest
+                }
+            }
+            """
+        when:
+        run "copy"
+        then:
+        assertDescendants()
+        file("dest").permissions == "rwxr-xr-x"
+        file("dest/sub").permissions == subfolderPermissions
+        file("dest/sub/dir").permissions == subsubfolderPermissions
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "dirPermissions can be modified for subpaths2"() { //TODO: exdit permissions for dirs
+        given:
+        withSourceFiles("rwxrwxrwx")
+
+        def mainDirPermissions = "rwxrwx---"
+        def subfolderPermissions = "rwxrw----"
+        def subfolder2Permissions = "rwxrw---x"
+        def subsubfolderPermissions = "rwx------"
+
+        and:
+        buildFile << """
+            task copy(type: Copy) {
+                into("dest")
+                from("files"){
+                    dirPermissions {
+                        unix("${subfolderPermissions}")
+                    }
+                    into("subfolder1")
+                }
+                from("files"){
+                    dirPermissions {
+                        unix("${subfolder2Permissions}")
+                    }
+                    into("subfolder2")
+                }
+                dirPermissions {
+                  unix("${mainDirPermissions}")
+                }
+            }
+            """
+        when:
+        run "copy"
+        then:
+        file("dest").permissions == "rwxr-xr-x"
+        file("dest/subfolder1").permissions == subfolderPermissions
+        file("dest/subfolder2").permissions == subfolder2Permissions
+
+        file("dest/subfolder1/sub").permissions == subfolderPermissions
+        file("dest/subfolder2/sub").permissions == subfolder2Permissions
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "dirPermissions can be modified for subpaths5"() { //TODO: exdit permissions for dirs
+        given:
+        withSourceFiles("rwxrwxrwx")
+
+        def mainDirPermissions = "rwxrwx---"
+        def subfolderPermissions = "rwxrw----"
+        def subfolder2Permissions = "rwxrw---x"
+        def subsubfolderPermissions = "rwx------"
+
+        and:
+        buildFile << """
+            task copy(type: Copy) {
+                into("dest")
+                into("subfolder1"){
+                    dirPermissions {
+                        unix("${subfolderPermissions}")
+                    }
+                    from("files"){
+                        dirPermissions {
+                            unix("${subsubfolderPermissions}")
+                        }
+                    }
+                }
+                into("subfolder2"){
+                    dirPermissions {
+                        unix("${subfolder2Permissions}")
+                    }
+                    from("files"){
+                        dirPermissions {
+                            unix("${subsubfolderPermissions}")
+                        }
+                    }
+                }
+                dirPermissions {
+                  unix("${mainDirPermissions}")
+                }
+            }
+            """
+        when:
+        run "copy"
+        then:
+        file("dest").permissions == "rwxr-xr-x" // fixme: should be mainDirPermissions
+        file("dest/subfolder1").permissions == subfolderPermissions
+        file("dest/subfolder2").permissions == subfolder2Permissions
+
+        file("dest/subfolder1/sub").permissions == subsubfolderPermissions
+        file("dest/subfolder2/sub").permissions == subsubfolderPermissions
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "dirPermissions can be modified for subpaths6"() { //TODO: exdit permissions for dirs
+        given:
+        withSourceFiles("rwxrwxrwx")
+
+        def topLevelPermissions = "rwxrwx---"
+        def prefixPermissions = "rwx------"
+        def filesPermissions = "rwx---rwx"
+
+        and:
+        buildFile << """
+            task copy(type:Copy) {
+              destinationDir = file("dest")
+              into("prefix") {
+                from("files"){
+                   dirPermissions { unix("${filesPermissions}") }
+                }
+                dirPermissions { unix("${prefixPermissions}") }
+              }
+              dirPermissions { unix("${topLevelPermissions}") }
+            }
+            """
+        when:
+        run "copy"
+        then:
+        assertDescendants("prefix/")
+        file("dest").permissions == "rwxr-xr-x" // fixme: should be topLevelPermissions
+        file("dest/prefix").permissions == prefixPermissions
+        file("dest/prefix/sub").permissions == filesPermissions
+    }
+
+
     @Requires(UnitTestPreconditions.Windows)
     def "file permissions are not preserved on OS without permission support"() {
         given:
@@ -495,14 +1048,75 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         assertDestinationFilePermissions("r-xr-xrw-")
 
         where:
-        description         | setting
-        "permissions"       | """
+        description        | setting
+        "permissions"      | """
                                 eachFile {
                                     permissions = p
                                 }
                               """
-        "file mode"         | "fileMode = p.toUnixNumeric()"
-        "file permissions"  | "filePermissions.set(p)"
+        "file mode"        | "fileMode = p.toUnixNumeric()"
+        "file permissions" | "filePermissions.set(p)"
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "permissions are set correctly for intermediate directories"() {
+        given:
+        withSourceFiles("r--------")
+
+        buildFile.delete()
+        buildKotlinFile.text = '''
+            tasks.register<Copy>("copy") {
+               into("dest")
+               into("prefix1/prefix2") {
+                 from("files")
+                 dirPermissions {
+                   unix("rwx---rwx")
+                 }
+               }
+               dirPermissions {
+                  unix("rwx------")
+               }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'copy'
+
+        then:
+        file("dest").permissions == "rwxr-xr-x" // default 755, but should be "rwx------" FIXME
+        file("dest/prefix1").permissions == "rwx---rwx"
+        file("dest/prefix1/prefix2").permissions == "rwx---rwx"
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "permissions are preserved for intermediate directories when target exists"() {
+        given:
+        withSourceFiles("r--------")
+        def dest = getTestDirectory().createDir('dest')
+        def originalPermissions = "rwxrwxrwx"
+        dest.setPermissions(originalPermissions)
+
+        def prefix = getTestDirectory().createDir('dest/prefix')
+        def prefixOriginalPermissions = "rwxrwx---"
+        prefix.setPermissions(prefixOriginalPermissions)
+
+        buildFile.delete()
+        buildKotlinFile.text = '''
+            tasks.register<Copy>("copy") {
+               into("dest/prefix")
+               from("files")
+               dirPermissions {
+                  unix("rwx------")
+               }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'copy'
+
+        then:
+        file("dest").permissions == originalPermissions
+        file("dest/prefix").permissions == prefixOriginalPermissions
     }
 
     private def withSourceFiles(String permissions) {
@@ -512,13 +1126,17 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         file("files/sub/empty").createDir().setPermissions(permissions)
     }
 
-    private def assertDestinationFilePermissions(String permissions) {
+    private def assertDescendants(String prefix = "") {
         file('dest').assertHasDescendants(
-            'sub/a.txt',
-            'sub/dir/b.txt',
-            'c.txt',
-            'sub/empty'
+            "${prefix}sub/a.txt",
+            "${prefix}sub/dir/b.txt",
+            "${prefix}c.txt",
+            "${prefix}sub/empty"
         )
+    }
+
+    private def assertDestinationFilePermissions(String permissions) {
+        assertDescendants()
         file("dest/sub/a.txt").permissions == permissions
         file("dest/sub/dir/b.txt").permissions == permissions
         file("dest/c.txt").permissions == permissions

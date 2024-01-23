@@ -32,8 +32,8 @@ import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.logging.TestOutputEventListener
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.util.internal.ClosureBackedAction
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.ClosureBackedAction
 import org.junit.Rule
 import spock.lang.Shared
 import spock.lang.Specification
@@ -52,14 +52,18 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
     }
 
     def outputEventListener = new TestOutputEventListener()
-    @Rule ConfigureLogging logging = new ConfigureLogging(outputEventListener)
+    @Rule
+    ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
-    @Shared Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
+    @Shared
+    Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def executer = new CopyActionExecuter(instantiator, TestUtil.objectFactory(), fileSystem, false, TestFiles.documentationRegistry())
     def copySpec = Mock(MyCopySpec) {
         getChildren() >> []
     }
-    def copySpecResolver = Mock(CopySpecResolver)
+    def copySpecResolver = Mock(CopySpecResolver) {
+        getResolverForPath(_) >> it
+    }
 
     def duplicatesIncludedByDefault() {
         given:
