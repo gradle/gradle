@@ -225,7 +225,6 @@ class StandardKotlinScriptEvaluator(
 
             pluginRequestApplicator.applyPlugins(
                 PluginRequests.EMPTY,
-                PluginRequests.EMPTY,
                 scriptHost.scriptHandler as ScriptHandlerInternal,
                 null,
                 scriptHost.targetScope

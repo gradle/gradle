@@ -1074,4 +1074,63 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
         }
     }
 
+    def "preferred versions interact with module replacements"() {
+        given:
+        repository {
+            id("org:original:1.0")
+            id("org:original:2.0")
+            id("org:original:3.0")
+            id("org:replaced:1.0")
+            id("org:replaced:2.0")
+            id("org:replaced:3.0")
+        }
+
+        when:
+        buildFile << """
+            dependencies {
+                ${ dep != null ? "conf('$dep')" : "" }
+                conf("${preferred}") {
+                    version {
+                        prefer "2.0"
+                    }
+                }
+
+                modules {
+                    module("org:original") {
+                        replacedBy("org:replaced")
+                    }
+                }
+            }
+        """
+
+        repositoryInteractions {
+            id(resolved) {
+                expectResolve()
+            }
+        }
+
+        then:
+        succeeds(":checkDeps")
+
+        where:
+        preferred      | dep                | resolved
+        // Test when we prefer org:original:2.0
+        "org:original" | null               | "org:original:2.0"
+        "org:original" | "org:original:1.0" | "org:original:1.0"
+        "org:original" | "org:original:2.0" | "org:original:2.0"
+        "org:original" | "org:original:3.0" | "org:original:3.0"
+        "org:original" | "org:replaced:1.0" | "org:replaced:1.0"
+        "org:original" | "org:replaced:2.0" | "org:replaced:2.0"
+        "org:original" | "org:replaced:3.0" | "org:replaced:3.0"
+
+        // Test when we prefer org:replaced:2.0
+        "org:replaced" | null               | "org:replaced:2.0"
+        "org:replaced" | "org:original:1.0" | "org:replaced:2.0"
+        "org:replaced" | "org:original:2.0" | "org:replaced:2.0"
+        "org:replaced" | "org:original:3.0" | "org:replaced:2.0"
+        "org:replaced" | "org:replaced:1.0" | "org:replaced:1.0"
+        "org:replaced" | "org:replaced:2.0" | "org:replaced:2.0"
+        "org:replaced" | "org:replaced:3.0" | "org:replaced:3.0"
+    }
+
 }
