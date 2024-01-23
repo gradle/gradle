@@ -16,7 +16,6 @@
 
 package org.gradle.internal.restricteddsl.project
 
-import com.h0tk3y.kotlin.staticObjectNotation.Adding
 import com.h0tk3y.kotlin.staticObjectNotation.Configuring
 import com.h0tk3y.kotlin.staticObjectNotation.Restricted
 import org.gradle.api.Action
@@ -36,19 +35,4 @@ interface ProjectTopLevelReceiver {
 }
 
 
-interface RestrictedDependenciesHandler {
-    @Adding
-    fun api(dependency: ProjectDependency)
-
-    @Adding
-    fun compileOnly(dependency: ProjectDependency)
-
-    @Adding
-    fun implementation(dependency: ProjectDependency)
-
-    @Adding
-    fun testImplementation(dependency: ProjectDependency)
-
-    @Adding
-    fun androidTestImplementation(dependency: ProjectDependency)
-}
+interface RestrictedDependenciesHandler

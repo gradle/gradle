@@ -16,21 +16,16 @@
 
 package org.gradle.internal.restricteddsl.project
 
-import com.h0tk3y.kotlin.staticObjectNotation.Adding
 import com.h0tk3y.kotlin.staticObjectNotation.Restricted
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisStatementFilter
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataParameter
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataProperty
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataTypeRef
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.FqName
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ObjectOrigin
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterValueBinding
 import com.h0tk3y.kotlin.staticObjectNotation.language.DataStatement
 import com.h0tk3y.kotlin.staticObjectNotation.language.FunctionArgument
 import com.h0tk3y.kotlin.staticObjectNotation.language.FunctionCall
-import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RestrictedRuntimeFunction
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RestrictedRuntimeProperty
-import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RuntimeFunctionResolver
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RuntimePropertyResolver
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.CollectedPropertyInformation
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.DefaultFunctionExtractor
@@ -44,7 +39,6 @@ import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.treatInterfaceAsConf
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.project.ProjectInternal
@@ -61,7 +55,6 @@ import org.gradle.plugin.use.internal.DefaultPluginId
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createType
-import kotlin.reflect.full.declaredMemberFunctions
 import kotlin.reflect.full.isSubclassOf
 
 
@@ -113,6 +106,7 @@ fun step2Project(target: ProjectInternal, targetScope: ClassLoaderScope) = objec
         val projectAccessors = projectAccessorsSupport(targetScope)
         val configureLambdas = treatInterfaceAsConfigureLambda(Action::class).plus(kotlinFunctionAsConfigureLambda)
         val projectExtensionComponents = projectExtensionComponents(target) { annotatedTypesChecker.isAnnotatedMaybeInSupertypes(it) }
+        val dependencyConfigurationComponents = dependencyConfigurationSchemaComponents(target)
         val propertiesComponents = schemaFromPropertiesComponents()
 
         return EvaluationSchema(
@@ -130,7 +124,8 @@ fun step2Project(target: ProjectInternal, targetScope: ClassLoaderScope) = objec
                     DefaultPropertyExtractor()
                     + projectAccessors.propertyExtractor,
                 functionExtractor = DefaultFunctionExtractor({ isPublicAndRestricted.shouldIncludeMember(it) && !isGradlePropertyType(it.returnType) }, configureLambdas = configureLambdas)
-                    + projectExtensionComponents.functionExtractor,
+                    + projectExtensionComponents.functionExtractor
+                    + dependencyConfigurationComponents.functionExtractor,
                 typeDiscovery = DependencyDslTypeDiscovery()
                     + projectExtensionComponents.typeDiscovery
                     + ThirdPartyTypesDiscovery(isPublicAndRestricted, configureLambdas)
@@ -138,7 +133,7 @@ fun step2Project(target: ProjectInternal, targetScope: ClassLoaderScope) = objec
             ),
             analysisStatementFilter = analyzeEverythingExceptPluginsBlock,
             runtimePropertyResolvers = listOf(hardcodeProjectExtensionsProperties),
-            runtimeFunctionResolvers = listOf(hardcodeDependencyExtensionFunctions),
+            runtimeFunctionResolvers = listOf(dependencyConfigurationComponents.runtimeFunctionResolver),
             runtimeCustomAccessors = listOf(projectExtensionComponents.runtimeCustomAccessors)
         )
     }
@@ -216,22 +211,4 @@ val hardcodeProjectExtensionsProperties = object : RuntimePropertyResolver {
     }
 
     override fun resolvePropertyWrite(receiverClass: KClass<*>, name: String): RuntimePropertyResolver.Resolution = RuntimePropertyResolver.Resolution.Unresolved
-}
-
-
-private
-val hardcodeDependencyExtensionFunctions = object : RuntimeFunctionResolver {
-    val names = RestrictedDependenciesHandler::class.declaredMemberFunctions.filter { fn -> fn.annotations.any { it is Adding } }.map { it.name }
-
-    override fun resolve(receiverClass: KClass<*>, name: String, parameterValueBinding: ParameterValueBinding): RuntimeFunctionResolver.Resolution {
-        if (receiverClass.isSubclassOf(DependencyHandler::class) && name in names && parameterValueBinding.bindingMap.size == 1) {
-            return RuntimeFunctionResolver.Resolution.Resolved(object : RestrictedRuntimeFunction {
-                override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>): RestrictedRuntimeFunction.InvocationResult {
-                    (receiver as DependencyHandler).add(name, binding.values.single() ?: error("null value in dependency DSL"))
-                    return RestrictedRuntimeFunction.InvocationResult(Unit, null)
-                }
-            })
-        }
-        return RuntimeFunctionResolver.Resolution.Unresolved
-    }
 }

@@ -53,10 +53,15 @@ class RestrictedDslProjectBuildFileIntegrationSpec extends AbstractIntegrationSp
 
         file("b/build.gradle.something") << """
             plugins {
-                id("java")
+                id("java-library")
             }
             dependencies {
                 implementation($dependency)
+                api($dependency)
+                compileOnly($dependency)
+                runtimeOnly($dependency)
+                testImplementation($dependency)
+                testCompileOnly($dependency)
             }
         """
 
