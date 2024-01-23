@@ -83,8 +83,18 @@ public class SourceGeneratingBuildGenerator extends AbstractBuildGenerator imple
     }
 
     @Override
+    public BuildInitTestFramework getDefaultTestFramework() {
+        return getDefaultTestFramework(ModularizationOption.SINGLE_PROJECT);
+    }
+
+    @Override
     public BuildInitTestFramework getDefaultTestFramework(ModularizationOption modularizationOption) {
         return descriptor.getDefaultTestFramework(modularizationOption);
+    }
+
+    @Override
+    public Set<BuildInitTestFramework> getTestFrameworks() {
+        return getTestFrameworks(ModularizationOption.SINGLE_PROJECT);
     }
 
     @Override
