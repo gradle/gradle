@@ -50,21 +50,21 @@ The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin
 ==== Referencing tasks and domain objects by `"name"()` in Kotlin DSL
 
 In Kotlin DSL, it is possible to reference a task or other domain object by its name using the `"name"()` notation.
-This isn't a very useful construct and link:https://github.com/gradle/gradle/issues/27699[causes hard to understand conflicts].
 
 There are several ways to look up an element in a container by name:
 ```
 tasks {
-    "wrapper"() // 1 returns TaskProvider<Task>
-    "wrapper"(Wrapper::class) // 2 returns TaskProvider<Wrapper>
-    "wrapper"(Wrapper::class) { // 3 configures a task named wrapper of type Wrapper
+    "wrapper"() // 1 - returns TaskProvider<Task>
+    "wrapper"(Wrapper::class) // 2 - returns TaskProvider<Wrapper>
+    "wrapper"(Wrapper::class) { // 3 - configures a task named wrapper of type Wrapper
     }
-    "wrapper" { // 4 configures a task named wrapper of type Task
+    "wrapper" { // 4 - configures a task named wrapper of type Task
     }
 }
 ```
 
-The first notation is now deprecated and will be removed in Gradle 9.0. Instead of using `"name"()` to reference a task or domain object, use `named("name")` or one of the other supported notations.
+The first notation is now deprecated and will be removed in Gradle 9.0.
+Instead of using `"name"()` to reference a task or domain object, use `named("name")` or one of the other supported notations.
 
 Groovy DSL build scripts and the Gradle API are not impacted by this.
 
