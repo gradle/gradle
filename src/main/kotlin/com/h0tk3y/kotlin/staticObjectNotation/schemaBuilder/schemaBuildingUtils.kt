@@ -26,7 +26,7 @@ import kotlin.reflect.KClassifier
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 
-internal fun KClassifier.toDataTypeRef(): DataTypeRef =
+fun KClassifier.toDataTypeRef(): DataTypeRef =
     when (this) {
         Unit::class -> DataType.UnitType.ref
         Int::class -> DataType.IntDataType.ref
@@ -55,12 +55,11 @@ private val KClassifier.isBuiltInType: Boolean
         else -> false
     }
 
-internal val KCallable<*>.annotationsWithGetters: List<Annotation>
+val KCallable<*>.annotationsWithGetters: List<Annotation>
     get() = this.annotations + if (this is KProperty) this.getter.annotations else emptyList()
 
-internal fun KType.toDataTypeRefOrError() =
-    toDataTypeRef()
-        ?: error("failed to convert type $this to data type")
+fun KType.toDataTypeRefOrError() =
+    toDataTypeRef() ?: error("failed to convert type $this to data type")
 
 private fun KType.toDataTypeRef(): DataTypeRef? = when {
     // isMarkedNullable -> TODO: support nullable types

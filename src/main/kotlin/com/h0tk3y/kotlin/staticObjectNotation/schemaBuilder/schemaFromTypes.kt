@@ -43,6 +43,10 @@ fun schemaFromTypes(
         topLevelReceiver, types, externalFunctions, externalObjects, defaultImports
     )
 
+val isPublic: MemberFilter = MemberFilter { member: KCallable<*> ->
+    member.visibility == KVisibility.PUBLIC
+}
+
 val isPublicAndRestricted: MemberFilter = MemberFilter { member: KCallable<*> ->
     member.visibility == KVisibility.PUBLIC &&
         member.annotationsWithGetters.any {
