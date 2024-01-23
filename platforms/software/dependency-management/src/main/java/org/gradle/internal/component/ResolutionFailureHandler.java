@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import org.apache.commons.lang.StringUtils;
@@ -39,29 +38,31 @@ import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.problems.Problems;
-import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
-import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
-import org.gradle.internal.component.resolution.failure.ResolutionFailure;
-import org.gradle.internal.component.resolution.failure.ResolutionFailure.ResolutionFailureType;
+import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
-import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.model.GraphSelectionCandidates;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
+import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
+import org.gradle.internal.component.resolution.failure.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.ResolutionFailure.ResolutionFailureType;
 import org.gradle.internal.component.resolution.failure.describer.CapabilitiesDescriber;
+import org.gradle.internal.component.resolution.failure.describer.IncompatibleArtifactVariantsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.NonVariantAwareNoMatchingGraphVariantFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.VariantAwareNoMatchingGraphVariantFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.StyledAttributeDescriber;
+import org.gradle.internal.component.resolution.failure.describer.VariantAwareNoMatchingGraphVariantFailureDescriber;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -105,7 +106,8 @@ public class ResolutionFailureHandler {
         this.documentationRegistry = documentationRegistry;
         this.defaultFailureDescribers = Lists.newArrayList(
             new VariantAwareNoMatchingGraphVariantFailureDescriber(documentationRegistry),
-            new NonVariantAwareNoMatchingGraphVariantFailureDescriber(documentationRegistry)
+            new NonVariantAwareNoMatchingGraphVariantFailureDescriber(documentationRegistry),
+            new IncompatibleArtifactVariantsFailureDescriber(documentationRegistry)
         );
     }
 
@@ -163,12 +165,9 @@ public class ResolutionFailureHandler {
         return unknownArtifactVariantSelectionFailure(schema, e);
     }
 
-    public IncompatibleArtifactVariantsException incompatibleArtifactVariantsFailure(AttributesSchemaInternal schema, ComponentState selectedComponent, Set<NodeState> incompatibleNodes) {
-        String message = buildIncompatibleArtifactVariantsFailureMsg(selectedComponent, incompatibleNodes);
-        IncompatibleArtifactVariantsException e = new IncompatibleArtifactVariantsException(message);
-        suggestSpecificDocumentation(e, INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION);
-        suggestReviewAlgorithm(e);
-        return e;
+    public AbstractVariantSelectionException incompatibleArtifactVariantsFailure(AttributesSchemaInternal schema, ComponentState selectedComponent, Set<NodeState> incompatibleNodes) {
+        ResolutionFailure failure = new ResolutionFailure(schema, ResolutionFailureType.INCOMPATIBLE_ARTIFACT_VARIANTS, null, selectedComponent.getId().getName(), ImmutableAttributes.EMPTY, Collections.emptyList(), false);
+        return describeFailure(schema, failure);
     }
 
     private String buildUnknownArtifactVariantFailureMsg(ResolvedVariantSet producer) {
@@ -264,36 +263,6 @@ public class ResolutionFailureHandler {
             formatter.node(attribute.getName() + " '" + attributes.getAttribute(attribute) + "'");
         }
         formatter.endChildren();
-    }
-
-    private String buildIncompatibleArtifactVariantsFailureMsg(ComponentState selected, Set<NodeState> incompatibleNodes) {
-        StringBuilder sb = new StringBuilder("Multiple incompatible variants of ")
-            .append(selected.getId())
-            .append(" were selected:\n");
-        ArrayList<NodeState> sorted = Lists.newArrayList(incompatibleNodes);
-        sorted.sort(Comparator.comparing(NodeState::getNameWithVariant));
-        for (NodeState node : sorted) {
-            sb.append("   - Variant ").append(node.getNameWithVariant()).append(" has attributes ");
-            formatAttributes(sb, node.getMetadata().getAttributes());
-            sb.append("\n");
-        }
-        return sb.toString();
-    }
-
-    private void formatAttributes(StringBuilder sb, ImmutableAttributes attributes) {
-        ImmutableSet<Attribute<?>> keySet = attributes.keySet();
-        List<Attribute<?>> sorted = Lists.newArrayList(keySet);
-        sorted.sort(Comparator.comparing(Attribute::getName));
-        boolean space = false;
-        sb.append("{");
-        for (Attribute<?> attribute : sorted) {
-            if (space) {
-                sb.append(", ");
-            }
-            sb.append(attribute.getName()).append("=").append(attributes.getAttribute(attribute));
-            space = true;
-        }
-        sb.append("}");
     }
     // endregion Artifact Variant Selection Failures
 
