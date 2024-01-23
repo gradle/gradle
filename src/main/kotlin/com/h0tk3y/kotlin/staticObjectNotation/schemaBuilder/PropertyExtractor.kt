@@ -19,6 +19,7 @@ package com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder
 import com.h0tk3y.kotlin.staticObjectNotation.AccessFromCurrentReceiverOnly
 import com.h0tk3y.kotlin.staticObjectNotation.HasDefaultValue
 import com.h0tk3y.kotlin.staticObjectNotation.HiddenInRestrictedDsl
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataProperty
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataTypeRef
 import java.util.Locale
 import kotlin.reflect.KClass
@@ -32,18 +33,25 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
 interface PropertyExtractor {
-    fun extractProperties(kClass: KClass<*>): Iterable<CollectedPropertyInformation>
+    fun extractProperties(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean = { true }): Iterable<CollectedPropertyInformation>
 
     companion object {
         val none = object : PropertyExtractor {
-            override fun extractProperties(kClass: KClass<*>): Iterable<CollectedPropertyInformation> = emptyList()
+            override fun extractProperties(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> = emptyList()
         }
     }
 }
 
 class CompositePropertyExtractor(internal val extractors: Iterable<PropertyExtractor>) : PropertyExtractor {
-    override fun extractProperties(kClass: KClass<*>): Iterable<CollectedPropertyInformation> =
-        extractors.flatMapTo(mutableSetOf()) { it.extractProperties(kClass) }
+    override fun extractProperties(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> = buildList {
+        val nameSet = mutableSetOf<String>()
+        val predicateWithNamesFiltered: (String) -> Boolean = { propertyNamePredicate(it) && it !in nameSet }
+        extractors.forEach { extractor ->
+            val properties = extractor.extractProperties(kClass, predicateWithNamesFiltered)
+            addAll(properties)
+            nameSet.addAll(properties.map { it.name })
+        }
+    }
 }
 
 operator fun PropertyExtractor.plus(other: PropertyExtractor): CompositePropertyExtractor = CompositePropertyExtractor(buildList {
@@ -66,21 +74,23 @@ data class CollectedPropertyInformation(
 )
 
 class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = isPublicAndRestricted) : PropertyExtractor {
-    override fun extractProperties(kClass: KClass<*>) =
-        (propertiesFromAccessorsOf(kClass) + memberPropertiesOf(kClass)).distinctBy { it }
+    override fun extractProperties(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean) =
+        (propertiesFromAccessorsOf(kClass, propertyNamePredicate) + memberPropertiesOf(kClass, propertyNamePredicate)).distinctBy { it }
 
-    private fun propertiesFromAccessorsOf(kClass: KClass<*>): List<CollectedPropertyInformation> {
+    private fun propertiesFromAccessorsOf(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): List<CollectedPropertyInformation> {
         val functionsByName = kClass.memberFunctions.groupBy { it.name }
         val getters = functionsByName
             .filterKeys { it.startsWith("get") && it.substringAfter("get").firstOrNull()?.isUpperCase() == true }
             .mapValues { (_, functions) -> functions.singleOrNull { fn -> fn.parameters.all { it == fn.instanceParameter } } }
             .filterValues { it != null && includeMemberFilter.shouldIncludeMember(it) }
-        return getters.map { (name, getter) ->
+        return getters.mapNotNull { (name, getter) ->
             checkNotNull(getter)
             val nameAfterGet = name.substringAfter("get")
             val propertyName = nameAfterGet.replaceFirstChar { it.lowercase(Locale.getDefault()) }
+            if (!propertyNamePredicate(propertyName))
+                return@mapNotNull null
+
             val type = getter.returnType.toDataTypeRefOrError()
-            val hasSetter = functionsByName["set$nameAfterGet"].orEmpty().any { fn -> fn.parameters.singleOrNull { it != fn.instanceParameter }?.type == getter.returnType }
             val isHidden = getter.annotations.any { it is HiddenInRestrictedDsl }
             val isDirectAccessOnly = getter.annotations.any { it is AccessFromCurrentReceiverOnly }
             val mode = run {
@@ -91,11 +101,12 @@ class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = i
         }
     }
 
-    private fun memberPropertiesOf(kClass: KClass<*>): List<CollectedPropertyInformation> = kClass.memberProperties
+    private fun memberPropertiesOf(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): List<CollectedPropertyInformation> = kClass.memberProperties
         .filter { property ->
             (includeMemberFilter.shouldIncludeMember(property) ||
                 kClass.primaryConstructor?.parameters.orEmpty().any { it.name == property.name && it.type == property.returnType })
                 && property.visibility == KVisibility.PUBLIC
+                && propertyNamePredicate(property.name)
         }.map { property -> kPropertyInformation(property) }
 
     private fun kPropertyInformation(property: KProperty<*>): CollectedPropertyInformation {
