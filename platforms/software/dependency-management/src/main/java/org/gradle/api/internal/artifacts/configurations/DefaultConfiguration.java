@@ -682,8 +682,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             if (strict) {
                 Optional<ResolverResults> currentState = currentResolveState.get();
                 if (!isFullyResoled(currentState)) {
-                    // TODO: Do not validate that the current thread holds the project lock.
-                    // Should instead assert that the results are available and fail if not.
+                    // Do not validate that the current thread holds the project lock.
+                    // TODO: Should instead assert that the results are available and fail if not.
                     return resolveExclusivelyIfRequired();
                 }
                 return currentState.get();
