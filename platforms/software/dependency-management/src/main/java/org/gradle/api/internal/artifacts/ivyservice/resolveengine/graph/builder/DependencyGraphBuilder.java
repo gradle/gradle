@@ -46,7 +46,7 @@ import org.gradle.api.internal.attributes.CompatibilityRule;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.component.IncompatibleArtifactVariantsException;
+import org.gradle.internal.component.AbstractVariantSelectionException;
 import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
@@ -503,7 +503,7 @@ public class DependencyGraphBuilder {
             assertCompatibleAttributes(first, second, incompatibleNodes);
         }
         if (!incompatibleNodes.isEmpty()) {
-            IncompatibleArtifactVariantsException variantsSelectionException = resolutionFailureHandler.incompatibleArtifactVariantsFailure(schema, selected, incompatibleNodes);
+            AbstractVariantSelectionException variantsSelectionException = resolutionFailureHandler.incompatibleArtifactVariantsFailure(schema, selected, incompatibleNodes);
             for (EdgeState edge : module.getIncomingEdges()) {
                 edge.failWith(variantsSelectionException);
             }
