@@ -62,7 +62,7 @@ class JsonModelWriter(val writer: Writer) {
         endObject()
     }
 
-    fun writeDiagnostic(kind: DiagnosticKind, details: PropertyProblem) {
+    fun writeDiagnostic(kind: DiagnosticKind, details: DecoratedPropertyProblem) {
         if (first) first = false else comma()
         jsonObject {
             property("trace") {
@@ -72,18 +72,44 @@ class JsonModelWriter(val writer: Writer) {
             }
             comma()
             property(keyFor(kind)) {
-                jsonObjectList(details.message.fragments) { fragment ->
-                    writeFragment(fragment)
-                }
+                writeStructuredMessage(details.message)
             }
             details.documentationSection?.let {
                 comma()
                 property("documentationLink", documentationLinkFor(it))
             }
-            stackTraceStringOf(details)?.let {
+            details.exception?.let { exception ->
                 comma()
-                property("error", it)
+                writeError(exception)
             }
+        }
+    }
+
+    private
+    fun writeError(exception: DecoratedException) {
+        property("error") {
+            jsonObject {
+                property("summary") {
+                    writeStructuredMessage(exception.summary)
+                }
+                comma()
+                property("parts") {
+                    jsonObjectList(exception.parts) { (isInternal, text) ->
+                        property("isInternal") {
+                            write(isInternal.toString())
+                        }
+                        comma()
+                        property("text", text)
+                    }
+                }
+            }
+        }
+    }
+
+    private
+    fun writeStructuredMessage(message: StructuredMessage) {
+        jsonObjectList(message.fragments) { fragment ->
+            writeFragment(fragment)
         }
     }
 
@@ -262,19 +288,6 @@ class JsonModelWriter(val writer: Writer) {
     private
     fun documentationLinkFor(section: DocumentationSection) =
         documentationRegistry.documentationLinkFor(section)
-
-    private
-    fun stackTraceStringOf(problem: PropertyProblem): String? =
-        problem.exception?.let {
-            stackTraceStringFor(it)
-        }
-
-    private
-    val stackTraceExtractor = StackTraceExtractor()
-
-    private
-    fun stackTraceStringFor(error: Throwable): String =
-        stackTraceExtractor.stackTraceStringFor(error)
 
     private
     fun write(csq: CharSequence) = writer.append(csq)

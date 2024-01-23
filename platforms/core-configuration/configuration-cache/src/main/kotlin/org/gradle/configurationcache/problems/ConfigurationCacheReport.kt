@@ -103,7 +103,7 @@ class ConfigurationCacheReport(
              * [JsonModelWriter] uses Groovy's [CharBuf] for fast json encoding.
              */
             val groovyJsonClassLoader: ClassLoader,
-            val decorateProblem: ((PropertyProblem) -> PropertyProblem)? = null
+            val decorate: (PropertyProblem) -> DecoratedPropertyProblem
         ) : State() {
 
             private
@@ -121,7 +121,7 @@ class ConfigurationCacheReport(
 
             override fun onDiagnostic(kind: DiagnosticKind, problem: PropertyProblem): State {
                 executor.submit {
-                    writer.writeDiagnostic(kind, decorateProblem?.invoke(problem) ?: problem)
+                    writer.writeDiagnostic(kind, decorate(problem))
                 }
                 return this
             }
@@ -197,12 +197,74 @@ class ConfigurationCacheReport(
             temporaryFileProvider.createTemporaryFile("configuration-cache-report", "html"),
             executorFactory.create("Configuration cache report writer", 1),
             CharBuf::class.java.classLoader,
-            if (isStacktraceHashes) ::decorateProblemWithHash else null
+            ::decorateProblem
         ).onDiagnostic(kind, problem)
     }
 
     private
     val stateLock = Object()
+
+    private
+    fun decorateProblem(problem: PropertyProblem): DecoratedPropertyProblem {
+        val exception = problem.exception
+        return DecoratedPropertyProblem(
+            problem.trace,
+            if (isStacktraceHashes && exception != null) hashedProblemFor(problem, exception).message else problem.message,
+            exception?.let { decorateException(it) },
+            problem.documentationSection
+        )
+    }
+
+    private
+    val stackTraceExtractor = StackTraceExtractor()
+
+    private
+    fun stackTraceStringFor(error: Throwable): String =
+        stackTraceExtractor.stackTraceStringFor(error)
+
+    private
+    fun decorateException(exception: Throwable): DecoratedException {
+        val fullText = stackTraceStringFor(exception)
+        val parts = fullText.lines().chunkedBy { line ->
+            isInternalStackTraceLine(line.trim())
+        }
+        return DecoratedException(
+            exception,
+            StructuredMessage.build { text("Exception stacktrace") },
+            parts.map { (isInternal, lines) ->
+                StackTracePart(isInternal, lines.joinToString("\n"))
+            }
+        )
+    }
+
+    private
+    fun isInternalStackTraceLine(s: String): Boolean =
+        // JDK calls
+        s.startsWith("at java.") ||
+            s.startsWith("at jdk.internal.") ||
+            s.startsWith("at com.sun.proxy.") ||
+            // Groovy calls
+            s.startsWith("at groovy.lang.") ||
+            s.startsWith("at org.codehaus.groovy.") ||
+            // Gradle calls
+            s.startsWith("at org.gradle.")
+
+    /**
+     * Splits the list into chunks where each chunk corresponds to the continuous
+     * range of list items corresponding to the same [category][categorize].
+     */
+    private
+    fun <T, C> List<T>.chunkedBy(categorize: (T) -> C): List<Pair<C, List<T>>> {
+        return this.fold(mutableListOf<Pair<C, MutableList<T>>>()) { acc, item ->
+            val category = categorize(item)
+            if (acc.isNotEmpty() && acc.last().first == category) {
+                acc.last().second.add(item)
+            } else {
+                acc.add(category to mutableListOf(item))
+            }
+            acc
+        }
+    }
 
     override fun close() {
         modifyState {
@@ -247,14 +309,6 @@ class ConfigurationCacheReport(
         synchronized(stateLock) {
             state = state.f()
         }
-    }
-
-    private
-    fun decorateProblemWithHash(problem: PropertyProblem): PropertyProblem {
-        val exception = problem.exception
-            ?: return problem
-
-        return hashedProblemFor(problem, exception)
     }
 
     private
