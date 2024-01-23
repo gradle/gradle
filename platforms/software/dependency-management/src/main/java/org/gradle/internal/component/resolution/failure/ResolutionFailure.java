@@ -23,18 +23,19 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class ResolutionFailure {
     private final AttributesSchemaInternal schema;
     private final ResolutionFailureType type;
-    private final ComponentGraphResolveMetadata targetComponent;
+    @Nullable private final ComponentGraphResolveMetadata targetComponent;
     private final String requestedName;
     private final ImmutableAttributes requestedAttributes;
     private final ImmutableList<AssessedCandidate> candidates;
     private final boolean isVariantAware;
 
-    public ResolutionFailure(AttributesSchemaInternal schema, ResolutionFailureType type, ComponentGraphResolveMetadata targetComponent, String requestedName, AttributeContainerInternal requestedAttributes, List<AssessedCandidate> candidates, boolean isVariantAware) {
+    public ResolutionFailure(AttributesSchemaInternal schema, ResolutionFailureType type, @Nullable ComponentGraphResolveMetadata targetComponent, String requestedName, AttributeContainerInternal requestedAttributes, List<AssessedCandidate> candidates, boolean isVariantAware) {
         this.schema = schema;
         this.type = type;
         this.targetComponent = targetComponent;
@@ -52,6 +53,7 @@ public class ResolutionFailure {
         return type;
     }
 
+    @Nullable
     public ComponentGraphResolveMetadata getTargetComponent() {
         return targetComponent;
     }
@@ -79,6 +81,7 @@ public class ResolutionFailure {
     public enum ResolutionFailureType {
         AMBIGUOUS_VARIANTS,
         INCOMPATIBLE_VARIANTS,
+        INCOMPATIBLE_ARTIFACT_VARIANTS,
         NO_MATCHING_CONFIGURATIONS,
         NO_MATCHING_VARIANTS
     }
