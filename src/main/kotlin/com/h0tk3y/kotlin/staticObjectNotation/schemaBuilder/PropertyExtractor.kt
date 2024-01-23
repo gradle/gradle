@@ -59,7 +59,7 @@ data class CollectedPropertyInformation(
     val name: String,
     val originalReturnType: KType,
     val returnType: DataTypeRef,
-    val isReadOnly: Boolean,
+    val propertyMode: DataProperty.PropertyMode,
     val hasDefaultValue: Boolean,
     val isHiddenInRestrictedDsl: Boolean,
     val isDirectAccessOnly: Boolean
@@ -83,7 +83,11 @@ class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = i
             val hasSetter = functionsByName["set$nameAfterGet"].orEmpty().any { fn -> fn.parameters.singleOrNull { it != fn.instanceParameter }?.type == getter.returnType }
             val isHidden = getter.annotations.any { it is HiddenInRestrictedDsl }
             val isDirectAccessOnly = getter.annotations.any { it is AccessFromCurrentReceiverOnly }
-            CollectedPropertyInformation(propertyName, getter.returnType, type, !hasSetter, true, isHidden, isDirectAccessOnly)
+            val mode = run {
+                val hasSetter = functionsByName["set$nameAfterGet"].orEmpty().any { fn -> fn.parameters.singleOrNull { it != fn.instanceParameter }?.type == getter.returnType }
+                if (hasSetter) DataProperty.PropertyMode.READ_WRITE else DataProperty.PropertyMode.READ_ONLY
+            }
+            CollectedPropertyInformation(propertyName, getter.returnType, type, mode, true, isHidden, isDirectAccessOnly)
         }
     }
 
@@ -102,7 +106,7 @@ class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = i
             property.name,
             property.returnType,
             property.returnType.toDataTypeRefOrError(),
-            isReadOnly,
+            if (isReadOnly) DataProperty.PropertyMode.READ_ONLY else DataProperty.PropertyMode.READ_WRITE,
             hasDefaultValue = run {
                 isReadOnly || property.annotationsWithGetters.any { it is HasDefaultValue }
             },

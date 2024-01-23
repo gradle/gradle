@@ -133,7 +133,7 @@ private class DocumentResolver(
 
             is ErrorReason.UnresolvedReference -> UnresolvedName
             is ErrorReason.AssignmentTypeMismatch -> ValueTypeMismatch
-            ErrorReason.ReadOnlyPropertyAssignment -> NotAssignable
+            is ErrorReason.ReadOnlyPropertyAssignment -> NotAssignable
             ErrorReason.UnresolvedAssignmentRhs -> UnresolvedValueUsed
 
             ErrorReason.MissingConfigureLambda,
@@ -146,6 +146,7 @@ private class DocumentResolver(
             is ErrorReason.AmbiguousFunctions,
             is ErrorReason.AmbiguousImport,
             ErrorReason.DanglingPureExpression,
+            is ErrorReason.NonReadableProperty,
             ErrorReason.UnitAssignment, // TODO: should we still check for this?
             ErrorReason.AccessOnCurrentReceiverOnlyViolation -> error("not expected here")
         }
@@ -165,7 +166,7 @@ private class DocumentResolver(
 
             is ErrorReason.UnresolvedReference -> UnresolvedName
 
-            ErrorReason.ReadOnlyPropertyAssignment,
+            is ErrorReason.ReadOnlyPropertyAssignment,
             ErrorReason.UnitAssignment,
             ErrorReason.UnresolvedAssignmentLhs,
             ErrorReason.UnresolvedAssignmentRhs,
@@ -175,6 +176,7 @@ private class DocumentResolver(
             is ErrorReason.AssignmentTypeMismatch,
             is ErrorReason.ValReassignment,
             ErrorReason.AccessOnCurrentReceiverOnlyViolation,
+            is ErrorReason.NonReadableProperty,
             is ErrorReason.AmbiguousImport -> error("not expected here")
         }
     }.distinct()

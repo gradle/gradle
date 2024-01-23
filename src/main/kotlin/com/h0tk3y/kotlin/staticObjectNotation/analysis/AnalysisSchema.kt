@@ -58,11 +58,18 @@ sealed interface DataType {
 data class DataProperty(
     val name: String,
     val type: DataTypeRef,
-    val isReadOnly: Boolean,
+    val mode: PropertyMode,
     val hasDefaultValue: Boolean,
     val isHiddenInDsl: Boolean = false,
     val isDirectAccessOnly: Boolean = false
-)
+) {
+    enum class PropertyMode {
+        READ_WRITE, READ_ONLY, WRITE_ONLY
+    }
+
+    val isReadOnly: Boolean get() = mode == PropertyMode.READ_ONLY
+    val isWriteOnly: Boolean get() = mode == PropertyMode.WRITE_ONLY
+}
 
 @Serializable
 sealed interface SchemaFunction {

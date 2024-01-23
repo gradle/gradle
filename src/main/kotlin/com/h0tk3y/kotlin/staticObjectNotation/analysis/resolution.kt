@@ -22,6 +22,8 @@ data class ResolutionError(
 sealed interface ErrorReason {
     data class AmbiguousImport(val fqName: FqName) : ErrorReason
     data class UnresolvedReference(val reference: Expr) : ErrorReason
+    data class NonReadableProperty(val property: DataProperty) : ErrorReason
+    data class ReadOnlyPropertyAssignment(val property: DataProperty) : ErrorReason
     data class UnresolvedFunctionCallArguments(val functionCall: FunctionCall) : ErrorReason
     data class UnresolvedFunctionCallReceiver(val functionCall: FunctionCall) : ErrorReason
     data class UnresolvedFunctionCallSignature(val functionCall: FunctionCall) : ErrorReason

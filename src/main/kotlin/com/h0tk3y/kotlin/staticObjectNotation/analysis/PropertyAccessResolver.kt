@@ -75,23 +75,30 @@ class PropertyAccessResolverImpl(
                 onExternalObject = { yield(it) }
             )
         }
-        return candidates.firstOrNull().also {
-            if (it == null) {
+        candidates.firstOrNull().let { result ->
+            if (result == null) {
                 errorCollector.collect(ResolutionError(propertyAccess, ErrorReason.UnresolvedReference(propertyAccess)))
+                return null
             } else {
-                if (it is ObjectOrigin.PropertyReference) {
-                    ifPropertyCheckAccessOnCurrentReceiver(it)
+                if (result is ObjectOrigin.PropertyReference) {
+                    checkAccessOnCurrentReceiver(result)
+                    if (result.property.isWriteOnly) {
+                        errorCollector.collect(ResolutionError(result.originElement, ErrorReason.NonReadableProperty(result.property)))
+                        return null
+                    } else {
+                        return result
+                    }
+                } else {
+                    return result
                 }
             }
         }
     }
 
-    private fun AnalysisContext.ifPropertyCheckAccessOnCurrentReceiver(
-        it: ObjectOrigin?
+    private fun AnalysisContext.checkAccessOnCurrentReceiver(
+        reference: ObjectOrigin.PropertyReference
     ) {
-        if (it is ObjectOrigin.PropertyReference) {
-            checkPropertyAccessOnCurrentReceiver(it.property, it.receiver, it.originElement)
-        }
+        checkPropertyAccessOnCurrentReceiver(reference.property, reference.receiver, reference.originElement)
     }
 
     private fun AnalysisContext.checkPropertyAccessOnCurrentReceiver(property: DataProperty, receiver: ObjectOrigin, access: LanguageTreeElement) {
