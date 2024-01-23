@@ -21,6 +21,7 @@ plugins {
 dependencies {
     implementation(libs.futureKotlin("reflect"))
     implementation(kotlin("compiler-embeddable"))
+    implementation(project(":model-core"))
 
     api(libs.futureKotlin("stdlib"))
     api(project(":core"))
