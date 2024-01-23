@@ -16,17 +16,19 @@
 
 package org.gradle.caching.internal.origin;
 
+import javax.annotation.Nullable;
 import java.time.Duration;
+import java.util.Objects;
 
 public class OriginMetadata {
 
     private final String buildInvocationId;
-    private final String originWorkIdentity;
+    private final String buildCacheKey;
     private final Duration executionTime;
 
-    public OriginMetadata(String buildInvocationId, String originWorkIdentity, Duration executionTime) {
+    public OriginMetadata(String buildInvocationId, @Nullable String buildCacheKey, Duration executionTime) {
         this.buildInvocationId = buildInvocationId;
-        this.originWorkIdentity = originWorkIdentity;
+        this.buildCacheKey = buildCacheKey;
         this.executionTime = executionTime;
     }
 
@@ -34,8 +36,9 @@ public class OriginMetadata {
         return buildInvocationId;
     }
 
-    public String getOriginWorkIdentity() {
-        return originWorkIdentity;
+    @Nullable
+    public String getBuildCacheKey() {
+        return buildCacheKey;
     }
 
     public Duration getExecutionTime() {
@@ -56,7 +59,7 @@ public class OriginMetadata {
         if (!buildInvocationId.equals(that.buildInvocationId)) {
             return false;
         }
-        if (!originWorkIdentity.equals(that.originWorkIdentity)) {
+        if (!Objects.equals(buildCacheKey, that.buildCacheKey)) {
             return false;
         }
         return executionTime.equals(that.executionTime);
@@ -65,7 +68,7 @@ public class OriginMetadata {
     @Override
     public int hashCode() {
         int result = buildInvocationId.hashCode();
-        result = 31 * result + originWorkIdentity.hashCode();
+        result = 31 * result + Objects.hashCode(buildCacheKey);
         result = 31 * result + executionTime.hashCode();
         return result;
     }
@@ -74,7 +77,7 @@ public class OriginMetadata {
     public String toString() {
         return "OriginMetadata{"
             + "buildInvocationId=" + buildInvocationId
-            + "originWorkIdentity=" + originWorkIdentity
+            + "buildCacheKey=" + buildCacheKey
             + ", executionTime=" + executionTime
             + '}';
     }

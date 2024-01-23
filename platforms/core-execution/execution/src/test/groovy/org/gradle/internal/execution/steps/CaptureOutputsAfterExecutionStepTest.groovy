@@ -23,7 +23,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot
 
 import java.time.Duration
 
-class CaptureOutputsAfterExecutionStepTest extends StepSpec<BeforeExecutionContext> {
+class CaptureOutputsAfterExecutionStepTest extends StepSpec<CachingContext> {
 
     def buildInvocationScopeId = UniqueId.generate()
     def beforeExecutionState = Mock(Object)

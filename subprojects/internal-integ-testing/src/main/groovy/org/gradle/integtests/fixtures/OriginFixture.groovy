@@ -106,7 +106,7 @@ class OriginFixture extends UserInitScriptExecuterFixture {
         rawOrigins.each {
             origins[it.key] = it.value == null ? null : new OriginMetadata(
                     it.value.buildInvocationId as String,
-                    it.value.originWorkIdentity as String,
+                    it.value.buildCacheKey as String,
                     Duration.ofMillis(it.value.executionTime as long)
             )
         }

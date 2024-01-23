@@ -258,7 +258,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
                 @Override
                 public void run(BuildOperationContext context) throws IOException {
                     try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
-                        OriginWriter originWriter = originMetadataFactory.createWriter(entity.getIdentity(), entity.getType(), executionTime);
+                        OriginWriter originWriter = originMetadataFactory.createWriter(entity.getIdentity(), entity.getType(), key.getHashCode(), executionTime);
                         BuildCacheEntryPacker.PackResult packResult = packer.pack(entity, snapshots, fileOutputStream, originWriter);
                         long entryCount = packResult.getEntries();
                         context.setResult(new PackOperationResult(entryCount, file.length()));

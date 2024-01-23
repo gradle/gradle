@@ -143,7 +143,9 @@ class DefaultBuildCacheControllerPackOperationExecutorTest extends Specification
 
         then:
         1 * buildOperationExecutor.run(_) >> { RunnableBuildOperation action -> action.run(buildOperationContext)}
-        1 * originFactory.createWriter(entity.identity, entity.type, Duration.ofMillis(421L)) >> originWriter
+        1 * originFactory.createWriter(entity.identity, entity.type, "12345678", Duration.ofMillis(421L)) >> originWriter
+        1 * key.getHashCode() >> "12345678"
+
 
         then:
         1 * packer.pack(entity, outputSnapshots, _ as OutputStream, originWriter) >> new BuildCacheEntryPacker.PackResult(123)

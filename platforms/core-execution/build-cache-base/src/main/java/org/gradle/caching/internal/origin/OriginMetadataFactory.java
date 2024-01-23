@@ -24,6 +24,7 @@ public class OriginMetadataFactory {
     private static final String BUILD_INVOCATION_ID_KEY = "buildInvocationId";
     private static final String TYPE_KEY = "type";
     private static final String IDENTITY_KEY = "identity";
+    private static final String BUILD_CACHE_KEY_KEY = "buildCacheKey";
     private static final String CREATION_TIME_KEY = "creationTime";
     private static final String EXECUTION_TIME_KEY = "executionTime";
     private static final String OPERATING_SYSTEM_KEY = "operatingSystem";
@@ -50,12 +51,13 @@ public class OriginMetadataFactory {
         this.hostnameLookup = hostnameLookup;
     }
 
-    public OriginWriter createWriter(String identity, Class<?> workType, Duration elapsedTime) {
+    public OriginWriter createWriter(String identity, Class<?> workType, String buildCacheKey, Duration elapsedTime) {
         return outputStream -> {
             Properties properties = new Properties();
             properties.setProperty(BUILD_INVOCATION_ID_KEY, currentBuildInvocationId);
             properties.setProperty(TYPE_KEY, workType.getCanonicalName());
             properties.setProperty(IDENTITY_KEY, identity);
+            properties.setProperty(BUILD_CACHE_KEY_KEY, buildCacheKey);
             properties.setProperty(CREATION_TIME_KEY, Long.toString(System.currentTimeMillis()));
             properties.setProperty(EXECUTION_TIME_KEY, Long.toString(elapsedTime.toMillis()));
             properties.setProperty(OPERATING_SYSTEM_KEY, operatingSystem);
@@ -72,7 +74,7 @@ public class OriginMetadataFactory {
             properties.load(inputStream);
 
             String originBuildInvocationId = properties.getProperty(BUILD_INVOCATION_ID_KEY);
-            String originWorkIdentity = properties.getProperty(IDENTITY_KEY);
+            String originBuildCacheKey = properties.getProperty(BUILD_CACHE_KEY_KEY);
             String executionTimeAsString = properties.getProperty(EXECUTION_TIME_KEY);
 
             if (originBuildInvocationId == null || executionTimeAsString == null) {
@@ -80,7 +82,7 @@ public class OriginMetadataFactory {
             }
 
             Duration originalExecutionTime = Duration.ofMillis(Long.parseLong(executionTimeAsString));
-            return new OriginMetadata(originBuildInvocationId, originWorkIdentity, originalExecutionTime);
+            return new OriginMetadata(originBuildInvocationId, originBuildCacheKey, originalExecutionTime);
         };
     }
 

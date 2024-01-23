@@ -22,7 +22,6 @@ import spock.lang.Specification
 import java.time.Duration
 
 class OriginMetadataFactoryTest extends Specification {
-    def entry = Mock(CacheableEntity)
     def buildInvocationId = UUID.randomUUID().toString()
     def factory = new OriginMetadataFactory(
         "user",
@@ -31,12 +30,11 @@ class OriginMetadataFactoryTest extends Specification {
         { it.gradleVersion = "3.0" },
         { "my-host" }
     )
+    def buildCacheKey = "abcdef12345"
 
     def "converts to origin metadata"() {
-        entry.identity >> "identity"
-        entry.type >> CacheableEntity
         def origin = new Properties()
-        def writer = factory.createWriter("identity", CacheableEntity, Duration.ofMillis(10))
+        def writer = factory.createWriter("identity", CacheableEntity, buildCacheKey, Duration.ofMillis(10))
         def baos = new ByteArrayOutputStream()
         writer.execute(baos)
         when:
@@ -48,6 +46,7 @@ class OriginMetadataFactoryTest extends Specification {
         then:
         origin.identity == "identity"
         origin.type == CacheableEntity.canonicalName
+        origin.buildCacheKey == buildCacheKey
         origin.gradleVersion == "3.0"
         origin.creationTime != null
         origin.executionTime == "10"

@@ -30,24 +30,20 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 
 public class DefaultImmutableWorkspaceMetadataStore implements ImmutableWorkspaceMetadataStore {
     private static final String METADATA_FILE = "metadata.bin";
     private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
+    private final OriginMetadataSerializer originMetadataSerializer = new OriginMetadataSerializer();
 
     @Override
     public ImmutableWorkspaceMetadata loadWorkspaceMetadata(File workspace) {
         File metadataFile = new File(workspace, METADATA_FILE);
         //noinspection IOStreamConstructor
         try (KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(metadataFile))) {
-            OriginMetadata originMetadata = new OriginMetadata(
-                decoder.readString(),
-                decoder.readString(),
-                Duration.ofMillis(decoder.readSmallLong())
-            );
+            OriginMetadata originMetadata = originMetadataSerializer.read(decoder);
 
             int outputCount = decoder.readSmallInt();
             ImmutableListMultimap.Builder<String, HashCode> outputPropertyHashes = ImmutableListMultimap.builder();
@@ -70,10 +66,7 @@ public class DefaultImmutableWorkspaceMetadataStore implements ImmutableWorkspac
         File metadataFile = new File(workspace, METADATA_FILE);
         //noinspection IOStreamConstructor
         try (KryoBackedEncoder encoder = new KryoBackedEncoder(new FileOutputStream(metadataFile))) {
-            OriginMetadata originMetadata = metadata.getOriginMetadata();
-            encoder.writeString(originMetadata.getBuildInvocationId());
-            encoder.writeString(originMetadata.getOriginWorkIdentity());
-            encoder.writeSmallLong(originMetadata.getExecutionTime().toMillis());
+            originMetadataSerializer.write(encoder, metadata.getOriginMetadata());
 
             ImmutableListMultimap<String, HashCode> outputPropertyHashes = metadata.getOutputPropertyHashes();
             encoder.writeSmallInt(outputPropertyHashes.keySet().size());

@@ -21,11 +21,11 @@ import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-public class InputChangesContext extends ValidationFinishedContext {
+public class InputChangesContext extends CachingContext {
 
     private final InputChangesInternal inputChanges;
 
-    public InputChangesContext(ValidationFinishedContext parent, @Nullable InputChangesInternal inputChanges) {
+    public InputChangesContext(CachingContext parent, @Nullable InputChangesInternal inputChanges) {
         super(parent);
         this.inputChanges = inputChanges;
     }
