@@ -27,6 +27,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Generator for some software and an associated Gradle build.
+ */
 public class SourceGeneratingBuildGenerator extends AbstractBuildGenerator implements CompositeProjectInitDescriptor {
     private final ProjectGenerator descriptor;
     private final List<? extends BuildContentGenerator> generators;

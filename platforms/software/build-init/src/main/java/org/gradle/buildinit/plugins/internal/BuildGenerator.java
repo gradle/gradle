@@ -19,6 +19,9 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
+/**
+ * Generates a new Gradle build.
+ */
 public interface BuildGenerator extends BuildInitializer {
     /**
      * What kind of component does this initializer create?

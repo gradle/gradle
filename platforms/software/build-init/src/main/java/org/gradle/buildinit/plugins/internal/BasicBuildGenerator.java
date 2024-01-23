@@ -33,6 +33,9 @@ import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLI
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.NONE;
 import static org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption.SINGLE_PROJECT;
 
+/**
+ * Generator for a "basic" Gradle build.
+ */
 public class BasicBuildGenerator extends AbstractBuildGenerator {
     private final DocumentationRegistry documentationRegistry;
 

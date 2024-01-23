@@ -24,7 +24,9 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Initializes a Gradle build.
+ * Initializes a Gradle build, either by converting an existing build to Gradle or generating a new Gradle build.
+ *
+ * <p>This interface currently includes a bunch of methods that are related to build generation and should move to {@link BuildGenerator}.</p>
  */
 public interface BuildInitializer {
     /**
