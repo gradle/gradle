@@ -220,6 +220,11 @@ class DefaultFunctionExtractor(
 
             function.annotations.any { it is Adding } -> {
                 check(inType != null)
+
+                check(function.returnType != typeOf<Unit>() || configureLambdas.getTypeConfiguredByLambda(function.parameters.last().type) == null) {
+                    "an @Adding function with a Unit return type may not accept configuring lambdas"
+                }
+
                 val lastParam = function.parameters[function.parameters.lastIndex]
                 val hasConfigureLambda =
                     configureLambdas.isConfigureLambdaForType(function.returnType, lastParam.type)
