@@ -30,7 +30,7 @@ import kotlin.reflect.KVisibility
 
 fun schemaFromTypes(
     topLevelReceiver: KClass<*>,
-    types: List<KClass<*>>,
+    types: Iterable<KClass<*>>,
     externalFunctions: List<KFunction<*>> = emptyList(),
     externalObjects: Map<FqName, KClass<*>> = emptyMap(),
     defaultImports: List<FqName> = emptyList(),

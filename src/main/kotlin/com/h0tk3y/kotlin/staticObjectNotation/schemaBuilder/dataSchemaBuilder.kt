@@ -33,7 +33,7 @@ class DataSchemaBuilder(
 ) {
     fun schemaFromTypes(
         topLevelReceiver: KClass<*>,
-        types: List<KClass<*>>,
+        types: Iterable<KClass<*>>,
         externalFunctions: List<KFunction<*>> = emptyList(),
         externalObjects: Map<FqName, KClass<*>> = emptyMap(),
         defaultImports: List<FqName> = emptyList(),
@@ -82,11 +82,11 @@ class DataSchemaBuilder(
         fun getPropertyType(kClass: KClass<*>, name: String) = propertyOriginalTypes[kClass]?.get(name)
     }
 
-    private fun createPreIndex(types: List<KClass<*>>): PreIndex {
+    private fun createPreIndex(types: Iterable<KClass<*>>): PreIndex {
         val allTypesToVisit = buildSet {
             fun visit(type: KClass<*>) {
                 if (add(type)) {
-                    typeDiscovery.getOtherClassesToVisitFrom(type).forEach(::visit)
+                    typeDiscovery.getClassesToVisitFrom(type).forEach(::visit)
                 }
             }
             types.forEach(::visit)

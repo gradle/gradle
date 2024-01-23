@@ -19,18 +19,18 @@ package com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder
 import kotlin.reflect.KClass
 
 interface TypeDiscovery {
-    fun getOtherClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>>
+    fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>>
 
     companion object {
         val none = object : TypeDiscovery {
-            override fun getOtherClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> = emptyList()
+            override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> = emptyList()
         }
     }
 }
 
 class CompositeTypeDiscovery(internal val implementations: Iterable<TypeDiscovery>) : TypeDiscovery {
-    override fun getOtherClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
-        implementations.flatMapTo(mutableSetOf()) { it.getOtherClassesToVisitFrom(kClass) }
+    override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
+        implementations.flatMapTo(mutableSetOf()) { it.getClassesToVisitFrom(kClass) }
 }
 
 operator fun TypeDiscovery.plus(other: TypeDiscovery): CompositeTypeDiscovery = CompositeTypeDiscovery(buildList {
