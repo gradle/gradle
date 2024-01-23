@@ -15,6 +15,7 @@ jobs:
       - uses: actions/stale@v9
         with:
           operations-per-run: 50
+          remove-stale-when-updated: false
 
           only-issue-labels: ':wave: team-triage'
           days-before-issue-stale: 14
