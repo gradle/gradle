@@ -50,16 +50,15 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.ResolutionFailure;
 import org.gradle.internal.component.resolution.failure.ResolutionFailure.ResolutionFailureType;
+import org.gradle.internal.component.resolution.failure.describer.AmbiguousGraphVariantsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.CapabilitiesDescriber;
 import org.gradle.internal.component.resolution.failure.describer.IncompatibleArtifactVariantsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.NonVariantAwareNoMatchingGraphVariantFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.StyledAttributeDescriber;
 import org.gradle.internal.component.resolution.failure.describer.VariantAwareNoMatchingGraphVariantFailureDescriber;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -106,7 +105,9 @@ public class ResolutionFailureHandler {
         this.defaultFailureDescribers = Lists.newArrayList(
             new VariantAwareNoMatchingGraphVariantFailureDescriber(documentationRegistry),
             new NonVariantAwareNoMatchingGraphVariantFailureDescriber(documentationRegistry),
-            new IncompatibleArtifactVariantsFailureDescriber(documentationRegistry)
+            new AmbiguousGraphVariantsFailureDescriber(documentationRegistry),
+            new IncompatibleArtifactVariantsFailureDescriber(documentationRegistry),
+            new AmbiguousGraphVariantsFailureDescriber(documentationRegistry)
         );
     }
 
@@ -266,20 +267,16 @@ public class ResolutionFailureHandler {
     // endregion Artifact Variant Selection Failures
 
     // region Graph Variant Selection Failures
-    public AmbiguousGraphVariantsException ambiguousGraphVariantsFailure(
+    public AbstractVariantSelectionException ambiguousGraphVariantsFailure(
         AttributesSchemaInternal schema, AttributeMatcher matcher,
         AttributeContainerInternal requestedAttributes,
         List<? extends VariantGraphResolveState> matchingVariants,
-        ComponentGraphResolveMetadata targetComponent, boolean variantAware,
-        @Nullable Set<VariantGraphResolveState> discarded
+        ComponentGraphResolveMetadata targetComponent, boolean variantAware
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
-        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(requestedAttributes, schema);
-        String message = buildAmbiguousGraphVariantsFailureMsg(resolutionCandidateAssessor, new StyledAttributeDescriber(describer), matchingVariants, targetComponent, variantAware, discarded);
-        AmbiguousGraphVariantsException e = new AmbiguousGraphVariantsException(message);
-        e.addResolution(AMBIGUOUS_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", AMBIGUOUS_VARIANTS_SECTION + "."));
-        suggestReviewAlgorithm(e);
-        return e;
+        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessCandidates(extractVariants(matchingVariants));
+        ResolutionFailure failure = new ResolutionFailure(schema, ResolutionFailureType.AMBIGUOUS_VARIANTS, targetComponent, targetComponent.getId().getDisplayName(), requestedAttributes, assessedCandidates, variantAware);
+        return describeFailure(schema, failure);
     }
 
     public IncompatibleGraphVariantsException incompatibleGraphVariantsFailure(
@@ -367,54 +364,6 @@ public class ResolutionFailureHandler {
         return String.format("Selected configuration '" + targetConfigurationName + "' on '" + targetComponentName + "' but it can't be used as a project dependency because it isn't intended for consumption by other components.");
     }
 
-    private String buildAmbiguousGraphVariantsFailureMsg(
-        ResolutionCandidateAssessor resolutionCandidateAssessor,
-        AttributeDescriber describer,
-        List<? extends VariantGraphResolveState> matches,
-        ComponentGraphResolveMetadata targetComponent, boolean variantAware,
-        @Nullable Set<VariantGraphResolveState> discarded
-    ) {
-        Map<String, VariantGraphResolveState> ambiguousVariants = new TreeMap<>();
-        for (VariantGraphResolveState match : matches) {
-            ambiguousVariants.put(match.getName(), match);
-        }
-        TreeFormatter formatter = new TreeFormatter();
-        String configTerm = variantAware ? "variants" : "configurations";
-        if (resolutionCandidateAssessor.getRequestedAttributes().isEmpty()) {
-            formatter.node("Cannot choose between the following " + configTerm + " of ");
-        } else {
-            formatter.node("The consumer was configured to find " + describer.describeAttributeSet(resolutionCandidateAssessor.getRequestedAttributes().asMap()) + ". However we cannot choose between the following " + configTerm + " of ");
-        }
-        formatter.append(style(StyledTextOutput.Style.Info, targetComponent.getId().getDisplayName()));
-        formatter.startChildren();
-        for (String configuration : ambiguousVariants.keySet()) {
-            formatter.node(configuration);
-        }
-        formatter.endChildren();
-        formatter.node("All of them match the consumer attributes");
-        // We're sorting the names of the variants and later attributes
-        // to make sure the output is consistently the same between invocations
-        formatter.startChildren();
-        for (VariantGraphResolveState ambiguousVariant : ambiguousVariants.values()) {
-            AssessedCandidate assessedCandidate = resolutionCandidateAssessor.assessCandidate(ambiguousVariant.getName(), ambiguousVariant.getCapabilities(), ambiguousVariant.getAttributes().asImmutable());
-            formatUnselectable(assessedCandidate, formatter, targetComponent, ambiguousVariant.getMetadata(), variantAware, true, describer);
-        }
-        formatter.endChildren();
-        if (discarded != null && !discarded.isEmpty()) {
-            formatter.node("The following " + configTerm + " were also considered but didn't match the requested attributes:");
-            formatter.startChildren();
-            discarded.stream()
-                .sorted(Comparator.comparing(VariantGraphResolveState::getName))
-                .forEach(discardedConf -> {
-                    AssessedCandidate assessedCandidate = resolutionCandidateAssessor.assessCandidate(discardedConf.getName(), discardedConf.getCapabilities(), discardedConf.getAttributes().asImmutable());
-                    formatUnselectable(assessedCandidate, formatter, targetComponent, discardedConf.getMetadata(), variantAware, false, describer);
-                });
-            formatter.endChildren();
-        }
-
-        return formatter.toString();
-    }
-
     private String buildIncompatibleGraphVariantsFailureMsg(
         ResolutionCandidateAssessor resolutionCandidateAssessor,
         ComponentGraphResolveMetadata targetComponent,
@@ -426,7 +375,7 @@ public class ResolutionFailureHandler {
         String candidateName = targetConfiguration.getName();
         AssessedCandidate assessedCandidate = resolutionCandidateAssessor.assessCandidate(candidateName, targetConfiguration.asVariant().getCapabilities(), targetConfiguration.asVariant().getMetadata().getAttributes());
         formatter.node("Configuration '" + candidateName + "' in " + style(StyledTextOutput.Style.Info, targetComponent.getId().getDisplayName()) + " does not match the consumer attributes");
-        formatUnselectable(assessedCandidate, formatter, targetComponent, targetConfiguration.asVariant().getMetadata(), variantAware, false, describer);
+        formatUnselectable(assessedCandidate, formatter, targetComponent, targetConfiguration.asVariant().getMetadata(), variantAware, describer);
         return formatter.toString();
     }
 
@@ -448,7 +397,6 @@ public class ResolutionFailureHandler {
         ComponentGraphResolveMetadata targetComponent,
         VariantGraphResolveMetadata variant,
         boolean variantAware,
-        boolean ambiguous,
         AttributeDescriber describer
     ) {
         if (variantAware) {
@@ -461,11 +409,8 @@ public class ResolutionFailureHandler {
         if (variantAware) {
             formatter.append(" " + CapabilitiesDescriber.describeCapabilitiesWithTitle(targetComponent, variant.getCapabilities().asSet()));
         }
-        if (ambiguous) {
-            formatAttributeMatchesForAmbiguity(assessedCandidate, formatter, describer);
-        } else {
-            formatAttributeMatchesForIncompatibility(assessedCandidate, formatter, describer);
-        }
+
+        formatAttributeMatchesForIncompatibility(assessedCandidate, formatter, describer);
     }
 
     @SuppressWarnings("DataFlowIssue")
@@ -560,17 +505,29 @@ public class ResolutionFailureHandler {
     }
 
     /**
-     * Extracts variant metadata from the given {@link GraphSelectionCandidates}.
+     * Extracts variant metadata from the given {@link Set} of {@link NodeState}s.
      *
-     * @param candidates the candidates to extract variants from
+     * @param nodes the source to extract variants from
      * @return the extracted variants, sorted by name
      */
-    private List<? extends VariantGraphResolveMetadata> extractVariants(Set<NodeState> candidates) {
-        return candidates.stream()
+    private List<? extends VariantGraphResolveMetadata> extractVariants(Set<NodeState> nodes) {
+        return nodes.stream()
             .map(NodeState::getMetadata)
             .sorted(Comparator.comparing(VariantGraphResolveMetadata::getName))
             .collect(Collectors.toList());
     }
-    // endregion Graph Variant Selection Failures
 
+    /**
+     * Extracts variant metadata from the given {@link List} of {@link VariantGraphResolveState}s.
+     *
+     * @param variantStates the source to extract variants from
+     * @return the extracted variants, sorted by name
+     */
+    private List<? extends VariantGraphResolveMetadata> extractVariants(List<? extends VariantGraphResolveState> variantStates) {
+        return variantStates.stream()
+            .map(VariantGraphResolveState::getMetadata)
+            .sorted(Comparator.comparing(VariantGraphResolveMetadata::getName))
+            .collect(Collectors.toList());
+    }
+    // endregion Graph Variant Selection Failures
 }

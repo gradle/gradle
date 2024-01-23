@@ -28,7 +28,7 @@ import javax.inject.Inject;
 
 import static org.gradle.internal.exceptions.StyledException.style;
 
-public final class VariantAwareNoMatchingGraphVariantFailureDescriber extends AbstractNoMatchingGraphVariantFailureDescriber {
+public class VariantAwareNoMatchingGraphVariantFailureDescriber extends AbstractNoMatchingGraphVariantFailureDescriber {
     @Inject
     public VariantAwareNoMatchingGraphVariantFailureDescriber(DocumentationRegistry documentationRegistry) {
         super(documentationRegistry);
