@@ -52,6 +52,14 @@
         ],
         "selected": "org.codehaus.groovy:groovy"
     },
+    {
+        "name": "jsch",
+        "providedBy": [
+            "com.github.mwiede:jsch",
+            "com.jcraft:jsch"
+        ],
+        "selected": "com.github.mwiede:jsch"
+    },
 
     // forced upgrade: the following modules will automatically be replaced with the selected module
     // even if there's no conflict, and forces an upgrade to the specified version
