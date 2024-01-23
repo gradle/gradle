@@ -244,7 +244,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                         if (hasDroppedStateBecauseOfErrorsReceivedWhileWatching(statistics)) {
                             newRoot = stopWatchingAndInvalidateHierarchyAfterError(currentRoot);
                         } else {
-                            newRoot = withWatcherChangeErrorHandling(currentRoot, () -> watchRegistry.updateVfsOnBuildFinished(currentRoot, watchMode, maximumNumberOfWatchedHierarchies, unsupportedFileSystems));
+                            newRoot = withWatcherChangeErrorHandling(currentRoot, () -> watchRegistry.updateVfsOnBuildFinished(currentRoot, maximumNumberOfWatchedHierarchies, unsupportedFileSystems));
                         }
                         statisticsDuringBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                         if (vfsLogging == VfsLogging.VERBOSE) {

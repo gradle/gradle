@@ -80,7 +80,7 @@ public interface FileWatcherRegistry extends Closeable {
      * @return the snapshot hierarchy without snapshots which can't be kept till the next build.
      */
     @CheckReturnValue
-    SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems);
+    SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems);
 
     /**
      * Get statistics about the received changes.
