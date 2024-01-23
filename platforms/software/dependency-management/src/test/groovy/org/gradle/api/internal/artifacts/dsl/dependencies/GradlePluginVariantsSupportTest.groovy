@@ -30,7 +30,7 @@ class GradlePluginVariantsSupportTest extends Specification {
 
     def attributes = AttributeTestUtil.attributesFactory()
     def objects = TestUtil.objectFactory()
-    def schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
+    def schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory(), new DocumentationRegistry())
     def ep = Stub(AttributeMatchingExplanationBuilder)
 
     def setup() {

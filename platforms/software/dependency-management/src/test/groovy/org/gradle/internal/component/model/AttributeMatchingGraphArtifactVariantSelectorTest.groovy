@@ -42,7 +42,7 @@ import spock.lang.Specification
 import static org.gradle.util.AttributeTestUtil.attributes
 
 class AttributeMatchingGraphArtifactVariantSelectorTest extends Specification {
-    private final AttributesSchemaInternal attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
+    private final AttributesSchemaInternal attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory(), new DocumentationRegistry())
 
     private ComponentGraphResolveState targetState
     private ComponentGraphResolveMetadata targetComponent
