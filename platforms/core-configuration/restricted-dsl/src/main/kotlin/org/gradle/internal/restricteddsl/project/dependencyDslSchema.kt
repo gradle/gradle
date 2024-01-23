@@ -26,7 +26,7 @@ import kotlin.reflect.KType
 
 internal
 class DependencyDslTypeDiscovery : TypeDiscovery {
-    override fun getOtherClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> {
+    override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> {
         return if (kClass.isGeneratedAccessors()) {
             allClassesReachableFromGetters(kClass).flatMapTo(mutableSetOf(), ::allSupertypes)
         } else {
@@ -35,7 +35,7 @@ class DependencyDslTypeDiscovery : TypeDiscovery {
     }
 
     private
-    fun allClassesReachableFromGetters(kClass: KClass<*>) = buildSet<KClass<*>> {
+    fun allClassesReachableFromGetters(kClass: KClass<*>) = buildSet {
         fun visit(kClass: KClass<*>) {
             if (add(kClass)) {
                 val properties = dependencyGetters.extractProperties(kClass)
