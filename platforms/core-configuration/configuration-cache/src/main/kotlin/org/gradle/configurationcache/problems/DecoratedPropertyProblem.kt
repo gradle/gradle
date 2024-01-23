@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.problems
 
+
 internal
 data class DecoratedPropertyProblem(
     val trace: PropertyTrace,
@@ -38,4 +39,3 @@ data class StackTracePart(
     val isInternal: Boolean,
     val text: String
 )
-
