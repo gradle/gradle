@@ -29,7 +29,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 @ToolingApiVersion(">=6.1")
-class InvalidateVirtualFileSystemCrossVersionSpec extends ToolingApiSpecification {
+class InvalidateVirtualFileSystemAfterChangeCrossVersionSpec extends ToolingApiSpecification {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
     GradleExecuter executer
 
