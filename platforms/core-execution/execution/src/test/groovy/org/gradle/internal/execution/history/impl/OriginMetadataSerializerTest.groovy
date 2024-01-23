@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.history.impl
 
 import org.gradle.caching.internal.origin.OriginMetadata
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.SerializerSpec
 
 import java.time.Duration
@@ -32,7 +33,7 @@ class OriginMetadataSerializerTest extends SerializerSpec {
         serialize(originMetadata, serializer) == originMetadata
 
         where:
-        buildCacheKey << ["test-build-cache-key", null]
+        buildCacheKey << [HashCode.fromString("1234567890abcdef"), null]
     }
 
 }

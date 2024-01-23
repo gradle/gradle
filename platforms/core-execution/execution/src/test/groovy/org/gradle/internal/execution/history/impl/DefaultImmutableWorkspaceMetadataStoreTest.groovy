@@ -57,6 +57,6 @@ class DefaultImmutableWorkspaceMetadataStoreTest extends Specification {
         loadedMetadata == metadata
 
         where:
-        buildCacheKey << ["test-build-cache-key", null]
+        buildCacheKey << [HashCode.fromString("0123456789abcdef"), null]
     }
 }

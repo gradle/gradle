@@ -17,7 +17,11 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
+import org.gradle.caching.internal.DefaultBuildCacheKey
 import org.gradle.internal.execution.OutputSnapshotter
+import org.gradle.internal.execution.caching.CachingState
+import org.gradle.internal.execution.history.BeforeExecutionState
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.snapshot.FileSystemSnapshot
 
@@ -26,7 +30,7 @@ import java.time.Duration
 class CaptureOutputsAfterExecutionStepTest extends StepSpec<CachingContext> {
 
     def buildInvocationScopeId = UniqueId.generate()
-    def beforeExecutionState = Mock(Object)
+    def beforeExecutionState = Mock(BeforeExecutionState)
     def outputSnapshotter = Mock(OutputSnapshotter)
     def outputFilter = Mock(AfterExecutionOutputFilter)
     def delegateResult = Stub(Result)
@@ -79,6 +83,7 @@ class CaptureOutputsAfterExecutionStepTest extends StepSpec<CachingContext> {
         def filteredOutputSnapshots = ImmutableSortedMap.<String, FileSystemSnapshot>of(
             "outputDir", Mock(FileSystemSnapshot)
         )
+        def buildCacheKey = HashCode.fromString("0123456789abcdef")
         delegateResult.duration >> delegateDuration
 
         when:
@@ -87,6 +92,7 @@ class CaptureOutputsAfterExecutionStepTest extends StepSpec<CachingContext> {
         result.afterExecutionOutputState.get().outputFilesProducedByWork == filteredOutputSnapshots
         result.duration == delegateDuration
         result.afterExecutionOutputState.get().originMetadata.buildInvocationId == buildInvocationScopeId.asString()
+        result.afterExecutionOutputState.get().originMetadata.buildCacheKey == buildCacheKey
         result.afterExecutionOutputState.get().originMetadata.executionTime >= result.duration
         !result.afterExecutionOutputState.get().reused
         assertOperation()
@@ -97,6 +103,7 @@ class CaptureOutputsAfterExecutionStepTest extends StepSpec<CachingContext> {
         1 * outputFilter.getBeforeExecutionState(context) >> Optional.of(beforeExecutionState)
         1 * outputSnapshotter.snapshotOutputs(work, _) >> outputSnapshots
         1 * outputFilter.filterOutputs(context, beforeExecutionState, outputSnapshots) >> filteredOutputSnapshots
+        _ * context.cachingState >> CachingState.enabled(new DefaultBuildCacheKey(buildCacheKey), beforeExecutionState)
         0 * _
     }
 

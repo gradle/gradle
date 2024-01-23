@@ -17,13 +17,13 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -82,13 +82,16 @@ public class CaptureOutputsAfterExecutionStep<C extends CachingContext, B> exten
                 // As this is _roughly_ the amount of time that is avoided by reusing the outputs,
                 // which is currently the _only_ thing this value is used for.
                 Duration originExecutionTime = result.getDuration().plus(Duration.ofMillis(snapshotOutputDuration));
-                String buildCacheKey = context.getCachingState()
+                HashCode buildCacheKey = context.getCachingState()
                     .fold(
                         (CachingState.Enabled enabled) -> Optional.of(enabled.getKey()),
                         CachingState.Disabled::getKey)
-                    .map(BuildCacheKey::getHashCode)
+                    .map(cacheKey -> HashCode.fromBytes(cacheKey.toByteArray()))
                     .orElse(null);
-                OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), buildCacheKey, originExecutionTime);
+                OriginMetadata originMetadata = new OriginMetadata(
+                    buildInvocationScopeId.asString(),
+                    buildCacheKey,
+                    originExecutionTime);
                 operationContext.setResult(Operation.Result.INSTANCE);
                 return new DefaultExecutionOutputState(result.getExecution().isSuccessful(), outputsProducedByWork, originMetadata, false);
             },

@@ -30,7 +30,7 @@ class OriginMetadataFactoryTest extends Specification {
         { it.gradleVersion = "3.0" },
         { "my-host" }
     )
-    def buildCacheKey = "abcdef12345"
+    def buildCacheKey = "0123456789abcdef"
 
     def "converts to origin metadata"() {
         def origin = new Properties()

@@ -17,19 +17,23 @@
 package org.gradle.internal.execution.history.impl;
 
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.HashCodeSerializer;
 
 import java.io.IOException;
 import java.time.Duration;
 
 public class OriginMetadataSerializer extends AbstractSerializer<OriginMetadata> {
 
+    private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
+
     @Override
     public OriginMetadata read(Decoder decoder) throws IOException {
         String buildInvocationId = decoder.readString();
-        String buildCacheKey = decoder.readBoolean() ? decoder.readString() : null;
+        HashCode buildCacheKey = decoder.readBoolean() ? hashCodeSerializer.read(decoder) : null;
         Duration executionTime = Duration.ofMillis(decoder.readSmallLong());
         return new OriginMetadata(
             buildInvocationId,
@@ -44,7 +48,7 @@ public class OriginMetadataSerializer extends AbstractSerializer<OriginMetadata>
         boolean hasBuildCacheKey = originMetadata.getBuildCacheKey() != null;
         encoder.writeBoolean(hasBuildCacheKey);
         if (hasBuildCacheKey) {
-            encoder.writeString(originMetadata.getBuildCacheKey());
+            hashCodeSerializer.write(encoder, originMetadata.getBuildCacheKey());
         }
         encoder.writeSmallLong(originMetadata.getExecutionTime().toMillis());
     }
