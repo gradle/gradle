@@ -23,7 +23,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.internal.GroovyScriptClassCompiler.GroovyScriptCompileAndInstrumentUnitOfWork.GroovyScriptCompilationOutput;
+import org.gradle.groovy.scripts.internal.GroovyScriptClassCompiler.GroovyScriptCompilationAndInstrumentation.GroovyScriptCompilationOutput;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
@@ -42,7 +42,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.scripts.BuildScriptCompileAndInstrumentUnitOfWork;
+import org.gradle.internal.scripts.BuildScriptCompilationAndInstrumentation;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
@@ -118,7 +118,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
         File instrumentedJar = output.getInstrumentedJar();
         File metadataDir = output.getMetadataDir();
-        // TODO: Remove the remapping or move remapping to the non-cacheable unit of work?
+        // TODO: Remove the remapping or move remapping to an uncached unit of work?
         ClassPath remappedClasses = remapClasses(instrumentedJar, remapped);
         return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, remappedClasses, metadataDir, operation, scriptBaseClass);
     }
@@ -133,7 +133,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         Action<? super ClassNode> verifier,
         Class<T> scriptBaseClass
     ) {
-        UnitOfWork unitOfWork = new GroovyScriptCompileAndInstrumentUnitOfWork(
+        UnitOfWork unitOfWork = new GroovyScriptCompilationAndInstrumentation(
             templateId,
             sourceHashCode,
             classLoader,
@@ -202,7 +202,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
     public void close() {
     }
 
-    static class GroovyScriptCompileAndInstrumentUnitOfWork extends BuildScriptCompileAndInstrumentUnitOfWork {
+    static class GroovyScriptCompilationAndInstrumentation extends BuildScriptCompilationAndInstrumentation {
 
         private final String templateId;
         private final HashCode sourceHashCode;
@@ -214,7 +214,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         private final ScriptCompilationHandler scriptCompilationHandler;
         private final Action<? super ClassNode> verifier;
 
-        public GroovyScriptCompileAndInstrumentUnitOfWork(
+        public GroovyScriptCompilationAndInstrumentation(
             String templateId,
             HashCode sourceHashCode,
             ClassLoader classLoader,

@@ -32,6 +32,7 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nullable;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.File;
 import java.util.Map;
 
@@ -41,14 +42,14 @@ import static java.util.Objects.requireNonNull;
  * A base class that represents a work for compilation for Kotlin and Groovy build scripts.
  * This work unit first compiles the build script to a directory, and then instruments the directory for configuration cache and returns instrumented output.
  */
-public abstract class BuildScriptCompileAndInstrumentUnitOfWork implements ImmutableUnitOfWork {
+public abstract class BuildScriptCompilationAndInstrumentation implements ImmutableUnitOfWork {
 
     private final ImmutableWorkspaceProvider workspaceProvider;
     private final InputFingerprinter inputFingerprinter;
     private final ClasspathElementTransformFactoryForLegacy transformFactory;
     protected final FileCollectionFactory fileCollectionFactory;
 
-    public BuildScriptCompileAndInstrumentUnitOfWork(
+    public BuildScriptCompilationAndInstrumentation(
         ImmutableWorkspaceProvider workspaceProvider,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
@@ -82,6 +83,7 @@ public abstract class BuildScriptCompileAndInstrumentUnitOfWork implements Immut
     }
 
     @Override
+    @OverridingMethodsMustInvokeSuper
     public void visitOutputs(File workspace, OutputVisitor visitor) {
         File instrumentedJar = instrumentedJar(workspace);
         OutputFileValueSupplier instrumentedJarValue = OutputFileValueSupplier.fromStatic(instrumentedJar, fileCollectionFactory.fixed(instrumentedJar));

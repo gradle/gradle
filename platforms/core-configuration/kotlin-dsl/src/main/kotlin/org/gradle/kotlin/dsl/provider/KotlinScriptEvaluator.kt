@@ -42,7 +42,7 @@ import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.CallableBuildOperation
-import org.gradle.internal.scripts.BuildScriptCompileAndInstrumentUnitOfWork
+import org.gradle.internal.scripts.BuildScriptCompilationAndInstrumentation
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
@@ -256,7 +256,7 @@ class StandardKotlinScriptEvaluator(
         ): File = try {
             executionEngineFor(scriptHost)
                 .createRequest(
-                    KotlinScriptCompileUnitOfWork(
+                    KotlinScriptCompilationAndInstrumentation(
                         programId,
                         compilationClassPath,
                         accessorsClassPath,
@@ -346,7 +346,7 @@ class StandardKotlinScriptEvaluator(
     }
 
     internal
-    class KotlinScriptCompileUnitOfWork(
+    class KotlinScriptCompilationAndInstrumentation(
         private val programId: ProgramId,
         private val compilationClassPath: ClassPath,
         private val accessorsClassPath: ClassPath,
@@ -356,7 +356,7 @@ class StandardKotlinScriptEvaluator(
         fileCollectionFactory: FileCollectionFactory,
         inputFingerprinter: InputFingerprinter,
         transformFactory: ClasspathElementTransformFactoryForLegacy
-    ) : BuildScriptCompileAndInstrumentUnitOfWork(workspaceProvider.scripts, fileCollectionFactory, inputFingerprinter, transformFactory) {
+    ) : BuildScriptCompilationAndInstrumentation(workspaceProvider.scripts, fileCollectionFactory, inputFingerprinter, transformFactory) {
 
         companion object {
             const val JVM_TARGET = "jvmTarget"
