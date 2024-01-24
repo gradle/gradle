@@ -36,7 +36,7 @@ Each included build is configured and executed in isolation.
 
 The following examples demonstrate how two Gradle builds, normally developed separately, can be combined into a composite build.
 
-[source]
+[source,text]
 ----
 my-composite
 ├── gradle
@@ -91,7 +91,7 @@ The settings file can be used to add subprojects and included builds simultaneou
 Included builds are added by location:
 
 .settings.gradle.kts
-[source]
+[source,kotlin]
 ----
 includeBuild("my-utils")
 ----

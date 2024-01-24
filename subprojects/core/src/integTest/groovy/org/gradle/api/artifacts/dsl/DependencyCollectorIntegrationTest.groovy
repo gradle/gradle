@@ -39,7 +39,7 @@ class DependencyCollectorIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput("The value for property 'implementation' property 'dependencies' is final and cannot be changed any further.")
     }
 
-    def "cannot mutate dependencies after dependency set has been observed"() {
+    def "mutating dependencies after dependency set has been observed is deprecated"() {
         given:
         mavenRepo.module("com", "foo").publish()
         buildFile << """
@@ -47,17 +47,15 @@ class DependencyCollectorIntegrationTest extends AbstractIntegrationSpec {
 
             dependencies.implementation 'com:foo:1.0'
 
-            configurations.conf.dependencies.each {
-                assert it.name == "foo"
-                it.attributes {
-                    attribute(org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE, objects.named(Usage, "usage"))
-                }
+            def dependency = configurations.conf.dependencies.find { it.name == "foo" }
+            dependency.version {
+                require("2.0")
             }
         """
 
         expect:
-        fails("help")
-        failure.assertHasErrorOutput("Cannot mutate 'DefaultExternalModuleDependency{group='com', name='foo', version='1.0', configuration='default'}' after it has been finalized.")
+        executer.expectDocumentedDeprecationWarning("Mutating dependency DefaultExternalModuleDependency{group='com', name='foo', version='1.0', configuration='default'} after it has been finalized has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#dependency_mutate_dependency_collector_after_finalize")
+        succeeds("help")
     }
 
     def createDependenciesAndConfiguration() {

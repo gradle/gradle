@@ -32,7 +32,7 @@ Otherwise, it will skip execution.
 Incremental builds are always enabled, and the best way to see them in action is to turn on _verbose mode_.
 With verbose mode, each task state is labeled during a build:
 
-[source]
+[source,text]
 ----
 $ ./gradlew compileJava --console=verbose
 
@@ -75,7 +75,7 @@ It prevents the redundant work and cost of executing time-consuming and expensiv
 
 When the build cache has been used to repopulate the local directory, the tasks are marked as `FROM-CACHE`:
 
-[source]
+[source,text]
 ----
 $ ./gradlew compileJava --build-cache
 
