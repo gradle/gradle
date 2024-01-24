@@ -34,7 +34,10 @@ public interface UserInputHandler {
     Boolean askYesNoQuestion(String question);
 
     /**
-     * Prompts the user with a boolean question and returns the answer.
+     * Prompts the user with a question that has a boolean result and returns the answer.
+     *
+     * <p>The client UI is free to choose a convenient representation for boolean values, for example
+     * allowing the user to type 'y' or 'n' or presenting a checkbox. The user is not required to answer 'true' or 'false'
      *
      * @param question The text of the question.
      * @param defaultValue The option to present to the user as the default choice, and the value to use when not connected to a console
@@ -64,7 +67,7 @@ public interface UserInputHandler {
     <T> ChoiceBuilder<T> choice(String question, Collection<T> options);
 
     /**
-     * Prompts the user to provide an integer value.
+     * Prompts the user with a question that has an integer result and returns the answer.
      *
      * @param question The text of the question.
      * @param defaultValue The option to present to the user as the default choice, and the value to use when not connected to a console
@@ -73,7 +76,7 @@ public interface UserInputHandler {
     int askIntQuestion(String question, int minValue, int defaultValue);
 
     /**
-     * Prompts the user to provide a string value.
+     * Prompts the user with a question that has a string result and returns the answer. The answer must not contain new lines.
      *
      * @param question The text of the question.
      * @param defaultValue The option to present to the user as the default choice, and the value to use when not connected to a console
@@ -82,7 +85,7 @@ public interface UserInputHandler {
     String askQuestion(String question, String defaultValue);
 
     /**
-     * Return true if the user input was interrupted, e.g. via Ctrl+C.
+     * Return true if the user input was interrupted, e.g. via Ctrl+C or some interaction with the client UI.
      */
     boolean interrupted();
 
