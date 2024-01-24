@@ -28,7 +28,7 @@ public enum BuildInitTestFramework implements WithIdentifier {
     KOTLINTEST("kotlin.test"),
     SCALATEST("ScalaTest"),
     JUNIT_JUPITER("JUnit Jupiter"),
-    XCTest("XCTest"),
+    XCTEST("XCTest"),
     CPPTest("C++ executable");
 
     public static List<String> listSupported() {

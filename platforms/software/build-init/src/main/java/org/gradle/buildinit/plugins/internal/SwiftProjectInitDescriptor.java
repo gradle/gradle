@@ -65,12 +65,12 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
 
     @Override
     public Set<BuildInitTestFramework> getTestFrameworks(ModularizationOption modularizationOption) {
-        return Collections.singleton(BuildInitTestFramework.XCTest);
+        return Collections.singleton(BuildInitTestFramework.XCTEST);
     }
 
     @Override
     public BuildInitTestFramework getDefaultTestFramework(ModularizationOption modularizationOption) {
-        return BuildInitTestFramework.XCTest;
+        return BuildInitTestFramework.XCTEST;
     }
 
     @Override
