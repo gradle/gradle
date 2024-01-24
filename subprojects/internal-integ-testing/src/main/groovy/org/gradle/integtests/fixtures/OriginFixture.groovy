@@ -40,7 +40,6 @@ import java.time.Duration
 class OriginFixture extends UserInitScriptExecuterFixture {
 
     Map<String, OriginMetadata> origins = [:]
-    Map<String, HashCode> buildCacheKeys = [:]
 
     OriginFixture(GradleExecuter executer, TestDirectoryProvider testDir) {
         super(executer, testDir)
@@ -68,7 +67,7 @@ class OriginFixture extends UserInitScriptExecuterFixture {
                 void finished($BuildOperationDescriptor.name buildOperation, $OperationFinishEvent.name finishEvent) {
                     if (finishEvent.result instanceof $ExecuteTaskBuildOperationType.Result.name) {
                         def buildInvocationId = finishEvent.result.originBuildInvocationId
-                        def originBuildCacheKey = finishEvent.result.originBuildCacheKey
+                        def originBuildCacheKey = finishEvent.result.originBuildCacheKeyBytes
                         def executionTime = finishEvent.result.originExecutionTime
                         def entry = null
                         if (buildInvocationId) {

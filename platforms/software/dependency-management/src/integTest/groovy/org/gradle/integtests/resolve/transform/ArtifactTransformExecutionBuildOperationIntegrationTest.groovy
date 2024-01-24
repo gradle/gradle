@@ -204,7 +204,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
             skipMessage == 'UP-TO-DATE'
             originExecutionTime > 0
             originBuildInvocationId != null
-            HashCode.fromBytes(originBuildCacheKey as byte[]).toString() == projectTransformBuildCacheKey
+            HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == projectTransformBuildCacheKey
             executionReasons.empty
             cachingDisabledReasonMessage == 'Cacheability was not determined'
             cachingDisabledReasonCategory == 'UNKNOWN'

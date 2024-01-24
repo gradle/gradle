@@ -87,8 +87,14 @@ public final class ExecuteWorkBuildOperationType implements BuildOperationType<E
         @Nullable
         String getOriginBuildInvocationId();
 
+        /**
+         * The build cache key of the work in the origin build invocation.
+         * <p>
+         * Null if {@link #getOriginBuildInvocationId()} is null or
+         * if the build cache key was not calculated in the origin build invocation.
+         */
         @Nullable
-        byte[] getOriginBuildCacheKey();
+        byte[] getOriginBuildCacheKeyBytes();
 
         /**
          * If the work was UP_TO_DATE or FROM_CACHE, this will convey the execution time of the work in the build that produced the outputs being reused.

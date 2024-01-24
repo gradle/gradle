@@ -123,7 +123,7 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
 
         @Nullable
         @Override
-        public byte[] getOriginBuildCacheKey() {
+        public byte[] getOriginBuildCacheKeyBytes() {
             return originMetadata
                 .map(OriginMetadata::getBuildCacheKey)
                 .map(HashCode::toByteArray)
