@@ -89,6 +89,9 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
         @Nullable
         String getOriginBuildInvocationId();
 
+        @Nullable
+        byte[] getOriginBuildCacheKey();
+
         /**
          * If task was UP_TO_DATE or FROM_CACHE, this will convey the execution time of the task in the build that produced the outputs being reused.
          * Value will be null for any other outcome.
