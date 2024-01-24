@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,5 @@
  * limitations under the License.
  */
 
-package org.gradle.buildinit.plugins.internal.modifiers;
-
-public enum ModularizationOption {
-    SINGLE_PROJECT("Single application project"),
-    WITH_LIBRARY_PROJECTS("Application and library project");
-
-    private final String displayName;
-
-    ModularizationOption(String displayName) {
-        this.displayName = displayName;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-}
+@org.gradle.api.NonNullApi
+package org.gradle.api.internal.tasks.userinput;

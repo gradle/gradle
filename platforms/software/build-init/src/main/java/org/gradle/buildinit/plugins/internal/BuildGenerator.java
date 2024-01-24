@@ -16,25 +16,20 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 /**
- * This is used by SamplesGenerator in build logic.
- *
- * It would be better to introduce a specific API for the generator to use so that it is decouled from
- * the internals of build init infrastructure.
+ * Generates a new Gradle build.
  */
-public interface CompositeProjectInitDescriptor extends BuildGenerator {
-    Language getLanguage();
+public interface BuildGenerator extends BuildInitializer {
+    /**
+     * What kind of component does this initializer create?
+     */
+    ComponentType getComponentType();
 
-    Map<String, List<String>> generateWithExternalComments(InitSettings settings);
-
-    BuildInitTestFramework getDefaultTestFramework();
-
-    Set<BuildInitTestFramework> getTestFrameworks();
+    /**
+     * Does this generator use the given language for production code?
+     */
+    boolean productionCodeUses(Language language);
 }
