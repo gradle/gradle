@@ -95,11 +95,7 @@ class JsonModelWriter(val writer: Writer) {
                 comma()
                 property("parts") {
                     jsonObjectList(exception.parts) { (isInternal, text) ->
-                        property("isInternal") {
-                            write(isInternal.toString())
-                        }
-                        comma()
-                        property("text", text)
+                        property(if (isInternal) "internalText" else "text", text)
                     }
                 }
             }
