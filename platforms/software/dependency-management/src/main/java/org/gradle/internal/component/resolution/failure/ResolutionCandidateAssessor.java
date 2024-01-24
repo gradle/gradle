@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.gradle.api.Describable;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -57,6 +58,12 @@ public final class ResolutionCandidateAssessor {
     public List<AssessedCandidate> assessCandidates(List<? extends VariantGraphResolveMetadata> variantMetadatas) {
         return variantMetadatas.stream()
             .map(variantMetadata -> assessCandidate(variantMetadata.getName(), variantMetadata.getCapabilities(), variantMetadata.getAttributes()))
+            .collect(Collectors.toList());
+    }
+
+    public List<AssessedCandidate> assessResolvedVariants(List<? extends ResolvedVariant> variants) {
+        return variants.stream()
+            .map(variant -> assessCandidate(variant.asDescribable().getCapitalizedDisplayName(), variant.getCapabilities(), variant.getAttributes().asImmutable()))
             .collect(Collectors.toList());
     }
 
