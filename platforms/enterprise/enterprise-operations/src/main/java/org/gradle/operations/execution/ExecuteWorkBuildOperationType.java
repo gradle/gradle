@@ -92,6 +92,8 @@ public final class ExecuteWorkBuildOperationType implements BuildOperationType<E
          * <p>
          * Null if {@link #getOriginBuildInvocationId()} is null or
          * if the build cache key was not calculated in the origin build invocation.
+         *
+         * @since 8.7
          */
         @Nullable
         byte[] getOriginBuildCacheKeyBytes();
