@@ -54,6 +54,7 @@ import org.gradle.internal.component.resolution.failure.describer.AmbiguousGraph
 import org.gradle.internal.component.resolution.failure.describer.CapabilitiesDescriber;
 import org.gradle.internal.component.resolution.failure.describer.IncompatibleArtifactVariantsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.IncompatibleSelectedConfigurationFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.NoMatchingArtifactVariantFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.NonVariantAwareNoMatchingGraphVariantFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.VariantAwareNoMatchingGraphVariantFailureDescriber;
@@ -90,11 +91,9 @@ public class ResolutionFailureHandler {
     public static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
 
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
-    private static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
     private static final String AMBIGUOUS_TRANSFORMATION_PREFIX = "Transformation failures are explained in more detail at ";
 
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
-    private static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";
     private static final String AMBIGUOUS_TRANSFORMATION_SECTION = "sub:transform-ambiguity";
 
     private final List<ResolutionFailureDescriber<?>> defaultFailureDescribers;
@@ -108,7 +107,8 @@ public class ResolutionFailureHandler {
             new AmbiguousGraphVariantsFailureDescriber(documentationRegistry),
             new IncompatibleArtifactVariantsFailureDescriber(documentationRegistry),
             new AmbiguousGraphVariantsFailureDescriber(documentationRegistry),
-            new IncompatibleSelectedConfigurationFailureDescriber(documentationRegistry)
+            new IncompatibleSelectedConfigurationFailureDescriber(documentationRegistry),
+            new NoMatchingArtifactVariantFailureDescriber(documentationRegistry)
         );
     }
 
@@ -122,14 +122,11 @@ public class ResolutionFailureHandler {
 
 
     // region Artifact Variant Selection Failures
-    public NoMatchingArtifactVariantsException noMatchingArtifactVariantFailure(AttributesSchemaInternal schema, AttributeMatcher matcher, String variantSetName, ImmutableAttributes requestedAttributes, List<? extends ResolvedVariant> candidateVariants) {
+    public AbstractVariantSelectionException noMatchingArtifactVariantFailure(AttributesSchemaInternal schema, AttributeMatcher matcher, String variantSetName, ImmutableAttributes requestedAttributes, List<? extends ResolvedVariant> candidateVariants) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
-        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(requestedAttributes, schema);
-        String message = buildNoMatchingVariantsFailureMsg(resolutionCandidateAssessor, variantSetName, candidateVariants, describer);
-        NoMatchingArtifactVariantsException e = new NoMatchingArtifactVariantsException(message);
-        suggestSpecificDocumentation(e, NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_SECTION);
-        suggestReviewAlgorithm(e);
-        return e;
+        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariants(candidateVariants);
+        ResolutionFailure failure = new ResolutionFailure(schema, ResolutionFailureType.NO_MATCHING_ARTIFACT_VARIANT, null, variantSetName, requestedAttributes, assessedCandidates, false);
+        return describeFailure(schema, failure);
     }
 
     public AmbiguousArtifactVariantsException ambiguousArtifactVariantsFailure(AttributesSchemaInternal schema, AttributeMatcher matcher, String selectedComponentName, ImmutableAttributes requestedAttributes, List<? extends ResolvedVariant> matchingVariants, Set<ResolvedVariant> discardedVariants) {
@@ -173,25 +170,6 @@ public class ResolutionFailureHandler {
 
     private String buildUnknownArtifactVariantFailureMsg(ResolvedVariantSet producer) {
         return String.format("Could not select a variant of %s that matches the consumer attributes.", producer.asDescribable().getDisplayName());
-    }
-
-    private String buildNoMatchingVariantsFailureMsg(
-        ResolutionCandidateAssessor resolutionCandidateAssessor,
-        String producerDisplayName,
-        Collection<? extends ResolvedVariant> candidates,
-        AttributeDescriber describer
-    ) {
-        TreeFormatter formatter = new TreeFormatter();
-        formatter.node("No variants of " + style(StyledTextOutput.Style.Info, producerDisplayName) + " match the consumer attributes");
-        formatter.startChildren();
-        for (ResolvedVariant variant : candidates) {
-            String candidateName = variant.asDescribable().getCapitalizedDisplayName();
-            AssessedCandidate assessedCandidate = resolutionCandidateAssessor.assessCandidate(candidateName, variant.getCapabilities(), variant.getAttributes().asImmutable());
-            formatter.node(variant.asDescribable().getCapitalizedDisplayName());
-            formatAttributeMatchesForIncompatibility(assessedCandidate, formatter, describer);
-        }
-        formatter.endChildren();
-        return formatter.toString();
     }
 
     private String buildMultipleMatchingVariantsFailureMsg(ResolutionCandidateAssessor resolutionCandidateAssessor, AttributeDescriber describer, String producerDisplayName, List<? extends ResolvedVariant> variants, Set<ResolvedVariant> discarded) {
@@ -435,7 +413,7 @@ public class ResolutionFailureHandler {
     /**
      * Extracts variant metadata from the given {@link GraphSelectionCandidates}.
      *
-     * @param candidates the candidates to extract variants from
+     * @param candidates the source from which to extract variants
      * @return the extracted variants, sorted by name
      */
     private List<? extends VariantGraphResolveMetadata> extractVariants(GraphSelectionCandidates candidates) {
@@ -455,7 +433,7 @@ public class ResolutionFailureHandler {
     /**
      * Extracts variant metadata from the given {@link Set} of {@link NodeState}s.
      *
-     * @param nodes the source to extract variants from
+     * @param nodes the source from which to extract variants
      * @return the extracted variants, sorted by name
      */
     private List<? extends VariantGraphResolveMetadata> extractVariants(Set<NodeState> nodes) {
@@ -468,7 +446,7 @@ public class ResolutionFailureHandler {
     /**
      * Extracts variant metadata from the given {@link List} of {@link VariantGraphResolveState}s.
      *
-     * @param variantStates the source to extract variants from
+     * @param variantStates the source from which to extract variants
      * @return the extracted variants, sorted by name
      */
     private List<? extends VariantGraphResolveMetadata> extractVariants(List<? extends VariantGraphResolveState> variantStates) {
