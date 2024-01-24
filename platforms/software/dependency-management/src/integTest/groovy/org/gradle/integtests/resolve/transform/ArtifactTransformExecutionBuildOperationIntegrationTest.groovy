@@ -22,6 +22,7 @@ import groovy.transform.stc.FromString
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.operations.dependencies.transforms.ExecuteTransformActionBuildOperationType
 import org.gradle.operations.dependencies.transforms.IdentifyTransformExecutionProgressDetails
@@ -143,7 +144,9 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
             cachingDisabledReasonCategory == 'NOT_CACHEABLE'
         }
         projectExecution.failure == null
-        with(snapshotInputsOperation(projectExecution).result) {
+        def projectSnapshotExecution = snapshotInputsOperation(projectExecution).result
+        def projectTransformBuildCacheKey = projectSnapshotExecution.hash as String
+        with(projectSnapshotExecution) {
             hash != null
             classLoaderHash != null
             implementationClassName == 'MakeGreen'
@@ -201,6 +204,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
             skipMessage == 'UP-TO-DATE'
             originExecutionTime > 0
             originBuildInvocationId != null
+            HashCode.fromBytes(originBuildCacheKey as byte[]).toString() == projectTransformBuildCacheKey
             executionReasons.empty
             cachingDisabledReasonMessage == 'Cacheability was not determined'
             cachingDisabledReasonCategory == 'UNKNOWN'
