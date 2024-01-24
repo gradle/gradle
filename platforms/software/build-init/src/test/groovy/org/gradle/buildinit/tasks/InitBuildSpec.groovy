@@ -70,6 +70,7 @@ class InitBuildSpec extends Specification {
         projectLayoutRegistry.buildConverter >> buildConverter
         buildConverter.canApplyToCurrentDirectory() >> false
         projectLayoutRegistry.componentTypes >> ComponentType.values().toList()
+        projectLayoutRegistry.defaultComponentType >> ComponentType.values().first()
         projectLayoutRegistry.default >> defaultGenerator
         projectLayoutRegistry.getGeneratorsFor(_) >> [defaultGenerator]
         defaultGenerator.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]

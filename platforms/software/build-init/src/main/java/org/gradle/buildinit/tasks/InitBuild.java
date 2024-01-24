@@ -455,6 +455,9 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private static BuildGenerator selectTypeOfBuild(UserInputHandler inputHandler, ProjectLayoutSetupRegistry projectLayoutRegistry) {
+        // Require that the default option is also the first option
+        assert projectLayoutRegistry.getDefaultComponentType() == projectLayoutRegistry.getComponentTypes().get(0);
+
         ComponentType componentType = inputHandler.choice("Select type of build to generate", projectLayoutRegistry.getComponentTypes())
             .renderUsing(ComponentType::getDisplayName)
             .defaultOption(projectLayoutRegistry.getDefaultComponentType())

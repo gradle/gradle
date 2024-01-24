@@ -82,7 +82,7 @@ public class ProjectLayoutSetupRegistry {
      * Returns the default component type to use for interactive initialization.
      */
     public ComponentType getDefaultComponentType() {
-        return getComponentTypes().get(0);
+        return ComponentType.APPLICATION;
     }
 
     // This should turn into a set of converters at some point
