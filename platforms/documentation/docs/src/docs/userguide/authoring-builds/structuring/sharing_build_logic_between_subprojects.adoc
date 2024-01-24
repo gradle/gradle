@@ -339,8 +339,7 @@ TIP:  Avoid using `subprojects {}` and `allprojects {}`.
 
 With cross-configuration, build logic can be injected into a subproject, and this is not obvious when looking at the subproject's build script, making it harder to understand the logic of a particular subproject.
 In the long run, cross-configuration usually grows in complexity and becomes a burden.
-Cross configuration can also introduce <<structuring_software_products_details.adoc#sec:decoupled_projects,configuration-time coupling between projects>>, which can prevent optimizations like
-<<structuring_software_products_details.adoc#sec:configuration_on_demand,configuration-on-demand>> from working properly.
+Cross configuration can also introduce configuration-time coupling between projects, which can prevent optimizations like configuration-on-demand from working properly.
 
 === Convention plugins versus cross-configuration
 
