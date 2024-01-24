@@ -103,8 +103,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
                 toInternalLocations(problem.getLocations()),
                 toInternalDocumentationLink(problem.getDocumentationLink()),
                 toInternalSolutions(problem.getSolutions()),
-                toInternalAdditionalData(problem.getAdditionalData()),
-                problem.getException()
+                toInternalAdditionalData(problem.getAdditionalData())
             )
         );
     }
