@@ -277,7 +277,11 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
 
     private void applyDevelocityPluginMock() {
         settingsFile << """
-            services.get($GradleEnterprisePluginManager.name).registerAdapter([buildFinished: {}, shouldSaveToConfigurationCache: { false }] as $GradleEnterprisePluginAdapter.name)
+            services.get($GradleEnterprisePluginManager.name).registerAdapter([
+                buildFinished: {},
+                shouldSaveToConfigurationCache: { true },
+                onLoadFromConfigurationCache: {}
+            ] as $GradleEnterprisePluginAdapter.name)
         """
     }
 }
