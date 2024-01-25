@@ -81,7 +81,7 @@ include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="set
 
 In this case, Gradle will look for a build file for the `app` subproject in the `./app` directory.
 
-You can view the structure of a multi-project build by running the `gradle projects` command:
+You can view the structure of a multi-project build by running the `projects` command:
 
 ----
 $ ./gradlew -q projects

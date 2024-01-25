@@ -74,10 +74,10 @@ include::sample[dir="samples/build-organization/composite-builds/basic/groovy",f
 
 The `--include-build` command-line argument turns the executed build into a composite, substituting dependencies from the included build into the executed build.
 
-For example, the output of `gradle run --include-build ../my-utils` run from `my-app`:
+For example, the output of `./gradlew run --include-build ../my-utils` run from `my-app`:
 
 ----
-$ gradle --include-build ../my-utils run
+$ ./gradlew --include-build ../my-utils run
 include::{samplesPath}/build-organization/composite-builds/basic/tests/basicCli.out[]
 ----
 
