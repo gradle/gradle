@@ -394,6 +394,12 @@ public class Hashing {
         }
 
         @Override
+        public void putShort(short value) {
+            hasher.putInt(2);
+            hasher.putInt(value);
+        }
+
+        @Override
         public void putInt(int value) {
             hasher.putInt(4);
             hasher.putInt(value);
