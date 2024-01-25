@@ -153,8 +153,8 @@ public class DaemonServices extends DefaultServiceRegistry {
             new HandleStop(get(ListenerManager.class)),
             new HandleInvalidateVirtualFileSystem(userHomeServiceRegistry),
             new HandleCancel(),
-            new CleanUpVirtualFileSystemAfterBuild(executorFactory, userHomeServiceRegistry),
             new HandleReportStatus(),
+            new CleanUpVirtualFileSystemAfterBuild(executorFactory, userHomeServiceRegistry),
             new ReturnResult(),
             new StartBuildOrRespondWithBusy(daemonDiagnostics), // from this point down, the daemon is 'busy'
             new EstablishBuildEnvironment(processEnvironment),
