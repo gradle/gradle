@@ -56,8 +56,8 @@ class ExtractSymbolsIntegrationTest extends AbstractInstalledToolChainIntegratio
         then:
         executedAndNotSkipped":extractSymbolsDebug"
         // clang 11: [greeter.cpp, sum.cpp, multiply.cpp, main.cpp]
-        // clang 14: ['multiply.cpp', 'Multiply', 'multiply', 'int', 'this', 'a', 'b', ...]
-        fixture("build/symbols").assertHasDebugSymbolsFor(['multiply.cpp'])
+        // clang 14: ['main.cpp', 'std', '__ioinit', 'ios_base', 'Init', '__exception_ptr', ...]
+        fixture("build/symbols").assertHasDebugSymbolsFor(['main.cpp'])
     }
 
     @ToBeFixedForConfigurationCache
