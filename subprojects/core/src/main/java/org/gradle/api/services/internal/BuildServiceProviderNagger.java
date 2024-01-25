@@ -51,6 +51,7 @@ public class BuildServiceProviderNagger implements BuildServiceProvider.Listener
     private static void nagAboutUndeclaredUsageOf(BuildServiceProvider<?, ?> provider, TaskInternal task) {
         deprecateBehaviour(undeclaredBuildServiceUsage(provider, task))
             .withAdvice("Declare the association between the task and the build service using 'Task#usesService'.")
+            .withContext("The task '" + task.getIdentityPath() + "' uses the service.")
             .willBecomeAnErrorInGradle9()
             .withUpgradeGuideSection(7, "undeclared_build_service_usage")
             .nagUser();
@@ -58,7 +59,6 @@ public class BuildServiceProviderNagger implements BuildServiceProvider.Listener
 
     private static String undeclaredBuildServiceUsage(BuildServiceProvider<?, ?> provider, TaskInternal task) {
         return "Build service '" + provider.getName() + "'" +
-            " is being used by task '" + task.getIdentityPath() + "'" +
-            " without the corresponding declaration via 'Task#usesService'.";
+            " is being used by a task without the corresponding declaration via 'Task#usesService'.";
     }
 }
