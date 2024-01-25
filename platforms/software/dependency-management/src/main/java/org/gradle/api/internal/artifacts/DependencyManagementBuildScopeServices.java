@@ -496,7 +496,7 @@ class DependencyManagementBuildScopeServices {
             new IdentifyStep<>(buildOperationExecutor,
             new IdentityCacheStep<>(
             new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
-            new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher,
+            new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, () -> false,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
             new NoOpCachingStateStep<>(
             new NeverUpToDateStep<>(

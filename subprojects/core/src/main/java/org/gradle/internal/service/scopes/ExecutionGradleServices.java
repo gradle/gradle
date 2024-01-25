@@ -163,7 +163,7 @@ public class ExecutionGradleServices {
             new MarkSnapshottingInputsStartedStep<>(
             // TODO Consider not supporting skip-when-empty for immutable work entirely
             new SkipEmptyNonIncrementalWorkStep(buildId, workInputListeners,
-            new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher,
+            new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, buildCacheController::isEmitDebugLogging,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
             new ResolveCachingStateStep<>(buildCacheController,
             new MarkSnapshottingInputsFinishedStep<>(
@@ -181,7 +181,7 @@ public class ExecutionGradleServices {
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
             new SkipEmptyIncrementalWorkStep(outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
-            new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
+            new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, buildCacheController::isEmitDebugLogging,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
             new ResolveCachingStateStep<>(buildCacheController,
             new MarkSnapshottingInputsFinishedStep<>(

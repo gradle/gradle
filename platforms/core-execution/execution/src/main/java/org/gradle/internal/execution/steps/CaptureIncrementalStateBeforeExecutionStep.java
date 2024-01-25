@@ -27,6 +27,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import javax.annotation.Nullable;
+import java.util.function.BooleanSupplier;
 
 public class CaptureIncrementalStateBeforeExecutionStep<C extends PreviousExecutionContext, R extends CachingResult> extends AbstractCaptureStateBeforeExecutionStep<C, R> {
     private final OutputSnapshotter outputSnapshotter;
@@ -37,9 +38,10 @@ public class CaptureIncrementalStateBeforeExecutionStep<C extends PreviousExecut
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
+        BooleanSupplier emitBuildCacheDebugLogging,
         Step<? super BeforeExecutionContext, ? extends R> delegate
     ) {
-        super(buildOperationExecutor, classLoaderHierarchyHasher, delegate);
+        super(buildOperationExecutor, classLoaderHierarchyHasher, emitBuildCacheDebugLogging, delegate);
         this.outputSnapshotter = outputSnapshotter;
         this.overlappingOutputDetector = overlappingOutputDetector;
     }

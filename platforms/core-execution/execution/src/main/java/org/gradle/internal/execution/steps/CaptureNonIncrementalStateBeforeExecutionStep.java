@@ -25,15 +25,17 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import javax.annotation.Nullable;
+import java.util.function.BooleanSupplier;
 
 public class CaptureNonIncrementalStateBeforeExecutionStep<C extends PreviousExecutionContext, R extends CachingResult> extends AbstractCaptureStateBeforeExecutionStep<C, R> {
 
     public CaptureNonIncrementalStateBeforeExecutionStep(
         BuildOperationExecutor buildOperationExecutor,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        BooleanSupplier emitBuildCacheDebugLogging,
         Step<? super BeforeExecutionContext, ? extends R> delegate
     ) {
-        super(buildOperationExecutor, classLoaderHierarchyHasher, delegate);
+        super(buildOperationExecutor, classLoaderHierarchyHasher, emitBuildCacheDebugLogging, delegate);
     }
 
     @Override

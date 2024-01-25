@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -34,6 +35,7 @@ public class DefaultBeforeExecutionState extends AbstractInputExecutionState<Cur
     private final ImmutableSortedMap<String, FileSystemSnapshot> outputFileLocationSnapshots;
 
     public DefaultBeforeExecutionState(
+        HashCode cacheKey,
         ImplementationSnapshot implementation,
         ImmutableList<ImplementationSnapshot> additionalImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
@@ -42,6 +44,7 @@ public class DefaultBeforeExecutionState extends AbstractInputExecutionState<Cur
         @Nullable OverlappingOutputs detectedOutputOverlaps
     ) {
         super(
+            cacheKey,
             implementation,
             additionalImplementations,
             inputProperties,

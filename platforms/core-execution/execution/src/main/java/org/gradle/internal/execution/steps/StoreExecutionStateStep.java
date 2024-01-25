@@ -26,6 +26,7 @@ import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.gradle.internal.execution.history.changes.ChangeDetectorVisitor;
 import org.gradle.internal.execution.history.changes.OutputFileChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -83,6 +84,11 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext, R extends
         public DefaultAfterExecutionState(BeforeExecutionState beforeExecutionState, ExecutionOutputState afterExecutionOutputState) {
             this.beforeExecutionState = beforeExecutionState;
             this.afterExecutionOutputState = afterExecutionOutputState;
+        }
+
+        @Override
+        public HashCode getCacheKey() {
+            return beforeExecutionState.getCacheKey();
         }
 
         @Override

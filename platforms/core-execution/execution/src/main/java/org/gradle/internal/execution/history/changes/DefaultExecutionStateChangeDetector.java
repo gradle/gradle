@@ -41,39 +41,7 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         ChangeContainer previousSuccessState = new PreviousSuccessChanges(
             lastExecution.isSuccessful());
 
-        // Capture changes to implementation
-
-        // After validation, the current implementations and previous implementations can't be unknown.
-        // Moreover, they need to come from an actual Class, not a lambda, since there isn't a way for a unit of work implementation to be a lambda.
-        ClassImplementationSnapshot currentImplementation = Cast.uncheckedNonnullCast(thisExecution.getImplementation());
-        ClassImplementationSnapshot previousImplementation = Cast.uncheckedNonnullCast(lastExecution.getImplementation());
-        ImmutableList<ImplementationSnapshot> currentAdditionalImplementations = Cast.uncheckedNonnullCast(thisExecution.getAdditionalImplementations());
-        ChangeContainer implementationChanges = new ImplementationChanges(
-            previousImplementation, lastExecution.getAdditionalImplementations(),
-            currentImplementation, currentAdditionalImplementations,
-            executable);
-
-        // Capture non-file input changes
-        ChangeContainer inputPropertyChanges = new PropertyChanges(
-            lastExecution.getInputProperties().keySet(),
-            thisExecution.getInputProperties().keySet(),
-            "Input",
-            executable);
-        ChangeContainer inputPropertyValueChanges = new InputValueChanges(
-            lastExecution.getInputProperties(),
-            thisExecution.getInputProperties(),
-            executable);
-
-        // Capture input files state
-        ChangeContainer inputFilePropertyChanges = new PropertyChanges(
-            lastExecution.getInputFileProperties().keySet(),
-            thisExecution.getInputFileProperties().keySet(),
-            "Input file",
-            executable);
-        InputFileChanges nonIncrementalInputFileChanges = incrementalInputProperties.nonIncrementalChanges(
-            lastExecution.getInputFileProperties(),
-            thisExecution.getInputFileProperties()
-        );
+        ChangeContainer rebuildTriggeringChanges;
 
         // Capture output files state
         ChangeContainer outputFilePropertyChanges = new PropertyChanges(
@@ -88,24 +56,74 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
             lastExecution.getOutputFilesProducedByWork(),
             remainingPreviouslyProducedOutputs
         );
+        boolean sameCacheKey = lastExecution.getCacheKey().equals(thisExecution.getCacheKey());
+        if (sameCacheKey) {
+            // If the cache key is the same, we don't need to check the inputs for changes
+            rebuildTriggeringChanges = errorHandling(executable, new SummarizingChangeContainer(
+                previousSuccessState,
+                outputFilePropertyChanges,
+                outputFileChanges
+            ));
+        } else {
+            // Capture changes to implementation
 
-        // Collect changes that would trigger a rebuild
-        ChangeContainer rebuildTriggeringChanges = errorHandling(executable, new SummarizingChangeContainer(
-            previousSuccessState,
-            implementationChanges,
-            inputPropertyChanges,
-            inputPropertyValueChanges,
-            outputFilePropertyChanges,
-            outputFileChanges,
-            inputFilePropertyChanges,
-            nonIncrementalInputFileChanges
-        ));
+            // After validation, the current implementations and previous implementations can't be unknown.
+            // Moreover, they need to come from an actual Class, not a lambda, since there isn't a way for a unit of work implementation to be a lambda.
+            ClassImplementationSnapshot currentImplementation = Cast.uncheckedNonnullCast(thisExecution.getImplementation());
+            ClassImplementationSnapshot previousImplementation = Cast.uncheckedNonnullCast(lastExecution.getImplementation());
+            ImmutableList<ImplementationSnapshot> currentAdditionalImplementations = Cast.uncheckedNonnullCast(thisExecution.getAdditionalImplementations());
+            ChangeContainer implementationChanges = new ImplementationChanges(
+                previousImplementation, lastExecution.getAdditionalImplementations(),
+                currentImplementation, currentAdditionalImplementations,
+                executable);
+
+            // Capture non-file input changes
+            ChangeContainer inputPropertyChanges = new PropertyChanges(
+                lastExecution.getInputProperties().keySet(),
+                thisExecution.getInputProperties().keySet(),
+                "Input",
+                executable);
+            ChangeContainer inputPropertyValueChanges = new InputValueChanges(
+                lastExecution.getInputProperties(),
+                thisExecution.getInputProperties(),
+                executable);
+
+            // Capture input files state
+            ChangeContainer inputFilePropertyChanges = new PropertyChanges(
+                lastExecution.getInputFileProperties().keySet(),
+                thisExecution.getInputFileProperties().keySet(),
+                "Input file",
+                executable);
+            InputFileChanges nonIncrementalInputFileChanges = incrementalInputProperties.nonIncrementalChanges(
+                lastExecution.getInputFileProperties(),
+                thisExecution.getInputFileProperties()
+            );
+
+            // Collect changes that would trigger a rebuild
+            rebuildTriggeringChanges = errorHandling(executable, new SummarizingChangeContainer(
+                previousSuccessState,
+                implementationChanges,
+                inputPropertyChanges,
+                inputPropertyValueChanges,
+                outputFilePropertyChanges,
+                outputFileChanges,
+                inputFilePropertyChanges,
+                nonIncrementalInputFileChanges
+            ));
+        }
         ImmutableList<String> rebuildReasons = collectChanges(rebuildTriggeringChanges);
 
         if (!rebuildReasons.isEmpty()) {
             return ExecutionStateChanges.nonIncremental(
                 rebuildReasons,
                 thisExecution,
+                incrementalInputProperties
+            );
+        } else if (sameCacheKey) {
+            return ExecutionStateChanges.incremental(
+                ImmutableList.of(),
+                thisExecution,
+                InputFileChanges.EMPTY,
                 incrementalInputProperties
             );
         } else {
