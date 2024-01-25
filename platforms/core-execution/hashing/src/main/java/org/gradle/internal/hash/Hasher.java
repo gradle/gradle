@@ -39,6 +39,11 @@ public interface Hasher {
     void putByte(byte value);
 
     /**
+     * Feed a single short into the hasher.
+     */
+    void putShort(short value);
+
+    /**
      * Feed an integer byte into the hasher.
      */
     void putInt(int value);
