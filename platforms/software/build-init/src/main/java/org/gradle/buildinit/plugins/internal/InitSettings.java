@@ -57,21 +57,21 @@ public class InitSettings {
      */
     public InitSettings(
         String projectName, List<String> subprojects, ModularizationOption modularizationOption,
-        BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, Directory target
+        BuildInitDsl dsl, @Nullable String packageName, BuildInitTestFramework testFramework, Directory target
     ) {
         this(projectName, false, subprojects, modularizationOption, dsl, packageName, testFramework, InsecureProtocolOption.WARN, target, null, true);
     }
 
     public InitSettings(
         String projectName, boolean useIncubatingAPIs, List<String> subprojects, ModularizationOption modularizationOption,
-        BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, Directory target
+        BuildInitDsl dsl, @Nullable String packageName, BuildInitTestFramework testFramework, Directory target
     ) {
         this(projectName, useIncubatingAPIs, subprojects, modularizationOption, dsl, packageName, testFramework, InsecureProtocolOption.WARN, target, null, true);
     }
 
     public InitSettings(
         String projectName, boolean useIncubatingAPIs, List<String> subprojects, ModularizationOption modularizationOption,
-        BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, InsecureProtocolOption insecureProtocolOption, Directory target,
+        BuildInitDsl dsl, @Nullable String packageName, BuildInitTestFramework testFramework, InsecureProtocolOption insecureProtocolOption, Directory target,
         @Nullable JavaLanguageVersion javaLanguageVersion, boolean comments
     ) {
         this.projectName = projectName;

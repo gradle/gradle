@@ -37,28 +37,28 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
             task askYesNo {
                 doLast {
                     def handler = services.get(${UserInputHandler.name})
-                    println "result = " + handler.askYesNoQuestion("thing?")
+                    println "result = " + handler.askUser { it.askYesNoQuestion("thing?") }
                 }
             }
 
             task askYesNoWithDefault {
                 doLast {
                     def handler = services.get(${UserInputHandler.name})
-                    println "result = " + handler.askBooleanQuestion("thing?", true)
+                    println "result = " + handler.askUser { it.askBooleanQuestion("thing?", true) }
                 }
             }
 
             task selectOption {
                 doLast {
                     def handler = services.get(${UserInputHandler.name})
-                    println "result = " + handler.selectOption("select thing", ["a", "b", "c"], "b")
+                    println "result = " + handler.askUser { it.selectOption("select thing", ["a", "b", "c"], "b") }
                 }
             }
 
             task ask {
                 doLast {
                     def handler = services.get(${UserInputHandler.name})
-                    println "result = " + handler.askQuestion("what?", "thing")
+                    println "result = " + handler.askUser { it.askQuestion("what?", "thing") }
                 }
             }
         """

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.userinput;
+package org.gradle.buildinit.plugins.internal;
 
-public class DefaultBuildScanUserInputHandler implements BuildScanUserInputHandler {
-    private final UserInputHandler userInputHandler;
+public class GenerationSettings {
+    private final BuildInitializer initializer;
+    private final InitSettings settings;
 
-    public DefaultBuildScanUserInputHandler(UserInputHandler userInputHandler) {
-        this.userInputHandler = userInputHandler;
+    public GenerationSettings(BuildInitializer initializer, InitSettings settings) {
+        this.initializer = initializer;
+        this.settings = settings;
     }
 
-    @Override
-    public Boolean askYesNoQuestion(String question) {
-        return userInputHandler.askUser(userPrompts -> userPrompts.askYesNoQuestion(question));
+    public BuildInitializer getInitializer() {
+        return initializer;
+    }
+
+    public InitSettings getSettings() {
+        return settings;
     }
 }

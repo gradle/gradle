@@ -19,10 +19,15 @@ package org.gradle.api.internal.tasks.userinput;
 import java.util.Collection;
 import java.util.function.Function;
 
-public class NonInteractiveUserInputHandler implements UserInputHandler {
+public class NonInteractiveUserInputHandler implements UserInputHandler, UserQuestions {
     @Override
     public Boolean askYesNoQuestion(String question) {
         return null;
+    }
+
+    @Override
+    public <T> T askUser(Function<? super UserQuestions, ? extends T> interaction) {
+        return interaction.apply(this);
     }
 
     @Override

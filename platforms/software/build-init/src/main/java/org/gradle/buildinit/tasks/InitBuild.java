@@ -25,6 +25,7 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
+import org.gradle.api.internal.tasks.userinput.UserQuestions;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Input;
@@ -39,6 +40,7 @@ import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.BuildConverter;
 import org.gradle.buildinit.plugins.internal.BuildGenerator;
 import org.gradle.buildinit.plugins.internal.BuildInitializer;
+import org.gradle.buildinit.plugins.internal.GenerationSettings;
 import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
@@ -253,29 +255,44 @@ public abstract class InitBuild extends DefaultTask {
     @TaskAction
     public void setupProjectLayout() {
         UserInputHandler inputHandler = getEffectiveInputHandler();
+        GenerationSettings settings = inputHandler.askUser(this::calculateGenerationSettings);
+
+        boolean userInterrupted = inputHandler.interrupted();
+        if (userInterrupted) {
+            throw new BuildCancelledException();
+        }
+
+        settings.getInitializer().generate(settings.getSettings());
+        generateWrapper();
+
+        settings.getInitializer().getFurtherReading(settings.getSettings())
+            .ifPresent(link -> getLogger().lifecycle(link));
+    }
+
+    private GenerationSettings calculateGenerationSettings(UserQuestions userQuestions) {
         ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
 
-        BuildInitializer initializer = getBuildInitializer(inputHandler, projectLayoutRegistry);
+        BuildInitializer initializer = getBuildInitializer(userQuestions, projectLayoutRegistry);
 
-        JavaLanguageVersion javaLanguageVersion = getJavaLanguageVersion(inputHandler, initializer);
+        JavaLanguageVersion javaLanguageVersion = getJavaLanguageVersion(userQuestions, initializer);
 
-        String projectName = getEffectiveProjectName(inputHandler, initializer);
+        String projectName = getEffectiveProjectName(userQuestions, initializer);
 
-        ModularizationOption modularizationOption = getModularizationOption(inputHandler, initializer);
+        ModularizationOption modularizationOption = getModularizationOption(userQuestions, initializer);
 
-        BuildInitDsl dsl = getBuildInitDsl(inputHandler, initializer);
+        BuildInitDsl dsl = getBuildInitDsl(userQuestions, initializer);
 
-        BuildInitTestFramework testFramework = getBuildInitTestFramework(inputHandler, initializer, modularizationOption);
+        BuildInitTestFramework testFramework = getBuildInitTestFramework(userQuestions, initializer, modularizationOption);
 
         String packageName = getEffectivePackageName(initializer);
 
         validatePackageName(packageName);
 
-        boolean useIncubatingAPIs = shouldUseIncubatingAPIs(inputHandler);
+        boolean useIncubatingAPIs = shouldUseIncubatingAPIs(userQuestions);
         boolean generateComments = getComments().get();
 
         List<String> subprojectNames = initializer.getDefaultProjectNames();
-        InitSettings settings = new InitSettings(
+        InitSettings initSettings = new InitSettings(
             projectName,
             useIncubatingAPIs,
             subprojectNames,
@@ -288,17 +305,7 @@ public abstract class InitBuild extends DefaultTask {
             javaLanguageVersion,
             generateComments
         );
-
-        boolean userInterrupted = inputHandler.interrupted();
-        if (userInterrupted) {
-            throw new BuildCancelledException();
-        }
-
-        initializer.generate(settings);
-        generateWrapper();
-
-        initializer.getFurtherReading(settings)
-            .ifPresent(link -> getLogger().lifecycle(link));
+        return new GenerationSettings(initializer, initSettings);
     }
 
     private void generateWrapper() {
@@ -341,14 +348,14 @@ public abstract class InitBuild extends DefaultTask {
 
     @VisibleForTesting
     @Nullable
-    JavaLanguageVersion getJavaLanguageVersion(UserInputHandler inputHandler, BuildInitializer initializer) {
+    JavaLanguageVersion getJavaLanguageVersion(UserQuestions userQuestions, BuildInitializer initializer) {
         if (!initializer.supportsJavaTargets()) {
             return null;
         }
 
         String version = javaVersion.getOrNull();
         if (isNullOrEmpty(version)) {
-            return JavaLanguageVersion.of(inputHandler.askIntQuestion("Enter target Java version", MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API, DEFAULT_JAVA_VERSION));
+            return JavaLanguageVersion.of(userQuestions.askIntQuestion("Enter target Java version", MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API, DEFAULT_JAVA_VERSION));
         }
 
         try {
@@ -362,10 +369,10 @@ public abstract class InitBuild extends DefaultTask {
         }
     }
 
-    private BuildInitDsl getBuildInitDsl(UserInputHandler inputHandler, BuildInitializer initializer) {
+    private BuildInitDsl getBuildInitDsl(UserQuestions userQuestions, BuildInitializer initializer) {
         BuildInitDsl dsl;
         if (isNullOrEmpty(this.dsl)) {
-            dsl = inputHandler.selectOption("Select build script DSL", initializer.getDsls(), initializer.getDefaultDsl());
+            dsl = userQuestions.selectOption("Select build script DSL", initializer.getDsls(), initializer.getDefaultDsl());
         } else {
             dsl = BuildInitDsl.fromName(getDsl());
             if (!initializer.getDsls().contains(dsl)) {
@@ -375,23 +382,23 @@ public abstract class InitBuild extends DefaultTask {
         return dsl;
     }
 
-    private ModularizationOption getModularizationOption(UserInputHandler inputHandler, BuildInitializer initializer) {
+    private ModularizationOption getModularizationOption(UserQuestions userQuestions, BuildInitializer initializer) {
         if (splitProject.isPresent()) {
             return splitProject.get() ? ModularizationOption.WITH_LIBRARY_PROJECTS : ModularizationOption.SINGLE_PROJECT;
         }
-        return inputHandler.choice("Select application structure", initializer.getModularizationOptions())
+        return userQuestions.choice("Select application structure", initializer.getModularizationOptions())
             .renderUsing(ModularizationOption::getDisplayName)
             .ask();
     }
 
-    private boolean shouldUseIncubatingAPIs(UserInputHandler inputHandler) {
+    private boolean shouldUseIncubatingAPIs(UserQuestions userQuestions) {
         if (this.useIncubatingAPIs.isPresent()) {
             return this.useIncubatingAPIs.get();
         }
-        return inputHandler.askBooleanQuestion("Generate build using new APIs and behavior (some features may change in the next minor release)?", false);
+        return userQuestions.askBooleanQuestion("Generate build using new APIs and behavior (some features may change in the next minor release)?", false);
     }
 
-    private BuildInitTestFramework getBuildInitTestFramework(UserInputHandler inputHandler, BuildInitializer initializer, ModularizationOption modularizationOption) {
+    private BuildInitTestFramework getBuildInitTestFramework(UserQuestions userQuestions, BuildInitializer initializer, ModularizationOption modularizationOption) {
         if (!isNullOrEmpty(this.testFramework)) {
             return initializer.getTestFrameworks(modularizationOption).stream()
                 .filter(candidate -> this.testFramework.equals(candidate.getId()))
@@ -400,7 +407,7 @@ public abstract class InitBuild extends DefaultTask {
         }
 
         BuildInitTestFramework testFramework = initializer.getDefaultTestFramework(modularizationOption);
-        return inputHandler.selectOption("Select test framework", initializer.getTestFrameworks(modularizationOption), testFramework);
+        return userQuestions.selectOption("Select test framework", initializer.getTestFrameworks(modularizationOption), testFramework);
     }
 
     private GradleException createNotSupportedTestFrameWorkException(BuildInitializer initDescriptor, ModularizationOption modularizationOption) {
@@ -415,11 +422,11 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     @VisibleForTesting
-    String getEffectiveProjectName(UserInputHandler inputHandler, BuildInitializer initializer) {
+    String getEffectiveProjectName(UserQuestions userQuestions, BuildInitializer initializer) {
         String projectName = this.projectName;
         if (initializer.supportsProjectName()) {
             if (isNullOrEmpty(projectName)) {
-                return inputHandler.askQuestion("Project name", getProjectName());
+                return userQuestions.askQuestion("Project name", getProjectName());
             }
         } else if (!isNullOrEmpty(projectName)) {
             throw new GradleException("Project name is not supported for '" + initializer.getId() + "' build type.");
@@ -440,25 +447,25 @@ public abstract class InitBuild extends DefaultTask {
         return packageName;
     }
 
-    private BuildInitializer getBuildInitializer(UserInputHandler inputHandler, ProjectLayoutSetupRegistry projectLayoutRegistry) {
+    private BuildInitializer getBuildInitializer(UserQuestions userQuestions, ProjectLayoutSetupRegistry projectLayoutRegistry) {
         if (!isNullOrEmpty(type)) {
             return projectLayoutRegistry.get(type);
         }
 
         BuildConverter converter = projectLayoutRegistry.getBuildConverter();
         if (converter.canApplyToCurrentDirectory(projectDir)) {
-            if (inputHandler.askBooleanQuestion("Found a " + converter.getSourceBuildDescription() + " build. Generate a Gradle build from this?", true)) {
+            if (userQuestions.askBooleanQuestion("Found a " + converter.getSourceBuildDescription() + " build. Generate a Gradle build from this?", true)) {
                 return converter;
             }
         }
-        return selectTypeOfBuild(inputHandler, projectLayoutRegistry);
+        return selectTypeOfBuild(userQuestions, projectLayoutRegistry);
     }
 
-    private static BuildGenerator selectTypeOfBuild(UserInputHandler inputHandler, ProjectLayoutSetupRegistry projectLayoutRegistry) {
+    private static BuildGenerator selectTypeOfBuild(UserQuestions userQuestions, ProjectLayoutSetupRegistry projectLayoutRegistry) {
         // Require that the default option is also the first option
         assert projectLayoutRegistry.getDefaultComponentType() == projectLayoutRegistry.getComponentTypes().get(0);
 
-        ComponentType componentType = inputHandler.choice("Select type of build to generate", projectLayoutRegistry.getComponentTypes())
+        ComponentType componentType = userQuestions.choice("Select type of build to generate", projectLayoutRegistry.getComponentTypes())
             .renderUsing(ComponentType::getDisplayName)
             .defaultOption(projectLayoutRegistry.getDefaultComponentType())
             .whenNotConnected(projectLayoutRegistry.getDefault().getComponentType())
@@ -477,7 +484,7 @@ public abstract class InitBuild extends DefaultTask {
                 }
             }
         }
-        Language language = inputHandler.choice("Select implementation language", generatorsByLanguage.keySet()).ask();
+        Language language = userQuestions.choice("Select implementation language", generatorsByLanguage.keySet()).ask();
         return generatorsByLanguage.get(language);
     }
 
