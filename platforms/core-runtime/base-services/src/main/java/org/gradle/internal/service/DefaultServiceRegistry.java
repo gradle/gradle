@@ -110,6 +110,11 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             throw new IllegalArgumentException("Expected display name");
         }
 
+        // TODO: capture process ID
+        // TODO: capture classloader "ID"
+        // TODO:
+//        ProcessHandle.current().pid()
+
         // TODO: uniqueness is not guaranteed across class loaders and JVMs
         this.id = ID_COUNTER.incrementAndGet();
         System.out.printf("YYY: sr%d[\"%s (id=%d)\"]%n", id, displayName, id);
