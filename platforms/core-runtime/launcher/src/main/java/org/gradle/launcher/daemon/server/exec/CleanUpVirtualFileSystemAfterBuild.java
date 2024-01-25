@@ -17,14 +17,10 @@
 package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.internal.buildoption.DefaultInternalOptions;
-import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
-import org.gradle.internal.service.scopes.VirtualFileSystemServices;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.launcher.daemon.protocol.Build;
@@ -57,29 +53,26 @@ public class CleanUpVirtualFileSystemAfterBuild extends BuildCommandOnly impleme
 
     @Override
     protected void doBuild(DaemonCommandExecution execution, Build build) {
-        waitForPendingCleanupToFinish();
+        waitForPendingCleanupToFinish(pendingCleanup);
         try {
             execution.proceed();
         } finally {
-            startAsyncCleanupAfterBuild(build);
+            pendingCleanup = startAsyncCleanupAfterBuild();
         }
     }
 
-    private void startAsyncCleanupAfterBuild(Build build) {
-        userHomeServiceRegistry.getCurrentServices().ifPresent(serviceRegistry ->
-            pendingCleanup = CompletableFuture.runAsync(() -> {
-                LOGGER.debug("Cleaning virtual file system after build finished");
-
-                StartParameterInternal startParameter = build.getAction().getStartParameter();
-                InternalOptions options = new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
-                int maximumNumberOfWatchedHierarchies = VirtualFileSystemServices.getMaximumNumberOfWatchedHierarchies(options);
-
-                BuildLifecycleAwareVirtualFileSystem virtualFileSystem = serviceRegistry.get(BuildLifecycleAwareVirtualFileSystem.class);
-                virtualFileSystem.afterBuildFinished(maximumNumberOfWatchedHierarchies);
-            }, executor));
+    private CompletableFuture<Void> startAsyncCleanupAfterBuild() {
+        return userHomeServiceRegistry.getCurrentServices()
+            .map(serviceRegistry ->
+                CompletableFuture.runAsync(() -> {
+                    LOGGER.debug("Cleaning virtual file system after build finished");
+                    BuildLifecycleAwareVirtualFileSystem virtualFileSystem = serviceRegistry.get(BuildLifecycleAwareVirtualFileSystem.class);
+                    virtualFileSystem.afterBuildFinished();
+                }, executor))
+            .orElseGet(() -> CompletableFuture.completedFuture(null));
     }
 
-    private void waitForPendingCleanupToFinish() {
+    private void waitForPendingCleanupToFinish(CompletableFuture<Void> pendingCleanup) {
         if (!pendingCleanup.isDone()) {
             LOGGER.debug("Waiting for pending virtual file system cleanup to be finished");
             try {

@@ -110,7 +110,7 @@ public class WatchableHierarchies {
     }
 
     @CheckReturnValue
-    public SnapshotHierarchy removeUnwatchableContentOnBuildFinished(
+    public SnapshotHierarchy removeUnwatchableContentBeforeBuildFinished(
         SnapshotHierarchy root,
         Predicate<File> isWatchedHierarchy,
         int maximumNumberOfWatchedHierarchies,
@@ -125,6 +125,17 @@ public class WatchableHierarchies {
         newRoot = removeIndirectlySymlinkedRoots(newRoot, invalidator);
         newRoot = removeUnwatchedSnapshotsAndDirectSymlinks(newRoot, invalidator);
         watchableHierarchiesSinceLastBuildFinish.clear();
+        return newRoot;
+    }
+
+    @CheckReturnValue
+    public SnapshotHierarchy removeUnwatchableContentAfterBuildFinished(
+        SnapshotHierarchy root,
+        Invalidator invalidator
+    ) {
+        SnapshotHierarchy newRoot = root;
+        newRoot = removeIndirectlySymlinkedRoots(newRoot, invalidator);
+        newRoot = removeUnwatchedSnapshotsAndDirectSymlinks(newRoot, invalidator);
         return newRoot;
     }
 

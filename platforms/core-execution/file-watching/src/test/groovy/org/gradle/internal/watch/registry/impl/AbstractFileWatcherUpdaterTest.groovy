@@ -509,7 +509,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     void buildFinished(int maximumNumberOfWatchedHierarchies = Integer.MAX_VALUE, List<File> unsupportedFileSystems = []) {
-        virtualFileSystem.root = updater.updateVfsOnBuildFinished(virtualFileSystem.root, maximumNumberOfWatchedHierarchies, unsupportedFileSystems)
+        virtualFileSystem.root = updater.updateVfsBeforeBuildFinished(virtualFileSystem.root, maximumNumberOfWatchedHierarchies, unsupportedFileSystems)
     }
 
     TestFile addSnapshotInWatchableHierarchy(TestFile projectRootDirectory) {

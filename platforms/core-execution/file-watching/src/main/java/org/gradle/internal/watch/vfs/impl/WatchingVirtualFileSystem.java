@@ -221,7 +221,8 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         WatchMode watchMode,
         VfsLogging vfsLogging,
         WatchLogging watchLogging,
-        BuildOperationRunner buildOperationRunner
+        BuildOperationRunner buildOperationRunner,
+        int maximumNumberOfWatchedHierarchies
     ) {
         updateRootUnderLock(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
@@ -244,14 +245,13 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                             newRoot = stopWatchingAndInvalidateHierarchyAfterError(currentRoot);
                         } else {
                             // We'll clean this up further after the daemon has finished with the build, see afterBuildFinished()
-                            newRoot = currentRoot;
+                            newRoot = watchRegistry.updateVfsBeforeBuildFinished(currentRoot, maximumNumberOfWatchedHierarchies, unsupportedFileSystems);
                         }
                         statisticsDuringBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                         if (vfsLogging == VfsLogging.VERBOSE) {
                             LOGGER.warn("Received {} file system events during the current build while watching {} locations",
                                 statisticsDuringBuild.getNumberOfReceivedEvents(),
                                 statisticsDuringBuild.getNumberOfWatchedHierarchies());
-                            // TODO These numbers are not accurate anymore, as we don't clean up the VFS until after the build is finished
                             LOGGER.warn("Virtual file system retains information about {} files, {} directories and {} missing files until next build",
                                 statisticsDuringBuild.getRetainedRegularFiles(),
                                 statisticsDuringBuild.getRetainedDirectories(),
@@ -304,11 +304,10 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     }
 
     @Override
-    public void afterBuildFinished(int maximumNumberOfWatchedHierarchies) {
-        // TODO Wrap in build operation
+    public void afterBuildFinished() {
         updateRootUnderLock(currentRoot ->
             withWatcherChangeErrorHandling(currentRoot, () ->
-                watchRegistry.updateVfsOnBuildFinished(currentRoot, maximumNumberOfWatchedHierarchies, unsupportedFileSystems)));
+                watchRegistry.updateVfsAfterBuildFinished(currentRoot)));
     }
 
     /**

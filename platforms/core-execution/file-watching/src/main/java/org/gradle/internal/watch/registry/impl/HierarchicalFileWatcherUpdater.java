@@ -87,8 +87,8 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     }
 
     @Override
-    public SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
-        SnapshotHierarchy newRoot = super.updateVfsOnBuildFinished(root, maximumNumberOfWatchedHierarchies, unsupportedFileSystems);
+    public SnapshotHierarchy updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
+        SnapshotHierarchy newRoot = super.updateVfsBeforeBuildFinished(root, maximumNumberOfWatchedHierarchies, unsupportedFileSystems);
         LOGGER.info("Watched directory hierarchies: {}", watchedHierarchies);
         return newRoot;
     }
