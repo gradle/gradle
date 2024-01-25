@@ -18,19 +18,32 @@ package org.gradle.ide.sync
 
 import org.gradle.ide.sync.fixtures.IsolatedProjectsIdeSyncFixture
 import org.hamcrest.core.StringContains
+import spock.lang.Ignore
 
 class IsolatedProjectsJavaProjectSyncTest extends AbstractSyncSmokeIdeTest {
 
     private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(testDirectory)
-    /**
-     * To run this test locally you should have Android Studio installed in /Applications/Android Studio.*.app folder,
-     * or you should set "studioHome" system property with the Android Studio installation path,
-     * or you should enable automatic download of Android Studio with the -PautoDownloadAndroidStudio=true.
-     *
-     * Additionally, you should also have ANDROID_HOME env. variable set with Android SDK (normally on MacOS it's installed in "$HOME/Library/Android/sdk").
-     *
-     * To enable headless mode run with -PrunAndroidStudioInHeadlessMode=true.
-     */
+
+    @Ignore("IDEA sync is work in progress")
+    def "IDEA sync has known IP violations for vanilla Java project"() {
+        given:
+        simpleJavaProject()
+
+        when:
+        ideaSync("release", "2023.2.3")
+
+        then:
+        fixture.assertHtmlReportHasProblems {
+            totalProblemsCount = 74
+            withLocatedProblem(new StringContains("sync.studio.tooling"), "Cannot access project ':app' from project ':'")
+            withLocatedProblem(new StringContains("sync.studio.tooling"), "Cannot access project ':lib' from project ':'")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':app' from project ':'")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':lib' from project ':'")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':app' from project ':'. 'Project.evaluationDependsOn' must be used to establish a dependency between project ':app' and project ':' evaluation")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':lib' from project ':'. 'Project.evaluationDependsOn' must be used to establish a dependency between project ':lib' and project ':' evaluation")
+        }
+    }
+
     def "Android Studio sync has known IP violations for vanilla Java project"() {
         given:
         simpleJavaProject()
@@ -40,20 +53,18 @@ class IsolatedProjectsJavaProjectSyncTest extends AbstractSyncSmokeIdeTest {
 
         then:
         fixture.assertHtmlReportHasProblems {
-            totalProblemsCount = 78
+            totalProblemsCount = 18
             withLocatedProblem(new StringContains("sync.studio.tooling"), "Cannot access project ':app' from project ':'")
             withLocatedProblem(new StringContains("sync.studio.tooling"), "Cannot access project ':lib' from project ':'")
             withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':app' from project ':'")
             withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':lib' from project ':'")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':app' from project ':'. 'Project.evaluationDependsOn' must be used to establish a dependency between project ':app' and project ':' evaluation")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':lib' from project ':'. 'Project.evaluationDependsOn' must be used to establish a dependency between project ':lib' and project ':' evaluation")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':app' cannot dynamically look up a property in the parent project ':'")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':lib' cannot dynamically look up a property in the parent project ':'")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':' from project ':app'")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':' from project ':lib'")
         }
     }
 
     private void simpleJavaProject() {
-        settingsFile << """
+        file("settings.gradle") << """
             rootProject.name = 'project-under-test'
             include ':app'
             include ':lib'
