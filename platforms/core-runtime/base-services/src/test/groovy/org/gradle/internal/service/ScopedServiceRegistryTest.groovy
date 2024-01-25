@@ -32,7 +32,7 @@ class ScopedServiceRegistryTest extends Specification {
 
         then:
         def exception = thrown(IllegalArgumentException)
-        exception.message.contains("Service '${BuildTreeScopedService.name}' was declared in scopes [BuildTree] but registered in scope 'Build'")
+        exception.message.contains("The service '${BuildTreeScopedService.name}' declares service scope 'BuildTree' but is registered in the 'Build' scope. Either update the '@ServiceScope()' annotation on '${BuildTreeScopedService.simpleName}' to include the 'Build' scope or move the service registration to one of the declared scopes.")
 
         where:
         method     | registration
@@ -50,7 +50,7 @@ class ScopedServiceRegistryTest extends Specification {
 
         then:
         def exception = thrown(IllegalArgumentException)
-        exception.message.contains("Service '${GlobalAndBuildScopedService.name}' was declared in scopes [Global, Build] but registered in scope 'BuildTree'")
+        exception.message.contains("The service '${GlobalAndBuildScopedService.name}' declares service scopes 'Global', 'Build' but is registered in the 'BuildTree' scope. Either update the '@ServiceScope()' annotation on '${GlobalAndBuildScopedService.simpleName}' to include the 'BuildTree' scope or move the service registration to one of the declared scopes.")
 
         where:
         method     | registration
@@ -80,7 +80,7 @@ class ScopedServiceRegistryTest extends Specification {
 
         then:
         def exception = thrown(IllegalArgumentException)
-        exception.message.contains("Service '${BuildTreeScopedService.name}' was declared in scopes [BuildTree] but registered in scope 'Build'")
+        exception.message.contains("The service '${BuildTreeScopedService.name}' declares service scope 'BuildTree' but is registered in the 'Build' scope. Either update the '@ServiceScope()' annotation on '${BuildTreeScopedService.simpleName}' to include the 'Build' scope or move the service registration to one of the declared scopes.")
     }
 
     def "succeeds when registering an unscoped service"() {

@@ -17,11 +17,14 @@
 package org.gradle.internal.service;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -68,32 +71,33 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
     }
 
     private static boolean containsScope(Class<? extends Scope> expectedScope, Class<? extends Scope>[] actualScopes) {
-        for (Class<? extends Scope> declScope : actualScopes) {
-            if (expectedScope.equals(declScope)) {
-                return true;
-            }
-        }
-
-        return false;
+        return Arrays.asList(actualScopes).contains(expectedScope);
     }
 
     private String invalidScopeMessage(Class<?> serviceType, Class<? extends Scope>[] actualScopes) {
-        return String.format("Service '%s' was declared in scopes %s but registered in scope '%s'",
-            serviceType.getName(), scopeDisplayList(actualScopes), scope.getSimpleName());
+        return String.format(
+            "The service '%s' declares %s but is registered in the '%s' scope. " +
+                "Either update the '@ServiceScope()' annotation on '%s' to include the '%s' scope " +
+                "or move the service registration to one of the declared scopes.",
+            serviceType.getName(),
+            displayScopes(actualScopes),
+            scope.getSimpleName(),
+            serviceType.getSimpleName(),
+            scope.getSimpleName()
+        );
     }
 
-    private static String scopeDisplayList(Class<? extends Scope>[] scopes) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[");
-        for (int i = 0; i < scopes.length; i++) {
-            Class<? extends Scope> scope = scopes[i];
-            if (i > 0) {
-                sb.append(", ");
-            }
-            sb.append(scope.getSimpleName());
+    private static String displayScopes(Class<? extends Scope>[] scopes) {
+        if (scopes.length == 1) {
+            return "service scope '" + scopes[0].getSimpleName() + "'";
         }
-        sb.append("]");
-        return sb.toString();
+
+        return "service scopes " + CollectionUtils.join(", ", CollectionUtils.collect(Arrays.asList(scopes), new InternalTransformer<String, Class<? extends Scope>>() {
+            @Override
+            public String transform(Class<? extends Scope> aClass) {
+                return "'" + aClass.getSimpleName() + "'";
+            }
+        }));
     }
 
     @Nullable
