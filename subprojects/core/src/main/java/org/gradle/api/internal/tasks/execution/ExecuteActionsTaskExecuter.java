@@ -49,13 +49,6 @@ import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXE
  */
 @SuppressWarnings("deprecation")
 public class ExecuteActionsTaskExecuter implements TaskExecuter {
-    public enum BuildCacheState {
-        ENABLED, DISABLED
-    }
-
-    public enum ScanPluginState {
-        APPLIED, NOT_APPLIED
-    }
 
     private final ExecutionHistoryStore executionHistoryStore;
     private final BuildOperationExecutor buildOperationExecutor;

@@ -39,7 +39,6 @@ import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.MissingTaskDependencyDetector;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.FileCollectionFingerprinterRegistry;
@@ -88,7 +87,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
     TaskExecuter createTaskExecuter(
         AsyncWorkTracker asyncWorkTracker,
         BuildOperationExecutor buildOperationExecutor,
-        GradleEnterprisePluginManager gradleEnterprisePluginManager,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ExecutionHistoryStore executionHistoryStore,
         FileCollectionFactory fileCollectionFactory,
