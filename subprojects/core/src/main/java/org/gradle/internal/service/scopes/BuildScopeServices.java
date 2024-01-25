@@ -178,6 +178,7 @@ import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
+import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.composite.DefaultBuildIncluder;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -467,7 +468,8 @@ public class BuildScopeServices extends ScopedServiceRegistry {
         ExecutionEngine executionEngine,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
-        GroovyDslWorkspaceProvider  groovyDslWorkspaceProvider
+        GroovyDslWorkspaceProvider  groovyDslWorkspaceProvider,
+        ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy
     ) {
         return new GroovyScriptClassCompiler(
             new BuildOperationBackedScriptCompilationHandler(scriptCompilationHandler, buildOperationExecutor),
@@ -476,7 +478,8 @@ public class BuildScopeServices extends ScopedServiceRegistry {
             executionEngine,
             fileCollectionFactory,
             inputFingerprinter,
-            groovyDslWorkspaceProvider.getWorkspace()
+            groovyDslWorkspaceProvider.getWorkspace(),
+            transformFactoryForLegacy
         );
     }
 
