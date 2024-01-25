@@ -16,25 +16,20 @@
 
 package org.gradle.integtests.tooling.r87
 
-
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.r85.CustomModel
+import org.gradle.integtests.tooling.r85.ProblemsServiceModelBuilderCrossVersionTest.ProblemProgressListener
 import org.gradle.tooling.BuildException
-import org.gradle.tooling.events.problems.FileLocation
-import org.gradle.tooling.events.problems.LineInFileLocation
-import org.gradle.tooling.events.problems.OffsetInFileLocation
-import org.gradle.tooling.events.problems.ProblemAggregationDescriptor
 import org.gradle.tooling.events.problems.ProblemDescriptor
-import org.gradle.tooling.events.problems.Severity
-import org.gradle.tooling.events.problems.TaskPathLocation
-import org.gradle.tooling.events.problems.internal.DefaultProblemsOperationDescriptor
 
+import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
+import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.assertProblemDetailsForTAPIProblemEvent
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 
 @ToolingApiVersion(">=8.7")
-@TargetGradleVersion(">=8.7")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {
@@ -44,10 +39,20 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         //  issue https://github.com/gradle/gradle/issues/27484
     }
 
-    @TargetGradleVersion("=8.5")
-    def "test failure context"() {
+    def runTask() {
+        def listener = new ProblemProgressListener()
+        withConnection { connection ->
+            connection.newBuild().forTasks('reportProblem')
+                .addProgressListener(listener)
+                .run()
+        }
+        return listener.problems.collect { (ProblemDescriptor) it }
+    }
+
+    @TargetGradleVersion(">=8.5")
+    def "Failing executions produce problems"() {
         setup:
-        buildFile << """
+        buildFile """
             plugins {
               id 'java-library'
             }
@@ -58,7 +63,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
 
         when:
-        def listener = new org.gradle.integtests.tooling.r85.ProblemsServiceModelBuilderCrossVersionTest.ProblemProgressListener()
+        def listener = new ProblemProgressListener()
         withConnection { connection ->
             connection.newBuild()
                 .forTasks(":ba")
@@ -74,7 +79,8 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         listener.problems.size() == 2
     }
 
-    def "Problems expose details via Tooling API events"() {
+    @TargetGradleVersion(">=8.6")
+    def "Problems expose details via Tooling API events with failure"() {
         given:
         withReportProblemTask """
             getProblems().forNamespace("org.example.plugin").reporting {
@@ -94,26 +100,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         def problems = runTask()
 
         then:
-        problems.size() == 1
-        problems[0].category.namespace == 'org.example.plugin'
-        problems[0].category.category == 'main'
-        problems[0].category.subcategories == ['sub', 'id']
-        ((DefaultProblemsOperationDescriptor) problems[0]).additionalData.asMap == ['aKey': 'aValue']
-        problems[0].label.label == 'shortProblemMessage'
-        problems[0].details.details == expectedDetails
-        problems[0].severity == Severity.WARNING
-        problems[0].locations.size() == 2
-        problems[0].locations[0] instanceof LineInFileLocation
-        def lineInFileLocation = problems[0].locations[0] as LineInFileLocation
-        lineInFileLocation.path == '/tmp/foo'
-        lineInFileLocation.line == 1
-        lineInFileLocation.column == 2
-        lineInFileLocation.length == 3
-        problems[0].locations[1] instanceof TaskPathLocation
-        (problems[0].locations[1] as TaskPathLocation).buildTreePath == ':reportProblem'
-        problems[0].documentationLink.url == expecteDocumentation
-        problems[0].solutions.size() == 1
-        problems[0].solutions[0].solution == 'try this instead'
+        assertProblemDetailsForTAPIProblemEvent(problems, expectedDetails, expecteDocumentation)
         problems[0].failure == null
 
         where:
@@ -122,158 +109,55 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         ''                         | null            | ''                                          | null
     }
 
-    def runTask() {
-        def listener = new org.gradle.integtests.tooling.r85.ProblemsServiceModelBuilderCrossVersionTest.ProblemProgressListener()
-        withConnection { connection ->
-            connection.newBuild().forTasks('reportProblem')
+    @TargetGradleVersion("=8.5")
+    def "failure always null in older version"() {
+        buildFile """
+            tasks.register("foo) {
+        """
+
+        given:
+        ProblemProgressListener listener = new ProblemProgressListener()
+
+        when:
+        withConnection {
+            it.model(CustomModel)
+                .setJavaHome(jdk17.javaHome)
                 .addProgressListener(listener)
-                .run()
-        }
-        return listener.problems.collect { (ProblemDescriptor) it }
-    }
-
-    def "Problems expose file locations with file path only"() {
-        given:
-        withReportProblemTask """
-            getProblems().forNamespace("org.example.plugin").reporting {
-                        it.label("shortProblemMessage")
-                        .category("main", "sub", "id")
-                        .fileLocation("/tmp/foo")
-                    }
-        """
-
-        when:
-        def problems = runTask()
-
-        then:
-        problems.size() == 1
-        FileLocation location = (FileLocation) problems[0].locations.find { it instanceof FileLocation }
-        location.path == '/tmp/foo'
-    }
-
-    def "Problems expose file locations with path and line"() {
-        given:
-        withReportProblemTask """
-            getProblems().forNamespace("org.example.plugin").reporting {
-                it.label("shortProblemMessage")
-                .category("main", "sub", "id")
-                .lineInFileLocation("/tmp/foo", 1)
-            }
-        """
-
-        when:
-
-        def problems = runTask()
-
-        then:
-        problems.size() == 1
-        LineInFileLocation location = (LineInFileLocation) problems[0].locations.find { it instanceof LineInFileLocation }
-        location.path == '/tmp/foo'
-        location.line == 1
-        location.column < 1
-        location.length < 0
-    }
-
-    def "Problems expose file locations with path, line and column"() {
-        given:
-        withReportProblemTask """
-                getProblems().forNamespace("org.example.plugin").reporting {
-                    it.label("shortProblemMessage")
-                    .category("main", "sub", "id")
-                    .lineInFileLocation("/tmp/foo", 1, 2)
-                }
-        """
-
-        when:
-        def problems = runTask()
-
-        then:
-        problems.size() == 1
-        LineInFileLocation location = (LineInFileLocation) problems[0].locations.find { it instanceof LineInFileLocation }
-        location.path == '/tmp/foo'
-        location.line == 1
-        location.column == 2
-        location.length < 0
-    }
-
-    def "Problems expose file locations with path, line, column and length"() {
-        given:
-        withReportProblemTask """
-            getProblems().forNamespace("org.example.plugin").reporting {
-                it.label("shortProblemMessage")
-                .category("main", "sub", "id")
-                .lineInFileLocation("/tmp/foo", 1, 2, 3)
-            }
-        """
-
-        when:
-        def problems = runTask()
-
-        then:
-        problems.size() == 1
-        LineInFileLocation location = (LineInFileLocation) problems[0].locations.find { it instanceof LineInFileLocation }
-        location.path == '/tmp/foo'
-        location.line == 1
-        location.column == 2
-        location.length == 3
-    }
-
-    def "Problems expose file locations with offset and length"() {
-        given:
-        withReportProblemTask """
-            getProblems().forNamespace("org.example.plugin").reporting {
-                it.label("shortProblemMessage")
-                .category("main", "sub", "id")
-                .offsetInFileLocation("/tmp/foo", 20, 10)
-            }
-        """
-
-        when:
-        def problems = runTask()
-
-        then:
-        problems.size() == 1
-        OffsetInFileLocation location = (OffsetInFileLocation) problems[0].locations.find { it instanceof OffsetInFileLocation }
-        location.path == '/tmp/foo'
-        location.offset == 20
-        location.length == 10
-    }
-
-    def "Problems expose summary Tooling API events"() {
-        given:
-        withReportProblemTask """
-            for(int i = 0; i < 10; i++) {
-                problems.forNamespace("org.example.plugin").reporting{
-                    it.label("The 'standard-plugin' is deprecated")
-                        .category("deprecation", "plugin")
-                        .severity(Severity.WARNING)
-                        .solution("Please use 'standard-plugin-2' instead of this plugin")
-                    }
-            }
-        """
-
-        when:
-        def listener = new org.gradle.integtests.tooling.r85.ProblemsServiceModelBuilderCrossVersionTest.ProblemProgressListener()
-        withConnection { connection ->
-            connection.newBuild().forTasks('reportProblem')
-                .addProgressListener(listener)
-                .run()
+                .get()
         }
 
         then:
-        def problems = listener.problems
-        problems.size() == 2
+        thrown(BuildException)
+        def problems = listener.problems.collect { it as ProblemDescriptor }
+        problems.size() == 1
+        problems[0].label.label == "Could not compile build file '$buildFile.absolutePath'."
+        problems[0].category.category == 'compilation'
+        problems[0].failure == null
+    }
 
+    @TargetGradleVersion(">=8.7")
+    def "Can serialize groovy compilation error"() {
+        buildFile """
+            tasks.register("foo) {
+        """
 
-        def firstProblem = (ProblemDescriptor) problems[0]
-        firstProblem.label.label == "The 'standard-plugin' is deprecated"
-        firstProblem.details.details == null
+        given:
+        ProblemProgressListener listener = new ProblemProgressListener()
 
-        def aggregatedProblems = (ProblemAggregationDescriptor) problems[1]
+        when:
+        withConnection {
+            it.model(CustomModel)
+                .setJavaHome(jdk17.javaHome)
+                .addProgressListener(listener)
+                .get()
+        }
 
-        def aggregations = aggregatedProblems.aggregations
-        aggregations.size() == 1
-        aggregations[0].label.label == "The 'standard-plugin' is deprecated"
-        aggregations[0].problemDescriptors.size() == 10
+        then:
+        thrown(BuildException)
+        def problems = listener.problems.collect { it as ProblemDescriptor }
+        problems.size() == 1
+        problems[0].label.label == "Could not compile build file '$buildFile.absolutePath'."
+        problems[0].category.category == 'compilation'
+        problems[0].failure.failure.message == "Could not compile build file '$buildFile.absolutePath'."
     }
 }

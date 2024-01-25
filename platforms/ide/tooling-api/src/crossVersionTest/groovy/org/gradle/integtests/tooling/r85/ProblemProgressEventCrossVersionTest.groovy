@@ -28,37 +28,7 @@ import org.gradle.tooling.events.problems.ProblemEvent
 @ToolingApiVersion("=8.5")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
-    def "test failure context"() {
-        setup:
-        buildFile << """
-            plugins {
-              id 'java-library'
-            }
-            repositories.jcenter()
-            task bar {}
-            task baz {}
-        """
-
-
-        when:
-        def listener = new ProblemProgressListener()
-        withConnection { connection ->
-            connection.newBuild()
-                .forTasks(":ba")
-                .addProgressListener(listener)
-                .setStandardError(System.err)
-                .setStandardOutput(System.out)
-                .addArguments("--info")
-                .run()
-        }
-
-        then:
-        thrown(BuildException)
-        def problems = listener.problems.collect {new JsonSlurper().parseText(it.json) }
-        problems.size() == 2
-    }
-
-    def "Gradle 8.5 exposes problem events via JSON strings"() {
+    def "New Gradle version exposes problem events with empty JSON strings"() {
         setup:
         buildFile """
             plugins {

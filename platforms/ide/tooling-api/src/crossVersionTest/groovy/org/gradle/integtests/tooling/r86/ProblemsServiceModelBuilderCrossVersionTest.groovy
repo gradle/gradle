@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.CustomModel
 import org.gradle.integtests.tooling.r85.ProblemsServiceModelBuilderCrossVersionTest.ProblemProgressListener
-import org.gradle.tooling.events.problems.ProblemDescriptor
 import org.junit.Assume
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
@@ -29,12 +28,11 @@ import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk21
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
 import static org.gradle.integtests.tooling.r85.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
 
-@TargetGradleVersion(">=8.6")
 @ToolingApiVersion(">=8.6")
 class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecification {
 
     @TargetGradleVersion("=8.6")
-    def "Can use problems service in model builder"() {
+    def "Can use problems service in model builder and get problem"() {
         given:
         Assume.assumeTrue(jdk != null)
         buildFile getBuildScriptSampleContent(false, false)
@@ -47,7 +45,7 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
                 .addProgressListener(listener)
                 .get()
         }
-        def problems = listener.problems.collect { it as ProblemDescriptor }
+        def problems = listener.problems
 
         then:
         problems.size() == 1

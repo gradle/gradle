@@ -16,13 +16,11 @@
 
 package org.gradle.integtests.tooling.r87
 
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.CustomModel
 import org.gradle.integtests.tooling.r85.ProblemsServiceModelBuilderCrossVersionTest.ProblemProgressListener
-import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.problems.ProblemDescriptor
 import org.junit.Assume
 
@@ -35,32 +33,7 @@ import static org.gradle.integtests.tooling.r85.ProblemsServiceModelBuilderCross
 @ToolingApiVersion(">=8.7")
 class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecification {
 
-    def "Can serialize groovy compilation error"() {
-        buildFile """
-            tasks.register("foo) {
-        """
-
-        given:
-        ProblemProgressListener listener = new ProblemProgressListener()
-
-        when:
-        withConnection {
-            it.model(CustomModel)
-                .setJavaHome(jdk17.javaHome)
-                .addProgressListener(listener)
-                .get()
-        }
-
-        then:
-        thrown(BuildException)
-        def problems = listener.problems.collect { it as ProblemDescriptor }
-        problems.size() == 1
-        problems[0].label.label == "Could not compile build file '$buildFile.absolutePath'."
-        problems[0].category.category == 'compilation'
-        problems[0].failure.failure.message == "Could not compile build file '$buildFile.absolutePath'."
-    }
-
-    def "Can use problems service in model builder"() {
+    def "Can use problems service in model builder and get failure objects"() {
         given:
         Assume.assumeTrue(javaHome != null)
         buildFile getBuildScriptSampleContent(false, false)
@@ -106,30 +79,5 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
         listener.problems[0].additionalData.asMap == [
             'keyToString': 'value'
         ]
-    }
-
-    @TargetGradleVersion("=8.6")
-    def "getFailure always null in older version"() {
-        buildFile """
-            tasks.register("foo) {
-        """
-
-        given:
-        ProblemProgressListener listener = new ProblemProgressListener()
-
-        when:
-        withConnection {
-            it.model(CustomModel)
-                .setJavaHome(jdk17.javaHome)
-                .addProgressListener(listener)
-                .get()
-        }
-
-        then:
-        thrown(BuildException)
-        def problems = listener.problems.collect { it as ProblemDescriptor }
-        problems.size() == 1
-        problems[0].label.label == "Could not compile build file '$buildFile.absolutePath'."
-        problems[0].category.category == 'compilation'
     }
 }
