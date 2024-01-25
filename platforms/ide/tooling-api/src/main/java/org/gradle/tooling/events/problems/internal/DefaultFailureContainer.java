@@ -22,14 +22,14 @@ import org.gradle.tooling.events.problems.FailureContainer;
 import javax.annotation.Nullable;
 
 public class DefaultFailureContainer implements FailureContainer {
-    private final Failure exception;
+    private final Failure failure;
 
-    public DefaultFailureContainer(@Nullable Failure exception) {
-        this.exception = exception;
+    public DefaultFailureContainer(@Nullable Failure failure) {
+        this.failure = failure;
     }
 
     @Override
     public Failure getFailure() {
-        return exception;
+        return failure;
     }
 }

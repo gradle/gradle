@@ -767,7 +767,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             toDocumentationLink(details.getDocumentationLink()),
             toSolutions(details.getSolutions()),
             toAdditionalData(details.getAdditionalData()),
-            toExceptionContainer(details)
+            toFailureContainer(details)
         );
     }
 
@@ -794,11 +794,11 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return result.build();
     }
 
-    private static @Nullable FailureContainer toExceptionContainer(@Nullable InternalBasicProblemDetails exception) {
-        if (!(exception instanceof InternalBasicProblemDetailsVersion2)) {
+    private static @Nullable FailureContainer toFailureContainer(@Nullable InternalBasicProblemDetails problemDetails) {
+        if (!(problemDetails instanceof InternalBasicProblemDetailsVersion2)) {
             return null;
         }
-        InternalFailure failure = ((InternalBasicProblemDetailsVersion2) exception).getFailure();
+        InternalFailure failure = ((InternalBasicProblemDetailsVersion2) problemDetails).getFailure();
         if (failure == null) {
             return null;
         }
