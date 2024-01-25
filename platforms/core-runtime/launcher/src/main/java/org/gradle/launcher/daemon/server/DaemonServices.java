@@ -137,32 +137,27 @@ public class DaemonServices extends DefaultServiceRegistry {
         return GarbageCollectorMonitoringStrategy.determineGcStrategy();
     }
 
-    protected CleanUpVirtualFileSystemAfterBuild createCleanUpVirtualFileSystemAfterBuild(ExecutorFactory executorFactory, GradleUserHomeScopeServiceRegistry userHomeServiceRegistry) {
-        return new CleanUpVirtualFileSystemAfterBuild(executorFactory, userHomeServiceRegistry);
-    }
-
     protected ImmutableList<DaemonCommandAction> createDaemonCommandActions(
         BuildExecuter buildActionExecuter,
         DaemonContext daemonContext,
         DaemonHealthCheck healthCheck,
         DaemonHealthStats healthStats,
         DaemonRunningStats runningStats,
-        ProcessEnvironment processEnvironment,
-
-        CleanUpVirtualFileSystemAfterBuild cleanUpVirtualFileSystemAfterBuild
+        ExecutorFactory executorFactory,
+        ProcessEnvironment processEnvironment
     ) {
         File daemonLog = getDaemonLogFile();
         DaemonDiagnostics daemonDiagnostics = new DaemonDiagnostics(daemonLog, daemonContext.getPid());
-        GradleUserHomeScopeServiceRegistry gradleUserHomeScopeServiceRegistry = get(GradleUserHomeScopeServiceRegistry.class);
+        GradleUserHomeScopeServiceRegistry userHomeServiceRegistry = get(GradleUserHomeScopeServiceRegistry.class);
         return ImmutableList.of(
             new HandleStop(get(ListenerManager.class)),
-            new HandleInvalidateVirtualFileSystem(gradleUserHomeScopeServiceRegistry),
+            new HandleInvalidateVirtualFileSystem(userHomeServiceRegistry),
             new HandleCancel(),
-            new EstablishBuildEnvironment(processEnvironment),
-            cleanUpVirtualFileSystemAfterBuild,
+            new CleanUpVirtualFileSystemAfterBuild(executorFactory, userHomeServiceRegistry),
             new HandleReportStatus(),
             new ReturnResult(),
             new StartBuildOrRespondWithBusy(daemonDiagnostics), // from this point down, the daemon is 'busy'
+            new EstablishBuildEnvironment(processEnvironment),
             new LogToClient(loggingManager, daemonDiagnostics), // from this point down, logging is sent back to the client
             new LogAndCheckHealth(healthStats, healthCheck, runningStats),
             new ForwardClientInput(),
