@@ -116,8 +116,8 @@ dependencies {
         api(libs.jclToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.jcommander)            { version { strictly("1.78") }}
         api(libs.jetbrainsAnnotations)  { version { strictly("24.0.1") }}
-        api(libs.jgit)                  { version { strictly("6.7.0.202309050840-r") }}
-        api(libs.jgitSsh)               { version { strictly("6.7.0.202309050840-r") }}
+        api(libs.jgit)                  { version { strictly("5.13.3.202401111512-r"); because("6.x requires Java 11") }}
+        api(libs.jgitSsh)               { version { strictly("5.13.3.202401111512-r") }}
         api(libs.joda)                  { version { strictly("2.10.4") }}
         api(libs.joptSimple)            { version { strictly("5.0.4"); because("needed to create profiler in Gradle profiler API") }}
         api(libs.jsch)                  { version { strictly("0.2.16") }}
