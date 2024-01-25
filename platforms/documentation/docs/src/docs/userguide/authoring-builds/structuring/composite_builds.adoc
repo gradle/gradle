@@ -58,7 +58,7 @@ my-composite
         └── src/main/java/org/sample/stringutils/Strings.java
 ----
 
-For these examples, the `my-utils` multi-project build produces two different Java libraries, `number-utils` and `string-utils`.
+For these examples, the `my-utils` multi-project build produces two Java libraries, `number-utils` and `string-utils`.
 The `my-app` build produces an executable using functions from those libraries.
 
 The `my-app` build does not depend directly on `my-utils`.
@@ -150,13 +150,13 @@ In other words, the nested composite build structure is flattened.
 [[interacting_with_composite_builds]]
 == Interacting with a composite build
 
-In general, interacting with a composite build is similar to a regular multi-project build.
+Interacting with a composite build is generally similar to a regular multi-project build.
 Tasks can be executed, tests can be run, and builds can be imported into the IDE.
 
 [[composite_build_executing_tasks]]
 === Executing tasks
 
-Tasks from an included build can be executed from the command-line or your IDE in the same way as tasks from a regular multi-project build.
+Tasks from an included build can be executed from the command-line or IDE in the same way as tasks from a regular multi-project build.
 Executing a task will result in task dependencies being executed, as well as those tasks required to build dependency artifacts from other included builds.
 
 You can call a task in an included build using a fully qualified path, for example, `:included-build-name:project-name:taskName`.
@@ -172,7 +172,7 @@ $ ./gradlew :i-b:sA:cJ
 
 To <<command_line_interface.adoc#sec:excluding_tasks_from_the_command_line,exclude a task from the command line>>, you need to provide the fully qualified path to the task.
 
-NOTE: Included build tasks are automatically executed in order to generate required dependency artifacts, or the <<#included_build_task_dependencies,including build can declare a dependency on a task from an included build>>.
+NOTE: Included build tasks are automatically executed to generate required dependency artifacts, or the <<#included_build_task_dependencies,including build can declare a dependency on a task from an included build>>.
 
 [[composite_build_ide_integration]]
 === Importing into the IDE
@@ -244,7 +244,7 @@ Here are some common cases where declared substitutions are required:
 * When the `archivesBaseName` property is used to set the name of the published artifact.
 * When a configuration other than `default` is published.
 * When the `MavenPom.addFilter()` is used to publish artifacts that don't match the project name.
-* When the `maven-publish` or `ivy-publish` plugins are used for publishing, and the publication coordinates don't match `${project.group}:${project.name}`.
+* When the `maven-publish` or `ivy-publish` plugins are used for publishing and the publication coordinates don't match `${project.group}:${project.name}`.
 
 [[included_build_substitution_limitations]]
 === Cases where composite build substitutions won't work

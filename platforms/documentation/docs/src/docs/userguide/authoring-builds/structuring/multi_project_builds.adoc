@@ -15,7 +15,7 @@
 [[multi_project_builds]]
 = Structuring Projects with Gradle
 
-It is important to structure your Gradle project in order to optimize build performance.
+It is important to structure your Gradle project to optimize build performance.
 A multi-project build is the standard in Gradle.
 
 image::structuring-builds-1.png[]
@@ -26,9 +26,9 @@ Gradle can build the root project and any number of the subprojects in a single 
 [[sub:project_locations]]
 == Project locations
 
-Multi-project builds contain a single root project in a directory that is considered the top of the path for Gradle (i.e., `.`).
+Multi-project builds contain a single root project in a directory that Gradle views as the root path: `.`.
 
-Subprojects are located, physically, under the root path.
+Subprojects are located physically under the root path: `./subproject`.
 
 A subproject has <<intro_multi_project_builds#sec:project_path,a path>>, which denotes the position of that subproject in the multi-project build.
 In most cases, the project path is consistent with its location in the file system.
@@ -41,10 +41,10 @@ The settings file must be present in the root directory.
 
 Let's look at a _basic_ multi-project build example that contains a root project and a single subproject.
 
-The root project is called `basic-multiproject`, it is located somewhere on your machine.
-From Gradle's perspective, the root is the top level directory `.`.
+The root project is called `basic-multiproject`, located somewhere on your machine.
+From Gradle's perspective, the root is the top-level directory `.`.
 
-The project contains a single subproject called `app`:
+The project contains a single subproject called `./app`:
 
 [.multi-language-sample]
 =====
@@ -79,7 +79,7 @@ include::sample[dir="snippets/multiproject/basic-multiproject/kotlin",files="set
 include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="settings.gradle[]"]
 ====
 
-In this case, Gradle will look for a build file for the `app` subproject in the `app` directory.
+In this case, Gradle will look for a build file for the `app` subproject in the `./app` directory.
 
 You can view the structure of a multi-project build by running the `gradle projects` command:
 
@@ -249,7 +249,7 @@ project(':my-web-module').projectDir = "subs/web/my-web-module"
 
 So that you only end up with a single subproject named `:my-web-module`.
 
-So while the physical project layout is the same, the logical results are different.
+So, while the physical project layout is the same, the logical results are different.
 
 [[sec:naming_recommendations]]
 == Naming recommendations
@@ -265,6 +265,6 @@ However, it’s an unnecessary extra effort for the developers to track which pr
 All letters are lowercase, and words are separated with a dash (`-`) character.
 
 3. *Define the root project name in the settings file*:
-The `rootProject.name` effectively assigns a name to the build, which is used in reports like Build Scans.
+The `rootProject.name` effectively assigns a name to the build, used in reports like Build Scans.
 If the root project name is not set, the name will be the container directory name, which can be unstable (i.e., you can check out your project in any directory).
 The name will be generated randomly if the root project name is not set and checked out to a file system's root (e.g., `/` or `C:\`).

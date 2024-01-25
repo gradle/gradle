@@ -19,12 +19,12 @@ Subprojects in a multi-project build typically share some common dependencies.
 
 image::structuring-builds-3.png[]
 
-Instead of repeating the same included dependencies in each subproject build script, Gradle provides a special directory that serves as a location for storing shared build logic and plugins.
+Instead of repeating the same included dependencies in each subproject build script, Gradle provides a special directory for storing shared build logic and plugins.
 
 [[sec:using_buildsrc]]
 == Share logic in `buildSrc`
 
-`buildSrc` is a Gradle-recognized and protected directory which comes with a number of benefits:
+`buildSrc` is a Gradle-recognized and protected directory which comes with some benefits:
 
 1. *Reusable Build Logic*:
 +
@@ -34,7 +34,7 @@ The code written in buildSrc can be reused across your project, making it easier
 2. *Isolation from the Main Build*:
 +
 Code placed in `buildSrc` is isolated from the other build scripts of your project.
-This helps in keeping the main build scripts cleaner and more focused on project-specific configurations.
+This helps keep the main build scripts cleaner and more focused on project-specific configurations.
 
 3. *Automatic Compilation and Classpath*:
 +
@@ -53,9 +53,9 @@ This makes the plugins easily accessible within your project.
 
 The `buildSrc` directory is treated as an <<composite_builds.adoc#composite_build_intro,included build>>.
 
-For multi-project builds, there can be only one `buildSrc` directory, which has to sit in the root project directory.
+For multi-project builds, there can be only one `buildSrc` directory, which must be in the root project directory.
 
-NOTE: The downside of using `buildSrc` is that any change to it will cause every task in your project to be invalidated and have to rerun.
+NOTE: The downside of using `buildSrc` is that any change to it will invalidate every task in your project and require a rerun.
 
 `buildSrc` uses the same <<java_plugin.adoc#javalayout,source code conventions>> applicable to Java, Groovy, and Kotlin projects.
 It also provides direct access to the Gradle API.
@@ -243,10 +243,10 @@ tasks.register('myCustomTask', MyCustomTask)
 
 Gradle's recommended way of organizing build logic is to use its plugin system.
 
-We can write a plugin that encapsulates the build logic common to a number of subprojects in a project.
+We can write a plugin that encapsulates the build logic common to several subprojects in a project.
 This kind of plugin is called a *convention plugin*.
 
-While writing plugins is outside the scope of this section, putting common build logic in a convention plugin located in the `buildSrc` is the recommended way to build a Gradle project.
+While writing plugins is outside the scope of this section, the recommended way to build a Gradle project is to put common build logic in a convention plugin located in the `buildSrc`.
 
 Let's take a look at an example project:
 
@@ -337,16 +337,17 @@ An improper way to share build logic between subprojects is _cross-project confi
 
 TIP:  Avoid using `subprojects {}` and `allprojects {}`.
 
-With cross-configuration, build logic can be injected into a subproject, and this is not obvious when looking at the subproject's build script, making it harder to understand the logic of a particular subproject.
+With cross-configuration, build logic can be injected into a subproject which is not obvious when looking at its build script.
+
 In the long run, cross-configuration usually grows in complexity and becomes a burden.
-Cross configuration can also introduce configuration-time coupling between projects, which can prevent optimizations like configuration-on-demand from working properly.
+Cross-configuration can also introduce configuration-time coupling between projects, which can prevent optimizations like configuration-on-demand from working properly.
 
 === Convention plugins versus cross-configuration
 
 The two most common uses of cross-configuration can be better modeled using convention plugins:
 
-1. Applying plugins or other configuration to subprojects of a certain type. +
-Often, the cross-configuration section will do `if subproject is of type X, then configure Y`.
+1. Applying plugins or other configurations to subprojects of a certain type. +
+Often, the cross-configuration logic is `if subproject is of type X, then configure Y`.
 This is equivalent to applying `X-conventions` plugin directly to a subproject.
 2. Extracting information from subprojects of a certain type. +
 This use case can be modeled using <<cross_project_publications.adoc#sec:simple-sharing-artifacts-between-projects,outgoing configuration variants>>.
