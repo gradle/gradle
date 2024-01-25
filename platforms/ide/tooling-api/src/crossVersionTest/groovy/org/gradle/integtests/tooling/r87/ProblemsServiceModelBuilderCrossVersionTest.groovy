@@ -20,14 +20,14 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.CustomModel
-import org.gradle.integtests.tooling.r85.ProblemsServiceModelBuilderCrossVersionTest.ProblemProgressListener
+import org.gradle.integtests.tooling.r85.ProblemProgressEventCrossVersionTest.ProblemProgressListener
 import org.gradle.tooling.events.problems.ProblemDescriptor
 import org.junit.Assume
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk21
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
-import static org.gradle.integtests.tooling.r85.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
+import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
 
 @TargetGradleVersion(">=8.7")
 @ToolingApiVersion(">=8.7")
@@ -65,7 +65,7 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
     def "Can add additional metadata"() {
         given:
         buildFile getBuildScriptSampleContent(false, true)
-        ProblemProgressListener listener = new ProblemProgressListener()
+        def listener = new ProblemProgressListener()
 
         when:
         withConnection { connection ->

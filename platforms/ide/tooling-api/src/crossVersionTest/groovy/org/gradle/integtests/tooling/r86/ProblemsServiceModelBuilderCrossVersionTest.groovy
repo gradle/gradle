@@ -16,27 +16,77 @@
 
 package org.gradle.integtests.tooling.r86
 
+import org.gradle.api.problems.Problems
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.CustomModel
-import org.gradle.integtests.tooling.r85.ProblemsServiceModelBuilderCrossVersionTest.ProblemProgressListener
+import org.gradle.integtests.tooling.r85.ProblemProgressEventCrossVersionTest.ProblemProgressListener
 import org.junit.Assume
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk21
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
-import static org.gradle.integtests.tooling.r85.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
 
 @ToolingApiVersion(">=8.6")
 class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecification {
+
+    static String getBuildScriptSampleContent(boolean pre86api, boolean includeAdditionalMetadata) {
+        """
+            import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+            import org.gradle.tooling.provider.model.ToolingModelBuilder
+            import ${Problems.name}
+            import javax.inject.Inject
+
+            allprojects {
+                apply plugin: CustomPlugin
+            }
+
+            class CustomModel implements Serializable {
+                CustomModel() {
+                }
+            }
+
+            class CustomBuilder implements ToolingModelBuilder {
+                private final Problems problemsService
+
+                CustomBuilder(Problems problemsService) {
+                    this.problemsService = problemsService
+                }
+
+                boolean canBuild(String modelName) {
+                    return modelName == '${CustomModel.name}'
+                }
+                Object buildAll(String modelName, Project project) {
+                    problemsService.${pre86api ? "create" : "forNamespace(\"org.example.plugin\").reporting"} {
+                        it.label("label")
+                            .category("testcategory")
+                            .withException(new RuntimeException("test"))
+                            ${pre86api ? ".undocumented()" : ""}
+                            ${includeAdditionalMetadata ? ".additionalData(\"keyToString\", \"value\")" : ""}
+                    }${pre86api ? ".report()" : ""}
+                    return new CustomModel()
+                }
+            }
+
+            class CustomPlugin implements Plugin<Project> {
+                @Inject
+                CustomPlugin(ToolingModelBuilderRegistry registry, Problems problemsService) {
+                    registry.register(new CustomBuilder(problemsService))
+                }
+
+                public void apply(Project project) {
+                }
+            }
+        """
+    }
 
     @TargetGradleVersion("=8.6")
     def "Can use problems service in model builder and get problem"() {
         given:
         Assume.assumeTrue(jdk != null)
         buildFile getBuildScriptSampleContent(false, false)
-        ProblemProgressListener listener = new ProblemProgressListener()
+        def listener = new ProblemProgressListener()
 
         when:
         withConnection {

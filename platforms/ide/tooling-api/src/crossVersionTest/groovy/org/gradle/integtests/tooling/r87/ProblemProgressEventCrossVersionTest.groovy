@@ -21,7 +21,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.CustomModel
-import org.gradle.integtests.tooling.r85.ProblemsServiceModelBuilderCrossVersionTest.ProblemProgressListener
+import org.gradle.integtests.tooling.r85.ProblemProgressEventCrossVersionTest.ProblemProgressListener
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.problems.ProblemDescriptor
 
@@ -116,7 +116,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         """
 
         given:
-        ProblemProgressListener listener = new ProblemProgressListener()
+        def listener = new ProblemProgressListener()
 
         when:
         withConnection {
@@ -142,7 +142,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         """
 
         given:
-        ProblemProgressListener listener = new ProblemProgressListener()
+        def listener = new ProblemProgressListener()
 
         when:
         withConnection {
