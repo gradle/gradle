@@ -18,8 +18,12 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.internal.GeneratedSubclasses;
+import org.gradle.api.problems.internal.DefaultProblemCategory;
+import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingStateFactory;
 import org.gradle.internal.execution.caching.impl.DefaultCachingStateFactory;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -33,17 +37,24 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
+import org.gradle.internal.snapshot.impl.UnknownImplementationSnapshot;
+import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.NOPLogger;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
+
+import static org.gradle.api.problems.Severity.ERROR;
+import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public abstract class AbstractCaptureStateBeforeExecutionStep<C extends PreviousExecutionContext, R extends CachingResult> extends BuildOperationStep<C, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCaptureStateBeforeExecutionStep.class);
@@ -94,6 +105,7 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
     @Nullable
     abstract protected OverlappingOutputs detectOverlappingOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots);
 
+    @Nullable
     private BeforeExecutionState captureExecutionStateWithOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots, @Nullable OverlappingOutputs overlappingOutputs) {
         // TODO We should probably capture these during identify step
         ImplementationsBuilder implementationsBuilder = new ImplementationsBuilder(classLoaderHierarchyHasher);
@@ -122,6 +134,18 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
             work::visitRegularInputs
         );
 
+        boolean hasValidationErrors = validateImplementations(
+            work,
+            implementation,
+            additionalImplementations,
+            newInputs.getAllValueSnapshots(),
+            context.getValidationContext()
+        );
+
+        if (hasValidationErrors) {
+            return null;
+        }
+
         Logger logger = emitBuildCacheDebugLogging.getAsBoolean()
             ? LOGGER
             : NOPLogger.NOP_LOGGER;
@@ -143,6 +167,80 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
             unfilteredOutputSnapshots,
             overlappingOutputs
         );
+    }
+
+    private boolean validateImplementations(
+        UnitOfWork work,
+        ImplementationSnapshot implementation,
+        ImmutableList<ImplementationSnapshot> additionalImplementations,
+        ImmutableSortedMap<String, ValueSnapshot> inputProperties,
+        WorkValidationContext validationContext
+    ) {
+        MutableReference<Class<?>> workClass = MutableReference.empty();
+        boolean hasValidationErrors = false;
+        work.visitImplementations(new UnitOfWork.ImplementationVisitor() {
+            @Override
+            public void visitImplementation(Class<?> implementation) {
+                workClass.set(GeneratedSubclasses.unpack(implementation));
+            }
+
+            @Override
+            public void visitImplementation(ImplementationSnapshot implementation) {
+            }
+        });
+        // It doesn't matter whether we use cacheable true or false, since none of the warnings depends on the cacheability of the task.
+        Class<?> workType = workClass.get();
+        TypeValidationContext workValidationContext = validationContext.forType(workType, true);
+        hasValidationErrors |= validateImplementation(workValidationContext, implementation, "Implementation of ", work);
+        for (ImplementationSnapshot additionalImplementation : additionalImplementations) {
+            hasValidationErrors |= validateImplementation(workValidationContext, additionalImplementation, "Additional action of ", work);
+        }
+        for (Map.Entry<String, ValueSnapshot> entry : inputProperties.entrySet()) {
+            String propertyName = entry.getKey();
+            ValueSnapshot valueSnapshot = entry.getValue();
+            if (valueSnapshot instanceof ImplementationSnapshot) {
+                ImplementationSnapshot implementationSnapshot = (ImplementationSnapshot) valueSnapshot;
+                hasValidationErrors |= validateNestedInput(workValidationContext, propertyName, implementationSnapshot);
+            }
+        }
+        return hasValidationErrors;
+    }
+
+    private static final String UNKNOWN_IMPLEMENTATION = "UNKNOWN_IMPLEMENTATION";
+
+    private boolean validateNestedInput(TypeValidationContext workValidationContext, String propertyName, ImplementationSnapshot implementation) {
+        if (implementation instanceof UnknownImplementationSnapshot) {
+            UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
+            workValidationContext.visitPropertyProblem(problem -> problem
+                .forProperty(propertyName)
+                .typeIsIrrelevantInErrorMessage()
+                .label(unknownImplSnapshot.getProblemDescription())
+                .documentedAt(userManual("validation_problems", "implementation_unknown"))
+                .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(UNKNOWN_IMPLEMENTATION))
+                .details(unknownImplSnapshot.getReasonDescription())
+                .solution(unknownImplSnapshot.getSolutionDescription())
+                .severity(ERROR)
+            );
+            return true;
+        }
+        return false;
+    }
+
+    private boolean validateImplementation(TypeValidationContext workValidationContext, ImplementationSnapshot implementation, String descriptionPrefix, UnitOfWork work) {
+        if (implementation instanceof UnknownImplementationSnapshot) {
+            UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
+            workValidationContext.visitPropertyProblem(problem -> problem
+                .typeIsIrrelevantInErrorMessage()
+                .label(descriptionPrefix + work + " " + unknownImplSnapshot.getProblemDescription())
+                .documentedAt(userManual("validation_problems", "implementation_unknown"))
+                .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(UNKNOWN_IMPLEMENTATION))
+                .details(unknownImplSnapshot.getReasonDescription())
+                .solution(unknownImplSnapshot.getSolutionDescription())
+                .severity(ERROR)
+            );
+            return true;
+        }
+        return false;
     }
 
     private static class ImplementationsBuilder implements UnitOfWork.ImplementationVisitor {

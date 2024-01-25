@@ -17,23 +17,15 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.Problem;
-import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
-import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
-import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
-import org.gradle.internal.snapshot.impl.UnknownImplementationSnapshot;
 import org.gradle.internal.vfs.VirtualFileSystem;
-import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +42,6 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.api.problems.Severity.WARNING;
-import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public class ValidateStep<C extends BeforeExecutionContext, R extends Result> implements Step<C, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ValidateStep.class);
@@ -73,8 +64,6 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
     public R execute(UnitOfWork work, C context) {
         WorkValidationContext validationContext = context.getValidationContext();
         work.validate(validationContext);
-        context.getBeforeExecutionState()
-            .ifPresent(beforeExecutionState -> validateImplementations(work, beforeExecutionState, validationContext));
 
         InternalProblems problemsService = validationContext.getProblemsService();
         InternalProblemReporter reporter = problemsService.getInternalReporter();
@@ -104,65 +93,6 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         }
 
         return delegate.execute(work, new ValidationFinishedContext(context, warnings));
-    }
-
-    private void validateImplementations(UnitOfWork work, BeforeExecutionState beforeExecutionState, WorkValidationContext validationContext) {
-        MutableReference<Class<?>> workClass = MutableReference.empty();
-        work.visitImplementations(new UnitOfWork.ImplementationVisitor() {
-            @Override
-            public void visitImplementation(Class<?> implementation) {
-                workClass.set(GeneratedSubclasses.unpack(implementation));
-            }
-
-            @Override
-            public void visitImplementation(ImplementationSnapshot implementation) {
-            }
-        });
-        // It doesn't matter whether we use cacheable true or false, since none of the warnings depends on the cacheability of the task.
-        Class<?> workType = workClass.get();
-        TypeValidationContext workValidationContext = validationContext.forType(workType, true);
-        validateImplementation(workValidationContext, beforeExecutionState.getImplementation(), "Implementation of ", work);
-        beforeExecutionState.getAdditionalImplementations()
-            .forEach(additionalImplementation -> validateImplementation(workValidationContext, additionalImplementation, "Additional action of ", work));
-        beforeExecutionState.getInputProperties().forEach((propertyName, valueSnapshot) -> {
-            if (valueSnapshot instanceof ImplementationSnapshot) {
-                ImplementationSnapshot implementationSnapshot = (ImplementationSnapshot) valueSnapshot;
-                validateNestedInput(workValidationContext, propertyName, implementationSnapshot);
-            }
-        });
-    }
-
-    private static final String UNKNOWN_IMPLEMENTATION = "UNKNOWN_IMPLEMENTATION";
-
-    private void validateNestedInput(TypeValidationContext workValidationContext, String propertyName, ImplementationSnapshot implementation) {
-        if (implementation instanceof UnknownImplementationSnapshot) {
-            UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
-            workValidationContext.visitPropertyProblem(problem -> problem
-                .forProperty(propertyName)
-                .typeIsIrrelevantInErrorMessage()
-                .label(unknownImplSnapshot.getProblemDescription())
-                .documentedAt(userManual("validation_problems", "implementation_unknown"))
-                .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(UNKNOWN_IMPLEMENTATION))
-                .details(unknownImplSnapshot.getReasonDescription())
-                .solution(unknownImplSnapshot.getSolutionDescription())
-                .severity(ERROR)
-            );
-        }
-    }
-
-    private void validateImplementation(TypeValidationContext workValidationContext, ImplementationSnapshot implementation, String descriptionPrefix, UnitOfWork work) {
-        if (implementation instanceof UnknownImplementationSnapshot) {
-            UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
-            workValidationContext.visitPropertyProblem(problem -> problem
-                .typeIsIrrelevantInErrorMessage()
-                .label(descriptionPrefix + work + " " + unknownImplSnapshot.getProblemDescription())
-                .documentedAt(userManual("validation_problems", "implementation_unknown"))
-                .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(UNKNOWN_IMPLEMENTATION))
-                .details(unknownImplSnapshot.getReasonDescription())
-                .solution(unknownImplSnapshot.getSolutionDescription())
-                .severity(ERROR)
-            );
-        }
     }
 
     protected void throwValidationException(UnitOfWork work, WorkValidationContext validationContext, Collection<? extends Problem> validationErrors) {
