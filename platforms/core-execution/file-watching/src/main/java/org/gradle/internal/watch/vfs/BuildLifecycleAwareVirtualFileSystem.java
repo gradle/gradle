@@ -28,7 +28,7 @@ import java.io.File;
  * Controls the lifecycle and bookkeeping for file system watching.
  */
 @ServiceScope(Scopes.UserHome.class)
-public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem, FileSystemWatchingInformation {
+public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem {
 
     /**
      * Called when the build is started.
@@ -47,6 +47,11 @@ public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem,
      * It is also called for the root directories of included builds, and all other nested builds.
      */
     void registerWatchableHierarchy(File rootDirectoryForWatching);
+
+    /**
+     * Returns if anything is being watched.
+     */
+    boolean isWatchingAnyLocations();
 
     /**
      * Called when the build is finished.
