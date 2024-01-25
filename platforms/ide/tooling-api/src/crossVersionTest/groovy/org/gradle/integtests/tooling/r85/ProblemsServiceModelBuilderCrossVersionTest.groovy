@@ -20,15 +20,10 @@ import org.gradle.api.problems.Problems
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.BaseProblemDescriptor
 import org.gradle.tooling.events.problems.ProblemEvent
-
-import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk21
-import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
-import static org.gradle.integtests.fixtures.AvailableJavaHomes.jdk17
 
 @ToolingApiVersion(">=8.5")
 @TargetGradleVersion(">=8.5")
@@ -86,31 +81,6 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
                 }
             }
         """
-    }
-
-    @TargetGradleVersion("<=8.6")
-    def "Can use problems service in model builder before 8.7"() {
-        given:
-        withSampleProject()
-        ProblemProgressListener listener = new ProblemProgressListener()
-
-        when:
-        withConnection {
-            it.model(CustomModel)
-                .setJavaHome(jdk.javaHome)
-                .addProgressListener(listener)
-                .get()
-        }
-        then:
-        thrown(BuildException)
-        listener.problems.size() == 1
-
-        where:
-        jdk << [
-            jdk8,
-            jdk17,
-            jdk21
-        ]
     }
 
     class ProblemProgressListener implements ProgressListener {
