@@ -89,10 +89,12 @@ class JsonModelWriter(val writer: Writer) {
     fun writeError(exception: DecoratedException) {
         property("error") {
             jsonObject {
-                property("summary") {
-                    writeStructuredMessage(exception.summary)
+                exception.summary?.let {
+                    property("summary") {
+                        writeStructuredMessage(it)
+                    }
+                    comma()
                 }
-                comma()
                 property("parts") {
                     jsonObjectList(exception.parts) { (isInternal, text) ->
                         property(if (isInternal) "internalText" else "text", text)

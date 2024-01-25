@@ -205,64 +205,33 @@ class ConfigurationCacheReport(
     val stateLock = Object()
 
     private
+    val stackTraceExtractor = StackTraceExtractor()
+
+    private
+    val exceptionDecorator = ExceptionDecorator(stackTraceExtractor::stackTraceStringFor)
+
+    private
     fun decorateProblem(problem: PropertyProblem): DecoratedPropertyProblem {
         val exception = problem.exception
         return DecoratedPropertyProblem(
             problem.trace,
-            if (isStacktraceHashes && exception != null) hashedProblemFor(problem, exception).message else problem.message,
-            exception?.let { decorateException(it) },
+            decorateMessage(problem),
+            exception?.let { exceptionDecorator.decorateException(it) },
             problem.documentationSection
         )
     }
 
     private
-    val stackTraceExtractor = StackTraceExtractor()
-
-    private
-    fun stackTraceStringFor(error: Throwable): String =
-        stackTraceExtractor.stackTraceStringFor(error)
-
-    private
-    fun decorateException(exception: Throwable): DecoratedException {
-        val fullText = stackTraceStringFor(exception)
-        val parts = fullText.lines().chunkedBy { line ->
-            isInternalStackTraceLine(line.trim())
+    fun decorateMessage(problem: PropertyProblem): StructuredMessage {
+        if (!isStacktraceHashes || problem.exception == null) {
+            return problem.message
         }
-        return DecoratedException(
-            exception,
-            StructuredMessage.build { text("Exception stacktrace") },
-            parts.map { (isInternal, lines) ->
-                StackTracePart(isInternal, lines.joinToString("\n"))
-            }
-        )
-    }
 
-    private
-    fun isInternalStackTraceLine(s: String): Boolean =
-        // JDK calls
-        s.startsWith("at java.") ||
-            s.startsWith("at jdk.internal.") ||
-            s.startsWith("at com.sun.proxy.") ||
-            // Groovy calls
-            s.startsWith("at groovy.lang.") ||
-            s.startsWith("at org.codehaus.groovy.") ||
-            // Gradle calls
-            s.startsWith("at org.gradle.")
-
-    /**
-     * Splits the list into chunks where each chunk corresponds to the continuous
-     * range of list items corresponding to the same [category][categorize].
-     */
-    private
-    fun <T, C> List<T>.chunkedBy(categorize: (T) -> C): List<Pair<C, List<T>>> {
-        return this.fold(mutableListOf<Pair<C, MutableList<T>>>()) { acc, item ->
-            val category = categorize(item)
-            if (acc.isNotEmpty() && acc.last().first == category) {
-                acc.last().second.add(item)
-            } else {
-                acc.add(category to mutableListOf(item))
-            }
-            acc
+        val exceptionHash = problem.exception.hashWithoutMessages()
+        return StructuredMessage.build {
+            reference("[${exceptionHash.toCompactString()}]")
+            text(" ")
+            message(problem.message)
         }
     }
 
@@ -311,31 +280,23 @@ class ConfigurationCacheReport(
         }
     }
 
+    /**
+     * A heuristic to get the same hash for different instances of an exception
+     * occurring at the same location.
+     */
     private
-    fun hashedProblemFor(problem: PropertyProblem, exception: Throwable): PropertyProblem {
-        val exceptionHash = exception.hashWithoutMessage()
-        val exceptionMarker = "[${exceptionHash.toCompactString()}]"
-        return problem.prependMessageFragments(
-            StructuredMessage.Fragment.Reference(exceptionMarker),
-            StructuredMessage.Fragment.Text(" ")
-        )
-    }
-
-    private
-    fun PropertyProblem.prependMessageFragments(vararg fragments: StructuredMessage.Fragment): PropertyProblem {
-        val newFragments = fragments.toList() + message.fragments
-        return copy(message = message.copy(fragments = newFragments))
-    }
-
-    private
-    fun Throwable.hashWithoutMessage(): HashCode {
-        val exceptionType = this@hashWithoutMessage.javaClass.name
+    fun Throwable.hashWithoutMessages(): HashCode {
+        val e = this@hashWithoutMessages
         return Hashing.newHasher().apply {
-            putString(exceptionType)
-            // Take all stacktrace lines except the first message
-            stackTraceToString().lineSequence()
-                .dropWhile { !it.trim().startsWith("at ") }
+            putString(e.javaClass.name)
+            // Ignore messages and only take stack frames into account
+            stackTraceStringFor(e).lineSequence()
+                .filter { it.isStackFrameLine() }
                 .forEach { putString(it) }
         }.hash()
     }
+
+    private
+    fun stackTraceStringFor(error: Throwable): String =
+        stackTraceExtractor.stackTraceStringFor(error)
 }
