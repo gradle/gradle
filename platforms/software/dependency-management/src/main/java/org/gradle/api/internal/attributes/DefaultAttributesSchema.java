@@ -30,7 +30,10 @@ import org.gradle.internal.component.model.AttributeSelectionUtils;
 import org.gradle.internal.component.model.DefaultAttributeMatcher;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DefaultMultipleCandidateResult;
+import org.gradle.internal.component.resolution.failure.ResolutionFailure2;
+import org.gradle.internal.component.resolution.failure.describer.FailureDescriberRegistry2;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber2;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 
@@ -59,11 +62,13 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     private final List<AttributeDescriber> consumerAttributeDescribers = new ArrayList<>();
     private final Set<Attribute<?>> precedence = new LinkedHashSet<>();
     private final List<ResolutionFailureDescriber<? extends AbstractVariantSelectionException>> resolutionFailureDescribers = new ArrayList<>();
+    private final FailureDescriberRegistry2 failureDescriberRegistry;
 
     public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, DocumentationRegistry documentationRegistry) {
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
         this.documentationRegistry = documentationRegistry;
+        this.failureDescriberRegistry = new FailureDescriberRegistry2(instantiatorFactory, documentationRegistry);
     }
 
     @Override
@@ -178,6 +183,16 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     public void addFailureDescriber(Class<? extends ResolutionFailureDescriber<? extends AbstractVariantSelectionException>> describerClass) {
         ResolutionFailureDescriber<? extends AbstractVariantSelectionException> describer = instantiatorFactory.inject().newInstance(describerClass, documentationRegistry);
         resolutionFailureDescribers.add(describer);
+    }
+
+    @Override
+    public <FAILURE extends ResolutionFailure2> List<ResolutionFailureDescriber2<?, FAILURE>> getFailureDescribers2(FAILURE failureType) {
+        return failureDescriberRegistry.getDescribers(failureType);
+    }
+
+    @Override
+    public void addFailureDescriber2(Class<? extends ResolutionFailureDescriber2<?, ?>> describerClass) {
+        failureDescriberRegistry.registerDescriber(describerClass);
     }
 
     // TODO: Move this out into its own class so it can be unit tested directly.
