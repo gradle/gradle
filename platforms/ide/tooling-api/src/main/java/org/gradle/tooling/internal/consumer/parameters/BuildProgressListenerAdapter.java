@@ -206,7 +206,7 @@ import org.gradle.tooling.internal.protocol.events.InternalTransformDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalWorkItemDescriptor;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetails;
-import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetails2;
+import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetailsVersion2;
 import org.gradle.tooling.internal.protocol.problem.InternalDetails;
 import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
 import org.gradle.tooling.internal.protocol.problem.InternalFileLocation;
@@ -450,7 +450,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private BuildPhaseProgressEvent toBuildPhaseEvent(InternalProgressEvent event, InternalBuildPhaseDescriptor descriptor) {
+    private @Nullable BuildPhaseProgressEvent toBuildPhaseEvent(InternalProgressEvent event, InternalBuildPhaseDescriptor descriptor) {
         if (event instanceof InternalOperationStartedProgressEvent) {
             return buildPhaseStartEvent((InternalOperationStartedProgressEvent) event, descriptor);
         } else if (event instanceof InternalOperationFinishedProgressEvent) {
@@ -488,7 +488,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private TestProgressEvent toTestProgressEvent(InternalTestProgressEvent event) {
+    private @Nullable TestProgressEvent toTestProgressEvent(InternalTestProgressEvent event) {
         if (event instanceof InternalTestStartedProgressEvent) {
             return testStartedEvent((InternalTestStartedProgressEvent) event);
         } else if (event instanceof InternalTestFinishedProgressEvent) {
@@ -498,7 +498,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private TaskProgressEvent toTaskProgressEvent(InternalProgressEvent event, InternalTaskDescriptor descriptor) {
+    private @Nullable TaskProgressEvent toTaskProgressEvent(InternalProgressEvent event, InternalTaskDescriptor descriptor) {
         if (event instanceof InternalOperationStartedProgressEvent) {
             return taskStartedEvent((InternalOperationStartedProgressEvent) event, descriptor);
         } else if (event instanceof InternalOperationFinishedProgressEvent) {
@@ -508,7 +508,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private WorkItemProgressEvent toWorkItemProgressEvent(InternalProgressEvent event, InternalWorkItemDescriptor descriptor) {
+    private @Nullable WorkItemProgressEvent toWorkItemProgressEvent(InternalProgressEvent event, InternalWorkItemDescriptor descriptor) {
         if (event instanceof InternalOperationStartedProgressEvent) {
             return workItemStartedEvent((InternalOperationStartedProgressEvent) event, descriptor);
         } else if (event instanceof InternalOperationFinishedProgressEvent) {
@@ -518,7 +518,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private ProjectConfigurationProgressEvent toProjectConfigurationProgressEvent(InternalProgressEvent event, InternalProjectConfigurationDescriptor descriptor) {
+    private @Nullable ProjectConfigurationProgressEvent toProjectConfigurationProgressEvent(InternalProgressEvent event, InternalProjectConfigurationDescriptor descriptor) {
         if (event instanceof InternalOperationStartedProgressEvent) {
             return projectConfigurationStartedEvent((InternalOperationStartedProgressEvent) event, descriptor);
         } else if (event instanceof InternalOperationFinishedProgressEvent) {
@@ -528,7 +528,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private TransformProgressEvent toTransformProgressEvent(InternalProgressEvent event, InternalTransformDescriptor descriptor) {
+    private @Nullable TransformProgressEvent toTransformProgressEvent(InternalProgressEvent event, InternalTransformDescriptor descriptor) {
         if (event instanceof InternalOperationStartedProgressEvent) {
             return transformStartedEvent((InternalOperationStartedProgressEvent) event, descriptor);
         } else if (event instanceof InternalOperationFinishedProgressEvent) {
@@ -538,7 +538,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private FileDownloadProgressEvent toFileDownloadProgressEvent(InternalProgressEvent event, InternalFileDownloadDescriptor descriptor) {
+    private @Nullable FileDownloadProgressEvent toFileDownloadProgressEvent(InternalProgressEvent event, InternalFileDownloadDescriptor descriptor) {
         if (event instanceof InternalOperationStartedProgressEvent) {
             return fileDownloadStartEvent((InternalOperationStartedProgressEvent) event, descriptor);
         } else if (event instanceof InternalOperationFinishedProgressEvent) {
@@ -548,7 +548,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private TestOutputEvent toTestOutputEvent(InternalProgressEvent event, InternalTestOutputDescriptor descriptor) {
+    private @Nullable TestOutputEvent toTestOutputEvent(InternalProgressEvent event, InternalTestOutputDescriptor descriptor) {
         if (event instanceof InternalTestOutputEvent) {
             return transformTestOutput((InternalTestOutputEvent) event, descriptor);
         } else {
@@ -561,7 +561,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return new DefaultTestOutputEvent(event.getEventTime(), clientDescriptor);
     }
 
-    private ProblemEvent toProblemEvent(InternalProgressEvent progressEvent, InternalProblemDescriptor descriptor) {
+    private @Nullable ProblemEvent toProblemEvent(InternalProgressEvent progressEvent, InternalProblemDescriptor descriptor) {
         if (progressEvent instanceof InternalProblemEvent) {
             BaseProblemDescriptor clientDescriptor = addDescriptor(progressEvent.getDescriptor(), toProblemDescriptor((InternalProblemEvent) progressEvent, descriptor));
             return new DefaultProblemEvent(progressEvent.getEventTime(), clientDescriptor);
@@ -569,7 +569,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return null;
     }
 
-    private ProgressEvent toGenericProgressEvent(InternalProgressEvent event) {
+    private @Nullable ProgressEvent toGenericProgressEvent(InternalProgressEvent event) {
         if (event instanceof InternalOperationStartedProgressEvent) {
             return genericStartedEvent((InternalOperationStartedProgressEvent) event);
         } else if (event instanceof InternalOperationFinishedProgressEvent) {
@@ -795,11 +795,11 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private static @Nullable FailureContainer toExceptionContainer(@Nullable InternalBasicProblemDetails exception) {
-        if (!(exception instanceof InternalBasicProblemDetails2)) {
+        if (!(exception instanceof InternalBasicProblemDetailsVersion2)) {
             return null;
         }
-        InternalFailure failure = ((InternalBasicProblemDetails2) exception).getFailure();
-        if(failure == null){
+        InternalFailure failure = ((InternalBasicProblemDetailsVersion2) exception).getFailure();
+        if (failure == null) {
             return null;
         }
         return new DefaultFailureContainer(toFailure(failure));
@@ -856,7 +856,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return result;
     }
 
-    private static Details toProblemDetails(InternalDetails details) {
+    private static Details toProblemDetails(@Nullable InternalDetails details) {
         if (details != null) {
             return new DefaultDetails(details.getDetails());
         }
@@ -879,7 +879,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return new DefaultOperationDescriptor(descriptor, parent);
     }
 
-    private synchronized OperationDescriptor getParentDescriptor(Object parentId) {
+    private synchronized @Nullable OperationDescriptor getParentDescriptor(@Nullable Object parentId) {
         if (parentId == null) {
             return null;
         } else {
@@ -891,7 +891,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private FileDownloadResult toFileDownloadResult(InternalOperationResult result) {
+    private @Nullable FileDownloadResult toFileDownloadResult(InternalOperationResult result) {
         InternalFileDownloadResult fileDownloadResult = (InternalFileDownloadResult) result;
         if (result instanceof InternalNotFoundFileDownloadResult) {
             return new NotFoundFileDownloadSuccessResult(result.getStartTime(), result.getEndTime());
@@ -905,7 +905,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return null;
     }
 
-    private TestOperationResult toTestResult(InternalTestResult result) {
+    private @Nullable TestOperationResult toTestResult(InternalTestResult result) {
         if (result instanceof InternalTestSuccessResult) {
             return new DefaultTestSuccessResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalTestSkippedResult) {
@@ -917,7 +917,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    public static TaskOperationResult toTaskResult(InternalTaskResult result) {
+    public static @Nullable TaskOperationResult toTaskResult(InternalTaskResult result) {
         if (result instanceof InternalTaskSuccessResult) {
             InternalTaskSuccessResult successResult = (InternalTaskSuccessResult) result;
             if (result instanceof InternalJavaCompileTaskOperationResult) {
@@ -949,7 +949,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return TaskExecutionDetails.unsupported();
     }
 
-    private static WorkItemOperationResult toWorkItemResult(InternalOperationResult result) {
+    private static @Nullable WorkItemOperationResult toWorkItemResult(InternalOperationResult result) {
         if (result instanceof InternalSuccessResult) {
             return new DefaultWorkItemSuccessResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalFailureResult) {
@@ -959,7 +959,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private static ProjectConfigurationOperationResult toProjectConfigurationResult(InternalProjectConfigurationResult result) {
+    private static @Nullable ProjectConfigurationOperationResult toProjectConfigurationResult(InternalProjectConfigurationResult result) {
         if (result instanceof InternalSuccessResult) {
             return new DefaultProjectConfigurationSuccessResult(result.getStartTime(), result.getEndTime(), toPluginApplicationResults(result.getPluginApplicationResults()));
         } else if (result instanceof InternalFailureResult) {
@@ -980,7 +980,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return results;
     }
 
-    private static PluginIdentifier toPluginIdentifier(InternalPluginIdentifier pluginIdentifier) {
+    private static @Nullable PluginIdentifier toPluginIdentifier(InternalPluginIdentifier pluginIdentifier) {
         if (pluginIdentifier instanceof InternalBinaryPluginIdentifier) {
             InternalBinaryPluginIdentifier binaryPlugin = (InternalBinaryPluginIdentifier) pluginIdentifier;
             return new DefaultBinaryPluginIdentifier(binaryPlugin.getDisplayName(), binaryPlugin.getClassName(), binaryPlugin.getPluginId());
@@ -992,7 +992,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private static TransformOperationResult toTransformResult(InternalOperationResult result) {
+    private static @Nullable TransformOperationResult toTransformResult(InternalOperationResult result) {
         if (result instanceof InternalSuccessResult) {
             return new DefaultTransformSuccessResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalFailureResult) {
@@ -1002,7 +1002,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private static OperationResult toResult(InternalOperationResult result) {
+    private static @Nullable OperationResult toResult(InternalOperationResult result) {
         if (result instanceof InternalSuccessResult) {
             return new DefaultOperationSuccessResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalFailureResult) {
@@ -1064,7 +1064,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             toFailures(origFailure.getCauses()));
     }
 
-    private static List<AnnotationProcessorResult> toAnnotationProcessorResults(@Nullable List<InternalAnnotationProcessorResult> protocolResults) {
+    private static @Nullable List<AnnotationProcessorResult> toAnnotationProcessorResults(@Nullable List<InternalAnnotationProcessorResult> protocolResults) {
         if (protocolResults == null) {
             return null;
         }

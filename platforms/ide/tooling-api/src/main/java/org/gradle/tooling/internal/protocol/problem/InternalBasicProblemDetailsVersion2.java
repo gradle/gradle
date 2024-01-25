@@ -20,7 +20,7 @@ import org.gradle.tooling.internal.protocol.InternalFailure;
 
 import javax.annotation.Nullable;
 
-public interface InternalBasicProblemDetails2 extends InternalBasicProblemDetails {
+public interface InternalBasicProblemDetailsVersion2 extends InternalBasicProblemDetails {
 
     @Nullable
     InternalFailure getFailure();
