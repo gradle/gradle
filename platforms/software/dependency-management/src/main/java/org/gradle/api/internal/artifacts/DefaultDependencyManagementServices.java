@@ -125,6 +125,7 @@ import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
+import org.gradle.internal.component.resolution.failure.describer.FailureDescriberRegistry2;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
@@ -518,8 +519,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultGlobalDependencyResolutionRules(componentMetadataProcessorFactory, moduleMetadataProcessor, rules);
         }
 
-        ResolutionFailureHandler createResolutionFailureProcessor(DocumentationRegistry documentationRegistry) {
-            return new ResolutionFailureHandler(documentationRegistry);
+        ResolutionFailureHandler createResolutionFailureProcessor(InstantiatorFactory instantiatorFactory, DocumentationRegistry documentationRegistry) {
+            FailureDescriberRegistry2 failureDescriberRegistry = new FailureDescriberRegistry2(instantiatorFactory, documentationRegistry);
+            return new ResolutionFailureHandler(failureDescriberRegistry, documentationRegistry);
         }
 
         GraphVariantSelector createGraphVariantSelector(ResolutionFailureHandler resolutionFailureHandler) {

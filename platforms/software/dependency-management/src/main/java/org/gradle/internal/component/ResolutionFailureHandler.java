@@ -46,17 +46,22 @@ import org.gradle.internal.component.model.GraphSelectionCandidates;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.gradle.internal.component.resolution.failure.AmbiguousResolutionFailure2;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.ResolutionFailure;
 import org.gradle.internal.component.resolution.failure.ResolutionFailure.ResolutionFailureType;
+import org.gradle.internal.component.resolution.failure.ResolutionFailure2;
 import org.gradle.internal.component.resolution.failure.describer.AmbiguousGraphVariantsFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.AmbiguousGraphVariantsFailureDescriber2;
 import org.gradle.internal.component.resolution.failure.describer.CapabilitiesDescriber;
+import org.gradle.internal.component.resolution.failure.describer.FailureDescriberRegistry2;
 import org.gradle.internal.component.resolution.failure.describer.IncompatibleArtifactVariantsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.IncompatibleSelectedConfigurationFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.NoMatchingArtifactVariantFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.NonVariantAwareNoMatchingGraphVariantFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber2;
 import org.gradle.internal.component.resolution.failure.describer.VariantAwareNoMatchingGraphVariantFailureDescriber;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -97,9 +102,12 @@ public class ResolutionFailureHandler {
     private static final String AMBIGUOUS_TRANSFORMATION_SECTION = "sub:transform-ambiguity";
 
     private final List<ResolutionFailureDescriber<?>> defaultFailureDescribers;
+    private final FailureDescriberRegistry2 defaultFailureDescribers2;
+
     private final DocumentationRegistry documentationRegistry;
 
-    public ResolutionFailureHandler(DocumentationRegistry documentationRegistry) {
+    public ResolutionFailureHandler(FailureDescriberRegistry2 failureDescriberRegistry, DocumentationRegistry documentationRegistry) {
+        this.defaultFailureDescribers2 = failureDescriberRegistry;
         this.documentationRegistry = documentationRegistry;
         this.defaultFailureDescribers = Lists.newArrayList(
             new VariantAwareNoMatchingGraphVariantFailureDescriber(documentationRegistry),
@@ -110,6 +118,7 @@ public class ResolutionFailureHandler {
             new IncompatibleSelectedConfigurationFailureDescriber(documentationRegistry),
             new NoMatchingArtifactVariantFailureDescriber(documentationRegistry)
         );
+        defaultFailureDescribers2.registerDescriber(AmbiguousGraphVariantsFailureDescriber2.class);
     }
 
     private void suggestSpecificDocumentation(AbstractVariantSelectionException exception, String prefix, String section) {
@@ -120,6 +129,29 @@ public class ResolutionFailureHandler {
         exception.addResolution(DEFAULT_MESSAGE_PREFIX + documentationRegistry.getDocumentationFor("variant_attributes", "sec:abm_algorithm") + ".");
     }
 
+    private AbstractVariantSelectionException describeFailure(AttributesSchemaInternal schema, ResolutionFailure failure) {
+        List<ResolutionFailureDescriber<?>> describers = new ArrayList<>();
+        describers.addAll(schema.getFailureDescribers());
+        describers.addAll(defaultFailureDescribers);
+
+        return describers.stream()
+            .filter(describer -> describer.canDescribeFailure(failure))
+            .findFirst()
+            .map(describer -> describer.describeFailure(failure))
+            .orElseThrow(() -> new IllegalStateException("No describer found for failure: " + failure)); // TODO: a default describer at the end of the list that catches everything instead?
+    }
+
+    private <FAILURE extends ResolutionFailure2> AbstractVariantSelectionException describeFailure2(AttributesSchemaInternal schema, FAILURE failure) {
+        List<ResolutionFailureDescriber2<?, FAILURE>> describers = new ArrayList<>();
+        describers.addAll(schema.getFailureDescribers2(failure));
+        describers.addAll(defaultFailureDescribers2.getDescribers(failure));
+
+        return describers.stream()
+            .filter(describer -> describer.canDescribeFailure(failure))
+            .findFirst()
+            .map(describer -> describer.describeFailure(failure))
+            .orElseThrow(() -> new IllegalStateException("No describer found for failure: " + failure)); // TODO: a default describer at the end of the list that catches everything instead?
+    }
 
     // region Artifact Variant Selection Failures
     public AbstractVariantSelectionException noMatchingArtifactVariantFailure(AttributesSchemaInternal schema, AttributeMatcher matcher, String variantSetName, ImmutableAttributes requestedAttributes, List<? extends ResolvedVariant> candidateVariants) {
@@ -241,8 +273,8 @@ public class ResolutionFailureHandler {
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessCandidates(extractVariants(matchingVariants));
-        ResolutionFailure failure = new ResolutionFailure(schema, ResolutionFailureType.AMBIGUOUS_VARIANTS, targetComponent, targetComponent.getId().getDisplayName(), requestedAttributes, assessedCandidates, variantAware);
-        return describeFailure(schema, failure);
+        AmbiguousResolutionFailure2 failure = new AmbiguousResolutionFailure2(schema, targetComponent, targetComponent.getId().getDisplayName(), requestedAttributes, assessedCandidates, variantAware);
+        return describeFailure2(schema, failure);
     }
 
     // TODO: rename to Incompatible Selected Configuration?
@@ -270,18 +302,6 @@ public class ResolutionFailureHandler {
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessCandidates(extractVariants(candidates));
         ResolutionFailure failure = new ResolutionFailure(schema, ResolutionFailureType.NO_MATCHING_VARIANTS, targetComponent, targetComponent.getId().getDisplayName(), requestedAttributes, assessedCandidates, candidates.isUseVariants());
         return describeFailure(schema, failure);
-    }
-
-    private AbstractVariantSelectionException describeFailure(AttributesSchemaInternal schema, ResolutionFailure failure) {
-        List<ResolutionFailureDescriber<?>> describers = new ArrayList<>();
-        describers.addAll(schema.getFailureDescribers());
-        describers.addAll(defaultFailureDescribers);
-
-        return describers.stream()
-            .filter(describer -> describer.canDescribeFailure(failure))
-            .findFirst()
-            .map(describer -> describer.describeFailure(failure))
-            .orElseThrow(() -> new IllegalStateException("No describer found for failure: " + failure)); // TODO: a default describer at the end of the list that catches everything instead?
     }
 
     public NoMatchingCapabilitiesException noMatchingCapabilitiesFailure(@SuppressWarnings("unused") AttributesSchemaInternal schema, @SuppressWarnings("unused") AttributeMatcher matcher, ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> requestedCapabilities, List<? extends VariantGraphResolveState> candidates) {

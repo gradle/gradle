@@ -103,6 +103,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantResolveMetadata;
+import org.gradle.internal.component.resolution.failure.describer.FailureDescriberRegistry2;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
@@ -136,6 +137,7 @@ import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.management.DefaultDependencyResolutionManagement;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
@@ -376,8 +378,9 @@ class DependencyManagementBuildScopeServices {
         };
     }
 
-    ResolutionFailureHandler createResolutionFailureProcessor(DocumentationRegistry documentationRegistry) {
-        return new ResolutionFailureHandler(documentationRegistry);
+    ResolutionFailureHandler createResolutionFailureProcessor(InstantiatorFactory instantiatorFactory, DocumentationRegistry documentationRegistry) {
+        FailureDescriberRegistry2 failureDescriberRegistry = new FailureDescriberRegistry2(instantiatorFactory, documentationRegistry);
+        return new ResolutionFailureHandler(failureDescriberRegistry, documentationRegistry);
     }
 
     GraphVariantSelector createGraphVariantSelector(ResolutionFailureHandler resolutionFailureHandler) {
