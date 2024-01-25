@@ -18,52 +18,31 @@ package org.gradle.ide.sync
 
 import org.gradle.ide.sync.fixtures.IsolatedProjectsIdeSyncFixture
 import org.hamcrest.core.StringContains
-import spock.lang.Ignore
 
-@Ignore("https://github.com/gradle/gradle-private/issues/4167")
-class IsolatedProjectsJavaProjectSyncTest extends AbstractSyncSmokeIdeTest {
+
+class IsolatedProjectsJavaProjectSyncTest extends AbstractIdeaSyncTest {
 
     private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(testDirectory)
-    /**
-     * To run this test locally you should have Android Studio installed in /Applications/Android Studio.*.app folder,
-     * or you should set "studioHome" system property with the Android Studio installation path,
-     * or you should enable automatic download of Android Studio with the -PautoDownloadAndroidStudio=true.
-     *
-     * Additionally, you should also have ANDROID_HOME env. variable set with Android SDK (normally on MacOS it's installed in "$HOME/Library/Android/sdk").
-     *
-     * To enable headless mode run with -PrunAndroidStudioInHeadlessMode=true.
-     */
-    def "Android Studio sync has known IP violations for vanilla Java project"() {
+
+    def "IDEA sync has known IP violations for vanilla Java project"() {
         given:
         simpleJavaProject()
 
         when:
-        androidStudioSync()
+        ideaSync("2024.1")
 
         then:
         fixture.assertHtmlReportHasProblems {
-            totalProblemsCount = 76
-            withLocatedProblem(new StringContains("sync.studio.tooling"), "Project ':' cannot access 'Project.apply' functionality on subprojects via 'allprojects'")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.gradle' functionality on subprojects via 'allprojects'")
+            totalProblemsCount = 10
+            withLocatedProblem(new StringContains("ijIdeaPluginConfigurator"), "Project ':' cannot access 'Project.plugins' functionality on subprojects via 'allprojects'")
+            withLocatedProblem(new StringContains("ijIdeaPluginConfigurator"), "Project ':' cannot access 'disableSources' extension on subprojects via 'allprojects'")
             withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.extensions' functionality on subprojects via 'allprojects'")
             withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.tasks' functionality on subprojects via 'allprojects'")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.plugins' functionality on child projects")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.version' functionality on child projects")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.description' functionality on child projects")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.buildDir' functionality on child projects")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.group' functionality on child projects")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.hasProperty' functionality on child projects")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'testing' extension on child projects")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.gradle' functionality on child projects")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.extensions' functionality on child projects")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.tasks' functionality on child projects")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.findProperty' functionality on child projects")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.configurations' functionality on child projects")
         }
     }
 
     private void simpleJavaProject() {
-        settingsFile << """
+        file("settings.gradle") << """
             rootProject.name = 'project-under-test'
             include ':app'
             include ':lib'
