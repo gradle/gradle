@@ -24,7 +24,10 @@ import spock.lang.Issue
 @LocalOnly
 @Requires(UnitTestPreconditions.Symlinks)
 class SymlinkFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
-    private static final String UNABLE_TO_WATCH_MESSAGE = "Unable to watch the file system for changes."
+    def setup() {
+        // The daemon manages the cleanup of symlinks in the VFS between builds
+        executer.requireDaemon()
+    }
 
     @Issue("https://github.com/gradle/gradle/issues/11851")
     def "gracefully handle when declaring the same path as an input via symlinks"() {
