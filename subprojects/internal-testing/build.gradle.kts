@@ -6,7 +6,7 @@ description = "Collection of test fixtures for both unit tests and integration t
 
 sourceSets {
     main {
-        // Mixed Java and Groovy code causes Error Prone to trip up
+        // Incremental Groovy joint-compilation doesn't work with the Error Prone annotation processor
         errorprone.enabled = false
     }
 }
