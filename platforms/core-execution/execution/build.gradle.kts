@@ -4,6 +4,22 @@ plugins {
 
 description = "Execution engine that takes a unit of work and makes it happen"
 
+errorprone {
+    disabledChecks.addAll(
+        "AnnotateFormatMethod", // 1 occurrences
+        "BadImport", // 2 occurrences
+        "Finally", // 2 occurrences
+        "ReferenceEquality", // 1 occurrences
+        "SameNameButDifferent", // 5 occurrences
+        "StringCaseLocaleUsage", // 8 occurrences
+        "SuperCallToObjectMethod", // 2 occurrences
+        "UndefinedEquals", // 1 occurrences
+        "UnusedMethod", // 1 occurrences
+        "UnusedTypeParameter", // 1 occurrences
+        "UnusedVariable", // 1 occurrences
+    )
+}
+
 dependencies {
     api(libs.guava)
     api(libs.jsr305)

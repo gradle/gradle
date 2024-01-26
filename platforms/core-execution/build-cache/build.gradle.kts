@@ -5,6 +5,12 @@ plugins {
 
 description = "Implementation of build cache controller and factories"
 
+errorprone {
+    disabledChecks.addAll(
+        "StringCaseLocaleUsage", // 1 occurrences
+    )
+}
+
 dependencies {
     api(project(":base-annotations"))
     api(project(":base-services"))

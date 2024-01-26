@@ -7,6 +7,7 @@ description = "Configuration input discovery code"
 errorprone {
     disabledChecks.addAll(
         "HashtableContains",
+        "UnsynchronizedOverridesSynchronized", // 29 occurrences
     )
 }
 
