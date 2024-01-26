@@ -61,7 +61,9 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
         and:
         def pathToClass = "com/google/android/apps/santatracker/tracker/ui/BottomSheetBehavior"
         def fileToChange = checkoutDir.file("tracker/src/main/java/${pathToClass}.java")
-        def compiledClassFile = checkoutDir.file("tracker/build/intermediates/javac/debug/classes/${pathToClass}.class")
+        def compiledClassFile = VersionNumber.parse(agpVersion).baseVersion >= VersionNumber.parse('8.3.0')
+            ? checkoutDir.file("tracker/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/${pathToClass}.class")
+            : checkoutDir.file("tracker/build/intermediates/javac/debug/classes/${pathToClass}.class")
 
         when:
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)

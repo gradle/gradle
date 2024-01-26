@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[directory_layout]]
-= Gradle Directories
+= Gradle-managed Directories
 
 Gradle uses two main directories to perform and manage its work: the <<#dir:gradle_user_home>> and the <<#dir:project_root>>.
 

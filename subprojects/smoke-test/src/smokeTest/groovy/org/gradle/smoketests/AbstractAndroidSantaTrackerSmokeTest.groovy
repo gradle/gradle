@@ -99,11 +99,8 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 if (agpVersionNumber >= VersionNumber.parse("7.4")) {
                     // TODO - this is here because AGP > 7.3 reads build/generated/source/kapt/debug at configuration time
                     expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
-                    // Not sure why this doesn't happen in 8.1.4. The warning prints without CC.
-                    if (agpVersionNumber < VersionNumber.parse("8.1.4")) {
-                        expectClientModuleDeprecationWarning(agpVersion)
-                    }
                 }
+                maybeExpectClientModuleDeprecationWarning(agpVersion)
             }
         }.build()
     }
@@ -145,11 +142,8 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 if (agpVersionNumber >= VersionNumber.parse("7.4")) {
                     // TODO - this is here because AGP > 7.3 reads build/generated/source/kapt/debug at configuration time
                     expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
-                    // Not sure why this doesn't happen in 8.1.4.
-                    if ((agpVersionNumber < VersionNumber.parse("8.1.4"))) {
-                        expectClientModuleDeprecationWarning(agpVersion)
-                    }
                 }
+                maybeExpectClientModuleDeprecationWarning(agpVersion)
             }.build()
     }
 

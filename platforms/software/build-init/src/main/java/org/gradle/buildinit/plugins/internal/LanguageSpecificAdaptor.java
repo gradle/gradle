@@ -86,13 +86,13 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
     }
 
     @Override
-    public Set<BuildInitTestFramework> getTestFrameworks() {
-        return descriptor.getTestFrameworks();
+    public Set<BuildInitTestFramework> getTestFrameworks(ModularizationOption modularizationOption) {
+        return descriptor.getTestFrameworks(modularizationOption);
     }
 
     @Override
-    public BuildInitTestFramework getDefaultTestFramework() {
-        return descriptor.getDefaultTestFramework();
+    public BuildInitTestFramework getDefaultTestFramework(ModularizationOption modularizationOption) {
+        return descriptor.getDefaultTestFramework(modularizationOption);
     }
 
     @Override
@@ -146,13 +146,7 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
         BuildScriptBuilder builder = scriptBuilderFactory.scriptForNewProjectsWithoutVersionCatalog(settings.getDsl(), buildContentGenerationContext, pluginsBuildLocation(settings) + "/settings", settings.isUseIncubatingAPIs());
         builder.withComments(settings.isWithComments() ? BuildInitComments.ON : BuildInitComments.OFF);
         builder.fileComment("This settings file is used to specify which projects to include in your build-logic build.");
-        String rootProjectName;
-        if (settings.isUseIncubatingAPIs()) {
-            rootProjectName = settings.getProjectName() + "-build-logic";
-        } else {
-            rootProjectName = "buildSrc";
-        }
-        builder.propertyAssignment(null, "rootProject.name", rootProjectName);
+        builder.propertyAssignment(null, "rootProject.name", settings.isUseIncubatingAPIs() ? "build-logic" : "buildSrc");
         builder.useVersionCatalogFromOuterBuild("Reuse version catalog from the main build.");
         return builder;
     }

@@ -16,7 +16,6 @@
 
 package org.gradle.initialization.layout;
 
-import org.gradle.internal.time.TimestampSuppliers;
 import org.gradle.cache.CleanupFrequency;
 import org.gradle.cache.internal.DefaultCleanupProgressMonitor;
 import org.gradle.cache.internal.VersionSpecificCacheCleanupAction;
@@ -26,22 +25,17 @@ import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.internal.time.TimestampSuppliers;
 
 import java.io.File;
-import java.io.IOException;
 
 @ServiceScope(Scopes.BuildSession.class)
 public class ProjectCacheDir implements Stoppable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ProjectCacheDir.class);
-
     private static final int MAX_UNUSED_DAYS_FOR_RELEASES_AND_SNAPSHOTS = 7;
 
     private final File dir;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final Deleter deleter;
-    private boolean deleteOnStop = false;
 
     public ProjectCacheDir(File dir, ProgressLoggerFactory progressLoggerFactory, Deleter deleter) {
         this.dir = dir;
@@ -53,20 +47,8 @@ public class ProjectCacheDir implements Stoppable {
         return dir;
     }
 
-    public void delete() {
-        deleteOnStop = true;
-    }
-
     @Override
     public void stop() {
-        if (deleteOnStop) {
-            try {
-                deleter.deleteRecursively(dir);
-            } catch (IOException e) {
-                LOGGER.debug("Failed to delete unused project cache dir " + dir.getAbsolutePath(), e);
-            }
-            return;
-        }
         VersionSpecificCacheCleanupAction cleanupAction = new VersionSpecificCacheCleanupAction(
             dir,
             TimestampSuppliers.daysAgo(MAX_UNUSED_DAYS_FOR_RELEASES_AND_SNAPSHOTS),

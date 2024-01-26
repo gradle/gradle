@@ -15,6 +15,7 @@ jobs:
       - uses: actions/stale@v9
         with:
           operations-per-run: 50
+          remove-stale-when-updated: false
 
           only-issue-labels: ':wave: team-triage'
           days-before-issue-stale: 14
@@ -23,6 +24,7 @@ jobs:
           days-before-issue-close: -1
 
           only-pr-labels: 'from:contributor'
+          exempt-all-pr-milestones: true
           days-before-pr-stale: 14
           stale-pr-label: to-triage
           stale-pr-message: ""

@@ -17,6 +17,10 @@
 package org.gradle.internal.scripts;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.internal.classpath.transforms.ClasspathElementTransform;
+import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
+import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
+import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
@@ -28,42 +32,47 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nullable;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.File;
 import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
 
 /**
- * A base class that represents a work for compilation for Kotlin and Groovy scripts.
+ * A base class that represents a work for compilation for Kotlin and Groovy build scripts.
+ * This work unit first compiles the build script to a directory, and then instruments the directory for configuration cache and returns instrumented output.
  */
-public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWork {
+public abstract class BuildScriptCompilationAndInstrumentation implements ImmutableUnitOfWork {
 
     private final ImmutableWorkspaceProvider workspaceProvider;
-    private final FileCollectionFactory fileCollectionFactory;
     private final InputFingerprinter inputFingerprinter;
+    private final ClasspathElementTransformFactoryForLegacy transformFactory;
+    protected final FileCollectionFactory fileCollectionFactory;
 
-    public BuildScriptCompileUnitOfWork(
+    public BuildScriptCompilationAndInstrumentation(
         ImmutableWorkspaceProvider workspaceProvider,
         FileCollectionFactory fileCollectionFactory,
-        InputFingerprinter inputFingerprinter
+        InputFingerprinter inputFingerprinter,
+        ClasspathElementTransformFactoryForLegacy transformFactory
     ) {
         this.workspaceProvider = workspaceProvider;
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
+        this.transformFactory = transformFactory;
     }
 
     @Override
     public abstract void visitIdentityInputs(InputVisitor visitor);
 
-    @Override
-    public abstract String getDisplayName();
+    /**
+     * A compile operation. It should return a File where classes are compiled to.
+     */
+    protected abstract File compile(File workspace);
 
-    public abstract void compileTo(File classesDir);
-
-    @Override
-    public ImmutableWorkspaceProvider getWorkspaceProvider() {
-        return workspaceProvider;
-    }
+    /**
+     * Provides a File where instrumented jar will be written to.
+     */
+    protected abstract File instrumentedJar(File workspace);
 
     @Override
     public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
@@ -74,9 +83,20 @@ public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWor
     }
 
     @Override
+    @OverridingMethodsMustInvokeSuper
+    public void visitOutputs(File workspace, OutputVisitor visitor) {
+        File instrumentedJar = instrumentedJar(workspace);
+        OutputFileValueSupplier instrumentedJarValue = OutputFileValueSupplier.fromStatic(instrumentedJar, fileCollectionFactory.fixed(instrumentedJar));
+        visitor.visitOutputProperty("instrumentedJar", TreeType.FILE, instrumentedJarValue);
+    }
+
+    @Override
     public WorkOutput execute(ExecutionRequest executionRequest) {
         File workspace = executionRequest.getWorkspace();
-        compileTo(classesDir(workspace));
+        File compileOutput = compile(workspace);
+        // We should instrument output of classes directory to the classes directory instead of a jar,
+        // but currently instrumentation classloader doesn't support that yet.
+        instrument(compileOutput, instrumentedJar(workspace));
         return new UnitOfWork.WorkOutput() {
             @Override
             public WorkResult getDidWork() {
@@ -91,10 +111,15 @@ public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWor
         };
     }
 
+    private void instrument(File sourceDir, File destination) {
+        ClasspathElementTransform transform = transformFactory.createTransformer(sourceDir, new InstrumentingClassTransform(), InstrumentingTypeRegistry.EMPTY);
+        transform.transform(destination);
+    }
+
     @Nullable
     @Override
     public Object loadAlreadyProducedOutput(File workspace) {
-        return classesDir(workspace);
+        return instrumentedJar(workspace);
     }
 
     @Override
@@ -103,13 +128,10 @@ public abstract class BuildScriptCompileUnitOfWork implements ImmutableUnitOfWor
     }
 
     @Override
-    public void visitOutputs(File workspace, OutputVisitor visitor) {
-        File classesDir = classesDir(workspace);
-        OutputFileValueSupplier outputValueSupplier = OutputFileValueSupplier.fromStatic(classesDir, fileCollectionFactory.fixed(classesDir));
-        visitor.visitOutputProperty("classesDir", TreeType.DIRECTORY, outputValueSupplier);
+    public ImmutableWorkspaceProvider getWorkspaceProvider() {
+        return workspaceProvider;
     }
 
-    private static File classesDir(File workspace) {
-        return new File(workspace, "classes");
-    }
+    @Override
+    public abstract String getDisplayName();
 }

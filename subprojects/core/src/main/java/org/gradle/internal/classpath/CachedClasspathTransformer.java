@@ -40,7 +40,7 @@ public interface CachedClasspathTransformer {
     /**
      * Transforms a classpath to a classpath with the given transformations applied.
      */
-    ClassPath transform(ClassPath classPath, StandardTransform transform, ClassTransform additional);
+    ClassPath transform(ClassPath classPath, ClassTransform additional);
 
     /**
      * Transform a collection of urls to a new collection where the file urls are cached jars

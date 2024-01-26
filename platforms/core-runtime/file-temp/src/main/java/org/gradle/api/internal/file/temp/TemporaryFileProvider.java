@@ -16,13 +16,13 @@
 package org.gradle.api.internal.file.temp;
 
 import org.gradle.internal.Factory;
-import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.io.File;
 
-@ServiceScope(Scope.Global.class)
+@ServiceScope(Scopes.Project.class)
 public interface TemporaryFileProvider {
     /**
      * Allocates a new temporary file with the exact specified path,

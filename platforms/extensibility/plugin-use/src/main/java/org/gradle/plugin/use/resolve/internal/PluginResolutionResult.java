@@ -32,24 +32,18 @@ import java.util.List;
 public class PluginResolutionResult {
 
     private final PluginResolution found;
-    private final boolean alreadyApplied;
     private final ImmutableList<NotFound> notFoundList;
 
-    public PluginResolutionResult(
-        @Nullable PluginResolution found,
-        boolean alreadyApplied,
-        ImmutableList<NotFound> notFoundList
-    ) {
+    public PluginResolutionResult(@Nullable PluginResolution found, ImmutableList<NotFound> notFoundList) {
         this.found = found;
         this.notFoundList = notFoundList;
-        this.alreadyApplied = alreadyApplied;
     }
 
     /**
      * Record that the plugin was not found in some source of plugins.
      */
     public static PluginResolutionResult notFound() {
-        return new PluginResolutionResult(null, false, ImmutableList.of());
+        return new PluginResolutionResult(null, ImmutableList.of());
     }
 
     /**
@@ -59,7 +53,7 @@ public class PluginResolutionResult {
      * @param notFoundMessage message on why the plugin couldn't be found (e.g. it might be available by a different version)
      */
     public static PluginResolutionResult notFound(String sourceDescription, String notFoundMessage) {
-        return new PluginResolutionResult(null, false, ImmutableList.of(new NotFound(sourceDescription, notFoundMessage, null)));
+        return new PluginResolutionResult(null, ImmutableList.of(new NotFound(sourceDescription, notFoundMessage, null)));
     }
 
     /**
@@ -70,13 +64,13 @@ public class PluginResolutionResult {
      * @param notFoundDetail detail on how the plugin couldn't be found (e.g. searched locations)
      */
     public static PluginResolutionResult notFound(String sourceDescription, String notFoundMessage, String notFoundDetail) {
-        return new PluginResolutionResult(null, false, ImmutableList.of(new NotFound(sourceDescription, notFoundMessage, notFoundDetail)));
+        return new PluginResolutionResult(null, ImmutableList.of(new NotFound(sourceDescription, notFoundMessage, notFoundDetail)));
     }
     /**
      * Record that the plugin was not found in multiple sources of plugins
      */
     public static PluginResolutionResult notFound(ImmutableList<NotFound> notFoundList) {
-        return new PluginResolutionResult(null, false, notFoundList);
+        return new PluginResolutionResult(null, notFoundList);
     }
 
     /**
@@ -85,34 +79,23 @@ public class PluginResolutionResult {
      * @param pluginResolution the plugin resolution
      */
     public static PluginResolutionResult found(PluginResolution pluginResolution) {
-        return new PluginResolutionResult(pluginResolution, false, ImmutableList.of());
+        return new PluginResolutionResult(pluginResolution, ImmutableList.of());
+    }
+
+    public boolean isFound() {
+        return found != null;
     }
 
     /**
-     * Record that the plugin was already applied and should not be applied again.
+     * Get the resolved plugin.
+     *
+     * @param request The original request. Only used for error reporting.
+     *
+     * @throws RuntimeException if the plugin was not found.
      */
-    public static PluginResolutionResult alreadyApplied() {
-        return new PluginResolutionResult(null, true, ImmutableList.of());
-    }
-
-    public boolean isAlreadyApplied() {
-        return alreadyApplied;
-    }
-
-    public boolean isSuccess() {
-        return found != null || alreadyApplied;
-    }
-
-    public PluginResolution getFound() {
-        if (found == null) {
-            throw new IllegalStateException("Plugin was not found.");
-        }
-        return found;
-    }
-
-    public void assertSuccess(PluginRequestInternal request) {
-        if (isSuccess()) {
-            return;
+    public PluginResolution getFound(PluginRequestInternal request) {
+        if (found != null) {
+            return found;
         }
 
         Formatter sb = new Formatter();
@@ -131,7 +114,7 @@ public class PluginResolutionResult {
     }
 
     public List<NotFound> getNotFound() {
-        assert !isSuccess();
+        assert !isFound();
         return notFoundList;
     }
 
