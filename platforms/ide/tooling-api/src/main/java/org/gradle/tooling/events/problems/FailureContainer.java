@@ -14,30 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.problem;
+package org.gradle.tooling.events.problems;
 
-import org.gradle.tooling.internal.protocol.InternalProblemDetails;
+import org.gradle.api.Incubating;
+import org.gradle.tooling.Failure;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
-public interface InternalBasicProblemDetails extends InternalProblemDetails {
+/**
+ * Holds an exception for a problem.
+ *
+ * @since 8.7
+ */
+@Incubating
+public interface FailureContainer {
 
-    InternalProblemCategory getCategory();
-
-    InternalAdditionalData getAdditionalData();
-
-    InternalLabel getLabel();
-
+    /**
+     * Failure that caused the problem.
+     *
+     * @since 8.7
+     */
     @Nullable
-    InternalDetails getDetails();
-
-    InternalSeverity getSeverity();
-
-    List<InternalLocation> getLocations();
-
-    @Nullable
-    InternalDocumentationLink getDocumentationLink();
-
-    List<InternalSolution> getSolutions();
+    Failure getFailure();
 }

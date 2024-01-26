@@ -16,19 +16,20 @@
 
 package org.gradle.tooling.events.problems.internal;
 
-import org.gradle.tooling.events.problems.ExceptionContainer;
+import org.gradle.tooling.Failure;
+import org.gradle.tooling.events.problems.FailureContainer;
 
 import javax.annotation.Nullable;
 
-public class DefaultExceptionContainer implements ExceptionContainer {
-    private final RuntimeException exception;
+public class DefaultFailureContainer implements FailureContainer {
+    private final Failure failure;
 
-    public DefaultExceptionContainer(@Nullable RuntimeException exception) {
-        this.exception = exception;
+    public DefaultFailureContainer(@Nullable Failure failure) {
+        this.failure = failure;
     }
 
     @Override
-    public RuntimeException getException() {
-        return exception;
+    public Failure getFailure() {
+        return failure;
     }
 }
