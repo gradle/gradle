@@ -38,7 +38,9 @@ dependencies {
 project.plugins.withType<JavaBasePlugin> {
     project.extensions.getByName<SourceSetContainer>("sourceSets").configureEach {
         val extension = this.extensions.create<ErrorProneSourceSetExtension>("errorprone", project.objects.property<Boolean>())
-        extension.enabled.convention(true)
+        // Enable it only for the main source set by default, as incremental Groovy
+        // joint-compilation doesn't work with the Error Prone annotation processor
+        extension.enabled.convention(this.name == "main")
         project.afterEvaluate {
             if (extension.enabled.get()) {
                 project.configurations[annotationProcessorConfigurationName].extendsFrom(errorproneAnnotationProcessor)

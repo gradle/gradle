@@ -4,6 +4,13 @@ plugins {
 
 description = "Collection of test fixtures for both unit tests and integration tests, internal use only"
 
+sourceSets {
+    main {
+        // Mixed Java and Groovy code causes Error Prone to trip up
+        errorprone.enabled = false
+    }
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":functional"))
