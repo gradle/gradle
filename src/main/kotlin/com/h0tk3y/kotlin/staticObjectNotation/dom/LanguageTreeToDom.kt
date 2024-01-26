@@ -17,6 +17,7 @@
 package com.h0tk3y.kotlin.staticObjectNotation.dom
 
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.FailingResult
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeResult
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.MultipleFailuresResult
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParsingError
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedConstruct
@@ -36,6 +37,9 @@ import com.h0tk3y.kotlin.staticObjectNotation.language.PropertyAccess
 import com.h0tk3y.kotlin.staticObjectNotation.language.SourceData
 import com.h0tk3y.kotlin.staticObjectNotation.language.SourceIdentifier
 import com.h0tk3y.kotlin.staticObjectNotation.language.This
+
+// TODO: imports are ignored for now; we should instead represent them as unsupported feature usage in the document
+fun LanguageTreeResult.toDocument(): DeclarativeDocument = convertBlockToDocument(topLevelBlock)
 
 fun convertBlockToDocument(block: Block): DeclarativeDocument = LanguageTreeBackedDocument(block, block.content.map(::blockElementToNode))
 

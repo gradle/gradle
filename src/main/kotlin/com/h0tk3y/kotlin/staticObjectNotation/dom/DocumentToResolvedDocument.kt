@@ -17,6 +17,7 @@
 package com.h0tk3y.kotlin.staticObjectNotation.dom
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisStatementFilter
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataType
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ErrorReason
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.FunctionSemantics
@@ -26,6 +27,8 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionTrace
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.SchemaMemberFunction
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.SchemaTypeRefContext
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.getDataType
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.tracingCodeResolver
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeResult
 import com.h0tk3y.kotlin.staticObjectNotation.dom.DocumentResolution.ValueResolution.ValueFactoryResolution
 import com.h0tk3y.kotlin.staticObjectNotation.language.Assignment
 import com.h0tk3y.kotlin.staticObjectNotation.language.FunctionCall
@@ -34,9 +37,20 @@ import com.h0tk3y.kotlin.staticObjectNotation.language.SourceIdentifier
 
 fun resolvedDocument(
     schema: AnalysisSchema,
+    languageTreeResult: LanguageTreeResult,
+    analysisStatementFilter: AnalysisStatementFilter,
+    strictReceiverChecks: Boolean = true
+): ResolvedDeclarativeDocument {
+    val tracingResolver = tracingCodeResolver(analysisStatementFilter)
+    tracingResolver.resolve(schema, languageTreeResult.imports, languageTreeResult.topLevelBlock)
+    return resolvedDocument(schema, tracingResolver.trace, languageTreeResult.toDocument(), strictReceiverChecks)
+}
+
+fun resolvedDocument(
+    schema: AnalysisSchema,
     trace: ResolutionTrace,
     document: DeclarativeDocument,
-    strictReceiverChecks: Boolean = true
+    strictReceiverChecks: Boolean = true,
 ): ResolvedDeclarativeDocument {
     val resolver = DocumentResolver(trace, SchemaTypeRefContext(schema), strictReceiverChecks)
     return ResolvedDeclarativeDocumentImpl(
