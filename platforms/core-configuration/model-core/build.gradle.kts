@@ -7,9 +7,8 @@ description = "Implementation of configuration model types and annotation metada
 
 errorprone {
     disabledChecks.addAll(
-        "AnnotateFormatMethod", // 1 occurrences
+        "AnnotateFormatMethod", // 1 occurrence, needs errorprone annotations
         "EmptyBlockTag", // 3 occurrences
-        "FormatString", // 1 occurrences
         "GetClassOnEnum", // 4 occurrences
         "HidingField", // 1 occurrences
         "IdentityHashMapUsage", // 1 occurrences
