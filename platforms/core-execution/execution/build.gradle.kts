@@ -14,7 +14,6 @@ errorprone {
         "StringCaseLocaleUsage", // 8 occurrences
         "SuperCallToObjectMethod", // 2 occurrences
         "UndefinedEquals", // 1 occurrences
-        "UnusedMethod", // 1 occurrences
         "UnusedTypeParameter", // 1 occurrences
         "UnusedVariable", // 1 occurrences
     )
