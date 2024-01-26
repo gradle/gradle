@@ -34,6 +34,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.ysb33r.grolifant.api.core.jvm.ExecutionMode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -114,6 +115,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 return;
             }
 
+            task.setExecutionMode(ExecutionMode.OUT_OF_PROCESS);
             task.outputOptions(options -> {
                 options.setSeparateOutputDirs(false);
                 options.setBackends(singletonList("html5"));
