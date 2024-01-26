@@ -24,8 +24,8 @@ A composite build is similar to a Gradle multi-project build, except that instea
 
 Composite builds allow you to:
 
-* Combine builds that are usually developed independently, for instance, when trying out a bug fix in a library that your application uses
-* Decompose a large multi-project build into smaller, more isolated chunks that can be worked on independently or together as needed
+* Combine builds that are usually developed independently, for instance, when trying out a bug fix in a library that your application uses.
+* Decompose a large multi-project build into smaller, more isolated chunks that can be worked on independently or together as needed.
 
 A build that is included in a composite build is referred to as an *included build*.
 Included builds do not share any configuration with the composite build or the other included builds.
@@ -34,7 +34,7 @@ Each included build is configured and executed in isolation.
 [[defining_composite_builds]]
 == Defining a composite build
 
-The following examples demonstrate how two Gradle builds, normally developed separately, can be combined into a composite build.
+The following example demonstrates how two Gradle builds, normally developed separately, can be combined into a composite build.
 
 [source,text]
 ----
@@ -58,7 +58,7 @@ my-composite
         └── src/main/java/org/sample/stringutils/Strings.java
 ----
 
-For these examples, the `my-utils` multi-project build produces two Java libraries, `number-utils` and `string-utils`.
+The `my-utils` multi-project build produces two Java libraries, `number-utils` and `string-utils`.
 The `my-app` build produces an executable using functions from those libraries.
 
 The `my-app` build does not depend directly on `my-utils`.
@@ -97,18 +97,16 @@ includeBuild("my-utils")
 ----
 
 [[separate_composite]]
-=== Defining a separate composite build
-
-One downside of the above approach is that it requires you to modify an existing build, rendering it less useful as a standalone build.
-One way to avoid this is to define a separate composite build whose only purpose is to combine otherwise separate builds:
+In the example, the settings.gradle(.kts) file combines otherwise separate builds:
 
 ====
 include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="settings.gradle.kts[]"]
 include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="settings.gradle[]"]
 ====
 
-In this scenario, the 'main' build that is executed is the composite, and it doesn't define any useful tasks to execute itself.
-To execute the `run` task in the `my-app` build, the composite build must define a delegating task:
+To execute the `run` task in the `my-app` build from `my-composite`, run `./gradlew my-app:app:run`.
+
+You can optionally define a `run` task in `my-composite` that depends on `my-app:app:run` so that you can execute `./gradlew run`:
 
 ====
 include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="build.gradle.kts[tags=run]"]
@@ -282,7 +280,7 @@ include::sample[dir="samples/build-organization/composite-builds/hierarchical-mu
 ====
 
 [[current_limitations_and_future_work]]
-== Current limitations and future plans
+== Limitations of composite builds
 
 Limitations of the current implementation include:
 

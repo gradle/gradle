@@ -19,7 +19,7 @@ Subprojects in a multi-project build typically share some common dependencies.
 
 image::structuring-builds-3.png[]
 
-Instead of repeating the same included dependencies in each subproject build script, Gradle provides a special directory for storing shared build logic and plugins.
+Instead of copying and pasting the same Java version and libraries in each subproject build script, Gradle provides a special directory for storing shared build logic that can be automatically applied to subprojects.
 
 [[sec:using_buildsrc]]
 == Share logic in `buildSrc`
