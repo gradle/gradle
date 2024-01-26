@@ -20,15 +20,14 @@ import org.gradle.api.NonNullApi;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static org.gradle.util.internal.ArrayUtils.contains;
+import static org.gradle.util.internal.CollectionUtils.join;
 
 /**
  * Checks that services are being declared in the correct scope.
@@ -90,12 +89,12 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
             return "service scope '" + scopes[0].getSimpleName() + "'";
         }
 
-        return "service scopes " + CollectionUtils.join(", ", CollectionUtils.collect(Arrays.asList(scopes), new InternalTransformer<String, Class<? extends Scope>>() {
+        return "service scopes " + join(", ", scopes, new InternalTransformer<String, Class<? extends Scope>>() {
             @Override
             public String transform(Class<? extends Scope> aClass) {
                 return "'" + aClass.getSimpleName() + "'";
             }
-        }));
+        });
     }
 
     @Nullable

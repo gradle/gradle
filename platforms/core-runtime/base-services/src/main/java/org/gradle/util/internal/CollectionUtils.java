@@ -53,6 +53,7 @@ import static org.gradle.internal.Cast.cast;
 import static org.gradle.internal.Cast.castNullable;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
+@SuppressWarnings("join_with_collect")
 public abstract class CollectionUtils {
 
     /**
@@ -541,6 +542,15 @@ public abstract class CollectionUtils {
     }
 
     /**
+     * Creates a string with {@code toString()} of each transformed object with the given separator.
+     *
+     * @see #join(String, Object[])
+     */
+    public static <R, I> String join(String separator, I[] objects, InternalTransformer<? extends R, ? super I> transformer) {
+        return join(separator, collect(objects, transformer));
+    }
+
+    /**
      * Creates a string with {@code toString()} of each object with the given separator.
      *
      * <pre>
@@ -574,6 +584,16 @@ public abstract class CollectionUtils {
             }
         }
         return string.toString();
+    }
+
+    /**
+     * Creates a string with {@code toString()} of each transformed object with the given separator.
+     *
+     * @see #join(String, Iterable)
+     */
+    public static <R, I> String join(String separator, Iterable<? extends I> objects, InternalTransformer<? extends R, ? super I> transformer) {
+        //noinspection join_with_collect
+        return join(separator, collect(objects, transformer));
     }
 
     /**
