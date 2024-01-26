@@ -28,6 +28,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.gradle.util.internal.ArrayUtils.contains;
+
 /**
  * Checks that services are being declared in the correct scope.
  * <p>
@@ -65,13 +67,9 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
             throw new IllegalArgumentException(String.format("Service '%s' is declared with empty scope list", serviceType.getName()));
         }
 
-        if (!containsScope(scope, serviceScopes)) {
+        if (!contains(serviceScopes, scope)) {
             throw new IllegalArgumentException(invalidScopeMessage(serviceType, serviceScopes));
         }
-    }
-
-    private static boolean containsScope(Class<? extends Scope> expectedScope, Class<? extends Scope>[] actualScopes) {
-        return Arrays.asList(actualScopes).contains(expectedScope);
     }
 
     private String invalidScopeMessage(Class<?> serviceType, Class<? extends Scope>[] actualScopes) {
