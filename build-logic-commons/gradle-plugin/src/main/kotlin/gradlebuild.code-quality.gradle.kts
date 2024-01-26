@@ -26,14 +26,8 @@ plugins {
 }
 
 open class ErrorProneSourceSetExtension(
-    val enabled : Property<Boolean>
+    val enabled: Property<Boolean>
 )
-
-val errorproneAnnotationProcessor = configurations.create("errorproneAnnotationProcessor")
-
-dependencies {
-    errorproneAnnotationProcessor("com.google.errorprone:error_prone_core:2.24.1")
-}
 
 project.plugins.withType<JavaBasePlugin> {
     project.extensions.getByName<SourceSetContainer>("sourceSets").configureEach {
@@ -41,9 +35,15 @@ project.plugins.withType<JavaBasePlugin> {
         // Enable it only for the main source set by default, as incremental Groovy
         // joint-compilation doesn't work with the Error Prone annotation processor
         extension.enabled.convention(this.name == "main")
-        project.afterEvaluate {
-            if (extension.enabled.get()) {
-                project.configurations[annotationProcessorConfigurationName].extendsFrom(errorproneAnnotationProcessor)
+
+        project.dependencies.addProvider(
+            annotationProcessorConfigurationName,
+            extension.enabled.filter { it }.map { "com.google.errorprone:error_prone_core:2.24.1" }
+        )
+
+        project.tasks.named<JavaCompile>(this.compileJavaTaskName) {
+            options.errorprone {
+                isEnabled = extension.enabled
             }
         }
     }
@@ -137,12 +137,12 @@ val SourceSet.allGroovy: SourceDirectorySet
 
 abstract class CodeNarcRule @Inject constructor(
     private val groovyVersion: String
-): ComponentMetadataRule {
+) : ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         context.details.allVariants {
             withDependencies {
                 val isAtLeastGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
-                val groovyGroup = if(isAtLeastGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
+                val groovyGroup = if (isAtLeastGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
                 removeAll { it.group == groovyGroup }
                 add("$groovyGroup:groovy") {
                     version { prefer(groovyVersion) }
@@ -156,4 +156,3 @@ abstract class CodeNarcRule @Inject constructor(
         }
     }
 }
-
