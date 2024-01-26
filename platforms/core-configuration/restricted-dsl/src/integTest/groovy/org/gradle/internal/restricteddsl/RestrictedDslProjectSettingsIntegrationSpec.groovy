@@ -24,9 +24,14 @@ class RestrictedDslProjectSettingsIntegrationSpec extends AbstractIntegrationSpe
     def "can interpret the settings file with the restricted DSL"() {
         given:
         file("settings.gradle.something") << """
-            rootProject.name = "test-value"
-            include(":a")
-            include(":b")
+            build {
+                name = "test-value"
+            }
+
+            layout {
+                subproject("a") { }
+                subproject("b") { }
+            }
 
             dependencyResolutionManagement {
                 repositories {
@@ -55,7 +60,9 @@ class RestrictedDslProjectSettingsIntegrationSpec extends AbstractIntegrationSpe
     def 'schema is written during settings interpretation'() {
         given:
         file("settings.gradle.something") << """
-            rootProject.name = "test"
+            build {
+                name = "test"
+            }
         """
 
         when:
@@ -69,7 +76,9 @@ class RestrictedDslProjectSettingsIntegrationSpec extends AbstractIntegrationSpe
     def 'reports #kind errors in settings'() {
         given:
         file("settings.gradle.something") << """
-            rootProject.name = "test"
+            build {
+                name = "test"
+            }
             $code
         """
 
@@ -81,8 +90,8 @@ class RestrictedDslProjectSettingsIntegrationSpec extends AbstractIntegrationSpe
 
         where:
         kind               | code                  | expectedMessage
-        "syntax"           | "..."                 | "2:13: parsing error: Expecting an element"
-        "language feature" | "@A dependencies { }" | "2:13: unsupported language feature: AnnotationUsage"
-        "semantic"         | "x = 1"               | "2:13: unresolved reference 'x'"
+        "syntax"           | "..."                 | "4:13: parsing error: Expecting an element"
+        "language feature" | "@A dependencies { }" | "4:13: unsupported language feature: AnnotationUsage"
+        "semantic"         | "x = 1"               | "4:13: unresolved reference 'x'"
     }
 }

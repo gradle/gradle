@@ -26,6 +26,9 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.Settings
+import org.gradle.api.initialization.dsl.BuildSettings
+import org.gradle.api.initialization.dsl.ProjectSpecification
+import org.gradle.api.initialization.dsl.RootProjectSpecification
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.restricteddsl.evaluationSchema.EvaluationSchema
@@ -64,7 +67,10 @@ class DefaultInterpretationSchemaBuilder : InterpretationSchemaBuilder {
                 DependencyResolutionManagement::class,
                 RepositoryHandler::class,
                 MavenArtifactRepository::class,
-                ArtifactRepository::class
+                ArtifactRepository::class,
+                BuildSettings::class,
+                RootProjectSpecification::class,
+                ProjectSpecification::class
             ),
             configureLambdas = treatInterfaceAsConfigureLambda(Action::class).plus(kotlinFunctionAsConfigureLambda)
         )

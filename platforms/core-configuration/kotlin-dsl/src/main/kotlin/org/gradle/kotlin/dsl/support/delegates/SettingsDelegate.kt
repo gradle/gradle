@@ -33,6 +33,8 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.toolchain.management.ToolchainManagement
 import org.gradle.api.cache.CacheConfigurations
 import org.gradle.api.file.BuildLayout
+import org.gradle.api.initialization.dsl.BuildSettings
+import org.gradle.api.initialization.dsl.RootProjectSpecification
 import org.gradle.caching.configuration.BuildCacheConfiguration
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.plugin.management.PluginManagementSpec
@@ -173,4 +175,13 @@ abstract class SettingsDelegate : Settings {
 
     override fun getLayout(): BuildLayout =
         delegate.layout
+
+    override fun getBuildSettings(): BuildSettings =
+        delegate.buildSettings
+
+    override fun build(buildSettingsConfiguration: Action<in BuildSettings>) =
+        delegate.build(buildSettingsConfiguration)
+
+    override fun layout(rootProjectConfiguration: Action<in RootProjectSpecification>) =
+        delegate.layout(rootProjectConfiguration)
 }

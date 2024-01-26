@@ -31,6 +31,8 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
@@ -89,7 +91,14 @@ public class ProjectBuilderImpl {
 
         projectDir = (projectDir != null) ? projectDir.getAbsoluteFile() : new File(parentProject.getProjectDir(), name);
         // Descriptor is added to registry as a side effect
-        DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(parentDescriptor, name, projectDir, descriptorRegistry, parentProject.getServices().get(FileResolver.class));
+        DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(
+            parentDescriptor,
+            parentProject.getProviders().provider(() -> name),
+            projectDir,
+            descriptorRegistry,
+            parentProject.getServices().get(FileResolver.class),
+            parentProject.getObjects()
+        );
 
         ProjectState projectState = parentProject.getServices().get(ProjectStateRegistry.class).registerProject(parentProject.getServices().get(BuildState.class), projectDescriptor);
         projectState.createMutableModel(parentProject.getClassLoaderScope().createChild("project-" + name, null), parentProject.getBaseClassLoaderScope());
@@ -135,7 +144,14 @@ public class ProjectBuilderImpl {
 
         ProjectDescriptorRegistry projectDescriptorRegistry = buildServices.get(ProjectDescriptorRegistry.class);
         // Registers project as a side effect
-        DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, projectDescriptorRegistry, buildServices.get(FileResolver.class));
+        DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(
+            null,
+            buildServices.get(ProviderFactory.class).provider(() -> name),
+            projectDir,
+            projectDescriptorRegistry,
+            buildServices.get(FileResolver.class),
+            buildServices.get(ObjectFactory.class)
+        );
 
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
         ClassLoaderScope rootProjectScope = baseScope.createChild("root-project", null);

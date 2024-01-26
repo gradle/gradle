@@ -23,6 +23,8 @@ import org.gradle.api.file.BuildLayout;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.initialization.dsl.BuildSettings;
+import org.gradle.api.initialization.dsl.RootProjectSpecification;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.internal.FeaturePreviews.Feature;
@@ -36,6 +38,8 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.toolchain.management.ToolchainManagement;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
@@ -87,6 +91,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     private final DependencyResolutionManagementInternal dependencyResolutionManagement;
 
     private final ToolchainManagementInternal toolchainManagement;
+    private final RootProjectSpecification rootProjectSpecification;
 
     public DefaultSettings(
         ServiceRegistryFactory serviceRegistryFactory,
@@ -106,9 +111,15 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         this.settingsScript = settingsScript;
         this.startParameter = startParameter;
         this.services = serviceRegistryFactory.createFor(this);
-        this.rootProjectDescriptor = createProjectDescriptor(null, getProjectName(settingsDir), settingsDir);
+        this.rootProjectDescriptor = createProjectDescriptor(null, getBuildNameProperty(settingsDir), settingsDir);
         this.dependencyResolutionManagement = services.get(DependencyResolutionManagementInternal.class);
         this.toolchainManagement = services.get(ToolchainManagementInternal.class);
+        this.rootProjectSpecification = getObjectFactory().newInstance(DefaultRootProjectSpecification.class, this, settingsDir);
+    }
+
+    private Provider<String> getBuildNameProperty(File settingsDir) {
+        Provider<String> buildName = getProviders().provider(() -> getBuildSettings().getName());
+        return getObjectFactory().property(String.class).convention(buildName).orElse(getProjectName(settingsDir));
     }
 
     private static String getProjectName(File settingsDir) {
@@ -147,7 +158,11 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     public DefaultProjectDescriptor createProjectDescriptor(@Nullable DefaultProjectDescriptor parent, String name, File dir) {
-        return new DefaultProjectDescriptor(parent, name, dir, getProjectDescriptorRegistry(), getFileResolver(), getScriptFileResolver());
+        return createProjectDescriptor(parent, getProviders().provider(() -> name), dir);
+    }
+
+    public DefaultProjectDescriptor createProjectDescriptor(@Nullable DefaultProjectDescriptor parent, Provider<String> nameProvider, File dir) {
+        return new DefaultProjectDescriptor(parent, nameProvider, dir, getProjectDescriptorRegistry(), getFileResolver(), getObjectFactory(), getScriptFileResolver());
     }
 
     @Override
@@ -274,6 +289,9 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Inject
     public abstract ScriptFileResolver getScriptFileResolver();
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
 
     @Override
     public ProjectRegistry<DefaultProjectDescriptor> getProjectRegistry() {
@@ -410,5 +428,19 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     @Override
     public void caches(Action<? super CacheConfigurations> cachesConfiguration) {
         cachesConfiguration.execute(getCaches());
+    }
+
+    @Override
+    @Inject
+    public abstract BuildSettings getBuildSettings();
+
+    @Override
+    public void build(Action<? super BuildSettings> buildSettingsConfiguration) {
+        buildSettingsConfiguration.execute(getBuildSettings());
+    }
+
+    @Override
+    public void layout(Action<? super RootProjectSpecification> rootProjectConfiguration) {
+        rootProjectConfiguration.execute(rootProjectSpecification);
     }
 }

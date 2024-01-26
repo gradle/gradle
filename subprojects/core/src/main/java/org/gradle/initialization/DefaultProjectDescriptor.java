@@ -21,6 +21,9 @@ import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.PathToFileResolver;
@@ -40,7 +43,6 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
 
     public static final String BUILD_SCRIPT_BASENAME = "build";
 
-    private String name;
     private boolean nameExplicitlySet; // project name explicitly specified in the build script (as opposed to derived from the containing folder)
     private final PathToFileResolver fileResolver;
     private final ScriptFileResolver scriptFileResolver;
@@ -49,30 +51,36 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     private final DefaultProjectDescriptor parent;
     private final Set<DefaultProjectDescriptor> children = new LinkedHashSet<>();
     private ProjectDescriptorRegistry projectDescriptorRegistry;
-    private Path path;
     private String buildFileName;
+    private final Property<String> nameProperty;
+    private final Property<Path> pathProperty;
 
     public DefaultProjectDescriptor(
-        @Nullable DefaultProjectDescriptor parent, String name, File dir,
-        ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver
+        @Nullable DefaultProjectDescriptor parent, Provider<String> nameProvider, File dir,
+        ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver,
+        ObjectFactory objectFactory
     ) {
-        this(parent, name, dir, projectDescriptorRegistry, fileResolver, null);
+        this(parent, nameProvider, dir, projectDescriptorRegistry, fileResolver, objectFactory, null);
     }
 
     public DefaultProjectDescriptor(
-        @Nullable DefaultProjectDescriptor parent, String name, File dir,
+        @Nullable DefaultProjectDescriptor parent, Provider<String> nameProvider, File dir,
         ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver,
-        @Nullable ScriptFileResolver scriptFileResolver
+        ObjectFactory objectFactory, @Nullable ScriptFileResolver scriptFileResolver
     ) {
         this.parent = parent;
-        this.name = name;
         this.fileResolver = fileResolver;
         this.dir = dir;
         this.projectDescriptorRegistry = projectDescriptorRegistry;
-        this.path = path(name);
         this.scriptFileResolver = scriptFileResolver != null
             ? scriptFileResolver
             : new DefaultScriptFileResolver();
+
+        this.nameProperty = objectFactory.property(String.class);
+        this.nameProperty.convention(nameProvider);
+
+        this.pathProperty = objectFactory.property(Path.class);
+        this.pathProperty.convention(nameProvider.map(this::path));
 
         projectDescriptorRegistry.addProject(this);
         if (parent != null) {
@@ -82,31 +90,33 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
 
     private Path path(String name) {
         if (isRootDescriptor()) {
-            return path = Path.ROOT;
+            return Path.ROOT;
         } else {
             return parent.absolutePath(name);
         }
     }
 
     private Path absolutePath(String path) {
-        return this.path.child(path);
+        return pathProperty.get().child(path);
     }
 
     private boolean isRootDescriptor() {
         return parent == null;
     }
 
+
     @Override
     public String getName() {
-        return name;
+        return nameProperty.get();
     }
 
     @Override
     public void setName(String name) {
         NameValidator.validate(name, "project name",
             INVALID_NAME_IN_INCLUDE_HINT);
-        projectDescriptorRegistry.changeDescriptorPath(path, path(name));
-        this.name = name;
+        Path oldPath = pathProperty.get();
+        nameProperty.set(name);
+        projectDescriptorRegistry.changeDescriptorPath(oldPath, pathProperty.get());
         this.nameExplicitlySet = true;
     }
 
@@ -149,11 +159,11 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
 
     @Override
     public String getPath() {
-        return path.toString();
+        return pathProperty.get().toString();
     }
 
     void setPath(Path path) {
-        this.path = path;
+        pathProperty.set(path);
     }
 
     @Override
@@ -214,6 +224,6 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     }
 
     public Path path() {
-        return path;
+        return pathProperty.get();
     }
 }

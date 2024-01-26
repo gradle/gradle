@@ -17,6 +17,7 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.api.file.BuildLayout;
+import org.gradle.api.initialization.dsl.BuildSettings;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -89,5 +90,9 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
             persistentCacheConfigurations.setCleanupHasBeenConfigured(false);
         }
         return cacheConfigurations;
+    }
+
+    protected BuildSettings createBuildSettings(ObjectFactory objectFactory) {
+        return objectFactory.newInstance(BuildSettings.class);
     }
 }

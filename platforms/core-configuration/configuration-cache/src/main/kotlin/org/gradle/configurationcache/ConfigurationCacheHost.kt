@@ -24,6 +24,8 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
@@ -43,6 +45,7 @@ import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.internal.service.scopes.SettingsScopeServices
 import org.gradle.util.Path
 import java.io.File
+import java.util.concurrent.Callable
 
 
 class ConfigurationCacheHost internal constructor(
@@ -122,10 +125,11 @@ class ConfigurationCacheHost internal constructor(
             // Adds the descriptor to the registry as a side effect
             DefaultProjectDescriptor(
                 getProjectDescriptor(projectPath.parent),
-                name,
+                service<ProviderFactory>().provider { name },
                 dir,
                 projectDescriptorRegistry,
-                fileResolver
+                fileResolver,
+                service<ObjectFactory>()
             )
             buildDirs[projectPath] = buildDir
         }
