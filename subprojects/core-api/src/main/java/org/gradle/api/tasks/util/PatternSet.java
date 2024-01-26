@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.util;
 
-import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.specs.Spec;
@@ -42,10 +41,10 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     private static final NotationParser<Object, String> PARSER = NotationParserBuilder.toType(String.class).fromCharSequence().toComposite();
     private final PatternSpecFactory patternSpecFactory;
 
-    private Set<String> includes;
-    private Set<String> excludes;
-    private Set<Spec<FileTreeElement>> includeSpecs;
-    private Set<Spec<FileTreeElement>> excludeSpecs;
+    private final Set<String> includes;
+    private final Set<String> excludes;
+    private final Set<Spec<FileTreeElement>> includeSpecs;
+    private final Set<Spec<FileTreeElement>> excludeSpecs;
     private boolean caseSensitive = true;
 
     public PatternSet() {
@@ -58,6 +57,10 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
 
     protected PatternSet(PatternSpecFactory patternSpecFactory) {
         this.patternSpecFactory = patternSpecFactory;
+        this.includes = new LinkedHashSet<>();
+        this.excludes = new LinkedHashSet<>();
+        this.includeSpecs = new LinkedHashSet<>();
+        this.excludeSpecs = new LinkedHashSet<>();
     }
 
     @Override
@@ -74,16 +77,16 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         if (caseSensitive != that.caseSensitive) {
             return false;
         }
-        if (!nullToEmpty(excludeSpecs).equals(nullToEmpty(that.excludeSpecs))) {
+        if (!excludeSpecs.equals(that.excludeSpecs)) {
             return false;
         }
-        if (!nullToEmpty(excludes).equals(nullToEmpty(that.excludes))) {
+        if (!excludes.equals(that.excludes)) {
             return false;
         }
-        if (!nullToEmpty(includeSpecs).equals(nullToEmpty(that.includeSpecs))) {
+        if (!includeSpecs.equals(that.includeSpecs)) {
             return false;
         }
-        if (!nullToEmpty(includes).equals(nullToEmpty(that.includes))) {
+        if (!includes.equals(that.includes)) {
             return false;
         }
 
@@ -92,19 +95,12 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
 
     @Override
     public int hashCode() {
-        int result = nullToEmpty(includes).hashCode();
-        result = 31 * result + nullToEmpty(excludes).hashCode();
-        result = 31 * result + nullToEmpty(includeSpecs).hashCode();
-        result = 31 * result + nullToEmpty(excludeSpecs).hashCode();
+        int result = includes.hashCode();
+        result = 31 * result + excludes.hashCode();
+        result = 31 * result + includeSpecs.hashCode();
+        result = 31 * result + excludeSpecs.hashCode();
         result = 31 * result + (caseSensitive ? 1 : 0);
         return result;
-    }
-
-    private Set<?> nullToEmpty(@Nullable Set<?> set) {
-        if (set == null) {
-            return Collections.emptySet();
-        }
-        return set;
     }
 
     public PatternSet copyFrom(PatternFilterable sourcePattern) {
@@ -120,11 +116,11 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
             PatternSet intersectCopy = new IntersectionPatternSet(otherCopy);
             copyIncludesAndExcludes(intersectCopy, from);
 
-            includes = null;
-            excludes = null;
-            includeSpecs = new LinkedHashSet<>();
+            includes.clear();
+            excludes.clear();
+            includeSpecs.clear();
             includeSpecs.add(intersectCopy.getAsSpec());
-            excludeSpecs = null;
+            excludeSpecs.clear();
         } else {
             copyIncludesAndExcludes(this, from);
         }
@@ -133,10 +129,14 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     private void copyIncludesAndExcludes(PatternSet target, PatternSet from) {
-        target.includes = from.includes == null ? null : Sets.newLinkedHashSet(from.includes);
-        target.excludes = from.excludes == null ? null : Sets.newLinkedHashSet(from.excludes);
-        target.includeSpecs = from.includeSpecs == null ? null : Sets.newLinkedHashSet(from.includeSpecs);
-        target.excludeSpecs = from.excludeSpecs == null ? null : Sets.newLinkedHashSet(from.excludeSpecs);
+        target.setIncludes(from.getIncludes());
+        target.setExcludes(from.getExcludes());
+
+        target.includeSpecs.clear();
+        target.includeSpecs(from.getIncludeSpecs());
+
+        target.excludeSpecs.clear();
+        target.excludeSpecs(from.getExcludeSpecs());
     }
 
     public PatternSet intersect() {
@@ -156,10 +156,10 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
      * @return true when no includes or excludes have been added to this instance
      */
     public boolean isEmpty() {
-        return (includes == null || includes.isEmpty())
-            && (excludes == null || excludes.isEmpty())
-            && (includeSpecs == null || includeSpecs.isEmpty())
-            && (excludeSpecs == null || excludeSpecs.isEmpty());
+        return includes.isEmpty()
+            && excludes.isEmpty()
+            && includeSpecs.isEmpty()
+            && excludeSpecs.isEmpty();
     }
 
     public Spec<FileTreeElement> getAsSpec() {
@@ -176,22 +176,16 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
 
     @Override
     public Set<String> getIncludes() {
-        if (includes == null) {
-            includes = new LinkedHashSet<>();
-        }
         return includes;
     }
 
     public Set<Spec<FileTreeElement>> getIncludeSpecs() {
-        if (includeSpecs == null) {
-            includeSpecs = new LinkedHashSet<>();
-        }
         return includeSpecs;
     }
 
     @Override
     public PatternSet setIncludes(Iterable<String> includes) {
-        this.includes = null;
+        this.includes.clear();
         return include(includes);
     }
 
@@ -217,22 +211,16 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
 
     @Override
     public Set<String> getExcludes() {
-        if (excludes == null) {
-            excludes = new LinkedHashSet<>();
-        }
         return excludes;
     }
 
     public Set<Spec<FileTreeElement>> getExcludeSpecs() {
-        if (excludeSpecs == null) {
-            excludeSpecs = new LinkedHashSet<>();
-        }
         return excludeSpecs;
     }
 
     @Override
     public PatternSet setExcludes(Iterable<String> excludes) {
-        this.excludes = null;
+        this.excludes.clear();
         return exclude(excludes);
     }
 
@@ -293,7 +281,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     @Override
     public Object addToAntBuilder(Object node, String childNodeName) {
 
-        if (!nullToEmpty(includeSpecs).isEmpty() || !nullToEmpty(excludeSpecs).isEmpty()) {
+        if (!includeSpecs.isEmpty() || !excludeSpecs.isEmpty()) {
             throw new UnsupportedOperationException("Cannot add include/exclude specs to Ant node. Only include/exclude patterns are currently supported.");
         }
 
