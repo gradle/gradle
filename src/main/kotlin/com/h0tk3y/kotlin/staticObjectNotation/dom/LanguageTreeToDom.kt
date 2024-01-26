@@ -33,6 +33,8 @@ import com.h0tk3y.kotlin.staticObjectNotation.language.Literal
 import com.h0tk3y.kotlin.staticObjectNotation.language.LocalValue
 import com.h0tk3y.kotlin.staticObjectNotation.language.Null
 import com.h0tk3y.kotlin.staticObjectNotation.language.PropertyAccess
+import com.h0tk3y.kotlin.staticObjectNotation.language.SourceData
+import com.h0tk3y.kotlin.staticObjectNotation.language.SourceIdentifier
 import com.h0tk3y.kotlin.staticObjectNotation.language.This
 
 fun convertBlockToDocument(block: Block): DeclarativeDocument = LanguageTreeBackedDocument(block, block.content.map(::blockElementToNode))
@@ -160,8 +162,15 @@ private class LanguageTreeBackedDocument(
     override val content: Collection<BlockElementBackedDocumentNode>
 ) : DeclarativeDocument {
 
+    override val sourceIdentifier: SourceIdentifier
+        get() = block.sourceData.sourceIdentifier
+
     sealed interface BlockElementBackedDocumentNode : DeclarativeDocument.DocumentNode {
+
         val blockElement: BlockElement
+
+        override val sourceData: SourceData
+            get() = blockElement.sourceData
 
         class AssignmentBackedPropertyNode(
             override val blockElement: Assignment,
@@ -182,16 +191,30 @@ private class LanguageTreeBackedDocument(
         data class BlockElementBackedErrorNode(
             override val blockElement: BlockElement,
             override val errors: Collection<DocumentError>
-        ) : DeclarativeDocument.DocumentNode.ErrorNode, BlockElementBackedDocumentNode
+        ) : DeclarativeDocument.DocumentNode.ErrorNode, BlockElementBackedDocumentNode {
+            override val sourceData: SourceData
+                /** Workaround: we do not have the source data in [ErroneousStatement]s yet, so we have to get it from the [FailingResult]s inside those. */
+                get() = if (blockElement is ErroneousStatement) {
+                    fun source(failingResult: FailingResult): SourceData = when (failingResult) {
+                        is MultipleFailuresResult -> source(failingResult.failures.first())
+                        is ParsingError -> failingResult.potentialElementSource
+                        is UnsupportedConstruct -> failingResult.potentialElementSource
+                    }
+                    source(blockElement.failingResult)
+                } else super.sourceData
+        }
     }
 
     sealed interface ExprBackedValueNode : DeclarativeDocument.ValueNode {
+
         val expr: Expr
+
+        override val sourceData: SourceData
+            get() = expr.sourceData
 
         data class LiteralBackedLiteralValueNode(override val expr: Literal<*>) : DeclarativeDocument.ValueNode.LiteralValueNode, ExprBackedValueNode {
             override val value: Any get() = expr.value
         }
-
         data class FunctionCallBackedValueFactoryNode(
             override val factoryName: String,
             override val expr: FunctionCall,

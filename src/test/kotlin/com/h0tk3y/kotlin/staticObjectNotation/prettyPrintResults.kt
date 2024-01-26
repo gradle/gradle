@@ -34,8 +34,8 @@ import com.h0tk3y.kotlin.staticObjectNotation.language.Literal
 import com.h0tk3y.kotlin.staticObjectNotation.language.LocalValue
 import com.h0tk3y.kotlin.staticObjectNotation.language.Null
 import com.h0tk3y.kotlin.staticObjectNotation.language.PropertyAccess
+import com.h0tk3y.kotlin.staticObjectNotation.language.SourceData
 import com.h0tk3y.kotlin.staticObjectNotation.language.This
-import com.h0tk3y.kotlin.staticObjectNotation.language.prettyPrint
 
 fun prettyPrintLanguageTreeResult(languageTreeResult: LanguageTreeResult): String {
     val languageResults = languageTreeResult.imports.map { Element(it) } + languageTreeResult.topLevelBlock.content.map { Element(it) }
@@ -239,6 +239,13 @@ fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
 
     return buildString { recurse(languageTreeElement, 0) }
 }
+
+private fun SourceData.prettyPrint(): String =
+    buildString {
+        append("indexes: $indexRange, ")
+        append("line/column: ${lineRange.first}/$startColumn..${lineRange.last}/$endColumn, ")
+        append("file: ${sourceIdentifier.fileIdentifier}")
+    }
 
 fun main() {
     val result = parseWithAst(

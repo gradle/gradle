@@ -90,6 +90,27 @@ object DomResolutionTest {
     }
 
     @Test
+    fun `resolved document keeps the original structure and source data`() {
+        val resolver = tracingCodeResolver()
+
+        val topLevelBlock = parseAsTopLevelBlock(
+            """
+            addAndConfigure("test") {
+                number = 123
+            }
+            """.trimIndent()
+        )
+
+        val document = convertBlockToDocument(topLevelBlock)
+        resolver.resolve(schema, emptyList(), topLevelBlock)
+
+        val resolved = resolvedDocument(schema, resolver.trace, document)
+        val printer = DomTest.DomPrettyPrinter(withSourceData = true)
+
+        assertEquals(printer.domAsString(document), printer.domAsString(resolved))
+    }
+
+    @Test
     fun `maps resolution errors to document errors`() {
         val resolver = tracingCodeResolver()
 

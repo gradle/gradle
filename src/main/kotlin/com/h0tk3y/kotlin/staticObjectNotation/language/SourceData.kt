@@ -26,11 +26,4 @@ interface SourceData {
     fun text(): String
 }
 
-internal fun SourceData.prettyPrint(): String =
-    buildString {
-        append("indexes: $indexRange, ")
-        append("line/column: ${lineRange.first}/$startColumn..${lineRange.last}/$endColumn, ")
-        append("file: ${sourceIdentifier.fileIdentifier}")
-    }
-
 data class SourceIdentifier(val fileIdentifier: String)

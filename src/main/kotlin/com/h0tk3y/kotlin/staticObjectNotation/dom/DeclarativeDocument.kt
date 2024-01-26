@@ -16,10 +16,16 @@
 
 package com.h0tk3y.kotlin.staticObjectNotation.dom
 
+import com.h0tk3y.kotlin.staticObjectNotation.language.SourceData
+import com.h0tk3y.kotlin.staticObjectNotation.language.SourceIdentifier
+
 interface DeclarativeDocument {
     val content: Collection<DocumentNode>
+    val sourceIdentifier: SourceIdentifier
 
     sealed interface DocumentNode {
+        val sourceData: SourceData
+
         sealed interface PropertyNode : DocumentNode {
             val name: String
             val value: ValueNode
@@ -37,6 +43,8 @@ interface DeclarativeDocument {
     }
 
     sealed interface ValueNode {
+        val sourceData: SourceData
+
         sealed interface LiteralValueNode : ValueNode {
             val value: Any
         }

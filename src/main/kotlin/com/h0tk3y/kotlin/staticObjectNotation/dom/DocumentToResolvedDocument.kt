@@ -29,6 +29,8 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.getDataType
 import com.h0tk3y.kotlin.staticObjectNotation.dom.DocumentResolution.ValueResolution.ValueFactoryResolution
 import com.h0tk3y.kotlin.staticObjectNotation.language.Assignment
 import com.h0tk3y.kotlin.staticObjectNotation.language.FunctionCall
+import com.h0tk3y.kotlin.staticObjectNotation.language.SourceData
+import com.h0tk3y.kotlin.staticObjectNotation.language.SourceIdentifier
 
 fun resolvedDocument(
     schema: AnalysisSchema,
@@ -37,7 +39,10 @@ fun resolvedDocument(
     strictReceiverChecks: Boolean = true
 ): ResolvedDeclarativeDocument {
     val resolver = DocumentResolver(trace, SchemaTypeRefContext(schema), strictReceiverChecks)
-    return ResolvedDeclarativeDocumentImpl(document.content.map(resolver::resolvedNode))
+    return ResolvedDeclarativeDocumentImpl(
+        document.content.map(resolver::resolvedNode),
+        document.sourceIdentifier
+    )
 }
 
 private class DocumentResolver(
@@ -48,7 +53,7 @@ private class DocumentResolver(
     fun resolvedNode(node: DeclarativeDocument.DocumentNode): ResolvedDeclarativeDocumentImpl.ResolvedNode = when (node) {
         is DeclarativeDocument.DocumentNode.ElementNode -> resolvedElement(node)
         is DeclarativeDocument.DocumentNode.PropertyNode -> resolvedProperty(node)
-        is DeclarativeDocument.DocumentNode.ErrorNode -> ResolvedDeclarativeDocumentImpl.ResolvedNode.ResolvedError(node)
+        is DeclarativeDocument.DocumentNode.ErrorNode -> ResolvedDeclarativeDocumentImpl.ResolvedNode.ResolvedError(node, node.sourceData)
     }
 
     private fun resolvedElement(elementNode: DeclarativeDocument.DocumentNode.ElementNode): ResolvedDeclarativeDocumentImpl.ResolvedNode.ResolvedElement {
@@ -84,7 +89,7 @@ private class DocumentResolver(
         }
         val content = elementNode.content.map(::resolvedNode)
         val args = elementNode.elementValues.map(::resolvedValue)
-        return ResolvedDeclarativeDocumentImpl.ResolvedNode.ResolvedElement(elementNode.name, content, elementResolution, args)
+        return ResolvedDeclarativeDocumentImpl.ResolvedNode.ResolvedElement(elementNode.name, content, elementResolution, args, elementNode.sourceData)
     }
 
     private fun resolvedProperty(propertyNode: DeclarativeDocument.DocumentNode.PropertyNode): ResolvedDeclarativeDocumentImpl.ResolvedNode.ResolvedProperty {
@@ -103,14 +108,14 @@ private class DocumentResolver(
             ResolutionTrace.ResolutionOrErrors.NoResolution -> DocumentResolution.PropertyResolution.PropertyNotAssigned(listOf(UnresolvedBase))
         }
         val value = resolvedValue(propertyNode.value)
-        return ResolvedDeclarativeDocumentImpl.ResolvedNode.ResolvedProperty(propertyNode.name, value, resolution)
+        return ResolvedDeclarativeDocumentImpl.ResolvedNode.ResolvedProperty(propertyNode.name, value, resolution, propertyNode.sourceData)
     }
 
     fun resolvedValue(value: DeclarativeDocument.ValueNode): ResolvedDeclarativeDocumentImpl.ResolvedValue = when (value) {
-        is DeclarativeDocument.ValueNode.LiteralValueNode -> ResolvedDeclarativeDocumentImpl.ResolvedValue.ResolvedLiteral(value.value)
+        is DeclarativeDocument.ValueNode.LiteralValueNode -> ResolvedDeclarativeDocumentImpl.ResolvedValue.ResolvedLiteral(value.value, value.sourceData)
         is DeclarativeDocument.ValueNode.ValueFactoryNode -> {
             val args = value.values.map(::resolvedValue)
-            ResolvedDeclarativeDocumentImpl.ResolvedValue.ResolvedValueFactory(value.factoryName, resolveValueFactory(value), args)
+            ResolvedDeclarativeDocumentImpl.ResolvedValue.ResolvedValueFactory(value.factoryName, resolveValueFactory(value), args, value.sourceData)
         }
     }
 
@@ -183,23 +188,29 @@ private class DocumentResolver(
 }
 
 private class ResolvedDeclarativeDocumentImpl(
-    override val content: Collection<ResolvedNode>
+    override val content: Collection<ResolvedNode>,
+    override val sourceIdentifier: SourceIdentifier
 ) : ResolvedDeclarativeDocument {
     sealed interface ResolvedNode : ResolvedDeclarativeDocument.ResolvedDocumentNode {
         data class ResolvedProperty(
             override val name: String,
             override val value: ResolvedDeclarativeDocument.ResolvedValueNode,
-            override val resolution: DocumentResolution.PropertyResolution
+            override val resolution: DocumentResolution.PropertyResolution,
+            override val sourceData: SourceData
         ) : ResolvedDeclarativeDocument.ResolvedDocumentNode.ResolvedPropertyNode, ResolvedNode
 
         data class ResolvedElement(
             override val name: String,
             override val content: Collection<ResolvedNode>,
             override val resolution: DocumentResolution.ElementResolution,
-            override val elementValues: Collection<ResolvedDeclarativeDocument.ResolvedValueNode>
+            override val elementValues: Collection<ResolvedDeclarativeDocument.ResolvedValueNode>,
+            override val sourceData: SourceData
         ) : ResolvedDeclarativeDocument.ResolvedDocumentNode.ResolvedElementNode, ResolvedNode
 
-        data class ResolvedError(val error: DeclarativeDocument.DocumentNode.ErrorNode) : ResolvedDeclarativeDocument.ResolvedDocumentNode.ResolvedErrorNode, ResolvedNode {
+        data class ResolvedError(
+            val error: DeclarativeDocument.DocumentNode.ErrorNode,
+            override val sourceData: SourceData
+        ) : ResolvedDeclarativeDocument.ResolvedDocumentNode.ResolvedErrorNode, ResolvedNode {
             override val errors: Collection<DocumentError>
                 get() = error.errors
 
@@ -209,12 +220,16 @@ private class ResolvedDeclarativeDocumentImpl(
     }
 
     sealed interface ResolvedValue : ResolvedDeclarativeDocument.ResolvedValueNode {
-        data class ResolvedLiteral(override val value: Any) : ResolvedDeclarativeDocument.ResolvedValueNode.ResolvedLiteralValueNode, ResolvedValue
+        data class ResolvedLiteral(
+            override val value: Any,
+            override val sourceData: SourceData
+        ) : ResolvedDeclarativeDocument.ResolvedValueNode.ResolvedLiteralValueNode, ResolvedValue
 
         data class ResolvedValueFactory(
             override val factoryName: String,
             override val resolution: ValueFactoryResolution,
-            override val values: List<ResolvedDeclarativeDocument.ResolvedValueNode>
+            override val values: List<ResolvedDeclarativeDocument.ResolvedValueNode>,
+            override val sourceData: SourceData
         ) : ResolvedDeclarativeDocument.ResolvedValueNode.ResolvedValueFactoryNode, ResolvedValue
     }
 }
