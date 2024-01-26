@@ -113,7 +113,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
 
     @Nullable
     private static InternalFailure toInternalFailure(@Nullable RuntimeException ex) {
-        if(ex == null) {
+        if (ex == null) {
             return null;
         }
         return DefaultFailure.fromThrowable(ex);
