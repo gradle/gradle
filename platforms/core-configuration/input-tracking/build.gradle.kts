@@ -4,6 +4,12 @@ plugins {
 
 description = "Configuration input discovery code"
 
+errorprone {
+    disabledChecks.addAll(
+        "HashtableContains",
+    )
+}
+
 dependencies {
     api(libs.jsr305)
     api(libs.guava)

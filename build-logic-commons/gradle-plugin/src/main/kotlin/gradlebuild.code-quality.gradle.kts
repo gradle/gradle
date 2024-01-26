@@ -48,8 +48,10 @@ errorproneExtension.disabledChecks.addAll(
     "MissingSummary", // We have another mechanism to check Javadocs on public API
     "InjectOnConstructorOfAbstractClass", // We use abstract injection as a pattern
     "JavaxInjectOnAbstractMethod", // We use abstract injection as a pattern
+    "JavaUtilDate", // We are fine with using Date
 
     // PROJECT
+    "BoxedPrimitiveEquality",
     "UnusedMethod",
     "StringCaseLocaleUsage",
     "UnusedVariable",
