@@ -1,4 +1,5 @@
 import groovy.lang.GroovySystem
+import net.ltgt.gradle.errorprone.errorprone
 import org.gradle.util.internal.VersionNumber
 
 /*
@@ -26,6 +27,18 @@ plugins {
 
 dependencies {
     errorprone("com.google.errorprone:error_prone_core:2.24.1")
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.errorprone {
+        disableWarningsInGeneratedCode = true
+        allErrorsAsWarnings = true
+    }
+}
+
+// Temporarily disable incremental compilation to Make Error Prone work
+tasks.withType<GroovyCompile>().configureEach {
+    options.isIncremental = false
 }
 
 val codeQuality = tasks.register("codeQuality") {
