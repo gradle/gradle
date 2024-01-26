@@ -37,9 +37,6 @@ open class ErrorProneSourceSetExtension(
 
 val errorproneExtension = project.extensions.create<ErrorProneProjectExtension>("errorprone", project.objects.listProperty<String>())
 errorproneExtension.disabledChecks.addAll(
-    // TODO
-    "MissingOverride", // Let's fix this today
-
     // DISCUSS
     "EqualsGetClass", // Let's agree if we want to adopt Error Prone's idea of valid equals()
     "JdkObsolete", // Most of the checks are good, but we do not want to replace all LinkedLists without a good reason
