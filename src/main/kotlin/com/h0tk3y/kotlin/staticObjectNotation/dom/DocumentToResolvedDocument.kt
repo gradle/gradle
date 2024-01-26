@@ -88,7 +88,7 @@ private class DocumentResolver(
 
                     is FunctionSemantics.NewObjectFunctionSemantics -> {
                         DocumentResolution.ElementResolution.SuccessfulElementResolution.ContainerElementResolved(
-                            typeRefContext.resolveRef((semantics as? FunctionSemantics.ConfigureSemantics)?.configuredType ?: semantics.returnValueType) as DataType.DataClass, // TODO: other types?
+                            typeRefContext.resolveRef((semantics as? FunctionSemantics.ConfigureSemantics)?.configuredType ?: semantics.returnValueType),
                             function as SchemaMemberFunction,
                             false // TODO: produce proper key markers
                         )

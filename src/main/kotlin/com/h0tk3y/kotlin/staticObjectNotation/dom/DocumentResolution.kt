@@ -34,14 +34,14 @@ sealed interface DocumentResolution {
 
     sealed interface ElementResolution : DocumentResolution {
         sealed interface SuccessfulElementResolution : ElementResolution, SuccessfulResolution {
-            val elementType: DataType.DataClass
+            val elementType: DataType
 
             data class PropertyConfiguringElementResolved(
                 override val elementType: DataType.DataClass
             ) : SuccessfulElementResolution
 
             data class ContainerElementResolved(
-                override val elementType: DataType.DataClass,
+                override val elementType: DataType,
                 val elementFactoryFunction: SchemaMemberFunction,
                 val isKeyArguments: Boolean
             ) : SuccessfulElementResolution
