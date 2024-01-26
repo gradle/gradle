@@ -11,10 +11,32 @@ description = """This project contains most of the dependency management logic o
 
 errorprone {
     disabledChecks.addAll(
-        "MathAbsoluteNegative",
+        "AmbiguousMethodReference", // 1 occurrences
         "ClassCanBeStatic",
+        "EmptyBlockTag", // 2 occurrences
+        "IdentityHashMapUsage", // 2 occurrences
+        "InconsistentCapitalization", // 2 occurrences
+        "InlineFormatString", // 5 occurrences
+        "InlineMeSuggester", // 2 occurrences
+        "InvalidParam", // 1 occurrences
+        "LoopOverCharArray", // 1 occurrences
+        "MathAbsoluteNegative",
+        "MissingCasesInEnumSwitch", // 7 occurrences
+        "MixedMutabilityReturnType", // 5 occurrences
+        "NonApiType", // 3 occurrences
+        "NonCanonicalType", // 3 occurrences
+        "ObjectEqualsForPrimitives", // 3 occurrences
+        "ReferenceEquality", // 10 occurrences
+        "StreamResourceLeak", // 1 occurrences
+        "StringCaseLocaleUsage", // 3 occurrences
+        "StringCharset", // 1 occurrences
+        "StringSplitter", // 4 occurrences
+        "TypeParameterShadowing", // 4 occurrences
+        "UnusedMethod", // 34 occurrences
+        "UnusedVariable", // 6 occurrences
     )
 }
+
 
 dependencies {
     api(project(":base-annotations"))
