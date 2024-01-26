@@ -17,35 +17,53 @@
 package org.gradle.jvm.toolchain.internal.install;
 
 import com.google.common.io.Files;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.tools.bzip2.CBZip2InputStream;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.tasks.bundling.Compression;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import org.gradle.initialization.GradleUserHomeDirProvider;
+import org.gradle.internal.file.PathTraversalChecker;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.JvmInstallationMetadataMatcher;
+import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.zip.GZIPInputStream;
+
+import static java.lang.String.format;
 
 public class JdkCacheDirectory {
 
@@ -141,10 +159,7 @@ public class JdkCacheDirectory {
             operations.delete(installFolder[0]);
 
             //copy content of unpack folder to install folder, including the marker file
-            operations.copy(copySpec -> {
-                copySpec.from(unpackFolder[0]);
-                copySpec.into(installFolder[0]);
-            });
+            copyDirectoryWithSymlinks(unpackFolder[0].toPath(), installFolder[0].toPath());
 
             LOGGER.info("Installed toolchain from {} into {}", uri, installFolder[0]);
             return getJavaHome(markedLocation(installFolder[0]));
@@ -159,6 +174,34 @@ public class JdkCacheDirectory {
             if (unpackFolder[0] != null) {
                 operations.delete(unpackFolder[0]);
             }
+        }
+    }
+
+
+    public void copyDirectoryWithSymlinks(Path sourcePath, Path targetPath) {
+        try {
+            java.nio.file.Files.walkFileTree(sourcePath, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                    Path targetDir = targetPath.resolve(sourcePath.relativize(dir));
+                    java.nio.file.Files.createDirectories(targetDir);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Path newLocation = targetPath.resolve(sourcePath.relativize(file));
+                    if (attrs.isSymbolicLink()) {
+                        Path symlinkTarget = java.nio.file.Files.readSymbolicLink(file);
+                        java.nio.file.Files.createSymbolicLink(newLocation, symlinkTarget);
+                    } else {
+                        java.nio.file.Files.copy(file, newLocation, StandardCopyOption.COPY_ATTRIBUTES);
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -227,18 +270,22 @@ public class JdkCacheDirectory {
     }
 
     private File unpack(File jdkArchive) {
-        final FileTree fileTree = asFileTree(jdkArchive);
         String unpackFolderName = getNameWithoutExtension(jdkArchive);
         final File unpackFolder = new File(jdkDirectory, unpackFolderName);
         if (!unpackFolder.exists()) {
-            operations.copy(spec -> {
-                spec.from(fileTree);
-                spec.into(unpackFolder);
-                spec.setDuplicatesStrategy(DuplicatesStrategy.WARN);
-            });
+            unpack(jdkArchive, unpackFolder);
         }
 
         return unpackFolder;
+    }
+
+    private void unpack(File jdkArchive, File unpackFolder) {
+        final String extension = FilenameUtils.getExtension(jdkArchive.getName());
+        if (Objects.equals(extension, "zip")) {
+            unzip(jdkArchive, unpackFolder);
+        } else {
+            untar(jdkArchive, unpackFolder);
+        }
     }
 
     private File markedLocation(File unpackFolder) {
@@ -275,6 +322,69 @@ public class JdkCacheDirectory {
             return operations.zipTree(jdkArchive);
         }
         return operations.tarTree(operations.getResources().gzip(jdkArchive));
+    }
+
+    private void unzip(File jdkZipArchive, File targetFolder) {
+        try (ZipFile zip = new ZipFile(jdkZipArchive)) {
+            Enumeration<ZipArchiveEntry> entries = zip.getEntries();
+            while (entries.hasMoreElements()) {
+                ZipArchiveEntry entry = entries.nextElement();
+                File targetFile = new File(targetFolder, PathTraversalChecker.safePathName(entry.getName()));
+                if (entry.isDirectory()) {
+                    GFileUtils.mkdirs(targetFile);
+                } else if (entry.isUnixSymlink()) {
+                    String target = zip.getUnixSymlink(entry);
+                    java.nio.file.Files.createSymbolicLink(targetFile.toPath(), Paths.get(target));
+                } else {
+                    GFileUtils.mkdirs(targetFile.getParentFile());
+                    try (InputStream inputStream = zip.getInputStream(entry)) {
+                        java.nio.file.Files.copy(inputStream, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    }
+                }
+            }
+        } catch (GradleException e) {
+            throw e; // Gradle exceptions are already meant to be human-readable, so just rethrow it
+        } catch (Exception e) {
+            throw new GradleException(format("Cannot expand %s.", jdkZipArchive), e);
+        }
+    }
+
+    private void untar(File jdkTarArchive, File targetFolder) {
+        try (TarArchiveInputStream tar = new TarArchiveInputStream(maybeUncompressInputStream(jdkTarArchive))) {
+            TarArchiveEntry entry;
+            while ((entry = (TarArchiveEntry) tar.getNextEntry()) != null) {
+                File targetFile = new File(targetFolder, PathTraversalChecker.safePathName(entry.getName()));
+                if (entry.isDirectory()) {
+                    GFileUtils.mkdirs(targetFile);
+                } else if (entry.isSymbolicLink()) {
+                    String target = entry.getLinkName();
+                    java.nio.file.Files.createSymbolicLink(targetFile.toPath(), Paths.get(target));
+                } else {
+                    GFileUtils.mkdirs(targetFile.getParentFile());
+                    java.nio.file.Files.copy(tar, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        } catch (GradleException e) {
+            throw e; // Gradle exceptions are already meant to be human-readable, so just rethrow it
+        } catch (Exception e) {
+            throw new GradleException(format("Cannot expand %s.", jdkTarArchive), e);
+        }
+    }
+
+    InputStream maybeUncompressInputStream(File inputFile) throws IOException {
+        InputStream inputStream = java.nio.file.Files.newInputStream(inputFile.toPath());
+        String ext = FilenameUtils.getExtension(inputFile.getName());
+        if (Compression.BZIP2.getSupportedExtensions().contains(ext)) {
+            // CBZip2InputStream expects the opening "BZ" to be skipped
+            byte[] skip = new byte[2];
+            inputStream.read(skip);
+            return new CBZip2InputStream(inputStream);
+        } else if (Compression.GZIP.getSupportedExtensions().contains(ext)) {
+            return new GZIPInputStream(inputStream);
+        } else {
+            // Unrecognized extension
+            return inputStream;
+        }
     }
 
     public FileLock acquireWriteLock(File destinationFile, String operationName) {

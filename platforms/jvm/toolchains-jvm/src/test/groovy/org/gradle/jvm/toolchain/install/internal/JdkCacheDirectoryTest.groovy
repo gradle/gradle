@@ -38,7 +38,6 @@ import org.gradle.jvm.toolchain.internal.InstallationLocation
 import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory
 import org.gradle.util.internal.Resources
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -141,7 +140,6 @@ class JdkCacheDirectoryTest extends Specification {
         new File(installedJdk, "file").exists()
     }
 
-    @Ignore
     def "provisions jdk from tar.gz archive with MacOS symlinks"() {
         def jdkArchive = resources.getResource("jdk-with-symlinks.tar.gz")
         def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector())
@@ -151,7 +149,7 @@ class JdkCacheDirectoryTest extends Specification {
 
         then:
         installedJdk.exists()
-        new File(installedJdk, "jdk-with-symlinks/bin/file").exists()
+        new File(installedJdk, "bin/file").exists()
 
         //TODO: completely wrong; the uncompressed archive should look like this:
         // .
