@@ -7,6 +7,14 @@ description = "Asciidoctor extensions that work with all backends"
 
 val asciiDoctorVersion = "2.4.3"
 
+errorprone {
+    disabledChecks.addAll(
+        "DefaultCharset", // 1 occurrences
+        "OperatorPrecedence", // 1 occurrences
+        "StringCaseLocaleUsage", // 1 occurrences
+    )
+}
+
 dependencies {
     api("org.asciidoctor:asciidoctorj-api:$asciiDoctorVersion")
     api("org.asciidoctor:asciidoctorj:$asciiDoctorVersion")

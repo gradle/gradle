@@ -21,6 +21,13 @@ plugins {
 
 description = "Adds support for using JVM toolchains in projects"
 
+errorprone {
+    disabledChecks.addAll(
+        "StringCaseLocaleUsage", // 2 occurrences
+        "UnnecessaryLambda", // 2 occurrences
+    )
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":core"))
