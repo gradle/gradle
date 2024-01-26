@@ -40,7 +40,7 @@ include::sample[dir="snippets/workerApi/md5CustomTask/groovy",files="buildSrc/bu
 <1> Your custom task class will use https://commons.apache.org/proper/commons-codec/[Apache Commons Codec] to generate MD5 hashes.
 
 TIP: If you are not familiar with `buildSrc`, this is a special directory that allows you to define and build custom classes that should be available for use in your build script.
-See <<multi_project_builds.adoc#sec:multiproject_buildsrc,the section on organizing build logic>> for further information.
+See <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,the section on organizing build logic>> for further information.
 
 Now, create a custom task class in your `buildSrc/src/main/java` directory.
 You should name this class `CreateMD5`.
