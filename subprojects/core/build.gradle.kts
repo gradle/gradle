@@ -35,6 +35,7 @@ val testInterceptorsImplementation: Configuration by configurations.getting {
 errorprone {
     disabledChecks.addAll(
         "BadImport", // 3 occurrences
+        "BoxedPrimitiveEquality", // 3 occurrences
         "DefaultCharset", // 4 occurrences
         "EmptyBlockTag", // 4 occurrences
         "Finally", // 1 occurrences
@@ -45,14 +46,18 @@ errorprone {
         "InlineFormatString", // 2 occurrences
         "InlineMeSuggester", // 1 occurrences
         "InvalidBlockTag", // 1 occurrences
+        "InvalidInlineTag", // 1 occurrences
         "InvalidLink", // 2 occurrences
+        "MissingCasesInEnumSwitch", // 1 occurrences
         "MixedMutabilityReturnType", // 1 occurrences
         "ModifyCollectionInEnhancedForLoop", // 1 occurrences
         "MutablePublicArray", // 2 occurrences
         "NonApiType", // 1 occurrences
+        "NonCanonicalType", // 16 occurrences
         "NotJavadoc", // 1 occurrences
         "OperatorPrecedence", // 5 occurrences
         "OptionalMapUnusedValue", // 1 occurrences
+        "ProtectedMembersInFinalClass", // 1 occurrences
         "ReferenceEquality", // 2 occurrences
         "ReturnValueIgnored", // 1 occurrences
         "SameNameButDifferent", // 11 occurrences
@@ -61,6 +66,8 @@ errorprone {
         "StringSplitter", // 2 occurrences
         "TypeParameterShadowing", // 1 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences
+        "UndefinedEquals", // 1 occurrences
+        "UnnecessaryLambda", // 1 occurrences
         "UnnecessaryParentheses", // 1 occurrences
         "UnrecognisedJavadocTag", // 1 occurrences
         "UnusedMethod", // 18 occurrences

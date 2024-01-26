@@ -16,7 +16,6 @@ errorprone {
         "ReferenceEquality", // 2 occurrences
         "StringCharset", // 1 occurrences
         "UnusedMethod", // 1 occurrences
-        "dep-ann", // 2 occurrences
     )
 }
 
