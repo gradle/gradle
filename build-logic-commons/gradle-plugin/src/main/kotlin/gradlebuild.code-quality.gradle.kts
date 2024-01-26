@@ -1,6 +1,8 @@
 import groovy.lang.GroovySystem
+import net.ltgt.gradle.errorprone.CheckSeverity
 import net.ltgt.gradle.errorprone.errorprone
 import org.gradle.util.internal.VersionNumber
+import java.util.stream.Collectors
 
 /*
  * Copyright 2022 the original author or authors.
@@ -25,8 +27,113 @@ plugins {
     id("net.ltgt.errorprone")
 }
 
+open class ErrorProneProjectExtension(
+    val disabledChecks: ListProperty<String>
+)
+
 open class ErrorProneSourceSetExtension(
     val enabled: Property<Boolean>
+)
+
+val errorproneExtension = project.extensions.create<ErrorProneProjectExtension>("errorprone", project.objects.listProperty<String>())
+errorproneExtension.disabledChecks.addAll(
+    // TODO
+    "MissingOverride", // Let's fix this today
+
+    // DISCUSS
+    "EqualsGetClass", // Let's agree if we want to adopt Error Prone's idea of valid equals()
+    "JdkObsolete", // Most of the checks are good, but we do not want to replace all LinkedLists without a good reason
+
+    // NEVER
+    "MissingSummary", // We have another mechanism to check Javadocs on public API
+    "InjectOnConstructorOfAbstractClass", // We use abstract injection as a pattern
+    "JavaxInjectOnAbstractMethod", // We use abstract injection as a pattern
+
+    // PROJECT
+    "UnusedMethod",
+    "StringCaseLocaleUsage",
+    "UnusedVariable",
+    "DefaultCharset",
+    "SameNameButDifferent",
+    "MixedMutabilityReturnType",
+    "UnsynchronizedOverridesSynchronized",
+    "ReferenceEquality",
+    "StringSplitter",
+    "EmptyBlockTag",
+    "NotJavadoc",
+    "OperatorPrecedence",
+    "OverridingMethodInconsistentArgumentNamesChecker",
+    "UnnecessaryParentheses",
+    "ImmutableEnumChecker",
+    "InlineMeInliner",
+    "InlineMeSuggester",
+    "LockNotBeforeTry",
+    "NonApiType",
+    "ThreadLocalUsage",
+    "BadImport",
+    "UnnecessaryLambda",
+    "FutureReturnValueIgnored",
+    "TypeParameterUnusedInFormals",
+    "DoNotClaimAnnotations",
+    "InlineFormatString",
+    "StreamResourceLeak",
+    "MissingCasesInEnumSwitch",
+    "ReturnValueIgnored",
+    "StringCharset",
+    "GetClassOnEnum",
+    "HidingField",
+    "ObjectEqualsForPrimitives",
+    "TypeParameterShadowing",
+    "URLEqualsHashCode",
+    "EqualsUnsafeCast",
+    "IdentityHashMapUsage",
+    "NonCanonicalType",
+    "AnnotateFormatMethod",
+    "Finally",
+    "InvalidInlineTag",
+    "MalformedInlineTag",
+    "NonAtomicVolatileUpdate",
+    "ShortCircuitBoolean",
+    "UndefinedEquals",
+    "UnusedTypeParameter",
+    "AlreadyChecked",
+    "CatchAndPrintStackTrace",
+    "CheckReturnValue",
+    "DateFormatConstant",
+    "DefaultPackage",
+    "DoubleBraceInitialization",
+    "InconsistentCapitalization",
+    "InvalidParam",
+    "JavaLangClash",
+    "LoopOverCharArray",
+    "NullableOptional",
+    "OverridesJavaxInjectableMethod",
+    "ProtectedMembersInFinalClass",
+    "SuperCallToObjectMethod",
+    "UnnecessaryCheckNotNull",
+    "UnnecessaryTypeArgument",
+    "UnrecognisedJavadocTag",
+    "dep-ann",
+    "AmbiguousMethodReference",
+    "BadInstanceof",
+    "EmptyTopLevelDeclaration",
+    "EscapedEntity",
+    "FormatString",
+    "GetClassOnClass",
+    "InputStreamSlowMultibyteRead",
+    "InvalidBlockTag",
+    "InvalidLink",
+    "JavaTimeDefaultTimeZone",
+    "ModifiedButNotUsed",
+    "ModifyCollectionInEnhancedForLoop",
+    "MutablePublicArray",
+    "NarrowCalculation",
+    "NullableVoid",
+    "OptionalMapUnusedValue",
+    "StaticAssignmentInConstructor",
+    "ThreadPriorityCheck",
+    "UnnecessaryStringBuilder",
+    "WaitNotInLoop",
 )
 
 project.plugins.withType<JavaBasePlugin> {
@@ -44,6 +151,12 @@ project.plugins.withType<JavaBasePlugin> {
         project.tasks.named<JavaCompile>(this.compileJavaTaskName) {
             options.errorprone {
                 isEnabled = extension.enabled
+                checks.set(errorproneExtension.disabledChecks.map {
+                    it.stream().collect(Collectors.toMap(
+                        { check -> check },
+                        { _ -> CheckSeverity.OFF }
+                    ))
+                })
             }
         }
     }
