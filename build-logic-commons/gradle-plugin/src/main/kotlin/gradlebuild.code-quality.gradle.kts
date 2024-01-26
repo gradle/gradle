@@ -25,8 +25,26 @@ plugins {
     id("net.ltgt.errorprone")
 }
 
+open class ErrorProneSourceSetExtension(
+    val enabled : Property<Boolean>
+)
+
+val errorproneAnnotationProcessor = configurations.create("errorproneAnnotationProcessor")
+
 dependencies {
-    errorprone("com.google.errorprone:error_prone_core:2.24.1")
+    errorproneAnnotationProcessor("com.google.errorprone:error_prone_core:2.24.1")
+}
+
+project.plugins.withType<JavaBasePlugin> {
+    project.extensions.getByName<SourceSetContainer>("sourceSets").configureEach {
+        val extension = this.extensions.create<ErrorProneSourceSetExtension>("errorprone", project.objects.property<Boolean>())
+        extension.enabled.convention(true)
+        project.afterEvaluate {
+            if (extension.enabled.get()) {
+                project.configurations[annotationProcessorConfigurationName].extendsFrom(errorproneAnnotationProcessor)
+            }
+        }
+    }
 }
 
 tasks.withType<JavaCompile>().configureEach {
@@ -34,11 +52,6 @@ tasks.withType<JavaCompile>().configureEach {
         disableWarningsInGeneratedCode = true
         allErrorsAsWarnings = true
     }
-}
-
-// Temporarily disable incremental compilation to Make Error Prone work
-tasks.withType<GroovyCompile>().configureEach {
-    options.isIncremental = false
 }
 
 val codeQuality = tasks.register("codeQuality") {
