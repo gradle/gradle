@@ -54,6 +54,7 @@ public class PlaceholderException extends RuntimeException implements Placeholde
         return super.getMessage();
     }
 
+    @Override
     public String toString() {
         if (toStringRuntimeEx != null) {
             throw UncheckedException.throwAsUncheckedException(toStringRuntimeEx);

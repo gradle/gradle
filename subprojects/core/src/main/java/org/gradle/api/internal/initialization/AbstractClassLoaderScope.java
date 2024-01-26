@@ -47,6 +47,7 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
     /**
      * Unique identifier of this scope in the hierarchy.
      */
+    @Override
     public ClassLoaderScopeId getId() {
         return id;
     }

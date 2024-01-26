@@ -72,6 +72,7 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
 //        this.exception = exception;
     }
 
+    @Override
     public ProblemCategory getCategory() {
         return category;
     }

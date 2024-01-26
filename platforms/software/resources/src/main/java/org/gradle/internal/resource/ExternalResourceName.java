@@ -61,6 +61,7 @@ public class ExternalResourceName implements Describable {
         this.encodedQuery = encodedQuery;
     }
 
+    @Override
     public String getDisplayName() {
         return getDisplayable();
     }
