@@ -113,6 +113,7 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
     }
 
     @Nullable
+    @Override
     public FailureContainer getFailure() {
         return exception;
     }
