@@ -16,17 +16,18 @@
 
 package org.gradle.api.internal.tasks.userinput
 
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
 
 class NonInteractiveUserInputHandlerTest extends Specification {
     @Subject
-    def userInputHandler = new NonInteractiveUserInputHandler()
+    def userInputHandler = new NonInteractiveUserInputHandler(TestUtil.providerFactory())
 
     def "always returns null for yes/no question"() {
         expect:
         !userInputHandler.askYesNoQuestion('Accept license?')
-        !userInputHandler.askUser {it.askYesNoQuestion('Accept license?') }
+        !userInputHandler.askUser {it.askYesNoQuestion('Accept license?') }.getOrNull()
     }
 
     def "always returns default for select question"() {

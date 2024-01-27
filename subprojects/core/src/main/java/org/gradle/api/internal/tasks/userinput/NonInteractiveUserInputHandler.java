@@ -16,18 +16,27 @@
 
 package org.gradle.api.internal.tasks.userinput;
 
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
+
 import java.util.Collection;
 import java.util.function.Function;
 
 public class NonInteractiveUserInputHandler implements UserInputHandler, UserQuestions {
-    @Override
-    public Boolean askYesNoQuestion(String question) {
-        return null;
+    private final ProviderFactory providerFactory;
+
+    public NonInteractiveUserInputHandler(ProviderFactory providerFactory) {
+        this.providerFactory = providerFactory;
     }
 
     @Override
-    public <T> T askUser(Function<? super UserQuestions, ? extends T> interaction) {
-        return interaction.apply(this);
+    public <T> Provider<T> askUser(Function<? super UserQuestions, ? extends T> interaction) {
+        return providerFactory.provider(() -> interaction.apply(this));
+    }
+
+    @Override
+    public Boolean askYesNoQuestion(String question) {
+        return null;
     }
 
     @Override

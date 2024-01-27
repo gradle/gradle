@@ -20,6 +20,8 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Transformer;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.PromptOutputEvent;
 import org.gradle.internal.logging.events.UserInputRequestEvent;
@@ -41,23 +43,27 @@ public class DefaultUserInputHandler implements UserInputHandler {
     private final OutputEventListener outputEventBroadcaster;
     private final Clock clock;
     private final UserInputReader userInputReader;
+    private final ProviderFactory providerFactory;
     private final AtomicBoolean hasAsked = new AtomicBoolean();
     private final AtomicBoolean interrupted = new AtomicBoolean();
 
-    public DefaultUserInputHandler(OutputEventListener outputEventBroadcaster, Clock clock, UserInputReader userInputReader) {
+    public DefaultUserInputHandler(OutputEventListener outputEventBroadcaster, Clock clock, UserInputReader userInputReader, ProviderFactory providerFactory) {
         this.outputEventBroadcaster = outputEventBroadcaster;
         this.clock = clock;
         this.userInputReader = userInputReader;
+        this.providerFactory = providerFactory;
     }
 
     @Override
-    public <T> T askUser(Function<? super UserQuestions, ? extends T> interaction) {
-        DefaultUserQuestions userPrompts = new DefaultUserQuestions();
-        try {
-            return interaction.apply(userPrompts);
-        } finally {
-            userPrompts.finish();
-        }
+    public <T> Provider<T> askUser(Function<? super UserQuestions, ? extends T> interaction) {
+        return providerFactory.provider(() -> {
+            DefaultUserQuestions userPrompts = new DefaultUserQuestions();
+            try {
+                return interaction.apply(userPrompts);
+            } finally {
+                userPrompts.finish();
+            }
+        });
     }
 
     @Override

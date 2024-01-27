@@ -29,36 +29,46 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
     private static final int INTERACTIVE_WAIT_TIME_SECONDS = 60
     private static final List<Boolean> VALID_BOOLEAN_CHOICES = [false, true]
     private static final String YES_NO_PROMPT = "thing? [yes, no]"
-    private static final String YES_NO_PROMPT_WITH_DEFAULT = "thing? (default: yes) [yes, no]"
+    private static final String BOOLEAN_PROMPT = "thing? (default: yes) [yes, no]"
+    private static final String INT_PROMPT = "thing? (min: 2, default: 3)"
     private static final String SELECT_PROMPT = "select thing:"
 
     def setup() {
         buildFile << """
+            def handler = services.get(${UserInputHandler.name})
+
             task askYesNo {
+                def result = handler.askUser { it.askYesNoQuestion("thing?") }
                 doLast {
-                    def handler = services.get(${UserInputHandler.name})
-                    println "result = " + handler.askUser { it.askYesNoQuestion("thing?") }
+                    println "result = " + result.getOrElse("<default>")
                 }
             }
 
-            task askYesNoWithDefault {
+            task askBoolean {
+                def result = handler.askUser { it.askBooleanQuestion("thing?", true) }
                 doLast {
-                    def handler = services.get(${UserInputHandler.name})
-                    println "result = " + handler.askUser { it.askBooleanQuestion("thing?", true) }
+                    println "result = " + result.get()
+                }
+            }
+
+            task askInt {
+                def result = handler.askUser { it.askIntQuestion("thing?", 2, 3) }
+                doLast {
+                    println "result = " + result.get()
                 }
             }
 
             task selectOption {
+                def result = handler.askUser { it.selectOption("select thing", ["a", "b", "c"], "b") }
                 doLast {
-                    def handler = services.get(${UserInputHandler.name})
-                    println "result = " + handler.askUser { it.selectOption("select thing", ["a", "b", "c"], "b") }
+                    println "result = " + result.get()
                 }
             }
 
             task ask {
+                def result = handler.askUser { it.askQuestion("what?", "thing") }
                 doLast {
-                    def handler = services.get(${UserInputHandler.name})
-                    println "result = " + handler.askUser { it.askQuestion("what?", "thing") }
+                    println "result = " + result.get()
                 }
             }
         """
@@ -96,7 +106,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         writeToStdInAndClose(gradleHandle, EOF)
         gradleHandle.waitForFinish()
         gradleHandle.standardOutput.contains(YES_NO_PROMPT)
-        gradleHandle.standardOutput.contains("result = null")
+        gradleHandle.standardOutput.contains("result = <default>")
 
         where:
         richConsole << VALID_BOOLEAN_CHOICES
@@ -181,20 +191,20 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         then:
         gradleHandle.waitForFinish()
         !gradleHandle.standardOutput.contains(YES_NO_PROMPT)
-        gradleHandle.standardOutput.contains("result = null")
+        gradleHandle.standardOutput.contains("result = <default>")
     }
 
-    def "can ask yes/no with default and handle valid input '#stdin' in interactive build"() {
+    def "can ask boolean question and handle valid input '#stdin' in interactive build"() {
         given:
         interactiveExecution()
 
         when:
-        def gradleHandle = executer.withTasks("askYesNoWithDefault").start()
+        def gradleHandle = executer.withTasks("askBoolean").start()
 
         then:
         writeToStdInAndClose(gradleHandle, stdin)
         gradleHandle.waitForFinish()
-        gradleHandle.standardOutput.contains(YES_NO_PROMPT_WITH_DEFAULT)
+        gradleHandle.standardOutput.contains(BOOLEAN_PROMPT)
         gradleHandle.standardOutput.contains("result = $accepted")
 
         where:
@@ -204,16 +214,16 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         ""    | true
     }
 
-    def "can ask yes/no with default and handle invalid input in interactive build"() {
+    def "can ask boolean question and handle invalid input in interactive build"() {
         given:
         interactiveExecution()
 
         when:
-        def gradleHandle = executer.withTasks("askYesNoWithDefault").start()
+        def gradleHandle = executer.withTasks("askBoolean").start()
 
         then:
         poll(INTERACTIVE_WAIT_TIME_SECONDS) {
-            assert gradleHandle.standardOutput.contains(YES_NO_PROMPT_WITH_DEFAULT)
+            assert gradleHandle.standardOutput.contains(BOOLEAN_PROMPT)
         }
         gradleHandle.stdinPipe.write(input.bytes)
         gradleHandle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
@@ -230,14 +240,34 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         "false"  | _
     }
 
-    def "does not request user input prompt for yes/no question with default in non-interactive build"() {
+    def "does not request user input prompt for boolean question in non-interactive build"() {
         when:
-        def gradleHandle = executer.withTasks("askYesNoWithDefault").start()
+        def gradleHandle = executer.withTasks("askBoolean").start()
 
         then:
         gradleHandle.waitForFinish()
-        !gradleHandle.standardOutput.contains(YES_NO_PROMPT_WITH_DEFAULT)
+        !gradleHandle.standardOutput.contains(BOOLEAN_PROMPT)
         gradleHandle.standardOutput.contains("result = true")
+    }
+
+    def "can ask int question and handle valid input '#stdin' in interactive build"() {
+        given:
+        interactiveExecution()
+
+        when:
+        def gradleHandle = executer.withTasks("askInt").start()
+
+        then:
+        writeToStdInAndClose(gradleHandle, stdin)
+        gradleHandle.waitForFinish()
+        gradleHandle.standardOutput.contains(INT_PROMPT)
+        gradleHandle.standardOutput.contains("result = $accepted")
+
+        where:
+        stdin | accepted
+        "2"   | 2
+        "34"  | 34
+        ""    | 3
     }
 
     def "can select option in interactive build [rich console: #richConsole]"() {

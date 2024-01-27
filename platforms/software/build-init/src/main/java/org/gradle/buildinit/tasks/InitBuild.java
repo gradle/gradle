@@ -255,7 +255,7 @@ public abstract class InitBuild extends DefaultTask {
     @TaskAction
     public void setupProjectLayout() {
         UserInputHandler inputHandler = getEffectiveInputHandler();
-        GenerationSettings settings = inputHandler.askUser(this::calculateGenerationSettings);
+        GenerationSettings settings = inputHandler.askUser(this::calculateGenerationSettings).get();
 
         boolean userInterrupted = inputHandler.interrupted();
         if (userInterrupted) {
@@ -334,7 +334,7 @@ public abstract class InitBuild extends DefaultTask {
 
     private UserInputHandler getEffectiveInputHandler() {
         if (getUseDefaults().get()) {
-            return new NonInteractiveUserInputHandler();
+            return new NonInteractiveUserInputHandler(getProviderFactory());
         }
 
         return getUserInputHandler();

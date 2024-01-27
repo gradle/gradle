@@ -22,6 +22,7 @@ import org.gradle.internal.logging.events.PromptOutputEvent
 import org.gradle.internal.logging.events.UserInputRequestEvent
 import org.gradle.internal.logging.events.UserInputResumeEvent
 import org.gradle.internal.time.Clock
+import org.gradle.util.TestUtil
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 import spock.lang.Subject
@@ -33,19 +34,7 @@ class DefaultUserInputHandlerTest extends Specification {
     def userInputReader = Mock(UserInputReader)
     def clock = Mock(Clock)
     @Subject
-    def userInputHandler = new DefaultUserInputHandler(outputEventBroadcaster, clock, userInputReader)
-
-    def "does not update UI when no question is asked"() {
-        when:
-        def input = ask { 12 }
-
-        then:
-        input == 12
-
-        and:
-        0 * outputEventBroadcaster._
-        0 * userInputHandler._
-    }
+    def userInputHandler = new DefaultUserInputHandler(outputEventBroadcaster, clock, userInputReader, TestUtil.providerFactory())
 
     def "ask required yes/no question"() {
         when:
@@ -499,8 +488,78 @@ Enter selection (default: 11!) [1..3] """)
         input == ["thing", "value"]
     }
 
+    def "does not update UI when no question is asked during interaction"() {
+        when:
+        def input = ask { 12 }
+
+        then:
+        input == 12
+
+        and:
+        0 * outputEventBroadcaster._
+        0 * userInputHandler._
+    }
+
+    def "user is prompted lazily when provider value is queried"() {
+        when:
+        def input = userInputHandler.askUser { it.askQuestion("thing?", "value") }
+
+        then:
+        0 * outputEventBroadcaster._
+        0 * userInputHandler._
+
+        when:
+        def result = input.get()
+
+        then:
+        1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "thing? (default: value):" }
+        1 * userInputReader.readInput() >> ""
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
+        0 * outputEventBroadcaster._
+        0 * userInputHandler._
+
+        and:
+        result == "value"
+    }
+
+    def "can ask multiple questions in several interaction"() {
+        when:
+        def input1 = ask { it.askQuestion("enter value", "value") }
+
+        then:
+        1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "enter value (default: value):" }
+        1 * userInputReader.readInput() >> "thing"
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
+        0 * outputEventBroadcaster._
+        0 * userInputHandler._
+
+        and:
+        input1 == "thing"
+
+        when:
+        def input2 = ask { it.askQuestion("enter value", "value") }
+
+        then:
+        1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "enter value (default: value):" }
+        1 * userInputReader.readInput() >> ""
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
+        0 * outputEventBroadcaster._
+        0 * userInputHandler._
+
+        and:
+        input2 == "value"
+    }
+
     <T> T ask(Closure<T> action) {
-        return userInputHandler.askUser(action)
+        return userInputHandler.askUser(action).getOrNull()
     }
 
 }

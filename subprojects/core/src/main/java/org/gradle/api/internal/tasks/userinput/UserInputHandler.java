@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.userinput;
 
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
@@ -31,13 +32,13 @@ public interface UserInputHandler {
     @Nullable
     @UsedByScanPlugin
     default Boolean askYesNoQuestion(String question) {
-        return askUser(interaction -> interaction.askYesNoQuestion(question));
+        return askUser(interaction -> interaction.askYesNoQuestion(question)).get();
     }
 
     /**
      * Ask the user one or more questions to produce a value of type {@link T}.
      */
-    <T> T askUser(Function<? super UserQuestions, ? extends T> interaction);
+    <T> Provider<T> askUser(Function<? super UserQuestions, ? extends T> interaction);
 
     /**
      * Return true if the user input has been interrupted, e.g. via Ctrl+C or some interaction with the client UI.
