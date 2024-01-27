@@ -407,7 +407,7 @@ Such included builds will inherit the build cache configuration from the top lev
 The build cache configuration present for any included build is effectively ignored, in favour of the top level build's configuration.
 This also applies to any `buildSrc` projects of any included builds.
 
-The <<multi_project_builds.adoc#sec:multiproject_buildsrc,`buildSrc` directory>> is treated as an <<composite_builds.adoc#composite_build_intro,included build>>, and as such it inherits the build cache configuration from the top-level build.
+The <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,`buildSrc` directory>> is treated as an <<composite_builds.adoc#composite_build_intro,included build>>, and as such it inherits the build cache configuration from the top-level build.
 
 NOTE: This configuration precedence does not apply to <<composite_builds.adoc#included_plugin_builds,plugin builds>> included through `pluginManagement` as these are loaded _before_ the cache configuration itself.
 
