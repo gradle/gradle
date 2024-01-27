@@ -3160,6 +3160,7 @@ div.screenshot {
 }
 
 .site-header__navigation {
+    z-index: 2;
 	display: flex;
 	flex-direction: column;
 }
@@ -3319,7 +3320,7 @@ div.screenshot {
 		-webkit-box-shadow: 0 2px 4px 0 var(--box-shadow-color);
 		-moz-box-shadow: 0 2px 4px 0 var(--box-shadow-color);
 		box-shadow: 0 2px 4px 0 var(--box-shadow-color);
-		z-index: 1;
+		z-index: 2;
 	}
 
 	.dark-mode {
@@ -3327,7 +3328,7 @@ div.screenshot {
 			-webkit-box-shadow: none;
 			-moz-box-shadow: none;
 			box-shadow: none;
-			z-index: 1;
+			z-index: 2;
 		}
 	}
 
@@ -4102,6 +4103,7 @@ div.screenshot {
 		right: 0;
 		top: 65px;
 		width: 260px;
+		z-index: 1;
 		overflow: auto;
 		border-radius: 0 0 5px 0;
 		max-height: calc(100% - 118px);
