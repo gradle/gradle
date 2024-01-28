@@ -94,7 +94,7 @@ class ExtractSymbolsIntegrationTest extends AbstractInstalledToolChainIntegratio
         executedAndNotSkipped":extractSymbolsDebug"
         // clang 11: [greeter.cpp, renamed-sum.cpp, main.cpp]
         // clang 14: ['greeter.cpp', 'std', '__ioinit', 'ios_base', 'Init', '__exception_ptr', 'exception_ptr', 'rethrow_exception', '__debug' ...]
-        fixture("build/symbols").assertHasDebugSymbolsFor(['greeter.cpp'])
+        fixture("build/symbols").assertHasDebugSymbolsFor(['renamed-sum.cpp'])
     }
 
     NativeBinaryFixture fixture(String path) {
