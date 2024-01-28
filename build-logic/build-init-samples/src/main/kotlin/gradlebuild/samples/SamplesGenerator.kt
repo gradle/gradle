@@ -175,7 +175,7 @@ Enter selection (default: JUnit 4) [1..4]
             .withBinding("testSourceFile", testSourceFile)
             .withBinding("sourceFileTree", sourceFileTree)
             .withBinding("testSourceFileTree", testSourceFileTree)
-            .withBinding("testFramework", if (descriptor.defaultTestFramework == null) "" else "_" + descriptor.defaultTestFramework.toString() + "_")
+            .withBinding("testFramework", "_" + descriptor.defaultTestFramework.toString() + "_")
             .withBinding("buildFileComments", buildFileComments)
             .withBinding("testFrameworkChoice", testFrameworkChoice)
             .withBinding("tasksExecuted", "" + tasksExecuted(descriptor))
