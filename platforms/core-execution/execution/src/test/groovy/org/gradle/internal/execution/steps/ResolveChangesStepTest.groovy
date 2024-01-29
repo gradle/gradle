@@ -25,11 +25,13 @@ import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 
-class ResolveChangesStepTest extends StepSpec<CachingContext> {
+class ResolveChangesStepTest extends StepSpec<ValidationFinishedContext> {
     def changeDetector = Mock(ExecutionStateChangeDetector)
-    def step = new ResolveChangesStep<>(changeDetector, delegate)
+    def step = new ResolveChangesStep<>(changeDetector, { true }, delegate)
     def beforeExecutionState = Stub(BeforeExecutionState) {
         inputFileProperties >> ImmutableSortedMap.of()
+        inputProperties >> ImmutableSortedMap.of()
+        outputFileLocationSnapshots >> ImmutableSortedMap.of()
     }
     def delegateResult = Mock(Result)
 
@@ -126,6 +128,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
             return delegateResult
         }
         _ * changes.changeDescriptions >> ImmutableList.of("changed")
+        _ * changes.beforeExecutionState >> beforeExecutionState
         _ * context.nonIncrementalReason >> Optional.empty()
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
