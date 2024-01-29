@@ -30,7 +30,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ArtifactSelectionDetailsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
@@ -79,7 +78,6 @@ public class NodeState implements DependencyGraphNode {
     private final ComponentState component;
     private final List<EdgeState> incomingEdges = new ArrayList<>();
     private final List<EdgeState> outgoingEdges = new ArrayList<>();
-    private final ResolvedConfigurationIdentifier id;
 
     private final VariantGraphResolveState variantState;
     private final VariantGraphResolveMetadata metadata;
@@ -126,9 +124,8 @@ public class NodeState implements DependencyGraphNode {
     private boolean removingOutgoingEdges;
     private boolean findingExternalVariants;
 
-    public NodeState(long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, VariantGraphResolveState variant, boolean selectedByVariantAwareResolution) {
-        this.nodeId = resultId;
-        this.id = id;
+    public NodeState(long nodeId, ComponentState component, ResolveState resolveState, VariantGraphResolveState variant, boolean selectedByVariantAwareResolution) {
+        this.nodeId = nodeId;
         this.component = component;
         this.resolveState = resolveState;
         this.variantState = variant;
@@ -170,11 +167,6 @@ public class NodeState implements DependencyGraphNode {
     }
 
     @Override
-    public ResolvedConfigurationIdentifier getResolvedConfigurationId() {
-        return id;
-    }
-
-    @Override
     public ComponentState getOwner() {
         return component;
     }
@@ -209,7 +201,7 @@ public class NodeState implements DependencyGraphNode {
 
     @Override
     public String toString() {
-        return String.format("%s(%s)", component, id.getConfiguration());
+        return String.format("%s(%s)", component, metadata.getName());
     }
 
     public String getSimpleName() {
@@ -217,7 +209,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     public String getNameWithVariant() {
-        return component.getId() + " variant " + id.getConfiguration();
+        return component.getId() + " variant " + metadata.getName();
     }
 
     public boolean isTransitive() {

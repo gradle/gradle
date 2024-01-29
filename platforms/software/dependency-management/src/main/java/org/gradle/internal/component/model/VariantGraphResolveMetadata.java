@@ -32,6 +32,10 @@ import java.util.Set;
 public interface VariantGraphResolveMetadata extends HasAttributes {
     /**
      * Returns the name for this variant, which is unique for the variants of its owning component.
+     *
+     * In general, this method should be avoided. The internal engine should not need to know the name of a node and
+     * should instead identify nodes based on their integer node ID. This method should only be used for
+     * diagnostics/reporting and for implementing existing public API methods that require this field.
      */
     String getName();
 
