@@ -33,7 +33,6 @@ import org.gradle.api.Task;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
-import org.gradle.api.artifacts.dsl.DependencyConstraintFactory;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
@@ -1059,10 +1058,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     @Inject
     public abstract DependencyFactory getDependencyFactory();
-
-    @Override
-    @Inject
-    public abstract DependencyConstraintFactory getDependencyConstraintFactory();
 
     @Override
     public ProjectEvaluationListener getProjectEvaluationBroadcaster() {

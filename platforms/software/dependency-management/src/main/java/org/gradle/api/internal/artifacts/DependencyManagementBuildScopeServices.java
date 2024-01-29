@@ -257,12 +257,13 @@ class DependencyManagementBuildScopeServices {
 
     DependencyConstraintFactoryInternal createDependencyConstraintFactory(
         Instantiator instantiator,
+        ObjectFactory objectFactory,
         DefaultProjectDependencyFactory factory,
         ImmutableAttributesFactory attributesFactory,
         SimpleMapInterner stringInterner
     ) {
         return new DefaultDependencyConstraintFactory(
-            instantiator,
+            objectFactory,
             DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner, attributesFactory),
             attributesFactory
         );

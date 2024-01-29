@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalModuleDependency;
@@ -29,7 +28,6 @@ import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency;
 import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -43,12 +41,10 @@ import java.util.List;
 
 public abstract class DefaultDependencyCollector implements DependencyCollector {
     private final DependencyFactoryInternal dependencyFactory;
-    private final ProviderFactory providerFactory;
 
     @Inject
-    public DefaultDependencyCollector(DependencyFactoryInternal dependencyFactory, ProviderFactory providerFactory) {
+    public DefaultDependencyCollector(DependencyFactoryInternal dependencyFactory) {
         this.dependencyFactory = dependencyFactory;
-        this.providerFactory = providerFactory;
         this.getDependencies().finalizeValueOnRead();
         this.getDependencyConstraints().finalizeValueOnRead();
     }
@@ -91,22 +87,8 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
     }
 
     private <D extends Dependency> void doAddLazy(Provider<D> dependency, @Nullable Action<? super D> config) {
-        @SuppressWarnings("unchecked")
-        Provider<D> provider = dependency.map((Object dep) -> {
-            // Generic failure check (for Groovy which ignores this when dynamic)
-            if (!(dep instanceof Dependency)) {
-                throw new InvalidUserCodeException(
-                    "Providers of non-Dependency types ("
-                        + dep.getClass().getName()
-                        + ") are not supported. Create a Dependency using DependencyFactory first."
-                );
-            }
-            return applyConfiguration((D) dep, config);
-        });
-        getDependencies().addAll(providerFactory.provider(() -> {
-            Dependency value = provider.getOrNull();
-            return value != null ? Collections.singleton(value) : Collections.emptySet();
-        }));
+        Provider<D> provider = dependency.map(dep -> applyConfiguration(dep, config));
+        getDependencies().addAll(provider.map(Collections::singleton).orElse(Collections.emptySet()));
     }
 
     private <D extends Dependency> List<Dependency> createDependencyList(Iterable<? extends D> bundle, @Nullable Action<? super D> config) {
@@ -195,21 +177,8 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
     }
 
     private void doAddConstraintLazy(Provider<? extends DependencyConstraint> dependencyConstraint, @Nullable Action<? super DependencyConstraint> config) {
-        Provider<DependencyConstraint> provider = dependencyConstraint.map((Object dep) -> {
-            // Generic failure check (for Groovy which ignores this when dynamic)
-            if (!(dep instanceof DependencyConstraint)) {
-                throw new InvalidUserCodeException(
-                    "Providers of non-DependencyConstraint types ("
-                        + dep.getClass().getName()
-                        + ") are not supported. Create a DependencyConstraint using DependencyConstraintFactory first."
-                );
-            }
-            return applyConstraintConfiguration((DependencyConstraint) dep, config);
-        });
-        getDependencyConstraints().addAll(providerFactory.provider(() -> {
-            DependencyConstraint value = provider.getOrNull();
-            return value != null ? Collections.singleton(value) : Collections.emptySet();
-        }));
+        Provider<DependencyConstraint> provider = dependencyConstraint.map(dep -> applyConstraintConfiguration(dep, config));
+        getDependencyConstraints().addAll(provider.map(Collections::singleton).orElse(Collections.emptySet()));
     }
 
     @Override

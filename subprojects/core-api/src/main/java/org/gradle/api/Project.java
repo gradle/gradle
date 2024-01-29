@@ -21,7 +21,6 @@ import groovy.lang.DelegatesTo;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
-import org.gradle.api.artifacts.dsl.DependencyConstraintFactory;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
@@ -1583,16 +1582,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      */
     @Incubating
     DependencyFactory getDependencyFactory();
-
-    /**
-     * Provides access to methods to create various kinds of {@link org.gradle.api.artifacts.DependencyConstraint DependencyConstraint}
-     * instances.
-     *
-     * @return the dependency constraint factory. Never returns null.
-     * @since 8.7
-     */
-    @Incubating
-    DependencyConstraintFactory getDependencyConstraintFactory();
 
     /**
      * Returns the build script handler for this project. You can use this handler to query details about the build

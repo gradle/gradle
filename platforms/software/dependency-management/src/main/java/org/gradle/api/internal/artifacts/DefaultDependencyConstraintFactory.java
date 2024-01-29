@@ -23,22 +23,23 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstrain
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyConstraintFactoryInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.notations.DependencyConstraintNotationParser;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nullable;
 
 
 public class DefaultDependencyConstraintFactory implements DependencyConstraintFactoryInternal {
-    private final Instantiator instantiator;
+    private final ObjectFactory objectFactory;
     private final DependencyConstraintNotationParser dependencyConstraintNotationParser;
     private final ImmutableAttributesFactory attributesFactory;
 
     public DefaultDependencyConstraintFactory(
-        Instantiator instantiator,
+        ObjectFactory objectFactory,
         DependencyConstraintNotationParser dependencyConstraintNotationParser,
         ImmutableAttributesFactory attributesFactory
     ) {
-        this.instantiator = instantiator;
+        this.objectFactory = objectFactory;
         this.dependencyConstraintNotationParser = dependencyConstraintNotationParser;
         this.attributesFactory = attributesFactory;
     }
@@ -67,7 +68,7 @@ public class DefaultDependencyConstraintFactory implements DependencyConstraintF
 
     @Override
     public DependencyConstraint create(@Nullable String group, String name, @Nullable String version) {
-        DefaultDependencyConstraint dependencyConstraint = instantiator.newInstance(DefaultDependencyConstraint.class, group, name, version);
+        DefaultDependencyConstraint dependencyConstraint = objectFactory.newInstance(DefaultDependencyConstraint.class, group, name, version);
         injectServices(dependencyConstraint);
         return dependencyConstraint;
     }

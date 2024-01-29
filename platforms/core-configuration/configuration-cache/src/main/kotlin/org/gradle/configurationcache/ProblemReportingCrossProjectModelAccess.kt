@@ -724,11 +724,6 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.dependencyFactory
         }
 
-        override fun getDependencyConstraintFactory(): DependencyConstraintFactory {
-            onAccess()
-            return delegate.dependencyConstraintFactory
-        }
-
         override fun buildscript(configureClosure: Closure<*>) {
             onAccess()
             delegate.buildscript(configureClosure)

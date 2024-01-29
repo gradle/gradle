@@ -288,9 +288,6 @@ abstract class ProjectDelegate : Project {
     override fun getDependencyFactory(): DependencyFactory =
         delegate.dependencyFactory
 
-    override fun getDependencyConstraintFactory(): DependencyConstraintFactory =
-        delegate.dependencyConstraintFactory
-
     override fun getResources(): ResourceHandler =
         delegate.resources
 
