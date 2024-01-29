@@ -57,7 +57,7 @@ import java.util.Set;
 /**
  * Resolution state for a given module.
  */
-class ModuleResolveState implements CandidateModule {
+public class ModuleResolveState implements CandidateModule {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModuleResolveState.class);
     private static final int MAX_SELECTION_CHANGE = 1000;
 

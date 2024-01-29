@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
@@ -31,7 +30,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ArtifactSelectionDetailsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
@@ -81,7 +79,6 @@ public class NodeState implements DependencyGraphNode {
     private final ComponentState component;
     private final List<EdgeState> incomingEdges = new ArrayList<>();
     private final List<EdgeState> outgoingEdges = new ArrayList<>();
-    private final ResolvedConfigurationIdentifier id;
 
     private final VariantGraphResolveState variantState;
     private final VariantGraphResolveMetadata metadata;
@@ -128,23 +125,16 @@ public class NodeState implements DependencyGraphNode {
     private boolean removingOutgoingEdges;
     private boolean findingExternalVariants;
 
-    @VisibleForTesting // just for testing purposes
-    public NodeState(long resultId, ResolvedConfigurationIdentifier id, ComponentState component, VariantGraphResolveState variant, boolean selectedByVariantAwareResolution) {
-        this(resultId, id, component, null, variant, selectedByVariantAwareResolution);
-    }
-
-    public NodeState(long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, VariantGraphResolveState variant, boolean selectedByVariantAwareResolution) {
-        this.nodeId = resultId;
-        this.id = id;
+    public NodeState(long nodeId, ComponentState component, ResolveState resolveState, VariantGraphResolveState variant, boolean selectedByVariantAwareResolution) {
+        this.nodeId = nodeId;
         this.component = component;
         this.resolveState = resolveState;
         this.variantState = variant;
         this.metadata = variant.getMetadata();
         this.isTransitive = metadata.isTransitive() || metadata.isExternalVariant();
         this.selectedByVariantAwareResolution = selectedByVariantAwareResolution;
-        this.moduleExclusions = resolveState == null ? null : resolveState.getModuleExclusions(); // can be null in tests, ResolveState cannot be mocked
-        this.dependenciesMayChange = component.getModule() != null && component.getModule().isVirtualPlatform(); // can be null in tests, ComponentState cannot be mocked
-        component.addConfiguration(this);
+        this.moduleExclusions = resolveState.getModuleExclusions();
+        this.dependenciesMayChange = component.getModule().isVirtualPlatform();
     }
 
     // the enqueue and dequeue methods are used for performance reasons
@@ -175,11 +165,6 @@ public class NodeState implements DependencyGraphNode {
     @Override
     public boolean isRoot() {
         return false;
-    }
-
-    @Override
-    public ResolvedConfigurationIdentifier getResolvedConfigurationId() {
-        return id;
     }
 
     @Override
@@ -222,7 +207,7 @@ public class NodeState implements DependencyGraphNode {
 
     @Override
     public String toString() {
-        return String.format("%s(%s)", component, id.getConfiguration());
+        return String.format("%s(%s)", component, metadata.getName());
     }
 
     public String getSimpleName() {
@@ -230,7 +215,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     public String getNameWithVariant() {
-        return component.getId() + " variant " + id.getConfiguration();
+        return component.getId() + " variant " + metadata.getName();
     }
 
     public boolean isTransitive() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts;
-
-import org.gradle.api.artifacts.component.ComponentIdentifier;
+package org.gradle.api.internal.artifacts;
 
 /**
- * Identifies a variant of a component by component identifier and variant name.
- *
- * @since 6.0
+ * An opaque identifier for a node in the dependency graph.
  */
-public interface ComponentVariantIdentifier {
-
-    /**
-     * Returns the component identifier.
-     */
-    ComponentIdentifier getId();
-
-    /**
-     * Returns the variant name.
-     */
-    String getVariantName();
+public interface NodeIdentifier {
 }

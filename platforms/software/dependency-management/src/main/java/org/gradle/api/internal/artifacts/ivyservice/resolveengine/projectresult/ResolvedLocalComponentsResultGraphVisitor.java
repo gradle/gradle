@@ -71,7 +71,7 @@ public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGrap
 
             // TODO: We should relax this check. Why are we not tracking observations across builds?
             if (projectComponentId.getBuild().equals(thisBuild)) {
-                resolvedProjectConfigurations.add(new ResolvedProjectConfiguration(projectComponentId.getIdentityPath(), node.getResolvedConfigurationId().getConfiguration()));
+                resolvedProjectConfigurations.add(new ResolvedProjectConfiguration(projectComponentId.getIdentityPath(), node.getMetadata().getName()));
             }
         }
     }

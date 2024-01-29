@@ -398,7 +398,7 @@ public class DependencyGraphBuilder {
         }
         List<EdgeState> incomingRootEdges = resolveState.getRoot().getIncomingEdges();
         if (!incomingRootEdges.isEmpty()) {
-            String rootNodeName = resolveState.getRoot().getResolvedConfigurationId().getConfiguration();
+            String rootNodeName = resolveState.getRoot().getMetadata().getName();
             DeprecationLogger.deprecate(
                     String.format(
                         "While resolving configuration '%s', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. " +

@@ -135,7 +135,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return nodes;
     }
 
-    ModuleResolveState getModule() {
+    public ModuleResolveState getModule() {
         return module;
     }
 
@@ -258,7 +258,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         this.metadataResolveFailure = null;
     }
 
-    public void addConfiguration(NodeState node) {
+    public void addNode(NodeState node) {
         nodes.add(node);
     }
 
