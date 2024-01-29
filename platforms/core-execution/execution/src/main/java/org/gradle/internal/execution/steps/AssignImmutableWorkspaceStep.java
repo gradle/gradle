@@ -205,7 +205,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Could not remove temporary workspace: {}", temporaryWorkspace.getAbsolutePath(), removeTempException);
             } else {
-                LOGGER.warn("Could not remove temporary workspace: {}: {}", temporaryWorkspace.getAbsolutePath(), removeTempException.getMessage());
+                LOGGER.info("Could not remove temporary workspace: {}: {}", temporaryWorkspace.getAbsolutePath(), removeTempException.getMessage());
             }
         }
     }
