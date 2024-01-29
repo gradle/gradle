@@ -238,6 +238,8 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.outputOptions(options -> options.setBackends(singletonList("pdf")));
             // TODO: This breaks the provider
             task.setOutputDir(extension.getUserManual().getStagingRoot().dir("render-single-pdf").get().getAsFile());
+            // The PDF rendering needs at least 2GB of heap
+            task.jvm(options -> options.setMaxHeapSize("2g"));
         });
 
         TaskProvider<AsciidoctorTask> userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask.class, task -> {
