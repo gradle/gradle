@@ -18,7 +18,6 @@ package org.gradle.internal.component;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
@@ -37,7 +36,6 @@ import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
 import org.gradle.internal.component.model.GraphSelectionCandidates;
 import org.gradle.internal.component.model.GraphVariantSelector;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.component.resolution.failure.CapabilitiesDescriber;
 import org.gradle.internal.component.resolution.failure.FailureDescriberRegistry;
@@ -56,10 +54,8 @@ import org.gradle.internal.component.resolution.failure.failuretype.VariantAware
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 // TODO: Register all failures with the Problems API
 
@@ -79,7 +75,6 @@ public class ResolutionFailureHandler {
     public static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
 
     private final FailureDescriberRegistry defaultFailureDescribers;
-
     private final DocumentationRegistry documentationRegistry;
 
     public ResolutionFailureHandler(FailureDescriberRegistry failureDescriberRegistry, DocumentationRegistry documentationRegistry) {
@@ -87,15 +82,11 @@ public class ResolutionFailureHandler {
         this.documentationRegistry = documentationRegistry;
     }
 
-    private void suggestSpecificDocumentation(AbstractVariantSelectionException exception, String prefix, String section) {
-        exception.addResolution(prefix + documentationRegistry.getDocumentationFor("variant_model", section) + ".");
-    }
-
     private void suggestReviewAlgorithm(AbstractVariantSelectionException exception) {
         exception.addResolution(DEFAULT_MESSAGE_PREFIX + documentationRegistry.getDocumentationFor("variant_attributes", "sec:abm_algorithm") + ".");
     }
 
-    private <FAILURE extends ResolutionFailure> AbstractVariantSelectionException describeFailure2(AttributesSchemaInternal schema, FAILURE failure) {
+    private <FAILURE extends ResolutionFailure> AbstractVariantSelectionException describeFailure(AttributesSchemaInternal schema, FAILURE failure) {
         List<ResolutionFailureDescriber<?, FAILURE>> describers = new ArrayList<>();
         describers.addAll(schema.getFailureDescribers(failure));
         describers.addAll(defaultFailureDescribers.getDescribers(failure));
@@ -112,28 +103,28 @@ public class ResolutionFailureHandler {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariants(candidateVariants);
         IncompatibleResolutionFailure failure = new IncompatibleResolutionFailure(schema, variantSetName, requestedAttributes, assessedCandidates);
-        return describeFailure2(schema, failure);
+        return describeFailure(schema, failure);
     }
 
-    public AbstractVariantSelectionException ambiguousArtifactVariantsFailure(AttributesSchemaInternal schema, AttributeMatcher matcher, String selectedComponentName, ImmutableAttributes requestedAttributes, List<? extends ResolvedVariant> matchingVariants, Set<ResolvedVariant> discardedVariants) {
+    public AbstractVariantSelectionException ambiguousArtifactVariantsFailure(AttributesSchemaInternal schema, AttributeMatcher matcher, String selectedComponentName, ImmutableAttributes requestedAttributes, List<? extends ResolvedVariant> matchingVariants) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariants(matchingVariants);
         AmbiguousResolutionFailure failure = new AmbiguousResolutionFailure(schema, selectedComponentName, requestedAttributes, assessedCandidates);
-        return describeFailure2(schema, failure);
+        return describeFailure(schema, failure);
     }
 
-    public AbstractVariantSelectionException ambiguousArtifactTransformationFailure(AttributesSchemaInternal schema, @SuppressWarnings("unused") AttributeMatcher matcher, String selectedComponentName, ImmutableAttributes requestedAttributes, List<TransformedVariant> transformedVariants) {
+    public AbstractVariantSelectionException ambiguousArtifactTransformationFailure(AttributesSchemaInternal schema, String selectedComponentName, ImmutableAttributes requestedAttributes, List<TransformedVariant> transformedVariants) {
         AmbiguousArtifactTransformFailure failure = new AmbiguousArtifactTransformFailure(schema, selectedComponentName, requestedAttributes, transformedVariants);
-        return describeFailure2(schema, failure);
+        return describeFailure(schema, failure);
     }
 
     // TODO: Unify this failure in the exception hierarchy with the others
-    public BrokenResolvedArtifactSet unknownArtifactVariantSelectionFailure(@SuppressWarnings("unused") AttributesSchema schema, ArtifactVariantSelectionException t) {
+    public BrokenResolvedArtifactSet unknownArtifactVariantSelectionFailure(@SuppressWarnings("unused") AttributesSchemaInternal schema, ArtifactVariantSelectionException t) {
         return new BrokenResolvedArtifactSet(t);
         // TODO: perhaps unify this with the other failures in the hierarchy so standard suggestions can be added?  Or maybe it's its own hierachy?
     }
 
-    public BrokenResolvedArtifactSet unknownArtifactVariantSelectionFailure(AttributesSchema schema, ResolvedVariantSet producer, Exception cause) {
+    public BrokenResolvedArtifactSet unknownArtifactVariantSelectionFailure(AttributesSchemaInternal schema, ResolvedVariantSet producer, Exception cause) {
         String message = buildUnknownArtifactVariantFailureMsg(producer);
         ArtifactVariantSelectionException e = new ArtifactVariantSelectionException(message, cause);
         // This is the catch-all error type and there's nothing more specific to add here
@@ -143,9 +134,9 @@ public class ResolutionFailureHandler {
 
     public AbstractVariantSelectionException incompatibleArtifactVariantsFailure(AttributesSchemaInternal schema, ComponentState selectedComponent, Set<NodeState> incompatibleNodes) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(ImmutableAttributes.EMPTY, schema.matcher());
-        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessCandidates(extractVariants(incompatibleNodes));
+        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessNodeStates(incompatibleNodes);
         InvalidMultipleVariantsSelectionFailure failure = new InvalidMultipleVariantsSelectionFailure(schema, selectedComponent.toString(), assessedCandidates);
-        return describeFailure2(schema, failure);
+        return describeFailure(schema, failure);
     }
 
     private String buildUnknownArtifactVariantFailureMsg(ResolvedVariantSet producer) {
@@ -161,13 +152,12 @@ public class ResolutionFailureHandler {
         ComponentGraphResolveMetadata targetComponent
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
-        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessCandidates(extractVariants(matchingVariants));
+        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariantStates(matchingVariants);
         VariantAwareAmbiguousResolutionFailure failure = new VariantAwareAmbiguousResolutionFailure(schema, targetComponent.getId().getDisplayName(), requestedAttributes, assessedCandidates, targetComponent);
-        return describeFailure2(schema, failure);
+        return describeFailure(schema, failure);
     }
 
-    // TODO: rename to Incompatible Selected Configuration? Yes, do this, match the classes
-    public AbstractVariantSelectionException incompatibleGraphVariantFailure(
+    public AbstractVariantSelectionException incompatibleRequestedConfigurationFailure(
         AttributesSchemaInternal schema,
         AttributeMatcher matcher,
         AttributeContainerInternal requestedAttributes,
@@ -177,7 +167,7 @@ public class ResolutionFailureHandler {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = Collections.singletonList(resolutionCandidateAssessor.assessCandidate(targetConfiguration.getName(), targetConfiguration.asVariant().getCapabilities(), targetConfiguration.asVariant().getMetadata().getAttributes()));
         IncompatibleRequestedConfigurationFailure failure = new IncompatibleRequestedConfigurationFailure(schema, targetComponent.getId().getDisplayName(), requestedAttributes, assessedCandidates);
-        return describeFailure2(schema, failure);
+        return describeFailure(schema, failure);
     }
 
     public AbstractVariantSelectionException noMatchingGraphVariantFailure(
@@ -188,9 +178,9 @@ public class ResolutionFailureHandler {
         GraphSelectionCandidates candidates
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
-        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessCandidates(extractVariants(candidates));
+        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessGraphSelectionCandidates(candidates);
         IncompatibleGraphVariantFailure failure = new IncompatibleGraphVariantFailure(schema, targetComponent.getId().getDisplayName(), requestedAttributes, assessedCandidates, targetComponent);
-        return describeFailure2(schema, failure);
+        return describeFailure(schema, failure);
     }
 
     public NoMatchingCapabilitiesException noMatchingCapabilitiesFailure(@SuppressWarnings("unused") AttributesSchemaInternal schema, @SuppressWarnings("unused") AttributeMatcher matcher, ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> requestedCapabilities, List<? extends VariantGraphResolveState> candidates) {
@@ -248,50 +238,5 @@ public class ResolutionFailureHandler {
         return sb.toString();
     }
 
-    /**
-     * Extracts variant metadata from the given {@link GraphSelectionCandidates}.
-     *
-     * @param candidates the source from which to extract variants
-     * @return the extracted variants, sorted by name
-     */
-    private List<? extends VariantGraphResolveMetadata> extractVariants(GraphSelectionCandidates candidates) {
-        final List<? extends VariantGraphResolveMetadata> variants;
-        if (candidates.isUseVariants()) {
-            variants = candidates.getVariants().stream()
-                .map(VariantGraphResolveState::getMetadata)
-                .collect(Collectors.toList());
-        } else {
-            variants = new ArrayList<>(candidates.getCandidateConfigurations()); // Need non-immutable copy to sort
-        }
-
-        variants.sort(Comparator.comparing(VariantGraphResolveMetadata::getName));
-        return variants;
-    }
-
-    /**
-     * Extracts variant metadata from the given {@link Set} of {@link NodeState}s.
-     *
-     * @param nodes the source from which to extract variants
-     * @return the extracted variants, sorted by name
-     */
-    private List<? extends VariantGraphResolveMetadata> extractVariants(Set<NodeState> nodes) {
-        return nodes.stream()
-            .map(NodeState::getMetadata)
-            .sorted(Comparator.comparing(VariantGraphResolveMetadata::getName))
-            .collect(Collectors.toList());
-    }
-
-    /**
-     * Extracts variant metadata from the given {@link List} of {@link VariantGraphResolveState}s.
-     *
-     * @param variantStates the source from which to extract variants
-     * @return the extracted variants, sorted by name
-     */
-    private List<? extends VariantGraphResolveMetadata> extractVariants(List<? extends VariantGraphResolveState> variantStates) {
-        return variantStates.stream()
-            .map(VariantGraphResolveState::getMetadata)
-            .sorted(Comparator.comparing(VariantGraphResolveMetadata::getName))
-            .collect(Collectors.toList());
-    }
     // endregion Graph Variant Selection Failures
 }

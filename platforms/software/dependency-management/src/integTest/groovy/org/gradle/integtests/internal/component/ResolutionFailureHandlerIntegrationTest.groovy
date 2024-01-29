@@ -154,11 +154,11 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-no-match.")
     }
 
-    def "demonstrate incompatible graph variants selection failure"() {
-        incompatibleGraphVariants.prepare()
+    def 'demonstrate incompatible requested configuration failure'() {
+        incompatibleRequestedConfiguration.prepare()
 
         expect:
-        assertResolutionFailsWithException(incompatibleGraphVariants.exception)
+        assertResolutionFailsWithException(incompatibleRequestedConfiguration.exception)
 
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
@@ -401,7 +401,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     private final Demonstration ambiguousGraphVariantForExternalDep = new Demonstration("Ambiguous graph variant (external)", AmbiguousGraphVariantsException.class, this.&setupAmbiguousGraphVariantFailureForExternalDep)
     private final Demonstration noMatchingGraphVariantsForProject = new Demonstration("No matching graph variants (project dependency)", NoMatchingGraphVariantsException.class, this.&setupNoMatchingGraphVariantsFailureForProject)
     private final Demonstration noMatchingGraphVariantsForExternalDep = new Demonstration("No matching graph variants (external dependency)", NoMatchingGraphVariantsException.class, this.&setupNoMatchingGraphVariantsFailureForExternalDep)
-    private final Demonstration incompatibleGraphVariants = new Demonstration("Incompatible graph variants", IncompatibleGraphVariantsException.class, this.&setupIncompatibleGraphVariantsFailureForProject)
+
+    private final Demonstration incompatibleRequestedConfiguration = new Demonstration("Incompatible requested configuration", IncompatibleGraphVariantsException.class, this.&setupIncompatibleRequestedConfigurationFailureForProject)
 
     private final Demonstration configurationNotFound = new Demonstration("Configuration not found", ConfigurationNotFoundException.class, this.&setupConfigurationNotFound)
     private final Demonstration externalConfigurationNotFound = new Demonstration("External configuration not found", ExternalConfigurationNotFoundException.class, this.&setupExternalConfigurationNotFound)
@@ -416,7 +417,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         ambiguousGraphVariantForExternalDep,
         noMatchingGraphVariantsForProject,
         noMatchingGraphVariantsForExternalDep,
-        incompatibleGraphVariants,
+        incompatibleRequestedConfiguration,
         incompatibleArtifactVariants,
         noMatchingArtifactVariants,
         ambiguousArtifactTransforms,
@@ -702,7 +703,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    private void setupIncompatibleGraphVariantsFailureForProject() {
+    private void setupIncompatibleRequestedConfigurationFailureForProject() {
         buildKotlinFile <<  """
             plugins {
                 id("base")

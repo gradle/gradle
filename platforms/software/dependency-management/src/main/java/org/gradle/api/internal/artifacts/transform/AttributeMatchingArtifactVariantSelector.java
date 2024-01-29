@@ -96,7 +96,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
             matches = matcher.matches(variants, componentRequested, newExpBuilder);
 
             Set<ResolvedVariant> discarded = Cast.uncheckedCast(newExpBuilder.discarded);
-            throw failureProcessor.ambiguousArtifactVariantsFailure(schema, matcher, producer.asDescribable().getDisplayName(), componentRequested, matches, discarded);
+            throw failureProcessor.ambiguousArtifactVariantsFailure(schema, matcher, producer.asDescribable().getDisplayName(), componentRequested, matches);
         }
 
         // We found no matches. Attempt to construct artifact transform chains which produce matching variants.
@@ -113,7 +113,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         }
 
         if (!transformedVariants.isEmpty()) {
-            throw failureProcessor.ambiguousArtifactTransformationFailure(schema, matcher, producer.asDescribable().getDisplayName(), componentRequested, transformedVariants);
+            throw failureProcessor.ambiguousArtifactTransformationFailure(schema, producer.asDescribable().getDisplayName(), componentRequested, transformedVariants);
         }
 
         if (allowNoMatchingVariants) {
