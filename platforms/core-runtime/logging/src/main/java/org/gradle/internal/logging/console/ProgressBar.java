@@ -30,6 +30,7 @@ import java.util.concurrent.Executors;
 
 public class ProgressBar {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProgressBar.class);
+    public static final String INCORRECT_PROGRESS_MESSAGE = "More progress was logged than there should be";
 
     private final TersePrettyDurationFormatter elapsedTimeFormatter = new TersePrettyDurationFormatter();
 
@@ -76,7 +77,7 @@ public class ProgressBar {
                 public void run() {
                     // do not do this directly or a deadlock happens
                     // to prevent that deadlock, execute it separately in another thread
-                    LOGGER.warn("More progress was logged than there should be ({} > {})", current, total);
+                    LOGGER.warn("{} ({} > {})", INCORRECT_PROGRESS_MESSAGE, current, total);
                 }
             });
         }

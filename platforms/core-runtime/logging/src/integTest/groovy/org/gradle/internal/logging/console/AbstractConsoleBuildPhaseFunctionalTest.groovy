@@ -16,12 +16,13 @@
 
 package org.gradle.internal.logging.console
 
+
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
+import spock.lang.Issue
 
 abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
     @Rule
@@ -283,7 +284,9 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         waitForFinish()
     }
 
-    def "shows progress bar and percent phase completion with artifact transforms"() {
+    // Support for artifact transforms was implement but removed, since it showed
+    // incorrect progress with non-planned artifact transforms, see https://github.com/gradle/gradle/issues/24370.
+    def "doesn't count planned artifact transforms in progress bar and percent phase completion"() {
         given:
         setupTransformBuild()
         def jar = server.expectAndBlock('jar')
@@ -302,7 +305,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         and:
         doubleTransform.waitForAllPendingCalls()
-        assertHasBuildPhase("25% EXECUTING")
+        assertHasBuildPhase("50% EXECUTING")
         doubleTransform.releaseAll()
 
         and:
@@ -312,7 +315,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         and:
         resolveTask.waitForAllPendingCalls()
-        assertHasBuildPhase("75% EXECUTING")
+        assertHasBuildPhase("50% EXECUTING")
         resolveTask.releaseAll()
 
         and:
@@ -324,8 +327,8 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         waitForFinish()
     }
 
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/24370")
-    def "shows progress bar and percent phase completion with non-planned planned artifact transforms"() {
+    @Issue("https://github.com/gradle/gradle/issues/24370")
+    def "doesn't count non-planned planned artifact transforms in progress bar and percent phase completion"() {
         given:
         setupTransformBuild()
         def jar = server.expectAndBlock('jar')
@@ -354,18 +357,18 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         and:
         sizeTransform.waitForAllPendingCalls()
-        assertHasBuildPhase("100% EXECUTING")
+        assertHasBuildPhase("50% EXECUTING")
         sizeTransform.releaseAll()
 
         and:
         buildFinished.waitForAllPendingCalls()
-        assertHasBuildPhase("200% EXECUTING")
+        assertHasBuildPhase("100% EXECUTING")
         buildFinished.releaseAll()
 
         when:
         result = gradle.waitForFinish()
         then:
-        outputContains("More progress was logged than there should be")
+        outputDoesNotContain(ProgressBar.INCORRECT_PROGRESS_MESSAGE)
     }
 
     def setupTransformBuild() {
