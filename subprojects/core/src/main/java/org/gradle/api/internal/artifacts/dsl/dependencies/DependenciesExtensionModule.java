@@ -35,7 +35,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.ConfigureUtil;
-import org.jetbrains.annotations.VisibleForTesting;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -60,14 +59,13 @@ import java.util.Set;
  * There are {@code call(...)} equivalents for all the {@code modify(...)} methods in {@link DependencyModifier}.
  * </p>
  *
- * @since 7.6
- *
  * @see Dependencies
  * @see DependencyCollector
  * @see DependencyModifier
  * @see DependencyFactory
  *
  * See DependenciesExtension for Kotlin DSL version of this.
+ * @since 7.6
  */
 @SuppressWarnings("unused")
 public class DependenciesExtensionModule {
@@ -91,7 +89,6 @@ public class DependenciesExtensionModule {
      * </ul>
      *
      * @param map a map of configuration parameters for the dependency
-     *
      * @return the dependency
      */
     public static ExternalModuleDependency module(Dependencies self, Map<String, CharSequence> map) {
@@ -119,9 +116,7 @@ public class DependenciesExtensionModule {
      *
      * @param dependencyNotation dependency to modify
      * @return the modified dependency
-     *
      * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
-     *
      * @since 8.0
      */
     public static ExternalModuleDependency call(DependencyModifier self, CharSequence dependencyNotation) {
@@ -133,7 +128,6 @@ public class DependenciesExtensionModule {
      *
      * @param providerConvertibleToDependency dependency to modify
      * @return the modified dependency
-     *
      * @since 8.0
      */
     public static Provider<? extends MinimalExternalModuleDependency> call(DependencyModifier self, ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
@@ -145,7 +139,6 @@ public class DependenciesExtensionModule {
      *
      * @param providerToDependency dependency to modify
      * @return the modified dependency
-     *
      * @since 8.0
      */
     public static <D extends ModuleDependency> Provider<D> call(DependencyModifier self, Provider<D> providerToDependency) {
@@ -157,7 +150,6 @@ public class DependenciesExtensionModule {
      *
      * @param dependency dependency to modify
      * @return the modified dependency
-     *
      * @since 8.0
      */
     public static <D extends ModuleDependency> D call(DependencyModifier self, D dependency) {
@@ -242,8 +234,7 @@ public class DependenciesExtensionModule {
         self.add(dependency, ConfigureUtil.configureUsing(configuration));
     }
 
-    @VisibleForTesting
-    public static final String ERROR_MESSAGE_PROVIDER = "Providers of non-Dependency(Constraint) types (java.lang.String) are not supported. Create a Dependency(Constraint) using Dependency(Constraint)Factory first.";
+    private static final String ERROR_MESSAGE_PROVIDER = "Providers of non-Dependency(Constraint) types (java.lang.String) are not supported. Create a Dependency(Constraint) using Dependency(Constraint)Factory first.";
 
     /**
      * Add a dependency or dependency constraint.

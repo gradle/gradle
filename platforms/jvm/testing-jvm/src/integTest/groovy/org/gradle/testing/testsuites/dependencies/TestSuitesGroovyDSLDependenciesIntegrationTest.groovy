@@ -16,7 +16,7 @@
 
 package org.gradle.testing.testsuites.dependencies
 
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependenciesExtensionModule
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.dsl.GradleDsl
 
@@ -1263,6 +1263,9 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
     // endregion dependencies - dependency objects
 
     // region dependencies - dependency providers
+
+    private static final String ERROR_MESSAGE_PROVIDER = "Providers of non-Dependency(Constraint) types (java.lang.String) are not supported. Create a Dependency(Constraint) using Dependency(Constraint)Factory first.";
+
     def 'can add dependency providers which provide dependency objects to the implementation, compileOnly and runtimeOnly configurations of a suite'() {
         given:
         buildFile << """
@@ -1351,7 +1354,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         fails 'checkConfiguration'
 
         then:
-        failureHasCause(DependenciesExtensionModule.ERROR_MESSAGE_PROVIDER)
+        failureHasCause(ERROR_MESSAGE_PROVIDER)
     }
 
     def 'can add dependency providers which provide dependency objects with actions (using exclude) to #suiteDesc'() {
@@ -1481,7 +1484,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         fails 'checkConfiguration'
 
         then:
-        failureHasCause(DependenciesExtensionModule.ERROR_MESSAGE_PROVIDER)
+        failureHasCause(ERROR_MESSAGE_PROVIDER)
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
@@ -1529,7 +1532,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         fails 'checkConfiguration'
 
         then:
-        failureHasCause(DependenciesExtensionModule.ERROR_MESSAGE_PROVIDER)
+        failureHasCause(ERROR_MESSAGE_PROVIDER)
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration

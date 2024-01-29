@@ -22,6 +22,8 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 
@@ -29,8 +31,7 @@ import javax.annotation.Nullable;
  * Factory class for creating {@link DependencyConstraint} instances, with strong typing.
  *
  * <p>
- * An instance of the factory can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}.
- * It is also available via {@link Project#getDependencyConstraintFactory()}.
+ * An instance of the factory can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@link javax.inject.Inject}.
  * </p>
  *
  * <p>
@@ -42,6 +43,7 @@ import javax.annotation.Nullable;
 @HasInternalProtocol
 @NonExtensible
 @Incubating
+@ServiceScope(Scopes.Build.class)
 public interface DependencyConstraintFactory {
     /**
      * Create a {@link DependencyConstraint} from the <code>"<i>group</i>:<i>name</i>:<i>version</i>"</code> notation.
@@ -52,6 +54,7 @@ public interface DependencyConstraintFactory {
      *
      * @param dependencyConstraintNotation the dependency constraint notation
      * @return the new dependency constraint
+     * @since 8.7
      */
     DependencyConstraint create(CharSequence dependencyConstraintNotation);
 
@@ -62,6 +65,7 @@ public interface DependencyConstraintFactory {
      * @param name the name
      * @param version the version (optional)
      * @return the new dependency constraint
+     * @since 8.7
      */
     DependencyConstraint create(@Nullable String group, String name, @Nullable String version);
 
@@ -70,6 +74,7 @@ public interface DependencyConstraintFactory {
      *
      * @param dependency the dependency
      * @return the new dependency constraint
+     * @since 8.7
      */
     DependencyConstraint create(MinimalExternalModuleDependency dependency);
 
@@ -78,6 +83,7 @@ public interface DependencyConstraintFactory {
      *
      * @param project the project
      * @return the new dependency constraint
+     * @since 8.7
      */
     DependencyConstraint create(Project project);
 }

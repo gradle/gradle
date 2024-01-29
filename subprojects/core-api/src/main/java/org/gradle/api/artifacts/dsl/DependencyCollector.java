@@ -156,6 +156,7 @@ public interface DependencyCollector {
      * Add a dependency constraint.
      *
      * @param dependencyConstraint dependency constraint to add
+     * @since 8.7
      */
     void addConstraint(DependencyConstraint dependencyConstraint);
 
@@ -164,6 +165,7 @@ public interface DependencyCollector {
      *
      * @param dependencyConstraint dependency constraint to add
      * @param configuration an action to configure the dependency constraint
+     * @since 8.7
      */
     void addConstraint(DependencyConstraint dependencyConstraint, Action<? super DependencyConstraint> configuration);
 
@@ -171,6 +173,7 @@ public interface DependencyCollector {
      * Add a dependency constraint, using a {@link Provider} to lazily create the constraint.
      *
      * @param dependencyConstraint dependency constraint to add
+     * @since 8.7
      */
     void addConstraint(Provider<? extends DependencyConstraint> dependencyConstraint);
 
@@ -179,6 +182,7 @@ public interface DependencyCollector {
      *
      * @param dependencyConstraint dependency constraint to add
      * @param configuration an action to configure the dependency constraint
+     * @since 8.7
      */
     void addConstraint(Provider<? extends DependencyConstraint> dependencyConstraint, Action<? super DependencyConstraint> configuration);
 

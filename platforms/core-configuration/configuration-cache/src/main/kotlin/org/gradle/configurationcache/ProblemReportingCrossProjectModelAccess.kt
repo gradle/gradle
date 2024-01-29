@@ -29,7 +29,6 @@ import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.Task
 import org.gradle.api.artifacts.dsl.ArtifactHandler
-import org.gradle.api.artifacts.dsl.DependencyConstraintFactory
 import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler

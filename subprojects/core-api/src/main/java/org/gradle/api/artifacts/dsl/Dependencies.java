@@ -129,6 +129,7 @@ public interface Dependencies {
      * @param dependencyConstraintNotation dependency constraint to add
      * @return the new dependency constraint
      * @see DependencyConstraintFactory#create(CharSequence) Valid dependency constraint notation for this method
+     * @since 8.7
      */
     default DependencyConstraint constraint(CharSequence dependencyConstraintNotation) {
         return getDependencyConstraintFactory().create(dependencyConstraintNotation);
@@ -141,6 +142,7 @@ public interface Dependencies {
      * @param name the name
      * @param version the version (optional)
      * @return the new dependency constraint
+     * @since 8.7
      */
     default DependencyConstraint constraint(@Nullable String group, String name, @Nullable String version) {
         return getDependencyConstraintFactory().create(group, name, version);
@@ -151,6 +153,7 @@ public interface Dependencies {
      *
      * @param dependencyConstraint dependency constraint to add
      * @return the new dependency constraint
+     * @since 8.7
      */
     default Provider<? extends DependencyConstraint> constraint(Provider<? extends MinimalExternalModuleDependency> dependencyConstraint) {
         return dependencyConstraint.map(getDependencyConstraintFactory()::create);
@@ -161,6 +164,7 @@ public interface Dependencies {
      *
      * @param dependencyConstraint dependency constraint to add
      * @return the new dependency constraint
+     * @since 8.7
      */
     default Provider<? extends DependencyConstraint> constraint(ProviderConvertible<? extends MinimalExternalModuleDependency> dependencyConstraint) {
         return constraint(dependencyConstraint.asProvider());
@@ -171,6 +175,7 @@ public interface Dependencies {
      *
      * @param project the project
      * @return the new dependency constraint
+     * @since 8.7
      */
     default DependencyConstraint constraint(ProjectDependency project) {
         return getDependencyConstraintFactory().create(project.getDependencyProject());

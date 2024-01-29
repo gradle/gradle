@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyConstraintFa
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.notations.DependencyConstraintNotationParser;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nullable;
 
