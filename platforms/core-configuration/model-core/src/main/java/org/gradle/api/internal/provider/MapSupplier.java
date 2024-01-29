@@ -26,5 +26,10 @@ interface MapSupplier<K, V> extends ValueSupplier {
 
     MapSupplier<K, V> plus(MapCollector<K, V> collector);
 
-    ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue();
+    /**
+     * Returns a view of this supplier that will calculate its value as empty if it would be missing.
+     */
+    MapSupplier<K, V> ignoringAbsent();
+
+    ExecutionTimeValue<? extends Map<K, V>> calculateExecutionTimeValue();
 }

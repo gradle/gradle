@@ -121,14 +121,7 @@ public class Collectors {
         @Override
         public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
             ExecutionTimeValue<? extends T> value = provider.calculateExecutionTimeValue();
-            if (value.isMissing()) {
-                visitor.execute(ExecutionTimeValue.missing());
-            } else if (value.hasFixedValue()) {
-                // transform preserving side effects
-                visitor.execute(ExecutionTimeValue.value(value.toValue().transform(ImmutableList::of)));
-            } else {
-                visitor.execute(ExecutionTimeValue.changingValue(value.getChangingValue().map(transformer(ImmutableList::of))));
-            }
+            visitValue(visitor, value);
         }
 
         @Override
@@ -161,6 +154,17 @@ public class Collectors {
         @Override
         public String toString() {
             return String.format("item(%s)", provider);
+        }
+    }
+
+    private static <T> void visitValue(Action<? super ValueSupplier.ExecutionTimeValue<? extends Iterable<? extends T>>> visitor, ValueSupplier.ExecutionTimeValue<? extends T> value) {
+        if (value.isMissing()) {
+            visitor.execute(ValueSupplier.ExecutionTimeValue.missing());
+        } else if (value.hasFixedValue()) {
+            // transform preserving side effects
+            visitor.execute(ValueSupplier.ExecutionTimeValue.value(value.toValue().transform(ImmutableList::of)));
+        } else {
+            visitor.execute(ValueSupplier.ExecutionTimeValue.changingValue(value.getChangingValue().map(transformer(ImmutableList::of))));
         }
     }
 
@@ -235,12 +239,7 @@ public class Collectors {
         @Override
         public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> collection) {
             Value<? extends Iterable<? extends T>> value = provider.calculateValue(consumer);
-            if (value.isMissing()) {
-                return value.asType();
-            }
-
-            collector.addAll(value.getWithoutSideEffect(), collection);
-            return Value.present().withSideEffect(SideEffect.fixedFrom(value));
+            return collectEntriesFromValue(collector, collection, value);
         }
 
         @Override
@@ -288,6 +287,15 @@ public class Collectors {
         public String toString() {
             return String.valueOf(provider);
         }
+    }
+
+    private static <T> ValueSupplier.Value<Void> collectEntriesFromValue(ValueCollector<T> collector, ImmutableCollection.Builder<T> collection, ValueSupplier.Value<? extends Iterable<? extends T>> value) {
+        if (value.isMissing()) {
+            return value.asType();
+        }
+
+        collector.addAll(value.getWithoutSideEffect(), collection);
+        return ValueSupplier.Value.present().withSideEffect(ValueSupplier.SideEffect.fixedFrom(value));
     }
 
     public static class ElementsFromArray<T> implements Collector<T> {
