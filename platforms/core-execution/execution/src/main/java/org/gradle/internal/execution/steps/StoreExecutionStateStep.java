@@ -30,6 +30,8 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
+import java.util.Objects;
+
 public class StoreExecutionStateStep<C extends BeforeExecutionContext, R extends AfterExecutionResult> implements Step<C, R> {
     private final Step<? super C, ? extends R> delegate;
 
@@ -47,7 +49,7 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext, R extends
                 .flatMap(beforeExecutionState -> result.getAfterExecutionOutputState()
                     .filter(afterExecutionState -> result.getExecution().isSuccessful() || shouldPreserveFailedState(context, afterExecutionState))
                     .map(executionOutputState -> new DefaultAfterExecutionState(beforeExecutionState, executionOutputState)))
-                .ifPresent(afterExecutionState -> history.store(context.getIdentity().getUniqueId(), afterExecutionState)));
+                .ifPresent(afterExecutionState -> history.store(context.getIdentity().getUniqueId(), Objects.requireNonNull(((IncrementalChangesContext) context).getCacheKey()), afterExecutionState)));
         return result;
     }
 

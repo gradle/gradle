@@ -56,13 +56,14 @@ import org.gradle.internal.execution.steps.HandleStaleOutputsStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.IdentityContext;
+import org.gradle.internal.execution.steps.IncrementalResolveCachingStateStep;
 import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
 import org.gradle.internal.execution.steps.NeverUpToDateStep;
 import org.gradle.internal.execution.steps.NoInputChangesStep;
+import org.gradle.internal.execution.steps.NonIncrementalResolveCachingStateStep;
 import org.gradle.internal.execution.steps.OverlappingOutputsFilter;
 import org.gradle.internal.execution.steps.PreCreateOutputParentsStep;
 import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
-import org.gradle.internal.execution.steps.ResolveCachingStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
 import org.gradle.internal.execution.steps.Result;
@@ -165,10 +166,10 @@ public class ExecutionGradleServices {
             new SkipEmptyNonIncrementalWorkStep(buildId, workInputListeners,
             new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
-            new ResolveCachingStateStep<>(buildCacheController,
+            new NonIncrementalResolveCachingStateStep<>(buildCacheController,
             new MarkSnapshottingInputsFinishedStep<>(
             new NeverUpToDateStep<>(
-            new BuildCacheStep(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
+            new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
             new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter, NO_FILTER,
             new NoInputChangesStep<>(
             new BroadcastChangingOutputsStep<>(outputChangeListener,
@@ -183,12 +184,12 @@ public class ExecutionGradleServices {
             new SkipEmptyIncrementalWorkStep(outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
             new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
-            new ResolveCachingStateStep<>(buildCacheController,
+            new ResolveChangesStep<>(changeDetector, buildCacheController::isEmitDebugLogging,
+            new IncrementalResolveCachingStateStep<>(buildCacheController,
             new MarkSnapshottingInputsFinishedStep<>(
-            new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(
             new StoreExecutionStateStep<>(
-            new BuildCacheStep(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
+            new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
             new ResolveInputChangesStep<>(
             new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter, new OverlappingOutputsFilter(),
             new BroadcastChangingOutputsStep<>(outputChangeListener,

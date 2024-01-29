@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,29 +27,26 @@ import org.gradle.internal.execution.caching.CachingStateFactory;
 import org.gradle.internal.execution.caching.impl.DefaultCachingStateFactory;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.OverlappingOutputs;
+import org.gradle.internal.hash.HashCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.NOPLogger;
 
 import java.util.Formatter;
 import java.util.List;
+import java.util.Optional;
 
-public class ResolveCachingStateStep<C extends ValidationFinishedContext> implements Step<C, CachingResult> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ResolveCachingStateStep.class);
+public abstract class AbstractResolveCachingStateStep<C extends ValidationFinishedContext> implements Step<C, CachingResult> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractResolveCachingStateStep.class);
     private static final CachingDisabledReason BUILD_CACHE_DISABLED_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.BUILD_CACHE_DISABLED, "Build cache is disabled");
     private static final CachingState BUILD_CACHE_DISABLED_STATE = CachingState.disabledWithoutInputs(BUILD_CACHE_DISABLED_REASON);
     private static final CachingDisabledReason VALIDATION_FAILED_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.VALIDATION_FAILURE, "Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details.");
     private static final CachingState VALIDATION_FAILED_STATE = CachingState.disabledWithoutInputs(VALIDATION_FAILED_REASON);
 
     private final BuildCacheController buildCache;
-    private final Step<? super CachingContext, ? extends UpToDateResult> delegate;
 
-    public ResolveCachingStateStep(
-        BuildCacheController buildCache,
-        Step<? super CachingContext, ? extends UpToDateResult> delegate
-    ) {
+    public AbstractResolveCachingStateStep(BuildCacheController buildCache) {
         this.buildCache = buildCache;
-        this.delegate = delegate;
     }
 
     @Override
@@ -59,7 +56,7 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
             cachingState = VALIDATION_FAILED_STATE;
         } else {
             cachingState = context.getBeforeExecutionState()
-                .map(beforeExecutionState -> calculateCachingState(work, beforeExecutionState))
+                .map(beforeExecutionState -> calculateCachingState(work, context, beforeExecutionState))
                 .orElseGet(() -> calculateCachingStateWithNoCapturedInputs(work));
         }
 
@@ -68,16 +65,17 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
             disabled -> logDisabledReasons(disabled.getDisabledReasons(), work)
         );
 
-        UpToDateResult result = delegate.execute(work, new CachingContext(context, cachingState));
+        UpToDateResult result = executeDelegate(work, context, cachingState);
         return new CachingResult(result, cachingState);
     }
 
-    private CachingState calculateCachingState(UnitOfWork work, BeforeExecutionState beforeExecutionState) {
+    private CachingState calculateCachingState(UnitOfWork work, C context, BeforeExecutionState beforeExecutionState) {
         Logger logger = buildCache.isEmitDebugLogging()
             ? LOGGER
             : NOPLogger.NOP_LOGGER;
         CachingStateFactory cachingStateFactory = new DefaultCachingStateFactory(logger);
-
+        HashCode cacheKey = cacheKeyFromContext(context)
+            .orElseGet(() -> cachingStateFactory.calculateCacheKey(beforeExecutionState));
         ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder = ImmutableList.builder();
         if (!buildCache.isEnabled()) {
             cachingDisabledReasonsBuilder.add(BUILD_CACHE_DISABLED_REASON);
@@ -87,8 +85,12 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
         work.shouldDisableCaching(detectedOverlappingOutputs)
             .ifPresent(cachingDisabledReasonsBuilder::add);
 
-        return cachingStateFactory.createCachingState(beforeExecutionState, cachingDisabledReasonsBuilder.build());
+        return cachingStateFactory.createCachingState(beforeExecutionState, cacheKey, cachingDisabledReasonsBuilder.build());
     }
+
+    protected abstract Optional<HashCode> cacheKeyFromContext(C context);
+
+    protected abstract UpToDateResult executeDelegate(UnitOfWork work, C context, CachingState cachingState);
 
     private CachingState calculateCachingStateWithNoCapturedInputs(UnitOfWork work) {
         if (!buildCache.isEnabled()) {
@@ -107,7 +109,7 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
         }
     }
 
-    private void logDisabledReasons(List<CachingDisabledReason> reasons, UnitOfWork work) {
+    private static void logDisabledReasons(List<CachingDisabledReason> reasons, UnitOfWork work) {
         if (LOGGER.isInfoEnabled()) {
             Formatter formatter = new Formatter();
             formatter.format("Caching disabled for %s because:", work.getDisplayName());
