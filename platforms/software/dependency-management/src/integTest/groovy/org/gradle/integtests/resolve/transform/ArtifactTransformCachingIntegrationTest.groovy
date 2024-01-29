@@ -1285,6 +1285,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         def artifactFiles = artifacts.get().artifactFiles
                         assert artifactFiles.size() == 1
                         assert artifactFiles[0].text == "output"
+
+                        // Cleanup
+                        TestState.fileKeptOpen.close()
                     }
                 }
             }
