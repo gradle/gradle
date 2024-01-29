@@ -15,8 +15,10 @@
 [[more_about_tasks]]
 = Developing Tasks
 
-Gradle supports tasks that have their own properties and methods.
+Gradle supports tasks.
 Such tasks are either provided by you or built into Gradle.
+Gradle provides tasks with common functionality like zipping a set of files or copying files from one directory to another.
+If users need functionality that is not provided by Gradle tasks, they can create their own custom tasks.
 
 [[sec:task_outcomes]]
 == Task outcomes
@@ -45,12 +47,12 @@ These labels are based on whether a task has actions to execute and if Gradle ex
 * Task has an `onlyIf` predicate return false. See <<#sec:using_a_predicate,Using a predicate>>.
 
 `NO-SOURCE`:: *Task did not need to execute its actions.*
-* Task has inputs and outputs, but <<incremental_build.adoc#skip-when-empty,no sources>>.
+* Task has inputs and outputs, but <<incremental_build.adoc#skip-when-empty,no sources>> (i.e., inputs were not found).
 
 [[sec:defining_tasks]]
 == Registering tasks
 
-Tasks are defined using <<tutorial_using_tasks.adoc#tutorial_using_tasks,strings for tasks names>>:
+Tasks are defined using strings for tasks names:
 
 ====
 include::sample[dir="snippets/tasks/defineUsingStringTaskNames/kotlin",files="build.gradle.kts[]"]
@@ -65,6 +67,8 @@ In the Kotlin DSL there is a specific link:https://kotlinlang.org/docs/reference
 include::sample[dir="snippets/tasks/defineAsKotlinDelegatedProperty/kotlin",files="build.gradle.kts[]"]
 include::sample[dir="snippets/tasks/defineAsKotlinDelegatedProperty/groovy",files="build.gradle[]"]
 ====
+
+`hello` and `copy` are `TaskProvider`s in the example.
 
 [WARNING]
 ====
@@ -93,7 +97,7 @@ include::sample[dir="snippets/tasks/accessFromTaskContainer/groovy",files="build
 ====
 
 Tasks of a specific type can also be accessed using the `tasks.withType()` method.
-This avoids duplication of code and minimizes redundancy:
+This avoids duplication of code and minimizes redundancy when configuring multiple tasks:
 
 ====
 include::sample[dir="snippets/tasks/accessUsingType/kotlin",files="build.gradle.kts[]"]
@@ -122,28 +126,52 @@ The following examples show several ways to achieve the same configuration.
 
 === 1. Using the `named()` method:
 
+Use `named()` to configure an existing task registered elsewhere:
+
 ====
 include::sample[dir="snippets/tasks/configureUsingVar/kotlin",files="build.gradle.kts[tags=configure]"]
 include::sample[dir="snippets/tasks/configureUsingVar/groovy",files="build.gradle[tags=configure]"]
 ====
 
-=== 2. Using the task reference:
+=== 2. Using a configuration block:
 
-====
-include::sample[dir="snippets/tasks/configureUsingBlock/kotlin",files="build.gradle.kts[tags=configure]"]
-include::sample[dir="snippets/tasks/configureUsingBlock/groovy",files="build.gradle[tags=configure]"]
-====
-
-=== 3. Using a configuration block:
+Configure a task immediately upon registering it:
 
 ====
 include::sample[dir="snippets/tasks/defineAndConfigure/kotlin",files="build.gradle.kts[tags=no-description]"]
 include::sample[dir="snippets/tasks/defineAndConfigure/groovy",files="build.gradle[tags=no-description]"]
 ====
 
+=== 3. Name method as call:
+
+This can be done in Groovy only.
+It forces the task to be realized:
+
+[source,groovy]
+----
+copy {
+    from("resources")
+    into("target")
+    include("**/*.txt", "**/*.xml", "**/*.properties")
+}
+----
+
+NOTE: This breaks task configuration avoidance and is not recommended!
+
+=== 4. Using a `TaskProvider`:
+
+Great for task configuration avoidance if a task reference is needed in multiple places in the build script:
+
+====
+include::sample[dir="snippets/tasks/configureUsingBlock/kotlin",files="build.gradle.kts[tags=configure]"]
+include::sample[dir="snippets/tasks/configureUsingBlock/groovy",files="build.gradle[tags=configure]"]
+====
+
+
 A task has both _configuration_ and _action_.
 
 When using `doLast`, you are simply using a shortcut to define an _action_.
+The action is defined in the configuration phase, but executed in the execution phase.
 Code defined in the configuration section of your task will get executed during the <<build_lifecycle.adoc#build_lifecycle,_configuration phase_ of the build>> regardless of what task was targeted.
 
 ====
@@ -153,78 +181,8 @@ include::sample[dir="snippets/files/archiveNaming/groovy",files="build.gradle[ta
 
 The `myCustomZip` task will ZIP the files in the _configuration phase_ and the name of the archive will be printed in the _execution phase_.
 
-[[sec:passing_arguments_to_a_task_constructor]]
-== Passing arguments
-
-As opposed to configuring the mutable properties of a `Task` after creation, you can pass argument values to the `Task` class's constructor.
-
-In order to pass values to the `Task` constructor, you must annotate the relevant constructor with `@javax.inject.Inject`:
-
-====
-include::sample[dir="snippets/tasks/taskConstructorArgs-onTaskContainer/kotlin",files="build.gradle.kts[tags=inject-task-constructor]"]
-include::sample[dir="snippets/tasks/taskConstructorArgs-onTaskContainer/groovy",files="build.gradle[tags=inject-task-constructor]"]
-====
-
-Then, you can create a task by passing the constructor arguments at the end of the parameter list:
-
-====
-include::sample[dir="snippets/tasks/taskConstructorArgs-onTaskContainer/kotlin",files="build.gradle.kts[tags=on-task-container]"]
-include::sample[dir="snippets/tasks/taskConstructorArgs-onTaskContainer/groovy",files="build.gradle[tags=on-task-container]"]
-====
-
-The values passed as constructor arguments must be non-null.
-If you attempt to pass a `null` value, Gradle will throw a `NullPointerException` indicating which runtime value is `null`.
-
 [[sec:adding_dependencies_to_tasks]]
 == Adding dependencies
-
-There are several ways you can define the dependencies of a task.
-
-Defining dependencies using task names is the simplest way.
-Task names can refer to tasks in the same project as the task, or to tasks in other projects.
-
-To refer to a task in another project, you prefix the name of the task with the path of the project it belongs to.
-
-The following is an example which adds a dependency from `project-a:taskX` to `project-b:taskY`:
-
-====
-include::sample[dir="snippets/tasks/addDependencyUsingPath/kotlin",files="project-a/build.gradle.kts[];project-b/build.gradle.kts[]"]
-include::sample[dir="snippets/tasks/addDependencyUsingPath/groovy",files="project-a/build.gradle[];project-b/build.gradle[]"]
-
-----
-$ gradle -q taskX
-include::{snippetsPath}/tasks/addDependencyUsingPath/tests/addDependencyUsingPath.out[]
-----
-====
-
-Instead of using a task name, you can define a dependency using a `TaskProvider` object:
-
-====
-include::sample[dir="snippets/tasks/addDependencyUsingTask/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tasks/addDependencyUsingTask/groovy",files="build.gradle[]"]
-
-----
-$ gradle -q taskX
-include::{snippetsPath}/tasks/addDependencyUsingTask/tests/addDependencyUsingTask.out[]
-----
-====
-
-You can also define a task dependency using a lazy block.
-
-When evaluated, the block is passed the task whose dependencies are being determined.
-The lazy block should return a single `Task` or collection of `Task` objects, which are then treated as dependencies of the task.
-
-The following example adds a dependency from `taskX` to all the tasks in the project whose name starts with `lib`:
-
-====
-include::sample[dir="snippets/tasks/addDependencyUsingClosure/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tasks/addDependencyUsingClosure/groovy",files="build.gradle[]"]
-
-----
-$ gradle -q taskX
-include::{snippetsPath}/tasks/addDependencyUsingClosure/tests/addDependencyUsingClosure.out[]
-----
-====
 
 For more information about task dependencies, see the link:{groovyDslPath}/org.gradle.api.Task.html[Task] API.
 
@@ -244,7 +202,11 @@ Task ordering can be useful in a number of scenarios:
 
 There are two ordering rules available: “_must run after_” and “_should run after_”.
 
+To specify a “must run after” or “should run after” ordering between 2 tasks, you use the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:mustRunAfter(java.lang.Object++[]++)[Task.mustRunAfter(java.lang.Object++...++)] and link:{javadocPath}/org/gradle/api/Task.html#shouldRunAfter-java.lang.Object++...++-[Task.shouldRunAfter(java.lang.Object++...++)] methods.
+These methods accept a task instance, a task name, or any other input accepted by link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:dependsOn(java.lang.Object++[]++)[Task.dependsOn(java.lang.Object++...++)].
+
 When you use “must run after”, you specify that `taskB` must always run after `taskA` when the build requires the execution of `taskA` and `taskB`.
+So if you only run `taskB` with `mustRunAfter`, you won't cause `taskA` to run.
 This is expressed as `taskB.mustRunAfter(taskA)`.
 
 ====
@@ -274,8 +236,6 @@ include::{snippetsPath}/tasks/shouldRunAfter/tests/shouldRunAfter.out[]
 ----
 ====
 
-With these rules present it is still possible to execute `taskA` without `taskB` and vice-versa.
-
 In the examples above, it is still possible to execute `taskY` without causing `taskX` to run:
 
 ====
@@ -284,9 +244,6 @@ $ gradle -q taskY
 include::{snippetsPath}/tasks/mustRunAfter/tests/mustRunAfterSingleTask.out[]
 ----
 ====
-
-To specify a “must run after” or “should run after” ordering between 2 tasks, you use the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:mustRunAfter(java.lang.Object++[]++)[Task.mustRunAfter(java.lang.Object++...++)] and link:{javadocPath}/org/gradle/api/Task.html#shouldRunAfter-java.lang.Object++...++-[Task.shouldRunAfter(java.lang.Object++...++)] methods.
-These methods accept a task instance, a task name, or any other input accepted by link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:dependsOn(java.lang.Object++[]++)[Task.dependsOn(java.lang.Object++...++)].
 
 Note that “`B.mustRunAfter(A)`” or “`B.shouldRunAfter(A)`” does not imply any execution dependency between the tasks:
 
@@ -331,6 +288,12 @@ Other tasks
 ----------
 copy - Copies the resource directory to the target directory.
 ----
+
+Gradle doesn't support marking a task as "private".
+Gradle tasks will only show up when running `tasks` if the `task.group` is set, or no other task depends on it.
+Such a task is likely meant to be executed directly by the user.
+
+In contrast, `./gradlew tasks --all` will show all tasks.
 
 [[sec:skipping_tasks]]
 == Skipping tasks
@@ -407,7 +370,7 @@ include::{snippetsPath}/tutorial/disableTask/tests/disableTask.out[]
 ====
 
 [[sec:task_timeouts]]
-=== 4. Task timeouts
+=== 3. Task timeouts
 
 Every task has a `timeout` property which can be used to limit its execution time.
 When a task reaches its timeout, its task execution thread is interrupted.
@@ -423,40 +386,6 @@ All of Gradle's built-in tasks respond to timeouts.
 include::sample[dir="snippets/tasks/timeout/kotlin",files="build.gradle.kts[tags=without-import]"]
 include::sample[dir="snippets/tasks/timeout/groovy",files="build.gradle[]"]
 ====
-
-[[sec:task_rules]]
-== Task rules
-
-Sometimes you want to have a task whose behavior depends on a large or infinite number value range of parameters.
-
-An expressive way to provide such tasks are task rules:
-
-====
-include::sample[dir="snippets/tasks/addRules/kotlin",files="build.gradle.kts[tags=task-rule]"]
-include::sample[dir="snippets/tasks/addRules/groovy",files="build.gradle[tags=task-rule]"]
-
-----
-$ gradle -q pingServer1
-include::{snippetsPath}/tasks/addRules/tests/taskRule.out[]
-----
-====
-
-The `String` parameter is used as a description for the rule, which is shown with `gradle tasks`.
-
-Rules are not only used when calling tasks from the command line.
-You can also create `dependsOn` relations with rule based tasks:
-
-====
-include::sample[dir="snippets/tasks/addRules/kotlin",files="build.gradle.kts[tags=all]"]
-include::sample[dir="snippets/tasks/addRules/groovy",files="build.gradle[tags=all]"]
-
-----
-$ gradle -q groupPing
-include::{snippetsPath}/tasks/addRules/tests/taskRuleDependsOn.out[]
-----
-====
-
-If you run `gradle -q tasks` you won't find a task named `pingServer1` or `pingServer2`, but this script is executing logic based on the request to run those tasks.
 
 [[sec:finalizer_tasks]]
 == Finalizer tasks
@@ -496,7 +425,7 @@ This method accepts a task instance, a task name, or any other input accepted by
 == Lifecycle tasks
 
 Lifecycle tasks are tasks that do not do work themselves.
-They typically do not have any task actions.
+They do not have task actions.
 
 Lifecycle tasks can represent several concepts:
 
@@ -511,6 +440,10 @@ Unless a lifecycle task has actions, its <<#sec:task_outcomes,outcome>> is deter
 If any of those dependencies are executed, the lifecycle task will be considered `EXECUTED`.
 If all the task dependencies are `UP-TO-DATE`, `SKIPPED` or `FROM-CACHE` the lifecycle task will be considered `UP-TO-DATE`.
 
+[[sec:using_stopexecutionexception]]
+
+[[sec:task_rules]]
+[[sec:passing_arguments_to_a_task_constructor]]
 [[sec:the_idea_behind_gradle_tasks]]
 [[sec:more_up_to_date_checks]]
 [[sec:more_task_inputs_outputs]]

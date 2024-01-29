@@ -84,10 +84,10 @@ include::{snippetsPath}/workerApi/md5CustomTask/groovy/src/einstein.txt[]
 include::{snippetsPath}/workerApi/md5CustomTask/groovy/src/feynman.txt[]
 ----
 
-.src/oppenheimer.txt
+.src/hawking.txt
 [source,text]
 ----
-include::{snippetsPath}/workerApi/md5CustomTask/groovy/src/oppenheimer.txt[]
+include::{snippetsPath}/workerApi/md5CustomTask/groovy/src/hawking.txt[]
 ----
 
 At this point, you can test your task by running it `./gradlew md5`:
@@ -230,7 +230,7 @@ include::{snippetsPath}/workerApi/md5ClassloaderIsolation/tests/md5Task1.out[]
 
 === Step 4. Create a Worker Daemon
 
-Sometimes, it is desirable to create even further isolation when executing items of work.
+Sometimes, it is desirable to utilize even greater levels of isolation when executing items of work.
 For instance, external libraries may rely on certain system properties to be set, which may conflict between work items.
 Or a library might not be compatible with the version of JDK that Gradle is running with and may need to be run with a different version.
 

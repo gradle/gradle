@@ -23,9 +23,9 @@ image::writing-tasks-4.png[]
 == Task configuration avoidance API
 The configuration avoidance API avoids configuring tasks if they will not be used for a build, which can significantly impact total configuration time.
 
-For example, when running a `compile` task, other unrelated tasks (such as `clean`, `test`, `javadocs`), will not be executed.
+For example, when running a `compile` task (with the `java` plugin applied), other unrelated tasks (such as `clean`, `test`, `javadocs`), will not be executed.
 
-To avoid creating and configuring a task not needed for a build, we say a task is *registered*.
+To avoid creating and configuring a task not needed for a build, we can *register* that task instead.
 
 When a task is registered, it is known to the build.
 It can be configured, and references to it can be passed around, but the task object itself has not been created, and its actions have not been executed.
@@ -359,7 +359,7 @@ task anEagerTask {
 [[sec:task_configuration_avoidance_backward_compatibility_migration]]
 
 [[sec:old_vs_new_configuration_api_overview]]
-== Old vs New API
+== Old vs Current API
 
 * Methods that take a `groovy.lang.Closure` are covered in the new API with methods taking `org.gradle.api.Action`.
 * More convenience methods may be added based on user feedback.

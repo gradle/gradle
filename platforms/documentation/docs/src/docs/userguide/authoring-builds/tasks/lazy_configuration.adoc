@@ -84,8 +84,6 @@ In the previous example, two factory methods were presented:
 An instance of the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] can be referenced from link:{javadocPath}/org/gradle/api/Project.html#getObjects--[Project.getObjects()] or by injecting `ObjectFactory` through a constructor or method.
 - link:{javadocPath}/org/gradle/api/provider/Provider.html#map-org.gradle.api.Transformer-[Provider.map(Transformer)] creates a new `Provider` from an existing `Provider` or `Property` instance.
 
-TIP: You should use `map()`, as it has some useful benefits, which we will see later.
-
 See the <<#lazy_configuration_reference,Quick Reference>> for all of the types and factories available.
 
 A `Provider` can also be created by the factory method link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:provider(java.util.concurrent.Callable)[ProviderFactory.provider(Callable)].
@@ -138,7 +136,8 @@ In <<working_with_files.adoc#working_with_files,Working with Files>>, we introdu
 All of these types are also considered lazy types.
 
 There are more strongly typed models used to represent elements of the file system:
-link:{javadocPath}/org/gradle/api/file/Directory.html[Directory] and link:{javadocPath}/org/gradle/api/file/RegularFile.html[RegularFile]. These types shouldn't be confused with the standard Java link:{javaApi}/java/io/File.html[File] type as they are used to tell Gradle that you expect more specific values such as a directory or a non-directory, regular file.
+link:{javadocPath}/org/gradle/api/file/Directory.html[Directory] and link:{javadocPath}/org/gradle/api/file/RegularFile.html[RegularFile].
+These types shouldn't be confused with the standard Java link:{javaApi}/java/io/File.html[File] type as they are used to tell Gradle that you expect more specific values such as a directory or a non-directory, regular file.
 
 Gradle provides two specialized `Property` subtypes for dealing with values of these types:
 link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[RegularFileProperty] and link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty]. link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] has methods to create these: link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#fileProperty--[ObjectFactory.fileProperty()] and link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#directoryProperty--[ObjectFactory.directoryProperty()].
@@ -296,7 +295,7 @@ include::{snippetsPath}/providers/propertyConvention/tests/propertyConvention.ou
 [[unmodifiable_property]]
 == Making a property unmodifiable
 
-Most properties of a task or project are intended to be configured by plugins or build scripts, and then the resulting value is used to do something useful.
+Most properties of a task or project are intended to be configured by plugins or build scripts so that they can use specific values for that build.
 
 For example, a property that specifies the output directory for a compilation task may start with a value specified by a plugin.
 Then a build script might change the value to some custom location, then this value is used by the task when it runs.
@@ -340,8 +339,6 @@ Guidelines to be successful with the Provider API:
 ** If it's a new property, expose it as a link:{javadocPath}/org/gradle/api/provider/Property.html[Property] or link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] using a single getter.
 ** If it's incubating, change it to use a link:{javadocPath}/org/gradle/api/provider/Property.html[Property] or link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] using a single getter.
 ** If it's a stable property, add a new link:{javadocPath}/org/gradle/api/provider/Property.html[Property] or link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] and deprecate the old one. You should wire the old getter/setters into the new property as appropriate.
-
-To see those guidelines in action, have a look at https://github.com/gradle/gradle-site-plugin[gradle-site-plugin], a Gradle plugin demonstrating established techniques and practices for plugin development.
 
 [[lazy_configuration_reference]]
 == Provider Files API Reference

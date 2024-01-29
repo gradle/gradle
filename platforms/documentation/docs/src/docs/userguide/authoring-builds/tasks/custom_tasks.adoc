@@ -27,7 +27,8 @@ image::writing-tasks-2.png[]
 
 Most Gradle plugins use custom type tasks.
 
-With custom type tasks, there's no need to implement task behavior as done in simple tasks. Instead, you can declare the task and configure it using its properties. Custom type tasks let you reuse a piece of behavior in many different places, possibly across different builds.
+With custom type tasks, there's no need to implement task behavior separately for each task instance as done in simple tasks.
+Instead, you can declare the task and configure it using its properties. Custom type tasks let you reuse a piece of behavior in many different places, possibly across different builds.
 
 The task's class defines the properties and behavior of a custom type task.
 When you declare a custom type task, you specify the *type*, or class of the task.
@@ -45,7 +46,7 @@ You can include the task class directly in the build script.
 This has the benefit of automatically compiling and including the task class in the classpath of the build script.
 However, the task class is not visible outside the build script, so you cannot reuse the task class.
 
-TIP: This is not recommended.
+TIP: This is not recommended. This is meant for quick experimentation and not as a permanent location for task definitions.
 
 === 2. `buildSrc` project
 You can put the source for the task class in the <<organizing_gradle_projects.adoc#organizing_gradle_projects,`buildSrc` directory>>.
@@ -66,7 +67,7 @@ Or a combination of the two.
 [[sec:writing_a_simple_task_class]]
 == Writing a simple task class
 
-To implement a custom task class, you extend link:{groovyDslPath}/org.gradle.api.DefaultTask.html[`DefaultTask`]:
+To implement a custom task class, you extend link:{groovyDslPath}/org.gradle.api.DefaultTask.html[`DefaultTask`] and make the extending class abstract:
 
 ====
 include::sample[dir="snippets/tasks/customTask/kotlin",files="build.gradle.kts[tags=define-task]"]
@@ -87,7 +88,6 @@ $ gradle -q hello
 include::{snippetsPath}/tasks/customTask/tests/customTaskWithAction.out[]
 ----
 
-TIP: You don't have to use a method to define the behavior for the task.
 You could, for instance, call `doFirst()` or `doLast()` with a closure in the task constructor to add this behavior.
 
 Tasks are objects, and when you declare a task, you can set the properties or call methods on the task object.
@@ -147,6 +147,8 @@ include::sample[dir="snippets/base/customExternalTask/groovy/consumer",files="bu
 === Step 3. Write tests for your task class
 
 You can use the link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[ProjectBuilder] class to create link:{groovyDslPath}/org.gradle.api.Project.html[Project] instances to use when you test your task class.
+
+The test is written in the same project as the task:
 
 [source.multi-language-sample,groovy]
 .src/test/groovy/org/gradle/GreetingTaskTest.groovy
