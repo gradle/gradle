@@ -23,7 +23,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.language.Assignment
 import com.h0tk3y.kotlin.staticObjectNotation.language.Expr
 import com.h0tk3y.kotlin.staticObjectNotation.language.LanguageTreeElement
 import com.h0tk3y.kotlin.staticObjectNotation.language.LocalValue
-import com.strumenta.antlrkotlin.runtime.IdentityHashMap
+import java.util.*
 
 interface ResolutionTrace {
     sealed interface ResolutionOrErrors<out R> {
