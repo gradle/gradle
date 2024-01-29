@@ -66,7 +66,7 @@ public class BuildOperationFiringBuildWorkerExecutor implements BuildWorkExecuto
                 builder.details(new RunRootBuildWorkBuildOperationType.Details(buildStartTime));
             }
             builder.metadata(BuildOperationCategory.RUN_WORK);
-            builder.totalProgress(gradle.getTaskGraph().size());
+            builder.totalProgress(gradle.getTaskGraph().taskSize());
             return builder;
         }
     }

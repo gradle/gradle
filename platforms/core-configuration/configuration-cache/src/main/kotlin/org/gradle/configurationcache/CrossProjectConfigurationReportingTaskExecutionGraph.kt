@@ -207,6 +207,8 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
 
     override fun size(): Int = delegate.size()
 
+    override fun taskSize(): Int = delegate.taskSize()
+
     @Deprecated("Deprecated in Java")
     override fun addTaskExecutionListener(@Suppress("DEPRECATION") listener: org.gradle.api.execution.TaskExecutionListener) {
         @Suppress("DEPRECATION")

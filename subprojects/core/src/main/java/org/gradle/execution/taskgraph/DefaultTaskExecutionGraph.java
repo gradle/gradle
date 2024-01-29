@@ -267,6 +267,11 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     @Override
+    public int taskSize() {
+        return executionPlan.getContents().getTasks().size();
+    }
+
+    @Override
     public List<Task> getAllTasks() {
         return allTasks;
     }

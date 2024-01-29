@@ -53,8 +53,15 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
 
     /**
      * Returns the number of work items in this graph.
+     * Note: this is not the same as the number of tasks in this graph, but can include also other work items like artifact transforms.
      */
     int size();
+
+    /**
+     * Returns the number of tasks in this graph. Tasks are a subset of work items,
+     * so this relation is always true: size() >= taskSize().
+     */
+    int taskSize();
 
     /**
      * Returns all the work items in this graph scheduled for execution plus all

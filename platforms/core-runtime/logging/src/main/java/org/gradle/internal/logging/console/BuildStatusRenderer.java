@@ -93,7 +93,7 @@ public class BuildStatusRenderer implements OutputEventListener {
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.RUN_WORK && currentPhase == Phase.Executing) {
                     // Any work execution happening in nested or buildSrc builds before the root build has started executing work is ignored
                     phaseHasMoreProgress(startEvent);
-                } else if (startEvent.getBuildOperationCategory().isTopLevelWorkItem() && currentPhase == Phase.Executing) {
+                } else if (startEvent.getBuildOperationCategory().isShownInExecutionProgressBar() && currentPhase == Phase.Executing) {
                     // Any work execution happening in nested or buildSrc builds before the root build has started executing work is ignored
                     currentPhaseChildren.add(startEvent.getProgressOperationId());
                 }
