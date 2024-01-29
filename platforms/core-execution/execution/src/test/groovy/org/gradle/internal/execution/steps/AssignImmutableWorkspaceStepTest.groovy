@@ -294,7 +294,9 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
 
         then:
         def ex = thrown IllegalStateException
-        ex.message.startsWith("Workspace has been changed")
+        ex.message == "Immutable workspace contents have been modified: ${immutableWorkspace.absolutePath}. " +
+            "These workspace directories are not supposed to be modified once they are created. " +
+            "Deleting the directory in question can allow the content to be recreated."
         0 * _
     }
 }

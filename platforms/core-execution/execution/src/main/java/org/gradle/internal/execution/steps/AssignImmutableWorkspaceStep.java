@@ -107,7 +107,10 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         ImmutableListMultimap<String, HashCode> outputHashes = calculateOutputHashes(outputSnapshots);
         ImmutableWorkspaceMetadata metadata = workspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace);
         if (!metadata.getOutputPropertyHashes().equals(outputHashes)) {
-            throw new IllegalStateException("Workspace has been changed: " + immutableWorkspace.getAbsolutePath());
+            throw new IllegalStateException(
+                "Immutable workspace contents have been modified: " + immutableWorkspace.getAbsolutePath() + ". " +
+                "These workspace directories are not supposed to be modified once they are created. " +
+                "Deleting the directory in question can allow the content to be recreated.");
         }
 
         OriginMetadata originMetadata = metadata.getOriginMetadata();
