@@ -50,6 +50,8 @@ class StripSymbolsIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
     @ToBeFixedForConfigurationCache
     def "strips symbols from binary"() {
+        assumeNotClang14()
+
         when:
         succeeds ":stripSymbolsDebug"
 

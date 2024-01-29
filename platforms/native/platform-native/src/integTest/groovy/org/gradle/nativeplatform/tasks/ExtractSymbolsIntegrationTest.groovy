@@ -50,6 +50,8 @@ class ExtractSymbolsIntegrationTest extends AbstractInstalledToolChainIntegratio
 
     @ToBeFixedForConfigurationCache
     def "extracts symbols from binary"() {
+        assumeNotClang14()
+
         when:
         succeeds ":extractSymbolsDebug"
 
@@ -60,6 +62,8 @@ class ExtractSymbolsIntegrationTest extends AbstractInstalledToolChainIntegratio
 
     @ToBeFixedForConfigurationCache
     def "extract is skipped when there are no changes"() {
+        assumeNotClang14()
+
         when:
         succeeds ":extractSymbolsDebug"
 
@@ -76,6 +80,8 @@ class ExtractSymbolsIntegrationTest extends AbstractInstalledToolChainIntegratio
 
     @ToBeFixedForConfigurationCache
     def "extract is re-executed when changes are made"() {
+        assumeNotClang14()
+
         when:
         succeeds ":extractSymbolsDebug"
 

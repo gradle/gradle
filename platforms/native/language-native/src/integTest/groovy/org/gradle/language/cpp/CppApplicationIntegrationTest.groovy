@@ -118,6 +118,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
     @ToBeFixedForConfigurationCache
     def "can build debug and release variants of executable"() {
+        assumeNotClang14()
         settingsFile << "rootProject.name = 'app'"
         def app = new CppAppWithOptionalFeature()
 

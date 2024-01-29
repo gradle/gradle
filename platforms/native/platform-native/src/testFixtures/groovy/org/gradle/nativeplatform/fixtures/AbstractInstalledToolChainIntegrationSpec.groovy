@@ -27,6 +27,7 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.junit.Assume
 
 /**
  * Runs a test separately for each installed tool chain.
@@ -56,6 +57,11 @@ abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegra
             usingInitScript(initScript)
             toolChain.configureExecuter(it)
         })
+    }
+
+    // https://github.com/gradle/gradle-private/issues/4099
+    void assumeNotClang14() {
+        Assume.assumeFalse(toolChain.displayName.contains("clang 14"))
     }
 
     String executableName(Object path) {
