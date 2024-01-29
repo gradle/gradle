@@ -1,631 +1,576 @@
 package com.h0tk3y.kotlin.staticObjectNotation.parsing
 
-import com.h0tk3y.kotlin.staticObjectNotation.parsing.AstKind.*
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.FailureCollectorContext.CheckedResult
 import com.h0tk3y.kotlin.staticObjectNotation.parsing.UnsupportedLanguageFeature.*
 import com.h0tk3y.kotlin.staticObjectNotation.language.*
-import kotlinx.ast.common.ast.Ast
+import org.jetbrains.kotlin.ElementTypeUtils.getOperationSymbol
+import org.jetbrains.kotlin.ElementTypeUtils.isExpression
+import org.jetbrains.kotlin.KtNodeTypes.*
+import org.jetbrains.kotlin.com.intellij.lang.LighterASTNode
+import org.jetbrains.kotlin.com.intellij.lang.impl.PsiBuilderImpl
+import org.jetbrains.kotlin.com.intellij.psi.TokenType.ERROR_ELEMENT
+import org.jetbrains.kotlin.com.intellij.psi.tree.IElementType
+import org.jetbrains.kotlin.lexer.KtSingleValueToken
+import org.jetbrains.kotlin.lexer.KtTokens.*
+import org.jetbrains.kotlin.parsing.*
+import org.jetbrains.kotlin.psi.stubs.elements.KtConstantExpressionElementType
+import org.jetbrains.kotlin.psi.stubs.elements.KtNameReferenceExpressionElementType
+import org.jetbrains.kotlin.utils.doNothing
 
-class GrammarToTree(private val sourceIdentifier: SourceIdentifier) {
-    /**
-     * script : -shebangLine? -fileAnnotation* -packageHeader importList (statement semi)* EOF
-     */
-    fun script(ast: Ast): LanguageTreeResult = FailureCollectorContext().run {
-        ast.expectKind(script)
-        collectingFailure(ast, shebangLine) { it?.unsupported(UnsupportedShebangInScript) }
-        collectingFailure(ast, packageHeader) {
-            it?.takeIf { it.childrenOrEmpty.isNotEmpty() }?.unsupported(PackageHeader)
+class GrammarToTree(
+    private val sourceIdentifier: SourceIdentifier,
+    private val sourceCode: String,
+    private val sourceOffset: Int
+) {
+
+    inner
+    class CachingLightTree(tree: LightTree) : LightTree by tree {
+        private val sourceData: MutableMap<LighterASTNode, LightTreeSourceData> = mutableMapOf()
+
+        fun sourceData(node: LighterASTNode, offset: Int = sourceOffset): LightTreeSourceData =
+            sourceData.computeIfAbsent(node) {
+                it.sourceData(sourceIdentifier, sourceCode, offset)
+            }
+
+        fun parsingError(node: LighterASTNode, message: String): ParsingError {
+            val sourceData = sourceData(node)
+            return ParsingError(sourceData, sourceData, message)
         }
 
-        val imports = importList(ast.child(importList))
-        val statements = ast.children(statement).map { statement(it) }
-        val headerFailures = collectFailures(failures + imports)
+        fun parsingError(outer: LighterASTNode, inner: LighterASTNode, message: String): ParsingError {
+            val outerSourceData = sourceData(outer)
+            val innerSourceData = sourceData(inner)
+            val cause = PsiBuilderImpl.getErrorMessage(inner)
+            return ParsingError(outerSourceData, innerSourceData, "$message. $cause")
+        }
 
-        LanguageTreeResult(
-            imports.filterIsInstance<Element<Import>>().map { it.element },
-            Block(statements.map { it.asBlockElement() }, ast.sourceData(sourceIdentifier)),
-            headerFailures,
-            collectFailures(statements)
+        fun parsingError(outer: LighterASTNode, inner: LighterASTNode): ParsingError {
+            val outerSourceData = sourceData(outer)
+            val innerSourceData = sourceData(inner)
+            val cause = PsiBuilderImpl.getErrorMessage(inner)
+            return ParsingError(outerSourceData, innerSourceData, cause ?: "Unknown parsing error")
+        }
+
+        fun unsupported(node: LighterASTNode, feature: UnsupportedLanguageFeature): UnsupportedConstruct =
+            unsupported(node, node, feature)
+
+        fun unsupported(outer: LighterASTNode, inner: LighterASTNode, feature: UnsupportedLanguageFeature): UnsupportedConstruct {
+            val outerSourceData = sourceData(outer)
+            val innerSourceData = sourceData(inner)
+            return UnsupportedConstruct(outerSourceData, innerSourceData, feature)
+        }
+
+        fun unsupportedNoOffset(outer: LighterASTNode, inner: LighterASTNode, feature: UnsupportedLanguageFeature): UnsupportedConstruct {
+            val outerSourceData = sourceData(outer, 0)
+            val innerSourceData = sourceData(inner, 0)
+            return UnsupportedConstruct(outerSourceData, innerSourceData, feature)
+        } // TODO: hack, due to script wrapping
+    }
+
+    fun script(originalTree: LightTree): LanguageTreeResult {
+        val tree = CachingLightTree(originalTree)
+        val packageNode = packageNode(tree)
+        val importNodes = importNodes(tree)
+        val scriptNodes = scriptNodes(tree)
+
+        val packages = packageHeader(tree, packageNode)
+        val imports = importNodes.map { import(tree, it) }
+        val statements = scriptNodes.map { statement(tree, it) }
+
+        val headerFailures = collectFailures(packages + imports)
+
+        return LanguageTreeResult(
+            imports = imports.filterIsInstance<Element<Import>>().map { it.element },
+            topLevelBlock = Block(statements.map { it.asBlockElement() }, tree.sourceData(tree.root)),
+            headerFailures = headerFailures,
+            codeFailures = collectFailures(statements)
         )
     }
 
-    private fun importList(ast: Ast): List<ElementResult<Import>> {
-        ast.expectKind(importList)
-        return ast.children(importHeader).map { importHeader(it) }
-    }
-
-    private fun importHeader(ast: Ast): ElementResult<Import> =
-        elementOrFailure {
-            ast.expectKind(importHeader)
-
-            collectingFailure(ast, asterisk) { it?.unsupportedIn(ast, StarImport) }
-            collectingFailure(ast, importAlias) { it?.unsupportedIn(ast, RenamingImport) }
-
-            val identifierAst = ast.child(identifier)
-
-            val names = identifierAst.children(simpleIdentifier).map { checkForFailure(simpleIdentifier(it)) }
-
-            elementIfNoFailures {
-                Element(Import(AccessChain(checked(names)), ast.data))
-            }
+    private
+    fun packageHeader(tree: CachingLightTree, node: LighterASTNode): List<FailingResult> =
+        when {
+            tree.children(node).isNotEmpty() -> listOf(tree.unsupportedNoOffset(node, node, PackageHeader))
+            else -> listOf()
         }
 
-    /**
-     * statement : (-label | -annotation)* ([declaration] | [assignment] | -loopStatement | [expression])
-     */
-    private fun statement(ast: Ast): ElementResult<DataStatement> =
+    private
+    fun import(tree: CachingLightTree, node: LighterASTNode): ElementResult<Import> =
         elementOrFailure {
-            ast.expectKind(statement)
+            val children = tree.children(node)
 
-            collectingFailure(ast, label) { it?.let { it.unsupportedIn(ast, LabelledStatement) } }
-            collectingFailure(ast, annotation) { it?.let { it.unsupportedIn(ast, AnnotationUsage) } }
-
-            val singleChild =
-                ast.childrenOrEmpty.singleOrNull { it.kind != label && it.kind != annotation && it.kind != whitespace }
-                    ?: error("expected a single child")
-
-            elementIfNoFailures {
-                when (singleChild.kind) {
-                    loopStatement -> singleChild.unsupported(LoopStatement)
-                    declaration -> declaration(singleChild)
-                    assignment -> assignment(singleChild)
-                    expression -> expression(singleChild)
-                    else -> error("unexpected child kind")
-                }
-            }
-        }
-
-    /**
-     * declaration : -classDeclaration | -objectDeclaration | [functionDeclaration] | [propertyDeclaration] | -typeAlias
-     */
-    private fun declaration(ast: Ast): ElementResult<DataStatement> {
-        ast.expectKind(declaration)
-
-        val singleChild = ast.singleChild()
-        return when (singleChild.kind) {
-            classDeclaration, objectDeclaration, typeAlias -> singleChild.unsupportedIn(ast, TypeDeclaration)
-            functionDeclaration -> functionDeclaration(singleChild)
-            propertyDeclaration -> propertyDeclaration(singleChild)
-            else -> error("unexpected child kind")
-        }
-    }
-
-    /**
-     * propertyDeclaration : -modifiers? ('val' | -'var') -typeParameters?
-     *     -(receiverType '.')?
-     *     (-multiVariableDeclaration | [variableDeclaration])
-     *     -typeConstraints?
-     *     (('=' expression) | -propertyDelegate)? ';'?
-     *     ((getter? (semi? setter)?) | (setter? (semi? getter)?))
-     */
-    private fun propertyDeclaration(ast: Ast): ElementResult<LocalValue> =
-        elementOrFailure {
-            ast.expectKind(propertyDeclaration)
-
-            collectingFailure(ast, modifiers) { it?.let { it.unsupportedIn(ast, ValModifierNotSupported) } }
-            collectingFailure(ast, varKeyword) { it?.let { it.unsupportedIn(ast, LocalVarNotSupported) } }
-            collectingFailure(ast, receiverType) { it?.let { it.unsupportedIn(ast, ExtensionProperty) } }
-            collectingFailure(ast, multiVariableDeclaration) { it?.let { it.unsupportedIn(ast, MultiVariable) } }
-            collectingFailure(ast, typeConstraints) { it?.let { it.unsupportedIn(ast, GenericDeclaration) } }
-            collectingFailure(ast, propertyDelegate) { it?.let { it.unsupportedIn(ast, DelegatedProperty) } }
-            collectingFailure(ast, getter) { it?.let { it.unsupportedIn(ast, CustomAccessor) } }
-            collectingFailure(ast, setter) { it?.let { it.unsupportedIn(ast, CustomAccessor) } }
-
-            val name = checkForFailure(variableDeclaration(ast.child(variableDeclaration)))
-            val expr = checkForFailure(
-                ast.findChild(expression)?.let(::expression) ?: ast.unsupported(UninitializedProperty)
-            )
-
-            elementIfNoFailures {
-                Element(LocalValue(checked(name), checked(expr), ast.data))
-            }
-        }
-
-    /**
-     * functionDeclaration (used by declaration)
-     *   : modifiers? 'fun' typeParameters?
-     *     (receiverType '.')?
-     *     simpleIdentifier functionValueParameters
-     *     (':' type)? typeConstraints?
-     *     functionBody?
-     *   ;
-     */
-    private fun functionDeclaration(ast: Ast): FailingResult {
-        ast.expectKind(functionDeclaration)
-
-        // TODO: at some point, data functions should be supported
-        return ast.unsupported(FunctionDeclaration)
-    }
-
-    /**
-     * assignment : (([directlyAssignableExpression] '=') | -(assignableExpression assignmentAndOperator)) [expression]
-     */
-    private fun assignment(ast: Ast): ElementResult<Assignment> =
-        elementOrFailure {
-            ast.expectKind(assignment)
-
-            collectingFailure(ast, assignmentAndOperator) {
-                it?.let { it.unsupportedIn(ast, AugmentingAssignment) }
-            }
-
-            val expr = checkForFailure(expression(ast.child(expression)))
-
-            elementIfNoFailures {
-                val lhs = checkForFailure(directlyAssignableExpression(ast.child(directlyAssignableExpression)))
-
-                elementIfNoFailures {
-                    Element(Assignment(checked(lhs), checked(expr), ast.data))
-                }
-            }
-        }
-
-    /**
-     * directlyAssignableExpression (used by assignment, parenthesizedDirectlyAssignableExpression)
-     *   : [postfixUnaryExpression] [assignableSuffix]
-     *   | [simpleIdentifier]
-     *   | parenthesizedDirectlyAssignableExpression (== '(' [directlyAssignableExpression] ')')
-     *   ;
-     */
-    private fun directlyAssignableExpression(ast: Ast): ElementResult<PropertyAccess> =
-        elementOrFailure {
-            ast.expectKind(directlyAssignableExpression)
-
-            ast.findSingleChild(simpleIdentifier)?.let {
-                val name = checkForFailure(simpleIdentifier(it))
-                return@elementOrFailure elementIfNoFailures {
-                    Element(PropertyAccess(null, checked(name), ast.data))
+            var content: CheckedResult<ElementResult<PropertyAccess>>? = null
+            children.forEach {
+                when (it.tokenType) {
+                    DOT_QUALIFIED_EXPRESSION, REFERENCE_EXPRESSION -> content = checkForFailure(propertyAccessStatement(tree, it))
+                    MUL -> collectingFailure(tree.unsupportedNoOffset(node, it, StarImport))
+                    IMPORT_ALIAS -> collectingFailure(tree.unsupportedNoOffset(node, it, RenamingImport))
+                    ERROR_ELEMENT -> collectingFailure(tree.parsingError(node, it))
                 }
             }
 
-            ast.findSingleChild(parenthesizedDirectlyAssignableExpression)?.let {
-                val child = ast.child(directlyAssignableExpression)
-                return@elementOrFailure directlyAssignableExpression(child)
-            }
+            collectingFailure(content ?: tree.parsingError(node, "Qualified expression without selector"))
 
-            val left = ast.child(postfixUnaryExpression)
-            val postfixUnary = checkForFailure(postfixUnaryExpression(left))
-            val suffixAsName = checkForFailure(assignableSuffix(ast.child(assignableSuffix)))
             elementIfNoFailures {
-                Element(PropertyAccess(checked(postfixUnary), checked(suffixAsName), ast.data))
+                fun PropertyAccess.flatten(): List<String> =
+                    buildList {
+                        if (receiver is PropertyAccess) {
+                            addAll(receiver.flatten())
+                        }
+                        add(name)
+                    }
+
+                val nameParts = checked(content!!).flatten()
+                Element(Import(AccessChain(nameParts), tree.sourceData(node, offset = 0)))
             }
         }
 
-    /**
-     * postfixUnaryExpression
-     *   : [primaryExpression] [postfixUnarySuffix]*
-     */
-    private fun postfixUnaryExpression(ast: Ast): ElementResult<Expr> =
-        elementOrFailure {
-            ast.expectKind(postfixUnaryExpression)
+    private
+    fun statement(tree: CachingLightTree, node: LighterASTNode): ElementResult<DataStatement> =
+        when (node.tokenType) {
+            BINARY_EXPRESSION -> binaryStatement(tree, node)
+            PROPERTY -> localValue(tree, node)
+            else -> expression(tree, node)
+        }
 
-            val primary = checkForFailure(primaryExpression(ast.child(primaryExpression)))
-            val suffixes = ast.children(postfixUnarySuffix).map { checkForFailure(postfixUnarySuffix(it)) }
+    private
+    fun expression(tree: CachingLightTree, node: LighterASTNode): ElementResult<Expr> =
+        when (val tokenType = node.tokenType) {
+            BINARY_EXPRESSION -> binaryExpression(tree, node)
+            LABELED_EXPRESSION -> tree.unsupported(node, LabelledStatement)
+            ANNOTATED_EXPRESSION -> tree.unsupported(node, AnnotationUsage)
+            in QUALIFIED_ACCESS, REFERENCE_EXPRESSION -> propertyAccessStatement(tree, node)
+            is KtConstantExpressionElementType, INTEGER_LITERAL -> constantExpression(tree, node)
+            STRING_TEMPLATE -> stringTemplate(tree, node)
+            CALL_EXPRESSION -> callExpression(tree, node)
+            in QUALIFIED_ACCESS -> qualifiedExpression(tree, node)
+            CLASS, TYPEALIAS -> tree.unsupported(node, TypeDeclaration)
+            ARRAY_ACCESS_EXPRESSION -> tree.unsupported(node, Indexing)
+            FUN -> tree.unsupported(node, FunctionDeclaration)
+            ERROR_ELEMENT -> tree.parsingError(node, node)
+            PREFIX_EXPRESSION -> tree.unsupported(node, PrefixExpression)
+            OPERATION_REFERENCE -> tree.unsupported(node, UnsupportedOperator)
+            PARENTHESIZED -> parenthesized(tree, node)
+            LAMBDA_EXPRESSION -> tree.unsupported(node, FunctionDeclaration)
+            THIS_EXPRESSION -> Element(This(tree.sourceData(node)))
+            else -> tree.parsingError(node, "Parsing failure, unexpected tokenType in expression: $tokenType")
+        }
+
+    private
+    fun parenthesized(tree: CachingLightTree, node: LighterASTNode): ElementResult<Expr> =
+        elementOrFailure {
+            val children = childrenWithParsingErrorCollection(tree, node)
+
+            val childExpression: LighterASTNode? = children.firstOrNull { it: LighterASTNode -> it.isExpression() }
+            collectingFailure(childExpression ?: tree.parsingError(node, "No content in parenthesized expression"))
 
             elementIfNoFailures {
-                suffixes.fold(primary.value) { acc, it ->
-                    acc.flatMap { accExpr ->
-                        when (val suffix = checked(it)) {
-                            is UnarySuffix.CallSuffix -> {
-                                if (accExpr !is PropertyAccess) {
-                                    return@flatMap failNow(
-                                        UnsupportedConstruct(
-                                            ast.data,
-                                            ast.data /* TODO */,
-                                            InvokeOperator
-                                        )
-                                    )
-                                }
-                                val receiver = accExpr.receiver
-                                val name = accExpr.name
-                                Element(FunctionCall(receiver, name, suffix.arguments, suffix.ast.data))
+                expression(tree, childExpression!!)
+            }
+        }
+
+    @Suppress("UNCHECKED_CAST")
+    private
+    fun propertyAccessStatement(tree: CachingLightTree, node: LighterASTNode): ElementResult<PropertyAccess> =
+        when (val tokenType = node.tokenType) {
+            REFERENCE_EXPRESSION -> Element(PropertyAccess(null, referenceExpression(node).value, tree.sourceData(node)))
+            in QUALIFIED_ACCESS -> qualifiedExpression(tree, node) as ElementResult<PropertyAccess>
+            ARRAY_ACCESS_EXPRESSION -> tree.unsupported(node, Indexing)
+            else -> tree.parsingError(node, "Parsing failure, unexpected tokenType in property access statement: $tokenType")
+        }
+
+    private
+    fun localValue(tree: CachingLightTree, node: LighterASTNode): ElementResult<LocalValue> =
+        elementOrFailure {
+            val children = tree.children(node)
+
+            var identifier: Syntactic<String>? = null
+            var expression: CheckedResult<ElementResult<Expr>>? = null
+            children.forEach {
+                when (val tokenType = it.tokenType) {
+                    MODIFIER_LIST -> {
+                        val modifiers = tree.children(it)
+                        modifiers.forEach { modifier ->
+                            when (modifier.tokenType) {
+                                ANNOTATION_ENTRY -> collectingFailure(tree.unsupported(node, modifier, AnnotationUsage))
+                                else -> collectingFailure(tree.unsupported(node, modifier, ValModifierNotSupported))
                             }
+                        }
+                    }
+                    is KtSingleValueToken -> if (tokenType.value == "var") {
+                        collectingFailure(tree.unsupported(node, it, LocalVarNotSupported))
+                    }
+                    IDENTIFIER -> identifier = Syntactic(it.asText)
+                    COLON, TYPE_REFERENCE -> collectingFailure(tree.unsupported(node, it, ExplicitVariableType))
+                    ERROR_ELEMENT -> collectingFailure(tree.parsingError(node, it))
+                    else -> if (it.isExpression()) {
+                        expression = checkForFailure(expression(tree, it))
+                    }
+                }
+            }
 
-                            is UnarySuffix.NavSuffix -> {
-                                Element(PropertyAccess(accExpr, suffix.name, suffix.ast.data))
+            collectingFailure(identifier ?: tree.parsingError(node, "Local value without identifier"))
+            collectingFailure(expression ?: tree.unsupported(node, UninitializedProperty))
+
+            elementIfNoFailures {
+                Element(LocalValue(identifier!!.value, checked(expression!!), tree.sourceData(node)))
+            }
+        }
+
+    private
+    fun qualifiedExpression(tree: CachingLightTree, node: LighterASTNode): ElementResult<Expr> =
+        elementOrFailure {
+            val children = tree.children(node)
+
+            var isSelector = false
+            var referenceSelector: CheckedResult<SyntacticResult<String>>? = null
+            var referenceSourceData: SourceData? = null
+            var functionCallSelector: CheckedResult<ElementResult<FunctionCall>>? = null
+            var receiver: CheckedResult<ElementResult<Expr>>? = null //before dot
+            children.forEach {
+                when (val tokenType = it.tokenType) {
+                    DOT -> isSelector = true
+                    SAFE_ACCESS -> {
+                        collectingFailure(tree.unsupported(node, it, SafeNavigation))
+                    }
+                    ERROR_ELEMENT -> collectingFailure(tree.parsingError(node, it))
+                    else -> {
+                        val isEffectiveSelector = isSelector && tokenType != ERROR_ELEMENT
+                        if (isEffectiveSelector) {
+                            val callExpressionCallee = if (tokenType == CALL_EXPRESSION) tree.getFirstChildExpressionUnwrapped(it) else null
+                            if (tokenType is KtNameReferenceExpressionElementType) {
+                                referenceSelector = checkForFailure(referenceExpression(it))
+                                referenceSourceData = tree.sourceData(it)
+                            } else if (tokenType == CALL_EXPRESSION && callExpressionCallee?.tokenType != LAMBDA_EXPRESSION) {
+                                functionCallSelector = checkForFailure(callExpression(tree, it))
+                            } else {
+                                collectingFailure(tree.parsingError(node, it, "The expression cannot be a selector (occur after a dot)"))
                             }
+                        } else {
+                            receiver = checkForFailure(expression(tree, it))
                         }
                     }
                 }
             }
+
+            collectingFailure(referenceSelector ?: functionCallSelector ?: tree.parsingError(node, "Qualified expression without selector"))
+            collectingFailure(receiver ?: tree.parsingError(node, "Qualified expression without receiver"))
+
+            elementIfNoFailures {
+                if (referenceSelector != null) {
+                    Element(PropertyAccess(checked(receiver!!), checked(referenceSelector!!), referenceSourceData!!))
+                } else {
+                    val functionCall = checked(functionCallSelector!!)
+                    Element(FunctionCall(checked(receiver!!), functionCall.name, functionCall.args, functionCall.sourceData))
+                }
+            }
         }
 
-    /**
-     * postfixUnarySuffix
-     *   : -postfixUnaryOperator
-     *   | typeArguments
-     *   | callSuffix
-     *   | -indexingSuffix
-     *   | navigationSuffix
-     */
+    private
+    fun stringTemplate(tree: CachingLightTree, node: LighterASTNode): ElementResult<Expr> {
+        val children = tree.children(node)
+        val sb = StringBuilder()
+        children.forEach {
+            when (val tokenType = it.tokenType) {
+                OPEN_QUOTE, CLOSING_QUOTE -> {}
+                LITERAL_STRING_TEMPLATE_ENTRY -> sb.append(it.asText)
+                ERROR_ELEMENT -> tree.parsingError(node, it, "Unparsable string template: \"${node.asText}\"")
+                else -> tree.parsingError(it, "Parsing failure, unexpected tokenType in string template: $tokenType")
+            }
+        }
+        return Element(Literal.StringLiteral(sb.toString(), tree.sourceData(node)))
+    }
 
-    private fun postfixUnarySuffix(ast: Ast): SyntacticResult<UnarySuffix> {
-        ast.expectKind(postfixUnarySuffix)
+    private
+    fun constantExpression(tree: CachingLightTree, node: LighterASTNode): ElementResult<Expr> {
+        val type = node.tokenType
+        val text: String = node.asText
 
-        // TODO: support postfix double bang operator?
-        val child = ast.singleChild()
-        return when (child.kind) {
-            postfixUnaryOperator -> child.unsupportedIn(ast, UnsupportedOperator)
-            typeArguments -> child.unsupportedIn(ast, GenericExpression)
-            indexingSuffix -> child.unsupportedIn(ast, Indexing)
-            callSuffix -> callSuffix(child)
-            navigationSuffix -> navigationSuffix(child).flatMap { Syntactic(UnarySuffix.NavSuffix(it, ast)) }
-            else -> error("unexpected child kind")
+        fun reportIncorrectConstant(cause: String): ParsingError =
+            tree.parsingError(node, "Incorrect constant expression, $cause: ${node.asText}")
+
+
+        val convertedText: Any? = when (type) {
+            INTEGER_CONSTANT, INTEGER_LITERAL -> when {
+                hasIllegalUnderscore(text, type) -> return reportIncorrectConstant("illegal underscore")
+                else -> parseNumericLiteral(text, INTEGER_CONSTANT)
+            }
+            BOOLEAN_CONSTANT -> parseBoolean(text)
+            else -> null
+        }
+
+        when (type) {
+            INTEGER_CONSTANT, INTEGER_LITERAL -> {
+                when {
+                    convertedText == null -> {
+                        return reportIncorrectConstant("missing value")
+                    }
+
+                    convertedText !is Long -> return reportIncorrectConstant("illegal constant expression")
+
+                    hasUnsignedLongSuffix(text) || hasLongSuffix(text) -> {
+                        if (text.endsWith("l")) {
+                            return reportIncorrectConstant("wrong long suffix")
+                        }
+                        return Element(Literal.LongLiteral(convertedText, tree.sourceData(node)))
+                    }
+
+                    else -> {
+                        return Element(Literal.IntLiteral(convertedText.toInt(), tree.sourceData(node)))
+                    }
+                }
+            }
+            BOOLEAN_CONSTANT -> return Element(Literal.BooleanLiteral(convertedText as Boolean, tree.sourceData(node)))
+            NULL -> return Element(Null(tree.sourceData(node)))
+            else -> return tree.parsingError(node, "Parsing failure, unsupported constant type: $type")
         }
     }
 
-    /**
-     * callSuffix
-     *   : -typeArguments? ((valueArguments? annotatedLambda) | valueArguments)
-     */
-    private fun callSuffix(ast: Ast): SyntacticResult<UnarySuffix> =
-        syntacticOrFailure {
-            ast.expectKind(callSuffix)
+    private
+    fun callExpression(tree: CachingLightTree, node: LighterASTNode): ElementResult<FunctionCall> {
+        val children = tree.children(node)
 
-            collectingFailure(ast, typeArguments) { it?.unsupportedIn(ast, GenericExpression) }
-            val valueArguments = ast.findChild(valueArguments)?.let {
-                checkForFailure(valueArguments(it))
+        var name: String? = null
+        val valueArguments = mutableListOf<LighterASTNode>()
+        children.forEach { child ->
+            fun process(node: LighterASTNode) {
+                when (val tokenType = node.tokenType) {
+                    REFERENCE_EXPRESSION -> {
+                        name = node.asText
+                    }
+                    VALUE_ARGUMENT_LIST, LAMBDA_ARGUMENT -> {
+                        valueArguments += node
+                    }
+                    else -> tree.parsingError(node, "Parsing failure, unexpected token type in call expression: $tokenType")
+                }
             }
-            val finalLambda = ast.findChild(annotatedLambda)?.let {
-                checkForFailure(annotatedLambda(it))
-            }
-            syntacticIfNoFailures {
-                val valueArgs = valueArguments?.let(::checked).orEmpty()
-                val lambda = finalLambda?.let(::checked)
-                Syntactic(UnarySuffix.CallSuffix(valueArgs, lambda, ast))
-            }
+
+            process(child)
         }
 
-    /**
-     * annotatedLambda (used by callSuffix)
-     *   : -annotation* -label? lambdaLiteral
-     *
-     * lambdaLiteral (used by annotatedLambda, functionLiteral)
-     *   : '{' (-lambdaParameters? '->')? statements '}'
-     *
-     */
-    private fun annotatedLambda(ast: Ast): ElementResult<FunctionArgument.Lambda> =
-        elementOrFailure {
-            ast.expectKind(annotatedLambda)
+        if (name == null) tree.parsingError(node, "Name missing from function call!")
 
-            collectingFailure(ast, annotation) { it?.unsupportedIn(ast, AnnotationUsage) }
-            collectingFailure(ast, label) { it?.unsupportedIn(ast, ControlFlow) }
-            val literal = ast.child(lambdaLiteral)
-            collectingFailure(literal, lambdaParameter) { it?.unsupportedIn(literal, LambdaWithParameters) }
-            val statements = checkForFailure(statements(literal.child(statements)))
+        return elementOrFailure {
+            val arguments = valueArguments.flatMap { valueArguments(tree, it) }.map { checkForFailure(it) }
             elementIfNoFailures {
-                Element(FunctionArgument.Lambda(Block(checked(statements), ast.data), ast.data))
+                Element(FunctionCall(null, name!!, arguments.map(::checked), tree.sourceData(node)))
             }
         }
+    }
 
-    private fun statements(ast: Ast): SyntacticResult<List<DataStatement>> =
-        syntacticOrFailure() {
-            ast.expectKind(statements)
-            val statements = ast.children(statement)
-            val statementResult = statements.map { checkForFailure(statement(it)) }
-            syntacticIfNoFailures {
-                Syntactic(statementResult.map { checked(it) })
+    private
+    fun valueArguments(tree: CachingLightTree, node: LighterASTNode): List<SyntacticResult<FunctionArgument>> {
+        val children = tree.children(node)
+
+        val list = mutableListOf<SyntacticResult<FunctionArgument>>()
+        children.forEach {
+            when (val tokenType = it.tokenType) {
+                VALUE_ARGUMENT -> list.add(valueArgument(tree, it))
+                COMMA, LPAR, RPAR -> doNothing()
+                LAMBDA_EXPRESSION -> list.add(lambda(tree, it))
+                ERROR_ELEMENT -> list.add(tree.parsingError(node, it, "Unparsable value argument: \"${node.asText}\""))
+                else -> tree.parsingError(it, "Parsing failure, unexpected token type in value arguments: $tokenType")
             }
         }
+        return list
+    }
 
-    /**
-     * ueArguments
-     *   : '(' (valueArgument (',' valueArgument)* ','?)? ')'
-     */
-    private fun valueArguments(ast: Ast): SyntacticResult<List<FunctionArgument.ValueArgument>> =
+    private
+    fun lambda(tree: CachingLightTree, node: LighterASTNode): SyntacticResult<FunctionArgument.Lambda> =
         syntacticOrFailure {
-            ast.expectKind(valueArguments)
+            val children = childrenWithParsingErrorCollection(tree, node)
+            val functionalLiteralNode = children.firstOrNull { it: LighterASTNode -> it.isKind(FUNCTION_LITERAL) }
 
-            val args = ast.children(valueArgument).map { checkForFailure(valueArgument(it)) }
+            collectingFailure(functionalLiteralNode ?: tree.parsingError(node, "No functional literal in lambda definition"))
+
+            var block: LighterASTNode? = null
+            functionalLiteralNode?.let {
+                val literalNodeChildren = tree.children(functionalLiteralNode)
+                literalNodeChildren.forEach {
+                    when (it.tokenType) {
+                        VALUE_PARAMETER_LIST -> collectingFailure(tree.unsupported(node, it, LambdaWithParameters))
+                        BLOCK -> block = it
+                        ARROW -> doNothing()
+                    }
+                }
+            }
+
+            var statements: List<ElementResult<DataStatement>>? = null
+            block?.let {
+                statements = tree.children(block!!).map { statement(tree, it) }
+            }
+
+            collectingFailure(statements ?: tree.parsingError(node, "Lambda expression without statements"))
+
             syntacticIfNoFailures {
-                Syntactic(args.map(::checked))
+                val checkedStatements = statements!!.map { it.asBlockElement() }
+                val b = Block(checkedStatements, tree.sourceData(block!!))
+                Syntactic(FunctionArgument.Lambda(b, tree.sourceData(node)))
             }
         }
 
-    /**
-     * valueArgument
-     *    : annotation? (simpleIdentifier '=')? '*'? expression
-     */
-    private fun valueArgument(ast: Ast): SyntacticResult<FunctionArgument.ValueArgument> =
-        syntacticOrFailure {
-            ast.expectKind(valueArgument)
 
-            collectingFailure(ast, annotation) { it?.unsupportedIn(ast, AnnotationUsage) }
-            collectingFailure(ast, asterisk) { it?.unsupportedIn(ast, UnsupportedOperator) }
-            val name = checkNullableForFailure(ast.findChild(simpleIdentifier)?.let { simpleIdentifier(it) })
-            val expr = checkForFailure(expression(ast.child(expression)))
+    private
+    fun valueArgument(tree: CachingLightTree, node: LighterASTNode): SyntacticResult<FunctionArgument.ValueArgument> =
+        syntacticOrFailure {
+            if (node.tokenType == PARENTHESIZED) return@syntacticOrFailure valueArgument(tree, tree.getFirstChildExpressionUnwrapped(node)!!)
+
+            var expression: CheckedResult<ElementResult<Expr>>? = null
+
+            when (node.tokenType) {
+                INTEGER_LITERAL, INTEGER_CONSTANT, BOOLEAN_CONSTANT -> expression = checkForFailure(constantExpression(tree, node))
+                STRING_TEMPLATE -> expression = checkForFailure(stringTemplate(tree, node))
+                DOT_QUALIFIED_EXPRESSION -> expression = checkForFailure(propertyAccessStatement(tree, node))
+            }
+
+            if (expression != null) {
+                return@syntacticOrFailure syntacticIfNoFailures {
+                    Syntactic(FunctionArgument.Positional(checked(expression!!), tree.sourceData(node)))
+                }
+            }
+
+            val children = tree.children(node)
+            var identifier: String? = null
+            children.forEach {
+                when (val tokenType = it.tokenType) {
+                    VALUE_ARGUMENT_NAME -> identifier = it.asText
+                    EQ -> doNothing()
+                    is KtConstantExpressionElementType -> expression = checkForFailure(constantExpression(tree, it))
+                    CALL_EXPRESSION -> expression = checkForFailure(callExpression(tree, it))
+                    else ->
+                        if (it.isExpression()) expression = checkForFailure(expression(tree, it))
+                        else tree.parsingError(it, "Parsing failure, unexpected token type in value argument: $tokenType")
+                }
+            }
+
+            collectingFailure(expression ?: tree.parsingError(node, "Argument is absent"))
+
             syntacticIfNoFailures {
-                val checkedExpr = checked(expr)
                 Syntactic(
-                    if (name != null)
-                        FunctionArgument.Named(checked(name), checkedExpr, ast.data)
-                    else FunctionArgument.Positional(checkedExpr, ast.data)
+                    if (identifier != null) FunctionArgument.Named(identifier!!, checked(expression!!), tree.sourceData(node))
+                    else FunctionArgument.Positional(checked(expression!!), tree.sourceData(node))
                 )
             }
+
         }
 
-    sealed interface UnarySuffix {
-        val ast: Ast
-
-        class CallSuffix(
-            private val valueArguments: List<FunctionArgument.ValueArgument>,
-            private val lambda: FunctionArgument.Lambda?,
-            override val ast: Ast
-        ) : UnarySuffix {
-            val arguments: List<FunctionArgument> get() = valueArguments + listOfNotNull(lambda)
+    @Suppress("UNCHECKED_CAST")
+    private
+    fun binaryExpression(tree: CachingLightTree, node: LighterASTNode): ElementResult<Expr> =
+        when (val binaryStatement = binaryStatement(tree, node)) {
+            is FailingResult -> binaryStatement
+            is Element -> if (binaryStatement.element is Expr) binaryStatement as ElementResult<Expr>
+            else tree.unsupported(node, UnsupportedOperationInBinaryExpression)
         }
 
-        class NavSuffix(val name: String, override val ast: Ast) : UnarySuffix
-    }
+    private
+    fun binaryStatement(tree: CachingLightTree, node: LighterASTNode): ElementResult<DataStatement> {
+        val children = tree.children(node)
 
-    /**
-     * primaryExpression
-     *   : parenthesizedExpression == '(' expression ')
-     *   | simpleIdentifier
-     *   | literalConstant
-     *   | stringLiteral
-     *   | -callableReference
-     *   | -functionLiteral
-     *   | -objectLiteral
-     *   | collectionLiteral
-     *   | -thisExpression
-     *   | -superExpression
-     *   | -ifExpression
-     *   | -whenExpression
-     *   | -tryExpression
-     *   | -jumpExpression
-     *   ;
-     */
-    private fun primaryExpression(ast: Ast): ElementResult<Expr> {
-        return elementOrFailure() {
-            ast.expectKind(primaryExpression)
+        var isLeftArgument = true
+        lateinit var operationTokenName: String
+        var leftArg: LighterASTNode? = null
+        var rightArg: LighterASTNode? = null
 
-            val singleChild = ast.childrenOrEmpty.singleOrNull() ?: error("expected a single child")
-
-            when (singleChild.kind) {
-                parenthesizedExpression -> expression(singleChild.child(expression))
-                simpleIdentifier -> {
-                    val simpleIdentifier = checkForFailure(simpleIdentifier(singleChild))
-                    elementIfNoFailures {
-                        Element(PropertyAccess(null, checked(simpleIdentifier), ast.data))
+        children.forEach {
+            when (it.tokenType) {
+                OPERATION_REFERENCE -> {
+                    isLeftArgument = false
+                    operationTokenName = it.asText
+                }
+                else -> if (it.isExpression()) {
+                    if (isLeftArgument) {
+                        leftArg = it
+                    } else {
+                        rightArg = it
                     }
                 }
-
-                literalConstant -> literalConstant(singleChild)
-                stringLiteral -> stringLiteral(singleChild)
-                thisExpression -> Element(This(singleChild.data))
-                callableReference -> ast.unsupported(CallableReference)
-                functionLiteral -> ast.unsupported(FunctionDeclaration)
-                objectLiteral -> ast.unsupported(TypeDeclaration)
-                collectionLiteral -> ast.unsupported(CollectionLiteral)
-                superExpression -> ast.unsupported(SupertypeUsage)
-                ifExpression, whenExpression -> ast.unsupported(ConditionalExpression)
-                tryExpression, jumpExpression -> ast.unsupported(ControlFlow)
-                else -> error("unexpected child kind ${singleChild.kind}")
             }
         }
-    }
 
-    /**
-     * literalConstant (used by primaryExpression)
-     *   : BooleanLiteral
-     *   | IntegerLiteral
-     *   | -HexLiteral
-     *   | -BinLiteral
-     *   | -CharacterLiteral
-     *   | -RealLiteral
-     *   | 'null'
-     *   | LongLiteral
-     *   | UnsignedLiteral
-     *   ;
-     */
-    private fun literalConstant(ast: Ast): ElementResult<Expr> {
-        return elementOrFailure() {
-            ast.expectKind(literalConstant)
-            val singleChild = ast.singleChild()
-            elementIfNoFailures {
-                when (singleChild.kind) {
-                    booleanLiteral -> Element(
-                        Literal.BooleanLiteral(
-                            singleChild.text.toBooleanStrict(),
-                            singleChild.data
-                        )
-                    )
+        val operationToken = operationTokenName.getOperationSymbol()
 
-                    integerLiteral -> Element(Literal.IntLiteral(singleChild.text.toInt(), singleChild.data))
-                    longLiteral -> Element(
-                        Literal.LongLiteral(singleChild.text.removeSuffix("l").removeSuffix("L").toLong(), singleChild.data)
-                    )
+        if (leftArg == null) return tree.parsingError(node, "Missing left hand side in binary expression")
+        if (rightArg == null) return tree.parsingError(node, "Missing right hand side in binary expression")
 
-                    unsignedLiteral -> ast.unsupported(TodoNotCoveredYet)
-                    binLiteral, hexLiteral, characterLiteral, realLiteral -> ast.unsupported(UnsupportedLiteral)
-                    nullLiteral -> Element(Null(singleChild.data))
-                    else -> error("unexpected child kind: ${singleChild.kind}")
+        return when (operationToken) {
+            EQ -> elementOrFailure {
+                val lhs = checkForFailure(propertyAccessStatement(tree, leftArg!!))
+                val expr = checkForFailure(expression(tree, rightArg!!))
+
+                elementIfNoFailures {
+                    Element(Assignment(checked(lhs), checked(expr), tree.sourceData(node)))
                 }
             }
-        }
 
-    }
-
-    private fun stringLiteral(ast: Ast): Element<Expr> {
-        // TODO: support or properly reject string interpolation!
-        return workaround(
-            "String literals are simple to parse right away",
-            run {
-                val text = ast.findSingleDescendant { it.kind == lineStringText || it.kind == multiLineStringText }?.text ?: ""
-                Element(Literal.StringLiteral(text, ast.data))
-            })
-    }
-
-    /**
-     * assignableSuffix : -typeArguments | -indexingSuffix | navigationSuffix
-     */
-    private fun assignableSuffix(ast: Ast): SyntacticResult<String> =
-        syntacticOrFailure {
-            ast.expectKind(assignableSuffix)
-            val child = ast.singleChild()
-            syntacticIfNoFailures {
-                when (child.kind) {
-                    typeArguments -> child.unsupportedIn(ast, GenericExpression)
-                    indexingSuffix -> child.unsupportedIn(ast, Indexing)
-                    navigationSuffix -> navigationSuffix(child)
-                    else -> error("unexpected child kind")
+            IDENTIFIER -> elementOrFailure {
+                val receiver = checkForFailure(expression(tree, leftArg!!))
+                val argument = checkForFailure(valueArgument(tree, rightArg!!))
+                elementIfNoFailures {
+                    Element(FunctionCall(checked(receiver), operationTokenName, listOf(checked(argument)), tree.sourceData(node)))
                 }
             }
-        }
 
-    /**
-     * navigationSuffix : memberAccessOperator (simpleIdentifier | -parenthesizedExpression | -'class')
-     */
-    private fun navigationSuffix(ast: Ast): SyntacticResult<String> =
-        syntacticOrFailure {
-            // TODO: support safe access
-            // TODO: support class references
-            collectingFailure(ast, parenthesizedExpression) { it?.unsupportedIn(ast, InvalidLanguageConstruct) }
-            collectingFailure(ast, classKeyword) { it?.unsupportedIn(ast, Reflection) }
-            checkForFailure(memberAccessOperatorAsDot(ast.child(memberAccessOperator)))
-
-            syntacticIfNoFailures { simpleIdentifier(ast.child(simpleIdentifier)) }
-        }
-
-    /**
-     * memberAccessOperator : '.' | -safeNav | -'::'
-     */
-    private fun memberAccessOperatorAsDot(ast: Ast): SyntacticResult<Unit> {
-        ast.expectKind(memberAccessOperator)
-        return when (ast.singleChild().kind) {
-            dot -> Syntactic(Unit)
-            safeNav -> ast.unsupported(SafeNavigation)
-            colonColon -> ast.unsupported(Reflection)
-            else -> error("unexpected operator kind")
+            else -> tree.unsupported(node, UnsupportedOperationInBinaryExpression)
         }
     }
 
-    /**
-     * variableDeclaration : -annotation* simpleIdentifier (':' -type)?
-     */
-    private fun variableDeclaration(ast: Ast): SyntacticResult<String> =
-        syntacticOrFailure {
-            ast.expectKind(variableDeclaration)
+    private
+    fun referenceExpression(node: LighterASTNode): Syntactic<String> = Syntactic(node.asText)
 
-            collectingFailure(ast, annotation) { it?.let { it.unsupportedIn(ast, AnnotationUsage) } }
-            // TODO: support explicit variable types
-            collectingFailure(ast, type) { it?.let { it.unsupportedIn(ast, ExplicitVariableType) } }
+    private
+    fun packageNode(tree: LightTree): LighterASTNode =
+        toplevelNode(tree, PACKAGE_DIRECTIVE)
 
-            syntacticIfNoFailures {
-                simpleIdentifier(ast.child(simpleIdentifier))
+    private
+    fun importNodes(tree: LightTree): List<LighterASTNode> =
+        tree.children(toplevelNode(tree, IMPORT_LIST))
+
+    private
+    fun scriptNodes(tree: LightTree): List<LighterASTNode> {
+        // the actual script we want to parse is wrapped into a class initializer block, we need to extract it
+
+        val childrenOfWrappingClass = tree.children(toplevelNode(tree, CLASS))
+        val wrappingClassBody = childrenOfWrappingClass.expectSingleOfKind(CLASS_BODY)
+        val childrenOfWrappingClassBody = tree.children(wrappingClassBody)
+        val wrappingClassInitializer = childrenOfWrappingClassBody.expectSingleOfKind(CLASS_INITIALIZER)
+        val childrenOfWrappingClassInitializer = tree.children(wrappingClassInitializer)
+        val wrappingClassInitializerBlock = childrenOfWrappingClassInitializer.expectSingleOfKind(BLOCK)
+        val childrenOfWrappingClassInitializerBlock = tree.children(wrappingClassInitializerBlock)
+
+        return extractBlockContent(childrenOfWrappingClassInitializerBlock)
+    }
+
+    private
+    fun toplevelNode(tree: LightTree, parentNode: IElementType): LighterASTNode {
+        val root = tree.root
+        val childrenOfRoot = tree.children(root)
+        return childrenOfRoot.expectSingleOfKind(parentNode)
+    }
+
+    private
+    fun extractBlockContent(blockNodes: List<LighterASTNode>): List<LighterASTNode> {
+        check(blockNodes.size >= 2) // first and last nodes are the opening an¡¡d closing braces
+
+        val openBrace = blockNodes.first()
+        openBrace.expectKind(LBRACE)
+
+        val closingBrace = blockNodes.last()
+        closingBrace.expectKind(RBRACE)
+
+        return blockNodes.slice(1..blockNodes.size - 2)
+    }
+
+    private
+    fun FailureCollectorContext.childrenWithParsingErrorCollection(tree: CachingLightTree, node: LighterASTNode): List<LighterASTNode> {
+        val children = tree.children(node)
+        children.forEach {
+            if (it.tokenType == ERROR_ELEMENT) {
+                collectingFailure(tree.parsingError(node, it))
             }
         }
-
-    private fun simpleIdentifier(ast: Ast): Syntactic<String> {
-        ast.expectKind(simpleIdentifier)
-        return Syntactic(workaround("a lot of branching for soft keywords", ast.text))
+        return children
     }
-
-    /**
-     * expression : disjunction
-     * disjunction
-     */
-    private fun expression(ast: Ast): ElementResult<Expr> = elementOrFailure {
-        ast.expectKind(expression)
-
-        val disjunction = ast.child(disjunction)
-        if (disjunction.children(conjunction).size > 1) {
-            // TODO: support binary operators?
-            return@elementOrFailure disjunction.unsupported(UnsupportedOperator)
-        }
-        val conjunction = disjunction.child(conjunction)
-        if (conjunction.children(equality).size > 1) {
-            // TODO: support binary operators?
-            return@elementOrFailure conjunction.unsupported(UnsupportedOperator)
-        }
-        val equality = conjunction.child(equality)
-        if (equality.children(comparison).size > 1) {
-            // TODO: support binary operators?
-            return@elementOrFailure equality.unsupported(UnsupportedOperator)
-        }
-        val comparison = equality.child(comparison)
-        if (comparison.children(genericCallLikeComparison).size > 1) {
-            // TODO: support binary operators?
-            return@elementOrFailure comparison.unsupported(UnsupportedOperator)
-        }
-
-        val genericCallLikeComparison = comparison.child(genericCallLikeComparison)
-        if (genericCallLikeComparison.hasChild(callSuffix)) {
-            return@elementOrFailure genericCallLikeComparison.unsupported(TodoNotCoveredYet)
-        }
-
-        val infixOperation = genericCallLikeComparison.child(infixOperation)
-
-        if (infixOperation.hasChild(inOperator) || infixOperation.hasChild(isOperator)) {
-            return@elementOrFailure infixOperation.unsupported(UnsupportedOperator)
-        }
-
-        val elvisExpression = infixOperation.child(elvisExpression)
-        if (elvisExpression.children(infixFunctionCall).size > 1) {
-            return@elementOrFailure elvisExpression.unsupported(UnsupportedOperator)
-        }
-
-        val infixFunctionCall = elvisExpression.child(infixFunctionCall)
-
-        elementIfNoFailures {
-            if (infixFunctionCall.hasChild(simpleIdentifier)) {
-                elementOrFailure {
-                    val children = infixFunctionCall.children(rangeExpression)
-                    val leftExpr =
-                        checkForFailure(workaroundPostfixUnaryExpression(children[0]))
-                    val rightExprs = children.drop(1).map {
-                        checkForFailure(workaroundPostfixUnaryExpression(it))
-                    }
-                    val names =
-                        infixFunctionCall.children(simpleIdentifier).map { checkForFailure(simpleIdentifier(it)) }
-                    elementIfNoFailures {
-                        Element(
-                            rightExprs.zip(names).fold(checked(leftExpr)) { acc, (rExp, name) ->
-                                val arg = checked(rExp)
-                                FunctionCall(
-                                    acc,
-                                    checked(name),
-                                    listOf(FunctionArgument.Positional(arg, infixFunctionCall.data)),
-                                    infixOperation.data
-                                )
-                            }
-                        )
-                    }
-                }
-            } else {
-                workaroundPostfixUnaryExpression(infixFunctionCall)
-            }
-        }
-    }
-
-    private fun workaroundPostfixUnaryExpression(ast: Ast): ElementResult<Expr> {
-        val exprAst = workaround(
-            "the expression structure is too nested for now",
-            ast.flattenTo { it.kind == postfixUnaryExpression }
-        ) ?: return ast.unsupported(TodoNotCoveredYet)
-        return postfixUnaryExpression(exprAst)
-    }
-
-    private fun <T : Any?> workaround(@Suppress("UNUSED_PARAMETER") reason: String, value: T): T = value
-
-    private fun Ast.expectKind(expected: AstKind) {
-        check(kind == expected) { "invoked an AST-visiting function on an unexpected AST kind: $kind instead of $expected" }
-    }
-
-    private fun FailureCollectorContext.collectingFailure(ast: Ast, astKind: AstKind, failureTest: (Ast?) -> FailingResult?) {
-        val child = ast.findChild(astKind)
-        val maybeFailure = child.run(failureTest)
-        collectingFailure(maybeFailure)
-    }
-
-    private val Ast.data get() = sourceData(sourceIdentifier)
-
-    private fun Ast.unsupported(
-        feature: UnsupportedLanguageFeature
-    ) = UnsupportedConstruct(this.data, this.data, feature)
-
-    private fun Ast.unsupportedIn(
-        outer: Ast,
-        feature: UnsupportedLanguageFeature
-    ) = UnsupportedConstruct(outer.data, this.data, feature)
 
 }
+

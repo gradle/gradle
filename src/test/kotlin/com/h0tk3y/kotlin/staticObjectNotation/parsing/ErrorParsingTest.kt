@@ -242,5 +242,5 @@ class ErrorParsingTest {
     }
 
     private
-    fun parse(code: String): LanguageTreeResult = ParseTestUtil.parseWithLightParser(code)
+    fun parse(code: String): LanguageTreeResult = ParseTestUtil.parse(code)
 }
