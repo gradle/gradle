@@ -1,6 +1,7 @@
 package com.example.com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.*
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.*
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.LanguageTreeResult
 import org.junit.jupiter.api.Test
 
 class ErrorParsingTest {

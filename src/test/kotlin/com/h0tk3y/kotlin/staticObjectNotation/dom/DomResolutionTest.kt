@@ -23,8 +23,8 @@ import com.h0tk3y.kotlin.staticObjectNotation.Restricted
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataTypeRef
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.SchemaFunction
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.tracingCodeResolver
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.DefaultLanguageTreeBuilder
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.parseToLightTree
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.DefaultLanguageTreeBuilder
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.parseToLightTree
 import com.h0tk3y.kotlin.staticObjectNotation.dom.DocumentResolution
 import com.h0tk3y.kotlin.staticObjectNotation.dom.ResolvedDeclarativeDocument
 import com.h0tk3y.kotlin.staticObjectNotation.dom.convertBlockToDocument

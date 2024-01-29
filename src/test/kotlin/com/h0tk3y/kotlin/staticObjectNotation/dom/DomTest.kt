@@ -16,8 +16,8 @@
 
 package com.example.com.h0tk3y.kotlin.staticObjectNotation.dom
 
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.DefaultLanguageTreeBuilder
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.parseToLightTree
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.DefaultLanguageTreeBuilder
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.parseToLightTree
 import com.h0tk3y.kotlin.staticObjectNotation.dom.DeclarativeDocument
 import com.h0tk3y.kotlin.staticObjectNotation.dom.DocumentError
 import com.h0tk3y.kotlin.staticObjectNotation.dom.SyntaxError

@@ -1,7 +1,7 @@
 package com.h0tk3y.kotlin.staticObjectNotation.language
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataType
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.FailingResult
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.FailingResult
 
 sealed interface LanguageTreeElement {
     val sourceData: SourceData

@@ -1,4 +1,4 @@
-package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
+package com.h0tk3y.kotlin.staticObjectNotation.parsing
 
 import com.example.com.h0tk3y.kotlin.staticObjectNotation.prettyPrintLanguageTreeResult
 import com.h0tk3y.kotlin.staticObjectNotation.language.SourceIdentifier

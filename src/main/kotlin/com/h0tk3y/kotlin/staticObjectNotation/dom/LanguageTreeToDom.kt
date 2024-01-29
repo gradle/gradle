@@ -16,11 +16,11 @@
 
 package com.h0tk3y.kotlin.staticObjectNotation.dom
 
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.FailingResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.MultipleFailuresResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParsingError
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedConstruct
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.FailingResult
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.LanguageTreeResult
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.MultipleFailuresResult
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.ParsingError
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.UnsupportedConstruct
 import com.h0tk3y.kotlin.staticObjectNotation.dom.LanguageTreeBackedDocument.BlockElementBackedDocumentNode.AssignmentBackedPropertyNode
 import com.h0tk3y.kotlin.staticObjectNotation.dom.LanguageTreeBackedDocument.BlockElementBackedDocumentNode.BlockElementBackedErrorNode
 import com.h0tk3y.kotlin.staticObjectNotation.language.Assignment

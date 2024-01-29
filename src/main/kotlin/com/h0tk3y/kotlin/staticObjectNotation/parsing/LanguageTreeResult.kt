@@ -1,4 +1,4 @@
-package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
+package com.h0tk3y.kotlin.staticObjectNotation.parsing
 
 import com.h0tk3y.kotlin.staticObjectNotation.language.Block
 import com.h0tk3y.kotlin.staticObjectNotation.language.Import
@@ -47,7 +47,8 @@ data class ParsingError(
     val message: String
 ) : SingleFailureResult
 
-data class MultipleFailuresResult(val failures: List<SingleFailureResult>) : FailingResult // TODO: should this exist at all?
+data class MultipleFailuresResult(val failures: List<SingleFailureResult>) :
+    FailingResult // TODO: should this exist at all?
 
 sealed interface UnsupportedLanguageFeature {
     data object PackageHeader : UnsupportedLanguageFeature

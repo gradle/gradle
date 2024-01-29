@@ -1,7 +1,7 @@
-package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
+package com.h0tk3y.kotlin.staticObjectNotation.parsing
 
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.AstKind.*
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedLanguageFeature.*
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.AstKind.*
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.UnsupportedLanguageFeature.*
 import com.h0tk3y.kotlin.staticObjectNotation.language.*
 import kotlinx.ast.common.ast.Ast
 

@@ -1,4 +1,4 @@
-package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
+package com.h0tk3y.kotlin.staticObjectNotation.parsing
 
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.com.intellij.lang.impl.PsiBuilderFactoryImpl

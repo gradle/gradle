@@ -1,8 +1,8 @@
 package com.example.com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParseTestUtil
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.assert
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.LanguageTreeResult
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.ParseTestUtil
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.assert
 import org.junit.jupiter.api.Test
 
 class BasicParsingTest {
