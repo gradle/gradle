@@ -55,7 +55,7 @@ public abstract class AbstractBaseDirFileResolver extends AbstractFileResolver {
 
     @Override
     protected File doResolve(Object path) {
-        if (!GUtil.isTrue(path)) {
+        if (path == null) {
             throw new IllegalArgumentException(String.format(
                 "path may not be null or empty string. path='%s'", path));
         }

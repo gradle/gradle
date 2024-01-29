@@ -36,17 +36,19 @@ public class PreCreateOutputParentsStep<C extends ChangingOutputsContext, R exte
 
     @Override
     public R execute(UnitOfWork work, C context) {
-        work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
-            @Override
-            public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
-                ensureOutput(propertyName, value.getValue(), type);
-            }
+        if (work.shouldPreCreateOutputParents()) {
+            work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
+                @Override
+                public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
+                    ensureOutput(propertyName, value.getValue(), type);
+                }
 
-            @Override
-            public void visitLocalState(File localStateRoot) {
-                ensureOutput("local state", localStateRoot, TreeType.FILE);
-            }
-        });
+                @Override
+                public void visitLocalState(File localStateRoot) {
+                    ensureOutput("local state", localStateRoot, TreeType.FILE);
+                }
+            });
+        }
         return delegate.execute(work, context);
     }
 

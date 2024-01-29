@@ -36,6 +36,7 @@ import java.util.zip.ZipInputStream
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assert.assertTrue
+import static org.junit.Assert.fail
 
 class TestFileHelper {
     TestFile file
@@ -66,8 +67,11 @@ class TestFileHelper {
 
         if (nativeTools && !isWindows()) {
             def process = ['unzip', '-q', '-o', file.absolutePath, '-d', target.absolutePath].execute()
-            process.consumeProcessOutput(System.out, System.err)
-            assertThat(process.waitFor(), equalTo(0))
+            if (process.waitFor() != 0) {
+                fail("Could not unzip '$file': ${process.inputStream.text} ${process.errorStream.text}")
+            } else {
+                process.consumeProcessOutput(System.out, System.err)
+            }
             return
         }
 
@@ -85,8 +89,11 @@ class TestFileHelper {
             def builder = new ProcessBuilder(['tar', '-xpf', file.absolutePath])
             builder.directory(target)
             def process = builder.start()
-            process.consumeProcessOutput()
-            assertThat(process.waitFor(), equalTo(0))
+            if (process.waitFor() != 0) {
+                fail("Could not untar '$file': ${process.inputStream.text} ${process.errorStream.text}")
+            } else {
+                process.consumeProcessOutput()
+            }
             return
         }
 

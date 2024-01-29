@@ -366,6 +366,13 @@ public interface UnitOfWork extends Describable {
     default void validate(WorkValidationContext validationContext) {}
 
     /**
+     * Whether stale outputs should be cleanup up before execution.
+     */
+    default boolean shouldPreCreateOutputParents() {
+        return true;
+    }
+
+    /**
      * Whether the outputs should be cleanup up when the work is executed non-incrementally.
      */
     default boolean shouldCleanupOutputsOnNonIncrementalExecution() {

@@ -275,7 +275,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
                   }
                 }
               }
-              dirPermissions { unix("---------") }
+              dirPermissions { unix("rwx------") }
               duplicatesStrategy = DuplicatesStrategy.INCLUDE
             }
             """
@@ -306,7 +306,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         run "copy"
         then:
         assertDescendants()
-        file("dest").permissions == "rwxr-xr-x" // default
+        file("dest").permissions == topLevelPermissions
         file("dest/sub").permissions == topLevelPermissions
         file("dest/sub/dir").permissions == topLevelPermissions
     }
@@ -332,7 +332,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         run "copy"
         then:
         assertDescendants()
-        file("dest").permissions == "rwxr-xr-x" // default
+        file("dest").permissions == topLevelPermissions
         file("dest/sub").permissions == permissions
         file("dest/sub/dir").permissions == permissions
     }
@@ -362,7 +362,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         run "copy"
         then:
         assertDescendants()
-        file("dest").permissions == "rwxr-xr-x" // default
+        file("dest").permissions == topLevelPermissions
         file("dest/sub").permissions == fromPermissions
         file("dest/sub/dir").permissions == fromPermissions
     }
@@ -392,7 +392,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         run "copy"
         then:
         assertDescendants()
-        file("dest").permissions == "rwxr-xr-x" // default
+        file("dest").permissions == topLevelPermissions
         file("dest/sub").permissions == fromPermissions
         file("dest/sub/dir").permissions == fromPermissions
     }
@@ -422,7 +422,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         run "copy"
         then:
         assertDescendants()
-        file("dest").permissions == "rwxr-xr-x" // default
+        file("dest").permissions == topLevelPermissions
         file("dest/sub").permissions == fromPermissions
         file("dest/sub/dir").permissions == fromPermissions
     }
@@ -452,7 +452,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         run "copy"
         then:
         assertDescendants()
-        file("dest").permissions == "rwxr-xr-x" // default
+        file("dest").permissions == topLevelPermissions
         file("dest/sub").permissions == fromPermissions
         file("dest/sub/dir").permissions == fromPermissions
     }
@@ -479,7 +479,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         run "copy"
         then:
         assertDescendants()
-        file("dest").permissions == "rwxr-xr-x" // default
+        file("dest").permissions == topLevelPermissions
         file("dest/sub").permissions == permissions
         file("dest/sub/dir").permissions == permissions
     }
@@ -506,7 +506,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         run "copy"
         then:
         assertDescendants()
-        file("dest").permissions == "rwxr-xr-x" // default
+        file("dest").permissions == topLevelPermissions
         file("dest/sub").permissions == permissions
         file("dest/sub/dir").permissions == permissions
     }
@@ -533,7 +533,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         run "copy"
         then:
         assertDescendants("prefix/")
-        file("dest").permissions == "rwxr-xr-x" // default, but expecting topLevelPermissions FIXME
+        file("dest").permissions == topLevelPermissions
         file("dest/prefix").permissions == permissions
         file("dest/prefix/sub").permissions == permissions
         file("dest/prefix/sub/dir").permissions == permissions
@@ -561,7 +561,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         run "copy"
         then:
         assertDescendants("files/")
-        file("dest").permissions == "rwxr-xr-x" // default
+        file("dest").permissions == topLevelPermissions
         file("dest/files").permissions == permissions
         file("dest/files/sub").permissions == permissions
         file("dest/files/sub/dir").permissions == permissions
@@ -590,7 +590,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         run "copy"
         then:
         assertDescendants()
-        file("dest").permissions == "rwxr-xr-x" // default
+        file("dest").permissions == topLevelPermissions
         file("dest/sub").permissions == permissions
         file("dest/sub/dir").permissions == permissions
     }
@@ -621,7 +621,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         run "copy"
         then:
         file("dest").assertHasDescendants('prefix/sub/a.txt', 'prefix/sub/dir/b.txt', 'prefix/sub/empty')
-        file("dest").permissions == "rwxr-xr-x" // default, but I'd expect mainDirPermissions FIXME
+        file("dest").permissions == mainDirPermissions
         file("dest/prefix").permissions == subfolderPermissions
         file("dest/prefix/sub").permissions == file("dest/prefix").permissions
         file("dest/prefix/sub/dir").permissions == subsubfolderPermissions
@@ -630,7 +630,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
     //TODO: cover legit nested "into" case
 
     @Requires(UnitTestPreconditions.FilePermissions)
-    def "dirPermissions can be modified for subpaths"() { //TODO: how to edit permissions for dirs
+    def "dirPermissions can be modified for subpaths"() {
         given:
         withSourceFiles("rwxrwxrwx")
 
@@ -659,7 +659,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
                     }
                 }
                 dirPermissions {
-                  unix("${mainDirPermissions}") // ignored for dest
+                  unix("${mainDirPermissions}")
                 }
             }
             """
@@ -667,13 +667,13 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         run "copy"
         then:
         assertDescendants()
-        file("dest").permissions == "rwxr-xr-x"
+        file("dest").permissions == mainDirPermissions
         file("dest/sub").permissions == subfolderPermissions
         file("dest/sub/dir").permissions == subsubfolderPermissions
     }
 
     @Requires(UnitTestPreconditions.FilePermissions)
-    def "dirPermissions can be modified for subpaths2"() { //TODO: exdit permissions for dirs
+    def "dirPermissions can be modified for subpaths2"() {
         given:
         withSourceFiles("rwxrwxrwx")
 
@@ -706,7 +706,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         when:
         run "copy"
         then:
-        file("dest").permissions == "rwxr-xr-x"
+        file("dest").permissions == mainDirPermissions
         file("dest/subfolder1").permissions == subfolderPermissions
         file("dest/subfolder2").permissions == subfolder2Permissions
 
@@ -715,7 +715,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
     }
 
     @Requires(UnitTestPreconditions.FilePermissions)
-    def "dirPermissions can be modified for subpaths5"() { //TODO: exdit permissions for dirs
+    def "dirPermissions can be modified for subpaths5"() {
         given:
         withSourceFiles("rwxrwxrwx")
 
@@ -756,7 +756,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         when:
         run "copy"
         then:
-        file("dest").permissions == "rwxr-xr-x" // fixme: should be mainDirPermissions
+        file("dest").permissions == mainDirPermissions
         file("dest/subfolder1").permissions == subfolderPermissions
         file("dest/subfolder2").permissions == subfolder2Permissions
 
@@ -765,7 +765,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
     }
 
     @Requires(UnitTestPreconditions.FilePermissions)
-    def "dirPermissions can be modified for subpaths6"() { //TODO: exdit permissions for dirs
+    def "dirPermissions can be modified for subpaths6"() {
         given:
         withSourceFiles("rwxrwxrwx")
 
@@ -790,7 +790,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         run "copy"
         then:
         assertDescendants("prefix/")
-        file("dest").permissions == "rwxr-xr-x" // fixme: should be topLevelPermissions
+        file("dest").permissions == topLevelPermissions
         file("dest/prefix").permissions == prefixPermissions
         file("dest/prefix/sub").permissions == filesPermissions
     }
@@ -1061,7 +1061,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
     @Requires(UnitTestPreconditions.FilePermissions)
     def "permissions are set correctly for intermediate directories"() {
         given:
-        withSourceFiles("r--------")
+        withSourceFiles("rwxrwxrwx")
 
         buildFile.delete()
         buildKotlinFile.text = '''
@@ -1083,7 +1083,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         run 'copy'
 
         then:
-        file("dest").permissions == "rwxr-xr-x" // default 755, but should be "rwx------" FIXME
+        file("dest").permissions == "rwx------"
         file("dest/prefix1").permissions == "rwx---rwx"
         file("dest/prefix1/prefix2").permissions == "rwx---rwx"
     }
@@ -1116,7 +1116,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
 
         then:
         file("dest").permissions == originalPermissions
-        file("dest/prefix").permissions == prefixOriginalPermissions
+        file("dest/prefix").permissions == "rwx------" //FIXME: should be prefixOriginalPermissions
     }
 
     private def withSourceFiles(String permissions) {

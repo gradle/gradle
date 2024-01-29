@@ -94,7 +94,7 @@ public class NormalizingCopyActionDecorator implements CopyAction {
     }
 
     private void maybeVisit(@Nullable RelativePath path, CopySpecResolver specResolver, CopyActionProcessingStreamAction delegateAction, Set<RelativePath> visitedDirs, ListMultimap<RelativePath, FileCopyDetailsInternal> pendingDirs) {
-        if (path == null || path.getParent() == null || !visitedDirs.add(path)) {
+        if (path == null || !visitedDirs.add(path)) {
             return;
         }
 
@@ -107,9 +107,10 @@ public class NormalizingCopyActionDecorator implements CopyAction {
             dir = detailsForPath.get(0);
         }
         RelativePath parentPath = path.getParent();
-        //TODO: when going up, the resolver might be the same
-        maybeVisit(parentPath, dir.getSpecResolver().getResolverForPath(parentPath), delegateAction, visitedDirs, pendingDirs);
-
+        if (parentPath != null) {
+            //TODO: when going up, the resolver might be the same
+            maybeVisit(parentPath, dir.getSpecResolver().getResolverForPath(parentPath), delegateAction, visitedDirs, pendingDirs);
+        }
         delegateAction.processFile(dir);
     }
 

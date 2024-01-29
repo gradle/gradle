@@ -65,6 +65,7 @@ class CopyActionExecuterTest extends WorkspaceTest {
 
         then:
         1 * action.processFile({ it.relativePath.pathString == "a" })
+        1 * action.processFile({ it.relativePath.pathString == "" })
         0 * action.processFile(_)
     }
 

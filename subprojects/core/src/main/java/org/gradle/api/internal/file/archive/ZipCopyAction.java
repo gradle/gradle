@@ -107,6 +107,9 @@ public class ZipCopyAction implements CopyAction {
 
         @Override
         public void processFile(FileCopyDetailsInternal details) {
+            if (details.getRelativePath().getSegments().length == 0) {
+                return; //FIXME: this is a crutch
+            }
             if (details.isDirectory()) {
                 visitDir(details);
             } else {

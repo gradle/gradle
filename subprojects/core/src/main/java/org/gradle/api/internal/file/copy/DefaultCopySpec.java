@@ -914,8 +914,14 @@ public class DefaultCopySpec implements CopySpecInternal {
                 while (current.getParentResolver() != null && current.getDestPath().getSegments().length > targetDepth) {
                     current = current.getParentResolver();
                 }
-                while (current.getParentResolver() != null && !current.hasDestination()) {
-                    current = current.getParentResolver();
+                if (targetDepth != 0) {
+                    while (current.getParentResolver() != null && !current.hasDestination()) {
+                        current = current.getParentResolver();
+                    }
+                } else { //TODO: is there a better way?
+                    while (current.getParentResolver() != null && current.getParentResolver().getParentResolver() != null) {
+                        current = current.getParentResolver();
+                    }
                 }
             }
             return current;

@@ -59,6 +59,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(UnitTestPreconditions.FilePermissions)
     def "file and directory permissions are preserved for intermediate directories when using #taskName task"() {
+        print("cwd: ${file(".").absolutePath}")
         given:
         createDir('parent') {
             child {
