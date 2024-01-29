@@ -17,7 +17,7 @@
 package com.example.com.h0tk3y.kotlin.staticObjectNotation.dom
 
 import com.h0tk3y.kotlin.staticObjectNotation.parsing.DefaultLanguageTreeBuilder
-import com.h0tk3y.kotlin.staticObjectNotation.parsing.parseToLightTree
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.parse
 import com.h0tk3y.kotlin.staticObjectNotation.dom.DeclarativeDocument
 import com.h0tk3y.kotlin.staticObjectNotation.dom.DocumentError
 import com.h0tk3y.kotlin.staticObjectNotation.dom.SyntaxError
@@ -126,7 +126,7 @@ object DomTest {
     }
 
     private fun parseAsTopLevelBlock(@Language("kts") code: String): Block {
-        val (tree, sourceCode, sourceOffset) = parseToLightTree(code)
+        val (tree, sourceCode, sourceOffset) = parse(code)
         return DefaultLanguageTreeBuilder().build(tree, sourceCode, sourceOffset, SourceIdentifier("test")).topLevelBlock
     }
 

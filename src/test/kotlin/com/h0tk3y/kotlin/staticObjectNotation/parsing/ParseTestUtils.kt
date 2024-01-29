@@ -9,7 +9,7 @@ class ParseTestUtil {
 
     companion object Parser {
         fun parse(@Language("kts") code: String): LanguageTreeResult {
-            val (tree, sourceCode, sourceOffset) = parseToLightTree(code)
+            val (tree, sourceCode, sourceOffset) = com.h0tk3y.kotlin.staticObjectNotation.parsing.parse(code)
             return DefaultLanguageTreeBuilder().build(tree, sourceCode, sourceOffset, SourceIdentifier("test"))
         }
     }

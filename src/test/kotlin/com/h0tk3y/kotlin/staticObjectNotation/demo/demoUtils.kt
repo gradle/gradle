@@ -26,7 +26,7 @@ fun AnalysisSchema.resolve(
     code: String,
     resolver: Resolver = tracingCodeResolver()
 ): ResolutionResult {
-    val (parseTree, sourceCode, sourceOffset) = parseToLightTree(code)
+    val (parseTree, sourceCode, sourceOffset) = parse(code)
 
     val languageBuilder = DefaultLanguageTreeBuilder()
     val tree = languageBuilder.build(parseTree, sourceCode, sourceOffset, SourceIdentifier("demo"))
