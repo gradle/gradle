@@ -20,10 +20,6 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionError
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionResult
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.SchemaTypeRefContext
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.defaultCodeResolver
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.DefaultLanguageTreeBuilder
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.SingleFailureResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.parseToLightTree
 import com.h0tk3y.kotlin.staticObjectNotation.language.SourceIdentifier
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.CompositeCustomAccessors
 import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.CompositeFunctionResolver
@@ -36,6 +32,10 @@ import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTraceElement
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTracer
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.ReflectionContext
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.reflect
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.LanguageTreeResult
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.SingleFailureResult
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.parse
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.DefaultLanguageTreeBuilder
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.plus
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.treatInterfaceAsConfigureLambda
 import org.gradle.api.Action
@@ -174,7 +174,7 @@ class DefaultRestrictedKotlinScriptEvaluator(
 
     private
     fun languageModelFromLightParser(scriptSource: ScriptSource): LanguageTreeResult {
-        val (tree, code, codeOffset) = parseToLightTree(scriptSource.resource.text)
+        val (tree, code, codeOffset) = parse(scriptSource.resource.text)
         return languageTreeBuilder.build(tree, code, codeOffset, SourceIdentifier(scriptSource.fileName))
     }
 
