@@ -21,6 +21,10 @@ import org.gradle.internal.component.resolution.failure.failures.ResolutionFailu
 
 public interface ResolutionFailureDescriber2<EXCEPTION extends AbstractVariantSelectionException, FAILURE extends ResolutionFailure2> {
     Class<FAILURE> getDescribedFailureType();
-    boolean canDescribeFailure(FAILURE failure);
+
+    default boolean canDescribeFailure(FAILURE failure) {
+        return true;
+    }
+
     EXCEPTION describeFailure(FAILURE failure);
 }

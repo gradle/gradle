@@ -45,11 +45,6 @@ public class IncompatibleGraphVariantsFailureDescriber2 extends AbstractResoluti
     }
 
     @Override
-    public boolean canDescribeFailure(IncompatibleGraphVariantFailure2 failure) {
-        return true;
-    }
-
-    @Override
     public NoMatchingGraphVariantsException describeFailure(IncompatibleGraphVariantFailure2 failure) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
         String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledAttributeDescriber(describer), failure);

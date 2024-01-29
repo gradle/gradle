@@ -44,11 +44,6 @@ public class IncompatibleArtifactVariantsFailureDescriber2 extends AbstractResol
     }
 
     @Override
-    public boolean canDescribeFailure(IncompatibleResolutionFailure2 failure) {
-        return true;
-    }
-
-    @Override
     public NoMatchingArtifactVariantsException describeFailure(IncompatibleResolutionFailure2 failure) {
         String msg = buildIncompatibleArtifactVariantsFailureMsg(failure);
         NoMatchingArtifactVariantsException result = new NoMatchingArtifactVariantsException(msg);

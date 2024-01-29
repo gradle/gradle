@@ -45,11 +45,6 @@ public class IncompatibleRequestedConfigurationFailureDescriber2 extends Abstrac
     }
 
     @Override
-    public boolean canDescribeFailure(IncompatibleRequestedConfigurationFailure2 failure) {
-        return true;
-    }
-
-    @Override
     public IncompatibleGraphVariantsException describeFailure(IncompatibleRequestedConfigurationFailure2 failure) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
         String message = buildIncompatibleGraphVariantsFailureMsg(failure, describer);

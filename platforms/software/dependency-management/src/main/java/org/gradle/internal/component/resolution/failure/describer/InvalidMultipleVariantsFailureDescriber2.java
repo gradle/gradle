@@ -38,11 +38,6 @@ public class InvalidMultipleVariantsFailureDescriber2 extends AbstractResolution
     }
 
     @Override
-    public boolean canDescribeFailure(InvalidMultipleVariantsSelectionFailure2 invalidMultipleVariantsSelectionFailure2) {
-        return true;
-    }
-
-    @Override
     public IncompatibleArtifactVariantsException describeFailure(InvalidMultipleVariantsSelectionFailure2 failure) {
         String msg = buildIncompatibleArtifactVariantsFailureMsg(failure);
         IncompatibleArtifactVariantsException result = new IncompatibleArtifactVariantsException(msg);

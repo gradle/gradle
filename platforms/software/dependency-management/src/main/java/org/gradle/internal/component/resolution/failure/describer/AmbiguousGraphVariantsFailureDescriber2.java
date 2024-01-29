@@ -47,11 +47,6 @@ public class AmbiguousGraphVariantsFailureDescriber2 extends AbstractResolutionF
     }
 
     @Override
-    public boolean canDescribeFailure(VariantAwareAmbiguousResolutionFailure2 failure) {
-        return true;
-    }
-
-    @Override
     public AmbiguousGraphVariantsException describeFailure(VariantAwareAmbiguousResolutionFailure2 failure) {
         String message = buildAmbiguousGraphVariantsFailureMsg(failure);
         AmbiguousGraphVariantsException result = new AmbiguousGraphVariantsException(message);

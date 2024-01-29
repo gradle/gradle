@@ -41,11 +41,6 @@ public class AmbiguousArtifactVariantsFailureDescriber2 extends AbstractResoluti
     }
 
     @Override
-    public boolean canDescribeFailure(AmbiguousResolutionFailure2 failure) {
-        return true;
-    }
-
-    @Override
     public AmbiguousArtifactVariantsException describeFailure(AmbiguousResolutionFailure2 failure) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
         String message = buildMultipleMatchingVariantsFailureMsg(failure, describer);
