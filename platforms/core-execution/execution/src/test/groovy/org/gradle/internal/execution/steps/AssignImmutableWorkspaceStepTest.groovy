@@ -37,6 +37,8 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.TestSnapshotFixture
 import org.gradle.internal.vfs.FileSystemAccess
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -163,6 +165,57 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
         0 * _
     }
 
+    @Requires(UnitTestPreconditions.Windows)
+    def "falls back to duplicating temporary workspace when open files prevent the original from being moved atomically"() {
+        def delegateExecution = Mock(ExecutionEngine.Execution)
+        def delegateDuration = Duration.ofSeconds(1)
+        def delegateOriginMetadata = Stub(OriginMetadata)
+        def delegateOutputFiles = ImmutableSortedMap.of()
+        def delegateOutputState = Stub(ExecutionOutputState) {
+            getOriginMetadata() >> delegateOriginMetadata
+            getOutputFilesProducedByWork() >> delegateOutputFiles
+        }
+        def delegateResult = Stub(CachingResult) {
+            getExecution() >> Try.successful(delegateExecution)
+            getDuration() >> delegateDuration
+            getAfterExecutionOutputState() >> Optional.of(delegateOutputState)
+        }
+        OutputStream fileKeptOpen = null
+
+        when:
+        step.execute(work, context)
+
+        then:
+        1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> Stub(MissingFileSnapshot) {
+            type >> FileType.Missing
+        }
+
+        then:
+        1 * fileSystemAccess.invalidate([temporaryWorkspace.absolutePath])
+
+        then:
+        1 * delegate.execute(work, _ as WorkspaceContext) >> { UnitOfWork work, WorkspaceContext delegateContext ->
+            assert delegateContext.workspace == temporaryWorkspace
+            fileKeptOpen = temporaryWorkspace.file("output.txt").createFile().newOutputStream()
+            fileKeptOpen << "output"
+            fileKeptOpen.flush()
+            return delegateResult
+        }
+
+        then:
+        1 * immutableWorkspaceMetadataStore.storeWorkspaceMetadata(temporaryWorkspace, _)
+        1 * fileSystemAccess.moveAtomically(temporaryWorkspace.absolutePath, immutableWorkspace.absolutePath) >> { String from, String to ->
+            Files.move(Paths.get(from), Paths.get(to))
+        }
+
+        then:
+        immutableWorkspace.file("output.txt").text == "output"
+        0 * _
+
+        cleanup:
+        fileKeptOpen?.close()
+    }
+
     def "keeps failed outputs in temporary workspace"() {
         def delegateFailure = Mock(Exception)
         def delegateDuration = Duration.ofSeconds(1)
@@ -213,9 +266,6 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
             type >> FileType.Directory
         }
 
-        def originalOutputs = ImmutableSortedMap.<String, FileSystemLocationSnapshot> of(
-            "output", originalOutputFileSnapshot
-        )
         def changedOutputs = ImmutableSortedMap.<String, FileSystemLocationSnapshot> of(
             "output", changedOutputFileSnapshot
         )
