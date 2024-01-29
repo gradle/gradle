@@ -67,9 +67,9 @@ fun prettyPrintLanguageResult(languageResult: LanguageResult<*>, startDepth: Int
             is ParsingError -> {
                 appendIndented("ParsingError(")
                 appendLine()
-                appendNextIndented("message = ${current.message}, ")
+                appendNextIndented("message = ${current.message},")
                 appendLine()
-                appendNextIndented("potentialElementSource = ${current.potentialElementSource.prettyPrint()}, ")
+                appendNextIndented("potentialElementSource = ${current.potentialElementSource.prettyPrint()},")
                 appendLine()
                 appendNextIndented("erroneousSource = ${current.erroneousSource.prettyPrint()}")
                 appendLine()
@@ -78,9 +78,9 @@ fun prettyPrintLanguageResult(languageResult: LanguageResult<*>, startDepth: Int
             is UnsupportedConstruct -> {
                 appendIndented("UnsupportedConstruct(")
                 appendLine()
-                appendNextIndented("languageFeature = ${current.languageFeature.javaClass.simpleName}, ")
+                appendNextIndented("languageFeature = ${current.languageFeature.javaClass.simpleName},")
                 appendLine()
-                appendNextIndented("potentialElementSource = ${current.potentialElementSource.prettyPrint()}, ")
+                appendNextIndented("potentialElementSource = ${current.potentialElementSource.prettyPrint()},")
                 appendLine()
                 appendNextIndented("erroneousSource = ${current.erroneousSource.prettyPrint()}")
                 appendLine()

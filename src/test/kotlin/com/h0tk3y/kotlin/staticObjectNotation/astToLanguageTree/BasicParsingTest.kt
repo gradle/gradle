@@ -1,14 +1,11 @@
 package com.example.com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.AbstractBasicDataTest
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ElementResult
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeResult
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParseTestUtil
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.assert
 import org.junit.jupiter.api.Test
 
-class BasicLightParserDataTest: AbstractBasicDataTest() {
-
-    override fun parse(code: String): LanguageTreeResult = ParseTestUtil.parseWithLightParser(code)
+class BasicParsingTest {
 
     @Test
     fun `parses literals`() {
@@ -54,7 +51,7 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
                     rhs = BooleanLiteral [indexes: 45..50, line/column: 5/5..5/10, file: test] (false)
                 )
             """.trimIndent()
-        assertResult(expected, results)
+        results.assert(expected)
     }
 
     @Test
@@ -78,7 +75,7 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
                     name parts = [MyOtherData]
                 )
             """.trimIndent()
-        assertResult(expected, results)
+        results.assert(expected)
     }
 
     @Test
@@ -111,7 +108,7 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
                     ]
                 )
             """.trimIndent()
-        assertResult(expected, results)
+        results.assert(expected)
     }
 
     @Test
@@ -148,7 +145,7 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
                 ]
             )
             """.trimIndent()
-        assertResult(expected, results)
+        results.assert(expected)
     }
 
     @Test
@@ -183,7 +180,7 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
                 ]
             )
             """.trimIndent()
-        assertResult(expected, results)
+        results.assert(expected)
     }
 
     @Test
@@ -213,7 +210,7 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
                 ]
             )
             """.trimIndent()
-        assertResult(expected, results)
+        results.assert(expected)
     }
 
     @Test
@@ -238,7 +235,7 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
                 rhs = IntLiteral [indexes: 8..9, line/column: 1/9..1/10, file: test] (1)
             )
             """.trimIndent()
-        assertResult(expected, results)
+        results.assert(expected)
     }
 
     @Test
@@ -257,7 +254,7 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
                 rhs = This
             )
             """.trimIndent()
-        assertResult(expected, results)
+        results.assert(expected)
     }
 
     @Test
@@ -276,7 +273,7 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
                 rhs = Null
             )
             """.trimIndent()
-        assertResult(expected, results)
+        results.assert(expected)
     }
 
     @Test
@@ -289,7 +286,7 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
                 rhs = IntLiteral [indexes: 8..9, line/column: 1/9..1/10, file: test] (1)
             )
             """.trimIndent()
-        assertResult(expected, results)
+        results.assert(expected)
     }
 
     @Test
@@ -312,7 +309,7 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
                 )
             )
             """.trimIndent()
-        assertResult(expected, results)
+        results.assert(expected)
     }
 
     @Test
@@ -339,7 +336,7 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
                 ]
             )
             """.trimIndent()
-        assertResult(expected, results)
+        results.assert(expected)
     }
 
     @Test
@@ -372,7 +369,7 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
                 ]
             )
             """.trimIndent()
-        assertResult(expected, results)
+        results.assert(expected)
     }
 
     @Test
@@ -433,7 +430,7 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
                 ]
             )
             """.trimIndent()
-        assertResult(expected, results)
+        results.assert(expected)
     }
 
     @Test
@@ -462,6 +459,9 @@ class BasicLightParserDataTest: AbstractBasicDataTest() {
                 ]
             )
             """.trimIndent()
-        assertResult(expected, results)
+        results.assert(expected)
     }
+
+    private
+    fun parse(code: String): LanguageTreeResult = ParseTestUtil.parseWithLightParser(code)
 }

@@ -1,7 +1,9 @@
 package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
+import com.example.com.h0tk3y.kotlin.staticObjectNotation.prettyPrintLanguageTreeResult
 import com.h0tk3y.kotlin.staticObjectNotation.language.SourceIdentifier
 import org.intellij.lang.annotations.Language
+import kotlin.test.assertEquals
 
 class ParseTestUtil {
 
@@ -18,3 +20,8 @@ class ParseTestUtil {
     }
 
 }
+
+fun LanguageTreeResult.assert(
+    expectedPrettyPrintedForm: String,
+    prettyPrinter: (LanguageTreeResult) -> String = ::prettyPrintLanguageTreeResult
+) = assertEquals(expectedPrettyPrintedForm, prettyPrinter(this))

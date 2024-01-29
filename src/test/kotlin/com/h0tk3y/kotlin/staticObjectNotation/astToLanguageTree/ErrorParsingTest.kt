@@ -1,15 +1,9 @@
 package com.example.com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
-import com.example.com.h0tk3y.kotlin.staticObjectNotation.prettyPrintLanguageTreeResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.AbstractRejectedLanguageFeaturesTest
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ElementResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParseTestUtil
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.*
 import org.junit.jupiter.api.Test
 
-class ParsingErrorLightParserTest: AbstractRejectedLanguageFeaturesTest() {
-
-    override fun parse(code: String): LanguageTreeResult = ParseTestUtil.parseWithLightParser(code)
+class ErrorParsingTest {
 
     @Test
     fun `single unparsable expression`() {
@@ -24,7 +18,7 @@ class ParsingErrorLightParserTest: AbstractRejectedLanguageFeaturesTest() {
                 )
             )
             """.trimIndent()
-        assertResult(expected, code)
+        parse(code).assert(expected)
     }
 
     @Test
@@ -47,7 +41,7 @@ class ParsingErrorLightParserTest: AbstractRejectedLanguageFeaturesTest() {
                 )
             )
             """.trimIndent()
-        assertResult(expected, code)
+        parse(code).assert(expected)
     }
 
     @Test
@@ -79,7 +73,7 @@ class ParsingErrorLightParserTest: AbstractRejectedLanguageFeaturesTest() {
                     )
                 )
             )""".trimIndent()
-        assertResult(expected, code)
+        parse(code).assert(expected)
     }
 
     @Test
@@ -124,7 +118,7 @@ class ParsingErrorLightParserTest: AbstractRejectedLanguageFeaturesTest() {
                 rhs = IntLiteral [indexes: 46..47, line/column: 5/9..5/10, file: test] (5)
             )
             """.trimIndent()
-        assertResult(expected, code)
+        parse(code).assert(expected)
     }
 
     @Test
@@ -152,7 +146,7 @@ class ParsingErrorLightParserTest: AbstractRejectedLanguageFeaturesTest() {
                 rhs = IntLiteral [indexes: 29..30, line/column: 3/9..3/10, file: test] (9)
             )
             """.trimIndent()
-        assertResult(expected, code)
+        parse(code).assert(expected)
     }
 
     @Test
@@ -188,7 +182,7 @@ class ParsingErrorLightParserTest: AbstractRejectedLanguageFeaturesTest() {
                 rhs = IntLiteral [indexes: 38..39, line/column: 3/9..3/10, file: test] (4)
             )
             """.trimIndent()
-        assertResult(expected, code)
+        parse(code).assert(expected)
     }
 
     @Test
@@ -243,6 +237,9 @@ class ParsingErrorLightParserTest: AbstractRejectedLanguageFeaturesTest() {
                 ]
             )
             """.trimIndent()
-        assertResult(expected, code)
+        parse(code).assert(expected)
     }
+
+    private
+    fun parse(code: String): LanguageTreeResult = ParseTestUtil.parseWithLightParser(code)
 }
