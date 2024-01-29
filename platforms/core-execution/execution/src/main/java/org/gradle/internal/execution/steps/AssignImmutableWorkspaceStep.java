@@ -162,7 +162,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
                 }
                 return new WorkspaceResult(delegateResult, immutableLocation);
             } else {
-                // TODO Do not try to capture the workspace in case of a failure
+                // TODO Do not capture a null workspace in case of a failure
                 return new WorkspaceResult(delegateResult, null);
             }
         });
