@@ -41,8 +41,6 @@ public class DefaultProblemDetails implements InternalBasicProblemDetails, Seria
     private final InternalDocumentationLink documentationLink;
     private final List<InternalSolution> solutions;
     private final InternalAdditionalData additionalData;
-    private final RuntimeException exception;
-
     public DefaultProblemDetails(
         InternalProblemCategory category,
         InternalLabel label,
@@ -51,8 +49,7 @@ public class DefaultProblemDetails implements InternalBasicProblemDetails, Seria
         List<InternalLocation> locations,
         @Nullable InternalDocumentationLink documentationLink,
         List<InternalSolution> solutions,
-        InternalAdditionalData additionalData,
-        @Nullable RuntimeException exception
+        InternalAdditionalData additionalData
     ) {
         this.category = category;
         this.label = label;
@@ -62,7 +59,6 @@ public class DefaultProblemDetails implements InternalBasicProblemDetails, Seria
         this.documentationLink = documentationLink;
         this.solutions = solutions;
         this.additionalData = additionalData;
-        this.exception = exception;
     }
 
     @Override
@@ -106,11 +102,12 @@ public class DefaultProblemDetails implements InternalBasicProblemDetails, Seria
         return solutions;
     }
 
-    @Nullable
-    @Override
-    public RuntimeException getException() {
-        return exception;
-    }
+    //TODO: fix in 8.7
+//    @Nullable
+//    @Override
+//    public RuntimeException getException() {
+//        return exception;
+//    }
 
     @Override
     public InternalAdditionalData getAdditionalData() {

@@ -61,7 +61,7 @@ The directory structure should look as follows:
 
 The Gradle community has two standards for multi-project build structures:
 
-1. **<<multi_project_builds.adoc#sec:multibuild_buildSrc,Multi-Project Builds using buildSrc>>** - where `buildSrc` is a subproject-like directory at the Gradle project root containing all the build logic.
+1. **<<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,Multi-Project Builds using buildSrc>>** - where `buildSrc` is a subproject-like directory at the Gradle project root containing all the build logic.
 2. **<<composite_builds.adoc#composite_builds,Composite Builds>>** - a build that includes other builds where `build-logic` is a build directory at the Gradle project root containing reusable build logic.
 
 image::multi-project-standards.png[]
@@ -72,7 +72,7 @@ Multi-project builds allow you to organize projects with many modules, wire depe
 
 For example, a build that has many modules called `mobile-app`, `web-app`, `api`, `lib`, and `documentation` could be structured as follows:
 
-[source]
+[source,text]
 ----
 .
 ├── gradle
@@ -99,7 +99,7 @@ This means that in order for Gradle to build `web-app` or `mobile-app`, it must 
 In this example, the root settings file will look as follows:
 
 .settings.gradle.kts
-[source]
+[source,kotlin]
 ----
 include("mobile-app", "web-app", "api", "lib", "documentation")
 ----
@@ -113,7 +113,7 @@ It is a good place to define and maintain shared configuration or imperative bui
 
 If the `java` plugin is applied to the `buildSrc` project, the compiled code from `buildSrc/src/main/java` is put in the classpath of the root build script, making it available to any subproject (`web-app`, `mobile-app`, `lib`, etc...) in the build.
 
-Consult how to declare <<multi_project_builds.adoc#sec:multibuild_buildSrc, dependencies between subprojects>> to learn more.
+Consult how to declare <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc, dependencies between subprojects>> to learn more.
 
 === 2. Composite Builds
 

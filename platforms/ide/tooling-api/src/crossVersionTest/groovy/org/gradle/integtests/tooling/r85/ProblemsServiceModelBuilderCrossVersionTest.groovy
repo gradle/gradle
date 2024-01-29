@@ -22,12 +22,15 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.BaseProblemDescriptor
 import org.gradle.tooling.events.problems.ProblemDescriptor
 import org.gradle.tooling.events.problems.ProblemEvent
 import org.junit.Assume
+
+import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
 
 @ToolingApiVersion(">=8.5")
 @TargetGradleVersion(">=8.5")
@@ -103,7 +106,7 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
         problems.size() == 1
         problems[0].label.label == 'label'
         problems[0].category.category == 'testcategory'
-        problems[0].exception.exception.message == 'test'
+//        problems[0].exception.exception.message == 'test'
 
         where:
         javaHome << [
@@ -154,6 +157,32 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
         listener.problems[0].additionalData.asMap == [
             'keyToString': 'value'
         ]
+    }
+
+    @TargetGradleVersion(">=8.6")
+    @ToolingApiVersion(">=8.6")
+    def "getFailure always null in older version"() {
+        buildFile """
+            tasks.register("foo) {
+        """
+
+        given:
+        ProblemProgressListener listener = new ProblemProgressListener()
+
+        when:
+        withConnection {
+            it.model(CustomModel)
+                .setJavaHome(jdk17.javaHome)
+                .addProgressListener(listener)
+                .get()
+        }
+
+        then:
+        thrown(BuildException)
+        def problems = listener.problems.collect { it as ProblemDescriptor }
+        problems.size() == 1
+        problems[0].label.label == "Could not compile build file '$buildFile.absolutePath'."
+        problems[0].category.category == 'compilation'
     }
 
     class ProblemProgressListener implements ProgressListener {

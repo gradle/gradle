@@ -523,13 +523,13 @@ Set to `warn` to report problems without failing the build.
 Set to `fail` to report problems and fail the build if there are any problems.
 
 `--configure-on-demand`, `--no-configure-on-demand`::
-Toggles <<structuring_software_products_details.adoc#sec:configuration_on_demand, Configure-on-demand>>. Only relevant projects are configured in this build run. _Default is off_.
+Toggles configure-on-demand. Only relevant projects are configured in this build run. _Default is off_.
 
 `--max-workers`::
 Sets the maximum number of workers that Gradle may use. _Default is number of processors_.
 
 `--parallel`, `--no-parallel`::
-Build projects in parallel. For limitations of this option, see <<structuring_software_products_details.adoc#sec:parallel_execution, Parallel Project Execution>>. _Default is off_.
+Build projects in parallel. For limitations of this option, see <<performance.adoc#parallel_execution, Parallel Project Execution>>. _Default is off_.
 
 `--priority`::
 Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Values are `normal` or `low`. _Default is normal_.
@@ -674,7 +674,7 @@ This flag also implies `--write-locks`.
 
 `-a`, `--no-rebuild`::
 Do not rebuild project dependencies.
-Useful for <<multi_project_builds.adoc#sec:multiproject_buildsrc, debugging and fine-tuning `buildSrc`>>, but can lead to wrong results. Use with caution!
+Useful for <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc, debugging and fine-tuning `buildSrc`>>, but can lead to wrong results. Use with caution!
 
 [[sec:dependency_verification_options]]
 == Dependency verification options
