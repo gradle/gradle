@@ -18,12 +18,12 @@ package org.gradle.internal.restricteddsl.evaluator
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ErrorReason
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionError
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParsingError
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.SingleFailureResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedConstruct
 import com.h0tk3y.kotlin.staticObjectNotation.language.LanguageTreeElement
 import com.h0tk3y.kotlin.staticObjectNotation.language.SourceData
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTraceElement
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.ParsingError
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.SingleFailureResult
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.UnsupportedConstruct
 import org.gradle.api.GradleException
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure
