@@ -117,7 +117,7 @@ public abstract class AbstractResolutionFailureDescriber2<EXCEPTION extends Abst
         }
         formatter.startChildren();
         if (!incompatibleAttrs.isEmpty()) {
-            formatter.node("Incompatible because this component declares " + style(StyledTextOutput.Style.FailureHeader, describer.describeAttributeSet(incompatibleAttrs)) + " and the consumer needed <FailureHeader>" + describer.describeAttributeSet(incompatibleConsumerAttrs) + "</FailureHeader>");
+            formatter.node("Incompatible because this component declares " + style(StyledTextOutput.Style.FailureHeader, describer.describeAttributeSet(incompatibleAttrs)) + " and the consumer needed " + style(StyledTextOutput.Style.FailureHeader, describer.describeAttributeSet(incompatibleConsumerAttrs)));
         }
         formatAttributeSection(formatter, "Other compatible attribute", otherValues);
         formatter.endChildren();
