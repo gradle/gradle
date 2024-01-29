@@ -129,7 +129,7 @@ public class GraphVariantSelector {
             return singleVariant(true, matches);
         } else if (!matches.isEmpty()) {
             if (explanationBuilder instanceof TraceDiscardedConfigurations) {
-                throw failureProcessor.ambiguousGraphVariantsFailure(consumerSchema, attributeMatcher, consumerAttributes, matches, targetComponent, true);
+                throw failureProcessor.ambiguousGraphVariantsFailure(consumerSchema, attributeMatcher, consumerAttributes, matches, targetComponent);
             } else {
                 // Perform a second resolution with tracing
                 return selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, allowNoMatchingVariants, new TraceDiscardedConfigurations());

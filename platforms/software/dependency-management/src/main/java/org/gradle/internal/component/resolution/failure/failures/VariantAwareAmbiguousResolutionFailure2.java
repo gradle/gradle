@@ -14,39 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.resolution.failure;
+package org.gradle.internal.component.resolution.failure.failures;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
+import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
-public class AmbiguousResolutionFailure2 extends ResolutionFailure2 {
-    @Nullable
+public class VariantAwareAmbiguousResolutionFailure2 extends AmbiguousResolutionFailure2 {
     private final ComponentGraphResolveMetadata targetComponent;
-    private final ImmutableList<ResolutionCandidateAssessor.AssessedCandidate> candidates;
-    private final boolean isVariantAware;
 
-    public AmbiguousResolutionFailure2(AttributesSchemaInternal schema, @Nullable ComponentGraphResolveMetadata targetComponent, String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates, boolean isVariantAware) {
-        super(schema, requestedName, requestedAttributes);
+    public VariantAwareAmbiguousResolutionFailure2(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates, ComponentGraphResolveMetadata targetComponent) {
+        super(schema, requestedName, requestedAttributes, candidates);
         this.targetComponent = targetComponent;
-        this.candidates = ImmutableList.copyOf(candidates);
-        this.isVariantAware = isVariantAware;
     }
 
-    @Nullable
     public ComponentGraphResolveMetadata getTargetComponent() {
         return targetComponent;
-    }
-
-    public ImmutableList<ResolutionCandidateAssessor.AssessedCandidate> getCandidates() {
-        return candidates;
-    }
-
-    public boolean isVariantAware() {
-        return isVariantAware;
     }
 }

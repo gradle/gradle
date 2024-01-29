@@ -17,7 +17,7 @@
 package org.gradle.internal.component.resolution.failure.describer;
 
 import org.gradle.internal.component.AbstractVariantSelectionException;
-import org.gradle.internal.component.resolution.failure.ResolutionFailure2;
+import org.gradle.internal.component.resolution.failure.failures.ResolutionFailure2;
 
 public interface ResolutionFailureDescriber2<EXCEPTION extends AbstractVariantSelectionException, FAILURE extends ResolutionFailure2> {
     Class<FAILURE> getDescribedFailureType();

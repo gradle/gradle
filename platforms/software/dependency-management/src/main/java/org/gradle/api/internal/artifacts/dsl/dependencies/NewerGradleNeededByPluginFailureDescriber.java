@@ -20,10 +20,9 @@ import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.component.NoMatchingGraphVariantsException;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
-import org.gradle.internal.component.resolution.failure.ResolutionFailure;
-import org.gradle.internal.component.resolution.failure.ResolutionFailure.ResolutionFailureType;
-import org.gradle.internal.component.resolution.failure.describer.AbstractResolutionFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.AbstractResolutionFailureDescriber2;
+import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber2;
+import org.gradle.internal.component.resolution.failure.failures.IncompatibleResolutionFailure2;
 import org.gradle.util.GradleVersion;
 
 import javax.inject.Inject;
@@ -32,12 +31,12 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * A {@link ResolutionFailureDescriber} that describes a {@link ResolutionFailure} caused by a plugin requiring
+ * A {@link ResolutionFailureDescriber2} that describes a {@link ResolutionFailure} caused by a plugin requiring
  * a newer Gradle version that the one currently running the build.
  *
  * This is determined by assessing the incompatibility of the {@link GradlePluginApiVersion#GRADLE_PLUGIN_API_VERSION_ATTRIBUTE} attribute.
  */
-public class NewerGradleNeededByPluginFailureDescriber extends AbstractResolutionFailureDescriber<NoMatchingGraphVariantsException> {
+public class NewerGradleNeededByPluginFailureDescriber extends AbstractResolutionFailureDescriber2<NoMatchingGraphVariantsException, IncompatibleResolutionFailure2> {
     private static final String GRADLE_VERSION_TOO_OLD_TEMPLATE = "Plugin %s requires at least Gradle %s. This build uses %s.";
     private static final String NEEDS_NEWER_GRADLE_SECTION = "sub:updating-gradle";
 
@@ -50,12 +49,17 @@ public class NewerGradleNeededByPluginFailureDescriber extends AbstractResolutio
     }
 
     @Override
-    public boolean canDescribeFailure(ResolutionFailure failure) {
-        return failure.getType() == ResolutionFailureType.NO_MATCHING_VARIANTS && allCandidatesIncompatibleDueToGradleVersionTooLow(failure);
+    public Class<IncompatibleResolutionFailure2> getDescribedFailureType() {
+        return IncompatibleResolutionFailure2.class;
     }
 
     @Override
-    public NoMatchingGraphVariantsException describeFailure(ResolutionFailure failure) {
+    public boolean canDescribeFailure(IncompatibleResolutionFailure2 failure) {
+        return allCandidatesIncompatibleDueToGradleVersionTooLow(failure);
+    }
+
+    @Override
+    public NoMatchingGraphVariantsException describeFailure(IncompatibleResolutionFailure2 failure) {
         GradleVersion minGradleApiVersionSupportedByPlugin = findMinGradleVersionSupportedByPlugin(failure.getCandidates());
         String message = buildPluginNeedsNewerGradleVersionFailureMsg(failure.getRequestedName(), minGradleApiVersionSupportedByPlugin);
         NoMatchingGraphVariantsException result = new NoMatchingGraphVariantsException(message);
@@ -64,7 +68,7 @@ public class NewerGradleNeededByPluginFailureDescriber extends AbstractResolutio
         return result;
     }
 
-    private boolean allCandidatesIncompatibleDueToGradleVersionTooLow(ResolutionFailure failure) {
+    private boolean allCandidatesIncompatibleDueToGradleVersionTooLow(IncompatibleResolutionFailure2 failure) {
         boolean requestingPluginApi = failure.getRequestedAttributes().contains(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
         boolean allIncompatibleDueToGradleVersion = failure.getCandidates().stream()
             .allMatch(candidate -> candidate.getIncompatibleAttributes().stream()

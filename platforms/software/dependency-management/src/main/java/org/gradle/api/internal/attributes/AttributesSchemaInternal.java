@@ -16,11 +16,8 @@
 
 package org.gradle.api.internal.attributes;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.internal.component.AbstractVariantSelectionException;
-import org.gradle.internal.component.resolution.failure.ResolutionFailure2;
-import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
+import org.gradle.internal.component.resolution.failure.failures.ResolutionFailure2;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber2;
 
@@ -45,9 +42,6 @@ public interface AttributesSchemaInternal extends AttributesSchemaWithDescribers
     @Nullable
     Attribute<?> getAttributeByName(String name);
 
-    ImmutableList<ResolutionFailureDescriber<? extends AbstractVariantSelectionException>> getFailureDescribers();
-    void addFailureDescriber(Class<? extends ResolutionFailureDescriber<? extends AbstractVariantSelectionException>> describerClass);
-
-    <FAILURE extends ResolutionFailure2> List<ResolutionFailureDescriber2<?, FAILURE>> getFailureDescribers2(FAILURE failure);
     void addFailureDescriber2(Class<? extends ResolutionFailureDescriber2<?, ?>> describerClass);
+    <FAILURE extends ResolutionFailure2> List<ResolutionFailureDescriber2<?, FAILURE>> getFailureDescribers2(FAILURE failure);
 }

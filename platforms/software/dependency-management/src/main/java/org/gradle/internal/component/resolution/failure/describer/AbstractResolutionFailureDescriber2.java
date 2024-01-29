@@ -16,17 +16,21 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.attributes.AttributeDescriber;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.AbstractVariantSelectionException;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedAttribute;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
-import org.gradle.internal.component.resolution.failure.ResolutionFailure2;
+import org.gradle.internal.component.resolution.failure.failures.ResolutionFailure2;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -117,5 +121,21 @@ public abstract class AbstractResolutionFailureDescriber2<EXCEPTION extends Abst
         }
         formatAttributeSection(formatter, "Other compatible attribute", otherValues);
         formatter.endChildren();
+    }
+
+    protected void formatAttributes(StringBuilder sb, ImmutableAttributes attributes) {
+        ImmutableSet<Attribute<?>> keySet = attributes.keySet();
+        List<Attribute<?>> sorted = Lists.newArrayList(keySet);
+        sorted.sort(Comparator.comparing(Attribute::getName));
+        boolean space = false;
+        sb.append("{");
+        for (Attribute<?> attribute : sorted) {
+            if (space) {
+                sb.append(", ");
+            }
+            sb.append(attribute.getName()).append("=").append(attributes.getAttribute(attribute));
+            space = true;
+        }
+        sb.append("}");
     }
 }

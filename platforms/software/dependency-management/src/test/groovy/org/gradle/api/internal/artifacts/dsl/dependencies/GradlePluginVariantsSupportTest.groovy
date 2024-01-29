@@ -34,7 +34,7 @@ class GradlePluginVariantsSupportTest extends Specification {
     def ep = Stub(AttributeMatchingExplanationBuilder)
 
     def setup() {
-        GradlePluginVariantsSupport.configureSchema(schema, new DocumentationRegistry())
+        GradlePluginVariantsSupport.configureSchema(schema)
     }
 
     def "Gradle #currentGradleVersion #acceptsOrRejects 7.0 api"() {

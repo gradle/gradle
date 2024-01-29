@@ -17,7 +17,7 @@
 package org.gradle.internal.component.resolution.failure.describer;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.internal.component.resolution.failure.ResolutionFailure2;
+import org.gradle.internal.component.resolution.failure.failures.ResolutionFailure2;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 
 import java.util.ArrayList;

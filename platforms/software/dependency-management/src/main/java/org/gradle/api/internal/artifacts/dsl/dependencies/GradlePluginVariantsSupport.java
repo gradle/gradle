@@ -22,18 +22,17 @@ import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.util.GradleVersion;
 
 public class GradlePluginVariantsSupport {
 
-    public static void configureSchema(AttributesSchemaInternal attributesSchema, DocumentationRegistry documentationRegistry) {
+    public static void configureSchema(AttributesSchemaInternal attributesSchema) {
         AttributeMatchingStrategy<GradlePluginApiVersion> strategy = attributesSchema.attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
         strategy.getCompatibilityRules().add(TargetGradleVersionCompatibilityRule.class);
         strategy.getDisambiguationRules().add(TargetGradleVersionDisambiguationRule.class);
 
-        attributesSchema.addFailureDescriber(NewerGradleNeededByPluginFailureDescriber.class);
+        attributesSchema.addFailureDescriber2(NewerGradleNeededByPluginFailureDescriber.class);
     }
 
     public static class TargetGradleVersionCompatibilityRule implements AttributeCompatibilityRule<GradlePluginApiVersion> {

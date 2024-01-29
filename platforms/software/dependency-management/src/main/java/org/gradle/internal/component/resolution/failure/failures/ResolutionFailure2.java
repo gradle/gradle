@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.resolution.failure;
+package org.gradle.internal.component.resolution.failure.failures;
 
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 public class ResolutionFailure2 {
     private final AttributesSchemaInternal schema;
     private final String requestedName;
-    private final ImmutableAttributes requestedAttributes;
 
-    public ResolutionFailure2(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes) {
+    public ResolutionFailure2(AttributesSchemaInternal schema, String requestedName) {
         this.schema = schema;
         this.requestedName = requestedName;
-        this.requestedAttributes = requestedAttributes.asImmutable();
     }
 
     public AttributesSchemaInternal getSchema() {
@@ -37,9 +33,5 @@ public class ResolutionFailure2 {
 
     public String getRequestedName() {
         return requestedName;
-    }
-
-    public ImmutableAttributes getRequestedAttributes() {
-        return requestedAttributes;
     }
 }

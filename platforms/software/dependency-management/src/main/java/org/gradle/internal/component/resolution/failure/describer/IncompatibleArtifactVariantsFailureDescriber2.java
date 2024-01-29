@@ -20,44 +20,49 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.component.NoMatchingArtifactVariantsException;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
-import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
-import org.gradle.internal.component.resolution.failure.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
+import org.gradle.internal.component.resolution.failure.failures.IncompatibleResolutionFailure2;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import javax.inject.Inject;
+
 import static org.gradle.internal.exceptions.StyledException.style;
 
-public class NoMatchingArtifactVariantFailureDescriber extends AbstractResolutionFailureDescriber<NoMatchingArtifactVariantsException> {
+public class IncompatibleArtifactVariantsFailureDescriber2 extends AbstractResolutionFailureDescriber2<NoMatchingArtifactVariantsException, IncompatibleResolutionFailure2> {
     private static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
     private static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";
 
-    public NoMatchingArtifactVariantFailureDescriber(DocumentationRegistry documentationRegistry) {
+    @Inject
+    public IncompatibleArtifactVariantsFailureDescriber2(DocumentationRegistry documentationRegistry) {
         super(documentationRegistry);
     }
 
     @Override
-    public boolean canDescribeFailure(ResolutionFailure failure) {
-        return failure.getType() == ResolutionFailure.ResolutionFailureType.NO_MATCHING_ARTIFACT_VARIANT;
+    public Class<IncompatibleResolutionFailure2> getDescribedFailureType() {
+        return IncompatibleResolutionFailure2.class;
     }
 
     @Override
-    public NoMatchingArtifactVariantsException describeFailure(ResolutionFailure failure) {
-        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
-        String message = buildNoMatchingVariantsFailureMsg(failure, describer);
-        NoMatchingArtifactVariantsException e = new NoMatchingArtifactVariantsException(message);
-        suggestSpecificDocumentation(e, NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_SECTION);
-        suggestReviewAlgorithm(e);
-        return e;
+    public boolean canDescribeFailure(IncompatibleResolutionFailure2 failure) {
+        return true;
     }
 
-    private String buildNoMatchingVariantsFailureMsg(
-        ResolutionFailure failure,
-        AttributeDescriber describer
-    ) {
+    @Override
+    public NoMatchingArtifactVariantsException describeFailure(IncompatibleResolutionFailure2 failure) {
+        String msg = buildIncompatibleArtifactVariantsFailureMsg(failure);
+        NoMatchingArtifactVariantsException result = new NoMatchingArtifactVariantsException(msg);
+        suggestSpecificDocumentation(result, NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_SECTION);
+        suggestReviewAlgorithm(result);
+        return result;
+    }
+
+    private String buildIncompatibleArtifactVariantsFailureMsg(IncompatibleResolutionFailure2 failure) {
+        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("No variants of " + style(StyledTextOutput.Style.Info, failure.getRequestedName()) + " match the consumer attributes");
         formatter.startChildren();
-        for (ResolutionCandidateAssessor.AssessedCandidate assessedCandidate : failure.getCandidates()) {
+        for (AssessedCandidate assessedCandidate : failure.getCandidates()) {
             formatter.node(assessedCandidate.getDisplayName());
             formatAttributeMatchesForIncompatibility(assessedCandidate, formatter, describer);
         }

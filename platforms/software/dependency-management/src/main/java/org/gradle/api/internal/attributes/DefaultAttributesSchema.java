@@ -17,22 +17,19 @@
 package org.gradle.api.internal.attributes;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.Cast;
-import org.gradle.internal.component.AbstractVariantSelectionException;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeSelectionSchema;
 import org.gradle.internal.component.model.AttributeSelectionUtils;
 import org.gradle.internal.component.model.DefaultAttributeMatcher;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DefaultMultipleCandidateResult;
-import org.gradle.internal.component.resolution.failure.ResolutionFailure2;
+import org.gradle.internal.component.resolution.failure.failures.ResolutionFailure2;
 import org.gradle.internal.component.resolution.failure.describer.FailureDescriberRegistry2;
-import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber2;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -57,17 +54,14 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     private final Map<String, Attribute<?>> attributesByName = new HashMap<>();
 
     private final IsolatableFactory isolatableFactory;
-    private final DocumentationRegistry documentationRegistry;
     private final HashMap<AttributesSchemaInternal, AttributeMatcher> matcherCache = new HashMap<>();
     private final List<AttributeDescriber> consumerAttributeDescribers = new ArrayList<>();
     private final Set<Attribute<?>> precedence = new LinkedHashSet<>();
-    private final List<ResolutionFailureDescriber<? extends AbstractVariantSelectionException>> resolutionFailureDescribers = new ArrayList<>();
     private final FailureDescriberRegistry2 failureDescriberRegistry;
 
     public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, DocumentationRegistry documentationRegistry) {
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
-        this.documentationRegistry = documentationRegistry;
         this.failureDescriberRegistry = new FailureDescriberRegistry2(instantiatorFactory, documentationRegistry);
     }
 
@@ -175,24 +169,13 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public ImmutableList<ResolutionFailureDescriber<? extends AbstractVariantSelectionException>> getFailureDescribers() {
-        return ImmutableList.copyOf(resolutionFailureDescribers);
-    }
-
-    @Override
-    public void addFailureDescriber(Class<? extends ResolutionFailureDescriber<? extends AbstractVariantSelectionException>> describerClass) {
-        ResolutionFailureDescriber<? extends AbstractVariantSelectionException> describer = instantiatorFactory.inject().newInstance(describerClass, documentationRegistry);
-        resolutionFailureDescribers.add(describer);
+    public void addFailureDescriber2(Class<? extends ResolutionFailureDescriber2<?, ?>> describerClass) {
+        failureDescriberRegistry.registerDescriber(describerClass);
     }
 
     @Override
     public <FAILURE extends ResolutionFailure2> List<ResolutionFailureDescriber2<?, FAILURE>> getFailureDescribers2(FAILURE failureType) {
         return failureDescriberRegistry.getDescribers(failureType);
-    }
-
-    @Override
-    public void addFailureDescriber2(Class<? extends ResolutionFailureDescriber2<?, ?>> describerClass) {
-        failureDescriberRegistry.registerDescriber(describerClass);
     }
 
     // TODO: Move this out into its own class so it can be unit tested directly.
