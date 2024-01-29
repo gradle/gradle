@@ -34,6 +34,7 @@ import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
+import org.gradle.internal.component.resolution.failure.FailureDescriberRegistry
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.TextUtil
@@ -113,9 +114,9 @@ All of them match the consumer attributes:
         then:
         NoMatchingGraphVariantsException e = thrown()
         failsWith(e, '''No matching variant of org:lib:1.0 was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'cplusplus-headers' but:
-  - Variant 'api' capability org:lib:1.0:
+  - Variant 'api':
       - Incompatible because this component declares attribute 'org.gradle.usage' with value 'java-api' and the consumer needed attribute 'org.gradle.usage' with value 'cplusplus-headers\'
-  - Variant 'runtime' capability org:lib:1.0:
+  - Variant 'runtime':
       - Incompatible because this component declares attribute 'org.gradle.usage' with value 'java-runtime' and the consumer needed attribute 'org.gradle.usage' with value 'cplusplus-headers\'''')
     }
 
@@ -146,8 +147,8 @@ All of them match the consumer attributes:
 
         then:
         NoMatchingGraphVariantsException e = thrown()
-        failsWith(e, '''No matching configuration of org:lib:1.0 was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'cplusplus-headers' but:
-  - Configuration 'default':
+        failsWith(e, '''No matching variant of org:lib:1.0 was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'cplusplus-headers' but:
+  - Variant 'default':
       - Incompatible because this component declares attribute 'org.gradle.usage' with value 'java-api' and the consumer needed attribute 'org.gradle.usage' with value 'cplusplus-headers\'''')
     }
 
@@ -463,7 +464,9 @@ All of them match the consumer attributes:
     }
 
     private void performSelection() {
-        GraphVariantSelector variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(new DocumentationRegistry()))
+        DocumentationRegistry documentationRegistry = new DocumentationRegistry();
+        FailureDescriberRegistry failureDescriberRegistry = FailureDescriberRegistry.standardRegistry(TestUtil.instantiatorFactory(), documentationRegistry);
+        GraphVariantSelector variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry, documentationRegistry))
         selected = variantSelector.selectVariants(
             consumerAttributes,
             requestedCapabilities,

@@ -21,8 +21,9 @@ import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.component.AmbiguousGraphVariantsException;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
+import org.gradle.internal.component.resolution.failure.CapabilitiesDescriber;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
-import org.gradle.internal.component.resolution.failure.failures.VariantAwareAmbiguousResolutionFailure2;
+import org.gradle.internal.component.resolution.failure.failuretype.VariantAwareAmbiguousResolutionFailure;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
@@ -32,22 +33,22 @@ import java.util.TreeMap;
 
 import static org.gradle.internal.exceptions.StyledException.style;
 
-public class AmbiguousGraphVariantsFailureDescriber2 extends AbstractResolutionFailureDescriber2<AmbiguousGraphVariantsException, VariantAwareAmbiguousResolutionFailure2> {
+public class AmbiguousGraphVariantsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousGraphVariantsException, VariantAwareAmbiguousResolutionFailure> {
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
 
     @Inject
-    protected AmbiguousGraphVariantsFailureDescriber2(DocumentationRegistry documentationRegistry) {
+    protected AmbiguousGraphVariantsFailureDescriber(DocumentationRegistry documentationRegistry) {
         super(documentationRegistry);
     }
 
     @Override
-    public Class<VariantAwareAmbiguousResolutionFailure2> getDescribedFailureType() {
-        return VariantAwareAmbiguousResolutionFailure2.class;
+    public Class<VariantAwareAmbiguousResolutionFailure> getDescribedFailureType() {
+        return VariantAwareAmbiguousResolutionFailure.class;
     }
 
     @Override
-    public AmbiguousGraphVariantsException describeFailure(VariantAwareAmbiguousResolutionFailure2 failure) {
+    public AmbiguousGraphVariantsException describeFailure(VariantAwareAmbiguousResolutionFailure failure) {
         String message = buildAmbiguousGraphVariantsFailureMsg(failure);
         AmbiguousGraphVariantsException result = new AmbiguousGraphVariantsException(message);
         suggestSpecificDocumentation(result, AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION);
@@ -55,7 +56,7 @@ public class AmbiguousGraphVariantsFailureDescriber2 extends AbstractResolutionF
         return result;
     }
 
-    private String buildAmbiguousGraphVariantsFailureMsg(VariantAwareAmbiguousResolutionFailure2 failure) {
+    private String buildAmbiguousGraphVariantsFailureMsg(VariantAwareAmbiguousResolutionFailure failure) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
 
         Map<String, ResolutionCandidateAssessor.AssessedCandidate> ambiguousVariants = new TreeMap<>();

@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.resolution.failure.failures;
+package org.gradle.internal.component.resolution.failure.failuretype;
 
-import com.google.common.collect.ImmutableList;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-import java.util.List;
+public class UnmatchingAttributesSelectionFailure extends ResolutionFailure {
+    private final ImmutableAttributes requestedAttributes;
 
-public class InvalidMultipleVariantsSelectionFailure2 extends ResolutionFailure2 {
-    private final ImmutableList<AssessedCandidate> assessedCandidates;
-
-    public InvalidMultipleVariantsSelectionFailure2(AttributesSchemaInternal schema, String requestedName, List<AssessedCandidate> assessedCandidates) {
+    public UnmatchingAttributesSelectionFailure(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes) {
         super(schema, requestedName);
-        this.assessedCandidates = ImmutableList.copyOf(assessedCandidates);
+        this.requestedAttributes = requestedAttributes.asImmutable();
     }
 
-    public ImmutableList<AssessedCandidate> getAssessedCandidates() {
-        return assessedCandidates;
+    public ImmutableAttributes getRequestedAttributes() {
+        return requestedAttributes;
     }
 }

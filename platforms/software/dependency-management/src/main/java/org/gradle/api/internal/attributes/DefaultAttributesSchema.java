@@ -28,9 +28,9 @@ import org.gradle.internal.component.model.AttributeSelectionUtils;
 import org.gradle.internal.component.model.DefaultAttributeMatcher;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DefaultMultipleCandidateResult;
-import org.gradle.internal.component.resolution.failure.failures.ResolutionFailure2;
-import org.gradle.internal.component.resolution.failure.describer.FailureDescriberRegistry2;
-import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber2;
+import org.gradle.internal.component.resolution.failure.failuretype.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.FailureDescriberRegistry;
+import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 
@@ -57,12 +57,12 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     private final HashMap<AttributesSchemaInternal, AttributeMatcher> matcherCache = new HashMap<>();
     private final List<AttributeDescriber> consumerAttributeDescribers = new ArrayList<>();
     private final Set<Attribute<?>> precedence = new LinkedHashSet<>();
-    private final FailureDescriberRegistry2 failureDescriberRegistry;
+    private final FailureDescriberRegistry failureDescriberRegistry;
 
     public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, DocumentationRegistry documentationRegistry) {
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
-        this.failureDescriberRegistry = new FailureDescriberRegistry2(instantiatorFactory, documentationRegistry);
+        this.failureDescriberRegistry = FailureDescriberRegistry.emptyRegistry(instantiatorFactory, documentationRegistry);
     }
 
     @Override
@@ -169,12 +169,12 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public void addFailureDescriber2(Class<? extends ResolutionFailureDescriber2<?, ?>> describerClass) {
+    public void addFailureDescriber2(Class<? extends ResolutionFailureDescriber<?, ?>> describerClass) {
         failureDescriberRegistry.registerDescriber(describerClass);
     }
 
     @Override
-    public <FAILURE extends ResolutionFailure2> List<ResolutionFailureDescriber2<?, FAILURE>> getFailureDescribers2(FAILURE failureType) {
+    public <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<?, FAILURE>> getFailureDescribers(FAILURE failureType) {
         return failureDescriberRegistry.getDescribers(failureType);
     }
 

@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.resolution.failure.failures;
+package org.gradle.internal.component.resolution.failure.describer;
 
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.internal.component.AbstractVariantSelectionException;
+import org.gradle.internal.component.resolution.failure.failuretype.ResolutionFailure;
 
-public class ResolutionFailure2 {
-    private final AttributesSchemaInternal schema;
-    private final String requestedName;
+public interface ResolutionFailureDescriber<EXCEPTION extends AbstractVariantSelectionException, FAILURE extends ResolutionFailure> {
+    Class<FAILURE> getDescribedFailureType();
 
-    public ResolutionFailure2(AttributesSchemaInternal schema, String requestedName) {
-        this.schema = schema;
-        this.requestedName = requestedName;
+    default boolean canDescribeFailure(FAILURE failure) {
+        return true;
     }
 
-    public AttributesSchemaInternal getSchema() {
-        return schema;
-    }
-
-    public String getRequestedName() {
-        return requestedName;
-    }
+    EXCEPTION describeFailure(FAILURE failure);
 }

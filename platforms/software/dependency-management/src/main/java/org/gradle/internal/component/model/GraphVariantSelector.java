@@ -156,7 +156,6 @@ public class GraphVariantSelector {
             return singleVariant(candidates.isUseVariants(), ImmutableList.of(fallbackConfiguration.asVariant()));
         }
 
-        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
         throw failureProcessor.noMatchingGraphVariantFailure(consumerSchema, attributeMatcher, consumerAttributes, targetComponent, candidates);
     }
 

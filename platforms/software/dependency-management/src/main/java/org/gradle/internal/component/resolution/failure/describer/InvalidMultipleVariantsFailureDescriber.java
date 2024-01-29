@@ -19,26 +19,26 @@ package org.gradle.internal.component.resolution.failure.describer;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.component.IncompatibleArtifactVariantsException;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
-import org.gradle.internal.component.resolution.failure.failures.InvalidMultipleVariantsSelectionFailure2;
+import org.gradle.internal.component.resolution.failure.failuretype.InvalidMultipleVariantsSelectionFailure;
 
 import javax.inject.Inject;
 
-public class InvalidMultipleVariantsFailureDescriber2 extends AbstractResolutionFailureDescriber2<IncompatibleArtifactVariantsException, InvalidMultipleVariantsSelectionFailure2> {
+public class InvalidMultipleVariantsFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleArtifactVariantsException, InvalidMultipleVariantsSelectionFailure> {
     private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
     private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
 
     @Inject
-    public InvalidMultipleVariantsFailureDescriber2(DocumentationRegistry documentationRegistry) {
+    public InvalidMultipleVariantsFailureDescriber(DocumentationRegistry documentationRegistry) {
         super(documentationRegistry);
     }
 
     @Override
-    public Class<InvalidMultipleVariantsSelectionFailure2> getDescribedFailureType() {
-        return InvalidMultipleVariantsSelectionFailure2.class;
+    public Class<InvalidMultipleVariantsSelectionFailure> getDescribedFailureType() {
+        return InvalidMultipleVariantsSelectionFailure.class;
     }
 
     @Override
-    public IncompatibleArtifactVariantsException describeFailure(InvalidMultipleVariantsSelectionFailure2 failure) {
+    public IncompatibleArtifactVariantsException describeFailure(InvalidMultipleVariantsSelectionFailure failure) {
         String msg = buildIncompatibleArtifactVariantsFailureMsg(failure);
         IncompatibleArtifactVariantsException result = new IncompatibleArtifactVariantsException(msg);
         suggestSpecificDocumentation(result, INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION);
@@ -46,7 +46,7 @@ public class InvalidMultipleVariantsFailureDescriber2 extends AbstractResolution
         return result;
     }
 
-    private String buildIncompatibleArtifactVariantsFailureMsg(InvalidMultipleVariantsSelectionFailure2 failure) {
+    private String buildIncompatibleArtifactVariantsFailureMsg(InvalidMultipleVariantsSelectionFailure failure) {
         StringBuilder sb = new StringBuilder("Multiple incompatible variants of ")
             .append(failure.getRequestedName())
             .append(" were selected:\n");

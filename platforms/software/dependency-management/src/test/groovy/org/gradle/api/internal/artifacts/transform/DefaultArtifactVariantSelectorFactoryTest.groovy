@@ -32,7 +32,9 @@ import org.gradle.internal.component.NoMatchingArtifactVariantsException
 import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
+import org.gradle.internal.component.resolution.failure.FailureDescriberRegistry
 import org.gradle.util.AttributeTestUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE
@@ -43,12 +45,15 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
     def producerSchema = Mock(AttributesSchemaInternal)
     def consumerSchema = Mock(AttributesSchemaInternal) {
         getConsumerDescribers() >> []
+        getFailureDescribers(_) >> []
     }
     def attributeMatcher = Mock(AttributeMatcher)
     def factory = Mock(ArtifactVariantSelector.ResolvedArtifactTransformer)
     def dependenciesResolverFactory = Stub(TransformUpstreamDependenciesResolverFactory)
     def transformedVariantFactory = Mock(TransformedVariantFactory)
-    def variantSelectionFailureProcessor = new ResolutionFailureHandler(new DocumentationRegistry())
+    def documentationRegistry = new DocumentationRegistry();
+    def failureDescriberRegistry = FailureDescriberRegistry.standardRegistry(TestUtil.instantiatorFactory(), documentationRegistry);
+    def variantSelectionFailureProcessor = new ResolutionFailureHandler(failureDescriberRegistry, documentationRegistry)
     def variantSelectorFactory = new DefaultVariantSelectorFactory(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory(), transformedVariantFactory, variantSelectionFailureProcessor)
 
     def "selects producer variant with requested attributes"() {

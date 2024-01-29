@@ -23,7 +23,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.transform.AmbiguousArtifactTransformException;
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
-import org.gradle.internal.component.resolution.failure.failures.AmbiguousArtifactTransformFailure2;
+import org.gradle.internal.component.resolution.failure.failuretype.AmbiguousArtifactTransformFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.inject.Inject;
@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-public class AmbiguousArtifactTransformFailureDescriber extends AbstractResolutionFailureDescriber2<AmbiguousArtifactTransformException, AmbiguousArtifactTransformFailure2> {
+public class AmbiguousArtifactTransformFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousArtifactTransformException, AmbiguousArtifactTransformFailure> {
     private static final String AMBIGUOUS_TRANSFORMATION_PREFIX = "Transformation failures are explained in more detail at ";
     private static final String AMBIGUOUS_TRANSFORMATION_SECTION = "sub:transform-ambiguity";
 
@@ -43,12 +43,12 @@ public class AmbiguousArtifactTransformFailureDescriber extends AbstractResoluti
     }
 
     @Override
-    public Class<AmbiguousArtifactTransformFailure2> getDescribedFailureType() {
-        return AmbiguousArtifactTransformFailure2.class;
+    public Class<AmbiguousArtifactTransformFailure> getDescribedFailureType() {
+        return AmbiguousArtifactTransformFailure.class;
     }
 
     @Override
-    public AmbiguousArtifactTransformException describeFailure(AmbiguousArtifactTransformFailure2 failure) {
+    public AmbiguousArtifactTransformException describeFailure(AmbiguousArtifactTransformFailure failure) {
         String msg = buildAmbiguousTransformMsg(failure);
         AmbiguousArtifactTransformException result = new AmbiguousArtifactTransformException(msg);
         suggestSpecificDocumentation(result, AMBIGUOUS_TRANSFORMATION_PREFIX, AMBIGUOUS_TRANSFORMATION_SECTION);
@@ -56,7 +56,7 @@ public class AmbiguousArtifactTransformFailureDescriber extends AbstractResoluti
         return result;
     }
 
-    private String buildAmbiguousTransformMsg(AmbiguousArtifactTransformFailure2 failure) {
+    private String buildAmbiguousTransformMsg(AmbiguousArtifactTransformFailure failure) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("Found multiple transforms that can produce a variant of " + failure.getRequestedName() + " with requested attributes");
         formatSortedAttributes(formatter, failure.getRequestedAttributes());

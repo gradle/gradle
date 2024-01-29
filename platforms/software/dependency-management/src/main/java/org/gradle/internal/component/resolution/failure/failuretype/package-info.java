@@ -15,4 +15,4 @@
  */
 
 @org.gradle.api.NonNullApi
-package org.gradle.internal.component.resolution.failure.failures;
+package org.gradle.internal.component.resolution.failure.failuretype;

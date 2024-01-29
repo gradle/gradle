@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.resolution.failure.failures;
+package org.gradle.internal.component.resolution.failure.failuretype;
 
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 
-public class UnmatchingAttributesSelectionFailure2 extends ResolutionFailure2 {
-    private final ImmutableAttributes requestedAttributes;
+import java.util.List;
 
-    public UnmatchingAttributesSelectionFailure2(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes) {
-        super(schema, requestedName);
-        this.requestedAttributes = requestedAttributes.asImmutable();
-    }
-
-    public ImmutableAttributes getRequestedAttributes() {
-        return requestedAttributes;
+public class IncompatibleSelectedConfigurationFailure extends IncompatibleResolutionFailure {
+    public IncompatibleSelectedConfigurationFailure(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
+        super(schema, requestedName, requestedAttributes, candidates);
     }
 }

@@ -22,7 +22,8 @@ import org.gradle.internal.component.NoMatchingGraphVariantsException;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
-import org.gradle.internal.component.resolution.failure.failures.IncompatibleGraphVariantFailure2;
+import org.gradle.internal.component.resolution.failure.StyledAttributeDescriber;
+import org.gradle.internal.component.resolution.failure.failuretype.IncompatibleGraphVariantFailure;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
@@ -30,22 +31,22 @@ import javax.inject.Inject;
 
 import static org.gradle.internal.exceptions.StyledException.style;
 
-public class IncompatibleGraphVariantsFailureDescriber2 extends AbstractResolutionFailureDescriber2<NoMatchingGraphVariantsException, IncompatibleGraphVariantFailure2> {
+public class IncompatibleGraphVariantsFailureDescriber extends AbstractResolutionFailureDescriber<NoMatchingGraphVariantsException, IncompatibleGraphVariantFailure> {
     private static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
     private static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";
 
     @Inject
-    protected IncompatibleGraphVariantsFailureDescriber2(DocumentationRegistry documentationRegistry) {
+    protected IncompatibleGraphVariantsFailureDescriber(DocumentationRegistry documentationRegistry) {
         super(documentationRegistry);
     }
 
     @Override
-    public Class<IncompatibleGraphVariantFailure2> getDescribedFailureType() {
-        return IncompatibleGraphVariantFailure2.class;
+    public Class<IncompatibleGraphVariantFailure> getDescribedFailureType() {
+        return IncompatibleGraphVariantFailure.class;
     }
 
     @Override
-    public NoMatchingGraphVariantsException describeFailure(IncompatibleGraphVariantFailure2 failure) {
+    public NoMatchingGraphVariantsException describeFailure(IncompatibleGraphVariantFailure failure) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
         String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledAttributeDescriber(describer), failure);
         NoMatchingGraphVariantsException e = new NoMatchingGraphVariantsException(message);
@@ -54,7 +55,7 @@ public class IncompatibleGraphVariantsFailureDescriber2 extends AbstractResoluti
         return e;
     }
 
-    protected String buildNoMatchingGraphVariantSelectionFailureMsg(StyledAttributeDescriber describer, IncompatibleGraphVariantFailure2 failure) {
+    protected String buildNoMatchingGraphVariantSelectionFailureMsg(StyledAttributeDescriber describer, IncompatibleGraphVariantFailure failure) {
         TreeFormatter formatter = new TreeFormatter();
         String targetVariantText = style(StyledTextOutput.Style.Info, failure.getRequestedName());
         if (failure.getRequestedAttributes().isEmpty()) {
@@ -85,7 +86,6 @@ public class IncompatibleGraphVariantsFailureDescriber2 extends AbstractResoluti
         formatter.node("Variant '");
         formatter.append(assessedCandidate.getDisplayName());
         formatter.append("'");
-        formatter.append(" " + CapabilitiesDescriber.describeCapabilitiesWithTitle(targetComponent, assessedCandidate.getCandidateCapabilities().asSet()));
         formatAttributeMatchesForIncompatibility(assessedCandidate, formatter, describer);
     }
 }

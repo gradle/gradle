@@ -120,7 +120,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
      Required by:
          project :
       > No matching variant of project : was found. The consumer was configured to find attribute 'color' with value 'green' but:
-          - Variant 'default' capability :${temporaryFolder.getTestDirectory().getName()}:unspecified:
+          - Variant 'default':
               - Incompatible because this component declares attribute 'color' with value 'blue' and the consumer needed attribute 'color' with value 'green'""")
 
         and: "Helpful resolutions are provided"
@@ -140,13 +140,13 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve com.squareup.okhttp3:okhttp:4.4.0.")
         assertFullMessageCorrect("""      > No matching variant of com.squareup.okhttp3:okhttp:4.4.0 was found. The consumer was configured to find attribute 'org.gradle.category' with value 'non-existent-format' but:
-          - Variant 'apiElements' capability com.squareup.okhttp3:okhttp:4.4.0:
+          - Variant 'apiElements':
               - Incompatible because this component declares attribute 'org.gradle.category' with value 'library' and the consumer needed attribute 'org.gradle.category' with value 'non-existent-format'
-          - Variant 'javadocElements' capability com.squareup.okhttp3:okhttp:4.4.0:
+          - Variant 'javadocElements':
               - Incompatible because this component declares attribute 'org.gradle.category' with value 'documentation' and the consumer needed attribute 'org.gradle.category' with value 'non-existent-format'
-          - Variant 'runtimeElements' capability com.squareup.okhttp3:okhttp:4.4.0:
+          - Variant 'runtimeElements':
               - Incompatible because this component declares attribute 'org.gradle.category' with value 'library' and the consumer needed attribute 'org.gradle.category' with value 'non-existent-format'
-          - Variant 'sourcesElements' capability com.squareup.okhttp3:okhttp:4.4.0:
+          - Variant 'sourcesElements':
               - Incompatible because this component declares attribute 'org.gradle.category' with value 'documentation' and the consumer needed attribute 'org.gradle.category' with value 'non-existent-format'""")
 
         and: "Helpful resolutions are provided"

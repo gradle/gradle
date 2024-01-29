@@ -22,7 +22,7 @@ import org.gradle.internal.component.IncompatibleGraphVariantsException;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
-import org.gradle.internal.component.resolution.failure.failures.IncompatibleRequestedConfigurationFailure2;
+import org.gradle.internal.component.resolution.failure.failuretype.IncompatibleRequestedConfigurationFailure;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
@@ -30,22 +30,22 @@ import javax.inject.Inject;
 
 import static org.gradle.internal.exceptions.StyledException.style;
 
-public class IncompatibleRequestedConfigurationFailureDescriber2 extends AbstractResolutionFailureDescriber2<IncompatibleGraphVariantsException, IncompatibleRequestedConfigurationFailure2> {
+public class IncompatibleRequestedConfigurationFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleGraphVariantsException, IncompatibleRequestedConfigurationFailure> {
     private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
     private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
 
     @Inject
-    public IncompatibleRequestedConfigurationFailureDescriber2(DocumentationRegistry documentationRegistry) {
+    public IncompatibleRequestedConfigurationFailureDescriber(DocumentationRegistry documentationRegistry) {
         super(documentationRegistry);
     }
 
     @Override
-    public Class<IncompatibleRequestedConfigurationFailure2> getDescribedFailureType() {
-        return IncompatibleRequestedConfigurationFailure2.class;
+    public Class<IncompatibleRequestedConfigurationFailure> getDescribedFailureType() {
+        return IncompatibleRequestedConfigurationFailure.class;
     }
 
     @Override
-    public IncompatibleGraphVariantsException describeFailure(IncompatibleRequestedConfigurationFailure2 failure) {
+    public IncompatibleGraphVariantsException describeFailure(IncompatibleRequestedConfigurationFailure failure) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
         String message = buildIncompatibleGraphVariantsFailureMsg(failure, describer);
         IncompatibleGraphVariantsException e = new IncompatibleGraphVariantsException(message);
@@ -55,7 +55,7 @@ public class IncompatibleRequestedConfigurationFailureDescriber2 extends Abstrac
     }
 
     private String buildIncompatibleGraphVariantsFailureMsg(
-        IncompatibleRequestedConfigurationFailure2 failure,
+        IncompatibleRequestedConfigurationFailure failure,
         AttributeDescriber describer
     ) {
         ResolutionCandidateAssessor.AssessedCandidate assessedCandidate = failure.getCandidates().get(0);

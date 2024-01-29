@@ -21,27 +21,27 @@ import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.component.AmbiguousArtifactVariantsException;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
-import org.gradle.internal.component.resolution.failure.failures.AmbiguousResolutionFailure2;
+import org.gradle.internal.component.resolution.failure.failuretype.AmbiguousResolutionFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.inject.Inject;
 
-public class AmbiguousArtifactVariantsFailureDescriber2 extends AbstractResolutionFailureDescriber2<AmbiguousArtifactVariantsException, AmbiguousResolutionFailure2> {
+public class AmbiguousArtifactVariantsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousArtifactVariantsException, AmbiguousResolutionFailure> {
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
 
     @Inject
-    public AmbiguousArtifactVariantsFailureDescriber2(DocumentationRegistry documentationRegistry) {
+    public AmbiguousArtifactVariantsFailureDescriber(DocumentationRegistry documentationRegistry) {
         super(documentationRegistry);
     }
 
     @Override
-    public Class<AmbiguousResolutionFailure2> getDescribedFailureType() {
-        return AmbiguousResolutionFailure2.class;
+    public Class<AmbiguousResolutionFailure> getDescribedFailureType() {
+        return AmbiguousResolutionFailure.class;
     }
 
     @Override
-    public AmbiguousArtifactVariantsException describeFailure(AmbiguousResolutionFailure2 failure) {
+    public AmbiguousArtifactVariantsException describeFailure(AmbiguousResolutionFailure failure) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
         String message = buildMultipleMatchingVariantsFailureMsg(failure, describer);
         AmbiguousArtifactVariantsException e = new AmbiguousArtifactVariantsException(message);
@@ -50,7 +50,7 @@ public class AmbiguousArtifactVariantsFailureDescriber2 extends AbstractResoluti
         return e;
     }
 
-    private String buildMultipleMatchingVariantsFailureMsg(AmbiguousResolutionFailure2 failure, AttributeDescriber describer) {
+    private String buildMultipleMatchingVariantsFailureMsg(AmbiguousResolutionFailure failure, AttributeDescriber describer) {
         TreeFormatter formatter = new TreeFormatter();
         if (failure.getRequestedAttributes().isEmpty()) {
             formatter.node("More than one variant of " + failure.getRequestedName() + " matches the consumer attributes");

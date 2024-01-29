@@ -104,7 +104,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantResolveMetadata;
-import org.gradle.internal.component.resolution.failure.describer.FailureDescriberRegistry2;
+import org.gradle.internal.component.resolution.failure.FailureDescriberRegistry;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
@@ -381,7 +381,7 @@ class DependencyManagementBuildScopeServices {
     }
 
     ResolutionFailureHandler createResolutionFailureProcessor(InstantiatorFactory instantiatorFactory, DocumentationRegistry documentationRegistry) {
-        FailureDescriberRegistry2 failureDescriberRegistry = new FailureDescriberRegistry2(instantiatorFactory, documentationRegistry);
+        FailureDescriberRegistry failureDescriberRegistry = FailureDescriberRegistry.standardRegistry(instantiatorFactory, documentationRegistry);
         return new ResolutionFailureHandler(failureDescriberRegistry, documentationRegistry);
     }
 

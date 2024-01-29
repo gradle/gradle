@@ -17,9 +17,9 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
-import org.gradle.internal.component.resolution.failure.failures.ResolutionFailure2;
+import org.gradle.internal.component.resolution.failure.failuretype.ResolutionFailure;
 import org.gradle.internal.component.model.AttributeMatcher;
-import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber2;
+import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -42,6 +42,6 @@ public interface AttributesSchemaInternal extends AttributesSchemaWithDescribers
     @Nullable
     Attribute<?> getAttributeByName(String name);
 
-    void addFailureDescriber2(Class<? extends ResolutionFailureDescriber2<?, ?>> describerClass);
-    <FAILURE extends ResolutionFailure2> List<ResolutionFailureDescriber2<?, FAILURE>> getFailureDescribers2(FAILURE failure);
+    void addFailureDescriber2(Class<? extends ResolutionFailureDescriber<?, ?>> describerClass);
+    <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<?, FAILURE>> getFailureDescribers(FAILURE failure);
 }

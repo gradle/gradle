@@ -21,7 +21,7 @@ import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.component.NoMatchingArtifactVariantsException;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
-import org.gradle.internal.component.resolution.failure.failures.IncompatibleResolutionFailure2;
+import org.gradle.internal.component.resolution.failure.failuretype.IncompatibleResolutionFailure;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
@@ -29,22 +29,22 @@ import javax.inject.Inject;
 
 import static org.gradle.internal.exceptions.StyledException.style;
 
-public class IncompatibleArtifactVariantsFailureDescriber2 extends AbstractResolutionFailureDescriber2<NoMatchingArtifactVariantsException, IncompatibleResolutionFailure2> {
+public class IncompatibleArtifactVariantsFailureDescriber extends AbstractResolutionFailureDescriber<NoMatchingArtifactVariantsException, IncompatibleResolutionFailure> {
     private static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
     private static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";
 
     @Inject
-    public IncompatibleArtifactVariantsFailureDescriber2(DocumentationRegistry documentationRegistry) {
+    public IncompatibleArtifactVariantsFailureDescriber(DocumentationRegistry documentationRegistry) {
         super(documentationRegistry);
     }
 
     @Override
-    public Class<IncompatibleResolutionFailure2> getDescribedFailureType() {
-        return IncompatibleResolutionFailure2.class;
+    public Class<IncompatibleResolutionFailure> getDescribedFailureType() {
+        return IncompatibleResolutionFailure.class;
     }
 
     @Override
-    public NoMatchingArtifactVariantsException describeFailure(IncompatibleResolutionFailure2 failure) {
+    public NoMatchingArtifactVariantsException describeFailure(IncompatibleResolutionFailure failure) {
         String msg = buildIncompatibleArtifactVariantsFailureMsg(failure);
         NoMatchingArtifactVariantsException result = new NoMatchingArtifactVariantsException(msg);
         suggestSpecificDocumentation(result, NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_SECTION);
@@ -52,7 +52,7 @@ public class IncompatibleArtifactVariantsFailureDescriber2 extends AbstractResol
         return result;
     }
 
-    private String buildIncompatibleArtifactVariantsFailureMsg(IncompatibleResolutionFailure2 failure) {
+    private String buildIncompatibleArtifactVariantsFailureMsg(IncompatibleResolutionFailure failure) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("No variants of " + style(StyledTextOutput.Style.Info, failure.getRequestedName()) + " match the consumer attributes");

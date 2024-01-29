@@ -39,26 +39,19 @@ import org.gradle.internal.component.model.GraphSelectionCandidates;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.gradle.internal.component.resolution.failure.CapabilitiesDescriber;
+import org.gradle.internal.component.resolution.failure.FailureDescriberRegistry;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
-import org.gradle.internal.component.resolution.failure.describer.AmbiguousArtifactTransformFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.AmbiguousArtifactVariantsFailureDescriber2;
-import org.gradle.internal.component.resolution.failure.describer.AmbiguousGraphVariantsFailureDescriber2;
-import org.gradle.internal.component.resolution.failure.describer.CapabilitiesDescriber;
-import org.gradle.internal.component.resolution.failure.describer.FailureDescriberRegistry2;
-import org.gradle.internal.component.resolution.failure.describer.IncompatibleArtifactVariantsFailureDescriber2;
-import org.gradle.internal.component.resolution.failure.describer.IncompatibleGraphVariantsFailureDescriber2;
-import org.gradle.internal.component.resolution.failure.describer.IncompatibleRequestedConfigurationFailureDescriber2;
-import org.gradle.internal.component.resolution.failure.describer.InvalidMultipleVariantsFailureDescriber2;
-import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber2;
-import org.gradle.internal.component.resolution.failure.failures.AmbiguousArtifactTransformFailure2;
-import org.gradle.internal.component.resolution.failure.failures.AmbiguousResolutionFailure2;
-import org.gradle.internal.component.resolution.failure.failures.IncompatibleGraphVariantFailure2;
-import org.gradle.internal.component.resolution.failure.failures.IncompatibleRequestedConfigurationFailure2;
-import org.gradle.internal.component.resolution.failure.failures.IncompatibleResolutionFailure2;
-import org.gradle.internal.component.resolution.failure.failures.InvalidMultipleVariantsSelectionFailure2;
-import org.gradle.internal.component.resolution.failure.failures.ResolutionFailure2;
-import org.gradle.internal.component.resolution.failure.failures.VariantAwareAmbiguousResolutionFailure2;
+import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
+import org.gradle.internal.component.resolution.failure.failuretype.AmbiguousArtifactTransformFailure;
+import org.gradle.internal.component.resolution.failure.failuretype.AmbiguousResolutionFailure;
+import org.gradle.internal.component.resolution.failure.failuretype.IncompatibleGraphVariantFailure;
+import org.gradle.internal.component.resolution.failure.failuretype.IncompatibleRequestedConfigurationFailure;
+import org.gradle.internal.component.resolution.failure.failuretype.IncompatibleResolutionFailure;
+import org.gradle.internal.component.resolution.failure.failuretype.InvalidMultipleVariantsSelectionFailure;
+import org.gradle.internal.component.resolution.failure.failuretype.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.failuretype.VariantAwareAmbiguousResolutionFailure;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -85,23 +78,13 @@ import java.util.stream.Collectors;
 public class ResolutionFailureHandler {
     public static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
 
-    private final FailureDescriberRegistry2 defaultFailureDescribers2;
+    private final FailureDescriberRegistry defaultFailureDescribers;
 
     private final DocumentationRegistry documentationRegistry;
 
-    public ResolutionFailureHandler(FailureDescriberRegistry2 failureDescriberRegistry, DocumentationRegistry documentationRegistry) {
-        this.defaultFailureDescribers2 = failureDescriberRegistry;
+    public ResolutionFailureHandler(FailureDescriberRegistry failureDescriberRegistry, DocumentationRegistry documentationRegistry) {
+        this.defaultFailureDescribers = failureDescriberRegistry;
         this.documentationRegistry = documentationRegistry;
-
-        defaultFailureDescribers2.registerDescriber(AmbiguousGraphVariantsFailureDescriber2.class);
-        defaultFailureDescribers2.registerDescriber(IncompatibleGraphVariantsFailureDescriber2.class);
-
-        defaultFailureDescribers2.registerDescriber(AmbiguousArtifactVariantsFailureDescriber2.class);
-        defaultFailureDescribers2.registerDescriber(IncompatibleArtifactVariantsFailureDescriber2.class);
-        defaultFailureDescribers2.registerDescriber(InvalidMultipleVariantsFailureDescriber2.class);
-        defaultFailureDescribers2.registerDescriber(AmbiguousArtifactTransformFailureDescriber.class);
-
-        defaultFailureDescribers2.registerDescriber(IncompatibleRequestedConfigurationFailureDescriber2.class);
     }
 
     private void suggestSpecificDocumentation(AbstractVariantSelectionException exception, String prefix, String section) {
@@ -112,10 +95,10 @@ public class ResolutionFailureHandler {
         exception.addResolution(DEFAULT_MESSAGE_PREFIX + documentationRegistry.getDocumentationFor("variant_attributes", "sec:abm_algorithm") + ".");
     }
 
-    private <FAILURE extends ResolutionFailure2> AbstractVariantSelectionException describeFailure2(AttributesSchemaInternal schema, FAILURE failure) {
-        List<ResolutionFailureDescriber2<?, FAILURE>> describers = new ArrayList<>();
-        describers.addAll(schema.getFailureDescribers2(failure));
-        describers.addAll(defaultFailureDescribers2.getDescribers(failure));
+    private <FAILURE extends ResolutionFailure> AbstractVariantSelectionException describeFailure2(AttributesSchemaInternal schema, FAILURE failure) {
+        List<ResolutionFailureDescriber<?, FAILURE>> describers = new ArrayList<>();
+        describers.addAll(schema.getFailureDescribers(failure));
+        describers.addAll(defaultFailureDescribers.getDescribers(failure));
 
         return describers.stream()
             .filter(describer -> describer.canDescribeFailure(failure))
@@ -128,19 +111,19 @@ public class ResolutionFailureHandler {
     public AbstractVariantSelectionException noMatchingArtifactVariantFailure(AttributesSchemaInternal schema, AttributeMatcher matcher, String variantSetName, ImmutableAttributes requestedAttributes, List<? extends ResolvedVariant> candidateVariants) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariants(candidateVariants);
-        IncompatibleResolutionFailure2 failure = new IncompatibleResolutionFailure2(schema, variantSetName, requestedAttributes, assessedCandidates);
+        IncompatibleResolutionFailure failure = new IncompatibleResolutionFailure(schema, variantSetName, requestedAttributes, assessedCandidates);
         return describeFailure2(schema, failure);
     }
 
     public AbstractVariantSelectionException ambiguousArtifactVariantsFailure(AttributesSchemaInternal schema, AttributeMatcher matcher, String selectedComponentName, ImmutableAttributes requestedAttributes, List<? extends ResolvedVariant> matchingVariants, Set<ResolvedVariant> discardedVariants) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariants(matchingVariants);
-        AmbiguousResolutionFailure2 failure = new AmbiguousResolutionFailure2(schema, selectedComponentName, requestedAttributes, assessedCandidates);
+        AmbiguousResolutionFailure failure = new AmbiguousResolutionFailure(schema, selectedComponentName, requestedAttributes, assessedCandidates);
         return describeFailure2(schema, failure);
     }
 
     public AbstractVariantSelectionException ambiguousArtifactTransformationFailure(AttributesSchemaInternal schema, @SuppressWarnings("unused") AttributeMatcher matcher, String selectedComponentName, ImmutableAttributes requestedAttributes, List<TransformedVariant> transformedVariants) {
-        AmbiguousArtifactTransformFailure2 failure = new AmbiguousArtifactTransformFailure2(schema, selectedComponentName, requestedAttributes, transformedVariants);
+        AmbiguousArtifactTransformFailure failure = new AmbiguousArtifactTransformFailure(schema, selectedComponentName, requestedAttributes, transformedVariants);
         return describeFailure2(schema, failure);
     }
 
@@ -161,7 +144,7 @@ public class ResolutionFailureHandler {
     public AbstractVariantSelectionException incompatibleArtifactVariantsFailure(AttributesSchemaInternal schema, ComponentState selectedComponent, Set<NodeState> incompatibleNodes) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(ImmutableAttributes.EMPTY, schema.matcher());
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessCandidates(extractVariants(incompatibleNodes));
-        InvalidMultipleVariantsSelectionFailure2 failure = new InvalidMultipleVariantsSelectionFailure2(schema, selectedComponent.toString(), assessedCandidates);
+        InvalidMultipleVariantsSelectionFailure failure = new InvalidMultipleVariantsSelectionFailure(schema, selectedComponent.toString(), assessedCandidates);
         return describeFailure2(schema, failure);
     }
 
@@ -179,7 +162,7 @@ public class ResolutionFailureHandler {
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessCandidates(extractVariants(matchingVariants));
-        VariantAwareAmbiguousResolutionFailure2 failure = new VariantAwareAmbiguousResolutionFailure2(schema, targetComponent.getId().getDisplayName(), requestedAttributes, assessedCandidates, targetComponent);
+        VariantAwareAmbiguousResolutionFailure failure = new VariantAwareAmbiguousResolutionFailure(schema, targetComponent.getId().getDisplayName(), requestedAttributes, assessedCandidates, targetComponent);
         return describeFailure2(schema, failure);
     }
 
@@ -193,7 +176,7 @@ public class ResolutionFailureHandler {
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = Collections.singletonList(resolutionCandidateAssessor.assessCandidate(targetConfiguration.getName(), targetConfiguration.asVariant().getCapabilities(), targetConfiguration.asVariant().getMetadata().getAttributes()));
-        IncompatibleRequestedConfigurationFailure2 failure = new IncompatibleRequestedConfigurationFailure2(schema, targetComponent.getId().getDisplayName(), requestedAttributes, assessedCandidates);
+        IncompatibleRequestedConfigurationFailure failure = new IncompatibleRequestedConfigurationFailure(schema, targetComponent.getId().getDisplayName(), requestedAttributes, assessedCandidates);
         return describeFailure2(schema, failure);
     }
 
@@ -206,7 +189,7 @@ public class ResolutionFailureHandler {
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessCandidates(extractVariants(candidates));
-        IncompatibleGraphVariantFailure2 failure = new IncompatibleGraphVariantFailure2(schema, targetComponent.getId().getDisplayName(), requestedAttributes, assessedCandidates, targetComponent);
+        IncompatibleGraphVariantFailure failure = new IncompatibleGraphVariantFailure(schema, targetComponent.getId().getDisplayName(), requestedAttributes, assessedCandidates, targetComponent);
         return describeFailure2(schema, failure);
     }
 

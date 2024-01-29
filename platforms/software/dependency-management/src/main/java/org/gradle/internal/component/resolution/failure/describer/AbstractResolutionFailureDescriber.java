@@ -25,7 +25,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.AbstractVariantSelectionException;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedAttribute;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
-import org.gradle.internal.component.resolution.failure.failures.ResolutionFailure2;
+import org.gradle.internal.component.resolution.failure.failuretype.ResolutionFailure;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
@@ -37,12 +37,12 @@ import java.util.stream.Collectors;
 
 import static org.gradle.internal.exceptions.StyledException.style;
 
-public abstract class AbstractResolutionFailureDescriber2<EXCEPTION extends AbstractVariantSelectionException, FAILURE extends ResolutionFailure2> implements ResolutionFailureDescriber2<EXCEPTION, FAILURE> {
+public abstract class AbstractResolutionFailureDescriber<EXCEPTION extends AbstractVariantSelectionException, FAILURE extends ResolutionFailure> implements ResolutionFailureDescriber<EXCEPTION, FAILURE> {
     private static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
 
     protected final DocumentationRegistry documentationRegistry;
 
-    protected AbstractResolutionFailureDescriber2(DocumentationRegistry documentationRegistry) {
+    protected AbstractResolutionFailureDescriber(DocumentationRegistry documentationRegistry) {
         this.documentationRegistry = documentationRegistry;
     }
 

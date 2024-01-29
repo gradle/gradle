@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.resolution.failure.failures;
+package org.gradle.internal.component.resolution.failure.failuretype;
 
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -23,19 +23,15 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 
 import java.util.List;
 
-public class IncompatibleGraphVariantFailure2 extends IncompatibleResolutionFailure2 {
-    private ComponentGraphResolveMetadata targetComponent;
+public class VariantAwareAmbiguousResolutionFailure extends AmbiguousResolutionFailure {
+    private final ComponentGraphResolveMetadata targetComponent;
 
-    public IncompatibleGraphVariantFailure2(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates, ComponentGraphResolveMetadata targetComponent) {
+    public VariantAwareAmbiguousResolutionFailure(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates, ComponentGraphResolveMetadata targetComponent) {
         super(schema, requestedName, requestedAttributes, candidates);
         this.targetComponent = targetComponent;
     }
 
     public ComponentGraphResolveMetadata getTargetComponent() {
         return targetComponent;
-    }
-
-    public boolean noCandidatesHaveAttributes() {
-        return getCandidates().stream().allMatch(ResolutionCandidateAssessor.AssessedCandidate::hasNoAttributes);
     }
 }
