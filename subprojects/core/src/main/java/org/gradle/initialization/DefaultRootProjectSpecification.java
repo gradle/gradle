@@ -16,18 +16,20 @@
 
 package org.gradle.initialization;
 
+import org.gradle.api.file.Directory;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.RootProjectSpecification;
+import org.gradle.api.provider.Provider;
 
 import javax.inject.Inject;
-import java.io.File;
 
 abstract public class DefaultRootProjectSpecification extends AbstractProjectSpecificationContainer implements RootProjectSpecification {
     boolean autoDetect = false;
 
     @Inject
-    public DefaultRootProjectSpecification(Settings settings, File dir) {
-        super(settings, dir, "", null);
+    public DefaultRootProjectSpecification(Settings settings, Provider<Directory> dir) {
+        super(settings, dir);
+        getProjectDir().finalizeValue();
     }
 
     @Override

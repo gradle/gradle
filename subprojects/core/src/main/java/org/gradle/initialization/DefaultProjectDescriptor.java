@@ -17,6 +17,8 @@ package org.gradle.initialization;
 
 import com.google.common.base.Objects;
 import org.gradle.api.Project;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -46,7 +48,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     private boolean nameExplicitlySet; // project name explicitly specified in the build script (as opposed to derived from the containing folder)
     private final PathToFileResolver fileResolver;
     private final ScriptFileResolver scriptFileResolver;
-    private File dir;
+    private DirectoryProperty directoryProperty;
     private File canonicalDir;
     private final DefaultProjectDescriptor parent;
     private final Set<DefaultProjectDescriptor> children = new LinkedHashSet<>();
@@ -70,7 +72,8 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     ) {
         this.parent = parent;
         this.fileResolver = fileResolver;
-        this.dir = dir;
+        this.directoryProperty = objectFactory.directoryProperty();
+        this.directoryProperty.set(dir);
         this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.scriptFileResolver = scriptFileResolver != null
             ? scriptFileResolver
@@ -127,7 +130,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     @Override
     public File getProjectDir() {
         if (canonicalDir == null) {
-            canonicalDir = fileResolver.resolve(dir);
+            canonicalDir = fileResolver.resolve(directoryProperty);
         }
         return canonicalDir;
     }
@@ -135,7 +138,12 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     @Override
     public void setProjectDir(File dir) {
         this.canonicalDir = null;
-        this.dir = dir;
+        this.directoryProperty.set(dir);
+    }
+
+    public void setProjectDir(Provider<Directory> dir) {
+        this.canonicalDir = null;
+        this.directoryProperty.set(dir);
     }
 
     @Override

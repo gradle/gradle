@@ -21,13 +21,12 @@ import org.gradle.api.initialization.dsl.ProjectSpecification;
 import org.gradle.api.initialization.dsl.ProjectSpecificationContainer;
 
 import javax.inject.Inject;
-import java.io.File;
 
 abstract public class DefaultProjectSpecification extends AbstractProjectSpecificationContainer implements ProjectSpecification {
 
     @Inject
-    public DefaultProjectSpecification(Settings settings, File dir, String logicalPathRelativeToParent, ProjectSpecificationContainer parent) {
-        super(settings, dir, logicalPathRelativeToParent, parent);
+    public DefaultProjectSpecification(Settings settings, String logicalPathRelativeToParent, ProjectSpecificationContainer parent) {
+        super(settings, logicalPathRelativeToParent, parent);
     }
 
     @Override

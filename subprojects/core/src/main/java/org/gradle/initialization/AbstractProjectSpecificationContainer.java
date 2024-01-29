@@ -17,10 +17,12 @@
 package org.gradle.initialization;
 
 import org.gradle.api.Action;
+import org.gradle.api.file.Directory;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.ProjectSpecification;
 import org.gradle.api.initialization.dsl.ProjectSpecificationContainer;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 
 import javax.inject.Inject;
@@ -30,18 +32,24 @@ import static org.gradle.api.initialization.dsl.ProjectSpecification.LOGICAL_PAT
 
 abstract public class AbstractProjectSpecificationContainer implements ProjectSpecificationContainer {
     protected final Settings settings;
-    protected final File dir;
     protected final String logicalPathRelativeToParent;
     protected final ProjectSpecificationContainer parent;
 
-    public AbstractProjectSpecificationContainer(Settings settings, File dir, String logicalPathRelativeToParent, ProjectSpecificationContainer parent) {
+    public AbstractProjectSpecificationContainer(Settings settings, String logicalPathRelativeToParent, ProjectSpecificationContainer parent) {
         this.settings = settings;
-        this.dir = dir;
         this.logicalPathRelativeToParent = logicalPathRelativeToParent;
         this.parent = parent;
+        getProjectDir().set(parent.getProjectDir().dir(logicalPathRelativeToParent));
     }
 
-    @Override
+    public AbstractProjectSpecificationContainer(Settings settings, Provider<Directory> dir) {
+        this.settings = settings;
+        this.logicalPathRelativeToParent = "";
+        this.parent = null;
+        getProjectDir().set(dir);
+    }
+
+    //@Override
     public ProjectSpecification subproject(String logicalPath) {
         return subproject(logicalPath, Actions.doNothing());
     }
@@ -52,18 +60,46 @@ abstract public class AbstractProjectSpecificationContainer implements ProjectSp
             throw new IllegalArgumentException("The logical path '" + logicalPathRelativeToParent + "' should not contain separators.  To create a complex logical path, use nested calls to the 'subproject()' method.");
         }
 
-        ProjectSpecification subproject = getObjectFactory().newInstance(DefaultProjectSpecification.class, settings, new File(dir, logicalPathRelativeToParent), logicalPathRelativeToParent, this);
+
+        ProjectSpecification subproject = getObjectFactory().newInstance(DefaultProjectSpecification.class, settings, logicalPathRelativeToParent, this);
+
+        if (getProjectRegistry().getProject(subproject.getLogicalPath()) != null) {
+            throw new IllegalArgumentException("A project with path '" + subproject.getLogicalPath() + "' has already been registered.");
+        }
+
         settings.include(subproject.getLogicalPath());
-        settings.project(subproject.getLogicalPath()).setProjectDir(subproject.getDir());
+        subproject.setProjectDirRelativePath(logicalPathRelativeToParent);
+
         action.execute(subproject);
+
         return subproject;
     }
 
+    private static boolean notEqual(Provider<Directory> dir, Provider<Directory> otherDir) {
+        return !dir.get().getAsFile().equals(otherDir.get().getAsFile());
+    }
+
+    private boolean isAlreadyRegistered(Provider<Directory> dir) {
+        return getProjectRegistry().getProject(dir.get().getAsFile()) != null;
+    }
+
     @Override
-    public File getDir() {
-        return dir;
+    public void setProjectDirRelativePath(String projectRelativePath) {
+        Provider<Directory> logicalProjectDir = parent.getProjectDir().dir(logicalPathRelativeToParent);
+        Provider<Directory> newProjectDir = parent.getProjectDir().dir(projectRelativePath);
+
+        if (notEqual(logicalProjectDir, newProjectDir) && isAlreadyRegistered(newProjectDir)) {
+            throw new IllegalArgumentException("A project with directory '" + projectRelativePath + "' has already been registered.");
+        }
+
+        getProjectDir().set(newProjectDir);
+
+        ((DefaultProjectDescriptor)settings.project(getLogicalPath())).setProjectDir(getProjectDir());
     }
 
     @Inject
     abstract protected ObjectFactory getObjectFactory();
+
+    @Inject
+    abstract protected ProjectDescriptorRegistry getProjectRegistry();
 }

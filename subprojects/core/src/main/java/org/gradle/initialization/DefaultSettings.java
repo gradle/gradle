@@ -114,7 +114,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         this.rootProjectDescriptor = createProjectDescriptor(null, getBuildNameProperty(settingsDir), settingsDir);
         this.dependencyResolutionManagement = services.get(DependencyResolutionManagementInternal.class);
         this.toolchainManagement = services.get(ToolchainManagementInternal.class);
-        this.rootProjectSpecification = getObjectFactory().newInstance(DefaultRootProjectSpecification.class, this, settingsDir);
+        this.rootProjectSpecification = getObjectFactory().newInstance(DefaultRootProjectSpecification.class, this, getProviders().provider(() -> getLayout().getSettingsDirectory()));
     }
 
     private Provider<String> getBuildNameProperty(File settingsDir) {
