@@ -64,10 +64,7 @@ project.plugins.withType<JavaBasePlugin> {
             options.errorprone {
                 isEnabled = extension.enabled
                 checks.set(errorproneExtension.disabledChecks.map {
-                    it.stream().collect(Collectors.toMap(
-                        { check -> check },
-                        { _ -> CheckSeverity.OFF }
-                    ))
+                    it.associateWith { CheckSeverity.OFF }
                 })
             }
         }
