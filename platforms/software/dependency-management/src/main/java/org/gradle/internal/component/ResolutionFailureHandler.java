@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -42,11 +41,13 @@ import org.gradle.internal.component.resolution.failure.ResolutionFailureDescrib
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformFailure;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.ExternalRequestedConfigurationNotFoundFailure;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleRequestedConfigurationFailure;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleResolutionFailure;
 import org.gradle.internal.component.resolution.failure.type.InvalidMultipleVariantsSelectionFailure;
 import org.gradle.internal.component.resolution.failure.type.NoMatchingCapabilitiesFailure;
+import org.gradle.internal.component.resolution.failure.type.RequestedConfigurationNotFoundFailure;
 import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
 import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
 import org.gradle.internal.component.resolution.failure.type.VariantAwareAmbiguousResolutionFailure;
@@ -84,21 +85,6 @@ public class ResolutionFailureHandler {
 
     private void suggestReviewAlgorithm(AbstractVariantSelectionException exception) {
         exception.addResolution(DEFAULT_MESSAGE_PREFIX + documentationRegistry.getDocumentationFor("variant_attributes", "sec:abm_algorithm") + ".");
-    }
-
-    private <FAILURE extends ResolutionFailure> AbstractVariantSelectionException describeFailure(AttributesSchemaInternal schema, FAILURE failure) {
-        @SuppressWarnings("unchecked")
-        Class<FAILURE> failureType = (Class<FAILURE>) failure.getClass();
-
-        List<ResolutionFailureDescriber<?, FAILURE>> describers = new ArrayList<>();
-        describers.addAll(schema.getFailureDescribers(failureType));
-        describers.addAll(defaultFailureDescribers.getDescribers(failureType));
-
-        return describers.stream()
-            .filter(describer -> describer.canDescribeFailure(failure))
-            .findFirst()
-            .map(describer -> describer.describeFailure(failure))
-            .orElseThrow(() -> new IllegalStateException("No describer found for failure: " + failure)); // TODO: a default describer at the end of the list that catches everything instead?
     }
 
     // region Artifact Variant Selection Failures
@@ -180,21 +166,16 @@ public class ResolutionFailureHandler {
         return describeFailure(schema, failure);
     }
 
-    public ConfigurationNotFoundException configurationNotFoundFailure(@SuppressWarnings("unused") AttributesSchemaInternal schema, String targetConfigurationName, ComponentIdentifier targetComponentId) {
-        String message = buildConfigurationNotFoundFailureMsg(targetConfigurationName, targetComponentId);
-        ConfigurationNotFoundException e = new ConfigurationNotFoundException(message);
-        suggestReviewAlgorithm(e);
-        return e;
-    }
-
-    /**
-     * This is a special case where a configuration is requested by name in a target component, so there is no relevant schema to provide to this handler method.
+    /*
+     * These are special cases where a configuration is requested by name in a target component, so there is no relevant schema to provide to this handler method.
      */
-    public ExternalConfigurationNotFoundException externalConfigurationNotFoundFailure(ComponentIdentifier fromComponent, String fromConfigurationName, ComponentIdentifier toComponent, String toConfigurationName) {
-        String message = buildExternalConfigurationNotFoundFailureMsg(fromComponent, fromConfigurationName, toConfigurationName, toComponent);
-        ExternalConfigurationNotFoundException e = new ExternalConfigurationNotFoundException(message);
-        suggestReviewAlgorithm(e);
-        return e;
+    public AbstractVariantSelectionException configurationNotFoundFailure(ComponentIdentifier toComponent, String toConfigurationName) {
+        RequestedConfigurationNotFoundFailure failure = new RequestedConfigurationNotFoundFailure(toConfigurationName, toComponent);
+        return describeFailure(failure);
+    }
+    public AbstractVariantSelectionException externalConfigurationNotFoundFailure(ComponentIdentifier fromComponent, String fromConfigurationName, ComponentIdentifier toComponent, String toConfigurationName) {
+        ExternalRequestedConfigurationNotFoundFailure failure = new ExternalRequestedConfigurationNotFoundFailure(toConfigurationName, toComponent, fromComponent, fromConfigurationName);
+        return describeFailure(failure);
     }
 
     public ConfigurationNotConsumableException configurationNotConsumableFailure(@SuppressWarnings("unused") AttributesSchemaInternal schema, String targetComponentName, String targetConfigurationName) {
@@ -204,16 +185,32 @@ public class ResolutionFailureHandler {
         return e;
     }
 
-    private String buildConfigurationNotFoundFailureMsg(String targetConfigurationName, ComponentIdentifier targetComponentId) {
-        return String.format("A dependency was declared on configuration '%s' which is not declared in the descriptor for %s.", targetConfigurationName, targetComponentId.getDisplayName());
-    }
-
-    private String buildExternalConfigurationNotFoundFailureMsg(ComponentIdentifier fromComponent, String fromConfiguration, String toConfiguration, ComponentIdentifier toComponent) {
-        return String.format("%s declares a dependency from configuration '%s' to configuration '%s' which is not declared in the descriptor for %s.", StringUtils.capitalize(fromComponent.getDisplayName()), fromConfiguration, toConfiguration, toComponent.getDisplayName());
-    }
-
     private String buildConfigurationNotConsumableFailureMsg(String targetComponentName, String targetConfigurationName) {
         return String.format("Selected configuration '" + targetConfigurationName + "' on '" + targetComponentName + "' but it can't be used as a project dependency because it isn't intended for consumption by other components.");
     }
     // endregion Graph Variant Selection Failures
+
+    private <FAILURE extends ResolutionFailure> AbstractVariantSelectionException describeFailure(FAILURE failure) {
+        @SuppressWarnings("unchecked")
+        Class<FAILURE> failureType = (Class<FAILURE>) failure.getClass();
+        List<ResolutionFailureDescriber<?, FAILURE>> describers = defaultFailureDescribers.getDescribers(failureType);
+        return describeFailure(describers, failure);
+    }
+
+    private <FAILURE extends ResolutionFailure> AbstractVariantSelectionException describeFailure(AttributesSchemaInternal schema, FAILURE failure) {
+        @SuppressWarnings("unchecked")
+        Class<FAILURE> failureType = (Class<FAILURE>) failure.getClass();
+        List<ResolutionFailureDescriber<?, FAILURE>> describers = new ArrayList<>();
+        describers.addAll(schema.getFailureDescribers(failureType));
+        describers.addAll(defaultFailureDescribers.getDescribers(failureType));
+        return describeFailure(describers, failure);
+    }
+
+    private <FAILURE extends ResolutionFailure> AbstractVariantSelectionException describeFailure(List<ResolutionFailureDescriber<?, FAILURE>> describers, FAILURE failure) {
+        return describers.stream()
+            .filter(describer -> describer.canDescribeFailure(failure))
+            .findFirst()
+            .map(describer -> describer.describeFailure(failure))
+            .orElseThrow(() -> new IllegalStateException("No describer found for failure: " + failure)); // TODO: a default describer at the end of the list that catches everything instead?
+    }
 }

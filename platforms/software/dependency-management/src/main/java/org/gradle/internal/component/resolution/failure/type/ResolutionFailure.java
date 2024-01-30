@@ -16,19 +16,11 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-
-public class ResolutionFailure {
-    private final AttributesSchemaInternal schema;
+public abstract class ResolutionFailure {
     private final String requestedName;
 
-    public ResolutionFailure(AttributesSchemaInternal schema, String requestedName) {
-        this.schema = schema;
+    public ResolutionFailure(String requestedName) {
         this.requestedName = requestedName;
-    }
-
-    public AttributesSchemaInternal getSchema() {
-        return schema;
     }
 
     public String getRequestedName() {

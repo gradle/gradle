@@ -20,7 +20,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-public class UnmatchingAttributesSelectionFailure extends ResolutionFailure {
+public class UnmatchingAttributesSelectionFailure extends VariantSelectionFailure {
     private final ImmutableAttributes requestedAttributes;
 
     public UnmatchingAttributesSelectionFailure(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes) {

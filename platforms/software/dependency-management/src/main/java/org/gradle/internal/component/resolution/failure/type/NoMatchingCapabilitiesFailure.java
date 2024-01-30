@@ -24,7 +24,7 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 import java.util.Collection;
 import java.util.List;
 
-public class NoMatchingCapabilitiesFailure extends ResolutionFailure {
+public class NoMatchingCapabilitiesFailure extends VariantSelectionFailure {
     private final ComponentGraphResolveMetadata targetComponent;
     private final Collection<? extends Capability> requestedCapabilities;
     private final List<AssessedCandidate> candidates;

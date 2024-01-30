@@ -16,17 +16,17 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 
-public class UnknownArtifactSelectionFailure extends VariantSelectionFailure {
-    private final Exception cause;
+public class RequestedConfigurationNotFoundFailure extends ConfigurationSelectionFailure {
+    private final ComponentIdentifier requestedComponent;
 
-    public UnknownArtifactSelectionFailure(AttributesSchemaInternal schema, String requestedName, Exception cause) {
-        super(schema, requestedName);
-        this.cause = cause;
+    public RequestedConfigurationNotFoundFailure(String requestedName, ComponentIdentifier requestedComponent) {
+        super(requestedName, requestedComponent);
+        this.requestedComponent = requestedComponent;
     }
 
-    public Exception getCause() {
-        return cause;
+    public ComponentIdentifier getRequestedComponent() {
+        return requestedComponent;
     }
 }

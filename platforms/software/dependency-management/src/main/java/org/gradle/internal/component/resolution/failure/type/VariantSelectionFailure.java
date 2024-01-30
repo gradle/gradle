@@ -18,15 +18,15 @@ package org.gradle.internal.component.resolution.failure.type;
 
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 
-public class UnknownArtifactSelectionFailure extends VariantSelectionFailure {
-    private final Exception cause;
+public abstract class VariantSelectionFailure extends ResolutionFailure {
+    private final AttributesSchemaInternal schema;
 
-    public UnknownArtifactSelectionFailure(AttributesSchemaInternal schema, String requestedName, Exception cause) {
-        super(schema, requestedName);
-        this.cause = cause;
+    public VariantSelectionFailure(AttributesSchemaInternal schema, String requestedName) {
+        super(requestedName);
+        this.schema = schema;
     }
 
-    public Exception getCause() {
-        return cause;
+    public AttributesSchemaInternal getSchema() {
+        return schema;
     }
 }

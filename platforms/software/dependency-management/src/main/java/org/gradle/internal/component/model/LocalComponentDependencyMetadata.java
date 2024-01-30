@@ -128,7 +128,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         String targetConfiguration = getDependencyConfiguration();
         ConfigurationGraphResolveState toConfiguration = targetComponentState.getConfiguration(targetConfiguration);
         if (toConfiguration == null) {
-            throw variantSelector.getFailureProcessor().configurationNotFoundFailure(consumerSchema, targetConfiguration, targetComponent.getId());
+            throw variantSelector.getFailureProcessor().configurationNotFoundFailure(targetComponent.getId(), targetConfiguration);
         }
 
         verifyConsumability(consumerSchema, variantSelector, targetComponent, toConfiguration);

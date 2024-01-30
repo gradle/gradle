@@ -22,7 +22,7 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 
 import java.util.List;
 
-public class InvalidMultipleVariantsSelectionFailure extends ResolutionFailure {
+public class InvalidMultipleVariantsSelectionFailure extends VariantSelectionFailure {
     private final ImmutableList<AssessedCandidate> assessedCandidates;
 
     public InvalidMultipleVariantsSelectionFailure(AttributesSchemaInternal schema, String requestedName, List<AssessedCandidate> assessedCandidates) {
