@@ -140,6 +140,9 @@ Maven has been updated from 3.6.3 to https://maven.apache.org/docs/3.9.6/release
 
 Plexus Cipher and related utils were upgraded from 1.x to https://github.com/codehaus-plexus/plexus-cipher/releases/tag/plexus-cipher-2.0[2.0].
 
+==== Upgrade to ASM 9.6
+
+ASM was upgraded from 9.4 to https://asm.ow2.io/versions.html[9.6] for better support of multi-release jars.
 
 ==== Configuring a non-existing executable now fails
 
