@@ -69,7 +69,7 @@ public class ResolveChangesStep<C extends ValidationFinishedContext, R extends R
                 HashCode cacheKey = context.getPreviousExecutionState()
                     .filter(__ -> changes.getChangeDescriptions().isEmpty())
                     .map(PreviousExecutionState::getCacheKey)
-                    .orElseGet(() -> calculateCacheKey(changes));
+                    .orElseGet(() -> calculateCacheKey(changes.getBeforeExecutionState()));
                 return new IncrementalChangesContext(context, changes.getChangeDescriptions(), changes, cacheKey);
             })
             .orElseGet(() -> {
@@ -82,11 +82,11 @@ public class ResolveChangesStep<C extends ValidationFinishedContext, R extends R
         return delegate.execute(work, delegateContext);
     }
 
-    private HashCode calculateCacheKey(ExecutionStateChanges changes) {
+    private HashCode calculateCacheKey(BeforeExecutionState beforeExecutionState) {
         Logger logger = emitBuildCacheDebugLogging.getAsBoolean()
             ? LOGGER
             : NOPLogger.NOP_LOGGER;
-        return new DefaultCachingStateFactory(logger).calculateCacheKey(changes.getBeforeExecutionState());
+        return new DefaultCachingStateFactory(logger).calculateCacheKey(beforeExecutionState);
     }
 
     @Nonnull
