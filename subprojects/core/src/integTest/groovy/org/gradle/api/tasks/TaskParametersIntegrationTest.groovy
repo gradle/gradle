@@ -23,6 +23,8 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildCacheKeyFixture
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -30,9 +32,14 @@ import org.gradle.internal.Actions
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.junit.Rule
 import spock.lang.Issue
 
-class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
+class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, DirectoryBuildCacheFixture {
+
+    @Delegate
+    @Rule
+    BuildCacheKeyFixture cacheKeyFixture = new BuildCacheKeyFixture(executer, testDirectoryProvider)
 
     def "reports which properties are not serializable"() {
         buildFile << """
@@ -339,6 +346,11 @@ task someTask {
     doLast ${Actions.name}.doNothing() // attach an action that is not defined by the build script
 }
 """
+        executer.beforeExecute {
+            // To have cache keys
+            withBuildCache()
+        }
+
         given:
         succeeds "someTask"
 
@@ -347,6 +359,7 @@ task someTask {
 
         then:
         skipped(":someTask")
+        def firstBuildCacheKey = buildCacheKey(":someTask")
 
         // change property type
         when:
@@ -359,6 +372,7 @@ task someTask {
         then:
         executedAndNotSkipped(":someTask")
         outputContains("Value of input property 'a' has changed for task ':someTask'")
+        buildCacheKey(":someTask") != firstBuildCacheKey
 
         when:
         run "someTask"
