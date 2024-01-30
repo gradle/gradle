@@ -93,8 +93,9 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     }
 
     private static boolean shouldUseProblemsApiReporting() {
-        String property = System.getProperty("org.gradle.internal.emit-compiler-problems");
-        return Boolean.parseBoolean(property);
+//        String property = System.getProperty("org.gradle.internal.emit-compiler-problems");
+//        return Boolean.parseBoolean(property);
+        return true;
     }
 
     private static boolean emptySourcepathIn(List<String> options) {

@@ -19,6 +19,8 @@ package org.gradle.api.tasks.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.problems.ReceivedProblem
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
+
 /**
  * Test class verifying the integration between the {@code JavaCompile} and the {@code Problems} service.
  */
@@ -197,6 +199,29 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         assert possibleFiles.remove(fileLocationPath): "Not found file location '${fileLocationPath}' in the expected file locations: ${possibleFiles}"
 
         return true
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/27693")
+    def "events are received when compiler is forked"() {
+        buildFile << """
+            tasks.compileJava.options.fork = true
+        """
+
+        def files = [
+            writeJavaCausingTwoCompilationErrors("Foo"),
+        ]
+        // Duplicate the entries, as we have two problems per file
+        files.addAll(files)
+
+        when:
+        // Special flag to fork the compiler, see the setup()
+        fails("compileJava")
+
+        then:
+        collectedProblems.size() == 2
+        for (ReceivedProblem problem in collectedProblems) {
+            assertProblem(problem, files, "ERROR")
+        }
     }
 
     String writeJavaCausingTwoCompilationErrors(String className, String sourceSet = "main") {
