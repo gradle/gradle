@@ -42,11 +42,4 @@ abstract class StrictCompileExtension(val tasks: TaskContainer) {
             options.compilerArgs.add("-Xlint:-processing")
         }
     }
-
-    fun ignoreParameterizedVarargType() {
-        tasks.withType<JavaCompile>().configureEach {
-            // There is no way to ignore this warning, so we need to turn off "-Werror" completely
-            options.compilerArgs = options.compilerArgs - "-Werror"
-        }
-    }
 }
