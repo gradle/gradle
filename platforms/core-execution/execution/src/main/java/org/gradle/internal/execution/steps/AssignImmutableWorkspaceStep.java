@@ -92,29 +92,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         FileSystemLocationSnapshot workspaceSnapshot = fileSystemAccess.read(immutableLocation.getAbsolutePath());
         switch (workspaceSnapshot.getType()) {
             case Directory:
-                ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots = outputSnapshotter.snapshotOutputs(work, immutableLocation);
-
-                // Verify output hashes
-                ImmutableListMultimap<String, HashCode> outputHashes = calculateOutputHashes(outputSnapshots);
-                ImmutableWorkspaceMetadata metadata = workspaceMetadataStore.loadWorkspaceMetadata(immutableLocation);
-                if (!metadata.getOutputPropertyHashes().equals(outputHashes)) {
-                    throw new IllegalStateException(
-                        "Immutable workspace contents have been modified: " + immutableLocation.getAbsolutePath() + ". " +
-                            "These workspace directories are not supposed to be modified once they are created. " +
-                            "Deleting the directory in question can allow the content to be recreated.");
-                }
-
-                OriginMetadata originMetadata = metadata.getOriginMetadata();
-                ExecutionOutputState afterExecutionOutputState = new DefaultExecutionOutputState(true, outputSnapshots, originMetadata, true);
-                return Optional.of(
-                    new WorkspaceResult(
-                        CachingResult.shortcutResult(
-                            Duration.ZERO,
-                            Execution.skipped(UP_TO_DATE, work),
-                            afterExecutionOutputState,
-                            null,
-                            originMetadata),
-                        immutableLocation));
+                return Optional.of(loadImmutableWorkspace(work, immutableLocation));
             case RegularFile:
                 throw new IllegalStateException(
                     "Immutable workspace is occupied by a file: " + immutableLocation.getAbsolutePath() + ". " +
@@ -124,6 +102,31 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             default:
                 throw new AssertionError();
         }
+    }
+
+    private WorkspaceResult loadImmutableWorkspace(UnitOfWork work, File immutableLocation) {
+        ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots = outputSnapshotter.snapshotOutputs(work, immutableLocation);
+
+        // Verify output hashes
+        ImmutableListMultimap<String, HashCode> outputHashes = calculateOutputHashes(outputSnapshots);
+        ImmutableWorkspaceMetadata metadata = workspaceMetadataStore.loadWorkspaceMetadata(immutableLocation);
+        if (!metadata.getOutputPropertyHashes().equals(outputHashes)) {
+            throw new IllegalStateException(
+                "Immutable workspace contents have been modified: " + immutableLocation.getAbsolutePath() + ". " +
+                    "These workspace directories are not supposed to be modified once they are created. " +
+                    "Deleting the directory in question can allow the content to be recreated.");
+        }
+
+        OriginMetadata originMetadata = metadata.getOriginMetadata();
+        ExecutionOutputState afterExecutionOutputState = new DefaultExecutionOutputState(true, outputSnapshots, originMetadata, true);
+        return new WorkspaceResult(
+            CachingResult.shortcutResult(
+                Duration.ZERO,
+                Execution.skipped(UP_TO_DATE, work),
+                afterExecutionOutputState,
+                null,
+                originMetadata),
+            immutableLocation);
     }
 
     private WorkspaceResult executeInTemporaryWorkspace(UnitOfWork work, C context, ImmutableWorkspace workspace) {
@@ -209,8 +212,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
                 if (immutableLocation.isDirectory()) {
                     LOGGER.debug("Could not move temporary workspace ({}) to immutable location ({}), assuming it was moved in place concurrently",
                         temporaryWorkspace.getAbsolutePath(), immutableLocation.getAbsolutePath(), moveWorkspaceException);
-                    WorkspaceResult existingImmutableResult = loadImmutableWorkspaceIfExists(work, immutableLocation)
-                        .orElseThrow(() -> unableToMoveBecause(new IOException("Immutable workspace gone missing")));
+                    WorkspaceResult existingImmutableResult = loadImmutableWorkspace(work, immutableLocation);
                     removeTemporaryWorkspace();
                     return existingImmutableResult;
                 } else {
