@@ -26,5 +26,3 @@ pluginManagement {
         }
     }
 }
-
-includeBuild("ast")

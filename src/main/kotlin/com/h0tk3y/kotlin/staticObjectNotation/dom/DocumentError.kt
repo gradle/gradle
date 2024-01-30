@@ -16,8 +16,8 @@
 
 package com.h0tk3y.kotlin.staticObjectNotation.dom
 
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParsingError
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedConstruct
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.ParsingError
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.UnsupportedConstruct
 
 sealed interface DocumentError
 

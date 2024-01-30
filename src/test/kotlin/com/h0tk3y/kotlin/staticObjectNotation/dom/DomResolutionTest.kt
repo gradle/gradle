@@ -23,8 +23,8 @@ import com.h0tk3y.kotlin.staticObjectNotation.Restricted
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataTypeRef
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.SchemaFunction
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.tracingCodeResolver
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.DefaultLanguageTreeBuilder
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.parseToLightTree
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.DefaultLanguageTreeBuilder
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.parse
 import com.h0tk3y.kotlin.staticObjectNotation.dom.DocumentResolution
 import com.h0tk3y.kotlin.staticObjectNotation.dom.ResolvedDeclarativeDocument
 import com.h0tk3y.kotlin.staticObjectNotation.dom.convertBlockToDocument
@@ -289,7 +289,7 @@ object DomResolutionTest {
     private class MyNestedElement
 
     private fun parseAsTopLevelBlock(@Language("kts") code: String): Block {
-        val (tree, sourceCode, sourceOffset) = parseToLightTree(code)
+        val (tree, sourceCode, sourceOffset) = parse(code)
         return DefaultLanguageTreeBuilder().build(tree, sourceCode, sourceOffset, SourceIdentifier("test")).topLevelBlock
     }
 }

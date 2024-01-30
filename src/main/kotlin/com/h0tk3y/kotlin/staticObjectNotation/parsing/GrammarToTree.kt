@@ -1,7 +1,7 @@
-package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
+package com.h0tk3y.kotlin.staticObjectNotation.parsing
 
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.FailureCollectorContext.CheckedResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedLanguageFeature.*
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.FailureCollectorContext.CheckedResult
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.UnsupportedLanguageFeature.*
 import com.h0tk3y.kotlin.staticObjectNotation.language.*
 import org.jetbrains.kotlin.ElementTypeUtils.getOperationSymbol
 import org.jetbrains.kotlin.ElementTypeUtils.isExpression
@@ -17,7 +17,7 @@ import org.jetbrains.kotlin.psi.stubs.elements.KtConstantExpressionElementType
 import org.jetbrains.kotlin.psi.stubs.elements.KtNameReferenceExpressionElementType
 import org.jetbrains.kotlin.utils.doNothing
 
-class GrammarToLightTree(
+class GrammarToTree(
     private val sourceIdentifier: SourceIdentifier,
     private val sourceCode: String,
     private val sourceOffset: Int

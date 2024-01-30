@@ -1,14 +1,12 @@
 package com.example.com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
 import com.example.com.h0tk3y.kotlin.staticObjectNotation.prettyPrintLanguageResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.AbstractRejectedLanguageFeaturesTest
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParseTestUtil
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.LanguageTreeResult
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.ParseTestUtil
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.assert
 import org.junit.jupiter.api.Test
 
-class RejectedLanguageFeaturesAstTest: AbstractRejectedLanguageFeaturesTest() {
-
-    override fun parse(code: String): LanguageTreeResult = ParseTestUtil.parseWithAst(code)
+class RejectedLanguageFeaturesParsingTest {
 
     @Test
     fun `rejects explicit package declaration`() {
@@ -17,11 +15,11 @@ class RejectedLanguageFeaturesAstTest: AbstractRejectedLanguageFeaturesTest() {
             """
             UnsupportedConstruct(
                 languageFeature = PackageHeader,
-                potentialElementSource = indexes: 0..19, line/column: 1/1..1/25, file: test,
-                erroneousSource = indexes: 0..19, line/column: 1/1..1/25, file: test
+                potentialElementSource = indexes: 0..19, line/column: 1/1..1/20, file: test,
+                erroneousSource = indexes: 0..19, line/column: 1/1..1/20, file: test
             )
             """.trimIndent()
-        assertResult(expected, code) { prettyPrintLanguageResult(it.headerFailures.single()) }
+        parse(code).assert(expected) { result -> result.headerFailures.joinToString { prettyPrintLanguageResult(it) } }
     }
 
     @Test
@@ -34,21 +32,21 @@ class RejectedLanguageFeaturesAstTest: AbstractRejectedLanguageFeaturesTest() {
         val expected = """
             UnsupportedConstruct(
                 languageFeature = StarImport,
-                potentialElementSource = indexes: 0..15, line/column: 1/1..1/16, file: test,
+                potentialElementSource = indexes: 0..14, line/column: 1/1..1/15, file: test,
                 erroneousSource = indexes: 13..14, line/column: 1/14..1/15, file: test
             )
             UnsupportedConstruct(
                 languageFeature = StarImport,
-                potentialElementSource = indexes: 15..26, line/column: 2/1..2/12, file: test,
+                potentialElementSource = indexes: 15..25, line/column: 2/1..2/11, file: test,
                 erroneousSource = indexes: 24..25, line/column: 2/10..2/11, file: test
             )
             UnsupportedConstruct(
                 languageFeature = StarImport,
-                potentialElementSource = indexes: 26..48, line/column: 3/1..3/28, file: test,
+                potentialElementSource = indexes: 26..48, line/column: 3/1..3/23, file: test,
                 erroneousSource = indexes: 47..48, line/column: 3/22..3/23, file: test
             )
             """.trimIndent()
-        assertResult(expected, code) { result -> result.headerFailures.joinToString("\n") { prettyPrintLanguageResult(it) } }
+        parse(code).assert(expected) { result -> result.headerFailures.joinToString("\n") { prettyPrintLanguageResult(it) } }
     }
 
     @Test
@@ -60,16 +58,16 @@ class RejectedLanguageFeaturesAstTest: AbstractRejectedLanguageFeaturesTest() {
         val expected = """
             UnsupportedConstruct(
                 languageFeature = RenamingImport,
-                potentialElementSource = indexes: 0..14, line/column: 1/1..1/15, file: test,
+                potentialElementSource = indexes: 0..13, line/column: 1/1..1/14, file: test,
                 erroneousSource = indexes: 9..13, line/column: 1/10..1/14, file: test
             )
             UnsupportedConstruct(
                 languageFeature = RenamingImport,
-                potentialElementSource = indexes: 14..29, line/column: 2/1..2/21, file: test,
+                potentialElementSource = indexes: 14..29, line/column: 2/1..2/16, file: test,
                 erroneousSource = indexes: 25..29, line/column: 2/12..2/16, file: test
             )
             """.trimIndent()
-        assertResult(expected, code) { result -> result.headerFailures.joinToString("\n") { prettyPrintLanguageResult(it) } }
+        parse(code).assert(expected) { result -> result.headerFailures.joinToString("\n") { prettyPrintLanguageResult(it) } }
     }
 
     @Test
@@ -119,7 +117,7 @@ class RejectedLanguageFeaturesAstTest: AbstractRejectedLanguageFeaturesTest() {
                 )
             )
             """.trimIndent()
-        assertResult(expected, code)
+        parse(code).assert(expected)
     }
 
     @Test
@@ -131,12 +129,12 @@ class RejectedLanguageFeaturesAstTest: AbstractRejectedLanguageFeaturesTest() {
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = ExplicitVariableType,
-                    potentialElementSource = indexes: 4..10, line/column: 1/5..1/11, file: test,
+                    potentialElementSource = indexes: 0..14, line/column: 1/1..1/15, file: test,
                     erroneousSource = indexes: 7..10, line/column: 1/8..1/11, file: test
                 )
             )
             """.trimIndent()
-        assertResult(expected, code)
+        parse(code).assert(expected)
     }
 
     @Test
@@ -155,68 +153,61 @@ class RejectedLanguageFeaturesAstTest: AbstractRejectedLanguageFeaturesTest() {
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = Indexing,
-                    potentialElementSource = indexes: 1..4, line/column: 1/2..1/5, file: test,
-                    erroneousSource = indexes: 1..4, line/column: 1/2..1/5, file: test
+                    potentialElementSource = indexes: 0..4, line/column: 1/1..1/5, file: test,
+                    erroneousSource = indexes: 0..4, line/column: 1/1..1/5, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = Indexing,
-                    potentialElementSource = indexes: 14..17, line/column: 2/6..2/9, file: test,
-                    erroneousSource = indexes: 14..17, line/column: 2/6..2/9, file: test
+                    potentialElementSource = indexes: 9..17, line/column: 2/1..2/9, file: test,
+                    erroneousSource = indexes: 9..17, line/column: 2/1..2/9, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = Indexing,
-                    potentialElementSource = indexes: 23..26, line/column: 3/2..3/5, file: test,
-                    erroneousSource = indexes: 23..26, line/column: 3/2..3/5, file: test
+                    potentialElementSource = indexes: 22..26, line/column: 3/1..3/5, file: test,
+                    erroneousSource = indexes: 22..26, line/column: 3/1..3/5, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = Indexing,
-                    potentialElementSource = indexes: 40..43, line/column: 4/8..4/11, file: test,
-                    erroneousSource = indexes: 40..43, line/column: 4/8..4/11, file: test
+                    potentialElementSource = indexes: 33..43, line/column: 4/1..4/11, file: test,
+                    erroneousSource = indexes: 33..43, line/column: 4/1..4/11, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = Indexing,
-                    potentialElementSource = indexes: 51..57, line/column: 5/4..5/10, file: test,
-                    erroneousSource = indexes: 51..57, line/column: 5/4..5/10, file: test
+                    potentialElementSource = indexes: 48..57, line/column: 5/1..5/10, file: test,
+                    erroneousSource = indexes: 48..57, line/column: 5/1..5/10, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = Indexing,
-                    potentialElementSource = indexes: 69..72, line/column: 6/6..6/9, file: test,
-                    erroneousSource = indexes: 69..72, line/column: 6/6..6/9, file: test
-                )
-            )
-            ErroneousStatement (
-                MultipleFailures(
-                    UnsupportedConstruct(
-                        languageFeature = Indexing,
-                        potentialElementSource = indexes: 78..81, line/column: 7/6..7/9, file: test,
-                        erroneousSource = indexes: 78..81, line/column: 7/6..7/9, file: test
-                    )
-                    UnsupportedConstruct(
-                        languageFeature = Indexing,
-                        potentialElementSource = indexes: 81..84, line/column: 7/9..7/12, file: test,
-                        erroneousSource = indexes: 81..84, line/column: 7/9..7/12, file: test
-                    )
+                    potentialElementSource = indexes: 68..72, line/column: 6/5..6/9, file: test,
+                    erroneousSource = indexes: 68..72, line/column: 6/5..6/9, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = Indexing,
-                    potentialElementSource = indexes: 90..96, line/column: 8/6..8/12, file: test,
-                    erroneousSource = indexes: 90..96, line/column: 8/6..8/12, file: test
+                    potentialElementSource = indexes: 77..84, line/column: 7/5..7/12, file: test,
+                    erroneousSource = indexes: 77..84, line/column: 7/5..7/12, file: test
+                )
+            )
+            ErroneousStatement (
+                UnsupportedConstruct(
+                    languageFeature = Indexing,
+                    potentialElementSource = indexes: 89..96, line/column: 8/5..8/12, file: test,
+                    erroneousSource = indexes: 89..96, line/column: 8/5..8/12, file: test
                 )
             )
             """.trimIndent()
-        assertResult(expected, code)
+        parse(code).assert(expected)
     }
 
     @Test
@@ -244,7 +235,7 @@ class RejectedLanguageFeaturesAstTest: AbstractRejectedLanguageFeaturesTest() {
                     )
                     UnsupportedConstruct(
                         languageFeature = ExplicitVariableType,
-                        potentialElementSource = indexes: 14..20, line/column: 2/5..2/11, file: test,
+                        potentialElementSource = indexes: 10..24, line/column: 2/1..2/15, file: test,
                         erroneousSource = indexes: 17..20, line/column: 2/8..2/11, file: test
                     )
                 )
@@ -258,7 +249,7 @@ class RejectedLanguageFeaturesAstTest: AbstractRejectedLanguageFeaturesTest() {
                     )
                     UnsupportedConstruct(
                         languageFeature = ExplicitVariableType,
-                        potentialElementSource = indexes: 29..35, line/column: 3/5..3/11, file: test,
+                        potentialElementSource = indexes: 25..35, line/column: 3/1..3/11, file: test,
                         erroneousSource = indexes: 32..35, line/column: 3/8..3/11, file: test
                     )
                     UnsupportedConstruct(
@@ -282,7 +273,7 @@ class RejectedLanguageFeaturesAstTest: AbstractRejectedLanguageFeaturesTest() {
                     )
                     UnsupportedConstruct(
                         languageFeature = ExplicitVariableType,
-                        potentialElementSource = indexes: 49..55, line/column: 4/14..4/20, file: test,
+                        potentialElementSource = indexes: 36..55, line/column: 4/1..4/20, file: test,
                         erroneousSource = indexes: 52..55, line/column: 4/17..4/20, file: test
                     )
                     UnsupportedConstruct(
@@ -293,7 +284,7 @@ class RejectedLanguageFeaturesAstTest: AbstractRejectedLanguageFeaturesTest() {
                 )
             )
             """.trimIndent()
-        assertResult(expected, code)
+        parse(code).assert(expected)
     }
 
     @Test
@@ -303,41 +294,41 @@ class RejectedLanguageFeaturesAstTest: AbstractRejectedLanguageFeaturesTest() {
             private val x: Int
             """.trimIndent()
         val expected = """
-            ErroneousStatement (
-                MultipleFailures(
-                    UnsupportedConstruct(
-                        languageFeature = ValModifierNotSupported,
-                        potentialElementSource = indexes: 0..21, line/column: 1/1..1/22, file: test,
-                        erroneousSource = indexes: 0..6, line/column: 1/1..1/7, file: test
-                    )
-                    UnsupportedConstruct(
-                        languageFeature = ExplicitVariableType,
-                        potentialElementSource = indexes: 11..17, line/column: 1/12..1/18, file: test,
-                        erroneousSource = indexes: 14..17, line/column: 1/15..1/18, file: test
-                    )
+        ErroneousStatement (
+            MultipleFailures(
+                UnsupportedConstruct(
+                    languageFeature = ValModifierNotSupported,
+                    potentialElementSource = indexes: 0..21, line/column: 1/1..1/22, file: test,
+                    erroneousSource = indexes: 0..6, line/column: 1/1..1/7, file: test
+                )
+                UnsupportedConstruct(
+                    languageFeature = ExplicitVariableType,
+                    potentialElementSource = indexes: 0..21, line/column: 1/1..1/22, file: test,
+                    erroneousSource = indexes: 14..17, line/column: 1/15..1/18, file: test
                 )
             )
-            ErroneousStatement (
-                MultipleFailures(
-                    UnsupportedConstruct(
-                        languageFeature = ValModifierNotSupported,
-                        potentialElementSource = indexes: 22..40, line/column: 2/1..2/19, file: test,
-                        erroneousSource = indexes: 22..29, line/column: 2/1..2/8, file: test
-                    )
-                    UnsupportedConstruct(
-                        languageFeature = ExplicitVariableType,
-                        potentialElementSource = indexes: 34..40, line/column: 2/13..2/19, file: test,
-                        erroneousSource = indexes: 37..40, line/column: 2/16..2/19, file: test
-                    )
-                    UnsupportedConstruct(
-                        languageFeature = UninitializedProperty,
-                        potentialElementSource = indexes: 22..40, line/column: 2/1..2/19, file: test,
-                        erroneousSource = indexes: 22..40, line/column: 2/1..2/19, file: test
-                    )
+        )
+        ErroneousStatement (
+            MultipleFailures(
+                UnsupportedConstruct(
+                    languageFeature = ValModifierNotSupported,
+                    potentialElementSource = indexes: 22..40, line/column: 2/1..2/19, file: test,
+                    erroneousSource = indexes: 22..29, line/column: 2/1..2/8, file: test
+                )
+                UnsupportedConstruct(
+                    languageFeature = ExplicitVariableType,
+                    potentialElementSource = indexes: 22..40, line/column: 2/1..2/19, file: test,
+                    erroneousSource = indexes: 37..40, line/column: 2/16..2/19, file: test
+                )
+                UnsupportedConstruct(
+                    languageFeature = UninitializedProperty,
+                    potentialElementSource = indexes: 22..40, line/column: 2/1..2/19, file: test,
+                    erroneousSource = indexes: 22..40, line/column: 2/1..2/19, file: test
                 )
             )
-            """.trimIndent()
-        assertResult(expected, code)
+        )
+        """.trimIndent()
+        parse(code).assert(expected)
     }
 
     @Test
@@ -355,12 +346,21 @@ class RejectedLanguageFeaturesAstTest: AbstractRejectedLanguageFeaturesTest() {
                     erroneousSource = indexes: 0..11, line/column: 1/1..1/12, file: test
                 )
             )
-            ErroneousStatement (
-                UnsupportedConstruct(
-                    languageFeature = FunctionDeclaration,
-                    potentialElementSource = indexes: 16..31, line/column: 2/5..2/20, file: test,
-                    erroneousSource = indexes: 16..31, line/column: 2/5..2/20, file: test
-                )
+            FunctionCall [indexes: 12..33, line/column: 2/1..2/22, file: test] (
+                name = f
+                args = [
+                    FunctionArgument.Lambda [indexes: 14..33, line/column: 2/3..2/22, file: test] (
+                        block = Block [indexes: 16..31, line/column: 2/5..2/20, file: test] (
+                            ErroneousStatement (
+                                UnsupportedConstruct(
+                                    languageFeature = FunctionDeclaration,
+                                    potentialElementSource = indexes: 16..31, line/column: 2/5..2/20, file: test,
+                                    erroneousSource = indexes: 16..31, line/column: 2/5..2/20, file: test
+                                )
+                            )
+                        )
+                    )
+                ]
             )
             ErroneousStatement (
                 UnsupportedConstruct(
@@ -370,12 +370,17 @@ class RejectedLanguageFeaturesAstTest: AbstractRejectedLanguageFeaturesTest() {
                 )
             )
             """.trimIndent()
-        assertResult(expected, code)
+        parse(code).assert(expected)
     }
 
     @Test
     fun `rejects annotation usages`() {
-        var code = "@A val x = 1"
+        var code = """
+            @A val x = 1
+            @A b { }
+            b(@A x)
+            b { @A f() }
+        """.trimIndent()
         var expected = """
             ErroneousStatement (
                 UnsupportedConstruct(
@@ -384,44 +389,38 @@ class RejectedLanguageFeaturesAstTest: AbstractRejectedLanguageFeaturesTest() {
                     erroneousSource = indexes: 0..2, line/column: 1/1..1/3, file: test
                 )
             )
-            """.trimIndent()
-        assertResult(expected, code)
-
-        code = "@A b { }"
-        expected = """
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = AnnotationUsage,
-                    potentialElementSource = indexes: 0..8, line/column: 1/1..1/9, file: test,
-                    erroneousSource = indexes: 0..2, line/column: 1/1..1/3, file: test
+                    potentialElementSource = indexes: 13..21, line/column: 2/1..2/9, file: test,
+                    erroneousSource = indexes: 13..21, line/column: 2/1..2/9, file: test
                 )
             )
-            """.trimIndent()
-        assertResult(expected, code)
-
-        code = "b(@A x)"
-        expected = """
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = AnnotationUsage,
-                    potentialElementSource = indexes: 2..6, line/column: 1/3..1/7, file: test,
-                    erroneousSource = indexes: 2..4, line/column: 1/3..1/5, file: test
+                    potentialElementSource = indexes: 24..28, line/column: 3/3..3/7, file: test,
+                    erroneousSource = indexes: 24..28, line/column: 3/3..3/7, file: test
                 )
             )
-            """.trimIndent()
-        assertResult(expected, code)
-
-        code = "b { @A f() }"
-        expected = """
-            ErroneousStatement (
-                UnsupportedConstruct(
-                    languageFeature = AnnotationUsage,
-                    potentialElementSource = indexes: 3..10, line/column: 1/4..1/11, file: test,
-                    erroneousSource = indexes: 3..6, line/column: 1/4..1/7, file: test
-                )
+            FunctionCall [indexes: 30..42, line/column: 4/1..4/13, file: test] (
+                name = b
+                args = [
+                    FunctionArgument.Lambda [indexes: 32..42, line/column: 4/3..4/13, file: test] (
+                        block = Block [indexes: 34..40, line/column: 4/5..4/11, file: test] (
+                            ErroneousStatement (
+                                UnsupportedConstruct(
+                                    languageFeature = AnnotationUsage,
+                                    potentialElementSource = indexes: 34..40, line/column: 4/5..4/11, file: test,
+                                    erroneousSource = indexes: 34..40, line/column: 4/5..4/11, file: test
+                                )
+                            )
+                        )
+                    )
+                ]
             )
             """.trimIndent()
-        assertResult(expected, code)
+        parse(code).assert(expected)
     }
 
     @Test
@@ -433,20 +432,39 @@ class RejectedLanguageFeaturesAstTest: AbstractRejectedLanguageFeaturesTest() {
         val expected = """
             ErroneousStatement (
                 UnsupportedConstruct(
-                    languageFeature = AugmentingAssignment,
+                    languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 0..6, line/column: 1/1..1/7, file: test,
-                    erroneousSource = indexes: 2..4, line/column: 1/3..1/5, file: test
+                    erroneousSource = indexes: 0..6, line/column: 1/1..1/7, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
-                    languageFeature = AugmentingAssignment,
+                    languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 7..15, line/column: 2/1..2/9, file: test,
-                    erroneousSource = indexes: 11..13, line/column: 2/5..2/7, file: test
+                    erroneousSource = indexes: 7..15, line/column: 2/1..2/9, file: test
                 )
             )
             """.trimIndent()
-        assertResult(expected, code)
+        parse(code).assert(expected)
+    }
+
+    @Test
+    fun `reject unsupported binary expression`() {
+        val code =
+            """
+            val a = (1 + 2)
+            """.trimIndent()
+
+        val expected = """
+            ErroneousStatement (
+                UnsupportedConstruct(
+                    languageFeature = UnsupportedOperationInBinaryExpression,
+                    potentialElementSource = indexes: 9..14, line/column: 1/10..1/15, file: test,
+                    erroneousSource = indexes: 9..14, line/column: 1/10..1/15, file: test
+                )
+            )
+            """.trimIndent()
+        parse(code).assert(expected)
     }
 
     @Test
@@ -479,6 +497,9 @@ class RejectedLanguageFeaturesAstTest: AbstractRejectedLanguageFeaturesTest() {
                 )
             )
             """.trimIndent()
-        assertResult(expected, code)
+        parse(code).assert(expected)
     }
+
+    private
+    fun parse(code: String): LanguageTreeResult = ParseTestUtil.parse(code)
 }

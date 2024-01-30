@@ -1,4 +1,4 @@
-package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
+package com.h0tk3y.kotlin.staticObjectNotation.parsing
 
 import com.h0tk3y.kotlin.staticObjectNotation.language.BlockElement
 import com.h0tk3y.kotlin.staticObjectNotation.language.DataStatement
@@ -14,16 +14,8 @@ internal class FailureCollectorContext {
     fun <T> checkForFailure(result: SyntacticResult<T>): CheckedResult<SyntacticResult<T>> =
         CheckedResult(collectingFailure(result))
 
-    fun <T> checkNullableForFailure(result: SyntacticResult<T>?): CheckedResult<SyntacticResult<T>>? =
-        if (result == null) null else CheckedResult(collectingFailure(result))
-
     fun <T : LanguageTreeElement> checkForFailure(result: ElementResult<T>): CheckedResult<ElementResult<T>> =
         CheckedResult(collectingFailure(result))
-
-    fun failNow(failingResult: FailingResult): FailingResult {
-        collectingFailure(failingResult)
-        return syntacticIfNoFailures<Nothing> { error("expected a failure") } as FailingResult
-    }
 
     fun collectingFailure(maybeFailure: FailingResult?) {
         if (maybeFailure != null) {

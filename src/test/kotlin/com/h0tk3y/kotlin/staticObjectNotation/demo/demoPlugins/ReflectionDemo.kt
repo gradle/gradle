@@ -6,9 +6,6 @@ import com.example.com.h0tk3y.kotlin.staticObjectNotation.demo.reflection.reflec
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.FqName
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.ObjectReflection.ConstantValue
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.ObjectReflection.DataObjectReflection
-import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.PropertyValueReflection
-import kotlinx.ast.common.ast.Ast
-import kotlinx.ast.common.ast.astInfoOrNull
 
 object ReflectionDemo {
     @JvmStatic
@@ -57,9 +54,6 @@ object ReflectionDemo {
         schema.reflectAndPrint(newCode)
     }
 }
-
-private val Ast.rangeOrNull: IntRange?
-    get() = astInfoOrNull?.let { it.start.index..it.stop.index }
 
 private fun String.replaceRange(range: IntRange, replacement: String): String {
     return take(range.start) + replacement + drop(range.last + 1)

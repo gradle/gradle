@@ -1,4 +1,4 @@
-package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
+package com.h0tk3y.kotlin.staticObjectNotation.parsing
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisContext
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
@@ -11,7 +11,9 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.defaultCodeResolver
 import com.h0tk3y.kotlin.staticObjectNotation.language.AccessChain
 import com.h0tk3y.kotlin.staticObjectNotation.language.Import
 import com.h0tk3y.kotlin.staticObjectNotation.language.SourceIdentifier
-import kotlinx.ast.common.ast.Ast
+import org.jetbrains.kotlin.KtNodeTypes
+import org.jetbrains.kotlin.com.intellij.lang.LighterASTNode
+import org.jetbrains.kotlin.com.intellij.psi.tree.IElementType
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -95,11 +97,17 @@ class ImportTest {
         assertTrue(analysisContext.errorCollector.errors.isEmpty())
     }
 
-    private fun importOf(vararg nameParts: String) = Import(AccessChain(listOf(*nameParts)), ast.sourceData(sourceIdentifier))
+    private fun importOf(vararg nameParts: String) = Import(AccessChain(listOf(*nameParts)), mockSourceData)
 
-    private val ast = object : Ast {
-        override val description: String = "test"
+    private val mockNode = object : LighterASTNode {
+        override fun getTokenType(): IElementType = KtNodeTypes.FUN // whatever, doesn't matter
+
+        override fun getStartOffset(): Int = 0
+
+        override fun getEndOffset(): Int = 0
     }
 
     private val sourceIdentifier = SourceIdentifier("test")
+
+    private val mockSourceData = mockNode.sourceData(sourceIdentifier, "", 0)
 }

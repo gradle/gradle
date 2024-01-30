@@ -8,12 +8,6 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionResult
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.Resolver
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ref
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.tracingCodeResolver
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.DefaultLanguageTreeBuilder
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.FailingResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.MultipleFailuresResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParsingError
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedConstruct
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.parseToAst
 import com.h0tk3y.kotlin.staticObjectNotation.language.SourceIdentifier
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver.AssignmentAdditionResult.AssignmentAdded
@@ -22,6 +16,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTrace
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTraceElement
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTracer
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.ObjectReflection
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.*
 
 val int = DataType.IntDataType.ref
 val string = DataType.StringDataType.ref
@@ -31,10 +26,10 @@ fun AnalysisSchema.resolve(
     code: String,
     resolver: Resolver = tracingCodeResolver()
 ): ResolutionResult {
-    val ast = parseToAst(code)
+    val (parseTree, sourceCode, sourceOffset) = parse(code)
 
     val languageBuilder = DefaultLanguageTreeBuilder()
-    val tree = languageBuilder.build(ast, SourceIdentifier("demo"))
+    val tree = languageBuilder.build(parseTree, sourceCode, sourceOffset, SourceIdentifier("demo"))
 
     val failures = tree.allFailures
 
@@ -46,7 +41,7 @@ fun AnalysisSchema.resolve(
                     "Parsing error: " + failure.message
                 )
                 is UnsupportedConstruct -> println(
-                    failure.languageFeature.toString() + " in " + ast.toString().take(100)
+                    failure.languageFeature.toString() + " in " + sourceCode.slice(sourceOffset..sourceOffset + 100)
                 )
                 is MultipleFailuresResult -> failure.failures.forEach { printFailures(it) }
             }

@@ -16,13 +16,12 @@
 
 package com.example.com.h0tk3y.kotlin.staticObjectNotation
 
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.Element
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.MultipleFailuresResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParseTestUtil.Parser.parseWithAst
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ParsingError
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedConstruct
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.Element
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.LanguageResult
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.LanguageTreeResult
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.MultipleFailuresResult
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.ParsingError
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.UnsupportedConstruct
 import com.h0tk3y.kotlin.staticObjectNotation.language.Assignment
 import com.h0tk3y.kotlin.staticObjectNotation.language.Block
 import com.h0tk3y.kotlin.staticObjectNotation.language.ErroneousStatement
@@ -36,6 +35,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.language.Null
 import com.h0tk3y.kotlin.staticObjectNotation.language.PropertyAccess
 import com.h0tk3y.kotlin.staticObjectNotation.language.SourceData
 import com.h0tk3y.kotlin.staticObjectNotation.language.This
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.ParseTestUtil.Parser.parse
 
 fun prettyPrintLanguageTreeResult(languageTreeResult: LanguageTreeResult): String {
     val languageResults = languageTreeResult.imports.map { Element(it) } + languageTreeResult.topLevelBlock.content.map { Element(it) }
@@ -67,9 +67,9 @@ fun prettyPrintLanguageResult(languageResult: LanguageResult<*>, startDepth: Int
             is ParsingError -> {
                 appendIndented("ParsingError(")
                 appendLine()
-                appendNextIndented("message = ${current.message}, ")
+                appendNextIndented("message = ${current.message},")
                 appendLine()
-                appendNextIndented("potentialElementSource = ${current.potentialElementSource.prettyPrint()}, ")
+                appendNextIndented("potentialElementSource = ${current.potentialElementSource.prettyPrint()},")
                 appendLine()
                 appendNextIndented("erroneousSource = ${current.erroneousSource.prettyPrint()}")
                 appendLine()
@@ -78,9 +78,9 @@ fun prettyPrintLanguageResult(languageResult: LanguageResult<*>, startDepth: Int
             is UnsupportedConstruct -> {
                 appendIndented("UnsupportedConstruct(")
                 appendLine()
-                appendNextIndented("languageFeature = ${current.languageFeature.javaClass.simpleName}, ")
+                appendNextIndented("languageFeature = ${current.languageFeature.javaClass.simpleName},")
                 appendLine()
-                appendNextIndented("potentialElementSource = ${current.potentialElementSource.prettyPrint()}, ")
+                appendNextIndented("potentialElementSource = ${current.potentialElementSource.prettyPrint()},")
                 appendLine()
                 appendNextIndented("erroneousSource = ${current.erroneousSource.prettyPrint()}")
                 appendLine()
@@ -248,7 +248,7 @@ private fun SourceData.prettyPrint(): String =
     }
 
 fun main() {
-    val result = parseWithAst(
+    val result = parse(
         """
         rootProject.name = "test-value"
         include(":a")

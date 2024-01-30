@@ -28,7 +28,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.SchemaMemberFunction
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.SchemaTypeRefContext
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.getDataType
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.tracingCodeResolver
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeResult
+import com.h0tk3y.kotlin.staticObjectNotation.parsing.LanguageTreeResult
 import com.h0tk3y.kotlin.staticObjectNotation.dom.DocumentResolution.ValueResolution.ValueFactoryResolution
 import com.h0tk3y.kotlin.staticObjectNotation.language.Assignment
 import com.h0tk3y.kotlin.staticObjectNotation.language.FunctionCall
