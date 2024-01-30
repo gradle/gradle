@@ -49,7 +49,7 @@ jobs:
             }
       - name: assemble
         id: gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
           arguments: |
@@ -83,7 +83,7 @@ jobs:
           path: incoming-distributions/build-receipt.properties
       - name: ./gradlew sanityCheck
         id: gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
           arguments: |
@@ -114,7 +114,7 @@ jobs:
           path: incoming-distributions/build-receipt.properties
       - name: ./gradlew test
         id: gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
           arguments: |

@@ -1607,8 +1607,8 @@
             <sha256 value="55a2e95144acf1abe44fea91c2948525c9b1f00fcaa1d10e753e92872ffbdd1e" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="xerces" name="xercesImpl" version="2.12.1">
-         <artifact name="xercesImpl-2.12.1.jar">
+      <component group="xerces" name="xercesImpl" version="2.12.2">
+         <artifact name="xercesImpl-2.12.2.jar">
             <pgp value="6CB87B18A453990EAC9453F87D713008CC07E9AD"/>
          </artifact>
       </component>
