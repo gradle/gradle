@@ -28,8 +28,8 @@ import org.gradle.internal.component.model.AttributeSelectionUtils;
 import org.gradle.internal.component.model.DefaultAttributeMatcher;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DefaultMultipleCandidateResult;
-import org.gradle.internal.component.resolution.failure.failuretype.ResolutionFailure;
-import org.gradle.internal.component.resolution.failure.FailureDescriberRegistry;
+import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -57,12 +57,12 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     private final HashMap<AttributesSchemaInternal, AttributeMatcher> matcherCache = new HashMap<>();
     private final List<AttributeDescriber> consumerAttributeDescribers = new ArrayList<>();
     private final Set<Attribute<?>> precedence = new LinkedHashSet<>();
-    private final FailureDescriberRegistry failureDescriberRegistry;
+    private final ResolutionFailureDescriberRegistry failureDescriberRegistry;
 
     public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, DocumentationRegistry documentationRegistry) {
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
-        this.failureDescriberRegistry = FailureDescriberRegistry.emptyRegistry(instantiatorFactory, documentationRegistry);
+        this.failureDescriberRegistry = ResolutionFailureDescriberRegistry.emptyRegistry(instantiatorFactory, documentationRegistry);
     }
 
     @Override

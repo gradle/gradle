@@ -34,7 +34,7 @@ import org.gradle.internal.component.external.model.MutableModuleComponentResolv
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata
 import org.gradle.internal.component.model.GraphVariantSelector
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
-import org.gradle.internal.component.resolution.failure.FailureDescriberRegistry
+import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
@@ -163,7 +163,7 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
         def consumer = new LocalComponentDependencyMetadata(componentSelector, null, [] as List, [], false, false, true, false, false, null)
         def state = DependencyManagementTestUtil.modelGraphResolveFactory().stateFor(immutable)
         def documentationRegistry = new DocumentationRegistry();
-        def failureDescriberRegistry = FailureDescriberRegistry.standardRegistry(TestUtil.instantiatorFactory(), documentationRegistry);
+        def failureDescriberRegistry = ResolutionFailureDescriberRegistry.standardRegistry(TestUtil.instantiatorFactory(), documentationRegistry);
         def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry, documentationRegistry))
 
         def variant = consumer.selectVariants(variantSelector, attributes, state, schema, [] as Set).variants[0]

@@ -18,7 +18,7 @@ package org.gradle.internal.component.resolution.failure.describer;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.component.ArtifactVariantSelectionException;
-import org.gradle.internal.component.resolution.failure.failuretype.UnknownArtifactSelectionFailure;
+import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
 
 import javax.inject.Inject;
 

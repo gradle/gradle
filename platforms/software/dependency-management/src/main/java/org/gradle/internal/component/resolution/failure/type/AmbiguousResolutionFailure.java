@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.resolution.failure.failuretype;
+package org.gradle.internal.component.resolution.failure.type;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -23,10 +23,10 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 
 import java.util.List;
 
-public class IncompatibleResolutionFailure extends UnmatchingAttributesSelectionFailure {
+public class AmbiguousResolutionFailure extends UnmatchingAttributesSelectionFailure {
     private final ImmutableList<ResolutionCandidateAssessor.AssessedCandidate> candidates;
 
-    public IncompatibleResolutionFailure(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
+    public AmbiguousResolutionFailure(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
         super(schema, requestedName, requestedAttributes);
         this.candidates = ImmutableList.copyOf(candidates);
     }

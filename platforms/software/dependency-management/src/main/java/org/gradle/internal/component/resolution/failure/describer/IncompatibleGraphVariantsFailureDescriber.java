@@ -23,7 +23,7 @@ import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.StyledAttributeDescriber;
-import org.gradle.internal.component.resolution.failure.failuretype.IncompatibleGraphVariantFailure;
+import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 

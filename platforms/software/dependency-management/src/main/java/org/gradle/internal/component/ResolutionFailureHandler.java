@@ -37,19 +37,19 @@ import org.gradle.internal.component.model.GraphSelectionCandidates;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.component.resolution.failure.CapabilitiesDescriber;
-import org.gradle.internal.component.resolution.failure.FailureDescriberRegistry;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
-import org.gradle.internal.component.resolution.failure.failuretype.AmbiguousArtifactTransformFailure;
-import org.gradle.internal.component.resolution.failure.failuretype.AmbiguousResolutionFailure;
-import org.gradle.internal.component.resolution.failure.failuretype.IncompatibleGraphVariantFailure;
-import org.gradle.internal.component.resolution.failure.failuretype.IncompatibleRequestedConfigurationFailure;
-import org.gradle.internal.component.resolution.failure.failuretype.IncompatibleResolutionFailure;
-import org.gradle.internal.component.resolution.failure.failuretype.InvalidMultipleVariantsSelectionFailure;
-import org.gradle.internal.component.resolution.failure.failuretype.ResolutionFailure;
-import org.gradle.internal.component.resolution.failure.failuretype.UnknownArtifactSelectionFailure;
-import org.gradle.internal.component.resolution.failure.failuretype.VariantAwareAmbiguousResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformFailure;
+import org.gradle.internal.component.resolution.failure.type.AmbiguousResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure;
+import org.gradle.internal.component.resolution.failure.type.IncompatibleRequestedConfigurationFailure;
+import org.gradle.internal.component.resolution.failure.type.IncompatibleResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.InvalidMultipleVariantsSelectionFailure;
+import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
+import org.gradle.internal.component.resolution.failure.type.VariantAwareAmbiguousResolutionFailure;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -74,10 +74,10 @@ import java.util.Set;
 public class ResolutionFailureHandler {
     public static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
 
-    private final FailureDescriberRegistry defaultFailureDescribers;
+    private final ResolutionFailureDescriberRegistry defaultFailureDescribers;
     private final DocumentationRegistry documentationRegistry;
 
-    public ResolutionFailureHandler(FailureDescriberRegistry failureDescriberRegistry, DocumentationRegistry documentationRegistry) {
+    public ResolutionFailureHandler(ResolutionFailureDescriberRegistry failureDescriberRegistry, DocumentationRegistry documentationRegistry) {
         this.defaultFailureDescribers = failureDescriberRegistry;
         this.documentationRegistry = documentationRegistry;
     }

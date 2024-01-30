@@ -19,7 +19,7 @@ package org.gradle.api.internal.attributes;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.internal.component.resolution.failure.failuretype.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 

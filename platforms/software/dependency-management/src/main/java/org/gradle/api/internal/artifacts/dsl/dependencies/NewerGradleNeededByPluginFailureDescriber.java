@@ -22,9 +22,9 @@ import org.gradle.internal.component.NoMatchingGraphVariantsException;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.describer.AbstractResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
-import org.gradle.internal.component.resolution.failure.failuretype.IncompatibleGraphVariantFailure;
-import org.gradle.internal.component.resolution.failure.failuretype.IncompatibleResolutionFailure;
-import org.gradle.internal.component.resolution.failure.failuretype.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure;
+import org.gradle.internal.component.resolution.failure.type.IncompatibleResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
 import org.gradle.util.GradleVersion;
 
 import javax.inject.Inject;

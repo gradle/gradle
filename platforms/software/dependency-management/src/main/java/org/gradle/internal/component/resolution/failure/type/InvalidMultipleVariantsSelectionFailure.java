@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.resolution.failure.failuretype;
+package org.gradle.internal.component.resolution.failure.type;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 
-public class UnknownArtifactSelectionFailure extends ResolutionFailure {
-    private final Exception cause;
+import java.util.List;
 
-    public UnknownArtifactSelectionFailure(AttributesSchemaInternal schema, String requestedName, Exception cause) {
+public class InvalidMultipleVariantsSelectionFailure extends ResolutionFailure {
+    private final ImmutableList<AssessedCandidate> assessedCandidates;
+
+    public InvalidMultipleVariantsSelectionFailure(AttributesSchemaInternal schema, String requestedName, List<AssessedCandidate> assessedCandidates) {
         super(schema, requestedName);
-        this.cause = cause;
+        this.assessedCandidates = ImmutableList.copyOf(assessedCandidates);
     }
 
-    public Exception getCause() {
-        return cause;
+    public ImmutableList<AssessedCandidate> getAssessedCandidates() {
+        return assessedCandidates;
     }
 }

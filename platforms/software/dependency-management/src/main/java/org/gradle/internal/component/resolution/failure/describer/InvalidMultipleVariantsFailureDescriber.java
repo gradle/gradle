@@ -19,7 +19,7 @@ package org.gradle.internal.component.resolution.failure.describer;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.component.IncompatibleArtifactVariantsException;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
-import org.gradle.internal.component.resolution.failure.failuretype.InvalidMultipleVariantsSelectionFailure;
+import org.gradle.internal.component.resolution.failure.type.InvalidMultipleVariantsSelectionFailure;
 
 import javax.inject.Inject;
 

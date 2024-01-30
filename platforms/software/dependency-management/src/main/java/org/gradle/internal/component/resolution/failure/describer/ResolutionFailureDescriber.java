@@ -17,7 +17,7 @@
 package org.gradle.internal.component.resolution.failure.describer;
 
 import org.gradle.internal.component.AbstractVariantSelectionException;
-import org.gradle.internal.component.resolution.failure.failuretype.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
 
 /**
  * Can describe a certain type of resolution failure, providing concise and specific human-readable
@@ -28,9 +28,10 @@ import org.gradle.internal.component.resolution.failure.failuretype.ResolutionFa
  */
 public interface ResolutionFailureDescriber<EXCEPTION extends AbstractVariantSelectionException, FAILURE extends ResolutionFailure> {
     /**
-     * Can this describer describe a failure of the given generic type?
+     * Tests whether this describer can be applied to a given failure.
      *
-     * This defaults to {@code true} as many describers are specific to a single failure type.
+     * This defaults to {@code true} as many describers are applicable to all instances of a single failure type
+     * (and only to instances of that failure type) and will only be called upon to describe failures of that type.
      *
      * @return {@code true} if this describer can describe the given failure; {@code false} otherwise
      */
@@ -41,11 +42,14 @@ public interface ResolutionFailureDescriber<EXCEPTION extends AbstractVariantSel
     /**
      * Describe the given failure.
      *
+     * This method should only be called if {@link #canDescribeFailure(ResolutionFailure)} returns {@code true}
+     * for the given failure.
+     *
      * @param failure the failure to describe
      * @return the exception that describes the failure
      *
-     * @implSpec This method should only be called if {@link #canDescribeFailure(ResolutionFailure)} returns {@code true}
-     * for the given failure.  This should not be tested by implementations; it is the responsibility of the caller.
+     * @implSpec Testing {@link #canDescribeFailure(ResolutionFailure)} should <strong>NOT</strong> be done by
+     * implementations of this method; ensuring this is done first is the responsibility of the caller.
      */
     EXCEPTION describeFailure(FAILURE failure);
 }

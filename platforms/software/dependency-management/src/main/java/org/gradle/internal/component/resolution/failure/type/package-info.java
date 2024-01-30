@@ -14,24 +14,5 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.resolution.failure.failuretype;
-
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-
-public class ResolutionFailure {
-    private final AttributesSchemaInternal schema;
-    private final String requestedName;
-
-    public ResolutionFailure(AttributesSchemaInternal schema, String requestedName) {
-        this.schema = schema;
-        this.requestedName = requestedName;
-    }
-
-    public AttributesSchemaInternal getSchema() {
-        return schema;
-    }
-
-    public String getRequestedName() {
-        return requestedName;
-    }
-}
+@org.gradle.api.NonNullApi
+package org.gradle.internal.component.resolution.failure.type;

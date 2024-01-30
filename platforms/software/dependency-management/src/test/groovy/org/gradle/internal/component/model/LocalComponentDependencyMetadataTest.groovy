@@ -38,7 +38,7 @@ import org.gradle.internal.component.IncompatibleGraphVariantsException
 import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.ImmutableCapabilities
-import org.gradle.internal.component.resolution.failure.FailureDescriberRegistry
+import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
@@ -57,7 +57,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory(), new DocumentationRegistry())
         factory = AttributeTestUtil.attributesFactory()
         def documentationRegistry = new DocumentationRegistry();
-        def failureDescriberRegistry = FailureDescriberRegistry.standardRegistry(TestUtil.instantiatorFactory(), documentationRegistry);
+        def failureDescriberRegistry = ResolutionFailureDescriberRegistry.standardRegistry(TestUtil.instantiatorFactory(), documentationRegistry);
         variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry, documentationRegistry))
     }
 

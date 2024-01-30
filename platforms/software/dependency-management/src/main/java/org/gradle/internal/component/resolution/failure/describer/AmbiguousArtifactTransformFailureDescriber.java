@@ -23,7 +23,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.transform.AmbiguousArtifactTransformException;
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
-import org.gradle.internal.component.resolution.failure.failuretype.AmbiguousArtifactTransformFailure;
+import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.inject.Inject;

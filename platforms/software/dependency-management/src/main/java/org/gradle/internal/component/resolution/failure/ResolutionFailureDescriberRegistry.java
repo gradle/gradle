@@ -26,15 +26,15 @@ import org.gradle.internal.component.resolution.failure.describer.IncompatibleRe
 import org.gradle.internal.component.resolution.failure.describer.InvalidMultipleVariantsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.UnknownArtifactSelectionFailureDescriber;
-import org.gradle.internal.component.resolution.failure.failuretype.AmbiguousArtifactTransformFailure;
-import org.gradle.internal.component.resolution.failure.failuretype.AmbiguousResolutionFailure;
-import org.gradle.internal.component.resolution.failure.failuretype.IncompatibleGraphVariantFailure;
-import org.gradle.internal.component.resolution.failure.failuretype.IncompatibleRequestedConfigurationFailure;
-import org.gradle.internal.component.resolution.failure.failuretype.IncompatibleResolutionFailure;
-import org.gradle.internal.component.resolution.failure.failuretype.InvalidMultipleVariantsSelectionFailure;
-import org.gradle.internal.component.resolution.failure.failuretype.ResolutionFailure;
-import org.gradle.internal.component.resolution.failure.failuretype.UnknownArtifactSelectionFailure;
-import org.gradle.internal.component.resolution.failure.failuretype.VariantAwareAmbiguousResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformFailure;
+import org.gradle.internal.component.resolution.failure.type.AmbiguousResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure;
+import org.gradle.internal.component.resolution.failure.type.IncompatibleRequestedConfigurationFailure;
+import org.gradle.internal.component.resolution.failure.type.IncompatibleResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.InvalidMultipleVariantsSelectionFailure;
+import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
+import org.gradle.internal.component.resolution.failure.type.VariantAwareAmbiguousResolutionFailure;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 
 import java.util.ArrayList;
@@ -43,22 +43,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FailureDescriberRegistry {
+public class ResolutionFailureDescriberRegistry {
     private final InstantiatorFactory instantiatorFactory;
     private final DocumentationRegistry documentationRegistry;
     private final Map<Class<? extends ResolutionFailure>, List<ResolutionFailureDescriber<?, ? extends ResolutionFailure>>> describers = new HashMap<>();
 
-    private FailureDescriberRegistry(InstantiatorFactory instantiatorFactory, DocumentationRegistry documentationRegistry) {
+    private ResolutionFailureDescriberRegistry(InstantiatorFactory instantiatorFactory, DocumentationRegistry documentationRegistry) {
         this.instantiatorFactory = instantiatorFactory;
         this.documentationRegistry = documentationRegistry;
     }
 
-    public static FailureDescriberRegistry emptyRegistry(InstantiatorFactory instantiatorFactory, DocumentationRegistry documentationRegistry) {
-        return new FailureDescriberRegistry(instantiatorFactory, documentationRegistry);
+    public static ResolutionFailureDescriberRegistry emptyRegistry(InstantiatorFactory instantiatorFactory, DocumentationRegistry documentationRegistry) {
+        return new ResolutionFailureDescriberRegistry(instantiatorFactory, documentationRegistry);
     }
 
-    public static FailureDescriberRegistry standardRegistry(InstantiatorFactory instantiatorFactory, DocumentationRegistry documentationRegistry) {
-        FailureDescriberRegistry registry = new FailureDescriberRegistry(instantiatorFactory, documentationRegistry);
+    public static ResolutionFailureDescriberRegistry standardRegistry(InstantiatorFactory instantiatorFactory, DocumentationRegistry documentationRegistry) {
+        ResolutionFailureDescriberRegistry registry = new ResolutionFailureDescriberRegistry(instantiatorFactory, documentationRegistry);
 
         registry.registerDescriber(VariantAwareAmbiguousResolutionFailure.class, AmbiguousGraphVariantsFailureDescriber.class);
         registry.registerDescriber(IncompatibleGraphVariantFailure.class, IncompatibleGraphVariantsFailureDescriber.class);

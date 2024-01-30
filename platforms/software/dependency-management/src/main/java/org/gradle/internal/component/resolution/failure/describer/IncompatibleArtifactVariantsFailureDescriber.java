@@ -21,7 +21,7 @@ import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.component.NoMatchingArtifactVariantsException;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
-import org.gradle.internal.component.resolution.failure.failuretype.IncompatibleResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.IncompatibleResolutionFailure;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 

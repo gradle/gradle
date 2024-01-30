@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.resolution.failure.failuretype;
+package org.gradle.internal.component.resolution.failure.type;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.internal.artifacts.transform.TransformedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 
 import java.util.List;
 
-public class AmbiguousResolutionFailure extends UnmatchingAttributesSelectionFailure {
-    private final ImmutableList<ResolutionCandidateAssessor.AssessedCandidate> candidates;
+public class AmbiguousArtifactTransformFailure extends UnmatchingAttributesSelectionFailure {
+    private final ImmutableList<TransformedVariant> transformedVariants;
 
-    public AmbiguousResolutionFailure(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
+    public AmbiguousArtifactTransformFailure(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes, List<TransformedVariant> transformedVariants) {
         super(schema, requestedName, requestedAttributes);
-        this.candidates = ImmutableList.copyOf(candidates);
+        this.transformedVariants = ImmutableList.copyOf(transformedVariants);
     }
 
-    public ImmutableList<ResolutionCandidateAssessor.AssessedCandidate> getCandidates() {
-        return candidates;
+    public ImmutableList<TransformedVariant> getTransformedVariants() {
+        return transformedVariants;
     }
 }
