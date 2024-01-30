@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
@@ -42,7 +41,6 @@ import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.Sync;
-import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.event.ListenerManager;
@@ -390,11 +388,6 @@ public class TaskExecution implements MutableUnitOfWork {
     @Override
     public OverlappingOutputHandling getOverlappingOutputHandling() {
         return OverlappingOutputHandling.DETECT_OVERLAPS;
-    }
-
-    @Override
-    public boolean shouldPreCreateOutputParents() {
-        return !(task instanceof CopySpec) || (task instanceof AbstractArchiveTask);
     }
 
     @Override

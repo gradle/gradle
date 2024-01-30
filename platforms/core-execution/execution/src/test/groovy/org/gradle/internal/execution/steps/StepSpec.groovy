@@ -31,7 +31,6 @@ abstract class StepSpec<C extends Context> extends StepSpecBase<C> {
     def setup() {
         _ * work.displayName >> displayName
         _ * work.identify(_, _) >> identity
-        _ * work.shouldPreCreateOutputParents() >> true
     }
 
     protected void assertNoOperation() {

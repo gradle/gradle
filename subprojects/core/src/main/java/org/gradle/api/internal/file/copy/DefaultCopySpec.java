@@ -897,7 +897,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         //TODO: probably it would be better to pass the path itself and find the resolver for it's parent
         //TODO: optimize
         public CopySpecResolver getResolverForPath(RelativePath targetPath) {
-            if (parentResolver == null) {
+            if (parentResolver == null || parentResolver.getParentResolver() == null) {
                 return this;
             }
 
@@ -911,17 +911,12 @@ public class DefaultCopySpec implements CopySpecInternal {
                     return this;
                 }
             } else {
-                while (current.getParentResolver() != null && current.getDestPath().getSegments().length > targetDepth) {
+                // go up until we hit a resolver with a destination or mainSpec
+                while (current.getParentResolver() != null && current.getParentResolver().getParentResolver() != null && current.getDestPath().getSegments().length > targetDepth) {
                     current = current.getParentResolver();
                 }
-                if (targetDepth != 0) {
-                    while (current.getParentResolver() != null && !current.hasDestination()) {
-                        current = current.getParentResolver();
-                    }
-                } else { //TODO: is there a better way?
-                    while (current.getParentResolver() != null && current.getParentResolver().getParentResolver() != null) {
-                        current = current.getParentResolver();
-                    }
+                while (current.getParentResolver() != null && current.getParentResolver().getParentResolver() != null && !current.hasDestination()) {
+                    current = current.getParentResolver();
                 }
             }
             return current;

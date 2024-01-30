@@ -1089,7 +1089,38 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
     }
 
     @Requires(UnitTestPreconditions.FilePermissions)
-    def "permissions are preserved for intermediate directories when target exists"() {
+    def "permissions are not set correctly for intermediate directories from destdir"() {
+        given:
+        withSourceFiles("rwxrwxrwx")
+
+        buildFile.delete()
+        buildKotlinFile.text = '''
+            tasks.register<Copy>("copy") {
+               into("dest/prefix1") // note: dest/prefix1 is not a part of Relative Path and it's not exposed to NormalizingCopyActionDecorator
+               into("prefix2/a/b/c") {
+                 from("files")
+                 dirPermissions {
+                   unix("rwx---rwx")
+                 }
+               }
+               dirPermissions {
+                  unix("rwx------")
+               }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'copy'
+
+        then:
+        file("dest").permissions == "rwx------"
+        file("dest/prefix1").permissions == "rwx------"
+        file("dest/prefix1/prefix2").permissions == "rwx---rwx"
+        file("dest/prefix1/prefix2/a/b/c").permissions == "rwx---rwx"
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "permissions are overwrittem for intermediate directories when target exists"() {
         given:
         withSourceFiles("r--------")
         def dest = getTestDirectory().createDir('dest')
@@ -1115,8 +1146,8 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         run 'copy'
 
         then:
-        file("dest").permissions == originalPermissions
-        file("dest/prefix").permissions == "rwx------" //FIXME: should be prefixOriginalPermissions
+        file("dest").permissions == "rwx------" // NormalizingCopyActionDecorator does not have access to it
+        file("dest/prefix").permissions == "rwx------"
     }
 
     private def withSourceFiles(String permissions) {
