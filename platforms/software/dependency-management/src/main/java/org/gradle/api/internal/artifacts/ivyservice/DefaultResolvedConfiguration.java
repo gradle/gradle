@@ -21,39 +21,45 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 public class DefaultResolvedConfiguration implements ResolvedConfiguration {
-    private final DefaultLenientConfiguration configuration;
+    private final VisitedGraphResults graphResults;
+    private final ResolutionHost resolutionHost;
+    private final LenientConfigurationInternal configuration;
 
-    public DefaultResolvedConfiguration(DefaultLenientConfiguration configuration) {
+    public DefaultResolvedConfiguration(
+        VisitedGraphResults graphResults,
+        ResolutionHost resolutionHost,
+        LenientConfigurationInternal configuration
+    ) {
+        this.graphResults = graphResults;
+        this.resolutionHost = resolutionHost;
         this.configuration = configuration;
     }
 
     @Override
     public boolean hasError() {
-        return configuration.getGraphResults().hasAnyFailure();
+        return graphResults.hasAnyFailure();
     }
 
     @Override
     public void rethrowFailure() throws ResolveException {
-        VisitedGraphResults graphResults = configuration.getGraphResults();
-
         if (!graphResults.hasAnyFailure()) {
             return;
         }
 
         List<Throwable> failures = new ArrayList<>();
         graphResults.visitFailures(failures::add);
-        throw new ResolveException(configuration.getDisplayName(), failures);
+        resolutionHost.rethrowFailure("dependencies", failures);
     }
 
     @Override
@@ -70,14 +76,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     public Set<File> getFiles(final Spec<? super Dependency> dependencySpec) throws ResolveException {
         ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
         configuration.select(dependencySpec).visitArtifacts(visitor, false);
-        Collection<Throwable> failures = visitor.getFailures();
-        if (!failures.isEmpty()) {
-            throw new DefaultLenientConfiguration.ArtifactResolveException(
-                "files",
-                configuration.getDisplayName(),
-                failures
-            );
-        }
+        resolutionHost.rethrowFailure("files", visitor.getFailures());
         return visitor.getFiles();
     }
 
@@ -95,9 +94,9 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
     @Override
     public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
-        rethrowFailure();
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
         configuration.select().visitArtifacts(visitor, false);
+        resolutionHost.rethrowFailure("artifacts", visitor.getFailures());
         return visitor.getArtifacts();
     }
 }
