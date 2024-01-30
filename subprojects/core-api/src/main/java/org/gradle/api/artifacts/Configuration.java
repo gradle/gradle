@@ -390,7 +390,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @since 8.7
      */
     @Incubating
-    default void useDependencyCollector(DependencyCollector collector) {
+    default void fromDependencyCollector(DependencyCollector collector) {
         getDependencies().addAllLater(collector.getDependencies());
         getDependencyConstraints().addAllLater(collector.getDependencyConstraints());
     }
