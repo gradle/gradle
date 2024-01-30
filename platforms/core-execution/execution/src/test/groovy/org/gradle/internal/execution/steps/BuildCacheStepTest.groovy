@@ -53,7 +53,7 @@ class BuildCacheStepTest extends StepSpec<MyCachingContext> implements Snapshott
     def fileSystemAccess = Mock(FileSystemAccess)
     def outputChangeListener = Mock(OutputChangeListener)
 
-    def step = new BuildCacheStep(buildCacheController, deleter, fileSystemAccess, outputChangeListener, delegate)
+    def step = new BuildCacheStep<MyCachingContext>(buildCacheController, deleter, fileSystemAccess, outputChangeListener, delegate)
     def delegateResult = Mock(AfterExecutionResult)
 
     def "loads from cache"() {
