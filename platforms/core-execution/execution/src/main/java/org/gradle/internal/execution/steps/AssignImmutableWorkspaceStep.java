@@ -167,17 +167,13 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             // the immutable location and then delete the original temporary workspace (if we can).
             LOGGER.debug("Could not move temporary workspace ({}) to immutable location ({}), attempting copy-then-move",
                 move.temporaryWorkspace.getAbsolutePath(), move.immutableLocation.getAbsolutePath(), moveFailedException);
-            return retryMoveTemporaryWorkspaceByDuplicatingItFirst(move);
-        });
-    }
-
-    private WorkspaceResult retryMoveTemporaryWorkspaceByDuplicatingItFirst(WorkspaceMoveHandler failedMove) {
-        return failedMove.workspace.withTemporaryWorkspace(duplicateTemporaryWorkspace -> {
-            WorkspaceResult result = failedMove
-                .withDuplicatedTemporaryWorkspace(duplicateTemporaryWorkspace)
-                .executeMoveOrThrow();
-            failedMove.removeTemporaryWorkspace();
-            return result;
+            return move.workspace.withTemporaryWorkspace(secondaryTemporaryWorkspace -> {
+                WorkspaceResult result = move
+                    .duplicateTemporaryWorkspaceTo(secondaryTemporaryWorkspace)
+                    .executeMoveOrThrow();
+                move.removeTemporaryWorkspace();
+                return result;
+            });
         });
     }
 
@@ -225,7 +221,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             });
         }
 
-        public WorkspaceMoveHandler withDuplicatedTemporaryWorkspace(File duplicateTemporaryWorkspace) {
+        public WorkspaceMoveHandler duplicateTemporaryWorkspaceTo(File duplicateTemporaryWorkspace) {
             try {
                 FileUtils.copyDirectory(temporaryWorkspace, duplicateTemporaryWorkspace, file -> true, true, StandardCopyOption.COPY_ATTRIBUTES);
             } catch (IOException duplicateCopyException) {
