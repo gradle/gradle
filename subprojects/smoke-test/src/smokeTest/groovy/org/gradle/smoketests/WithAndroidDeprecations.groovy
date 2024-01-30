@@ -44,14 +44,6 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
         runner.expectLegacyDeprecationWarningIf(androidPluginUsesOldWorkerApi(agpVersion), WORKER_SUBMIT_DEPRECATION)
     }
 
-    void expectProjectConventionDeprecationWarning(String agpVersion) {
-        runner.expectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), PROJECT_CONVENTION_DEPRECATION)
-    }
-
-    void maybeExpectProjectConventionDeprecationWarning(String agpVersion) {
-        runner.maybeExpectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), PROJECT_CONVENTION_DEPRECATION)
-    }
-
     void expectAndroidConventionTypeDeprecationWarning(String agpVersion) {
         runner.expectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), CONVENTION_TYPE_DEPRECATION)
     }
