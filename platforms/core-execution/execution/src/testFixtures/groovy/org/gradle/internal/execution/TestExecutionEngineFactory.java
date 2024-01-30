@@ -28,11 +28,11 @@ import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
-import org.gradle.internal.execution.steps.NonIncrementalResolveCachingStateStep;
 import org.gradle.internal.execution.steps.PreCreateOutputParentsStep;
 import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
+import org.gradle.internal.execution.steps.ResolveNonIncrementalCachingStateStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.StoreExecutionStateStep;
 import org.gradle.internal.execution.steps.ValidateStep;
@@ -70,7 +70,7 @@ public class TestExecutionEngineFactory {
             new LoadPreviousExecutionStateStep<>(
             new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningReporter,
-            new NonIncrementalResolveCachingStateStep<>(buildCacheController,
+            new ResolveNonIncrementalCachingStateStep<>(buildCacheController,
             new ResolveChangesStep<>(changeDetector, buildCacheController::isEmitDebugLogging,
             new SkipUpToDateStep<>(
             new StoreExecutionStateStep<>(

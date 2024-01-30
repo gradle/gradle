@@ -23,10 +23,10 @@ import org.gradle.internal.hash.HashCode;
 
 import java.util.Optional;
 
-public class NonIncrementalResolveCachingStateStep<C extends ValidationFinishedContext> extends AbstractResolveCachingStateStep<C> {
+public class ResolveNonIncrementalCachingStateStep<C extends ValidationFinishedContext> extends AbstractResolveCachingStateStep<C> {
     private final Step<? super NonIncrementalCachingContext, ? extends UpToDateResult> delegate;
 
-    public NonIncrementalResolveCachingStateStep(
+    public ResolveNonIncrementalCachingStateStep(
         BuildCacheController buildCache,
         Step<? super NonIncrementalCachingContext, ? extends UpToDateResult> delegate
     ) {
