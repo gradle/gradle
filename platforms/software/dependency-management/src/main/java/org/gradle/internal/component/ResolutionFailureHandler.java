@@ -20,7 +20,6 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
@@ -49,6 +48,7 @@ import org.gradle.internal.component.resolution.failure.failuretype.Incompatible
 import org.gradle.internal.component.resolution.failure.failuretype.IncompatibleResolutionFailure;
 import org.gradle.internal.component.resolution.failure.failuretype.InvalidMultipleVariantsSelectionFailure;
 import org.gradle.internal.component.resolution.failure.failuretype.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.failuretype.UnknownArtifactSelectionFailure;
 import org.gradle.internal.component.resolution.failure.failuretype.VariantAwareAmbiguousResolutionFailure;
 
 import java.util.ArrayList;
@@ -118,18 +118,9 @@ public class ResolutionFailureHandler {
         return describeFailure(schema, failure);
     }
 
-    // TODO: Unify this failure in the exception hierarchy with the others
-    public BrokenResolvedArtifactSet unknownArtifactVariantSelectionFailure(@SuppressWarnings("unused") AttributesSchemaInternal schema, ArtifactVariantSelectionException t) {
-        return new BrokenResolvedArtifactSet(t);
-        // TODO: perhaps unify this with the other failures in the hierarchy so standard suggestions can be added?  Or maybe it's its own hierachy?
-    }
-
-    public BrokenResolvedArtifactSet unknownArtifactVariantSelectionFailure(AttributesSchemaInternal schema, ResolvedVariantSet producer, Exception cause) {
-        String message = buildUnknownArtifactVariantFailureMsg(producer);
-        ArtifactVariantSelectionException e = new ArtifactVariantSelectionException(message, cause);
-        // This is the catch-all error type and there's nothing more specific to add here
-        suggestReviewAlgorithm(e);
-        return unknownArtifactVariantSelectionFailure(schema, e);
+    public AbstractVariantSelectionException unknownArtifactVariantSelectionFailure(AttributesSchemaInternal schema, ResolvedVariantSet producer, Exception cause) {
+        UnknownArtifactSelectionFailure failure = new UnknownArtifactSelectionFailure(schema, producer.asDescribable().getDisplayName(), cause);
+        return describeFailure(schema, failure);
     }
 
     public AbstractVariantSelectionException incompatibleArtifactVariantsFailure(AttributesSchemaInternal schema, ComponentState selectedComponent, Set<NodeState> incompatibleNodes) {
@@ -137,10 +128,6 @@ public class ResolutionFailureHandler {
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessNodeStates(incompatibleNodes);
         InvalidMultipleVariantsSelectionFailure failure = new InvalidMultipleVariantsSelectionFailure(schema, selectedComponent.toString(), assessedCandidates);
         return describeFailure(schema, failure);
-    }
-
-    private String buildUnknownArtifactVariantFailureMsg(ResolvedVariantSet producer) {
-        return String.format("Could not select a variant of %s that matches the consumer attributes.", producer.asDescribable().getDisplayName());
     }
     // endregion Artifact Variant Selection Failures
 

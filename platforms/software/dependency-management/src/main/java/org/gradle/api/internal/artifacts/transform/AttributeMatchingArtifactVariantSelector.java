@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
@@ -27,8 +28,6 @@ import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.internal.Cast;
-import org.gradle.internal.component.ArtifactVariantSelectionException;
 import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
@@ -75,10 +74,8 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
     public ResolvedArtifactSet select(ResolvedVariantSet producer, ImmutableAttributes requestAttributes, boolean allowNoMatchingVariants, ResolvedArtifactTransformer resolvedArtifactTransformer) {
         try {
             return doSelect(producer, allowNoMatchingVariants, resolvedArtifactTransformer, AttributeMatchingExplanationBuilder.logging(), requestAttributes);
-        } catch (ArtifactVariantSelectionException t) {
-            return failureProcessor.unknownArtifactVariantSelectionFailure(schema, t);
         } catch (Exception t) {
-            return failureProcessor.unknownArtifactVariantSelectionFailure(schema, producer, t);
+            return new BrokenResolvedArtifactSet(failureProcessor.unknownArtifactVariantSelectionFailure(schema, producer, t));
         }
     }
 
@@ -94,8 +91,6 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
             // Request is ambiguous. Rerun matching again, except capture an explanation this time for reporting.
             TraceDiscardedVariants newExpBuilder = new TraceDiscardedVariants();
             matches = matcher.matches(variants, componentRequested, newExpBuilder);
-
-            Set<ResolvedVariant> discarded = Cast.uncheckedCast(newExpBuilder.discarded);
             throw failureProcessor.ambiguousArtifactVariantsFailure(schema, matcher, producer.asDescribable().getDisplayName(), componentRequested, matches);
         }
 
@@ -139,7 +134,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
             return matches;
         }
 
-        assert matches.size() > 0;
+        assert !matches.isEmpty();
 
         List<TransformedVariant> differentTransforms = new ArrayList<>(1);
 

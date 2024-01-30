@@ -25,6 +25,7 @@ import org.gradle.internal.component.resolution.failure.describer.IncompatibleGr
 import org.gradle.internal.component.resolution.failure.describer.IncompatibleRequestedConfigurationFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.InvalidMultipleVariantsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.UnknownArtifactSelectionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.failuretype.ResolutionFailure;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 
@@ -60,6 +61,7 @@ public class FailureDescriberRegistry {
         registry.registerDescriber(AmbiguousArtifactTransformFailureDescriber.class);
 
         registry.registerDescriber(IncompatibleRequestedConfigurationFailureDescriber.class);
+        registry.registerDescriber(UnknownArtifactSelectionFailureDescriber.class);
 
         return registry;
     }
