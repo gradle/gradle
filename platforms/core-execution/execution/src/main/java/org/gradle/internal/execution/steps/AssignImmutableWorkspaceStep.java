@@ -47,8 +47,8 @@ import java.nio.file.FileSystemException;
 import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import static com.google.common.collect.ImmutableListMultimap.toImmutableListMultimap;
 import static com.google.common.collect.Maps.immutableEntry;
@@ -84,11 +84,11 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         String uniqueId = context.getIdentity().getUniqueId();
         ImmutableWorkspace workspace = workspaceProvider.getWorkspace(uniqueId);
 
-        return returnImmutableWorkspaceIfExistsOr(work, workspace.getImmutableLocation(),
-            () -> executeInTemporaryWorkspace(work, context, workspace));
+        return loadImmutableWorkspaceIfExists(work, workspace.getImmutableLocation())
+            .orElseGet(() -> executeInTemporaryWorkspace(work, context, workspace));
     }
 
-    private WorkspaceResult returnImmutableWorkspaceIfExistsOr(UnitOfWork work, File immutableLocation, Supplier<WorkspaceResult> missingImmutableWorkspaceAction) {
+    private Optional<WorkspaceResult> loadImmutableWorkspaceIfExists(UnitOfWork work, File immutableLocation) {
         FileSystemLocationSnapshot workspaceSnapshot = fileSystemAccess.read(immutableLocation.getAbsolutePath());
         switch (workspaceSnapshot.getType()) {
             case Directory:
@@ -106,13 +106,21 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
 
                 OriginMetadata originMetadata = metadata.getOriginMetadata();
                 ExecutionOutputState afterExecutionOutputState = new DefaultExecutionOutputState(true, outputSnapshots, originMetadata, true);
-                return new WorkspaceResult(CachingResult.shortcutResult(Duration.ZERO, Execution.skipped(UP_TO_DATE, work), afterExecutionOutputState, null, originMetadata), immutableLocation);
+                return Optional.of(
+                    new WorkspaceResult(
+                        CachingResult.shortcutResult(
+                            Duration.ZERO,
+                            Execution.skipped(UP_TO_DATE, work),
+                            afterExecutionOutputState,
+                            null,
+                            originMetadata),
+                        immutableLocation));
             case RegularFile:
                 throw new IllegalStateException(
                     "Immutable workspace is occupied by a file: " + immutableLocation.getAbsolutePath() + ". " +
                         "Deleting the file in question can allow the content to be recreated.");
             case Missing:
-                return missingImmutableWorkspaceAction.get();
+                return Optional.empty();
             default:
                 throw new AssertionError();
         }
@@ -201,10 +209,8 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
                 if (immutableLocation.isDirectory()) {
                     LOGGER.debug("Could not move temporary workspace ({}) to immutable location ({}), assuming it was moved in place concurrently",
                         temporaryWorkspace.getAbsolutePath(), immutableLocation.getAbsolutePath(), moveWorkspaceException);
-                    WorkspaceResult existingImmutableResult = returnImmutableWorkspaceIfExistsOr(work, immutableLocation,
-                        () -> {
-                            throw unableToMoveBecause(new IOException("Immutable workspace gone missing"));
-                        });
+                    WorkspaceResult existingImmutableResult = loadImmutableWorkspaceIfExists(work, immutableLocation)
+                        .orElseThrow(() -> unableToMoveBecause(new IOException("Immutable workspace gone missing")));
                     removeTemporaryWorkspace();
                     return existingImmutableResult;
                 } else {
