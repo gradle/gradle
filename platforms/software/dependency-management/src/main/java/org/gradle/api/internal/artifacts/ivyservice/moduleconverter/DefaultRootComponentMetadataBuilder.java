@@ -181,10 +181,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
         @Override
         public void validateMutation(MutationType type) {
-            if (type == MutationType.DEPENDENCIES || type == MutationType.ARTIFACTS ||
-                type == MutationType.DEPENDENCY_ATTRIBUTES || type == MutationType.DEPENDENCY_CONSTRAINT_ATTRIBUTES ||
-                type == MutationType.USAGE || type == MutationType.HIERARCHY
-            ) {
+            if (type != MutationType.STRATEGY) {
                 LocalComponentGraphResolveState value = currentValue();
                 if (value != null) {
                     value.reevaluate();

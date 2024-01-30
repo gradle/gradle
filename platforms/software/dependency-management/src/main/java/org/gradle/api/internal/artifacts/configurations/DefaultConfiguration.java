@@ -206,7 +206,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private volatile InternalState observedState = UNRESOLVED;
     private boolean insideBeforeResolve;
 
-    private boolean dependenciesModified;
     private boolean canBeConsumed;
     private boolean canBeResolved;
     private boolean canBeDeclaredAgainst;
@@ -722,9 +721,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private ResolverResults resolveExclusivelyIfRequired() {
         return currentResolveState.update(currentState -> {
             if (isFullyResoled(currentState)) {
-                if (dependenciesModified) {
-                    throw new InvalidUserDataException(String.format("Attempted to resolve %s that has been resolved previously.", getDisplayName()));
-                }
                 return currentState;
             }
 
@@ -748,8 +744,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 } catch (Exception e) {
                     throw exceptionMapper.contextualize(e, DefaultConfiguration.this);
                 }
-
-                dependenciesModified = false;
 
                 // Make the new state visible in case a dependency resolution listener queries the result, which requires the new state
                 currentResolveState.set(Optional.of(results));
@@ -907,8 +901,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
             // Reset this configuration to an unresolved state
             currentResolveState.set(Optional.empty());
-            // TODO: We should continue to disallow mutation even after resetting resolution state.
-            observed = false;
 
             return value;
         } finally {
@@ -1385,7 +1377,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
 
         preventIllegalParentMutation(type);
-        markAsModified(type);
         notifyChildren(type);
         maybePreventMutation(type, type + " of parent");
     }
@@ -1393,7 +1384,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public void validateMutation(MutationType type) {
         preventIllegalMutation(type);
-        markAsModified(type);
         notifyChildren(type);
         maybePreventMutation(type, type.toString());
     }
@@ -1412,12 +1402,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(8, "mutate_configuration_after_locking")
                 .nagUser();
-
         }
     }
 
     private void preventIllegalParentMutation(MutationType type) {
-        // TODO Deprecate and eventually prevent these mutations in parent when already resolved
+        // TODO: We can remove this check once we turn `maybePreventMutation` into an error
         if (type == MutationType.DEPENDENCY_ATTRIBUTES || type == MutationType.DEPENDENCY_CONSTRAINT_ATTRIBUTES) {
             return;
         }
@@ -1428,7 +1417,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     private void preventIllegalMutation(MutationType type) {
-        // TODO: Deprecate and eventually prevent these mutations when already resolved
+        // TODO: We can remove this check once we turn `maybePreventMutation` into an error
         if (type == MutationType.DEPENDENCY_ATTRIBUTES || type == MutationType.DEPENDENCY_CONSTRAINT_ATTRIBUTES) {
             assertIsDeclarable("Changing " + type);
             return;
@@ -1450,18 +1439,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         if (type == MutationType.USAGE) {
             assertUsageIsMutable();
         }
-    }
-
-    private void markAsModified(MutationType type) {
-        // TODO: Should not be ignoring DEPENDENCY_ATTRIBUTE modifications after resolve
-        if (type == MutationType.DEPENDENCY_ATTRIBUTES || type == MutationType.DEPENDENCY_CONSTRAINT_ATTRIBUTES) {
-            return;
-        }
-        // Strategy mutations will not require a re-resolve
-        if (type == MutationType.STRATEGY) {
-            return;
-        }
-        dependenciesModified = true;
     }
 
     private void notifyChildren(MutationType type) {
