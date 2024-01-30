@@ -24,6 +24,7 @@ import org.gradle.internal.component.resolution.failure.describer.IncompatibleAr
 import org.gradle.internal.component.resolution.failure.describer.IncompatibleGraphVariantsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.IncompatibleRequestedConfigurationFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.InvalidMultipleVariantsFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.NoMatchingCapabilitiesFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.UnknownArtifactSelectionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformFailure;
@@ -32,6 +33,7 @@ import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVa
 import org.gradle.internal.component.resolution.failure.type.IncompatibleRequestedConfigurationFailure;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleResolutionFailure;
 import org.gradle.internal.component.resolution.failure.type.InvalidMultipleVariantsSelectionFailure;
+import org.gradle.internal.component.resolution.failure.type.NoMatchingCapabilitiesFailure;
 import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
 import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
 import org.gradle.internal.component.resolution.failure.type.VariantAwareAmbiguousResolutionFailure;
@@ -69,6 +71,8 @@ public class ResolutionFailureDescriberRegistry {
         registry.registerDescriber(AmbiguousArtifactTransformFailure.class, AmbiguousArtifactTransformFailureDescriber.class);
 
         registry.registerDescriber(IncompatibleRequestedConfigurationFailure.class, IncompatibleRequestedConfigurationFailureDescriber.class);
+        registry.registerDescriber(NoMatchingCapabilitiesFailure.class, NoMatchingCapabilitiesFailureDescriber.class);
+
         registry.registerDescriber(UnknownArtifactSelectionFailure.class, UnknownArtifactSelectionFailureDescriber.class);
 
         return registry;

@@ -36,10 +36,9 @@ import org.gradle.internal.component.model.ConfigurationGraphResolveState;
 import org.gradle.internal.component.model.GraphSelectionCandidates;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantGraphResolveState;
-import org.gradle.internal.component.resolution.failure.CapabilitiesDescriber;
-import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformFailure;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousResolutionFailure;
@@ -47,6 +46,7 @@ import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVa
 import org.gradle.internal.component.resolution.failure.type.IncompatibleRequestedConfigurationFailure;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleResolutionFailure;
 import org.gradle.internal.component.resolution.failure.type.InvalidMultipleVariantsSelectionFailure;
+import org.gradle.internal.component.resolution.failure.type.NoMatchingCapabilitiesFailure;
 import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
 import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
 import org.gradle.internal.component.resolution.failure.type.VariantAwareAmbiguousResolutionFailure;
@@ -173,11 +173,11 @@ public class ResolutionFailureHandler {
         return describeFailure(schema, failure);
     }
 
-    public NoMatchingCapabilitiesException noMatchingCapabilitiesFailure(@SuppressWarnings("unused") AttributesSchemaInternal schema, @SuppressWarnings("unused") AttributeMatcher matcher, ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> requestedCapabilities, List<? extends VariantGraphResolveState> candidates) {
-        String message = buildNoMatchingCapabilitiesFailureMsg(targetComponent, requestedCapabilities, candidates);
-        NoMatchingCapabilitiesException e = new NoMatchingCapabilitiesException(message);
-        suggestReviewAlgorithm(e);
-        return e;
+    public AbstractVariantSelectionException noMatchingCapabilitiesFailure(AttributesSchemaInternal schema, AttributeMatcher matcher, ImmutableAttributes requestedAttributes, ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> requestedCapabilities, List<? extends VariantGraphResolveState> candidates) {
+        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
+        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariantStates(candidates);
+        NoMatchingCapabilitiesFailure failure = new NoMatchingCapabilitiesFailure(schema, targetComponent.getId().getDisplayName(), targetComponent, requestedCapabilities, assessedCandidates);
+        return describeFailure(schema, failure);
     }
 
     public ConfigurationNotFoundException configurationNotFoundFailure(@SuppressWarnings("unused") AttributesSchemaInternal schema, String targetConfigurationName, ComponentIdentifier targetComponentId) {
@@ -215,18 +215,5 @@ public class ResolutionFailureHandler {
     private String buildConfigurationNotConsumableFailureMsg(String targetComponentName, String targetConfigurationName) {
         return String.format("Selected configuration '" + targetConfigurationName + "' on '" + targetComponentName + "' but it can't be used as a project dependency because it isn't intended for consumption by other components.");
     }
-
-    private String buildNoMatchingCapabilitiesFailureMsg(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> requestedCapabilities, List<? extends VariantGraphResolveState> candidates) {
-        StringBuilder sb = new StringBuilder("Unable to find a variant of ");
-        sb.append(targetComponent.getId()).append(" providing the requested ");
-        sb.append(CapabilitiesDescriber.describeCapabilitiesWithTitle(targetComponent, requestedCapabilities));
-        sb.append(":\n");
-        for (VariantGraphResolveState candidate : candidates) {
-            sb.append("   - Variant ").append(candidate.getName()).append(" provides ");
-            sb.append(CapabilitiesDescriber.describeCapabilities(targetComponent, candidate.getCapabilities().asSet())).append("\n");
-        }
-        return sb.toString();
-    }
-
     // endregion Graph Variant Selection Failures
 }

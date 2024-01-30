@@ -327,13 +327,13 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
       - Could not resolve com.google.code.gson:gson:2.8.5."""
         String fullOutput = """          - Unable to find a variant of com.google.code.gson:gson:2.8.5 providing the requested capability com.google.code.gson:gson-test-fixtures:
                - Variant compile provides com.google.code.gson:gson:2.8.5
-               - Variant runtime provides com.google.code.gson:gson:2.8.5
-               - Variant sources provides com.google.code.gson:gson:2.8.5
+               - Variant enforced-platform-compile provides com.google.code.gson:gson-derived-enforced-platform:2.8.5
+               - Variant enforced-platform-runtime provides com.google.code.gson:gson-derived-enforced-platform:2.8.5
                - Variant javadoc provides com.google.code.gson:gson:2.8.5
                - Variant platform-compile provides com.google.code.gson:gson-derived-platform:2.8.5
                - Variant platform-runtime provides com.google.code.gson:gson-derived-platform:2.8.5
-               - Variant enforced-platform-compile provides com.google.code.gson:gson-derived-enforced-platform:2.8.5
-               - Variant enforced-platform-runtime provides com.google.code.gson:gson-derived-enforced-platform:2.8.5"""
+               - Variant runtime provides com.google.code.gson:gson:2.8.5
+               - Variant sources provides com.google.code.gson:gson:2.8.5"""
 
         outputContains(basicOutput)
         outputContains(fullOutput)

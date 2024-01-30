@@ -92,7 +92,7 @@ public class GraphVariantSelector {
         List<? extends VariantGraphResolveState> allConsumableVariants = candidates.getVariants();
         ImmutableList<VariantGraphResolveState> variantsProvidingRequestedCapabilities = filterVariantsByRequestedCapabilities(targetComponent, explicitRequestedCapabilities, allConsumableVariants, true);
         if (variantsProvidingRequestedCapabilities.isEmpty()) {
-            throw failureProcessor.noMatchingCapabilitiesFailure(consumerSchema, attributeMatcher, targetComponent, explicitRequestedCapabilities, allConsumableVariants);
+            throw failureProcessor.noMatchingCapabilitiesFailure(consumerSchema, attributeMatcher, consumerAttributes, targetComponent, explicitRequestedCapabilities, allConsumableVariants);
         }
 
         List<VariantGraphResolveState> matches = attributeMatcher.matches(variantsProvidingRequestedCapabilities, consumerAttributes, explanationBuilder);
