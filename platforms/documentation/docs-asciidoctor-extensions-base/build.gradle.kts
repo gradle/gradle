@@ -5,7 +5,7 @@ plugins {
 
 description = "Asciidoctor extensions that work with all backends"
 
-val asciiDoctorVersion = "2.4.3"
+val asciiDoctorVersion = "2.5.11"
 
 errorprone {
     disabledChecks.addAll(
