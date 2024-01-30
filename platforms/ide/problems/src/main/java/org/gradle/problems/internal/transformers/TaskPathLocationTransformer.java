@@ -26,6 +26,7 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.problems.internal.OperationListener;
 import org.gradle.util.Path;
 
+import java.util.Collections;
 import java.util.Objects;
 
 public class TaskPathLocationTransformer extends BaseLocationTransformer {
@@ -34,7 +35,11 @@ public class TaskPathLocationTransformer extends BaseLocationTransformer {
         BuildOperationAncestryTracker buildOperationAncestryTracker,
         OperationListener buildOperationListenerManager
     ) {
-        super(buildOperationAncestryTracker, buildOperationListenerManager);
+        super(
+            buildOperationAncestryTracker,
+            buildOperationListenerManager,
+            Collections.singleton(ExecuteTaskBuildOperationDetails.class)
+        );
     }
 
     @Override

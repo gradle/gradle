@@ -23,6 +23,7 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.problems.internal.OperationListener;
 
 import javax.annotation.Nonnull;
+import java.util.Collection;
 import java.util.Optional;
 
 public abstract class BaseLocationTransformer implements ProblemTransformer {
@@ -30,9 +31,14 @@ public abstract class BaseLocationTransformer implements ProblemTransformer {
     protected final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
     protected final OperationListener operationListener;
 
-    public BaseLocationTransformer(BuildOperationAncestryTracker buildOperationAncestryTracker, OperationListener operationListener) {
+    public BaseLocationTransformer(
+        BuildOperationAncestryTracker buildOperationAncestryTracker,
+        OperationListener operationListener,
+        Collection<Class<?>> interestedClasses
+    ) {
         this.buildOperationAncestryTracker = buildOperationAncestryTracker;
         this.operationListener = operationListener;
+        operationListener.listenTo(interestedClasses);
     }
 
 
