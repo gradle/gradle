@@ -87,9 +87,12 @@ public class ResolutionFailureHandler {
     }
 
     private <FAILURE extends ResolutionFailure> AbstractVariantSelectionException describeFailure(AttributesSchemaInternal schema, FAILURE failure) {
+        @SuppressWarnings("unchecked")
+        Class<FAILURE> failureType = (Class<FAILURE>) failure.getClass();
+
         List<ResolutionFailureDescriber<?, FAILURE>> describers = new ArrayList<>();
-        describers.addAll(schema.getFailureDescribers(failure));
-        describers.addAll(defaultFailureDescribers.getDescribers(failure));
+        describers.addAll(schema.getFailureDescribers(failureType));
+        describers.addAll(defaultFailureDescribers.getDescribers(failureType));
 
         return describers.stream()
             .filter(describer -> describer.canDescribeFailure(failure))

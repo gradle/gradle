@@ -169,12 +169,12 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public void addFailureDescriber2(Class<? extends ResolutionFailureDescriber<?, ?>> describerClass) {
-        failureDescriberRegistry.registerDescriber(describerClass);
+    public <FAILURE extends ResolutionFailure> void addFailureDescriber(Class<FAILURE> failureType, Class<? extends ResolutionFailureDescriber<?, FAILURE>> describerType) {
+        failureDescriberRegistry.registerDescriber(failureType, describerType);
     }
 
     @Override
-    public <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<?, FAILURE>> getFailureDescribers(FAILURE failureType) {
+    public <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<?, FAILURE>> getFailureDescribers(Class<FAILURE> failureType) {
         return failureDescriberRegistry.getDescribers(failureType);
     }
 

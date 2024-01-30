@@ -114,12 +114,12 @@ public class EmptySchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public void addFailureDescriber2(Class<? extends ResolutionFailureDescriber<?, ?>> describerClass) {
+    public <FAILURE extends ResolutionFailure> void addFailureDescriber(Class<FAILURE> failureType, Class<? extends ResolutionFailureDescriber<?, FAILURE>> describerType) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<?, FAILURE>> getFailureDescribers(FAILURE failure) {
+    public <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<?, FAILURE>> getFailureDescribers(Class<FAILURE> failureType) {
         return Collections.emptyList();
     }
 

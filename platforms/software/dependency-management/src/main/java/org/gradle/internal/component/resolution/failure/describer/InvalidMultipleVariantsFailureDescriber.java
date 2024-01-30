@@ -33,11 +33,6 @@ public class InvalidMultipleVariantsFailureDescriber extends AbstractResolutionF
     }
 
     @Override
-    public Class<InvalidMultipleVariantsSelectionFailure> getDescribedFailureType() {
-        return InvalidMultipleVariantsSelectionFailure.class;
-    }
-
-    @Override
     public IncompatibleArtifactVariantsException describeFailure(InvalidMultipleVariantsSelectionFailure failure) {
         String msg = buildIncompatibleArtifactVariantsFailureMsg(failure);
         IncompatibleArtifactVariantsException result = new IncompatibleArtifactVariantsException(msg);

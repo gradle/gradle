@@ -26,7 +26,15 @@ import org.gradle.internal.component.resolution.failure.describer.IncompatibleRe
 import org.gradle.internal.component.resolution.failure.describer.InvalidMultipleVariantsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.UnknownArtifactSelectionFailureDescriber;
+import org.gradle.internal.component.resolution.failure.failuretype.AmbiguousArtifactTransformFailure;
+import org.gradle.internal.component.resolution.failure.failuretype.AmbiguousResolutionFailure;
+import org.gradle.internal.component.resolution.failure.failuretype.IncompatibleGraphVariantFailure;
+import org.gradle.internal.component.resolution.failure.failuretype.IncompatibleRequestedConfigurationFailure;
+import org.gradle.internal.component.resolution.failure.failuretype.IncompatibleResolutionFailure;
+import org.gradle.internal.component.resolution.failure.failuretype.InvalidMultipleVariantsSelectionFailure;
 import org.gradle.internal.component.resolution.failure.failuretype.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.failuretype.UnknownArtifactSelectionFailure;
+import org.gradle.internal.component.resolution.failure.failuretype.VariantAwareAmbiguousResolutionFailure;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 
 import java.util.ArrayList;
@@ -52,32 +60,31 @@ public class FailureDescriberRegistry {
     public static FailureDescriberRegistry standardRegistry(InstantiatorFactory instantiatorFactory, DocumentationRegistry documentationRegistry) {
         FailureDescriberRegistry registry = new FailureDescriberRegistry(instantiatorFactory, documentationRegistry);
 
-        registry.registerDescriber(AmbiguousGraphVariantsFailureDescriber.class);
-        registry.registerDescriber(IncompatibleGraphVariantsFailureDescriber.class);
+        registry.registerDescriber(VariantAwareAmbiguousResolutionFailure.class, AmbiguousGraphVariantsFailureDescriber.class);
+        registry.registerDescriber(IncompatibleGraphVariantFailure.class, IncompatibleGraphVariantsFailureDescriber.class);
 
-        registry.registerDescriber(AmbiguousArtifactVariantsFailureDescriber.class);
-        registry.registerDescriber(IncompatibleArtifactVariantsFailureDescriber.class);
-        registry.registerDescriber(InvalidMultipleVariantsFailureDescriber.class);
-        registry.registerDescriber(AmbiguousArtifactTransformFailureDescriber.class);
+        registry.registerDescriber(AmbiguousResolutionFailure.class, AmbiguousArtifactVariantsFailureDescriber.class);
+        registry.registerDescriber(IncompatibleResolutionFailure.class, IncompatibleArtifactVariantsFailureDescriber.class);
+        registry.registerDescriber(InvalidMultipleVariantsSelectionFailure.class, InvalidMultipleVariantsFailureDescriber.class);
+        registry.registerDescriber(AmbiguousArtifactTransformFailure.class, AmbiguousArtifactTransformFailureDescriber.class);
 
-        registry.registerDescriber(IncompatibleRequestedConfigurationFailureDescriber.class);
-        registry.registerDescriber(UnknownArtifactSelectionFailureDescriber.class);
+        registry.registerDescriber(IncompatibleRequestedConfigurationFailure.class, IncompatibleRequestedConfigurationFailureDescriber.class);
+        registry.registerDescriber(UnknownArtifactSelectionFailure.class, UnknownArtifactSelectionFailureDescriber.class);
 
         return registry;
     }
 
-    public <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<?, FAILURE>> getDescribers(FAILURE failure) {
+    public <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<?, FAILURE>> getDescribers(Class<FAILURE> failureType) {
         List<ResolutionFailureDescriber<?, FAILURE>> result = new ArrayList<>();
-        describers.getOrDefault(failure.getClass(), Collections.emptyList()).forEach(d -> {
+        describers.getOrDefault(failureType, Collections.emptyList()).forEach(d -> {
             @SuppressWarnings("unchecked") ResolutionFailureDescriber<?, FAILURE> typedDescriber = (ResolutionFailureDescriber<?, FAILURE>) d;
             result.add(typedDescriber);
         });
         return result;
     }
 
-    public void registerDescriber(Class<? extends ResolutionFailureDescriber<?, ?>> describerClass) {
-        ResolutionFailureDescriber<?, ?> describer = instantiatorFactory.inject().newInstance(describerClass, documentationRegistry);
-        Class<? extends ResolutionFailure> describedFailureType = describer.getDescribedFailureType();
-        describers.computeIfAbsent(describedFailureType, k -> new ArrayList<>()).add(describer);
+    public <FAILURE extends ResolutionFailure> void registerDescriber(Class<FAILURE> failureType, Class<? extends ResolutionFailureDescriber<?, FAILURE>> describerType) {
+        ResolutionFailureDescriber<?, ?> describer = instantiatorFactory.inject().newInstance(describerType, documentationRegistry);
+        describers.computeIfAbsent(failureType, k -> new ArrayList<>()).add(describer);
     }
 }

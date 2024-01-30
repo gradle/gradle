@@ -29,11 +29,6 @@ public class UnknownArtifactSelectionFailureDescriber extends AbstractResolution
     }
 
     @Override
-    public Class<UnknownArtifactSelectionFailure> getDescribedFailureType() {
-        return UnknownArtifactSelectionFailure.class;
-    }
-
-    @Override
     public ArtifactVariantSelectionException describeFailure(UnknownArtifactSelectionFailure failure) {
         final ArtifactVariantSelectionException result;
         if (failure.getCause() instanceof ArtifactVariantSelectionException) {

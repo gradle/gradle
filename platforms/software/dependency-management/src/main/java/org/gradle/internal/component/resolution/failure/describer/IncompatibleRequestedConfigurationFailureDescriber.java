@@ -40,11 +40,6 @@ public class IncompatibleRequestedConfigurationFailureDescriber extends Abstract
     }
 
     @Override
-    public Class<IncompatibleRequestedConfigurationFailure> getDescribedFailureType() {
-        return IncompatibleRequestedConfigurationFailure.class;
-    }
-
-    @Override
     public IncompatibleGraphVariantsException describeFailure(IncompatibleRequestedConfigurationFailure failure) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
         String message = buildIncompatibleGraphVariantsFailureMsg(failure, describer);

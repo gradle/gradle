@@ -42,6 +42,6 @@ public interface AttributesSchemaInternal extends AttributesSchemaWithDescribers
     @Nullable
     Attribute<?> getAttributeByName(String name);
 
-    void addFailureDescriber2(Class<? extends ResolutionFailureDescriber<?, ?>> describerClass);
-    <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<?, FAILURE>> getFailureDescribers(FAILURE failure);
+    <FAILURE extends ResolutionFailure> void addFailureDescriber(Class<FAILURE> failureType, Class<? extends ResolutionFailureDescriber<?, FAILURE>> describerType);
+    <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<?, FAILURE>> getFailureDescribers(Class<FAILURE> failureType);
 }

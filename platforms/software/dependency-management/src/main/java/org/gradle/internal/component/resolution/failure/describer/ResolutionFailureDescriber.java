@@ -19,12 +19,33 @@ package org.gradle.internal.component.resolution.failure.describer;
 import org.gradle.internal.component.AbstractVariantSelectionException;
 import org.gradle.internal.component.resolution.failure.failuretype.ResolutionFailure;
 
+/**
+ * Can describe a certain type of resolution failure, providing concise and specific human-readable
+ * information to the message of the resulting exception, and also adding resolution suggestions if possible.
+ *
+ * @param <EXCEPTION> the exception type that will be used to contain a description of a failure
+ * @param <FAILURE> the type of failure that this describer can describe
+ */
 public interface ResolutionFailureDescriber<EXCEPTION extends AbstractVariantSelectionException, FAILURE extends ResolutionFailure> {
-    Class<FAILURE> getDescribedFailureType();
-
+    /**
+     * Can this describer describe a failure of the given generic type?
+     *
+     * This defaults to {@code true} as many describers are specific to a single failure type.
+     *
+     * @return {@code true} if this describer can describe the given failure; {@code false} otherwise
+     */
     default boolean canDescribeFailure(FAILURE failure) {
         return true;
     }
 
+    /**
+     * Describe the given failure.
+     *
+     * @param failure the failure to describe
+     * @return the exception that describes the failure
+     *
+     * @implSpec This method should only be called if {@link #canDescribeFailure(ResolutionFailure)} returns {@code true}
+     * for the given failure.  This should not be tested by implementations; it is the responsibility of the caller.
+     */
     EXCEPTION describeFailure(FAILURE failure);
 }

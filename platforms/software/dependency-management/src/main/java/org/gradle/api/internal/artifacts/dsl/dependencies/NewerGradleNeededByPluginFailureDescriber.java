@@ -51,11 +51,6 @@ public class NewerGradleNeededByPluginFailureDescriber extends AbstractResolutio
     }
 
     @Override
-    public Class<IncompatibleGraphVariantFailure> getDescribedFailureType() {
-        return IncompatibleGraphVariantFailure.class;
-    }
-
-    @Override
     public boolean canDescribeFailure(IncompatibleGraphVariantFailure failure) {
         return allCandidatesIncompatibleDueToGradleVersionTooLow(failure);
     }

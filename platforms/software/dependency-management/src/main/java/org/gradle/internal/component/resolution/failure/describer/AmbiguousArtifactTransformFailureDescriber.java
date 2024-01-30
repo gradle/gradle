@@ -43,11 +43,6 @@ public class AmbiguousArtifactTransformFailureDescriber extends AbstractResoluti
     }
 
     @Override
-    public Class<AmbiguousArtifactTransformFailure> getDescribedFailureType() {
-        return AmbiguousArtifactTransformFailure.class;
-    }
-
-    @Override
     public AmbiguousArtifactTransformException describeFailure(AmbiguousArtifactTransformFailure failure) {
         String msg = buildAmbiguousTransformMsg(failure);
         AmbiguousArtifactTransformException result = new AmbiguousArtifactTransformException(msg);
