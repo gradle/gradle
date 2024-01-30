@@ -31,12 +31,8 @@ import java.util.function.Supplier;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>> implements SetProperty<T> {
-    private static final Supplier<ImmutableCollection.Builder<Object>> FACTORY = new Supplier<ImmutableCollection.Builder<Object>>() {
-        @Override
-        public ImmutableCollection.Builder<Object> get() {
-            return ImmutableSet.builder();
-        }
-    };
+    private static final Supplier<ImmutableCollection.Builder<Object>> FACTORY = ImmutableSet::builder;
+
     public DefaultSetProperty(PropertyHost host, Class<T> elementType) {
         super(host, Set.class, elementType, Cast.uncheckedNonnullCast(FACTORY));
     }
