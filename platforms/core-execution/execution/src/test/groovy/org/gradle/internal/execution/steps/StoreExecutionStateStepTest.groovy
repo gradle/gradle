@@ -50,6 +50,7 @@ class StoreExecutionStateStepTest extends StepSpec<IncrementalChangesContext> im
 
     def setup() {
         _ * context.history >> Optional.of(executionHistoryStore)
+        _ * context.cacheKey >> Optional.of(TestHashCodes.hashCodeFrom(1234))
     }
 
     def "output snapshots are stored after successful execution"() {

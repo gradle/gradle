@@ -42,7 +42,7 @@ public class IncrementalChangesContext extends ValidationFinishedContext {
     }
 
     protected IncrementalChangesContext(IncrementalChangesContext parent) {
-        this(parent, parent.getRebuildReasons(), parent.getChanges().orElse(null), parent.getCacheKey());
+        this(parent, parent.getRebuildReasons(), parent.getChanges().orElse(null), parent.getCacheKey().orElse(null));
     }
 
     /**
@@ -60,8 +60,11 @@ public class IncrementalChangesContext extends ValidationFinishedContext {
         return Optional.ofNullable(executionStateChanges);
     }
 
-    @Nullable
-    public HashCode getCacheKey() {
-        return cacheKey;
+    /**
+     * The cache key of the work.
+     * Empty if and only if {@link #getBeforeExecutionState()} is empty.
+     */
+    public Optional<HashCode> getCacheKey() {
+        return Optional.ofNullable(cacheKey);
     }
 }

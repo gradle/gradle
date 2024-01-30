@@ -21,7 +21,6 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.hash.HashCode;
 
-import java.util.Objects;
 import java.util.Optional;
 
 public class IncrementalResolveCachingStateStep<C extends IncrementalChangesContext> extends AbstractResolveCachingStateStep<C> {
@@ -42,6 +41,6 @@ public class IncrementalResolveCachingStateStep<C extends IncrementalChangesCont
 
     @Override
     protected Optional<HashCode> cacheKeyFromContext(C context) {
-        return Optional.of(Objects.requireNonNull(context.getCacheKey()));
+        return context.getCacheKey();
     }
 }
