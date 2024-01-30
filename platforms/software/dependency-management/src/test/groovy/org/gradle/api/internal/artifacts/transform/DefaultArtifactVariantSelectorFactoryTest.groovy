@@ -53,7 +53,7 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
     def transformedVariantFactory = Mock(TransformedVariantFactory)
     def documentationRegistry = new DocumentationRegistry();
     def failureDescriberRegistry = ResolutionFailureDescriberRegistry.standardRegistry(TestUtil.instantiatorFactory(), documentationRegistry);
-    def variantSelectionFailureProcessor = new ResolutionFailureHandler(failureDescriberRegistry, documentationRegistry)
+    def variantSelectionFailureProcessor = new ResolutionFailureHandler(failureDescriberRegistry)
     def variantSelectorFactory = new DefaultVariantSelectorFactory(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory(), transformedVariantFactory, variantSelectionFailureProcessor)
 
     def "selects producer variant with requested attributes"() {

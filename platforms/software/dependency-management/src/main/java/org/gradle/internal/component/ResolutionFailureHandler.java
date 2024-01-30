@@ -18,7 +18,6 @@ package org.gradle.internal.component;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
@@ -41,6 +40,7 @@ import org.gradle.internal.component.resolution.failure.ResolutionFailureDescrib
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformFailure;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.ConfigurationNotConsumableFailure;
 import org.gradle.internal.component.resolution.failure.type.ExternalRequestedConfigurationNotFoundFailure;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleRequestedConfigurationFailure;
@@ -76,15 +76,9 @@ public class ResolutionFailureHandler {
     public static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
 
     private final ResolutionFailureDescriberRegistry defaultFailureDescribers;
-    private final DocumentationRegistry documentationRegistry;
 
-    public ResolutionFailureHandler(ResolutionFailureDescriberRegistry failureDescriberRegistry, DocumentationRegistry documentationRegistry) {
+    public ResolutionFailureHandler(ResolutionFailureDescriberRegistry failureDescriberRegistry) {
         this.defaultFailureDescribers = failureDescriberRegistry;
-        this.documentationRegistry = documentationRegistry;
-    }
-
-    private void suggestReviewAlgorithm(AbstractVariantSelectionException exception) {
-        exception.addResolution(DEFAULT_MESSAGE_PREFIX + documentationRegistry.getDocumentationFor("variant_attributes", "sec:abm_algorithm") + ".");
     }
 
     // region Artifact Variant Selection Failures
@@ -133,19 +127,6 @@ public class ResolutionFailureHandler {
         return describeFailure(schema, failure);
     }
 
-    public AbstractVariantSelectionException incompatibleRequestedConfigurationFailure(
-        AttributesSchemaInternal schema,
-        AttributeMatcher matcher,
-        AttributeContainerInternal requestedAttributes,
-        ComponentGraphResolveMetadata targetComponent,
-        ConfigurationGraphResolveState targetConfiguration
-    ) {
-        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
-        List<AssessedCandidate> assessedCandidates = Collections.singletonList(resolutionCandidateAssessor.assessCandidate(targetConfiguration.getName(), targetConfiguration.asVariant().getCapabilities(), targetConfiguration.asVariant().getMetadata().getAttributes()));
-        IncompatibleRequestedConfigurationFailure failure = new IncompatibleRequestedConfigurationFailure(schema, targetComponent.getId().getDisplayName(), requestedAttributes, assessedCandidates);
-        return describeFailure(schema, failure);
-    }
-
     public AbstractVariantSelectionException noMatchingGraphVariantFailure(
         AttributesSchemaInternal schema,
         AttributeMatcher matcher,
@@ -166,9 +147,21 @@ public class ResolutionFailureHandler {
         return describeFailure(schema, failure);
     }
 
-    /*
-     * These are special cases where a configuration is requested by name in a target component, so there is no relevant schema to provide to this handler method.
-     */
+    // region Configuration by name
+    // These are cases where a configuration is requested by name in a target component, so there is sometimes no relevant schema to provide to this handler method.
+    public AbstractVariantSelectionException incompatibleRequestedConfigurationFailure(
+        AttributesSchemaInternal schema,
+        AttributeMatcher matcher,
+        AttributeContainerInternal requestedAttributes,
+        ComponentGraphResolveMetadata targetComponent,
+        ConfigurationGraphResolveState targetConfiguration
+    ) {
+        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
+        List<AssessedCandidate> assessedCandidates = Collections.singletonList(resolutionCandidateAssessor.assessCandidate(targetConfiguration.getName(), targetConfiguration.asVariant().getCapabilities(), targetConfiguration.asVariant().getMetadata().getAttributes()));
+        IncompatibleRequestedConfigurationFailure failure = new IncompatibleRequestedConfigurationFailure(schema, targetComponent.getId().getDisplayName(), requestedAttributes, assessedCandidates);
+        return describeFailure(schema, failure);
+    }
+
     public AbstractVariantSelectionException configurationNotFoundFailure(ComponentIdentifier toComponent, String toConfigurationName) {
         RequestedConfigurationNotFoundFailure failure = new RequestedConfigurationNotFoundFailure(toConfigurationName, toComponent);
         return describeFailure(failure);
@@ -177,17 +170,11 @@ public class ResolutionFailureHandler {
         ExternalRequestedConfigurationNotFoundFailure failure = new ExternalRequestedConfigurationNotFoundFailure(toConfigurationName, toComponent, fromComponent, fromConfigurationName);
         return describeFailure(failure);
     }
-
-    public ConfigurationNotConsumableException configurationNotConsumableFailure(@SuppressWarnings("unused") AttributesSchemaInternal schema, String targetComponentName, String targetConfigurationName) {
-        String message = buildConfigurationNotConsumableFailureMsg(targetComponentName, targetConfigurationName);
-        ConfigurationNotConsumableException e = new ConfigurationNotConsumableException(message);
-        suggestReviewAlgorithm(e);
-        return e;
+    public AbstractVariantSelectionException configurationNotConsumableFailure(ComponentIdentifier targetComponent, String targetConfigurationName) {
+        ConfigurationNotConsumableFailure failure = new ConfigurationNotConsumableFailure(targetConfigurationName, targetComponent);
+        return describeFailure(failure);
     }
-
-    private String buildConfigurationNotConsumableFailureMsg(String targetComponentName, String targetConfigurationName) {
-        return String.format("Selected configuration '" + targetConfigurationName + "' on '" + targetComponentName + "' but it can't be used as a project dependency because it isn't intended for consumption by other components.");
-    }
+    // endregion Configuration by name
     // endregion Graph Variant Selection Failures
 
     private <FAILURE extends ResolutionFailure> AbstractVariantSelectionException describeFailure(FAILURE failure) {

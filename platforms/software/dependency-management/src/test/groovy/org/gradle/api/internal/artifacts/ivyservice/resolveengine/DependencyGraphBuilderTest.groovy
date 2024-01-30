@@ -130,7 +130,7 @@ class DependencyGraphBuilderTest extends Specification {
     def resolveStateFactory = new LocalComponentGraphResolveStateFactory(desugaring, new ComponentIdGenerator())
     def documentationRegistry = new DocumentationRegistry()
     def failureDescriberRegistry = ResolutionFailureDescriberRegistry.standardRegistry(TestUtil.instantiatorFactory(), documentationRegistry);
-    def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry, documentationRegistry))
+    def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry))
 
     DependencyGraphBuilder builder
 

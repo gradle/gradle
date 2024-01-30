@@ -58,7 +58,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         factory = AttributeTestUtil.attributesFactory()
         def documentationRegistry = new DocumentationRegistry();
         def failureDescriberRegistry = ResolutionFailureDescriberRegistry.standardRegistry(TestUtil.instantiatorFactory(), documentationRegistry);
-        variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry, documentationRegistry))
+        variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry))
     }
 
     def "returns this when same target requested"() {

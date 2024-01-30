@@ -62,7 +62,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
     def factory = Mock(ArtifactVariantSelector.ResolvedArtifactTransformer)
     def documentationRegistry = new DocumentationRegistry();
     def failureDescriberRegistry = ResolutionFailureDescriberRegistry.standardRegistry(TestUtil.instantiatorFactory(), documentationRegistry);
-    def failureProcessor = new ResolutionFailureHandler(failureDescriberRegistry, documentationRegistry)
+    def failureProcessor = new ResolutionFailureHandler(failureDescriberRegistry)
 
     def 'direct match on variant means no finder interaction'() {
         given:

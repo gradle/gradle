@@ -131,7 +131,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             throw variantSelector.getFailureProcessor().configurationNotFoundFailure(targetComponent.getId(), targetConfiguration);
         }
 
-        verifyConsumability(consumerSchema, variantSelector, targetComponent, toConfiguration);
+        verifyConsumability(variantSelector, targetComponent, toConfiguration);
         verifyAttributeCompatibility(variantSelector, consumerAttributes, consumerSchema, targetComponent, consumerHasAttributes, toConfiguration);
 
         return toConfiguration;
@@ -148,10 +148,10 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
     }
 
-    private void verifyConsumability(AttributesSchemaInternal schema, GraphVariantSelector variantSelector, ComponentGraphResolveMetadata targetComponent, ConfigurationGraphResolveState toConfiguration) {
+    private void verifyConsumability(GraphVariantSelector variantSelector, ComponentGraphResolveMetadata targetComponent, ConfigurationGraphResolveState toConfiguration) {
         ConfigurationGraphResolveMetadata metadata = toConfiguration.getMetadata();
         if (!metadata.isCanBeConsumed()) {
-            throw variantSelector.getFailureProcessor().configurationNotConsumableFailure(schema, targetComponent.getId().getDisplayName(), toConfiguration.getName());
+            throw variantSelector.getFailureProcessor().configurationNotConsumableFailure(targetComponent.getId(), toConfiguration.getName());
         }
 
         if (metadata.isDeprecatedForConsumption()) {

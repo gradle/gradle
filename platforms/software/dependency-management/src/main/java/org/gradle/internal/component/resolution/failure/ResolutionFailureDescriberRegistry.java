@@ -20,6 +20,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.component.resolution.failure.describer.AmbiguousArtifactTransformFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.AmbiguousArtifactVariantsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.AmbiguousGraphVariantsFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.ConfigurationNotConsumableFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.RequestedConfigurationNotFoundFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.IncompatibleArtifactVariantsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.IncompatibleGraphVariantsFailureDescriber;
@@ -30,6 +31,7 @@ import org.gradle.internal.component.resolution.failure.describer.ResolutionFail
 import org.gradle.internal.component.resolution.failure.describer.UnknownArtifactSelectionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformFailure;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.ConfigurationNotConsumableFailure;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleRequestedConfigurationFailure;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleResolutionFailure;
@@ -73,6 +75,7 @@ public class ResolutionFailureDescriberRegistry {
 
         registry.registerDescriber(IncompatibleRequestedConfigurationFailure.class, IncompatibleRequestedConfigurationFailureDescriber.class);
         registry.registerDescriber(RequestedConfigurationNotFoundFailure.class, RequestedConfigurationNotFoundFailureDescriber.class);
+        registry.registerDescriber(ConfigurationNotConsumableFailure.class, ConfigurationNotConsumableFailureDescriber.class);
 
         registry.registerDescriber(NoMatchingCapabilitiesFailure.class, NoMatchingCapabilitiesFailureDescriber.class);
 

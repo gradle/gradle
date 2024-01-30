@@ -492,7 +492,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         ResolutionFailureHandler createResolutionFailureProcessor(InstantiatorFactory instantiatorFactory, DocumentationRegistry documentationRegistry) {
             ResolutionFailureDescriberRegistry failureDescriberRegistry = ResolutionFailureDescriberRegistry.standardRegistry(instantiatorFactory, documentationRegistry);
-            return new ResolutionFailureHandler(failureDescriberRegistry, documentationRegistry);
+            return new ResolutionFailureHandler(failureDescriberRegistry);
         }
 
         GraphVariantSelector createGraphVariantSelector(ResolutionFailureHandler resolutionFailureHandler) {

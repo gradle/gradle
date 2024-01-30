@@ -466,7 +466,7 @@ All of them match the consumer attributes:
     private void performSelection() {
         DocumentationRegistry documentationRegistry = new DocumentationRegistry();
         ResolutionFailureDescriberRegistry failureDescriberRegistry = ResolutionFailureDescriberRegistry.standardRegistry(TestUtil.instantiatorFactory(), documentationRegistry);
-        GraphVariantSelector variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry, documentationRegistry))
+        GraphVariantSelector variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry))
         selected = variantSelector.selectVariants(
             consumerAttributes,
             requestedCapabilities,

@@ -294,7 +294,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         def state = DependencyManagementTestUtil.modelGraphResolveFactory().stateFor(immutable)
         def documentationRegistry = new DocumentationRegistry();
         def failureDescriberRegistry = ResolutionFailureDescriberRegistry.standardRegistry(TestUtil.instantiatorFactory(), documentationRegistry);
-        def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry, documentationRegistry))
+        def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry))
 
         return consumer.selectVariants(variantSelector, attributes, state, schema, [] as Set).variants[0].metadata
     }
