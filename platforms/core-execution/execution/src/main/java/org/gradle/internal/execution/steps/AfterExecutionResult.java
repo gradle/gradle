@@ -18,33 +18,33 @@ package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.history.AfterExecutionState;
+import org.gradle.internal.execution.history.ExecutionOutputState;
 
 import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.Optional;
 
 public class AfterExecutionResult extends Result {
-    private final AfterExecutionState afterExecutionState;
+    private final ExecutionOutputState afterExecutionOutputState;
 
-    public AfterExecutionResult(Duration duration, Try<ExecutionEngine.Execution> execution, @Nullable AfterExecutionState afterExecutionState) {
+    public AfterExecutionResult(Duration duration, Try<ExecutionEngine.Execution> execution, @Nullable ExecutionOutputState afterExecutionOutputState) {
         super(duration, execution);
-        this.afterExecutionState = afterExecutionState;
+        this.afterExecutionOutputState = afterExecutionOutputState;
     }
 
-    public AfterExecutionResult(Result parent, @Nullable AfterExecutionState afterExecutionState) {
+    public AfterExecutionResult(Result parent, @Nullable ExecutionOutputState afterExecutionOutputState) {
         super(parent);
-        this.afterExecutionState = afterExecutionState;
+        this.afterExecutionOutputState = afterExecutionOutputState;
     }
 
     protected AfterExecutionResult(AfterExecutionResult parent) {
-        this(parent, parent.getAfterExecutionState().orElse(null));
+        this(parent, parent.getAfterExecutionOutputState().orElse(null));
     }
 
     /**
      * State after execution, or {@link Optional#empty()} if work is untracked.
      */
-    public Optional<AfterExecutionState> getAfterExecutionState() {
-        return Optional.ofNullable(afterExecutionState);
+    public Optional<ExecutionOutputState> getAfterExecutionOutputState() {
+        return Optional.ofNullable(afterExecutionOutputState);
     }
 }

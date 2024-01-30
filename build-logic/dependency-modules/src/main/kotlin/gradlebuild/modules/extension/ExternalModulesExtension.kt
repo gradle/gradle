@@ -21,14 +21,15 @@ import gradlebuild.modules.model.License
 abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
 
     val groovyVersion = if (isBundleGroovy4) "4.0.7" else "3.0.17"
-    val configurationCacheReportVersion = "1.3"
-    val kotlinVersion = "1.9.10"
+    val configurationCacheReportVersion = "1.4"
+    val kotlinVersion = "1.9.22"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
     val ansiControlSequenceUtil = "net.rubygrapefruit:ansi-control-sequence-util"
     val ant = "org.apache.ant:ant"
     val antLauncher = "org.apache.ant:ant-launcher"
+    val antJunit = "org.apache.ant:ant-junit"
     val asm = "org.ow2.asm:asm"
     val asmAnalysis = "org.ow2.asm:asm-analysis"
     val asmCommons = "org.ow2.asm:asm-commons"
@@ -52,6 +53,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val commonsLang3 = "org.apache.commons:commons-lang3"
     val commonsMath = "org.apache.commons:commons-math3"
     val configurationCacheReport = "org.gradle.buildtool.internal:configuration-cache-report:$configurationCacheReportVersion"
+    val eclipseSisuPlexus = "org.eclipse.sisu:org.eclipse.sisu.plexus"
     val fastutil = "it.unimi.dsi:fastutil"
     val gcs = "com.google.apis:google-api-services-storage"
     val googleApiClient = "com.google.api-client:google-api-client"
@@ -98,7 +100,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val jetbrainsAnnotations = "org.jetbrains:annotations"
     val jgit = "org.eclipse.jgit:org.eclipse.jgit"
     val joda = "joda-time:joda-time"
-    val jsch = "com.jcraft:jsch"
+    val jsch = "com.github.mwiede:jsch"
     val jsr305 = "com.google.code.findbugs:jsr305"
     val julToSlf4j = "org.slf4j:jul-to-slf4j"
     val junit = "junit:junit"
@@ -108,11 +110,20 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val jzlib = "com.jcraft:jzlib"
     val kryo = "com.esotericsoftware.kryo:kryo"
     val log4jToSlf4j = "org.slf4j:log4j-over-slf4j"
+    val maven3Artifact = "org.apache.maven:maven-artifact"
+    val maven3Core = "org.apache.maven:maven-core"
     val maven3BuilderSupport = "org.apache.maven:maven-builder-support"
     val maven3Model = "org.apache.maven:maven-model"
+    val maven3ResolverProvider = "org.apache.maven:maven-resolver-provider"
     val maven3RepositoryMetadata = "org.apache.maven:maven-repository-metadata"
     val maven3Settings = "org.apache.maven:maven-settings"
     val maven3SettingsBuilder = "org.apache.maven:maven-settings-builder"
+    val mavenResolverApi = "org.apache.maven.resolver:maven-resolver-api"
+    val mavenResolverConnectorBasic = "org.apache.maven.resolver:maven-resolver-connector-basic"
+    val mavenResolverImpl = "org.apache.maven.resolver:maven-resolver-impl"
+    val mavenResolverSupplier = "org.apache.maven.resolver:maven-resolver-supplier"
+    val mavenResolverTransportFile = "org.apache.maven.resolver:maven-resolver-transport-file"
+    val mavenResolverTransportHttp = "org.apache.maven.resolver:maven-resolver-transport-http"
     val minlog = "com.esotericsoftware.minlog:minlog"
     val nativePlatform = "net.rubygrapefruit:native-platform"
     val nativePlatformFileEvents = "net.rubygrapefruit:file-events"
@@ -120,6 +131,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val plexusCipher = "org.sonatype.plexus:plexus-cipher"
     val plexusInterpolation = "org.codehaus.plexus:plexus-interpolation"
     val plexusSecDispatcher = "org.codehaus.plexus:plexus-sec-dispatcher"
+    val plexusClassworlds = "org.codehaus.plexus:plexus-classworlds"
     val plexusUtils = "org.codehaus.plexus:plexus-utils"
     val plist = "com.googlecode.plist:dd-plist"
     val pmavenCommon = "org.sonatype.pmaven:pmaven-common"
@@ -142,6 +154,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val aircompressor = "io.airlift:aircompressor"
     val archunit = "com.tngtech.archunit:archunit"
     val archunitJunit5 = "com.tngtech.archunit:archunit-junit5"
+    val archunitJunit5Api = "com.tngtech.archunit:archunit-junit5-api"
     val awaitility = "org.awaitility:awaitility-kotlin"
     val bytebuddy = "net.bytebuddy:byte-buddy"
     val bytebuddyAgent = "net.bytebuddy:byte-buddy-agent"
@@ -253,9 +266,16 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         log4jToSlf4j to License.MIT,
         maven3BuilderSupport to License.Apache2,
         maven3Model to License.Apache2,
+        maven3ResolverProvider to License.Apache2,
         maven3RepositoryMetadata to License.Apache2,
         maven3Settings to License.Apache2,
         maven3SettingsBuilder to License.Apache2,
+        mavenResolverApi to License.Apache2,
+        mavenResolverConnectorBasic to License.Apache2,
+        mavenResolverImpl to License.Apache2,
+        mavenResolverSupplier to License.Apache2,
+        mavenResolverTransportFile to License.Apache2,
+        mavenResolverTransportHttp to License.Apache2,
         minlog to License.BSD3,
         nativePlatform to License.Apache2,
         nativePlatformFileEvents to License.Apache2,

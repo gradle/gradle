@@ -31,14 +31,18 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 
 public class DefaultUserInputHandler implements UserInputHandler {
     private static final List<String> YES_NO_CHOICES = Lists.newArrayList("yes", "no");
+    private static final List<String> LENIENT_YES_NO_CHOICES = Lists.newArrayList("yes", "no", "y", "n");
     private final OutputEventListener outputEventBroadcaster;
     private final Clock clock;
     private final UserInputReader userInputReader;
     private final AtomicBoolean hasAsked = new AtomicBoolean();
+    private final AtomicBoolean interrupted = new AtomicBoolean();
 
     public DefaultUserInputHandler(OutputEventListener outputEventBroadcaster, Clock clock, UserInputReader userInputReader) {
         this.outputEventBroadcaster = outputEventBroadcaster;
@@ -53,23 +57,42 @@ public class DefaultUserInputHandler implements UserInputHandler {
         builder.append(" [");
         builder.append(StringUtils.join(YES_NO_CHOICES, ", "));
         builder.append("] ");
-        return prompt(builder.toString(), new BooleanParser());
+        return prompt(builder.toString(), value -> {
+            if (YES_NO_CHOICES.contains(value)) {
+                return BooleanUtils.toBoolean(value);
+            }
+            sendPrompt("Please enter 'yes' or 'no': ");
+            return null;
+        });
     }
 
     @Override
-    public boolean askYesNoQuestion(String question, final boolean defaultValue) {
+    public boolean askBooleanQuestion(String question, final boolean defaultValue) {
         StringBuilder builder = new StringBuilder();
         builder.append(question);
         builder.append(" (default: ");
-        builder.append(defaultValue ? "yes" : "no");
+        String defaultString = defaultValue ? "yes" : "no";
+        builder.append(defaultString);
         builder.append(") [");
         builder.append(StringUtils.join(YES_NO_CHOICES, ", "));
         builder.append("] ");
-        return prompt(builder.toString(), defaultValue, new BooleanParser());
+        return prompt(builder.toString(), defaultValue, value -> {
+            if (LENIENT_YES_NO_CHOICES.contains(value.toLowerCase(Locale.US))) {
+                return BooleanUtils.toBoolean(value);
+            }
+            sendPrompt("Please enter 'yes' or 'no' (default: '" + defaultString + "'): ");
+            return null;
+        });
     }
 
-    @Override
-    public <T> T selectOption(String question, final Collection<T> options, final T defaultOption) {
+    private <T> T selectOption(String question, Collection<T> options, T defaultOption, Function<T, String> renderer) {
+        if (!options.contains(defaultOption)) {
+            throw new IllegalArgumentException("Default value is not one of the provided options.");
+        }
+        if (options.size() == 1) {
+            return defaultOption;
+        }
+
         final List<T> values = new ArrayList<T>(options);
         StringBuilder builder = new StringBuilder();
         builder.append(question);
@@ -80,11 +103,11 @@ public class DefaultUserInputHandler implements UserInputHandler {
             builder.append("  ");
             builder.append(i + 1);
             builder.append(": ");
-            builder.append(option);
+            builder.append(renderer.apply(option));
             builder.append(TextUtil.getPlatformLineSeparator());
         }
         builder.append("Enter selection (default: ");
-        builder.append(defaultOption);
+        builder.append(renderer.apply(defaultOption));
         builder.append(") [1..");
         builder.append(options.size());
         builder.append("] ");
@@ -104,6 +127,46 @@ public class DefaultUserInputHandler implements UserInputHandler {
     }
 
     @Override
+    public <T> T selectOption(String question, final Collection<T> options, final T defaultOption) {
+        return choice(question, options).defaultOption(defaultOption).ask();
+    }
+
+    @Override
+    public <T> ChoiceBuilder<T> choice(String question, Collection<T> options) {
+        if (options.isEmpty()) {
+            throw new IllegalArgumentException("No options provided.");
+        }
+        return new DefaultChoiceBuilder<>(options, question);
+    }
+
+    @Override
+    public int askIntQuestion(String question, int minValue, int defaultValue) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(question);
+        builder.append(" (min: ");
+        builder.append(minValue);
+        builder.append(", default: ");
+        builder.append(defaultValue);
+        builder.append("): ");
+        return prompt(builder.toString(), defaultValue, new Transformer<Integer, String>() {
+            @Override
+            public Integer transform(String sanitizedValue) {
+                try {
+                    int result = Integer.parseInt(sanitizedValue);
+                    if (result >= minValue) {
+                        return result;
+                    }
+                    sendPrompt("Please enter an integer value >= " + minValue + " (default: " + defaultValue + "): ");
+                    return null;
+                } catch (NumberFormatException e) {
+                    sendPrompt("Please enter an integer value (min: " + minValue + ", default: " + defaultValue + "): ");
+                    return null;
+                }
+            }
+        });
+    }
+
+    @Override
     public String askQuestion(String question, final String defaultValue) {
         StringBuilder builder = new StringBuilder();
         builder.append(question);
@@ -116,6 +179,11 @@ public class DefaultUserInputHandler implements UserInputHandler {
                 return sanitizedValue;
             }
         });
+    }
+
+    @Override
+    public boolean interrupted() {
+        return interrupted.get();
     }
 
     private <T> T prompt(String prompt, final T defaultValue, final Transformer<T, String> parser) {
@@ -136,6 +204,10 @@ public class DefaultUserInputHandler implements UserInputHandler {
 
     @Nullable
     private <T> T prompt(String prompt, Transformer<T, String> parser) {
+        if (interrupted.get()) {
+            return null;
+        }
+
         outputEventBroadcaster.onOutput(new UserInputRequestEvent());
         try {
             // Add a line before the first question that has been asked of the user
@@ -148,6 +220,7 @@ public class DefaultUserInputHandler implements UserInputHandler {
             while (true) {
                 String input = userInputReader.readInput();
                 if (input == null) {
+                    interrupted.set(true);
                     return null;
                 }
 
@@ -158,7 +231,7 @@ public class DefaultUserInputHandler implements UserInputHandler {
                 }
             }
         } finally {
-            // Send a end-of-line. This is a workaround to convince the console that the cursor is at the start of the line to avoid indenting the next line of text that is displayed
+            // Send an end-of-line. This is a workaround to convince the console that the cursor is at the start of the line to avoid indenting the next line of text that is displayed
             // It would be better for the console to listen for stuff read from stdin that would also be echoed to the output and update its state based on this
             sendPrompt(TextUtil.getPlatformLineSeparator());
             outputEventBroadcaster.onOutput(new UserInputResumeEvent());
@@ -173,14 +246,39 @@ public class DefaultUserInputHandler implements UserInputHandler {
         return CharMatcher.javaIsoControl().removeFrom(StringUtils.trim(input));
     }
 
-    private class BooleanParser implements Transformer<Boolean, String> {
+    private class DefaultChoiceBuilder<T> implements ChoiceBuilder<T> {
+        private final Collection<T> options;
+        private final String question;
+        private T defaultOption;
+        private Function<T, String> renderer = Object::toString;
+
+        public DefaultChoiceBuilder(Collection<T> options, String question) {
+            this.options = options;
+            this.question = question;
+            defaultOption = options.iterator().next();
+        }
+
         @Override
-        public Boolean transform(String value) {
-            if (YES_NO_CHOICES.contains(value)) {
-                return BooleanUtils.toBoolean(value);
-            }
-            sendPrompt("Please enter 'yes' or 'no': ");
-            return null;
+        public ChoiceBuilder<T> renderUsing(Function<T, String> renderer) {
+            this.renderer = renderer;
+            return this;
+        }
+
+        @Override
+        public ChoiceBuilder<T> defaultOption(T defaultOption) {
+            this.defaultOption = defaultOption;
+            return this;
+        }
+
+        @Override
+        public ChoiceBuilder<T> whenNotConnected(T defaultOption) {
+            // Ignore
+            return this;
+        }
+
+        @Override
+        public T ask() {
+            return selectOption(question, options, defaultOption, renderer);
         }
     }
 }

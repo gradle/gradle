@@ -17,8 +17,6 @@ package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import groovy.util.Node;
 import org.gradle.internal.Cast;
 import org.gradle.internal.xml.XmlTransformer;
@@ -26,6 +24,8 @@ import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObje
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,16 +42,16 @@ public class Module extends XmlPersistableConfigurationObject {
     private static final String CONTENT = "content";
 
     private Path contentPath;
-    private Set<Path> sourceFolders = Sets.newLinkedHashSet();
-    private Set<Path> testSourceFolders = Sets.newLinkedHashSet();
-    private Set<Path> resourceFolders = Sets.newLinkedHashSet();
-    private Set<Path> testResourceFolders = Sets.newLinkedHashSet();
-    private Set<Path> generatedSourceFolders = Sets.newLinkedHashSet();
-    private Set<Path> excludeFolders = Sets.newLinkedHashSet();
+    private Set<Path> sourceFolders = new LinkedHashSet<>();
+    private Set<Path> testSourceFolders = new LinkedHashSet<>();
+    private Set<Path> resourceFolders = new LinkedHashSet<>();
+    private Set<Path> testResourceFolders = new LinkedHashSet<>();
+    private Set<Path> generatedSourceFolders = new LinkedHashSet<>();
+    private Set<Path> excludeFolders = new LinkedHashSet<>();
     private boolean inheritOutputDirs;
     private Path outputDir;
     private Path testOutputDir;
-    private Set<Dependency> dependencies = Sets.newLinkedHashSet();
+    private Set<Dependency> dependencies = new LinkedHashSet<>();
     private String jdkName;
     private final PathFactory pathFactory;
     private String languageLevel;
@@ -321,10 +321,10 @@ public class Module extends XmlPersistableConfigurationObject {
         for (Node orderEntry : findOrderEntries()) {
             Object orderEntryType = orderEntry.attribute("type");
             if ("module-library".equals(orderEntryType)) {
-                Set<Path> classes = Sets.newLinkedHashSet();
-                Set<Path> javadoc = Sets.newLinkedHashSet();
-                Set<Path> sources = Sets.newLinkedHashSet();
-                Set<JarDirectory> jarDirectories = Sets.newLinkedHashSet();
+                Set<Path> classes = new LinkedHashSet<>();
+                Set<Path> javadoc = new LinkedHashSet<>();
+                Set<Path> sources = new LinkedHashSet<>();
+                Set<JarDirectory> jarDirectories = new LinkedHashSet<>();
                 for (Node library : getChildren(orderEntry, "library")) {
                     for (Node classesNode : getChildren(library, "CLASSES")) {
                         readDependenciesPathsFromXml(classes, classesNode);
@@ -366,7 +366,7 @@ public class Module extends XmlPersistableConfigurationObject {
             if (moduleJdk != null) {
                 moduleRootManager.remove(moduleJdk);
             }
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("type", "jdk");
             attributes.put("jdkName", jdkName);
             attributes.put("jdkType", "JavaSDK");
@@ -375,7 +375,7 @@ public class Module extends XmlPersistableConfigurationObject {
             if (moduleJdk != null) {
                 moduleRootManager.remove(moduleJdk);
             }
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("type", "inheritedJdk");
             moduleRootManager.appendNode("orderEntry", attributes);
         }
@@ -400,7 +400,7 @@ public class Module extends XmlPersistableConfigurationObject {
     private void addSourceAndExcludeFolderToXml() {
         Node content = findOrCreateContentNode();
         for (Path path : sourceFolders) {
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("url", path.getUrl());
             attributes.put("isTestSource", "false");
             if (generatedSourceFolders.contains(path)) {
@@ -409,7 +409,7 @@ public class Module extends XmlPersistableConfigurationObject {
             content.appendNode("sourceFolder", attributes);
         }
         for (Path path : testSourceFolders) {
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("url", path.getUrl());
             attributes.put("isTestSource", "true");
             if (generatedSourceFolders.contains(path)) {
@@ -421,7 +421,7 @@ public class Module extends XmlPersistableConfigurationObject {
             if (sourceFolders.contains(path)) {
                 continue;
             }
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("url", path.getUrl());
             attributes.put("type", "java-resource");
             if (generatedSourceFolders.contains(path)) {
@@ -433,7 +433,7 @@ public class Module extends XmlPersistableConfigurationObject {
             if (testSourceFolders.contains(path)) {
                 continue;
             }
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("url", path.getUrl());
             attributes.put("type", "java-test-resource");
             if (generatedSourceFolders.contains(path)) {
@@ -442,7 +442,7 @@ public class Module extends XmlPersistableConfigurationObject {
             content.appendNode("sourceFolder", attributes);
         }
         for (Path path : excludeFolders) {
-            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            Map<String, Object> attributes = new LinkedHashMap<>();
             attributes.put("url", path.getUrl());
             content.appendNode("excludeFolder", attributes);
         }

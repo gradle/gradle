@@ -48,7 +48,7 @@ trait ValidationMessageChecker {
             .render()
     }
 
-   String missingNonConfigurableValueMessage(@DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+    String missingNonConfigurableValueMessage(@DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(SimpleMessage, 'value_not_set', spec)
         config.description("doesn't have a configured value")
             .reason("this property isn't marked as optional and no value has been configured")
@@ -58,48 +58,68 @@ trait ValidationMessageChecker {
     }
 
     String methodShouldNotBeAnnotatedMessage(@DelegatesTo(value = MethodShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        MethodShouldNotBeAnnotated config = methodShouldNotBeAnnotatedConfig(spec)
+        config.render()
+    }
+
+    MethodShouldNotBeAnnotated methodShouldNotBeAnnotatedConfig(@DelegatesTo(value = MethodShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(MethodShouldNotBeAnnotated, 'ignored_annotations_on_method', spec)
         config.description("$config.kind '$config.method()' should not be annotated with: @$config.annotation")
             .reason("Input/Output annotations are ignored if they are placed on something else than a getter")
             .solution("Remove the annotations")
             .solution("Rename the method")
-            .render()
     }
 
     String privateGetterAnnotatedMessage(@DelegatesTo(value = AnnotationContext, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        AnnotationContext config = privateGetterAnnotatedConfig(spec)
+        config.render()
+    }
+
+    AnnotationContext privateGetterAnnotatedConfig(Closure<?> spec) {
         def config = display(AnnotationContext, 'private_getter_must_not_be_annotated', spec)
         config.description("is private and annotated with @${config.annotation}")
             .reason("Annotations on private getters are ignored")
             .solution("Make the getter public")
             .solution("Annotate the public version of the getter")
-            .render()
     }
 
     String ignoredAnnotatedPropertyMessage(@DelegatesTo(value = IgnoredAnnotationPropertyMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        IgnoredAnnotationPropertyMessage config = ignoredAnnotatedPropertyConfig(spec)
+        config.render()
+    }
+
+    IgnoredAnnotationPropertyMessage ignoredAnnotatedPropertyConfig(@DelegatesTo(value = IgnoredAnnotationPropertyMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(IgnoredAnnotationPropertyMessage, 'ignored_property_must_not_be_annotated', spec)
         config.description("annotated with @${config.ignoringAnnotation} should not be also annotated with ${config.alsoAnnotatedWith.collect { "@$it" }.join(", ")}")
             .reason("A property is ignored but also has input annotations")
             .solution("Remove the input annotations")
             .solution("Remove the @${config.ignoringAnnotation} annotation")
-            .render()
     }
 
     String conflictingAnnotationsMessage(@DelegatesTo(value = ConflictingAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        ConflictingAnnotation config = conflictingAnnotationsConfig(spec)
+        config.render()
+    }
+
+    ConflictingAnnotation conflictingAnnotationsConfig(@DelegatesTo(value = ConflictingAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(ConflictingAnnotation, 'conflicting_annotations', spec)
         String annotations = config.inConflict.collect { "@$it" }.join(", ")
         config.description("has conflicting $config.kind: $annotations")
             .reason("The different annotations have different semantics and Gradle cannot determine which one to pick")
             .solution("Choose between one of the conflicting annotations")
-            .render()
     }
 
     String annotationInvalidInContext(@DelegatesTo(value = AnnotationContext, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        AnnotationContext config = annotationInvalidInContextConfig(spec)
+        config.render()
+    }
+
+    AnnotationContext annotationInvalidInContextConfig(@DelegatesTo(value = AnnotationContext, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(AnnotationContext, 'annotation_invalid_in_context', spec)
         config.description("is annotated with invalid property type @${config.annotation}")
             .reason("The '@${config.annotation}' annotation cannot be used in this context")
             .solution("Remove the property")
             .solution("Use a different annotation, e.g one of ${config.validAnnotations}")
-            .render()
     }
 
     String modifierAnnotationInvalidInContext(@DelegatesTo(value = AnnotationContext, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
@@ -112,12 +132,15 @@ trait ValidationMessageChecker {
     }
 
     String missingAnnotationMessage(@DelegatesTo(value = MissingAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        missingAnnotationConfig(spec).render()
+    }
+
+    MissingAnnotation missingAnnotationConfig(@DelegatesTo(value = MissingAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(MissingAnnotation, 'missing_annotation', spec)
         config.description("is missing ${config.kind}")
             .reason("A property without annotation isn't considered during up-to-date checking")
             .solution("Add ${config.kind}")
             .solution("Mark it as @Internal")
-            .render()
     }
 
     String ignoredAnnotationOnField(@DelegatesTo(value = IgnoredAnnotationOnField, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
@@ -130,25 +153,35 @@ trait ValidationMessageChecker {
     }
 
     String incompatibleAnnotations(@DelegatesTo(value = IncompatibleAnnotations, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        IncompatibleAnnotations config = incompatibleAnnotationsConfig(spec)
+        config.render()
+    }
+
+    IncompatibleAnnotations incompatibleAnnotationsConfig(@DelegatesTo(value = IncompatibleAnnotations, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(IncompatibleAnnotations, 'incompatible_annotations', spec)
         config.description("is annotated with @${config.annotatedWith} but that is not allowed for '${config.incompatibleWith}' properties")
             .reason("This modifier is used in conjunction with a property of type '${config.incompatibleWith}' but this doesn't have semantics")
             .solution("Remove the '@${config.annotatedWith}' annotation")
-            .render()
     }
 
     String incorrectUseOfInputAnnotation(@DelegatesTo(value = IncorrectUseOfInputAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        IncorrectUseOfInputAnnotation incorrectUseOfInputAnnotation = incorrectUseOfInputAnnotationConfig(spec)
+        incorrectUseOfInputAnnotation.render()
+    }
+
+    IncorrectUseOfInputAnnotation incorrectUseOfInputAnnotationConfig(@DelegatesTo(value = IncorrectUseOfInputAnnotation, strategy = Closure.DELEGATE_FIRST)Closure<?> spec) {
         def config = display(IncorrectUseOfInputAnnotation, 'incorrect_use_of_input_annotation', spec)
         def incorrectUseOfInputAnnotation = config.description("has @Input annotation used on property of type '${config.propertyType}'")
             .reason("A property of type '${config.propertyType}' annotated with @Input cannot determine how to interpret the file")
         if (config.propertyType == "DirectoryProperty" || config.propertyType == "Directory") {
-            return incorrectUseOfInputAnnotation.solution("Annotate with @InputDirectory for directories").render()
+            incorrectUseOfInputAnnotation.solution("Annotate with @InputDirectory for directories")
+                .render()
         } else {
-            return incorrectUseOfInputAnnotation.solution("Annotate with @InputFile for regular files")
+            incorrectUseOfInputAnnotation.solution("Annotate with @InputFile for regular files")
                 .solution("Annotate with @InputFiles for collections of files")
                 .solution("If you want to track the path, return File.absolutePath as a String and keep @Input")
-                .render()
         }
+        incorrectUseOfInputAnnotation
     }
 
     String serviceReferenceMustBeABuildService(@DelegatesTo(value = UnsupportedServiceReferenceType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
@@ -161,11 +194,15 @@ trait ValidationMessageChecker {
     }
 
     String missingNormalizationStrategy(@DelegatesTo(value = MissingNormalization, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        MissingNormalization config = missingNormalizationStrategyConfig(spec)
+        config.render()
+    }
+
+    MissingNormalization missingNormalizationStrategyConfig(@DelegatesTo(value = MissingNormalization, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(MissingNormalization, 'missing_normalization_annotation', spec)
         config.description("is annotated with @${config.annotatedWith} but missing a normalization strategy")
             .reason("If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly")
             .solution("Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath")
-            .render()
     }
 
     String implicitDependency(@DelegatesTo(value = ImplicitDependency, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}, boolean renderSolutions = true) {
@@ -248,20 +285,28 @@ trait ValidationMessageChecker {
     }
 
     String invalidUseOfCacheableAnnotation(@DelegatesTo(value = InvalidUseOfCacheable, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        InvalidUseOfCacheable config = invalidUseOfCacheableAnnotationConfig(spec)
+        config.render()
+    }
+
+    InvalidUseOfCacheable invalidUseOfCacheableAnnotationConfig(@DelegatesTo(value = InvalidUseOfCacheable, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(InvalidUseOfCacheable, 'invalid_use_of_cacheable_annotation', spec)
         config.description("is incorrectly annotated with @${config.invalidAnnotation}")
             .reason("This annotation only makes sense on ${config.correctTypes.join(', ')} types")
             .solution("Remove the annotation")
-            .render()
     }
 
     String optionalOnPrimitive(@DelegatesTo(value = OptionalOnPrimitive, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        OptionalOnPrimitive config = optionalOnPrimitiveConfig(spec)
+        config.render()
+    }
+
+    OptionalOnPrimitive optionalOnPrimitiveConfig(@DelegatesTo(value = OptionalOnPrimitive, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(OptionalOnPrimitive, 'cannot_use_optional_on_primitive_types', spec)
         config.description("of type ${config.primitiveType.name} shouldn't be annotated with @Optional")
             .reason("Properties of primitive type cannot be optional")
             .solution("Remove the @Optional annotation")
             .solution("Use the ${config.wrapperType.name} type instead")
-            .render()
     }
 
     String redundantGetters(@DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
@@ -274,11 +319,15 @@ trait ValidationMessageChecker {
     }
 
     String mutableSetter(@DelegatesTo(value = MutableTypeWithSetter, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        MutableTypeWithSetter config = mutableSetterConfig(spec)
+        config.render()
+    }
+
+    MutableTypeWithSetter mutableSetterConfig(@DelegatesTo(value = MutableTypeWithSetter, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(MutableTypeWithSetter, 'mutable_type_with_setter', spec)
         config.description("of mutable type '${config.propertyType}' is writable")
             .reason("Properties of type '${config.propertyType}' are already mutable")
             .solution("Remove the 'set${config.property.capitalize()}' method")
-            .render()
     }
 
     String invalidUseOfAbsoluteSensitivity(@DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
@@ -328,33 +377,45 @@ trait ValidationMessageChecker {
     }
 
     String unsupportedValueType(@DelegatesTo(value = UnsupportedValueType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        UnsupportedValueType config = unsupportedValueTypeConfig(spec)
+        config.render()
+    }
+
+    UnsupportedValueType unsupportedValueTypeConfig(@DelegatesTo(value = UnsupportedValueType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(UnsupportedValueType, "unsupported_value_type", spec)
         if (config.propertyType.contains("URL")) {
             config.description("has @Input annotation used on type 'java.net.URL' or a property of this type")
                 .reason("Type 'java.net.URL' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type")
                 .solution("Use type 'java.net.URI' instead")
-                .render()
         } else {
             config.description("has @${config.annotationType} annotation used on property of type '${config.propertyType}'")
                 .reason("${config.unsupportedValueType} is not supported on task properties annotated with @${config.annotationType}.")
-                .render()
         }
+        config
     }
 
     String nestedMapUnsupportedKeyType(@DelegatesTo(value = NestedMapUnsupportedKeyType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        NestedMapUnsupportedKeyType config = nestedMapUnsupportedKeyTypeConfig(spec)
+           config.render()
+    }
+
+    NestedMapUnsupportedKeyType nestedMapUnsupportedKeyTypeConfig(@DelegatesTo(value = NestedMapUnsupportedKeyType, strategy = Closure.DELEGATE_FIRST)Closure<?> spec) {
         def config = display(NestedMapUnsupportedKeyType, "unsupported_key_type_of_nested_map", spec)
         config.description("where key of nested map is of type '${config.keyType}'.")
             .reason("Key of nested map must be one of the following types: 'Enum', 'Integer', 'String'")
             .solution("Change type of key to one of the following types: 'Enum', 'Integer', 'String'")
-            .render()
     }
 
     String nestedTypeUnsupported(@DelegatesTo(value = NestedTypeUnsupported, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        NestedTypeUnsupported config = nestedTypeUnsupportedConfig(spec)
+            config.render()
+    }
+
+    NestedTypeUnsupported nestedTypeUnsupportedConfig(@DelegatesTo(value = NestedTypeUnsupported, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(NestedTypeUnsupported, "unsupported_nested_type", spec)
         config.description("with nested type '${config.annotatedType}' is not supported.")
             .solution("Use a different input annotation if type is not a bean.")
             .solution("Use a different package that doesn't conflict with standard Java or Kotlin types for custom types.")
-            .render()
     }
 
     void expectThatExecutionOptimizationDisabledWarningIsDisplayed(GradleExecuter executer,

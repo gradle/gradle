@@ -14,8 +14,6 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.commonsLang)
-    implementation(libs.jacksonCore)
-    implementation(libs.jacksonDatabind)
     implementation(libs.gcs)
 
     testImplementation(libs.groovy)

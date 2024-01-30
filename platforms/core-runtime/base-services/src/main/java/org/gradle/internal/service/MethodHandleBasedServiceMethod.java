@@ -17,6 +17,7 @@ package org.gradle.internal.service;
 
 import org.gradle.internal.UncheckedException;
 
+import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
@@ -31,7 +32,7 @@ class MethodHandleBasedServiceMethod extends AbstractServiceMethod {
     }
 
     @Override
-    public Object invoke(Object target, Object... args) {
+    public Object invoke(Object target, @Nullable Object... args) {
         try {
             return method.bindTo(target).invokeWithArguments(args);
         } catch (Throwable e) {

@@ -322,7 +322,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return the names of the tasks to execute in this build. Never returns null.
      */
     public List<String> getTaskNames() {
-        List<String> taskNames = Lists.newArrayList();
+        List<String> taskNames = new ArrayList<>();
         for (TaskExecutionRequest taskRequest : taskRequests) {
             taskNames.addAll(taskRequest.getArgs());
         }
@@ -995,6 +995,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     @Incubating
     @Deprecated
     public boolean isConfigurationCacheRequested() {
+        // TODO:configuration-cache add nagging in 8.6 (https://github.com/gradle/gradle/issues/26720)
         return false;
     }
 }

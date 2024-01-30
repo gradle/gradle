@@ -22,7 +22,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
-import org.gradle.initialization.layout.BuildLocations
+import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
 import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
@@ -37,7 +37,7 @@ import java.io.File
 
 @ServiceScope(Scopes.BuildTree::class)
 class ConfigurationCacheStartParameter(
-    private val buildLocations: BuildLocations,
+    private val buildLayout: BuildLayout,
     private val startParameter: StartParameterInternal,
     options: InternalOptions,
     private val modelParameters: BuildModelParameters
@@ -96,14 +96,14 @@ class ConfigurationCacheStartParameter(
         get() = startParameter.currentDir
 
     val settingsDirectory: File
-        get() = buildLocations.settingsDir
+        get() = buildLayout.settingsDir
 
     @Suppress("DEPRECATION")
     val settingsFile: File?
         get() = DeprecationLogger.whileDisabled(Factory { startParameter.settingsFile })
 
     val rootDirectory: File
-        get() = buildLocations.rootDirectory
+        get() = buildLayout.rootDirectory
 
     val isOffline
         get() = startParameter.isOffline

@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
@@ -94,7 +94,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
                         Cast.uncheckedCast(sourceVariant.getArtifacts()),
                         sourceVariant.getExcludes(),
                         sourceVariant.getAttributes(),
-                        (ImmutableCapabilities) sourceVariant.getCapabilities(),
+                        sourceVariant.getCapabilities(),
                         dependencies,
                         false,
                         sourceVariant.isExternalVariant()
@@ -138,7 +138,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
                 artifacts = ImmutableList.of();
             } else {
                 attributes = baseConf.getAttributes();
-                capabilities = (ImmutableCapabilities) baseConf.getCapabilities();
+                capabilities = baseConf.getCapabilities();
                 dependencies = baseConf.getDependencies();
                 artifacts = Cast.uncheckedCast(baseConf.getArtifacts());
             }
@@ -168,10 +168,10 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
     ) {
         NameOnlyVariantResolveMetadata variant = new NameOnlyVariantResolveMetadata(configurationName);
         ImmutableAttributes variantAttributes = variantMetadataRules.applyVariantAttributeRules(variant, attributes);
-        CapabilitiesMetadata capabilitiesMetadata = variantMetadataRules.applyCapabilitiesRules(variant, capabilities);
+        ImmutableCapabilities variantCapabilities = variantMetadataRules.applyCapabilitiesRules(variant, capabilities);
         List<? extends DependencyMetadata> dependenciesMetadata = variantMetadataRules.applyDependencyMetadataRules(variant, dependencies);
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifactsMetadata = variantMetadataRules.applyVariantFilesMetadataRulesToArtifacts(variant, artifacts, id);
-        return createConfiguration(id, configurationName, transitive, visible, hierarchy, artifactsMetadata, dependenciesMetadata, variantAttributes, ImmutableCapabilities.of(capabilitiesMetadata.getCapabilities()), addedByRule, isExternalVariant);
+        return createConfiguration(id, configurationName, transitive, visible, hierarchy, artifactsMetadata, dependenciesMetadata, variantAttributes, variantCapabilities, addedByRule, isExternalVariant);
     }
 
     private static RealisedConfigurationMetadata createConfiguration(DefaultMavenModuleResolveMetadata metadata, String configurationName) {
@@ -201,24 +201,26 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
     }
 
     static ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(DefaultMavenModuleResolveMetadata metadata) {
-        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
-
         if (metadata.isRelocated()) {
             // relocated packages have no artifacts
-            artifacts = ImmutableList.of();
+            return ImmutableList.of();
         } else if (metadata.isPomPackaging()) {
             // Modules with POM packaging _may_ have a jar
-            artifacts = ImmutableList.of(metadata.optionalArtifact("jar", "jar", null));
+            return ImmutableList.of(metadata.optionalArtifact("jar", "jar", null));
         } else if (metadata.isKnownJarPackaging()) {
             // Modules with a type of packaging that's always a jar
-            artifacts = ImmutableList.of(metadata.artifact("jar", "jar", null));
+            return ImmutableList.of(metadata.artifact("jar", "jar", null));
         } else {
-            // Modules with other types of packaging may publish an artifact with that extension or a jar
             String type = metadata.getPackaging();
-            artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(metadata.getId(), new DefaultIvyArtifactName(metadata.getId().getModule(), type, type),
-                metadata.artifact("jar", "jar", null)));
+            // We were unable to resolve variable substitutions in the POM, so assume we're looking for a jar
+            if (PomReader.hasUnresolvedSubstitutions(type)) {
+                return ImmutableList.of(metadata.artifact("jar", "jar", null));
+            } else {
+                // Modules with other types of packaging may publish an artifact with that extension or a jar
+                return ImmutableList.of(new DefaultModuleComponentArtifactMetadata(metadata.getId(), new DefaultIvyArtifactName(metadata.getId().getModule(), type, type),
+                    metadata.artifact("jar", "jar", null)));
+            }
         }
-        return artifacts;
     }
 
     static ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming) {

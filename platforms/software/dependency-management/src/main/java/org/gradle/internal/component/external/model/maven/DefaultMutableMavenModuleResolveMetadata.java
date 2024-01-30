@@ -27,6 +27,7 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.model.AbstractMutableModuleComponentResolveMetadata;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
 
@@ -111,12 +112,12 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     }
 
     @Override
-    public String getPackaging() {
+    public @Nonnull String getPackaging() {
         return packaging;
     }
 
     @Override
-    public void setPackaging(String packaging) {
+    public void setPackaging(@Nonnull String packaging) {
         this.packaging = packaging;
     }
 

@@ -42,7 +42,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.scala-lang:scala-library:2.12.11'
+    implementation 'org.scala-lang:scala-library:2.12.18'
 }
 
 tasks.withType(ScalaCompile).configureEach {
@@ -78,7 +78,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.scala-lang:scala-library:2.12.11'
+    implementation 'org.scala-lang:scala-library:2.12.18'
 }
 
 tasks.withType(ScalaCompile).configureEach {

@@ -61,7 +61,7 @@ public class ResolveExceptionContextualizer {
     }
 
     public ResolveException contextualize(Throwable e, ResolveContext resolveContext) {
-        return mapFailure(e, "dependencies", resolveContext.getDisplayName());
+        return mapFailure(e, "dependencies", resolveContext.getResolutionHost().getDisplayName());
     }
 
     private ResolveException mapFailure(Throwable failure, String type, String contextDisplayName) {

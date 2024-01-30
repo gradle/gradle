@@ -257,4 +257,34 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
             result.assertTaskNotExecuted(":app:processResources")
         }
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/24341")
+    def "can exclude task with included build that in turn includes a build for convention plugins"() {
+        setup:
+        file('included/settings.gradle').text = """
+            pluginManagement {
+                includeBuild('../conventions')
+            }
+            plugins {
+                id 'script-plugin'
+            }
+            include('sub')
+        """
+        file('conventions/settings.gradle') << """
+        """
+        file('conventions/build.gradle') << """
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+        """
+        file('conventions/src/main/groovy/script-plugin.settings.gradle') << """
+        """
+
+        expect:
+        2.times {
+            succeeds("build", "-x", "test")
+            result.assertTaskNotExecuted(":test")
+            result.assertTaskNotExecuted(":sub:test")
+        }
+    }
 }

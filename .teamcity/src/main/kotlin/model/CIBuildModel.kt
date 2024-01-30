@@ -20,6 +20,7 @@ import configurations.FlakyTestQuarantine
 import configurations.FunctionalTest
 import configurations.Gradleception
 import configurations.SanityCheck
+import configurations.SmokeIdeTests
 import configurations.SmokeTests
 import configurations.TestPerformanceTest
 import projects.DEFAULT_FUNCTIONAL_TEST_BUCKET_SIZE
@@ -82,7 +83,8 @@ data class CIBuildModel(
                 SpecificBuild.ConfigCacheSantaTrackerSmokeTests,
                 SpecificBuild.GradleBuildSmokeTests,
                 SpecificBuild.ConfigCacheSmokeTestsMaxJavaVersion,
-                SpecificBuild.ConfigCacheSmokeTestsMinJavaVersion
+                SpecificBuild.ConfigCacheSmokeTestsMinJavaVersion,
+                SpecificBuild.SmokeIdeTests
             ),
             functionalTests = listOf(
                 TestCoverage(3, TestType.platform, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
@@ -113,8 +115,9 @@ data class CIBuildModel(
                 SpecificBuild.TestPerformanceTest,
                 SpecificBuild.FlakyTestQuarantineLinux,
                 SpecificBuild.FlakyTestQuarantineMacOs,
-                SpecificBuild.FlakyTestQuarantineMacOsM1,
-                SpecificBuild.FlakyTestQuarantineWindows
+                SpecificBuild.FlakyTestQuarantineMacOsAppleSilicon,
+                SpecificBuild.FlakyTestQuarantineWindows,
+                SpecificBuild.GradleceptionWithMaxLtsJdk,
             ),
             functionalTests = listOf(
                 TestCoverage(7, TestType.parallel, Os.LINUX, JvmCategory.MAX_LTS_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
@@ -125,7 +128,7 @@ data class CIBuildModel(
                 TestCoverage(11, TestType.allVersionsCrossVersion, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS, ALL_CROSS_VERSION_BUCKETS.size),
                 TestCoverage(12, TestType.noDaemon, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
                 TestCoverage(13, TestType.noDaemon, Os.WINDOWS, JvmCategory.MAX_LTS_VERSION),
-                TestCoverage(14, TestType.platform, Os.MACOS, JvmCategory.MIN_VERSION, expectedBucketNumber = 20, arch = Arch.AMD64),
+                TestCoverage(14, TestType.platform, Os.MACOS, JvmCategory.MIN_VERSION, expectedBucketNumber = 5, arch = Arch.AMD64),
                 TestCoverage(15, TestType.forceRealizeDependencyManagement, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
                 TestCoverage(33, TestType.allVersionsIntegMultiVersion, Os.LINUX, JvmCategory.MIN_VERSION, ALL_CROSS_VERSION_BUCKETS.size),
                 TestCoverage(34, TestType.allVersionsIntegMultiVersion, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS, ALL_CROSS_VERSION_BUCKETS.size),
@@ -360,12 +363,17 @@ enum class SpecificBuild {
     },
     Gradleception {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return Gradleception(model, stage)
+            return Gradleception(model, stage, BuildToolBuildJvm, "Default")
         }
     },
     GradleceptionWithGroovy4 {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return Gradleception(model, stage, true)
+            return Gradleception(model, stage, BuildToolBuildJvm, "Default", bundleGroovy4 = true)
+        }
+    },
+    GradleceptionWithMaxLtsJdk {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return Gradleception(model, stage, JvmCategory.MAX_LTS_VERSION, "MaxLts")
         }
     },
     CheckLinks {
@@ -380,37 +388,37 @@ enum class SpecificBuild {
     },
     SmokeTestsMinJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return SmokeTests(model, stage, JvmCategory.MIN_VERSION, splitNumber = 2)
+            return SmokeTests(model, stage, JvmCategory.MIN_VERSION, name, splitNumber = 2)
         }
     },
     SmokeTestsMaxJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, splitNumber = 4)
+            return SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, name, splitNumber = 4)
         }
     },
     SantaTrackerSmokeTests {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return SmokeTests(model, stage, JvmCategory.SANTA_TRACKER_SMOKE_TEST_VERSION, "santaTrackerSmokeTest", 4)
+            return SmokeTests(model, stage, JvmCategory.SANTA_TRACKER_SMOKE_TEST_VERSION, name, "santaTrackerSmokeTest", 4)
         }
     },
     ConfigCacheSantaTrackerSmokeTests {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return SmokeTests(model, stage, JvmCategory.SANTA_TRACKER_SMOKE_TEST_VERSION, "configCacheSantaTrackerSmokeTest", 4)
+            return SmokeTests(model, stage, JvmCategory.SANTA_TRACKER_SMOKE_TEST_VERSION, name, "configCacheSantaTrackerSmokeTest", 4)
         }
     },
     GradleBuildSmokeTests {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, GRADLE_BUILD_SMOKE_TEST_NAME, splitNumber = 4)
+            return SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, name, GRADLE_BUILD_SMOKE_TEST_NAME, splitNumber = 4)
         }
     },
     ConfigCacheSmokeTestsMinJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return SmokeTests(model, stage, JvmCategory.MIN_VERSION, "configCacheSmokeTest", splitNumber = 4)
+            return SmokeTests(model, stage, JvmCategory.MIN_VERSION, name, "configCacheSmokeTest", splitNumber = 4)
         }
     },
     ConfigCacheSmokeTestsMaxJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, "configCacheSmokeTest", splitNumber = 4)
+            return SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, name, "configCacheSmokeTest", splitNumber = 4)
         }
     },
     FlakyTestQuarantineLinux {
@@ -423,7 +431,7 @@ enum class SpecificBuild {
             return FlakyTestQuarantine(model, stage, Os.MACOS)
         }
     },
-    FlakyTestQuarantineMacOsM1 {
+    FlakyTestQuarantineMacOsAppleSilicon {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return FlakyTestQuarantine(model, stage, Os.MACOS, Arch.AARCH64)
         }
@@ -433,14 +441,9 @@ enum class SpecificBuild {
             return FlakyTestQuarantine(model, stage, Os.WINDOWS)
         }
     },
-    SmokeTestsExperimentalJDK {
+    SmokeIdeTests {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return SmokeTests(model, stage, JvmCategory.EXPERIMENTAL_VERSION)
-        }
-    },
-    ConfigCacheSmokeTestsExperimentalJDK {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return SmokeTests(model, stage, JvmCategory.EXPERIMENTAL_VERSION, "configCacheSmokeTest")
+            return SmokeIdeTests(model, stage)
         }
     };
 

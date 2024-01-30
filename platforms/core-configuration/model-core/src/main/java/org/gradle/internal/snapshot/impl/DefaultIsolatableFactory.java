@@ -97,7 +97,7 @@ public class DefaultIsolatableFactory extends AbstractValueProcessor implements 
         }
 
         @Override
-        public Isolatable<?> enumValue(Enum value) {
+        public Isolatable<?> enumValue(Enum<?> value) {
             return new IsolatedEnumValueSnapshot(value);
         }
 
@@ -154,6 +154,11 @@ public class DefaultIsolatableFactory extends AbstractValueProcessor implements 
         @Override
         public Isolatable<?> array(ImmutableList<Isolatable<?>> elements, Class<?> arrayType) {
             return new IsolatedArray(elements, arrayType);
+        }
+
+        @Override
+        public Isolatable<?> primitiveArray(Object value) {
+            return new ArrayOfPrimitiveValueSnapshot(value);
         }
 
         @Override

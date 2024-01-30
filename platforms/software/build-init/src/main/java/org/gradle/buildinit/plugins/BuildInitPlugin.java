@@ -19,9 +19,11 @@ package org.gradle.buildinit.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.tasks.InitBuild;
@@ -29,7 +31,6 @@ import org.gradle.internal.file.RelativeFilePathResolver;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.concurrent.Callable;
 
 /**
  * The build init plugin.
@@ -38,11 +39,12 @@ import java.util.concurrent.Callable;
  */
 public abstract class BuildInitPlugin implements Plugin<Project> {
 
+    private static final String COMMENTS_PROPERTY = "org.gradle.buildinit.comments";
+
     @Override
     public void apply(Project project) {
         if (project.getParent() == null) {
             project.getTasks().register("init", InitBuild.class, initBuild -> {
-                initBuild.notCompatibleWithConfigurationCache("Not applicable");
                 initBuild.setGroup("Build Setup");
                 initBuild.setDescription("Initializes a new Gradle build.");
 
@@ -57,15 +59,25 @@ public abstract class BuildInitPlugin implements Plugin<Project> {
                     "There is no build script or settings script",
                     new InitBuildOnlyIfSpec(buildFileDetails, settingsFileDetails, initBuild.getLogger())
                 );
-                initBuild.dependsOn(new InitBuildDependsOnCallable(buildFileDetails, settingsFileDetails));
 
                 ProjectInternal.DetachedResolver detachedResolver = projectInternal.newDetachedResolver();
                 initBuild.getProjectLayoutRegistry().getBuildConverter().configureClasspath(
                     detachedResolver, project.getObjects(), projectInternal.getServices().get(JvmPluginServices.class));
 
+                initBuild.getUseDefaults().convention(false);
                 initBuild.getInsecureProtocol().convention(InsecureProtocolOption.WARN);
+                initBuild.getComments().convention(getCommentsProperty(project).orElse(true));
             });
         }
+    }
+
+    private static Provider<Boolean> getCommentsProperty(Project project) {
+        return project.getProviders().gradleProperty(COMMENTS_PROPERTY).map(new Transformer<Boolean, String>() {
+            @Override
+            public Boolean transform(String s) {
+                return Boolean.parseBoolean(s);
+            }
+        });
     }
 
     private static class InitBuildOnlyIfSpec implements Spec<Task> {
@@ -88,26 +100,6 @@ public abstract class BuildInitPlugin implements Plugin<Project> {
                 return false;
             }
             return true;
-        }
-    }
-
-    private static class InitBuildDependsOnCallable implements Callable<String> {
-
-        private final FileDetails buildFile;
-        private final FileDetails settingsFile;
-
-        private InitBuildDependsOnCallable(FileDetails buildFile, FileDetails settingsFile) {
-            this.buildFile = buildFile;
-            this.settingsFile = settingsFile;
-        }
-
-        @Override
-        public String call() {
-            if (reasonToSkip(buildFile, settingsFile) == null) {
-                return "wrapper";
-            } else {
-                return null;
-            }
         }
     }
 

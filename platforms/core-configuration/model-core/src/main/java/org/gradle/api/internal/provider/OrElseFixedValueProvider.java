@@ -30,7 +30,7 @@ class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
     }
 
     @Override
-    public String toString() {
+    protected String toStringNoReentrance() {
         return String.format("or(%s, fixed(%s))", provider, fallbackValue);
     }
 
@@ -42,31 +42,37 @@ class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
 
     @Override
     public ValueProducer getProducer() {
-        return new OrElseValueProducer(provider, null, ValueProducer.unknown());
+        try (EvaluationContext.ScopeContext context = openScope()) {
+            return new OrElseValueProducer(context, provider);
+        }
     }
 
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-        ExecutionTimeValue<? extends T> value = provider.calculateExecutionTimeValue();
-        if (value.isMissing()) {
-            // Use fallback value
-            return ExecutionTimeValue.fixedValue(fallbackValue);
-        } else if (value.hasFixedValue()) {
-            // Result is fixed value, use it
-            return value;
-        } else {
-            // Value is changing, so keep the logic
-            return ExecutionTimeValue.changingValue(new OrElseFixedValueProvider<>(value.getChangingValue(), fallbackValue));
+        try (EvaluationContext.ScopeContext ignored = openScope()) {
+            ExecutionTimeValue<? extends T> value = provider.calculateExecutionTimeValue();
+            if (value.isMissing()) {
+                // Use fallback value
+                return ExecutionTimeValue.fixedValue(fallbackValue);
+            } else if (value.hasFixedValue()) {
+                // Result is fixed value, use it
+                return value;
+            } else {
+                // Value is changing, so keep the logic
+                return ExecutionTimeValue.changingValue(new OrElseFixedValueProvider<>(value.getChangingValue(), fallbackValue));
+            }
         }
     }
 
     @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-        Value<? extends T> value = provider.calculateValue(consumer);
-        if (value.isMissing()) {
-            return Value.of(fallbackValue);
-        } else {
-            return value;
+        try (EvaluationContext.ScopeContext ignored = openScope()) {
+            Value<? extends T> value = provider.calculateValue(consumer);
+            if (value.isMissing()) {
+                return Value.of(fallbackValue);
+            } else {
+                return value;
+            }
         }
     }
 }

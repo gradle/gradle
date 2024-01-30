@@ -17,14 +17,12 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -32,16 +30,18 @@ import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.Cast;
-import org.gradle.internal.component.SelectionFailureHandler;
+import org.gradle.internal.component.ResolutionFailureHandler;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -50,14 +50,14 @@ import java.util.Set;
  * (in practice, this should be only contain single variant).
  *
  * This class is intentionally named similarly to {@link ArtifactVariantSelector}, as it has a
- * similar purpose.  An instance of {@link SelectionFailureHandler} is injected in the constructor
+ * similar purpose.  An instance of {@link ResolutionFailureHandler} is injected in the constructor
  * to allow the caller to handle failures in a consistent way - all matching failures should be reported via
  * calls to that instance.
  */
 public class GraphVariantSelector {
-    private final SelectionFailureHandler failureProcessor;
+    private final ResolutionFailureHandler failureProcessor;
 
-    public GraphVariantSelector(SelectionFailureHandler failureProcessor) {
+    public GraphVariantSelector(ResolutionFailureHandler failureProcessor) {
         this.failureProcessor = failureProcessor;
     }
 
@@ -66,15 +66,19 @@ public class GraphVariantSelector {
      *
      * @return the failure processor
      */
-    public SelectionFailureHandler getFailureProcessor() {
+    public ResolutionFailureHandler getFailureProcessor() {
         return failureProcessor;
     }
 
     public GraphVariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts) {
-        return selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, AttributeMatchingExplanationBuilder.logging());
+        return selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, false, AttributeMatchingExplanationBuilder.logging());
     }
 
-    private GraphVariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts, AttributeMatchingExplanationBuilder explanationBuilder) {
+    public GraphVariantSelectionResult selectVariantsLenient(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts) {
+        return selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, true, AttributeMatchingExplanationBuilder.logging());
+    }
+
+    private GraphVariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts, boolean allowNoMatchingVariants, AttributeMatchingExplanationBuilder explanationBuilder) {
         ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
         GraphSelectionCandidates candidates = targetComponentState.getCandidatesForGraphVariantSelection();
         AttributeMatcher attributeMatcher = consumerSchema.withProducer(targetComponent.getAttributesSchema());
@@ -89,7 +93,7 @@ public class GraphVariantSelector {
         List<? extends VariantGraphResolveState> allConsumableVariants = candidates.getVariants();
         ImmutableList<VariantGraphResolveState> variantsProvidingRequestedCapabilities = filterVariantsByRequestedCapabilities(targetComponent, explicitRequestedCapabilities, allConsumableVariants, true);
         if (variantsProvidingRequestedCapabilities.isEmpty()) {
-            throw failureProcessor.noMatchingCapabilitiesFailure(targetComponent, explicitRequestedCapabilities, allConsumableVariants);
+            throw failureProcessor.noMatchingCapabilitiesFailure(consumerSchema, attributeMatcher, targetComponent, explicitRequestedCapabilities, allConsumableVariants);
         }
 
         List<VariantGraphResolveState> matches = attributeMatcher.matches(variantsProvidingRequestedCapabilities, consumerAttributes, explanationBuilder);
@@ -125,17 +129,20 @@ public class GraphVariantSelector {
         if (matches.size() == 1) {
             return singleVariant(true, matches);
         } else if (!matches.isEmpty()) {
-            AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
             if (explanationBuilder instanceof TraceDiscardedConfigurations) {
                 Set<VariantGraphResolveState> discarded = Cast.uncheckedCast(((TraceDiscardedConfigurations) explanationBuilder).discarded);
-                throw failureProcessor.ambiguousGraphVariantsFailure(describer, consumerAttributes, attributeMatcher, matches, targetComponent, true, discarded);
+                throw failureProcessor.ambiguousGraphVariantsFailure(consumerSchema, attributeMatcher, consumerAttributes, matches, targetComponent, true, discarded);
             } else {
                 // Perform a second resolution with tracing
-                return selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, new TraceDiscardedConfigurations());
+                return selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, allowNoMatchingVariants, new TraceDiscardedConfigurations());
             }
         } else {
+            if (allowNoMatchingVariants) {
+                return new GraphVariantSelectionResult(Collections.emptyList(), true);
+            }
+
             AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
-            throw failureProcessor.noMatchingGraphVariantFailure(describer, consumerAttributes, attributeMatcher, targetComponent, candidates);
+            throw failureProcessor.noMatchingGraphVariantFailure(consumerSchema, attributeMatcher, consumerAttributes, targetComponent, candidates);
         }
     }
 
@@ -152,7 +159,7 @@ public class GraphVariantSelector {
         }
 
         AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
-        throw failureProcessor.noMatchingGraphVariantFailure(describer, consumerAttributes, attributeMatcher, targetComponent, candidates);
+        throw failureProcessor.noMatchingGraphVariantFailure(consumerSchema, attributeMatcher, consumerAttributes, targetComponent, candidates);
     }
 
     @Nullable
@@ -164,8 +171,7 @@ public class GraphVariantSelector {
             if (artifacts.size() == 1) {
                 ComponentArtifactMetadata componentArtifactMetadata = artifacts.get(0);
                 if (componentArtifactMetadata instanceof ModuleComponentArtifactMetadata) {
-                    ArtifactIdentifier artifactIdentifier = ((ModuleComponentArtifactMetadata) componentArtifactMetadata).toArtifactIdentifier();
-                    if (classifier.equals(artifactIdentifier.getClassifier())) {
+                    if (classifier.equals(componentArtifactMetadata.getName().getClassifier())) {
                         if (sameClassifier == null) {
                             sameClassifier = Collections.singletonList(match);
                         } else {
@@ -204,8 +210,7 @@ public class GraphVariantSelector {
         boolean explicitlyRequested = !explicitRequestedCapabilities.isEmpty();
         ModuleIdentifier moduleId = targetComponent.getModuleVersionId().getModule();
         for (VariantGraphResolveState variant : consumableVariants) {
-            CapabilitiesMetadata capabilitiesMetadata = variant.getCapabilities();
-            List<? extends Capability> capabilities = capabilitiesMetadata.getCapabilities();
+            ImmutableCapabilities capabilities = variant.getCapabilities();
             MatchResult result;
             if (explicitlyRequested) {
                 // some capabilities are explicitly required (in other words, we're not _necessarily_ looking for the default capability
@@ -213,7 +218,7 @@ public class GraphVariantSelector {
                 result = providesAllCapabilities(targetComponent, explicitRequestedCapabilities, capabilities);
             } else {
                 // we need to make sure the variants we consider provide the implicit capability
-                result = containsImplicitCapability(capabilitiesMetadata, capabilities, moduleId.getGroup(), moduleId.getName());
+                result = containsImplicitCapability(capabilities, moduleId.getGroup(), moduleId.getName());
             }
             if (result.matches) {
                 if (lenient || result == MatchResult.EXACT_MATCH) {
@@ -228,8 +233,9 @@ public class GraphVariantSelector {
      * Determines if a producer variant provides all the requested capabilities. When doing so it does
      * NOT consider capability versions, as they will be used later in the engine during conflict resolution.
      */
-    private MatchResult providesAllCapabilities(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, List<? extends Capability> providerCapabilities) {
-        if (providerCapabilities.isEmpty()) {
+    private MatchResult providesAllCapabilities(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, ImmutableCapabilities providerCapabilities) {
+        ImmutableSet<ImmutableCapability> providerCapabilitiesSet = providerCapabilities.asSet();
+        if (providerCapabilitiesSet.isEmpty()) {
             // producer doesn't declare anything, so we assume that it only provides the implicit capability
             if (explicitRequestedCapabilities.size() == 1) {
                 Capability requested = explicitRequestedCapabilities.iterator().next();
@@ -243,7 +249,7 @@ public class GraphVariantSelector {
             String requestedGroup = requested.getGroup();
             String requestedName = requested.getName();
             boolean found = false;
-            for (Capability provided : providerCapabilities) {
+            for (Capability provided : providerCapabilitiesSet) {
                 if (provided.getGroup().equals(requestedGroup) && provided.getName().equals(requestedName)) {
                     found = true;
                     break;
@@ -253,27 +259,38 @@ public class GraphVariantSelector {
                 return MatchResult.NO_MATCH;
             }
         }
-        boolean exactMatch = explicitRequestedCapabilities.size() == providerCapabilities.size();
+        boolean exactMatch = explicitRequestedCapabilities.size() == providerCapabilitiesSet.size();
         return exactMatch ? MatchResult.EXACT_MATCH : MatchResult.MATCHES_ALL;
     }
 
-    private MatchResult containsImplicitCapability(CapabilitiesMetadata capabilitiesMetadata, Collection<? extends Capability> capabilities, String group, String name) {
-        if (fastContainsImplicitCapability((CapabilitiesMetadataInternal) capabilitiesMetadata, capabilities)) {
+    private MatchResult containsImplicitCapability(ImmutableCapabilities capabilities, String group, String name) {
+        ImmutableSet<ImmutableCapability> capabilitiesSet = capabilities.asSet();
+        if (fastContainsImplicitCapability(capabilitiesSet)) {
             // An empty capability list means that it's an implicit capability only
             return MatchResult.EXACT_MATCH;
         }
-        for (Capability capability : capabilities) {
+        for (Capability capability : capabilitiesSet) {
             capability = unwrap(capability);
             if (group.equals(capability.getGroup()) && name.equals(capability.getName())) {
-                boolean exactMatch = capabilities.size() == 1;
+                boolean exactMatch = capabilitiesSet.size() == 1;
                 return exactMatch ? MatchResult.EXACT_MATCH : MatchResult.MATCHES_ALL;
             }
         }
         return MatchResult.NO_MATCH;
     }
 
-    private boolean fastContainsImplicitCapability(CapabilitiesMetadataInternal capabilitiesMetadata, Collection<? extends Capability> capabilities) {
-        return capabilities.isEmpty() || capabilitiesMetadata.isShadowedCapabilityOnly();
+    /**
+     * A method that helps performance of selection by quickly checking if a
+     * metadata container only contains a single, shadowed (the implicit) capability.
+     *
+     * @return {@code true} if the variant only contains the implicit capability
+     */
+    private static boolean fastContainsImplicitCapability(ImmutableSet<ImmutableCapability> capabilities) {
+        if (capabilities.isEmpty()) {
+            return true;
+        }
+
+        return capabilities.size() == 1 && capabilities.iterator().next() instanceof ShadowedCapability;
     }
 
     private Capability unwrap(Capability capability) {
@@ -296,7 +313,7 @@ public class GraphVariantSelector {
     }
 
     private static class TraceDiscardedConfigurations implements AttributeMatchingExplanationBuilder {
-        private final Set<HasAttributes> discarded = Sets.newHashSet();
+        private final Set<HasAttributes> discarded = new HashSet<>();
 
         @Override
         public boolean canSkipExplanation() {

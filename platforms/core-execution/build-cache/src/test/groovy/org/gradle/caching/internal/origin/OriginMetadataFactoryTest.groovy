@@ -36,11 +36,11 @@ class OriginMetadataFactoryTest extends Specification {
         entry.identity >> "identity"
         entry.type >> CacheableEntity
         def origin = new Properties()
-        def writer = factory.createWriter(entry, Duration.ofMillis(10))
+        def writer = factory.createWriter("identity", CacheableEntity, Duration.ofMillis(10))
         def baos = new ByteArrayOutputStream()
         writer.execute(baos)
         when:
-        def reader = factory.createReader(entry)
+        def reader = factory.createReader()
         // doesn't explode
         reader.execute(new ByteArrayInputStream(baos.toByteArray()))
         and:

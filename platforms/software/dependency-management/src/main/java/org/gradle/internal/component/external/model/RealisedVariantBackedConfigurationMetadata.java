@@ -18,7 +18,6 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -99,7 +98,7 @@ public class RealisedVariantBackedConfigurationMetadata extends AbstractVariantB
         }
 
         @Override
-        public CapabilitiesMetadata getCapabilities() {
+        public ImmutableCapabilities getCapabilities() {
             return delegate.getCapabilities();
         }
 

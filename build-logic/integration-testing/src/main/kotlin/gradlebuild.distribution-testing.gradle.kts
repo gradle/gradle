@@ -16,6 +16,7 @@
 
 import gradlebuild.basics.repoRoot
 import gradlebuild.cleanup.services.CachesCleaner
+import gradlebuild.integrationtests.extension.IntegrationTestExtension
 import gradlebuild.integrationtests.setSystemPropertiesOfTestJVM
 import gradlebuild.integrationtests.tasks.DistributionTest
 
@@ -23,8 +24,6 @@ plugins {
     java
     id("gradlebuild.module-identity")
 }
-
-val docsProjectLocation = "subprojects/docs" // TODO instead of reaching directly into the project we should use dependency management
 
 val intTestHomeDir = repoRoot().dir("intTestHomeDir")
 
@@ -74,7 +73,7 @@ fun DistributionTest.configureGradleTestEnvironment() {
         // The user home dir is not wiped out by clean. Move the daemon working space underneath the build dir so they don't pile up on CI.
         // The actual daemon registry dir will be a subfolder using the name of the distribution.
         daemonRegistry = repoRoot().dir("build/daemon")
-        gradleSnippetsDir = repoRoot().dir("$docsProjectLocation/src/snippets")
+        gradleSnippetsDir = repoRoot().dir("platforms/documentation/docs/src/snippets") // TODO use dependency management
     }
 
     // Wire the different inputs for local distributions and repos that are declared by dependencies in the build scripts
@@ -87,7 +86,7 @@ fun DistributionTest.configureGradleTestEnvironment() {
 }
 
 fun DistributionTest.setJvmArgsOfTestJvm() {
-    jvmArgs("-Xmx512m", "-XX:+HeapDumpOnOutOfMemoryError")
+    jvmArgs("-Xmx${project.the<IntegrationTestExtension>().testJvmXmx.get()}", "-XX:+HeapDumpOnOutOfMemoryError")
     if (!javaVersion.isJava8Compatible) {
         jvmArgs("-XX:MaxPermSize=768m")
     }

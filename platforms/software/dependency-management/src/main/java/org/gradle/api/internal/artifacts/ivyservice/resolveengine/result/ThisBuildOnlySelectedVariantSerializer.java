@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Describables;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerializer;
 import org.gradle.internal.serialize.Decoder;
@@ -119,7 +120,7 @@ public class ThisBuildOnlySelectedVariantSerializer implements SelectedVariantSe
         String displayName = decoder.readString();
         AttributeContainer attributes = attributeContainerSerializer.read(decoder);
         List<Capability> capabilities = capabilitySerializer.read(decoder);
-        visitor.visitSelectedVariant(nodeId, new DefaultResolvedVariantResult(ownerId, Describables.of(displayName), attributes, capabilities, null));
+        visitor.visitSelectedVariant(nodeId, new DefaultResolvedVariantResult(ownerId, Describables.of(displayName), attributes, ImmutableCapabilities.of(capabilities), null));
     }
 
     private VariantGraphResolveState readVariantReference(Decoder decoder) throws IOException {

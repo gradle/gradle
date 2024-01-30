@@ -97,4 +97,21 @@ class NamedDomainObjectContainerIntegrationTest extends AbstractDomainObjectCont
         expect:
         succeeds "help"
     }
+
+    def "name based filtering"() {
+        buildFile << """
+            def onlyFoo = testContainer.named({ it.endsWith("foo") })
+
+            assert onlyFoo.isEmpty()
+
+            testContainer.register("foo")
+            testContainer.register("bar")
+            testContainer.register("foobar")
+            testContainer.register("barfoo")
+
+            assert onlyFoo*.name == ["barfoo", "foo"]
+        """
+        expect:
+        succeeds "help"
+    }
 }

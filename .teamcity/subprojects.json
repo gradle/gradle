@@ -113,7 +113,7 @@
   },
   {
     "name": "build-profile",
-    "path": "subprojects/build-profile",
+    "path": "platforms/core-runtime/build-profile",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -183,14 +183,14 @@
   },
   {
     "name": "distributions-basics",
-    "path": "subprojects/distributions-basics",
+    "path": "platforms/core-runtime/distributions-basics",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "distributions-core",
-    "path": "subprojects/distributions-core",
+    "path": "platforms/core-runtime/distributions-core",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -225,7 +225,7 @@
   },
   {
     "name": "distributions-native",
-    "path": "subprojects/distributions-native",
+    "path": "platforms/native/distributions-native",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -239,21 +239,21 @@
   },
   {
     "name": "docs",
-    "path": "subprojects/docs",
+    "path": "platforms/documentation/docs",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "docs-asciidoctor-extensions",
-    "path": "subprojects/docs-asciidoctor-extensions",
+    "path": "platforms/documentation/docs-asciidoctor-extensions",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "docs-asciidoctor-extensions-base",
-    "path": "subprojects/docs-asciidoctor-extensions-base",
+    "path": "platforms/documentation/docs-asciidoctor-extensions-base",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -371,8 +371,15 @@
     "crossVersionTests": true
   },
   {
+    "name": "input-tracking",
+    "path": "platforms/core-configuration/input-tracking",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "installation-beacon",
-    "path": "subprojects/installation-beacon",
+    "path": "platforms/core-runtime/installation-beacon",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -386,7 +393,7 @@
   },
   {
     "name": "instrumentation-declarations",
-    "path": "subprojects/instrumentation-declarations",
+    "path": "platforms/core-runtime/instrumentation-declarations",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -500,7 +507,7 @@
     "name": "kotlin-dsl-plugins",
     "path": "platforms/core-configuration/kotlin-dsl-plugins",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -514,7 +521,7 @@
     "name": "kotlin-dsl-tooling-builders",
     "path": "platforms/core-configuration/kotlin-dsl-tooling-builders",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": true
   },
   {
@@ -547,7 +554,7 @@
   },
   {
     "name": "language-native",
-    "path": "subprojects/language-native",
+    "path": "platforms/native/language-native",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -645,21 +652,21 @@
   },
   {
     "name": "platform-native",
-    "path": "subprojects/platform-native",
+    "path": "platforms/native/platform-native",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "plugin-development",
-    "path": "subprojects/plugin-development",
+    "path": "platforms/extensibility/plugin-development",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
     "name": "plugin-use",
-    "path": "subprojects/plugin-use",
+    "path": "platforms/extensibility/plugin-use",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -700,6 +707,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "plugins-java-library",
+    "path": "platforms/jvm/plugins-java-library",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "plugins-jvm-test-fixtures",
     "path": "platforms/jvm/plugins-jvm-test-fixtures",
     "unitTests": false,
@@ -729,7 +743,7 @@
   },
   {
     "name": "precondition-tester",
-    "path": "subprojects/precondition-tester",
+    "path": "platforms/build-infrastructure/precondition-tester",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
@@ -737,6 +751,13 @@
   {
     "name": "problems",
     "path": "platforms/ide/problems",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "problems-api",
+    "path": "platforms/ide/problems-api",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -799,7 +820,7 @@
   },
   {
     "name": "samples",
-    "path": "subprojects/samples",
+    "path": "platforms/documentation/samples",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
@@ -826,6 +847,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "smoke-ide-test",
+    "path": "subprojects/smoke-ide-test",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "smoke-test",
     "path": "subprojects/smoke-test",
     "unitTests": false,
@@ -848,7 +876,7 @@
   },
   {
     "name": "test-kit",
-    "path": "subprojects/test-kit",
+    "path": "platforms/extensibility/test-kit",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -890,7 +918,7 @@
   },
   {
     "name": "testing-native",
-    "path": "subprojects/testing-native",
+    "path": "platforms/native/testing-native",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -918,7 +946,7 @@
   },
   {
     "name": "tooling-native",
-    "path": "subprojects/tooling-native",
+    "path": "platforms/native/tooling-native",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": true

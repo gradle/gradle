@@ -21,6 +21,12 @@ import org.gradle.internal.DisplayName;
 import java.util.Collection;
 import java.util.Optional;
 
+/**
+ * The "Host" or owner of a resolution -- the thing in charge of the resolution, or the thing being resolved.
+ *
+ * <p>The purpose of this type is to be a configuration-cache compatible representation of the thing
+ * being resolved. This type should remain as minimal as possible.</p>
+ */
 public interface ResolutionHost {
     String getDisplayName();
 

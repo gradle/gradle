@@ -34,6 +34,7 @@ import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
@@ -59,10 +60,11 @@ class DependencyManagementProjectScopeServices {
         Instantiator instantiator,
         StartParameter startParameter,
         ImmutableAttributesFactory attributesFactory,
-        TaskDependencyFactory taskDependencyFactory
+        TaskDependencyFactory taskDependencyFactory,
+        ObjectFactory objectFactory
     ) {
         NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
-        return new DefaultProjectDependencyFactory(instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory, taskDependencyFactory);
+        return new DefaultProjectDependencyFactory(instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, objectFactory, attributesFactory, taskDependencyFactory);
     }
 
     DependencyFactoryInternal createDependencyFactory(
@@ -74,7 +76,8 @@ class DependencyManagementProjectScopeServices {
         RuntimeShadedJarFactory runtimeShadedJarFactory,
         ImmutableAttributesFactory attributesFactory,
         SimpleMapInterner stringInterner,
-        CapabilityNotationParser capabilityNotationParser
+        CapabilityNotationParser capabilityNotationParser,
+        ObjectFactory objectFactory
     ) {
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
@@ -84,6 +87,7 @@ class DependencyManagementProjectScopeServices {
                 DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner, attributesFactory),
                 new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
                 capabilityNotationParser,
+                objectFactory,
                 projectDependencyFactory,
                 attributesFactory);
     }

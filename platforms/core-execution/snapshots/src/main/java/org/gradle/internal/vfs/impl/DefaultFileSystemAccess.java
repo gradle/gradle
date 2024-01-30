@@ -17,14 +17,16 @@
 package org.gradle.internal.vfs.impl;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Interner;
 import com.google.common.util.concurrent.Striped;
 import org.gradle.internal.file.FileMetadata;
-import org.gradle.internal.file.excludes.FileSystemDefaultExcludesListener;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
+import org.gradle.internal.file.excludes.FileSystemDefaultExcludesListener;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.io.IoRunnable;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
@@ -39,11 +41,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 
 public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefaultExcludesListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileSystemAccess.class);
@@ -79,7 +86,11 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
 
     @Override
     public FileSystemLocationSnapshot read(String location) {
-        return readSnapshotFromLocation(location, () -> snapshot(location, SnapshottingFilter.EMPTY));
+        return readSnapshotFromLocation(
+            location,
+            Function.identity(),
+            () -> snapshot(location, SnapshottingFilter.EMPTY)
+        );
     }
 
     @Override
@@ -142,6 +153,16 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
     }
 
     private FileSystemLocationSnapshot snapshot(String location, SnapshottingFilter filter) {
+        ImmutableMap<String, FileSystemLocationSnapshot> previouslyKnownSnapshots = virtualFileSystem
+            .findRootSnapshotsUnder(location)
+            .collect(ImmutableMap.toImmutableMap(
+                FileSystemLocationSnapshot::getAbsolutePath,
+                Function.identity()
+            ));
+        FileSystemLocationSnapshot knownExactSnapshot = previouslyKnownSnapshots.get(location);
+        if (knownExactSnapshot != null) {
+            return knownExactSnapshot;
+        }
         return virtualFileSystem.store(location, vfsStorer -> {
             File file = new File(location);
             FileMetadata fileMetadata = this.stat.stat(file);
@@ -152,25 +173,16 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
                 case Missing:
                     return vfsStorer.store(new MissingFileSnapshot(location, fileMetadata.getAccessType()));
                 case Directory:
+                    // This will only store the captured snapshot in the VFS if the filter did not match anything
                     return directorySnapshotter.snapshot(
                         location,
                         filter.isEmpty() ? null : filter.getAsDirectoryWalkerPredicate(),
+                        previouslyKnownSnapshots,
                         vfsStorer::store);
                 default:
                     throw new UnsupportedOperationException();
             }
         });
-    }
-
-    private FileSystemLocationSnapshot readSnapshotFromLocation(
-        String location,
-        Supplier<FileSystemLocationSnapshot> readFromDisk
-    ) {
-        return readSnapshotFromLocation(
-            location,
-            Function.identity(),
-            readFromDisk
-        );
     }
 
     private <T> T readSnapshotFromLocation(
@@ -189,15 +201,30 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
     }
 
     @Override
-    public void write(Iterable<String> locations, Runnable action) {
+    public void invalidate(Iterable<String> locations) {
         writeListener.locationsWritten(locations);
         virtualFileSystem.invalidate(locations);
+    }
+
+    @Override
+    public void write(Iterable<String> locations, IoRunnable action) throws IOException {
+        invalidate(locations);
         action.run();
     }
 
     @Override
     public void record(FileSystemLocationSnapshot snapshot) {
         virtualFileSystem.store(snapshot.getAbsolutePath(), () -> snapshot);
+    }
+
+    @Override
+    public void moveAtomically(String sourceLocation, String targetLocation) throws IOException {
+        FileSystemLocationSnapshot sourceSnapshot = read(sourceLocation);
+        write(ImmutableList.of(sourceLocation, targetLocation), () -> {
+            Files.move(Paths.get(sourceLocation), Paths.get(targetLocation), ATOMIC_MOVE);
+            sourceSnapshot.relocate(targetLocation, stringInterner)
+                .ifPresent(this::record);
+        });
     }
 
     @Override

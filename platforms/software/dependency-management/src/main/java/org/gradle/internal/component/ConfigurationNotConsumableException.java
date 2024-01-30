@@ -22,7 +22,14 @@ package org.gradle.internal.component;
  * and it is found in the component but it is not consumable.
  */
 public class ConfigurationNotConsumableException extends AbstractNamedConfigurationException {
+    // TODO: this exception is dual-purposed - it is thrown from DefaultProjectDependency (in core)
+    // and from the ResolutionFailureHandler.  This means two locations need to be updated to add resolutions, etc.
+    // There is probably a better way to handle this.
     public ConfigurationNotConsumableException(String targetComponent, String configurationName) {
         super("Selected configuration '" + configurationName + "' on '" + targetComponent + "' but it can't be used as a project dependency because it isn't intended for consumption by other components.");
+    }
+
+    public ConfigurationNotConsumableException(String message) {
+        super(message);
     }
 }

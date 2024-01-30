@@ -19,7 +19,7 @@ package org.gradle.configurationcache
 import org.gradle.configurationcache.initialization.ConfigurationCacheProblemsListener
 import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
-import org.gradle.internal.classpath.Instrumented
+import org.gradle.internal.configuration.inputs.InstrumentedInputsListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
@@ -70,7 +70,7 @@ class InstrumentedInputAccessListener(
     configurationCacheProblemsListener: ConfigurationCacheProblemsListener,
     private val environmentChangeTracker: ConfigurationCacheEnvironmentChangeTracker,
     private val ignoredConfigurationInputs: IgnoredConfigurationInputs
-) : Instrumented.Listener {
+) : InstrumentedInputsListener {
 
     private
     val undeclaredInputBroadcast = listenerManager.getBroadcaster(UndeclaredBuildInputListener::class.java)
@@ -118,7 +118,7 @@ class InstrumentedInputAccessListener(
         undeclaredInputBroadcast.fileOpened(file, consumer)
     }
 
-    override fun fileObserved(file: File, consumer: String?) {
+    override fun fileObserved(file: File, consumer: String) {
         undeclaredInputBroadcast.fileObserved(file, consumer)
     }
 

@@ -22,20 +22,21 @@ val antVersion = "1.10.13"
 val asmVersion = "9.5"
 val awsS3Version = "1.12.365"
 val bouncycastleVersion = "1.68"
-val jacksonVersion = "2.14.1"
+val jacksonVersion = "2.16.1"
 val jaxbVersion = "3.0.0"
 val junit5Version = "5.8.2"
-val mavenVersion = "3.9.3"
+val mavenVersion = "3.9.5"
+val mavenResolverVersion = "1.9.16" // Should remain in-sync with `mavenVersion`
 val nativePlatformVersion = "0.22-milestone-25"
 val slf4jVersion = "1.7.30"
 val spockVersion = if (isBundleGroovy4) "2.3-groovy-4.0" else "2.3-groovy-3.0"
 val tomljVersion = "1.0.0"
 
 // test only
-val archunitVersion = "1.0.0-rc1"
+val archunitVersion = "1.2.0"
 val bytebuddyVersion = "1.10.20"
 val jettyVersion = "9.4.36.v20210114"
-val sshdVersion = "2.0.0" // Upgrade requires changes in package names and tests fail on expectations (but work otherwise)
+val sshdVersion = "2.10.0"
 
 // For the junit-bom
 javaPlatform.allowDependencies()
@@ -47,6 +48,7 @@ dependencies {
         api(libs.ansiControlSequenceUtil) { version { strictly("0.3") }}
         api(libs.ant)                   { version { strictly(antVersion) }}
         api(libs.antLauncher)           { version { strictly(antVersion) }}
+        api(libs.antJunit)           { version { strictly(antVersion) }}
         api(libs.asm)                   { version { strictly(asmVersion) }}
         api(libs.asmAnalysis)           { version { strictly(asmVersion) }}
         api(libs.asmCommons)            { version { strictly(asmVersion) }}
@@ -69,7 +71,8 @@ dependencies {
         api(libs.commonsLang)           { version { strictly("2.6") }}
         api(libs.commonsLang3)          { version { strictly("3.12.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
-        api(libs.gradleProfiler)        { version { strictly("0.20.0") }}
+        api(libs.eclipseSisuPlexus)     { version { strictly("0.3.5"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.gradleProfiler)        { version { strictly("0.21.0-alpha-3") }}
         api(libs.gradleEnterpriseTestAnnotation) { version { strictly("1.0") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
         api(libs.googleApiClient)       { version { strictly("1.34.0"); because("our GCS version requires 1.34.0") }}
@@ -116,7 +119,7 @@ dependencies {
         api(libs.jgit)                  { version { strictly("5.7.0.202003110725-r"); because("Upgrade has breaking API changes") }}
         api(libs.joda)                  { version { strictly("2.10.4") }}
         api(libs.joptSimple)            { version { strictly("5.0.4"); because("needed to create profiler in Gradle profiler API") }}
-        api(libs.jsch)                  { version { strictly("0.1.55") }}
+        api(libs.jsch)                  { version { strictly("0.2.16") }}
         api(libs.jsoup)                 { version { strictly("1.15.3") }}
         api(libs.jsr305)                { version { strictly("3.0.2") }}
         api(libs.julToSlf4j)            { version { strictly(slf4jVersion) }}
@@ -127,6 +130,8 @@ dependencies {
         api(libs.jzlib)                 { version { strictly("1.1.3") }}
         api(libs.kryo)                  { version { strictly("2.24.0") }}
         api(libs.log4jToSlf4j)          { version { strictly(slf4jVersion) }}
+        api(libs.maven3Artifact)        { version { strictly(mavenVersion); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.maven3Core)            { version { strictly(mavenVersion); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.maven3BuilderSupport)  { version { strictly(mavenVersion); because("required to load/build poms and repository settings") }}
         api(libs.maven3Model)           { version { strictly(mavenVersion); because("required to load/build poms and repository settings") }}
         api(libs.maven3RepositoryMetadata) { version { strictly(mavenVersion); because("required to load/build poms and repository settings") }}
@@ -138,6 +143,7 @@ dependencies {
         api(libs.objenesis)             { version { strictly("2.6") }}
         api(libs.plexusCipher)          { version { strictly("2.0"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.plexusInterpolation)   { version { strictly("1.26"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.plexusClassworlds)     { version { strictly("2.7.0"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.plexusSecDispatcher)   { version { strictly("2.0"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.plexusUtils)           { version { strictly("3.5.1"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.plist)                 { version { strictly("1.21") }}
@@ -161,6 +167,7 @@ dependencies {
         api(libs.aircompressor)         { version { strictly("0.8") }}
         api(libs.archunit)              { version { strictly(archunitVersion) }}
         api(libs.archunitJunit5)        { version { strictly(archunitVersion) }}
+        api(libs.archunitJunit5Api)     { version { strictly(archunitVersion) }}
         api(libs.awaitility)            { version { strictly("3.1.6") }}
         api(libs.bytebuddy)             { version { strictly(bytebuddyVersion) }}
         api(libs.bytebuddyAgent)        { version { strictly(bytebuddyVersion) }}
@@ -177,6 +184,13 @@ dependencies {
         api(libs.kotlinCoroutines)      { version { strictly("1.5.2") }}
         api(libs.kotlinCoroutinesDebug) { version { strictly("1.5.2") }}
         api(libs.littleproxy)           { version { strictly("2.0.5") }}
+        api(libs.maven3ResolverProvider){ version { strictly(mavenVersion) }}
+        api(libs.mavenResolverApi)              { version { strictly(mavenResolverVersion) }}
+        api(libs.mavenResolverConnectorBasic)   { version { strictly(mavenResolverVersion) }}
+        api(libs.mavenResolverImpl)             { version { strictly(mavenResolverVersion) }}
+        api(libs.mavenResolverSupplier)         { version { strictly(mavenResolverVersion) }}
+        api(libs.mavenResolverTransportFile)    { version { strictly(mavenResolverVersion) }}
+        api(libs.mavenResolverTransportHttp)    { version { strictly(mavenResolverVersion) }}
         api(libs.mina)                  { version { strictly("2.0.17") }}
         api(libs.mockitoCore)           { version { strictly("3.7.7") }}
         api(libs.mockitoKotlin)         { version { strictly("1.6.0") }}

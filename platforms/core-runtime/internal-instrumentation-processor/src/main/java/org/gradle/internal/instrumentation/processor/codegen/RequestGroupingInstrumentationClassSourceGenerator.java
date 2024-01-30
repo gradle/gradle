@@ -34,7 +34,7 @@ public abstract class RequestGroupingInstrumentationClassSourceGenerator impleme
 
     protected abstract Consumer<TypeSpec.Builder> classContentForClass(
         String className,
-        Collection<CallInterceptionRequest> requestsClassGroup,
+        List<CallInterceptionRequest> requestsClassGroup,
         Consumer<? super CallInterceptionRequest> onProcessedRequest,
         Consumer<? super HasFailures.FailureInfo> onFailure
     );

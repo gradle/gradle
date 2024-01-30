@@ -93,6 +93,26 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
         )
     }
 
+    void expectClientModuleDeprecationWarning(String agpVersion) {
+        runner.expectLegacyDeprecationWarningIf(
+            versionIsLower(agpVersion, AGP_VERSION_WITHOUT_CLIENT_MODULE),
+            "Declaring client module dependencies has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Please use component metadata rules instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#declaring_client_module_dependencies",
+        )
+    }
+
+    void maybeExpectClientModuleDeprecationWarning(String agpVersion) {
+        runner.maybeExpectLegacyDeprecationWarningIf(
+            versionIsLower(agpVersion, AGP_VERSION_WITHOUT_CLIENT_MODULE),
+            "Declaring client module dependencies has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Please use component metadata rules instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#declaring_client_module_dependencies",
+        )
+    }
+
     void expectBuildIdentifierIsCurrentBuildDeprecation(String agpVersion, String fixedVersion = '8.0.0') {
         VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
         runner.expectLegacyDeprecationWarningIf(

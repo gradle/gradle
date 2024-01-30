@@ -17,6 +17,8 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
@@ -183,12 +185,6 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
                 thing.prop = ['key2': 'value2']
             }
 
-            task before {
-                doLast {
-                    thing.prop = providers.provider { ['finalKey': 'finalValue'] }
-                }
-            }
-            thing.dependsOn before
             '''.stripIndent()
 
         when:
@@ -199,6 +195,7 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("The value for task ':thing' property 'prop' is final and cannot be changed any further.")
     }
 
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "https://github.com/gradle/gradle/issues/25516")
     def "task ad hoc input property is implicitly finalized and changes ignored when task starts execution"() {
         given:
         buildFile << '''
@@ -386,59 +383,80 @@ task thing {
     def "reports failure to set property value using incompatible type"() {
         given:
         buildFile << '''
+        interface MyExtension {
+            MapProperty<String, String> getProp()
+        }
+
+        project.extensions.create('myExt', MyExtension)
+
         task wrongValueTypeDsl {
+            def myExt = project.extensions.getByType(MyExtension)
             doLast {
-                verify.prop = 123
+                myExt.prop = 123
             }
         }
 
         task wrongRuntimeKeyType {
+            def myExt = project.extensions.getByType(MyExtension)
             doLast {
-                verify.prop = [123: 'value']
-                verify.prop.get()
+                myExt.prop = [123: 'value']
+                myExt.prop.get()
             }
         }
 
         task wrongRuntimeValueType {
+            def myExt = project.extensions.getByType(MyExtension)
             doLast {
-                verify.prop = ['key': 123]
-                verify.prop.get()
+                myExt.prop = ['key': 123]
+                myExt.prop.get()
             }
         }
 
         task wrongPropertyTypeDsl {
+            def myExt = project.extensions.getByType(MyExtension)
+            def objects = objects
             doLast {
-                verify.prop = objects.property(Integer)
+                myExt.prop = objects.property(Integer)
             }
         }
 
         task wrongPropertyTypeApi {
+            def myExt = project.extensions.getByType(MyExtension)
+            def objects = objects
             doLast {
-                verify.prop.set(objects.property(Integer))
+                myExt.prop.set(objects.property(Integer))
             }
         }
 
         task wrongRuntimeKeyTypeDsl {
+            def myExt = project.extensions.getByType(MyExtension)
+            def objects = objects
             doLast {
-                verify.prop = objects.mapProperty(Integer, String)
+                myExt.prop = objects.mapProperty(Integer, String)
             }
         }
 
         task wrongRuntimeValueTypeDsl {
+            def myExt = project.extensions.getByType(MyExtension)
+            def objects = objects
             doLast {
-                verify.prop = objects.mapProperty(String, Integer)
+                myExt.prop = objects.mapProperty(String, Integer)
             }
         }
 
         task wrongRuntimeKeyTypeApi {
+            def myExt = project.extensions.getByType(MyExtension)
+            def objects = objects
             doLast {
-                verify.prop.set(objects.mapProperty(Integer, String))
+                myExt.prop.set(objects.mapProperty(Integer, String))
             }
         }
 
         task wrongRuntimeValueTypeApi {
+            def myExt = project.extensions.getByType(MyExtension)
+            def objects = objects
             doLast {
-                verify.prop.set(objects.mapProperty(String, Integer))
+                myExt.prop.set(objects.mapProperty(String, Integer))
             }
         }
         '''.stripIndent()
@@ -454,7 +472,6 @@ task thing {
         then:
         failure.assertHasDescription("Execution failed for task ':wrongRuntimeKeyType'.")
         failure.assertHasCause('Cannot get the value of a property of type java.util.Map with key type java.lang.String as the source contains a key of type java.lang.Integer.')
-
         when:
         fails('wrongRuntimeValueType')
         then:
@@ -498,6 +515,10 @@ task thing {
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map with key type java.lang.String and value type java.lang.String using a provider with key type java.lang.String and value type java.lang.Integer.')
     }
 
+    @Requires(
+        value = IntegTestPreconditions.NotConfigCached,
+        reason = "Test relies on modifying properties at execution time, but CC finalizes them before execution"
+    )
     def "later entries replace earlier entries"() {
         given:
         buildFile << '''
@@ -707,5 +728,24 @@ task thing {
             ],
             [false, true]
         ].combinations()
+    }
+
+    def "circular evaluation of map property is detected"() {
+        buildFile """
+            def myMap = objects.mapProperty(String, String)
+            def myLazyProv = provider {
+                myMap.getting("foo").getOrElse("not_there")
+            }
+            myMap.put("bar", myLazyProv.map { "barbar" })
+            myLazyProv.get()
+
+            tasks.register("verify") {}
+        """
+
+        when:
+        fails "verify"
+
+        then:
+        failureCauseContains("Circular evaluation detected")
     }
 }

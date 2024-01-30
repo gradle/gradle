@@ -1824,7 +1824,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
         then:
         assertConfigCacheDiscarded()
-        failureCauseContains("An error happened meanwhile verifying 'org:foo:1.0'")
+        failureCauseContains("An error happened while verifying 'org:foo:1.0'")
         failureCauseContains("The following trusted GPG IDs are not in a minimum 160-bit fingerprint format")
         failureCauseContains("'${longId}'")
 

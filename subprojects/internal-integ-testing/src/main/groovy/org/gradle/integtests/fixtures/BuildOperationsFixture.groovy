@@ -28,76 +28,78 @@ import java.util.regex.Pattern
 
 class BuildOperationsFixture extends BuildOperationTreeQueries {
 
+    private String path
     private BuildOperationTreeFixture tree
 
     BuildOperationsFixture(GradleExecuter executer, TestDirectoryProvider projectDir) {
-        String path = projectDir.testDirectory.file("operations").absolutePath
-        executer.beforeExecute {
-            executer.withArgument("-D$BuildOperationTrace.SYSPROP=$path")
+        this(executer, projectDir, "operations")
+    }
 
-            executer.afterExecute {
-                tree = new BuildOperationTreeFixture(BuildOperationTrace.read(path))
-            }
+    BuildOperationsFixture(GradleExecuter executer, TestDirectoryProvider projectDir, String operationsTraceName) {
+        this.path = projectDir.testDirectory.file(operationsTraceName).absolutePath
+        executer.beforeExecute {
+            this.tree = null
+            executer.withArgument("-D$BuildOperationTrace.SYSPROP=$path")
         }
     }
 
     @Override
     List<BuildOperationRecord> getRoots() {
-        tree.roots
+        getTree().roots
     }
 
     @Override
     @SuppressWarnings("GrUnnecessaryPublicModifier")
     public <T extends BuildOperationType<?, ?>> BuildOperationRecord root(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
-        return tree.root(type, predicate)
+        return getTree().root(type, predicate)
     }
 
     @Override
     @SuppressWarnings("GrUnnecessaryPublicModifier")
     public <T extends BuildOperationType<?, ?>> BuildOperationRecord first(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
-        return tree.first(type, predicate)
+        return getTree().first(type, predicate)
     }
 
     @Override
     @SuppressWarnings("GrUnnecessaryPublicModifier")
     public <T extends BuildOperationType<?, ?>> boolean isType(BuildOperationRecord record, Class<T> type) {
-        return tree.isType(record, type)
+        return getTree().isType(record, type)
     }
 
     @Override
     @SuppressWarnings("GrUnnecessaryPublicModifier")
     public <T extends BuildOperationType<?, ?>> List<BuildOperationRecord> all(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
-        return tree.all(type, predicate)
+        return getTree().all(type, predicate)
     }
 
     @Override
     BuildOperationRecord first(Pattern displayName) {
-        return tree.first(displayName)
+        return getTree().first(displayName)
     }
 
     @Override
     List<BuildOperationRecord> all() {
-        return tree.all()
+        return getTree().all()
     }
 
     @Override
     List<BuildOperationRecord> all(Pattern displayName) {
-        return tree.all(displayName)
+        return getTree().all(displayName)
     }
 
     @Override
     BuildOperationRecord only(Pattern displayName) {
-        return tree.only(displayName)
+        return getTree().only(displayName)
     }
 
     @Override
     List<BuildOperationRecord> parentsOf(BuildOperationRecord child) {
-        return tree.parentsOf(child)
+        return getTree().parentsOf(child)
     }
 
     @Override
     void none(Pattern displayName) {
-        tree.none(displayName)
+        getTree().none(displayName)
     }
 
     @Override
@@ -105,6 +107,13 @@ class BuildOperationsFixture extends BuildOperationTreeQueries {
         Spec<? super BuildOperationRecord> predicate = Specs.SATISFIES_ALL,
         Spec<? super BuildOperationRecord> progressPredicate = Specs.SATISFIES_ALL
     ) {
-        tree.debugTree(predicate, progressPredicate)
+        getTree().debugTree(predicate, progressPredicate)
+    }
+
+    private BuildOperationTreeFixture getTree() {
+        if (tree == null) {
+            tree = new BuildOperationTreeFixture(BuildOperationTrace.read(path))
+        }
+        return tree
     }
 }

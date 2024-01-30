@@ -16,7 +16,7 @@
 
 package org.gradle.internal.extensibility;
 
-import com.google.common.collect.Maps;
+import com.google.common.collect.ForwardingMap;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.plugins.DslObject;
@@ -33,13 +33,14 @@ import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.util.internal.ConfigureUtil;
-import com.google.common.collect.ForwardingMap;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -69,7 +70,7 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
     @Override
     public Map<String, Object> getPlugins() {
         if (plugins == null) {
-            plugins = Maps.newLinkedHashMap();
+            plugins = new LinkedHashMap<>();
         }
         return new ConventionPluginsMap(plugins);
     }
@@ -289,12 +290,13 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
             return DynamicInvokeResult.notFound();
         }
 
+        @Nullable
         public Object propertyMissing(String name) {
             return getProperty(name);
         }
 
         @Override
-        public DynamicInvokeResult trySetProperty(String name, Object value) {
+        public DynamicInvokeResult trySetProperty(String name, @Nullable Object value) {
             checkExtensionIsNotReassigned(name);
             if (plugins == null) {
                 return DynamicInvokeResult.notFound();
@@ -315,7 +317,7 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
         }
 
         @Override
-        public DynamicInvokeResult tryInvokeMethod(String name, Object... args) {
+        public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... args) {
             if (isConfigureExtensionMethod(name, args)) {
                 return DynamicInvokeResult.found(configureExtension(name, args));
             }
@@ -333,12 +335,13 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
             return DynamicInvokeResult.notFound();
         }
 
+        @Nullable
         public Object methodMissing(String name, Object args) {
             return invokeMethod(name, (Object[]) args);
         }
 
         @Override
-        public boolean hasMethod(String name, Object... args) {
+        public boolean hasMethod(String name, @Nullable Object... args) {
             if (isConfigureExtensionMethod(name, args)) {
                 return true;
             }
@@ -357,7 +360,7 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
 
         private BeanDynamicObject asDynamicObject(Object object) {
             if (dynamicObjects == null) {
-                dynamicObjects = Maps.newIdentityHashMap();
+                dynamicObjects = new IdentityHashMap<>();
             }
             BeanDynamicObject dynamicObject = dynamicObjects.get(object);
             if (dynamicObject == null) {
@@ -375,7 +378,7 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
         }
     }
 
-    private boolean isConfigureExtensionMethod(String name, Object[] args) {
+    private boolean isConfigureExtensionMethod(String name, @Nullable Object[] args) {
         return args.length == 1 &&
             (args[0] instanceof Closure || args[0] instanceof Action) &&
             extensionsStorage.hasExtension(name);

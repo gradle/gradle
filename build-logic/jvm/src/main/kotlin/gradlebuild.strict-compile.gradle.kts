@@ -18,7 +18,7 @@ import gradlebuild.jvm.extension.StrictCompileExtension
 
 extensions.create<StrictCompileExtension>("strictCompile")
 
-val strictCompilerArgs = listOf("-Werror", "-Xlint:all", "-Xlint:-options", "-Xlint:-serial", "-Xlint:-classfile")
+val strictCompilerArgs = listOf("-Werror", "-Xlint:all", "-Xlint:-options", "-Xlint:-serial", "-Xlint:-classfile", "-Xlint:-try")
 
 tasks.withType<JavaCompile>().configureEach {
     // Generated classes may not adhere to the strict no-warning policy that we apply to handwritten code

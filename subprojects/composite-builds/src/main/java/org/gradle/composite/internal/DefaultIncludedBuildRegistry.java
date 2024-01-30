@@ -35,6 +35,7 @@ import org.gradle.internal.buildtree.NestedBuildTree;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -184,7 +185,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public NestedBuildTree addNestedBuildTree(BuildDefinition buildDefinition, BuildState owner, @Nullable String buildName) {
+    public NestedBuildTree addNestedBuildTree(BuildInvocationScopeId buildInvocationScopeId, BuildDefinition buildDefinition, BuildState owner, @Nullable String buildName) {
         if (buildDefinition.getName() != null || buildDefinition.getBuildRootDir() != null) {
             throw new UnsupportedOperationException("Not yet implemented."); // but should be
         }
@@ -193,7 +194,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         validateNameIsNotBuildSrc(name, dir);
         Path identityPath = assignPath(owner, name, dir);
         BuildIdentifier buildIdentifier = idFor(identityPath);
-        return buildStateFactory.createNestedTree(buildDefinition, buildIdentifier, identityPath, owner);
+        return buildStateFactory.createNestedTree(buildInvocationScopeId, buildDefinition, buildIdentifier, identityPath, owner);
     }
 
     @Override

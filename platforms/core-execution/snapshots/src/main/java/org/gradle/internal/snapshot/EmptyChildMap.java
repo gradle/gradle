@@ -51,6 +51,11 @@ public class EmptyChildMap<T> implements ChildMap<T> {
     }
 
     @Override
+    public int size() {
+        return 0;
+    }
+
+    @Override
     public Stream<Entry<T>> stream() {
         return Stream.empty();
     }

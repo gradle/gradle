@@ -22,6 +22,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scopes.BuildTree.class)
 public class BuildModelParameters {
+
     private final boolean parallelProjectExecution;
     private final boolean configureOnDemand;
     private final boolean configurationCache;
@@ -30,6 +31,7 @@ public class BuildModelParameters {
     private final boolean intermediateModelCache;
     private final boolean parallelToolingApiActions;
     private final boolean invalidateCoupledProjects;
+    private final boolean modelAsProjectDependency;
     private final LogLevel configurationCacheLogLevel;
 
     public BuildModelParameters(
@@ -41,6 +43,7 @@ public class BuildModelParameters {
         boolean intermediateModelCache,
         boolean parallelToolingApiActions,
         boolean invalidateCoupledProjects,
+        boolean modelAsProjectDependency,
         LogLevel configurationCacheLogLevel
     ) {
         this.parallelProjectExecution = parallelProjectExecution;
@@ -51,6 +54,7 @@ public class BuildModelParameters {
         this.intermediateModelCache = intermediateModelCache;
         this.parallelToolingApiActions = parallelToolingApiActions;
         this.invalidateCoupledProjects = invalidateCoupledProjects;
+        this.modelAsProjectDependency = modelAsProjectDependency;
         this.configurationCacheLogLevel = configurationCacheLogLevel;
     }
 
@@ -92,7 +96,7 @@ public class BuildModelParameters {
     }
 
     /**
-     * Force parallel tooling API actions? When true, always use parallel execution, when false use a default value.
+     * When {@link #isParallelProjectExecution()} is true, should Tooling API actions run in parallel?
      */
     public boolean isParallelToolingApiActions() {
         return parallelToolingApiActions;
@@ -104,5 +108,14 @@ public class BuildModelParameters {
      */
     public boolean isInvalidateCoupledProjects() {
         return invalidateCoupledProjects;
+    }
+
+    /**
+     * Should model dependencies between projects be treated as project dependencies with respect to invalidation?
+     * <p>
+     * This parameter is only used for benchmarking purposes.
+     */
+    public boolean isModelAsProjectDependency() {
+        return modelAsProjectDependency;
     }
 }

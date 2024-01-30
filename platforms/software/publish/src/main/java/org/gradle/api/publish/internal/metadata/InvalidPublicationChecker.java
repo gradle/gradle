@@ -30,28 +30,33 @@ import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
-
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newLinkedHashSet;
 
 @NotThreadSafe
 public class InvalidPublicationChecker {
+
+    private static final String DEPENDENCIES_WITHOUT_VERSION_SUPPRESSION = "dependencies-without-versions";;
 
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
 
     private final String publicationName;
     private final String taskPath;
     private final BiMap<String, VariantIdentity> variants = HashBiMap.create();
-    private final List<String> errors = newArrayList();
-    private final Set<String> explanations = newLinkedHashSet();
+    private final List<String> errors = new ArrayList<>();
+    private final Set<String> explanations = new LinkedHashSet<>();
+    private final Set<String> suppressedValidationErrors;
     private boolean publicationHasVersion = false;
     private boolean publicationHasDependencyOrConstraint = false;
 
-    public InvalidPublicationChecker(String publicationName, String taskPath) {
+    public InvalidPublicationChecker(String publicationName, String taskPath, Set<String> suppressedValidationErrors) {
         this.publicationName = publicationName;
         this.taskPath = taskPath;
+        this.suppressedValidationErrors = suppressedValidationErrors;
     }
 
     public void checkComponent(SoftwareComponent component) {
@@ -78,11 +83,19 @@ public class InvalidPublicationChecker {
     }
 
     private void checkVariantDependencyVersions() {
-        if (publicationHasDependencyOrConstraint && !publicationHasVersion) {
+        if (!suppressedValidationErrors.contains(DEPENDENCIES_WITHOUT_VERSION_SUPPRESSION) && publicationHasDependencyOrConstraint && !publicationHasVersion) {
             // Previous variant did not declare any version
             failWith("Publication only contains dependencies and/or constraints without a version. " +
-                "You need to add minimal version information, publish resolved versions (" + DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("on this", "publishing_maven", "publishing_maven:resolved_dependencies") + ") or " +
-                "reference a platform (" + DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("platforms", "platforms") + ")");
+                "You should add minimal version information, publish resolved versions (" + DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("on this", "publishing_maven", "publishing_maven:resolved_dependencies") + ") or " +
+                "reference a platform (" + DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("platforms", "platforms") + "). " +
+                "Disable this check by adding 'dependencies-without-versions' to the suppressed validations of the " + taskPath + " task.");
+        }
+    }
+
+    public void validateAttributes(String variant, String group, String name, AttributeContainer attributes) {
+        for (DependencyAttributesValidator validator : dependencyAttributeValidators()) {
+            Optional<String> error = validator.validationErrorFor(group, name, attributes);
+            error.ifPresent(s -> addDependencyValidationError(variant, s, validator.getExplanation(), validator.getSuppressor()));
         }
     }
 
@@ -104,6 +117,15 @@ public class InvalidPublicationChecker {
             }
             throw new InvalidUserCodeException(formatter.toString());
         }
+    }
+
+    private List<DependencyAttributesValidator> dependencyAttributeValidators() {
+        // Currently limited to a single validator
+        EnforcedPlatformPublicationValidator validator = new EnforcedPlatformPublicationValidator();
+        if (suppressedValidationErrors.contains(validator.getSuppressor())) {
+            return Collections.emptyList();
+        }
+        return Collections.singletonList(validator);
     }
 
     private void failWith(String message) {

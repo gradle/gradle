@@ -46,6 +46,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -62,7 +63,6 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
 
     private final MemoryManager memoryManager;
     private final JvmVersionDetector jvmVersionDetector;
-
     private Action<? super WorkerProcessContext> action;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private String baseName = "Gradle Worker";
@@ -71,7 +71,15 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private List<URL> implementationModulePath;
     private boolean shouldPublishJvmMemoryInfo;
 
-    DefaultWorkerProcessBuilder(JavaExecHandleFactory execHandleFactory, MessagingServer server, IdGenerator<Long> idGenerator, ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory, OutputEventListener outputEventListener, MemoryManager memoryManager, JvmVersionDetector jvmVersionDetector) {
+    DefaultWorkerProcessBuilder(
+        JavaExecHandleFactory execHandleFactory,
+        MessagingServer server,
+        IdGenerator<Long> idGenerator,
+        ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory,
+        OutputEventListener outputEventListener,
+        MemoryManager memoryManager,
+        JvmVersionDetector jvmVersionDetector
+    ) {
         this.javaCommand = execHandleFactory.newJavaExec();
         this.javaCommand.setExecutable(Jvm.current().getJavaExecutable());
         this.server = server;
@@ -196,23 +204,17 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     public WorkerProcess build() {
         final WorkerJvmMemoryStatus memoryStatus = shouldPublishJvmMemoryInfo ? new WorkerJvmMemoryStatus() : null;
         final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(connectTimeoutSeconds, TimeUnit.SECONDS, memoryStatus);
-        ConnectionAcceptor acceptor = server.accept(new Action<ObjectConnection>() {
-            @Override
-            public void execute(final ObjectConnection connection) {
-                workerProcess.onConnect(connection, new Runnable() {
-                    @Override
-                    public void run() {
-                        DefaultWorkerLoggingProtocol defaultWorkerLoggingProtocol = new DefaultWorkerLoggingProtocol(outputEventListener);
-                        connection.useParameterSerializers(WorkerLoggingSerializer.create());
-                        connection.addIncoming(WorkerLoggingProtocol.class, defaultWorkerLoggingProtocol);
-                        if (shouldPublishJvmMemoryInfo) {
-                            connection.useParameterSerializers(WorkerJvmMemoryInfoSerializer.create());
-                            connection.addIncoming(WorkerJvmMemoryInfoProtocol.class, memoryStatus);
-                        }
-                    }
-                });
-            }
-        });
+        ConnectionAcceptor acceptor = server.accept(connection ->
+            workerProcess.onConnect(connection, () -> {
+                DefaultWorkerLoggingProtocol defaultWorkerLoggingProtocol = new DefaultWorkerLoggingProtocol(outputEventListener);
+                connection.useParameterSerializers(WorkerLoggingSerializer.create());
+                connection.addIncoming(WorkerLoggingProtocol.class, defaultWorkerLoggingProtocol);
+
+                if (shouldPublishJvmMemoryInfo) {
+                    connection.useParameterSerializers(WorkerJvmMemoryInfoSerializer.create());
+                    connection.addIncoming(WorkerJvmMemoryInfoProtocol.class, memoryStatus);
+                }
+            }));
         workerProcess.startAccepting(acceptor);
         Address localAddress = acceptor.getAddress();
 
@@ -271,6 +273,11 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         }
 
         @Override
+        public Optional<ExecResult> getExecResult() {
+            return delegate.getExecResult();
+        }
+
+        @Override
         public JvmMemoryStatus getJvmMemoryStatus() {
             return delegate.getJvmMemoryStatus();
         }
@@ -278,6 +285,11 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         @Override
         public void stopNow() {
             delegate.stopNow();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return delegate.getDisplayName();
         }
     }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.isolated
 
+import org.gradle.api.provider.Property
 import spock.lang.Issue
 
 class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
@@ -688,6 +689,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
+        if (expr == "dependencies.project([path: ':', configuration: 'test'])") {
+            executer.expectDocumentedDeprecationWarning("Accessing the build dependencies of project dependency ':' has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration and use the configuration to track task dependencies. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
+        }
         isolatedProjectsFails(":help")
 
         then:
@@ -758,6 +762,85 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStored {
             projectsConfigured(":", ":a", ":b")
+        }
+    }
+
+    def "fails on invoke method of unconfigured project"() {
+        given:
+        settingsFile << """
+            include(':a')
+            include(':b')
+        """
+
+        file("a/build.gradle") << """
+            def unconfiguredProject = project(':b')
+            println 'Unconfigured project value = ' + unconfiguredProject.foo()
+        """
+
+        file("b/build.gradle") << """
+            String foo(){ 'configured' }
+        """
+
+        when:
+        isolatedProjectsFails 'help', WARN_PROBLEMS_CLI_OPT
+
+        then:
+        failure.assertHasErrorOutput("Could not find method foo() for arguments [] on project ':b' of type org.gradle.api.Project")
+        problems.assertResultHasProblems(failure) {
+            withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Cannot access project ':b' from project ':a'. 'Project.evaluationDependsOn' must be used to establish a dependency between project ':b' and project ':a' evaluation")
+        }
+
+    }
+
+    def "fails on access property of unconfigured project"() {
+        given:
+        settingsFile << """
+            include(':a')
+            include(':b')
+        """
+
+        file("a/build.gradle") << """
+            def unconfiguredProject = project(':b')
+            println 'Unconfigured project value = ' + unconfiguredProject.myExtension.get()
+        """
+
+        file("b/build.gradle") << """
+            import ${Property.name}
+
+            interface MyExtension {
+                Property<String> getFoo()
+            }
+
+            def myExtension= extensions.create('myExtension', MyExtension)
+            myExtension.foo.set('configured')
+        """
+
+        when:
+        isolatedProjectsFails 'help', WARN_PROBLEMS_CLI_OPT
+
+        then:
+        failure.assertHasErrorOutput("Could not get unknown property 'myExtension' for project ':b' of type org.gradle.api.Project")
+        problems.assertResultHasProblems(failure) {
+            withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Cannot access project ':b' from project ':a'. 'Project.evaluationDependsOn' must be used to establish a dependency between project ':b' and project ':a' evaluation")
+        }
+    }
+
+    def "supports nested structure of build layout"() {
+        settingsFile << """
+            include ':a'
+            include ':a:tests'
+            include ':a:tests:integ-tests'
+        """
+        file("a/build.gradle") << ""
+        file("a/tests/build.gradle") << ""
+        file("a/tests/integ-tests/build.gradle") << ""
+
+        when:
+        isolatedProjectsRun 'build'
+
+        then:
+        fixture.assertStateStored {
+            projectsConfigured(":", ":a", ":a:tests", ":a:tests:integ-tests")
         }
     }
 }

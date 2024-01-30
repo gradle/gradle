@@ -38,19 +38,23 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
 
     @Override
     public boolean calculatePresence(ValueConsumer consumer) {
-        return backingProvider(consumer).calculatePresence(consumer);
+        try (EvaluationContext.ScopeContext context = openScope()) {
+            return backingProvider(context, consumer).calculatePresence(consumer);
+        }
     }
 
     @Override
     protected Value<? extends S> calculateOwnValue(ValueConsumer consumer) {
-        Value<? extends T> value = provider.calculateValue(consumer);
-        if (value.isMissing()) {
-            return value.asType();
+        try (EvaluationContext.ScopeContext context = openScope()) {
+            Value<? extends T> value = provider.calculateValue(consumer);
+            if (value.isMissing()) {
+                return value.asType();
+            }
+            return doMapValue(context, value).calculateValue(consumer);
         }
-        return doMapValue(value).calculateValue(consumer);
     }
 
-    private ProviderInternal<? extends S> doMapValue(Value<? extends T> value) {
+    private ProviderInternal<? extends S> doMapValue(@SuppressWarnings("unused") EvaluationContext.ScopeContext context, Value<? extends T> value) {
         T unpackedValue = value.getWithoutSideEffect();
         Provider<? extends S> transformedProvider = transformer.transform(unpackedValue);
         if (transformedProvider == null) {
@@ -64,26 +68,30 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
         return Providers.internal(transformedProvider).withSideEffect(SideEffect.fixedFrom(value));
     }
 
-    private ProviderInternal<? extends S> backingProvider(ValueConsumer consumer) {
+    private ProviderInternal<? extends S> backingProvider(EvaluationContext.ScopeContext context, ValueConsumer consumer) {
         Value<? extends T> value = provider.calculateValue(consumer);
         if (value.isMissing()) {
             return Providers.notDefined();
         }
-        return doMapValue(value);
+        return doMapValue(context, value);
     }
 
     @Override
     public ValueProducer getProducer() {
-        return backingProvider(ValueConsumer.IgnoreUnsafeRead).getProducer();
+        try (EvaluationContext.ScopeContext context = openScope()) {
+            return backingProvider(context, ValueConsumer.IgnoreUnsafeRead).getProducer();
+        }
     }
 
     @Override
     public ExecutionTimeValue<? extends S> calculateExecutionTimeValue() {
-        return backingProvider(ValueConsumer.IgnoreUnsafeRead).calculateExecutionTimeValue();
+        try (EvaluationContext.ScopeContext context = openScope()) {
+            return backingProvider(context, ValueConsumer.IgnoreUnsafeRead).calculateExecutionTimeValue();
+        }
     }
 
     @Override
-    public String toString() {
+    protected String toStringNoReentrance() {
         return "flatmap(" + provider + ")";
     }
 }

@@ -16,7 +16,6 @@
 package org.gradle.language.base.plugins;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
@@ -79,6 +78,7 @@ import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
 import org.gradle.platform.base.plugins.BinaryBasePlugin;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -172,7 +172,7 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
 
         @Mutate
         void attachBinariesToAssembleLifecycle(@Path("tasks.assemble") Task assemble, ComponentSpecContainer components) {
-            List<BinarySpecInternal> notBuildable = Lists.newArrayList();
+            List<BinarySpecInternal> notBuildable = new ArrayList<>();
             boolean hasBuildableBinaries = false;
             for (VariantComponentSpec component : components.withType(VariantComponentSpec.class)) {
                 for (BinarySpecInternal binary : component.getBinaries().withType(BinarySpecInternal.class)) {

@@ -387,10 +387,15 @@ class Codecs(
         bind(RegexpPatternCodec)
         bind(UrlCodec)
         bind(LevelCodec)
+        bind(UnitCodec)
+        bind(CharsetCodec)
 
         javaTimeTypes()
 
         bind(BuildIdentifierSerializer())
+
+        bind(InputStreamCodec)
+        bind(OutputStreamCodec)
     }
 
     fun workNodeCodecFor(gradle: GradleInternal) =

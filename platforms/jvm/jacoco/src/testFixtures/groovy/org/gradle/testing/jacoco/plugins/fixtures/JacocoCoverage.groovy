@@ -27,6 +27,7 @@ final class JacocoCoverage {
     // Order matters here, as we want to test the latest version first
     // Relies on Groovy keeping the order of the keys in a map literal
     private static final Map<JavaVersion, JacocoVersion> JDK_CUTOFFS = [
+        (JavaVersion.VERSION_21): JacocoVersion.SUPPORTS_JDK_21,
         (JavaVersion.VERSION_20): JacocoVersion.SUPPORTS_JDK_20,
         (JavaVersion.VERSION_18): JacocoVersion.SUPPORTS_JDK_18,
         (JavaVersion.VERSION_17): JacocoVersion.SUPPORTS_JDK_17,
@@ -59,6 +60,7 @@ final class JacocoCoverage {
         static final SUPPORTS_JDK_17 = new JacocoVersion(0, 8, 7)
         static final SUPPORTS_JDK_18 = new JacocoVersion(0, 8, 8)
         static final SUPPORTS_JDK_20 = new JacocoVersion(0, 8, 9)
+        static final SUPPORTS_JDK_21 = new JacocoVersion(0, 8, 11)
 
         private final int major
         private final int minor

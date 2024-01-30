@@ -68,7 +68,7 @@ public class DefaultProvider<T> extends AbstractMinimalProvider<T> {
 
     @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-        try {
+        try (EvaluationContext.ScopeContext ignored = openScope()) {
             return Value.ofNullable(value.call());
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);

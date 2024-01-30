@@ -28,6 +28,7 @@ import javax.annotation.Nullable;
 public interface BuildOperationProgressEventEmitter {
     void emit(OperationIdentifier operationIdentifier, long timestamp, @Nullable Object details);
 
+    void emitNow(@Nullable OperationIdentifier operationIdentifier, @Nullable Object details);
     void emitNowIfCurrent(Object details);
 
     void emitIfCurrent(long time, Object details);

@@ -75,13 +75,14 @@ public class DefaultComponentResolversFactory implements ComponentResolversFacto
             factory.create(resolvers);
         }
         resolvers.add(projectDependencyResolver);
+
         resolvers.add(createModuleRepositoryResolvers(
             repositories,
             consumerSchema,
             // We should avoid using `resolveContext` if possible here.
             // We should not need to know _what_ we're resolving in order to construct a resolver for a set of repositories.
-            // These parameters are used to support various features in `RepositoryContentDescriptor`.
-            resolveContext.getName(),
+            // These parameters are used to support filtering components by attributes when using dynamic versions.
+            // We should consider just removing that feature and making dynamic version selection dumber.
             resolveContext.getResolutionStrategy(),
             resolveContext.getAttributes(),
             metadataHandler
@@ -110,13 +111,11 @@ public class DefaultComponentResolversFactory implements ComponentResolversFacto
     private ComponentResolvers createModuleRepositoryResolvers(
         List<? extends ResolutionAwareRepository> repositories,
         AttributesSchemaInternal consumerSchema,
-        String resolveContextName,
         ResolutionStrategyInternal resolutionStrategy,
         AttributeContainerInternal requestedAttributes,
         GlobalDependencyResolutionRules metadataHandler
     ) {
         return moduleDependencyResolverFactory.create(
-            resolveContextName,
             resolutionStrategy,
             repositories,
             metadataHandler.getComponentMetadataProcessorFactory(),

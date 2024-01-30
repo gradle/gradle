@@ -28,6 +28,7 @@ import spock.lang.Issue
 class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
     def setup() {
         expectReindentedValidationMessage()
+        enableProblemsApiCheck()
     }
 
     def "allows optional @#annotation.simpleName to have null value"() {

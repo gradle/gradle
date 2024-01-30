@@ -35,7 +35,6 @@ import org.gradle.cache.internal.SplitFileContentCacheFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
-import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.BuildOperationFiringBuildWorkerExecutor;
 import org.gradle.execution.BuildTaskScheduler;
@@ -60,15 +59,14 @@ import org.gradle.initialization.TaskExecutionPreparer;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
-import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ScopedServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
 
@@ -78,9 +76,9 @@ import java.util.List;
  * Contains the services for a given {@link GradleInternal} instance.
  */
 @SuppressWarnings("deprecation")
-public class GradleScopeServices extends DefaultServiceRegistry {
+public class GradleScopeServices extends ScopedServiceRegistry {
     public GradleScopeServices(final ServiceRegistry parent) {
-        super(parent);
+        super(Scopes.Gradle.class, "Gradle-scope services", parent);
         register(registration -> {
             registration.add(DefaultBuildOutputCleanupRegistry.class);
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
@@ -196,17 +194,5 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     protected ConfigurationTargetIdentifier createConfigurationTargetIdentifier(GradleInternal gradle) {
         return ConfigurationTargetIdentifier.of(gradle);
-    }
-
-    // This needs to go here instead of being “build tree” scoped due to the GradleBuild task.
-    // Builds launched by that task are part of the same build tree, but should have their own invocation ID.
-    // Such builds also have their own root Gradle object.
-    protected BuildInvocationScopeId createBuildInvocationScopeId(GradleInternal gradle) {
-        GradleInternal rootGradle = gradle.getRoot();
-        if (gradle == rootGradle) {
-            return new BuildInvocationScopeId(UniqueId.generate());
-        } else {
-            return rootGradle.getServices().get(BuildInvocationScopeId.class);
-        }
     }
 }

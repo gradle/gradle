@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.metaobject.DynamicObject;
 
 /**
@@ -24,6 +25,7 @@ import org.gradle.internal.metaobject.DynamicObject;
  * this interface can do. For example, the {@link DynamicObject} may provide the ability to register new
  * properties or implement methods that this object does not provide in a concrete way.
  */
+@NonNullApi
 public interface DynamicObjectAware {
 
     /**

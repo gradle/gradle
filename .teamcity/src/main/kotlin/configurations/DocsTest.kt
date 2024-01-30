@@ -6,10 +6,10 @@ import common.applyDefaultSettings
 import common.toCapitalized
 import configurations.TestSplitType.EXCLUDE
 import configurations.TestSplitType.INCLUDE
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2019_2.Project
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.BuildStep
+import jetbrains.buildServer.configs.kotlin.BuildSteps
+import jetbrains.buildServer.configs.kotlin.Project
+import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import model.CIBuildModel
 import model.Stage
 
@@ -119,7 +119,7 @@ class DocsTest(
     testClasses: List<String>,
 ) : BaseGradleBuildType(stage = stage, init = {
 
-    id("${model.projectId}_${docsTestType.docsTestName}_${testJava.version.name.toCapitalized()}_${os.asName()}_$index")
+    id("${model.projectId}_${docsTestType.docsTestName}_${os.asName()}_$index")
     name = "${docsTestType.docsTestDesc} - ${testJava.version.name.toCapitalized()} ${os.asName()} ($index)"
 
     features {

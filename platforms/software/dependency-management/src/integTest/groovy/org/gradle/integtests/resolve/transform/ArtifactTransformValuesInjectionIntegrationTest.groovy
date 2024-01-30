@@ -1050,7 +1050,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     void assertPropertyValidationErrors(Map<String, Object> validationErrors) {
         int count = 0
         validationErrors.each { propertyName, errorMessageOrMessages ->
-            def errorMessages = errorMessageOrMessages instanceof Iterable ? [*errorMessageOrMessages] : [errorMessageOrMessages]
+            def errorMessages = errorMessageOrMessages instanceof Iterable
+                ? [*errorMessageOrMessages]
+                : [errorMessageOrMessages]
             errorMessages.each { errorMessage ->
                 count++
                 System.err.println("Verifying assertion for $propertyName")

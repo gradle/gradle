@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
+import org.gradle.api.NonNullApi;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
@@ -31,17 +32,23 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
+import org.gradle.problems.buildtree.ProblemReporter;
 import org.gradle.tooling.events.OperationType;
 
-import java.util.ArrayList;
+import javax.annotation.Nonnull;
+import java.io.File;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
 
-import static java.util.Collections.emptyList;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
-public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFactory {
+@NonNullApi
+public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFactory, ProblemReporter {
     private final BuildOperationAncestryTracker ancestryTracker;
     private final BuildOperationIdFactory idFactory;
     private final List<OperationResultPostProcessorFactory> postProcessorFactories;
+    private Optional<AggregatingProblemConsumer> problemAggregator = Optional.empty();
 
     ToolingApiBuildEventListenerFactory(BuildOperationAncestryTracker ancestryTracker, BuildOperationIdFactory idFactory, List<OperationResultPostProcessorFactory> postProcessorFactories) {
         this.ancestryTracker = ancestryTracker;
@@ -52,7 +59,7 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
     @Override
     public Iterable<Object> createListeners(BuildEventSubscriptions subscriptions, BuildEventConsumer consumer) {
         if (!subscriptions.isAnyOperationTypeRequested()) {
-            return emptyList();
+            return ImmutableList.of();
         }
 
         ProgressEventConsumer progressEventConsumer = new ProgressEventConsumer(consumer, ancestryTracker);
@@ -84,15 +91,12 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         TransformOperationMapper transformOperationMapper = new TransformOperationMapper(operationDependenciesResolver);
         operationDependenciesResolver.addLookup(transformOperationMapper);
 
-        List<OperationResultPostProcessor> postProcessors = new ArrayList<>(postProcessorFactories.size());
-        for (OperationResultPostProcessorFactory postProcessorFactory : postProcessorFactories) {
-            postProcessors.addAll(postProcessorFactory.createProcessors(subscriptions, consumer));
-        }
+        List<OperationResultPostProcessor> postProcessors = createPostProcessors(subscriptions, consumer);
 
         TaskOperationMapper taskOperationMapper = new TaskOperationMapper(postProcessors, taskOriginTracker, operationDependenciesResolver);
         operationDependenciesResolver.addLookup(taskOperationMapper);
 
-        ImmutableList<BuildOperationMapper<?, ?>> mappers = ImmutableList.of(
+        List<BuildOperationMapper<?, ?>> mappers = ImmutableList.of(
             new FileDownloadOperationMapper(),
             new TestOperationMapper(testTaskTracker),
             new ProjectConfigurationOperationMapper(projectConfigurationTracker),
@@ -103,14 +107,29 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         return new ClientBuildEventGenerator(progressEventConsumer, subscriptions, mappers, buildListener);
     }
 
+    private List<OperationResultPostProcessor> createPostProcessors(BuildEventSubscriptions subscriptions, BuildEventConsumer consumer) {
+        return postProcessorFactories.stream()
+            .map(factory -> factory.createProcessors(subscriptions, consumer))
+            .flatMap(List::stream)
+            .collect(toImmutableList());
+    }
+
     private BuildOperationListener createBuildOperationListener(BuildEventSubscriptions subscriptions, ProgressEventConsumer progressEventConsumer) {
         if (subscriptions.isRequested(OperationType.PROBLEMS)) {
-            return new ProblemsProgressEventConsumer(progressEventConsumer, idFactory);
+            return createProblemsProgressConsumer(progressEventConsumer);
         }
         if (subscriptions.isRequested(OperationType.GENERIC)) {
             return new ClientForwardingBuildOperationListener(progressEventConsumer);
         }
         return NO_OP;
+    }
+
+    @Nonnull
+    private ProblemsProgressEventConsumer createProblemsProgressConsumer(ProgressEventConsumer progressEventConsumer) {
+        Supplier<OperationIdentifier> operationIdentifierSupplier = () -> new OperationIdentifier(idFactory.nextId());
+        AggregatingProblemConsumer aggregator = new AggregatingProblemConsumer(progressEventConsumer, operationIdentifierSupplier);
+        this.problemAggregator = Optional.of(aggregator);
+        return new ProblemsProgressEventConsumer(progressEventConsumer, operationIdentifierSupplier, aggregator);
     }
 
     private static final BuildOperationListener NO_OP = new BuildOperationListener() {
@@ -126,4 +145,14 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
         }
     };
+
+    @Override
+    public String getId() {
+        return "problems";
+    }
+
+    @Override
+    public void report(File reportDir, ProblemConsumer validationFailures) {
+        problemAggregator.ifPresent(AggregatingProblemConsumer::sendProblemSummaries);
+    }
 }

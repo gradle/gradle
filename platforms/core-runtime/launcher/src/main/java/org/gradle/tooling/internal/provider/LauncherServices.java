@@ -18,14 +18,14 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
-import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.exception.ExceptionAnalyser;
-import org.gradle.initialization.layout.BuildLocations;
+import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.build.BuildLayoutValidator;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
@@ -59,6 +59,7 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.session.BuildSessionActionExecutor;
 import org.gradle.internal.snapshot.CaseSensitivity;
+import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
@@ -180,7 +181,8 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             WorkerLeaseService workerLeaseService,
             BuildLayoutValidator buildLayoutValidator,
             FileSystem fileSystem,
-            FileSystemWatchingInformation fileSystemWatchingInformation
+            FileSystemWatchingInformation fileSystemWatchingInformation,
+            ValueSnapshotter valueSnapshotter
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             return new SubscribableBuildActionExecutor(
@@ -204,7 +206,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                     new RunAsWorkerThreadBuildActionExecutor(
                         workerLeaseService,
                         new RunAsBuildOperationBuildActionExecutor(
-                            new BuildTreeLifecycleBuildActionExecutor(buildModelServices, buildLayoutValidator),
+                            new BuildTreeLifecycleBuildActionExecutor(buildModelServices, buildLayoutValidator, valueSnapshotter),
                             buildOperationExecutor,
                             loggingBuildOperationProgressBroadcaster,
                             buildOperationNotificationValve))));
@@ -227,14 +229,14 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             FileHasherStatistics.Collector fileHasherStatisticsCollector,
             DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector,
             BuildOperationRunner buildOperationRunner,
-            BuildLocations buildLocations,
+            BuildLayout buildLayout,
             ExceptionAnalyser exceptionAnalyser,
             List<ProblemReporter> problemReporters,
             BuildLoggerFactory buildLoggerFactory,
             InternalOptions options,
             ProblemDiagnosticsFactory problemDiagnosticsFactory,
             StartParameter startParameter,
-            Problems problemsService
+            InternalProblems problemsService
         ) {
             return new InitProblems(
                 new InitDeprecationLoggingActionExecutor(
@@ -255,7 +257,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                     new ProblemReportingBuildActionRunner(
                                         new ChainingBuildActionRunner(buildActionRunners),
                                         exceptionAnalyser,
-                                        buildLocations,
+                                        buildLayout,
                                         problemReporters
                                     ),
                                     buildStartedTime,

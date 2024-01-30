@@ -1,0 +1,225 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[version-catalog-problems]]
+= Troubleshooting version catalog problems
+
+This page summarizes the different problems that Gradle reports when using version catalogs and provides guidance for fixing them.
+
+[[accessor_name_clash]]
+== Accessor name clash
+
+This error indicates that your version catalog contains (at least) two aliases which are mapped to the same accessor.
+Given an alias like `some.alias`, Gradle implements a mapping strategy to a _getter_ for type-checked accessors.
+In this case, it means that two aliases are in conflict because they result in the same getter being created.
+
+To fix this problem, you must choose different aliases.
+
+[[too_many_entries]]
+== Too many entries in a single catalog
+
+This error indicates that a version catalog contains too many entries.
+Because of JVM file format restrictions, when Gradle generates dependency accessors, it has to put an upper limit to the number of aliases that a catalog may contain.
+This limit is currently of 32000 entries.
+
+To fix this problem, if you need more entries, it's probably best to split the catalog into multiple, distinct catalogs.
+
+[[reserved_alias_name]]
+== Use of a reserved alias name
+
+This error indicates that you chose an alias which is a reserved name.
+Typically this happens if you choose an alias which starts with `versions`, `bundles`, or `plugins` or contains `extensions`, `convention`, `class`, as it may clash with generated accessors.
+
+To fix this problem, you must choose a different alias.
+
+[[undefined_version_reference]]
+== Undefined version reference
+
+This error indicates that your catalog declares a library which references a non-existing version.
+When you use version references in a catalog, the version reference must point to an existing version alias.
+
+To fix this, you must either:
+
+- fix the version reference to use one of the versions declared in the catalog
+- or declare a new version corresponding to the reference you want to use in the catalog
+
+It's worth noting that catalogs are isolated, so you cannot use a version reference from one catalog in another catalog.
+
+[[undefined_alias_reference]]
+== Undefined alias reference
+
+This error indicates that your catalog declares a bundle (a group of libraries) which references a non-existing library.
+
+Bundles should only consist of libraries declared in the same catalog.
+
+To fix this, you must either:
+
+- make sure that the alias for the library you want to include is defined in the same catalog
+- or remove the library from the bundle
+
+[[invalid_dependency_notation]]
+== Invalid dependency notation
+
+This error indicates that the dependency notation associated with an alias is incorrect.
+Version catalog supports the simplified `group:artifact:version` notation.
+
+If you are using the `Settings` DSL to create a catalog, you can use the `to` method in different flavors:
+
+```groovy
+library("some-alias", "com.mycompany:some-lib:1.1").withoutVersion()
+// or
+library("some-alias", "com.mycompany", "some-lib").version("1.1")
+```
+
+If you are using TOML files to create a catalog, you can use one of the following notations:
+
+```toml
+[libraries]
+some-alias = { group="com.mycompany",
+    name="some-lib",
+    version="1.1"
+}
+# or
+some-alias = {
+     module="com.mycompany:some-lib",
+     version="1.1"
+}
+```
+
+[[unsupported_file_format]]
+== Unsupported catalog file format
+
+This error indicates that you tried to import a catalog file, but the format isn't recognized.
+Typically, this happens if you tried to import a catalog using `from(files("some-catalog.txt"))`.
+
+Currently Gradle only supports TOML version catalogs.
+
+To fix this problem, either import a TOML file, or use the `Settings` API to declare your catalog.
+
+[[catalog_file_does_not_exist]]
+== Catalog file doesn't exist
+
+This error indicates that you tried to import a catalog file, but the file doesn't exist.
+
+Make sure that it's not a typo, and if not, that the catalog file exists _before_ importing it.
+
+[[invalid_alias_notation]]
+== Invalid alias or bundle notation
+
+This error indicates that you have used an alias (or bundle) name which isn't supported by Gradle.
+Gradle puts some restrictions on alias names: they must match the following regular expression: `[a-z]([a-zA-Z0-9_.\-])+`
+
+A typical alias name would be `some-alias`.
+
+[[invalid_module_notation]]
+== Invalid module notation
+
+This error indicates that your module notation in a TOML version catalog is incorrect.
+When you use the `module` notation in a TOML, it must consist of 2 elements, the `group` and the `name` of the module, separated by a colon (`:`).
+
+For example:
+
+```toml
+[libraries]
+groovy = { module="org.codehaus.groovy:groovy", version="3.0.5" }
+```
+
+[[toml_syntax_error]]
+== Invalid TOML definition
+
+This error indicates that you have a syntax or grammar error in your TOML version catalog file.
+
+This can happen if you use wrong keys, for example:
+
+```toml
+some-alias = { unknownKey = "foo" }
+```
+
+or that you forgot about some elements:
+
+```toml
+# missing the "group"
+some-alias = { name="my-lib", version="1.0" }
+```
+
+[[unsupported_format_version]]
+== Unsupported TOML file format version
+
+This error indicates that you are trying to read a version catalog file which has a higher version than what the current version of Gradle supports.
+
+This would usually mean that the version catalog file you're trying to use has been produced with a higher release of Gradle than the one you're using.
+
+A potential solution to this is to upgrade your Gradle version.
+
+[[invalid_plugin_notation]]
+== Invalid plugin notation
+
+This error indicates that the dependency notation associated with a plugin alias is incorrect.
+The TOML version catalog supports the simplified `plugin.id:version` notation when declaring a plugin alias.
+
+Therefore this usually means that you have a notation which consists of a string, but which doesn't separate the plugin id from the plugin version using a semicolon.
+
+[[alias_not_finished]]
+== Alias not finished
+
+This error indicates that an alias builder was created, but never registered with the catalog. This is usually because
+you didn't call `.version()` or `.withoutVersion()` on the builder.
+
+The solution is to call whichever version method is appropriate.
+
+[[too_many_import_invocation]]
+== Too many import invocations
+
+This error indicates that an import statement (e.g. link:{javadocPath}/org/gradle/api/initialization/dsl/VersionCatalogBuilder.html#from-java.lang.Object-[from(Object notation)]) was called more than once.
+
+A version catalog can only be imported from a single source.
+To prevent the import of multiple sources, some methods will throw an exception when called more than once.
+
+A simple example could be the following, which triggers the error when building a version catalog:
+```kotlin
+create("testLibs") {
+    from(files("gradle/a.versions.toml"))
+    from(files("gradle/b.versions.toml"))
+}
+```
+
+When this happens, make sure that there is only a single import invocation per version catalog.
+
+[[no_import_files]]
+== No import files
+
+When an import statement receives a notation, which doesn't resolve to a file, an exception will be thrown.
+
+A simple example could be the following, which triggers the error when building a version catalog:
+```kotlin
+create("testLibs") {
+    from(files())
+}
+```
+
+The solution is to make sure that from is not called with empty files.
+
+[[too_many_import_files]]
+== Too many import files
+
+When an imported file doesn't resolve to a file, an exception will be thrown.
+
+A simple example could be the following, which triggers the error when building a version catalog:
+```kotlin
+create("testLibs") {
+    from(files("gradle/a.versions.toml", "gradle/b.versions.toml"))
+}
+```
+
+The solution is to make sure that from is not called with a notation, which resolves into multiple files.

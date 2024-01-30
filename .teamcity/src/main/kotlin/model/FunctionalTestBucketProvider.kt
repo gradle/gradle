@@ -41,7 +41,8 @@ val ALL_CROSS_VERSION_BUCKETS = listOf(
     listOf("6.7", "7.0"), // 6.7 <=version < 7.0
     listOf("7.0", "7.3"), // 7.0 <=version < 7.3
     listOf("7.3", "7.6"), // 7.3 <=version < 7.6
-    listOf("7.6", "99.0") // 7.0 <=version < 99.0
+    listOf("7.6", "8.3"), // 7.6 <=version < 8.3
+    listOf("8.3", "99.0") // 8.3 <=version < 99.0
 )
 
 typealias BuildProjectToSubprojectTestClassTimes = Map<String, Map<String, List<TestClassTime>>>
@@ -91,7 +92,9 @@ class StatisticBasedFunctionalTestBucketProvider(val model: CIBuildModel, testBu
             // in this case we have no historical test running time, so we simply add these subprojects into first available bucket
             val allSubprojectsInBucketJson = buckets.flatMap { it.subprojects.map { it.name } }.toSet()
 
-            val allSubprojectsInModel = model.subprojects.getSubprojectsForFunctionalTest(testCoverage).map { it.name }
+            val allSubprojectsInModel = model.subprojects.getSubprojectsForFunctionalTest(testCoverage)
+                .filter { onlyNativeSubprojectsForIntelMacs(testCoverage, it.name) }
+                .map { it.name }
             val subprojectsInModelButNotInBucketJson = allSubprojectsInModel.toMutableList().apply { removeAll(allSubprojectsInBucketJson) }
 
             if (subprojectsInModelButNotInBucketJson.isEmpty()) {

@@ -151,7 +151,7 @@ public class DeprecationLogger {
      */
     @CheckReturnValue
     @SuppressWarnings("rawtypes")
-    public static DeprecationMessageBuilder<?> deprecateAction(final String action) {
+    public static DeprecationMessageBuilder.DeprecateAction deprecateAction(final String action) {
         return new DeprecationMessageBuilder.DeprecateAction(action);
     }
 

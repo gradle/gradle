@@ -16,12 +16,12 @@
 package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,8 +30,8 @@ import java.util.Map;
  */
 public class PathFactory {
 
-    private final List<Variable> variables = Lists.newArrayList();
-    private final Map<String, File> varsByName = Maps.newHashMap();
+    private final List<Variable> variables = new ArrayList<>();
+    private final Map<String, File> varsByName = new HashMap<>();
 
     public PathFactory addPathVariable(String name, File dir) {
         variables.add(new Variable('$' + name + '$', dir.getAbsolutePath() + File.separator, dir));
@@ -143,7 +143,7 @@ public class PathFactory {
 
     private static List<String> getPathList(File f) {
         try {
-            List<String> list = Lists.newArrayList();
+            List<String> list = new ArrayList<>();
             File r = f.getCanonicalFile();
             while (r != null) {
                 File parent = r.getParentFile();

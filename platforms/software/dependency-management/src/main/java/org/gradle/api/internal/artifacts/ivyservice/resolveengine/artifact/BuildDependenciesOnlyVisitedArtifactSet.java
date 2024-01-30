@@ -24,12 +24,12 @@ import org.gradle.api.specs.Spec;
 
 public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactSet {
     private final VisitedGraphResults graphResults;
-    private final VisitedArtifactsResults artifactsResults;
-    ArtifactVariantSelector artifactVariantSelector;
+    private final VisitedArtifactResults artifactsResults;
+    private final ArtifactVariantSelector artifactVariantSelector;
 
     public BuildDependenciesOnlyVisitedArtifactSet(
         VisitedGraphResults graphResults,
-        VisitedArtifactsResults artifactsResults,
+        VisitedArtifactResults artifactsResults,
         ArtifactVariantSelector artifactVariantSelector
     ) {
         this.graphResults = graphResults;
@@ -39,7 +39,13 @@ public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactS
 
     @Override
     public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, ArtifactSelectionSpec spec) {
-        ResolvedArtifactSet selectedArtifacts = artifactsResults.select(artifactVariantSelector, spec).getArtifacts();
+
+        // When resolving build dependencies, we ignore the dependencySpec, potentially capturing a greater
+        // set of build dependencies than actually required. This is because it takes a lot of extra information
+        // from the visited graph to properly filter artifacts by dependencySpec, and we don't want capture that when
+        // calculating build dependencies. Instead, we should just stop allowing users to filer by dependencySpec.
+
+        ResolvedArtifactSet selectedArtifacts = artifactsResults.select(artifactVariantSelector, spec, false).getArtifacts();
         return new BuildDependenciesOnlySelectedArtifactSet(graphResults, selectedArtifacts);
     }
 

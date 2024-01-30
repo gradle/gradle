@@ -38,6 +38,9 @@ public final class BuildCacheRemoteLoadBuildOperationType implements BuildOperat
 
     public interface Result {
 
+        /**
+         * Whether the load has been a hit.
+         */
         boolean isHit();
 
         /**

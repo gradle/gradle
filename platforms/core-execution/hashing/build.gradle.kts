@@ -9,5 +9,7 @@ gradlebuildJava.usedInWorkers() // org.gradle.internal.nativeintegration.filesys
 
 dependencies {
     implementation(project(":base-annotations"))
+
     implementation(libs.guava)
+    implementation(libs.jsr305)
 }

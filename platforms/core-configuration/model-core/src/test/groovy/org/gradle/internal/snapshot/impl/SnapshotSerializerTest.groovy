@@ -139,6 +139,26 @@ class SnapshotSerializerTest extends Specification {
         original == written
     }
 
+    def "serializes primitive array properties"() {
+        write(value)
+
+        expect:
+        value == written
+
+        where:
+        array << [
+            new byte[]{42},
+            new short[]{42},
+            new int[]{42},
+            new long[]{42},
+            new float[]{42.0},
+            new double[]{42.0},
+            new char[]{'*'},
+            new boolean[]{true}
+        ]
+        value = new ArrayOfPrimitiveValueSnapshot(array)
+    }
+
     def "serializes list properties"() {
         def original = list(string("123"), list(string("456")))
         write(original)
@@ -219,7 +239,7 @@ class SnapshotSerializerTest extends Specification {
     }
 
     def "serializes implementation properties with untracked lambda"() {
-        def original = ImplementationSnapshot.of('someClassName$$Lambda$12/312454364', TestHashCodes.hashCodeFrom(1234))
+        def original = ImplementationSnapshot.of('someClassName$$Lambda/312454364', TestHashCodes.hashCodeFrom(1234))
         write(original)
 
         expect:

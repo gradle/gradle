@@ -34,8 +34,8 @@ import java.util.function.Predicate;
 
 public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<OsxFileEventFunctions, OsxFileWatcher> {
 
-    public DarwinFileWatcherRegistryFactory(Predicate<String> watchFilter) throws NativeIntegrationUnavailableException {
-        super(FileEvents.get(OsxFileEventFunctions.class), watchFilter);
+    public DarwinFileWatcherRegistryFactory(Predicate<String> immutableLocationsFilter) throws NativeIntegrationUnavailableException {
+        super(FileEvents.get(OsxFileEventFunctions.class), immutableLocationsFilter);
     }
 
     @Override

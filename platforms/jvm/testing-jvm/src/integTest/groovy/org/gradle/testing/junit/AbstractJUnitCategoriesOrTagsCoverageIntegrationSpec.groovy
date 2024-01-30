@@ -236,9 +236,6 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("No test executed. This behavior has been deprecated. " +
-            "This will fail with an error in Gradle 9.0. There are test sources present but no test was executed. Please check your test configuration. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_fail_on_no_test_executed")
         run('test')
 
         then:
@@ -247,6 +244,41 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
         and:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertNoTestClassesExecuted()
+    }
+
+    def "does not emit deprecation warning about no tests executing when categories or tags are specified (#configureIncludeOrExclude)"() {
+        given:
+        testSources.with {
+            testClass('CategoryATests')
+                .withCategoryOrTag('CategoryA')
+                .with {
+                    testMethod('catAOk1').shouldPass()
+                    testMethod('catAOk2').shouldPass()
+                    testMethod('catAOk3').shouldPass()
+                    testMethod('catAOk4').shouldPass()
+                }
+            testCategory('CategoryA')
+            testCategory('CategoryC')
+        }
+        testSourceGenerator.writeAllSources(testSources)
+
+        buildFile << """
+            test {
+                ${configureTestFramework} {
+                    ${configureIncludeOrExclude}
+                }
+            }
+        """
+
+        when:
+        run('test')
+
+        then:
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
+        result.assertNoTestClassesExecuted()
+
+        where:
+        configureIncludeOrExclude << [excludeCategoryOrTag('CategoryA'), includeCategoryOrTag('CategoryC')]
     }
 
     void assertOutputContainsCategoryOrTagWarning(String... categories) {

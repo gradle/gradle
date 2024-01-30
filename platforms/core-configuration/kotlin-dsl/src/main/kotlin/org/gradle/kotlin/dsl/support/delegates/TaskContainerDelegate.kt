@@ -49,6 +49,9 @@ abstract class TaskContainerDelegate : TaskContainer {
     override fun addAll(elements: Collection<Task>): Boolean =
         delegate.addAll(elements)
 
+    override fun named(predicate: Spec<String>): TaskCollection<Task> =
+        delegate.named(predicate)
+
     override fun matching(spec: Spec<in Task>): TaskCollection<Task> =
         delegate.matching(spec)
 

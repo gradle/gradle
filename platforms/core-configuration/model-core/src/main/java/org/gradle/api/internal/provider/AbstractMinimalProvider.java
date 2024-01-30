@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -27,7 +28,6 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.Managed;
 
 import javax.annotation.Nullable;
-import java.util.function.Predicate;
 
 /**
  * A partial {@link Provider} implementation. Subclasses must implement {@link ProviderInternal#getType()} and {@link AbstractMinimalProvider#calculateOwnValue(ValueConsumer)}.
@@ -42,8 +42,8 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
-    public ProviderInternal<T> filter(final Predicate<? super T> predicate) {
-        return new FilteringProvider<>(this, predicate);
+    public ProviderInternal<T> filter(final Spec<? super T> spec) {
+        return new FilteringProvider<>(this, spec);
     }
 
     @Override
@@ -169,10 +169,9 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
-    public String toString() {
-        // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
-        Class<?> type = getType();
-        return String.format("provider(%s)", type == null ? "?" : type.getName());
+    public final String toString() {
+        // Override #toStringNoReentrance instead
+        return EvaluationContext.current().tryEvaluate(this, "<CIRCULAR REFERENCE>", this::toStringNoReentrance);
     }
 
     @Override
@@ -207,5 +206,25 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
             formatter.endChildren();
         }
         return formatter.toString();
+    }
+
+    /**
+     * Marks this provider as being evaluated until the returned scope is closed.
+     *
+     * @return the scope
+     */
+    protected EvaluationContext.ScopeContext openScope() {
+        return EvaluationContext.current().open(this);
+    }
+
+    /**
+     * An implementation for the toString method that is never called if the current provider is being evaluated.
+     *
+     * @return the string representation of the provider
+     */
+    protected String toStringNoReentrance() {
+        // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
+        Class<?> type = getType();
+        return String.format("provider(%s)", type == null ? "?" : type.getName());
     }
 }

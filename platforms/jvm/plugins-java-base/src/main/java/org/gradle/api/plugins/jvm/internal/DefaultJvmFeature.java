@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
@@ -42,7 +41,7 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.util.internal.TextUtil;
 
-import java.util.List;
+import java.util.Set;
 
 import static org.gradle.api.attributes.DocsType.JAVADOC;
 import static org.gradle.api.attributes.DocsType.SOURCES;
@@ -78,7 +77,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
 
     private final String name;
     private final SourceSet sourceSet;
-    private final List<Capability> capabilities;
+    private final Set<Capability> capabilities;
     private final boolean extendProductionCode;
 
     // Services
@@ -116,7 +115,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         // Should features just create the sourcesets they are going to use?  How can we ensure the same sourceset isn't used
         // by multiple features (and that the same feature isn't used by multiple components)?
         SourceSet sourceSet,
-        List<Capability> capabilities,
+        Set<Capability> capabilities,
         ProjectInternal project,
         // The elements configurations' roles should always be consumable only, but
         // some users of this class are still migrating towards that. In 9.0, we can remove this
@@ -383,7 +382,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     }
 
     @Override
-    public CapabilitiesMetadata getCapabilities() {
+    public ImmutableCapabilities getCapabilities() {
         return ImmutableCapabilities.of(capabilities);
     }
 

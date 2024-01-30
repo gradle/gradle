@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
@@ -39,7 +40,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphPathResolver
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyGraphBuilder
@@ -51,7 +51,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.specs.Specs
 import org.gradle.internal.Describables
-import org.gradle.internal.component.SelectionFailureHandler
+import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
@@ -86,7 +86,6 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
-import static org.gradle.api.problems.TestProblemsUtil.createTestProblems
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 
@@ -128,7 +127,8 @@ class DependencyGraphBuilderTest extends Specification {
     def versionSelectorScheme = new DefaultVersionSelectorScheme(versionComparator, new VersionParser())
     def desugaring = new AttributeDesugaring(AttributeTestUtil.attributesFactory())
     def resolveStateFactory = new LocalComponentGraphResolveStateFactory(desugaring, new ComponentIdGenerator())
-    def variantSelector = new GraphVariantSelector(new SelectionFailureHandler(createTestProblems()))
+    def documentationRegistry = new DocumentationRegistry()
+    def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(documentationRegistry))
 
     DependencyGraphBuilder builder
 
@@ -1142,7 +1142,7 @@ class DependencyGraphBuilderTest extends Specification {
             excludeRules << new DefaultExclude(moduleIdentifierFactory.module(excluded.moduleVersionId.group, excluded.moduleVersionId.name))
         }
         def dependencyMetaData = new LocalComponentDependencyMetadata(componentSelector,
-            ImmutableAttributes.EMPTY, "default", [] as List<IvyArtifactName>,
+            "default", [] as List<IvyArtifactName>,
             excludeRules, force, false, transitive, false, false, null)
         dependencyMetaData = new DslOriginDependencyMetadataWrapper(dependencyMetaData, Stub(ModuleDependency) {
             getAttributes() >> ImmutableAttributes.EMPTY
@@ -1181,10 +1181,6 @@ class DependencyGraphBuilderTest extends Specification {
         }
 
         @Override
-        void visitSelector(DependencyGraphSelector configurationSelector) {
-        }
-
-        @Override
         void visitEdges(DependencyGraphNode node) {
             node.outgoingEdges.each {
                 if (it.failure) {
@@ -1206,10 +1202,6 @@ class DependencyGraphBuilderTest extends Specification {
             throw new ResolveException("config", failures.values().collect {
                 it.failure.withIncomingPaths(DependencyGraphPathResolver.calculatePaths(it.requiredBy, root))
             })
-        }
-
-        @Override
-        void finish(DependencyGraphNode root) {
         }
 
         static class FailureDetails {

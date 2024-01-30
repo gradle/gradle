@@ -30,6 +30,7 @@ class TestFixturesDependencyModifiersTest extends Specification {
         def modifier = TestUtil.objectFactory().newInstance(TestFixturesDependencyModifiers.TestFixturesDependencyModifier)
         def dependency = new DefaultExternalModuleDependency("group", "name", "1.0")
         dependency.setCapabilityNotationParser(new CapabilityNotationParserFactory(true).create())
+        dependency.setObjectFactory(TestUtil.objectFactory())
 
         when:
         dependency = modifier.modify(dependency)
@@ -51,6 +52,7 @@ class TestFixturesDependencyModifiersTest extends Specification {
         }
         def dependency = new DefaultProjectDependency(projectInternal, false)
         dependency.setCapabilityNotationParser(new CapabilityNotationParserFactory(true).create())
+        dependency.setObjectFactory(TestUtil.objectFactory())
 
         when:
         dependency = modifier.modify(dependency)
@@ -69,6 +71,7 @@ class TestFixturesDependencyModifiersTest extends Specification {
         def modifier = TestUtil.objectFactory().newInstance(TestFixturesDependencyModifiers.TestFixturesDependencyModifier)
         def dependency = new DefaultExternalModuleDependency("group", "name", "1.0")
         dependency.setCapabilityNotationParser(new CapabilityNotationParserFactory(true).create())
+        dependency.setObjectFactory(TestUtil.objectFactory())
 
         when:
         modifier.modify(dependency)
@@ -85,6 +88,7 @@ class TestFixturesDependencyModifiersTest extends Specification {
         }
         def dependency = new DefaultProjectDependency(projectInternal, false)
         dependency.setCapabilityNotationParser(new CapabilityNotationParserFactory(true).create())
+        dependency.setObjectFactory(TestUtil.objectFactory())
 
         when:
         modifier.modify(dependency)

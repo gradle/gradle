@@ -18,13 +18,11 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
-
-import java.util.List;
 
 /**
  * An artifact set containing transformed external artifacts.
@@ -34,7 +32,7 @@ public class TransformedExternalArtifactSet extends AbstractTransformedArtifactS
         ComponentIdentifier componentIdentifier,
         ResolvedArtifactSet delegate,
         ImmutableAttributes target,
-        List<? extends Capability> capabilities,
+        ImmutableCapabilities capabilities,
         TransformChain transformChain,
         TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory

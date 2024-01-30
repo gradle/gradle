@@ -30,6 +30,7 @@ import org.gradle.model.internal.manage.schema.extract.*;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -58,7 +59,7 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
             new ScalarCollectionNodeInitializerExtractionStrategy(),
             new ManagedImplStructNodeInitializerExtractionStrategy(structBindingsStore)
         );
-        additionalStrategies = Lists.newArrayList();
+        additionalStrategies = new ArrayList<>();
     }
 
     private ModelTypeInitializationException canNotConstructTypeException(NodeInitializerContext<?> context) {

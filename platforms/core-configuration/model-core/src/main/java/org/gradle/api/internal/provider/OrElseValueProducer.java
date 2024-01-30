@@ -22,14 +22,23 @@ import org.gradle.api.Task;
 import javax.annotation.Nullable;
 
 class OrElseValueProducer implements ValueSupplier.ValueProducer {
-
+    private final EvaluationContext.EvaluationOwner owner;
     private final ProviderInternal<?> left;
     @Nullable
     private final ProviderInternal<?> right;
     private final ValueSupplier.ValueProducer leftProducer;
     private final ValueSupplier.ValueProducer rightProducer;
 
-    public OrElseValueProducer(ProviderInternal<?> left, @Nullable ProviderInternal<?> right, ValueSupplier.ValueProducer rightProducer) {
+    public OrElseValueProducer(EvaluationContext.ScopeContext context, ProviderInternal<?> left) {
+        this(context, left, null, ValueSupplier.ValueProducer.unknown());
+    }
+
+    public OrElseValueProducer(EvaluationContext.ScopeContext context, ProviderInternal<?> left, ProviderInternal<?> right) {
+        this(context, left, right, right.getProducer());
+    }
+
+    private OrElseValueProducer(EvaluationContext.ScopeContext context, ProviderInternal<?> left, @Nullable ProviderInternal<?> right, ValueSupplier.ValueProducer rightProducer) {
+        this.owner = context.getOwner();
         this.left = left;
         this.right = right;
         this.leftProducer = left.getProducer();
@@ -43,25 +52,21 @@ class OrElseValueProducer implements ValueSupplier.ValueProducer {
     }
 
     @Override
-    public boolean isProducesDifferentValueOverTime() {
-        return leftProducer.isProducesDifferentValueOverTime()
-            || rightProducer.isProducesDifferentValueOverTime();
-    }
-
-    @Override
     public void visitProducerTasks(Action<? super Task> visitor) {
-        if (!isMissing(left)) {
-            if (leftProducer.isKnown()) {
-                leftProducer.visitProducerTasks(visitor);
+        try (EvaluationContext.ScopeContext ignored = EvaluationContext.current().open(owner)) {
+            if (mayHaveValue(left)) {
+                if (leftProducer.isKnown()) {
+                    leftProducer.visitProducerTasks(visitor);
+                }
+                return;
             }
-            return;
-        }
-        if (right != null && rightProducer.isKnown() && !isMissing(right)) {
-            rightProducer.visitProducerTasks(visitor);
+            if (right != null && rightProducer.isKnown() && mayHaveValue(right)) {
+                rightProducer.visitProducerTasks(visitor);
+            }
         }
     }
 
-    private boolean isMissing(ProviderInternal<?> provider) {
-        return provider.calculateExecutionTimeValue().isMissing();
+    private boolean mayHaveValue(ProviderInternal<?> provider) {
+        return !provider.calculateExecutionTimeValue().isMissing();
     }
 }

@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestFailureSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
+import org.gradle.tooling.FileComparisonTestAssertionFailure
 import org.gradle.tooling.TestAssertionFailure
 
 @ToolingApiVersion(">=8.5")
@@ -28,7 +29,7 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
 
     def setup() {
         enableTestJvmDebugging = false
-        enableStdoutProxying = false
+        enableStdoutProxying = true
     }
 
     def "Wrapped assertion errors are emitted as test failure events using JUnit 4"() {
@@ -255,6 +256,127 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
         cause.message == "This is a wrapped assertion error"
         cause.getExpected() == "expected"
         cause.getActual() == "actual"
+    }
+
+    def "Different expected and actual OpenTest4j types are mapped correctly using JUnit4"() {
+        given:
+        setupJUnit4()
+        file('src/test/java/org/gradle/JUnitTest.java') << '''
+            package org.gradle;
+
+            import org.junit.Test;
+            import org.opentest4j.AssertionFailedError;
+            import org.opentest4j.FileInfo;
+
+            public class JUnitTest {
+                @Test
+                public void test() {
+                    FileInfo expected = new FileInfo("/path/from", new byte[]{ 0x0 });
+                    throw new AssertionFailedError(
+                        "Asymmetric expected and actual objects",
+                        expected,
+                        "actual content"
+                    );
+                }
+            }
+        '''
+        def collector = new TestFailureEventCollector()
+
+        when:
+        runTestTaskWithFailureCollection(collector)
+
+        then:
+        thrown(BuildException)
+        collector.failures.size() == 1
+        collector.failures[0] instanceof FileComparisonTestAssertionFailure
+
+        def failure = collector.failures[0] as FileComparisonTestAssertionFailure
+        failure.expected == '/path/from'
+        failure.expectedContent == new byte[]{0x0}
+        failure.actual == 'actual content'
+    }
+
+    def "Different expected and actual OpenTest4j types are mapped correctly using JUnit5"() {
+        given:
+        setupJUnit5()
+        file('src/test/java/org/gradle/JUnitTest.java') << '''
+            package org.gradle;
+
+            import org.junit.jupiter.api.Test;
+            import org.opentest4j.AssertionFailedError;
+            import org.opentest4j.FileInfo;
+
+            public class JUnitTest {
+                @Test
+                void test() {
+                    FileInfo expected = new FileInfo("/path/from", new byte[]{ 0x0 });
+                    throw new AssertionFailedError(
+                        "Asymmetric expected and actual objects",
+                        expected,
+                        "actual content"
+                    );
+                }
+            }
+        '''
+        def collector = new TestFailureEventCollector()
+
+        when:
+        runTestTaskWithFailureCollection(collector)
+
+        then:
+        thrown(BuildException)
+        collector.failures.size() == 1
+        collector.failures[0] instanceof FileComparisonTestAssertionFailure
+
+        def failure = collector.failures[0] as FileComparisonTestAssertionFailure
+        failure.expected == '/path/from'
+        failure.expectedContent == new byte[]{0x0}
+        failure.actual == 'actual content'
+    }
+
+    def "Test failure mapping works with supported types"() {
+        given:
+        setupJUnit5()
+        file('src/test/java/org/gradle/JUnitTest.java') << """
+            package org.gradle;
+
+            import org.junit.jupiter.api.Test;
+            import org.opentest4j.AssertionFailedError;
+            import org.opentest4j.FileInfo;
+            import org.opentest4j.ValueWrapper;
+
+            public class JUnitTest {
+                @Test
+                void test() {
+                    throw new AssertionFailedError(
+                        "Testing supported type",
+                        ${typeInstantiation},
+                        ${typeInstantiation}
+                    );
+                }
+            }
+        """
+
+        def collector = new TestFailureEventCollector()
+
+        when:
+        runTestTaskWithFailureCollection(collector)
+
+        then:
+        thrown(BuildException)
+        collector.failures.size() == 1
+        collector.failures[0] instanceof TestAssertionFailure
+
+        def failure = collector.failures[0] as TestAssertionFailure
+        failure.expected == expectedActual
+
+        where:
+        typeInstantiation | expectedActual
+        'new FileInfo("/path/from", new byte[]{ 0x0 })' | "/path/from"
+        '"expected"' | "expected"
+        'ValueWrapper.create("expected")' | "expected"
+        '1' | "1"
+        'ValueWrapper.create(1)' | "1"
     }
 
 }

@@ -16,13 +16,18 @@
 
 package org.gradle.model.internal.registry;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 class RuleBindings {
     private final NodeAtStateIndex rulesBySubject;
@@ -149,7 +154,7 @@ class RuleBindings {
     }
 
     private class PathPredicateIndex {
-        final Map<ModelPath, PredicateMatches> predicates = Maps.newLinkedHashMap();
+        final Map<ModelPath, PredicateMatches> predicates = new LinkedHashMap<>();
 
         public void addNode(ModelNodeInternal node) {
             predicatesForPath(node.getPath()).match(node);
@@ -175,8 +180,8 @@ class RuleBindings {
     }
 
     private class ScopeIndex {
-        final Map<ModelType<?>, PredicateMatches> types = Maps.newLinkedHashMap();
-        final List<ModelNodeInternal> nodes = Lists.newArrayList();
+        final Map<ModelType<?>, PredicateMatches> types = new LinkedHashMap<>();
+        final List<ModelNodeInternal> nodes = new ArrayList<>();
 
         public void addNode(ModelNodeInternal node) {
             nodes.add(node);
@@ -216,7 +221,7 @@ class RuleBindings {
     }
 
     private class TypePredicateIndex {
-        final Map<ModelPath, ScopeIndex> scopes = Maps.newLinkedHashMap();
+        final Map<ModelPath, ScopeIndex> scopes = new LinkedHashMap<>();
 
         public void addNodeToScope(ModelPath path, ModelNodeInternal node) {
             scopeForPath(path).addNode(node);

@@ -16,7 +16,6 @@
 package org.gradle.api.publish.internal.component;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyConstraint;
@@ -31,6 +30,7 @@ import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.component.AbstractSoftwareComponentVariant;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -79,8 +79,8 @@ public class ConfigurationSoftwareComponentVariant extends AbstractSoftwareCompo
     public Set<? extends Capability> getCapabilities() {
         if (capabilities == null) {
             this.capabilities = ImmutableSet.copyOf(Configurations.collectCapabilities(configuration,
-                Sets.newHashSet(),
-                Sets.newHashSet()));
+                new HashSet<>(),
+                new HashSet<>()));
         }
         return capabilities;
     }

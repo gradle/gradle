@@ -17,6 +17,8 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -33,6 +35,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
     def 'kotlin jvm (kotlin=#version, workers=#parallelTasksInProject)'() {
         given:
+        KotlinGradlePluginVersions.assumeCurrentJavaVersionIsSupportedBy(version)
         useSample("kotlin-example")
         replaceVariablesInBuildFile(kotlinVersion: version)
         def versionNumber = VersionNumber.parse(version)
@@ -80,7 +83,68 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         ].combinations()
     }
 
+    def 'kotlin jvm and test suites (kotlin=#version)'() {
+
+        assumeFalse(version.startsWith("1.6."))
+        assumeFalse(version.startsWith("1.7."))
+        KotlinGradlePluginVersions.assumeCurrentJavaVersionIsSupportedBy(version)
+
+        given:
+        buildFile << """
+            plugins {
+                id 'org.jetbrains.kotlin.jvm' version '$version'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                useKotlinTest()
+            }
+
+            testing.suites.create("integTest", JvmTestSuite) {
+                targets.named("integTest") {
+                    testTask.configure {
+                        useJUnitPlatform()
+                    }
+                }
+                dependencies {
+                    implementation("org.junit.platform:junit-platform-launcher")
+                    // Version must be empty here to test for emitted deprecation
+                    implementation("org.jetbrains.kotlin:kotlin-test-junit5")
+                }
+            }
+        """
+
+        ["test", "integTest"].each {
+            file("src/$it/kotlin/MyTest.kt") << """
+                class MyTest {
+                    @kotlin.test.Test
+                    fun testSum() {
+                        assert(2 + 2 == 4)
+                    }
+                }
+            """
+        }
+
+        def versionNumber = VersionNumber.parse(version)
+
+        when:
+        def result = runner(ParallelTasksInProject.FALSE, versionNumber, 'test', 'integTest')
+            .deprecations(KotlinDeprecations) {
+                runner.expectLegacyDeprecationWarning("Mutating dependency DefaultExternalModuleDependency{group='org.jetbrains.kotlin', name='kotlin-test-junit5', version='null', configuration='default'} after it has been finalized has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#dependency_mutate_dependency_collector_after_finalize")
+            }.build()
+
+        then:
+        result.task(':test').outcome == SUCCESS
+        result.task(':integTest').outcome == SUCCESS
+
+        where:
+        version << TestedVersions.kotlin.versions
+    }
+
     def 'kotlin javascript (kotlin=#version, workers=#parallelTasksInProject)'() {
+
+        KotlinGradlePluginVersions.assumeCurrentJavaVersionIsSupportedBy(version)
 
         // kotlinjs has been removed in Kotlin 1.7 in favor of kotlin-mpp
         assumeTrue(VersionNumber.parse(version).baseVersion < VersionNumber.version(1, 7))
@@ -120,6 +184,8 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
     }
 
     def 'kotlin jvm and groovy plugins combined (kotlin=#kotlinVersion)'() {
+
+        KotlinGradlePluginVersions.assumeCurrentJavaVersionIsSupportedBy(kotlinVersion)
 
         def versionNumber = VersionNumber.parse(kotlinVersion)
         def kotlinCompileClasspathPropertyName = versionNumber >= VersionNumber.parse("1.7.0") ? 'libraries' : 'classpath'
@@ -182,6 +248,8 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
     }
 
     def 'kotlin jvm and java-gradle-plugin plugins combined (kotlin=#kotlinVersion)'() {
+
+        KotlinGradlePluginVersions.assumeCurrentJavaVersionIsSupportedBy(kotlinVersion)
 
         assumeFalse(kotlinVersion.startsWith("1.6."))
         assumeFalse(kotlinVersion.startsWith("1.7."))

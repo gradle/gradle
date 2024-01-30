@@ -31,7 +31,10 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGen
     }
 
     public void generateWithoutComments(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
-        builder(settings, buildContentGenerationContext).withExternalComments().create(settings.getTarget()).generate();
+        builder(settings, buildContentGenerationContext)
+            .withComments(settings.isWithComments() ? BuildInitComments.EXTERNAL : BuildInitComments.OFF)
+            .create(settings.getTarget())
+            .generate();
     }
 
     @Override
@@ -41,8 +44,9 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGen
 
     private BuildScriptBuilder builder(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
         BuildScriptBuilder builder = scriptBuilderFactory.scriptForNewProjectsWithoutVersionCatalog(settings.getDsl(), buildContentGenerationContext, "settings", settings.isUseIncubatingAPIs());
+        builder.withComments(settings.isWithComments() ? BuildInitComments.ON : BuildInitComments.OFF);
         builder.fileComment("The settings file is used to specify which projects to include in your build.\n\n")
-            .fileComment(documentationRegistry.getDocumentationRecommendationFor("detailed information on multi-project builds", "building_swift_projects"));
+            .fileComment(documentationRegistry.getDocumentationRecommendationFor("detailed information on multi-project builds", "multi_project_builds"));
         if (settings.getModularizationOption() == ModularizationOption.WITH_LIBRARY_PROJECTS && settings.isUseIncubatingAPIs()) {
             builder.includePluginsBuild();
         }
@@ -51,7 +55,7 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGen
             builder.plugin(
                 "Apply the foojay-resolver plugin to allow automatic download of JDKs",
                 "org.gradle.toolchains.foojay-resolver-convention",
-                "0.7.0");
+                "0.8.0");
         }
 
         builder.propertyAssignment(null, "rootProject.name", settings.getProjectName());

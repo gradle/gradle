@@ -25,7 +25,7 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.initialization.buildsrc.BuildSrcDetector;
-import org.gradle.initialization.layout.BuildLocations;
+import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -112,7 +112,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
         );
         noSearchParameter.useEmptySettings();
         noSearchParameter.doNotSearchUpwards();
-        BuildLocations layout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(noSearchParameter));
+        BuildLayout layout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(noSearchParameter));
         SettingsState state = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter, layout, classLoaderScope);
 
         // Set explicit build file, if required

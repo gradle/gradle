@@ -16,14 +16,12 @@
 
 package org.gradle.model.dsl.internal.transform;
 
-import com.google.common.collect.Lists;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class InputReferences {
-    private final List<InputReference> ownReferences = Lists.newArrayList();
-    private final List<InputReference> nestedReferences = Lists.newArrayList();
+    private final List<InputReference> ownReferences = new ArrayList<>();
+    private final List<InputReference> nestedReferences = new ArrayList<>();
 
     public List<InputReference> getOwnReferences() {
         return ownReferences;

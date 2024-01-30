@@ -23,6 +23,9 @@ public class NoOpBuildOperationProgressEventEmitter implements BuildOperationPro
     public void emit(OperationIdentifier operationIdentifier, long timestamp, @Nullable Object details) {}
 
     @Override
+    public void emitNow(@Nullable OperationIdentifier operationIdentifier, @Nullable Object details) {}
+
+    @Override
     public void emitNowIfCurrent(Object details) {}
 
     @Override

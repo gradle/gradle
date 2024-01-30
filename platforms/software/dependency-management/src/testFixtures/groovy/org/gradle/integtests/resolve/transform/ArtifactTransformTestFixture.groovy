@@ -16,8 +16,10 @@
 
 package org.gradle.integtests.resolve.transform
 
-
+import groovy.transform.SelfType
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.resolve.VariantAwareDependencyResolutionTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
@@ -25,6 +27,7 @@ import org.gradle.test.fixtures.maven.MavenModule
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
 
+@SelfType(AbstractIntegrationSpec)
 trait ArtifactTransformTestFixture extends VariantAwareDependencyResolutionTestFixture {
     abstract TestFile getBuildFile()
 
@@ -371,6 +374,58 @@ allprojects { p ->
         setupBuildWithColorTransform(buildFile, cl)
     }
 
+    static class ProjectConfigurator {
+        private final GradleExecuter executer
+        private final String projectName
+
+        private ProjectConfigurator(GradleExecuter executer, String projectName) {
+            this.projectName = projectName
+            this.executer = executer
+        }
+
+        void setProjectBuildDir(String buildDirPath) {
+            executer.withArgument("-D${projectName}OutputDir=${buildDirPath}")
+        }
+
+        void setOutputFileName(String outputFileName) {
+            executer.withArgument("-D${projectName}FileName=${outputFileName}")
+        }
+
+        void setOutputDirName(String outputDirName) {
+            executer.withArgument("-D${projectName}DirName=${outputDirName}")
+        }
+
+        void emptyOutputDir() {
+            executer.withArgument("-D${projectName}EmptyDir")
+        }
+
+        void setOutputFileContent(String textToWrite) {
+            executer.withArgument("-D${projectName}Content=${textToWrite}")
+        }
+
+        void setOutputJarEntryName(String entryName) {
+            executer.withArgument("-D${projectName}EntryName=${entryName}")
+        }
+
+        void setOutputJarEntryTimestamp(int timestamp) {
+            executer.withArgument("-D${projectName}Timestamp=${timestamp}")
+        }
+
+        void setNames(List<String> names) {
+            executer.withArgument("-D${projectName}Names=${names.join(',')}")
+        }
+
+        void produceNothing() {
+            executer.withArgument("-D${projectName}ProduceNothing")
+        }
+    }
+
+    void withProjectConfig(String projectName, @DelegatesTo(ProjectConfigurator) Closure config) {
+        def configurator = new ProjectConfigurator(executer, projectName)
+        config.delegate = configurator
+        config.call(configurator)
+    }
+
     static class Builder {
         String producerTaskClassName
         String producerConfig
@@ -426,7 +481,7 @@ allprojects { p ->
          * ${project.name}OutputDir - changes the build directory of the given project.
          * ${project.name}DirName - changes the output directory name.
          * ${project.name}ProduceNothing - deletes the output directory instead of writing to it.
-         * ${project.name}Name - changes the name of the file to write to in the directory
+         * ${project.name}FileName - changes the name of the file to write to in the directory
          * ${project.name}Content - changes the text to write to the output file.
          */
         void produceDirs() {
@@ -436,7 +491,7 @@ allprojects { p ->
                 def defaultContent = project.name
                 content.convention(providers.systemProperty("\${project.name}Content").orElse(defaultContent))
                 def defaultNames = providers.systemProperty("\${project.name}EmptyDir").present ? [] : [project.name]
-                names.convention(providers.systemProperty("\${project.name}Name").map { [it] }.orElse(defaultNames))
+                names.convention(providers.systemProperty("\${project.name}FileName").map { [it] }.orElse(defaultNames))
             """.stripIndent()
             producerConfigOverrides = """
                 layout.buildDirectory.convention(layout.projectDirectory.dir(providers.systemProperty("\${project.name}OutputDir").orElse("build")))

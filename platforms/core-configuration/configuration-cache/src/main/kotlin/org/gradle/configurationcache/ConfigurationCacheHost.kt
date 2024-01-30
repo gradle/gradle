@@ -24,13 +24,13 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.execution.plan.Node
+import org.gradle.execution.plan.ScheduledWork
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.SettingsState
-import org.gradle.initialization.layout.BuildLocations
+import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
@@ -79,11 +79,11 @@ class ConfigurationCacheHost internal constructor(
         override val hasScheduledWork: Boolean
             get() = gradle.taskGraph.size() > 0
 
-        override val scheduledWork: List<Node>
+        override val scheduledWork: ScheduledWork
             get() {
-                lateinit var nodes: List<Node>
-                gradle.taskGraph.visitScheduledNodes { nodes = it }
-                return nodes
+                lateinit var work: ScheduledWork
+                gradle.taskGraph.visitScheduledNodes { nodes, entryNodes -> work = ScheduledWork(nodes, entryNodes) }
+                return work
             }
     }
 
@@ -201,7 +201,7 @@ class ConfigurationCacheHost internal constructor(
 
         private
         fun settingsDir() =
-            service<BuildLocations>().settingsDir
+            service<BuildLayout>().settingsDir
 
         private
         fun getProjectDescriptor(parentPath: Path?): DefaultProjectDescriptor? =

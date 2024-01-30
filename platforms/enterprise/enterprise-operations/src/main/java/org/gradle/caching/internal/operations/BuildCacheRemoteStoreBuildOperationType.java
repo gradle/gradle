@@ -42,6 +42,11 @@ public final class BuildCacheRemoteStoreBuildOperationType implements BuildOpera
 
     public interface Result {
 
+        /**
+         * Whether the entry has actually been stored.
+         * <p>
+         * The cache might not store some entries, e.g. when they are too large.
+         */
         boolean isStored();
 
     }

@@ -29,6 +29,9 @@ class XcodeCompositeBuildIntegrationTest extends AbstractXcodeIntegrationSpec {
             includeBuild 'util'
             includeBuild 'other'
         """
+        createDirs("greeter")
+        createDirs("app")
+        createDirs("empty")
 
         buildFile << """
             allprojects {

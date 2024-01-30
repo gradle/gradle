@@ -53,7 +53,6 @@ inline operator fun ConfigurationContainer.invoke(
  *
  * @since 8.4
  */
-@Incubating
 class ConfigurationContainerScope
 private constructor(
     override val delegate: ConfigurationContainer

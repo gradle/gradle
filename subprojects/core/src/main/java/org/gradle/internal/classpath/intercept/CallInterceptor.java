@@ -19,6 +19,7 @@ package org.gradle.internal.classpath.intercept;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.GradleException;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptor;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -32,7 +33,7 @@ import java.lang.invoke.MethodType;
  * <p>
  * Descendants of this class should be thread-safe, making a stateless implementation is perfect.
  */
-public abstract class CallInterceptor {
+public abstract class CallInterceptor implements BytecodeInterceptor {
     private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
 
     private static final MethodHandle INTERCEPTOR;

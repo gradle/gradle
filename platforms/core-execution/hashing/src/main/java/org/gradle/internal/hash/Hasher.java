@@ -18,8 +18,9 @@ package org.gradle.internal.hash;
 
 /**
  * A safe hasher that can be marked as invalid.
- *
- * In order to avoid collisions we prepend the length of the next bytes to the underlying hasher (see this <a href="http://crypto.stackexchange.com/a/10065">answer</a> on stackexchange).
+ * <p>
+ * In order to avoid collisions we prepend the length of the next bytes to the underlying hasher
+ * (see this <a href="http://crypto.stackexchange.com/a/10065">answer</a> on stackexchange).
  */
 public interface Hasher {
     /**

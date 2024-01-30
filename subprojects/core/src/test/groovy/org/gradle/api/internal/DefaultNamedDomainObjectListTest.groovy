@@ -396,6 +396,38 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
         list.findAll { it != "b" } == ["a", "c"]
     }
 
+    def "name based filtering does not realize pending"() {
+        given:
+        list.add("realized1")
+        list.addLater(new TestNamedProvider("unrealized1", "unrealized1"))
+        list.add("realized2")
+        list.addLater(new TestNamedProvider("unrealized2", "unrealized2"))
+
+        expect: "unrealized elements remain as such"
+        list.index.asMap().size() == 2
+        list.index.pendingAsMap.size() == 2
+
+        when: "filter the list via the `named` method"
+        def filtered = list.named { it.contains("2") }
+
+        then: "unrealized elements remain as such"
+        list.index.asMap().size() == 2
+        list.index.pendingAsMap.size() == 2
+
+        filtered.index.asMap().size() == 1
+        filtered.index.pendingAsMap.size() == 1
+
+        expect: "list contains the right elements when iterated"
+        filtered.asList() == ["realized2", "unrealized2"]
+
+        and: "unrealized element get realized"
+        container.index.asMap().size() == 4
+        container.index.pendingAsMap.size() == 2
+
+        filtered.index.asMap().size() == 2
+        filtered.index.pendingAsMap.size() == 1
+    }
+
     def "can get filtered element by index"() {
         given:
         list.addAll(["a", "b", "c"])
@@ -476,4 +508,5 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
             "listIterator().remove()": { def iter = container.listIterator(); iter.next(); iter.remove() },
         ]
     }
+
 }

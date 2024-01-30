@@ -9,6 +9,7 @@ dependencies {
     implementation(project(":base-services"))
     implementation(project(":functional"))
     implementation(project(":enterprise-operations"))
+    implementation(project(":enterprise-workers"))
     implementation(project(":cli"))
     implementation(project(":messaging"))
     implementation(project(":build-option"))
@@ -28,6 +29,7 @@ dependencies {
     implementation(project(":build-events"))
     implementation(project(":tooling-api"))
     implementation(project(":file-watching"))
+    implementation(project(":problems-api"))
     implementation(project(":problems"))
 
     implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'

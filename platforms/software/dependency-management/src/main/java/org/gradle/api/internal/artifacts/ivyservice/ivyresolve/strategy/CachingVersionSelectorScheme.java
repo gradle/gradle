@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
-import com.google.common.collect.Maps;
-
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CachingVersionSelectorScheme implements VersionSelectorScheme {
-    private final Map<String, VersionSelector> cachedSelectors = Maps.newConcurrentMap();
+    private final Map<String, VersionSelector> cachedSelectors = new ConcurrentHashMap<>();
     private final VersionSelectorScheme delegate;
 
     public CachingVersionSelectorScheme(VersionSelectorScheme delegate) {

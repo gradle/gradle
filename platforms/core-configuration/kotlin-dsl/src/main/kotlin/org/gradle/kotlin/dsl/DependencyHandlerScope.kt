@@ -21,6 +21,7 @@ import org.gradle.api.Incubating
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
@@ -169,6 +170,19 @@ private constructor(
         add(name, dependencyNotation)
 
     /**
+     * Adds a dependency to the given [DependencyScopeConfiguration].
+     *
+     * @param dependencyNotation notation for the dependency to be added.
+     * @return The dependency.
+     * @see [DependencyHandler.add]
+     * @since 8.5
+     */
+    @Incubating
+    @JvmName("invokeDependencyScope")
+    operator fun NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependencyNotation: Any): Dependency? =
+        add(name, dependencyNotation)
+
+    /**
      * Adds a dependency to the given configuration.
      *
      * @param dependencyNotation notation for the dependency to be added.
@@ -190,6 +204,20 @@ private constructor(
      */
     @Incubating
     inline operator fun NamedDomainObjectProvider<Configuration>.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
+        add(name, dependencyNotation, dependencyConfiguration)
+
+    /**
+     * Adds a dependency to the given [DependencyScopeConfiguration].
+     *
+     * @param dependencyNotation notation for the dependency to be added.
+     * @param dependencyConfiguration expression to use to configure the dependency.
+     * @return The dependency.
+     * @see [DependencyHandler.add]
+     * @since 8.5
+     */
+    @Incubating
+    @JvmName("invokeDependencyScope")
+    inline operator fun NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
         add(name, dependencyNotation, dependencyConfiguration)
 
     /**
@@ -231,6 +259,32 @@ private constructor(
      */
     @Incubating
     operator fun NamedDomainObjectProvider<Configuration>.invoke(
+        group: String,
+        name: String,
+        version: String? = null,
+        configuration: String? = null,
+        classifier: String? = null,
+        ext: String? = null
+    ): ExternalModuleDependency =
+        create(group, name, version, configuration, classifier, ext).apply { add(this@invoke.name, this) }
+
+    /**
+     * Adds a dependency to the given [DependencyScopeConfiguration].
+     *
+     * @param group the group of the module to be added as a dependency.
+     * @param name the name of the module to be added as a dependency.
+     * @param version the optional version of the module to be added as a dependency.
+     * @param configuration the optional configuration of the module to be added as a dependency.
+     * @param classifier the optional classifier of the module artifact to be added as a dependency.
+     * @param ext the optional extension of the module artifact to be added as a dependency.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.add]
+     * @since 8.5
+     */
+    @Incubating
+    @JvmName("invokeDependencyScope")
+    operator fun NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(
         group: String,
         name: String,
         version: String? = null,
@@ -294,6 +348,36 @@ private constructor(
     ): ExternalModuleDependency =
         add(this.name, create(group, name, version, configuration, classifier, ext), dependencyConfiguration)
 
+
+    /**
+     * Adds a dependency to the given [DependencyScopeConfiguration].
+     *
+     * @param group the group of the module to be added as a dependency.
+     * @param name the name of the module to be added as a dependency.
+     * @param version the optional version of the module to be added as a dependency.
+     * @param configuration the optional configuration of the module to be added as a dependency.
+     * @param classifier the optional classifier of the module artifact to be added as a dependency.
+     * @param ext the optional extension of the module artifact to be added as a dependency.
+     * @param dependencyConfiguration expression to use to configure the dependency.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.create]
+     * @see [DependencyHandler.add]
+     * @since 8.5
+     */
+    @Incubating
+    @JvmName("invokeDependencyScope")
+    inline operator fun NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(
+        group: String,
+        name: String,
+        version: String? = null,
+        configuration: String? = null,
+        classifier: String? = null,
+        ext: String? = null,
+        dependencyConfiguration: ExternalModuleDependency.() -> Unit
+    ): ExternalModuleDependency =
+        add(this.name, create(group, name, version, configuration, classifier, ext), dependencyConfiguration)
+
     /**
      * Adds a dependency to the given configuration.
      *
@@ -318,6 +402,21 @@ private constructor(
      */
     @Incubating
     inline operator fun <T : ModuleDependency> NamedDomainObjectProvider<Configuration>.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T =
+        add(name, dependency, dependencyConfiguration)
+
+    /**
+     * Adds a dependency to the given [DependencyScopeConfiguration].
+     *
+     * @param dependency dependency to be added.
+     * @param dependencyConfiguration expression to use to configure the dependency.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.add]
+     * @since 8.5
+     */
+    @Incubating
+    @JvmName("invokeDependencyScope")
+    inline operator fun <T : ModuleDependency> NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T =
         add(name, dependency, dependencyConfiguration)
 
     /**
@@ -347,6 +446,20 @@ private constructor(
         addProvider(name, dependency, dependencyConfiguration)
 
     /**
+     * Adds a dependency provider to the given [DependencyScopeConfiguration].
+     *
+     * @param dependency the dependency provider to be added.
+     * @param dependencyConfiguration the configuration to be applied to the dependency
+     *
+     * @see [DependencyHandler.addProvider]
+     * @since 8.5
+     */
+    @Incubating
+    @JvmName("invokeDependencyScope")
+    operator fun <T : Any> NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
+        addProvider(name, dependency, dependencyConfiguration)
+
+    /**
      * Adds a dependency provider to the given configuration.
      *
      * @param dependency the dependency provider to be added.
@@ -367,6 +480,19 @@ private constructor(
      */
     @Incubating
     operator fun <T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: Provider<T>) =
+        addProvider(name, dependency)
+
+    /**
+     * Adds a dependency provider to the given [DependencyScopeConfiguration].
+     *
+     * @param dependency the dependency provider to be added.
+     *
+     * @see [DependencyHandler.addProvider]
+     * @since 8.5
+     */
+    @Incubating
+    @JvmName("invokeDependencyScope")
+    operator fun <T : Any> NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependency: Provider<T>) =
         addProvider(name, dependency)
 
     /**
@@ -396,6 +522,20 @@ private constructor(
         addProviderConvertible(name, dependency, dependencyConfiguration)
 
     /**
+     * Adds a dependency provider to the given [DependencyScopeConfiguration].
+     *
+     * @param dependency the dependency provider to be added.
+     * @param dependencyConfiguration the configuration to be applied to the dependency
+     *
+     * @see [DependencyHandler.addProviderConvertible]
+     * @since 8.5
+     */
+    @Incubating
+    @JvmName("invokeDependencyScope")
+    operator fun <T : Any> NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
+        addProviderConvertible(name, dependency, dependencyConfiguration)
+
+    /**
      * Adds a dependency provider to the given configuration.
      *
      * @param dependency the dependency provider to be added.
@@ -416,6 +556,19 @@ private constructor(
      */
     @Incubating
     operator fun <T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: ProviderConvertible<T>) =
+        addProviderConvertible(name, dependency)
+
+    /**
+     * Adds a dependency provider to the given [DependencyScopeConfiguration].
+     *
+     * @param dependency the dependency provider to be added.
+     *
+     * @see [DependencyHandler.addProviderConvertible]
+     * @since 8.5
+     */
+    @Incubating
+    @JvmName("invokeDependencyScope")
+    operator fun <T : Any> NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependency: ProviderConvertible<T>) =
         addProviderConvertible(name, dependency)
 
     /**

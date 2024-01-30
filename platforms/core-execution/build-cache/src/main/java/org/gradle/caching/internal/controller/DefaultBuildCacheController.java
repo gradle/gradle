@@ -17,7 +17,6 @@
 package org.gradle.caching.internal.controller;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.io.Closer;
 import org.gradle.api.GradleException;
@@ -34,14 +33,15 @@ import org.gradle.caching.internal.controller.operations.UnpackOperationResult;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.controller.service.BuildCacheServiceRole;
 import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration;
-import org.gradle.caching.internal.controller.service.DefaultLocalBuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.LocalBuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.NullLocalBuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.NullRemoteBuildCacheServiceHandle;
+import org.gradle.caching.internal.controller.service.OpFiringLocalBuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.OpFiringRemoteBuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.RemoteBuildCacheServiceHandle;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
+import org.gradle.caching.internal.origin.OriginWriter;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.caching.local.internal.BuildCacheTempFileStore;
 import org.gradle.caching.local.internal.DefaultBuildCacheTempFileStore;
@@ -52,12 +52,12 @@ import org.gradle.internal.file.TreeType;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
-import org.gradle.internal.vfs.FileSystemAccess;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -87,22 +87,21 @@ public class DefaultBuildCacheController implements BuildCacheController {
     public DefaultBuildCacheController(
         BuildCacheServicesConfiguration config,
         BuildOperationExecutor buildOperationExecutor,
+        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
         TemporaryFileProvider temporaryFileProvider,
         boolean logStackTraces,
         boolean emitDebugLogging,
         boolean disableRemoteOnError,
-        FileSystemAccess fileSystemAccess,
         BuildCacheEntryPacker packer,
         OriginMetadataFactory originMetadataFactory,
         StringInterner stringInterner
     ) {
         this.emitDebugLogging = emitDebugLogging;
-        this.local = toLocalHandle(config.getLocal(), config.isLocalPush());
-        this.remote = toRemoteHandle(config.getRemote(), config.isRemotePush(), buildOperationExecutor, logStackTraces, disableRemoteOnError);
+        this.local = toLocalHandle(config.getLocal(), config.isLocalPush(), buildOperationExecutor);
+        this.remote = toRemoteHandle(config.getBuildPath(), config.getRemote(), config.isRemotePush(), buildOperationExecutor, buildOperationProgressEventEmitter, logStackTraces, disableRemoteOnError);
         this.tmp = toTempFileStore(config.getLocal(), temporaryFileProvider);
         this.packExecutor = new PackOperationExecutor(
             buildOperationExecutor,
-            fileSystemAccess,
             packer,
             originMetadataFactory,
             stringInterner
@@ -182,14 +181,12 @@ public class DefaultBuildCacheController implements BuildCacheController {
     @VisibleForTesting
     static class PackOperationExecutor {
         private final BuildOperationExecutor buildOperationExecutor;
-        private final FileSystemAccess fileSystemAccess;
         private final BuildCacheEntryPacker packer;
         private final OriginMetadataFactory originMetadataFactory;
         private final StringInterner stringInterner;
 
-        PackOperationExecutor(BuildOperationExecutor buildOperationExecutor, FileSystemAccess fileSystemAccess, BuildCacheEntryPacker packer, OriginMetadataFactory originMetadataFactory, StringInterner stringInterner) {
+        PackOperationExecutor(BuildOperationExecutor buildOperationExecutor, BuildCacheEntryPacker packer, OriginMetadataFactory originMetadataFactory, StringInterner stringInterner) {
             this.buildOperationExecutor = buildOperationExecutor;
-            this.fileSystemAccess = fileSystemAccess;
             this.packer = packer;
             this.originMetadataFactory = originMetadataFactory;
             this.stringInterner = stringInterner;
@@ -217,11 +214,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
 
         private BuildCacheLoadResult doUnpack(CacheableEntity entity, InputStream input) throws IOException {
-            ImmutableList.Builder<String> roots = ImmutableList.builder();
-            entity.visitOutputTrees((name, type, root) -> roots.add(root.getAbsolutePath()));
-            // TODO: Actually unpack the roots inside of the action
-            fileSystemAccess.write(roots.build(), () -> {});
-            BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(entity, input, originMetadataFactory.createReader(entity));
+            BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(entity, input, originMetadataFactory.createReader());
             // TODO: Update the snapshots from the action
             ImmutableSortedMap<String, FileSystemSnapshot> resultingSnapshots = snapshotUnpackedData(entity, unpackResult.getSnapshots());
             return new BuildCacheLoadResult() {
@@ -254,7 +247,6 @@ public class DefaultBuildCacheController implements BuildCacheController {
                     }
                     resultingSnapshot = treeSnapshot;
                 }
-                fileSystemAccess.record(resultingSnapshot);
                 builder.put(treeName, resultingSnapshot);
             });
             return builder.build();
@@ -266,7 +258,8 @@ public class DefaultBuildCacheController implements BuildCacheController {
                 @Override
                 public void run(BuildOperationContext context) throws IOException {
                     try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
-                        BuildCacheEntryPacker.PackResult packResult = packer.pack(entity, snapshots, fileOutputStream, originMetadataFactory.createWriter(entity, executionTime));
+                        OriginWriter originWriter = originMetadataFactory.createWriter(entity.getIdentity(), entity.getType(), executionTime);
+                        BuildCacheEntryPacker.PackResult packResult = packer.pack(entity, snapshots, fileOutputStream, originWriter);
                         long entryCount = packResult.getEntries();
                         context.setResult(new PackOperationResult(entryCount, file.length()));
                     }
@@ -282,16 +275,16 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
     }
 
-    private static RemoteBuildCacheServiceHandle toRemoteHandle(@Nullable BuildCacheService service, boolean push, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces, boolean disableOnError) {
+    private static RemoteBuildCacheServiceHandle toRemoteHandle(String buildPath, @Nullable BuildCacheService service, boolean push, BuildOperationExecutor buildOperationExecutor, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter, boolean logStackTraces, boolean disableOnError) {
         return service == null
             ? NullRemoteBuildCacheServiceHandle.INSTANCE
-            : new OpFiringRemoteBuildCacheServiceHandle(service, push, BuildCacheServiceRole.REMOTE, buildOperationExecutor, logStackTraces, disableOnError);
+            : new OpFiringRemoteBuildCacheServiceHandle(buildPath, service, push, BuildCacheServiceRole.REMOTE, buildOperationExecutor, buildOperationProgressEventEmitter, logStackTraces, disableOnError);
     }
 
-    private static LocalBuildCacheServiceHandle toLocalHandle(@Nullable LocalBuildCacheService local, boolean localPush) {
+    private static LocalBuildCacheServiceHandle toLocalHandle(@Nullable LocalBuildCacheService local, boolean localPush, BuildOperationExecutor buildOperationExecutor) {
         return local == null
             ? NullLocalBuildCacheServiceHandle.INSTANCE
-            : new DefaultLocalBuildCacheServiceHandle(local, localPush);
+            : new OpFiringLocalBuildCacheServiceHandle(local, localPush, buildOperationExecutor);
     }
 
     private static BuildCacheTempFileStore toTempFileStore(@Nullable LocalBuildCacheService local, TemporaryFileProvider temporaryFileProvider) {

@@ -15,24 +15,24 @@
  */
 package org.gradle.buildinit.plugins.internal;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 public class ProjectLayoutSetupRegistry {
     private final Map<String, BuildInitializer> registeredProjectDescriptors = new TreeMap<>();
-    private final BuildInitializer defaultType;
+    private final BuildGenerator defaultType;
     private final BuildConverter converter;
     private final TemplateOperationFactory templateOperationFactory;
 
-    public ProjectLayoutSetupRegistry(BuildInitializer defaultType, BuildConverter converter, TemplateOperationFactory templateOperationFactory) {
+    public ProjectLayoutSetupRegistry(BuildGenerator defaultType, BuildConverter converter, TemplateOperationFactory templateOperationFactory) {
         this.defaultType = defaultType;
         this.converter = converter;
         this.templateOperationFactory = templateOperationFactory;
@@ -48,12 +48,41 @@ public class ProjectLayoutSetupRegistry {
         registeredProjectDescriptors.put(descriptor.getId(), descriptor);
     }
 
+    // Currently used by `build-logic/build-init-samples/src/main/kotlin/gradlebuild/samples/SamplesGenerator.kt`
+    @SuppressWarnings("unused")
     public TemplateOperationFactory getTemplateOperationFactory() {
         return templateOperationFactory;
     }
 
+    // Currently used by `build-logic/build-init-samples/src/main/kotlin/gradlebuild/samples/SamplesGenerator.kt`
+    @SuppressWarnings("unused")
+    public List<Language> getLanguagesFor(ComponentType componentType) {
+        List<BuildGenerator> generators = getGeneratorsFor(componentType);
+
+        List<Language> result = new ArrayList<>();
+        for (Language language : Language.values()) {
+            for (BuildGenerator generator : generators) {
+                if (generator.productionCodeUses(language)) {
+                    result.add(language);
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Returns the component types, in display order.
+     */
     public List<ComponentType> getComponentTypes() {
-        return ImmutableList.copyOf(ComponentType.values());
+        return Arrays.asList(ComponentType.values());
+    }
+
+    /**
+     * Returns the default component type to use for interactive initialization.
+     */
+    public ComponentType getDefaultComponentType() {
+        return ComponentType.APPLICATION;
     }
 
     // This should turn into a set of converters at some point
@@ -61,7 +90,7 @@ public class ProjectLayoutSetupRegistry {
         return converter;
     }
 
-    public BuildInitializer getDefault() {
+    public BuildGenerator getDefault() {
         return defaultType;
     }
 
@@ -82,23 +111,25 @@ public class ProjectLayoutSetupRegistry {
         return registeredProjectDescriptors.get(type);
     }
 
-    public List<Language> getLanguagesFor(ComponentType componentType) {
-        List<Language> result = new ArrayList<>(registeredProjectDescriptors.size());
+    private List<BuildGenerator> getGenerators() {
+        List<BuildGenerator> result = new ArrayList<>(registeredProjectDescriptors.size());
         for (BuildInitializer initializer : registeredProjectDescriptors.values()) {
-            if (initializer != converter && initializer.getComponentType().equals(componentType)) {
-                result.add(initializer.getLanguage());
+            if (initializer instanceof BuildGenerator) {
+                result.add((BuildGenerator) initializer);
             }
         }
         return result;
     }
 
-    public BuildInitializer get(ComponentType componentType, Language language) {
-        for (BuildInitializer initializer : registeredProjectDescriptors.values()) {
-            if (initializer != converter && initializer.getComponentType().equals(componentType) && initializer.getLanguage().equals(language)) {
-                return initializer;
+    public List<BuildGenerator> getGeneratorsFor(ComponentType componentType) {
+        List<BuildGenerator> generators = getGenerators();
+        List<BuildGenerator> result = new ArrayList<>(generators.size());
+        for (BuildGenerator generator : generators) {
+            if (generator.getComponentType().equals(componentType)) {
+                result.add(generator);
             }
         }
-        throw new IllegalArgumentException("No initializer with component type " + componentType + " and language " + language);
+        return result;
     }
 
     public List<String> getAllTypes() {

@@ -25,6 +25,10 @@ import spock.lang.Issue
 
 class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport, VersionCatalogErrorMessages {
 
+    def setup() {
+        enableProblemsApiCheck()
+    }
+
     def "dependencies declared in settings trigger the creation of an extension (notation=#notation)"() {
         settingsFile << """
             dependencyResolutionManagement {
@@ -781,6 +785,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
     }
 
     def "libraries extension is not visible in buildSrc"() {
+        disableProblemsApiCheck()
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
@@ -2240,6 +2245,7 @@ Second: 1.1"""
 
     @Issue("https://github.com/gradle/gradle/issues/17874")
     def "doesn't support rich versions from version catalogs in force method of resolutionStrategy"() {
+        disableProblemsApiCheck()
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
@@ -2274,6 +2280,8 @@ Second: 1.1"""
 
     @Issue("https://github.com/gradle/gradle/issues/17874")
     def "fails if plugin, version or bundle is used in force of resolution strategy"() {
+        disableProblemsApiCheck()
+
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
@@ -2315,6 +2323,7 @@ Second: 1.1"""
     @Issue("https://github.com/gradle/gradle/issues/23096")
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def 'all properties of version catalog dependencies are copied when the dependency is copied'() {
+        disableProblemsApiCheck()
         given:
         buildFile << """
             configurations {

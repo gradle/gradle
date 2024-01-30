@@ -53,6 +53,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -83,9 +84,9 @@ public class EclipseDependenciesCreator {
 
     private class EclipseDependenciesVisitor implements IdeDependencyVisitor {
 
-        private final List<AbstractClasspathEntry> projects = Lists.newArrayList();
-        private final List<AbstractClasspathEntry> modules = Lists.newArrayList();
-        private final List<AbstractClasspathEntry> files = Lists.newArrayList();
+        private final List<AbstractClasspathEntry> projects = new ArrayList<>();
+        private final List<AbstractClasspathEntry> modules = new ArrayList<>();
+        private final List<AbstractClasspathEntry> files = new ArrayList<>();
         private final Multimap<String, String> pathToSourceSets = collectLibraryToSourceSetMapping();
         private final UnresolvedIdeDependencyHandler unresolvedIdeDependencyHandler = new UnresolvedIdeDependencyHandler();
         private final Project project;

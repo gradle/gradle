@@ -263,6 +263,7 @@ class ConfigurationCacheFingerprintCheckerTest {
      * The written state can then be read from the [ReadContext] returned
      * by [toReadContext].
      */
+    private
     class RecordingWriteContext : WriteContext {
 
         private
@@ -334,6 +335,15 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun writeLong(value: Long): Unit =
             undefined()
 
+        override fun writeShort(value: Short) =
+            undefined()
+
+        override fun writeFloat(value: Float) =
+            undefined()
+
+        override fun writeDouble(value: Double) =
+            undefined()
+
         override fun writeString(value: CharSequence?): Unit =
             undefined()
 
@@ -368,6 +378,7 @@ class ConfigurationCacheFingerprintCheckerTest {
             undefined()
     }
 
+    private
     class PlaybackReadContext(values: Iterable<Any?>) : ReadContext {
 
         private
@@ -438,6 +449,15 @@ class ConfigurationCacheFingerprintCheckerTest {
             undefined()
 
         override fun readNullableSmallInt(): Int? =
+            undefined()
+
+        override fun readShort(): Short =
+            undefined()
+
+        override fun readFloat(): Float =
+            undefined()
+
+        override fun readDouble(): Double =
             undefined()
 
         override fun readNullableString(): String? =

@@ -19,9 +19,9 @@ package org.gradle.internal.component.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor;
 
 import java.util.List;
@@ -96,7 +96,7 @@ public interface ConfigurationMetadata extends VariantArtifactGraphResolveMetada
      */
     ComponentArtifactMetadata artifact(IvyArtifactName artifact);
 
-    CapabilitiesMetadata getCapabilities();
+    ImmutableCapabilities getCapabilities();
 
     boolean isExternalVariant();
 }

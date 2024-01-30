@@ -88,7 +88,6 @@ import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.BuildScopeCacheDir;
 import org.gradle.cache.internal.scopes.DefaultBuildScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
-import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.caching.internal.BuildCacheServices;
 import org.gradle.configuration.BuildOperationFiringProjectsPreparer;
 import org.gradle.configuration.BuildTreePreparingProjectsPreparer;
@@ -120,7 +119,8 @@ import org.gradle.groovy.scripts.internal.BuildScopeInMemoryCachingScriptClassCo
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
 import org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler;
 import org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory;
-import org.gradle.groovy.scripts.internal.FileCacheBackedScriptClassCompiler;
+import org.gradle.groovy.scripts.internal.GroovyScriptClassCompiler;
+import org.gradle.groovy.scripts.internal.GroovyDslWorkspaceProvider;
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
 import org.gradle.groovy.scripts.internal.ScriptSourceListener;
 import org.gradle.initialization.BuildLoader;
@@ -151,9 +151,9 @@ import org.gradle.initialization.SettingsProcessor;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.buildsrc.BuildSrcBuildListenerFactory;
 import org.gradle.initialization.buildsrc.BuildSrcProjectConfigurationAction;
+import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.initialization.layout.BuildLocations;
 import org.gradle.initialization.layout.ResolvedBuildLayout;
 import org.gradle.initialization.properties.DefaultProjectPropertiesLoader;
 import org.gradle.initialization.properties.DefaultSystemPropertiesInstaller;
@@ -178,11 +178,14 @@ import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
+import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.composite.DefaultBuildIncluder;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.WorkExecutionTracker;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.RelativeFilePathResolver;
@@ -193,7 +196,6 @@ import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -207,7 +209,7 @@ import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scripts.ScriptExecutionListener;
 import org.gradle.internal.service.CachingServiceLocator;
-import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ScopedServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
@@ -225,10 +227,10 @@ import java.util.List;
 /**
  * Contains the singleton services for a single build invocation.
  */
-public class BuildScopeServices extends DefaultServiceRegistry {
+public class BuildScopeServices extends ScopedServiceRegistry {
 
     public BuildScopeServices(ServiceRegistry parent, BuildModelControllerServices.Supplier supplier) {
-        super(parent);
+        super(Scopes.Build.class, parent);
         addProvider(new BuildCacheServices());
         register(registration -> {
             registration.add(DefaultExecOperations.class);
@@ -283,15 +285,15 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected BuildScopedCacheBuilderFactory createBuildScopedCacheBuilderFactory(
         GradleUserHomeDirProvider userHomeDirProvider,
-        BuildLocations buildLocations,
+        BuildLayout buildLayout,
         StartParameter startParameter,
         UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
     ) {
-        BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildLocations, startParameter);
+        BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildLayout, startParameter);
         return new DefaultBuildScopedCacheBuilderFactory(cacheDir.getDir(), unscopedCacheBuilderFactory);
     }
 
-    protected BuildLocations createBuildLocations(BuildLayoutFactory buildLayoutFactory, BuildDefinition buildDefinition) {
+    protected BuildLayout createBuildLocations(BuildLayoutFactory buildLayoutFactory, BuildDefinition buildDefinition) {
         return buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(buildDefinition.getStartParameter()));
     }
 
@@ -448,7 +450,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected ScriptCompilerFactory createScriptCompileFactory(
-        FileCacheBackedScriptClassCompiler scriptCompiler,
+        GroovyScriptClassCompiler scriptCompiler,
         CrossBuildInMemoryCachingScriptClassCache cache,
         ScriptRunnerFactory scriptRunnerFactory
     ) {
@@ -458,20 +460,27 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected FileCacheBackedScriptClassCompiler createFileCacheBackedScriptClassCompiler(
+    protected GroovyScriptClassCompiler createFileCacheBackedScriptClassCompiler(
         BuildOperationExecutor buildOperationExecutor,
-        GlobalScopedCacheBuilderFactory cacheRepository,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         DefaultScriptCompilationHandler scriptCompilationHandler,
         CachedClasspathTransformer classpathTransformer,
-        ProgressLoggerFactory progressLoggerFactory
+        ExecutionEngine executionEngine,
+        FileCollectionFactory fileCollectionFactory,
+        InputFingerprinter inputFingerprinter,
+        GroovyDslWorkspaceProvider  groovyDslWorkspaceProvider,
+        ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy
     ) {
-        return new FileCacheBackedScriptClassCompiler(
-            cacheRepository,
+        return new GroovyScriptClassCompiler(
             new BuildOperationBackedScriptCompilationHandler(scriptCompilationHandler, buildOperationExecutor),
-            progressLoggerFactory,
             classLoaderHierarchyHasher,
-            classpathTransformer);
+            classpathTransformer,
+            executionEngine,
+            fileCollectionFactory,
+            inputFingerprinter,
+            groovyDslWorkspaceProvider.getWorkspace(),
+            transformFactoryForLegacy
+        );
     }
 
     protected ScriptPluginFactory createScriptPluginFactory(InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext, ListenerManager listenerManager) {

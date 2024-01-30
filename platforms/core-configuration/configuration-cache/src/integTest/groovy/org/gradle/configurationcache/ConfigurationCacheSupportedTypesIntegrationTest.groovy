@@ -30,6 +30,7 @@ import org.slf4j.Logger
 import spock.lang.Issue
 
 import javax.inject.Inject
+import java.nio.charset.Charset
 import java.util.logging.Level
 
 class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -97,6 +98,7 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         URL.name                             | "new URL('https://gradle.org/')"          | "https://gradle.org/"
         URI.name                             | "URI.create('https://gradle.org/')"       | "https://gradle.org/"
         Level.name                           | "${Level.name}.INFO"                      | "INFO"
+        Charset.name                         | "${Charset.name}.forName('UTF-8')"        | "UTF-8"
         "SomeEnum"                           | "SomeEnum.Two"                            | "Two"
         "SomeEnum[]"                         | "[SomeEnum.Two] as SomeEnum[]"            | "[Two]"
         "List<String>"                       | "['a', 'b', 'c']"                         | "[a, b, c]"

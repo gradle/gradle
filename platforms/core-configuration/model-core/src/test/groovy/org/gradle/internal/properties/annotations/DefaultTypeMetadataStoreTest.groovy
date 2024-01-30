@@ -30,7 +30,6 @@ import org.gradle.api.internal.tasks.properties.DefaultPropertyTypeResolver
 import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.CompileClasspath
@@ -49,7 +48,6 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.reflect.validation.TypeValidationContext
@@ -143,7 +141,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
                     .forProperty(metadata.propertyName)
                     .label("is broken")
                     .documentedAt(userManual("id", "section"))
-                    .noLocation()
                     .category(TEST_PROBLEM)
                     .severity(Severity.WARNING)
                     .details("Test")
@@ -173,7 +170,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
                     .forProperty(metadata.propertyName)
                     .label("is broken")
                     .documentedAt(userManual("id", "section"))
-                    .noLocation()
                     .category(TEST_PROBLEM)
                     .severity(Severity.WARNING)
                     .details("Test")
@@ -200,7 +196,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
                     .withAnnotationType(type)
                     .label("type is broken")
                     .documentedAt(userManual("id", "section"))
-                    .noLocation()
                     .category(TEST_PROBLEM)
                     .severity(Severity.WARNING)
                     .details("Test")
@@ -460,7 +455,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
     }
 
     private List<String> collectProblems(TypeMetadata metadata) {
-        def validationContext = DefaultTypeValidationContext.withoutRootType(new DefaultProblems(Mock(BuildOperationProgressEventEmitter)), false)
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false)
         metadata.visitValidationFailures(null, validationContext)
         return validationContext.problems.collect { normaliseLineSeparators(renderMinimalInformationAbout(it)) }
     }

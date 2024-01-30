@@ -23,13 +23,18 @@ import org.gradle.api.Project
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.provider.Property
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.internal.Pair
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionExecuter
+import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 
@@ -41,12 +46,29 @@ trait ToolingApiSpec {
         return (ToolingApiBackedGradleExecuter) getExecuter()
     }
 
+    TestFile getProjectDir() {
+        temporaryFolder.testDirectory
+    }
+
+    BuildTestFile singleProjectBuildInRootDir(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        new BuildTestFixture(projectDir).withBuildInRootDir().singleProjectBuild(projectName, cl)
+    }
+
+    BuildTestFile singleProjectBuildInSubDir(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        new BuildTestFixture(projectDir).withBuildInSubDir().singleProjectBuild(projectName, cl)
+    }
+
+    BuildTestFile multiProjectBuildInSubDir(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        new BuildTestFixture(projectDir).withBuildInSubDir().multiProjectBuildWithIsolatedProjects(projectName, subprojects, cl)
+    }
+
     void withSomeToolingModelBuilderPluginInBuildSrc(String builderContent = "") {
         withSomeToolingModelBuilderPluginInChildBuild("buildSrc", builderContent)
     }
 
     void withSomeToolingModelBuilderPluginInChildBuild(String childBuildName, String builderContent = "") {
         addPluginBuildScript(childBuildName)
+        addExtensionDeclaration(childBuildName)
         addModelImplementation(childBuildName)
 
         addModelBuilderImplementation(childBuildName, """
@@ -55,15 +77,25 @@ trait ToolingApiSpec {
             return new MyModel(message)
         """)
 
-        file("$childBuildName/src/main/groovy/my/MyExtension.groovy") << """
-            import ${Property.name}
+        addBuilderRegisteringPluginImplementation(childBuildName, "MyModelBuilder", """
+            def model = project.extensions.create("myExtension", MyExtension)
+            model.message = "It works from project \${project.identityPath}"
+        """)
+    }
 
-            interface MyExtension {
-                Property<String> getMessage()
-            }
-        """
+    void withParameterizedSomeToolingModelBuilderPluginInChildBuild(String childBuildName, String builderContent = "") {
+        addPluginBuildScript(childBuildName)
+        addExtensionDeclaration(childBuildName)
+        addModelImplementation(childBuildName)
+        addModelParameterInterface(childBuildName)
 
-        addPluginImplementation(childBuildName, """
+        addParameterizedModelBuilderImplementation(childBuildName, """
+            $builderContent
+            def message = project.myExtension.message.get()
+            return new MyModel("\$messagePrefix \$message")
+        """)
+
+        addBuilderRegisteringPluginImplementation(childBuildName, "MyParameterizedModelBuilder", """
             def model = project.extensions.create("myExtension", MyExtension)
             model.message = "It works from project \${project.identityPath}"
         """)
@@ -78,7 +110,7 @@ trait ToolingApiSpec {
             return new MyModel(message)
         """)
 
-        addPluginImplementation("buildSrc", """
+        addBuilderRegisteringPluginImplementation("buildSrc", "MyModelBuilder", """
             def implementation = project.configurations.create("implementation")
             implementation.attributes.attribute(${Attribute.name}.of("thing", String), "custom")
             def artifact = project.layout.buildDirectory.file("out.txt")
@@ -93,7 +125,17 @@ trait ToolingApiSpec {
             return null
         """)
 
-        addPluginImplementation("buildSrc")
+        addBuilderRegisteringPluginImplementation("buildSrc", "MyModelBuilder")
+    }
+
+    private void addExtensionDeclaration(String childBuildName) {
+        file("$childBuildName/src/main/groovy/my/MyExtension.groovy") << """
+            import ${Property.name}
+
+            interface MyExtension {
+                Property<String> getMessage()
+            }
+        """
     }
 
     private void addModelImplementation(String targetBuildName) {
@@ -105,6 +147,16 @@ trait ToolingApiSpec {
                 MyModel(String message) { this.message = message }
                 String getMessage() { message }
                 String toString() { message }
+            }
+        """.stripIndent()
+    }
+
+    private void addModelParameterInterface(String targetBuildName) {
+        file("$targetBuildName/src/main/groovy/my/MyModelParameter.groovy") << """
+            package my
+
+            interface MyModelParameter {
+                String getMessagePrefix()
             }
         """.stripIndent()
     }
@@ -128,7 +180,33 @@ trait ToolingApiSpec {
         """.stripIndent()
     }
 
-    private void addPluginImplementation(String targetBuildName, String content = "") {
+    private void addParameterizedModelBuilderImplementation(String targetBuildName, String content) {
+        file("$targetBuildName/src/main/groovy/my/MyParameterizedModelBuilder.groovy") << """
+            package my
+
+            import $ParameterizedToolingModelBuilder.name
+            import $Project.name
+
+            class MyParameterizedModelBuilder implements ParameterizedToolingModelBuilder<MyModelParameter> {
+                Class<MyModelParameter> getParameterType() {
+                    return MyModelParameter
+                }
+                boolean canBuild(String modelName) {
+                    return modelName == "$SomeToolingModel.class.name"
+                }
+                Object buildAll(String modelName, Project project) {
+                    return buildAll(modelName, null, project)
+                }
+                Object buildAll(String modelName, MyModelParameter parameter, Project project) {
+                    def messagePrefix = parameter == null ? '' : parameter.messagePrefix
+                    println("creating model with parameter='\$messagePrefix' for \$project")
+                    $content
+                }
+            }
+        """.stripIndent()
+    }
+
+    private void addBuilderRegisteringPluginImplementation(String targetBuildName, String builderClassName, String content = "") {
         file("$targetBuildName/src/main/groovy/my/MyPlugin.groovy") << """
             package my
 
@@ -140,7 +218,7 @@ trait ToolingApiSpec {
             abstract class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {
                     $content
-                    registry.register(new my.MyModelBuilder())
+                    registry.register(new my.$builderClassName())
                 }
 
                 @Inject
@@ -188,7 +266,7 @@ trait ToolingApiSpec {
         return model
     }
 
-    void fetchModelFails() {
+    void fetchModelFails(Class type = SomeToolingModel.class) {
         failure = toolingApiExecutor.runFailingBuildWithToolingConnection { connection ->
             def output = new ByteArrayOutputStream()
             def error = new ByteArrayOutputStream()
@@ -197,7 +275,7 @@ trait ToolingApiSpec {
                 def args = executer.allArgs
                 args.remove("--no-daemon")
 
-                connection.model(SomeToolingModel)
+                connection.model(type)
                     .withArguments(args)
                     .setStandardOutput(new TeeOutputStream(output, System.out))
                     .setStandardError(new TeeOutputStream(error, System.err))
@@ -225,6 +303,26 @@ trait ToolingApiSpec {
             OutputScrapingExecutionResult.from(output.toString(), error.toString())
         }
         return model
+    }
+
+    void runBuildActionFails(BuildAction buildAction) {
+        failure = toolingApiExecutor.runFailingBuildWithToolingConnection { connection ->
+            def output = new ByteArrayOutputStream()
+            def error = new ByteArrayOutputStream()
+            def args = executer.allArgs.tap { remove("--no-daemon") }
+            def failure
+            try {
+                connection.action(buildAction)
+                    .withArguments(args)
+                    .setStandardOutput(new TeeOutputStream(output, System.out))
+                    .setStandardError(new TeeOutputStream(error, System.err))
+                    .run()
+                throw new IllegalStateException("Expected build action to fail but it did not.")
+            } catch (BuildActionFailureException t) {
+                failure = OutputScrapingExecutionFailure.from(output.toString(), error.toString())
+            }
+            failure
+        }
     }
 
     def <T, S> Pair<T, S> runPhasedBuildAction(BuildAction<T> projectsLoadedAction, BuildAction<S> modelAction, @DelegatesTo(BuildActionExecuter) Closure config = {}) {

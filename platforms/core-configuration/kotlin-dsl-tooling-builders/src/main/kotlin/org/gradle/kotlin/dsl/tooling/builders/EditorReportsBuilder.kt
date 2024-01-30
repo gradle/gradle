@@ -80,8 +80,9 @@ fun reportRuntimeExceptionsLocatedIn(
 ) {
     val actualLinesRange = if (locationAwareHints) scriptFile.readLinesRange() else LongRange.EMPTY
     exceptions.runtimeFailuresLocatedInAndNotCausedScriptCompilation(scriptFile.path).forEach { failure ->
-        if (locationAwareHints && failure.lineNumber in actualLinesRange) {
-            reports.add(lineWarning(messageForLocationAwareEditorHint(failure), failure.lineNumber))
+        val lineNumber = failure.lineNumber
+        if (locationAwareHints && lineNumber != null && lineNumber in actualLinesRange) {
+            reports.add(lineWarning(messageForLocationAwareEditorHint(failure), lineNumber))
         } else {
             reports.add(wholeFileWarning(EditorMessages.buildConfigurationFailedInCurrentScript))
         }
@@ -112,6 +113,7 @@ fun Sequence<Exception>.runtimeFailuresLocatedInAndNotCausedScriptCompilation(sc
     mapNotNull { it.runtimeFailureLocatedIn(scriptPath) }.filter { !it.isCausedByScriptCompilationException }
 
 
+internal
 fun Sequence<Exception>.runtimeFailuresLocatedIn(scriptPath: String): Sequence<LocationAwareException> =
     mapNotNull { it.runtimeFailureLocatedIn(scriptPath) }
 

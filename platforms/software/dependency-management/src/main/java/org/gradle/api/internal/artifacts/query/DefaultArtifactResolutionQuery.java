@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.query;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -35,6 +34,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyIntern
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
+import org.gradle.api.internal.artifacts.repositories.ContentFilteringRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.DefaultArtifactResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultComponentArtifactsResult;
@@ -48,6 +48,7 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveState;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
@@ -65,9 +66,11 @@ import org.gradle.util.internal.CollectionUtils;
 import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private final ConfigurationContainerInternal configurationContainer;
@@ -78,9 +81,9 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private final ImmutableAttributesFactory attributesFactory;
     private final ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor;
 
-    private final Set<ComponentIdentifier> componentIds = Sets.newLinkedHashSet();
+    private final Set<ComponentIdentifier> componentIds = new LinkedHashSet<>();
     private Class<? extends Component> componentType;
-    private final Set<Class<? extends Artifact>> artifactTypes = Sets.newLinkedHashSet();
+    private final Set<Class<? extends Artifact>> artifactTypes = new LinkedHashSet<>();
 
     public DefaultArtifactResolutionQuery(
         ConfigurationContainerInternal configurationContainer,
@@ -140,17 +143,30 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         if (componentType == null) {
             throw new IllegalStateException("Must specify component type and artifacts to query.");
         }
+
         List<? extends ResolutionAwareRepository> repositories = repositoriesSupplier.get();
+        List<ResolutionAwareRepository> filteredRepositories = repositories.stream()
+            .filter(repository -> {
+                if (repository instanceof ContentFilteringRepository) {
+                    ContentFilteringRepository cfr = (ContentFilteringRepository) repository;
+                    // If the repository requires certain request attributes or requires certain configurations,
+                    // it should not be used for ARQs.
+                    return cfr.getRequiredAttributes() == null && cfr.getIncludedConfigurations() == null;
+                }
+                return true;
+            })
+            .collect(Collectors.toList());
+
         ConfigurationInternal detachedConfiguration = configurationContainer.detachedConfiguration();
         ResolutionStrategyInternal resolutionStrategy = detachedConfiguration.getResolutionStrategy();
-        ComponentResolvers componentResolvers = ivyFactory.create(detachedConfiguration.getName(), resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessorFactory(), ImmutableAttributes.EMPTY, null, attributesFactory, componentMetadataSupplierRuleExecutor);
+        ComponentResolvers componentResolvers = ivyFactory.create(resolutionStrategy, filteredRepositories, metadataHandler.getComponentMetadataProcessorFactory(), ImmutableAttributes.EMPTY, null, attributesFactory, componentMetadataSupplierRuleExecutor);
         ComponentMetaDataResolver componentMetaDataResolver = componentResolvers.getComponentResolver();
         ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(componentResolvers.getArtifactResolver());
         return createResult(componentMetaDataResolver, artifactResolver);
     }
 
     private ArtifactResolutionResult createResult(ComponentMetaDataResolver componentMetaDataResolver, ArtifactResolver artifactResolver) {
-        Set<ComponentResult> componentResults = Sets.newHashSet();
+        Set<ComponentResult> componentResults = new HashSet<>();
 
         for (ComponentIdentifier componentId : componentIds) {
             try {
@@ -194,7 +210,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
             BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
             artifactResolver.resolveArtifact(componentState.getResolveMetadata(), artifactMetaData, resolveResult);
             try {
-                artifacts.addArtifact(ivyFactory.verifiedArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, Collections.emptyList(), Describables.of(componentState.getId().getDisplayName()), type, resolveResult.getResult().getFile())));
+                artifacts.addArtifact(ivyFactory.verifiedArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, Describables.of(componentState.getId().getDisplayName()), type, resolveResult.getResult().getFile())));
             } catch (Exception e) {
                 artifacts.addArtifact(new DefaultUnresolvedArtifactResult(artifactMetaData.getId(), type, e));
             }

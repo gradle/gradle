@@ -20,7 +20,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.BuildWorkPlan;
-import org.gradle.execution.plan.Node;
+import org.gradle.execution.plan.ScheduledWork;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -150,6 +150,6 @@ public interface BuildLifecycleController {
         /**
          * Sets the set of scheduled node to the work graph for this build. Short-circuits dependency discovery and any sorting. Nodes must be restored in the same order they were scheduled.
          */
-        void setScheduledNodes(List<? extends Node> nodes);
+        void setScheduledWork(ScheduledWork work);
     }
 }

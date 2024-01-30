@@ -17,7 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Task;
-import org.gradle.internal.Cast;
+import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
@@ -29,17 +29,16 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public abstract class AbstractProperty<T, S extends ValueSupplier> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
-    private static final FinalizedValue<Object> FINALIZED_VALUE = new FinalizedValue<>();
     private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this property");
     private static final DisplayName DEFAULT_VALIDATION_DISPLAY_NAME = Describables.of("a property");
 
     private ModelObject producer;
     private DisplayName displayName;
-    private FinalizationState<S> state;
+    private ValueState<S> state;
     private S value;
 
     public AbstractProperty(PropertyHost host) {
-        state = new NonFinalizedValue<>(host);
+        state = ValueState.newState(host);
     }
 
     protected void init(S initialValue, S convention) {
@@ -51,25 +50,27 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         init(initialValue, initialValue);
     }
 
-    /**
-     * A simple getter that checks if this property has been finalized.
-     *
-     * @return {@code true} if this property has been finalized, {@code false} otherwise
-     */
+    @Override
     public boolean isFinalized() {
-        return state instanceof FinalizedValue;
+        return state.isFinalized();
+    }
+
+    protected boolean isExplicit() {
+        return state.isExplicit();
     }
 
     @Override
     public boolean calculatePresence(ValueConsumer consumer) {
-        beforeRead(producer, consumer);
-        try {
-            return getSupplier().calculatePresence(consumer);
-        } catch (Exception e) {
-            if (displayName != null) {
-                throw new PropertyQueryException(String.format("Failed to query the value of %s.", displayName), e);
-            } else {
-                throw UncheckedException.throwAsUncheckedException(e);
+        try (EvaluationContext.ScopeContext context = openScope()) {
+            beforeRead(context, consumer); // may throw its own exception, which should not be wrapped.
+            try {
+                return getSupplier(context).calculatePresence(consumer);
+            } catch (Exception e) {
+                if (displayName != null) {
+                    throw new PropertyQueryException(String.format("Failed to query the value of %s.", displayName), e);
+                } else {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
             }
         }
     }
@@ -121,25 +122,38 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         }
     }
 
-    protected S getSupplier() {
+    protected final S getSupplier(@SuppressWarnings("unused") EvaluationContext.ScopeContext context) {
+        // context serves as a token here to ensure that the scope is opened.
         return value;
     }
 
+    protected S getConventionSupplier() {
+        return state.convention();
+    }
+
+    protected final String describeValue() {
+        return value.toString();
+    }
+
     protected Value<? extends T> calculateOwnValueNoProducer(ValueConsumer consumer) {
-        beforeRead(null, consumer);
-        return doCalculateValue(consumer);
+        try (EvaluationContext.ScopeContext context = openScope()) {
+            beforeReadNoProducer(context, consumer);
+            return doCalculateValue(context, consumer);
+        }
     }
 
     @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-        beforeRead(producer, consumer);
-        return doCalculateValue(consumer);
+        try (EvaluationContext.ScopeContext context = openScope()) {
+            beforeRead(context, consumer);
+            return doCalculateValue(context, consumer);
+        }
     }
 
     @Nonnull
-    private Value<? extends T> doCalculateValue(ValueConsumer consumer) {
+    private Value<? extends T> doCalculateValue(EvaluationContext.ScopeContext context, ValueConsumer consumer) {
         try {
-            return calculateValueFrom(value, consumer);
+            return calculateValueFrom(context, value, consumer);
         } catch (Exception e) {
             if (displayName != null) {
                 throw new PropertyQueryException(String.format("Failed to query the value of %s.", displayName), e);
@@ -149,19 +163,21 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         }
     }
 
-    protected abstract Value<? extends T> calculateValueFrom(S value, ValueConsumer consumer);
+    protected abstract Value<? extends T> calculateValueFrom(EvaluationContext.ScopeContext context, S value, ValueConsumer consumer);
 
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-        ExecutionTimeValue<? extends T> value = calculateOwnExecutionTimeValue(this.value);
-        if (getProducerTask() == null) {
-            return value;
-        } else {
-            return value.withChangingContent();
+        try (EvaluationContext.ScopeContext context = openScope()) {
+            ExecutionTimeValue<? extends T> value = calculateOwnExecutionTimeValue(context, this.value);
+            if (getProducerTask() == null) {
+                return value;
+            } else {
+                return value.withChangingContent();
+            }
         }
     }
 
-    protected abstract ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(S value);
+    protected abstract ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(EvaluationContext.ScopeContext context, S value);
 
     /**
      * Returns a diagnostic string describing the current source of value of this property. Should not realize the value.
@@ -170,7 +186,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     // This method is final - implement describeContents() instead
     @Override
-    public final String toString() {
+    protected final String toStringNoReentrance() {
         if (displayName != null) {
             return displayName.toString();
         } else {
@@ -184,14 +200,18 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         if (task != null) {
             return ValueProducer.task(task);
         } else {
-            return getSupplier().getProducer();
+            try (EvaluationContext.ScopeContext context = openScope()) {
+                return getSupplier(context).getProducer();
+            }
         }
     }
 
     @Override
     public void finalizeValue() {
-        if (state.shouldFinalize(getDisplayName(), producer)) {
-            finalizeNow(ValueConsumer.IgnoreUnsafeRead);
+        if (state.shouldFinalize(this.getDisplayName(), producer)) {
+            try (EvaluationContext.ScopeContext context = openScope()) {
+                finalizeNow(context, ValueConsumer.IgnoreUnsafeRead);
+            }
         }
     }
 
@@ -207,15 +227,15 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     public void implicitFinalizeValue() {
-        state.disallowChanges();
-        state.finalizeOnNextGet();
+        state.disallowChangesAndFinalizeOnNextGet();
     }
 
+    @Override
     public void disallowUnsafeRead() {
         state.disallowUnsafeRead();
     }
 
-    protected abstract S finalValue(S value, ValueConsumer consumer);
+    protected abstract S finalValue(EvaluationContext.ScopeContext context, S value, ValueConsumer consumer);
 
     protected void setSupplier(S supplier) {
         assertCanMutate();
@@ -230,19 +250,21 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     /**
      * Call prior to reading the value of this property.
      */
-    protected void beforeRead(ValueConsumer consumer) {
-        beforeRead(producer, consumer);
+    protected void beforeRead(EvaluationContext.ScopeContext context, ValueConsumer consumer) {
+        beforeRead(context, producer, consumer);
     }
 
-    private void beforeRead(@Nullable ModelObject effectiveProducer, ValueConsumer consumer) {
-        if (state.maybeFinalizeOnRead(getDisplayName(), effectiveProducer, consumer)) {
-            finalizeNow(state.forUpstream(consumer));
-        }
+    protected void beforeReadNoProducer(EvaluationContext.ScopeContext context, ValueConsumer consumer) {
+        beforeRead(context, null, consumer);
     }
 
-    private void finalizeNow(ValueConsumer consumer) {
+    private void beforeRead(EvaluationContext.ScopeContext context, @Nullable ModelObject effectiveProducer, ValueConsumer consumer) {
+        state.finalizeOnReadIfNeeded(this.getDisplayName(), effectiveProducer, consumer, effectiveConsumer -> finalizeNow(context, effectiveConsumer));
+    }
+
+    private void finalizeNow(EvaluationContext.ScopeContext context, ValueConsumer consumer) {
         try {
-            value = finalValue(value, state.forUpstream(consumer));
+            value = finalValue(context, value, state.forUpstream(consumer));
         } catch (Exception e) {
             if (displayName != null) {
                 throw new PropertyQueryException(String.format("Failed to calculate the value of %s.", displayName), e);
@@ -268,8 +290,62 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         value = state.implicitValue();
     }
 
+    /**
+     * Discards the convention of this property.
+     */
+    protected void discardConvention() {
+        assertCanMutate();
+        value = state.applyConvention(value, getDefaultConvention());
+    }
+
+    @Override
+    public SupportsConvention unsetConvention() {
+        discardConvention();
+        return this;
+    }
+
+    @Override
+    public SupportsConvention unset() {
+        discardValue();
+        return this;
+    }
+
+    /**
+     * Sets the value of the property to the current convention value, replacing whatever explicit value the property already had.
+     *
+     * If the property has no convention set at the time this method is invoked,
+     * the effect of invoking it is similar to invoking {@link #unset()}.
+     */
+    protected SupportsConvention setToConvention() {
+        assertCanMutate();
+        this.value = state.setToConvention();
+        return this;
+    }
+
+    /**
+     * Sets the value of the property to the current convention value, if an explicit
+     * value has not been set yet.
+     *
+     * If the property has no convention set at the time this method is invoked,
+     * or if an explicit value has already been set, it has no effect.
+     */
+    protected SupportsConvention setToConventionIfUnset() {
+        assertCanMutate();
+        if (!isDefaultConvention()) {
+            this.value = state.setToConventionIfUnset(value);
+        }
+        return this;
+    }
+
+    protected abstract S getDefaultConvention();
+
+    /**
+     * Is convention set to the initial convention value?
+     */
+    protected abstract boolean isDefaultConvention();
+
     protected void assertCanMutate() {
-        state.beforeMutate(getDisplayName());
+        state.beforeMutate(this.getDisplayName());
     }
 
     @Nullable
@@ -313,230 +389,57 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         }
     }
 
-    private static abstract class FinalizationState<S> {
-        public abstract boolean shouldFinalize(DisplayName displayName, @Nullable ModelObject producer);
-
-        public abstract FinalizationState<S> finalState();
-
-        abstract void setConvention(S convention);
-
-        public abstract void disallowChanges();
-
-        public abstract void finalizeOnNextGet();
-
-        public abstract void disallowUnsafeRead();
-
-        public abstract S explicitValue(S value);
-
-        public abstract S explicitValue(S value, S defaultValue);
-
-        public abstract S applyConvention(S value, S convention);
-
-        public abstract S implicitValue();
-
-        public abstract boolean maybeFinalizeOnRead(DisplayName displayName, @Nullable ModelObject producer, ValueConsumer consumer);
-
-        public abstract void beforeMutate(DisplayName displayName);
-
-        public abstract ValueConsumer forUpstream(ValueConsumer consumer);
+    /**
+     * Creates a shallow copy of this property. Further changes to this property (via {@code set(...)}, or {@code convention(Object...)}) do not
+     * change the copy. However, the copy still reflects changes to the underlying providers that constitute this property. Consider the following snippet:
+     * <pre>
+     *     def upstream = objects.property(String).value("foo")
+     *     def property = objects.property(String).value(upstream)
+     *     def copy = property.shallowCopy()
+     *     property.set("bar")  // does not affect contents of the copy
+     *     upstream.set("qux")  // does affect the content of the copy
+     *
+     *     println(copy.get())  // prints qux
+     * </pre>
+     * <p>
+     * The copy doesn't share the producer of this property, but inherits producers of the current property value.
+     *
+     * @return the shallow copy of this property
+     */
+    public ProviderInternal<T> shallowCopy() {
+        return new ShallowCopyProvider();
     }
 
-    private static class NonFinalizedValue<S> extends FinalizationState<S> {
-        private final PropertyHost host;
-        private boolean explicitValue;
-        private boolean finalizeOnNextGet;
-        private boolean disallowChanges;
-        private boolean disallowUnsafeRead;
-        private S convention;
-
-        public NonFinalizedValue(PropertyHost host) {
-            this.host = host;
-        }
+    private class ShallowCopyProvider extends AbstractMinimalProvider<T> {
+        // the value of "value" is immutable but the field is not, so copy it
+        // (but use a different owner)
+        private final S copiedValue = value;
 
         @Override
-        public boolean shouldFinalize(DisplayName displayName, @Nullable ModelObject producer) {
-            if (disallowUnsafeRead) {
-                String reason = host.beforeRead(producer);
-                if (reason != null) {
-                    throw new IllegalStateException(cannotFinalizeValueOf(displayName, reason));
-                }
-            }
-            return true;
-        }
-
-        @Override
-        public FinalizationState<S> finalState() {
-            return Cast.uncheckedCast(FINALIZED_VALUE);
-        }
-
-        @Override
-        public boolean maybeFinalizeOnRead(DisplayName displayName, @Nullable ModelObject producer, ValueConsumer consumer) {
-            if (disallowUnsafeRead || consumer == ValueConsumer.DisallowUnsafeRead) {
-                String reason = host.beforeRead(producer);
-                if (reason != null) {
-                    throw new IllegalStateException(cannotQueryValueOf(displayName, reason));
-                }
-            }
-            return finalizeOnNextGet || consumer == ValueConsumer.DisallowUnsafeRead;
-        }
-
-        @Override
-        public ValueConsumer forUpstream(ValueConsumer consumer) {
-            if (disallowUnsafeRead) {
-                return ValueConsumer.DisallowUnsafeRead;
-            } else {
-                return consumer;
+        public ValueProducer getProducer() {
+            try (EvaluationContext.ScopeContext ignored = openScope()) {
+                return copiedValue.getProducer();
             }
         }
 
         @Override
-        public void beforeMutate(DisplayName displayName) {
-            if (disallowChanges) {
-                throw new IllegalStateException(String.format("The value for %s cannot be changed any further.", displayName.getDisplayName()));
+        public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+            try (EvaluationContext.ScopeContext context = openScope()) {
+                return calculateOwnExecutionTimeValue(context, copiedValue);
             }
         }
 
         @Override
-        public void disallowChanges() {
-            disallowChanges = true;
-        }
-
-        @Override
-        public void finalizeOnNextGet() {
-            finalizeOnNextGet = true;
-        }
-
-        @Override
-        public void disallowUnsafeRead() {
-            disallowUnsafeRead = true;
-            finalizeOnNextGet = true;
-        }
-
-        @Override
-        public S explicitValue(S value) {
-            explicitValue = true;
-            return value;
-        }
-
-        @Override
-        public S explicitValue(S value, S defaultValue) {
-            if (!explicitValue) {
-                return defaultValue;
-            }
-            return value;
-        }
-
-        @Override
-        public S implicitValue() {
-            explicitValue = false;
-            return convention;
-        }
-
-        @Override
-        public S applyConvention(S value, S convention) {
-            this.convention = convention;
-            if (!explicitValue) {
-                return convention;
-            } else {
-                return value;
+        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+            try (EvaluationContext.ScopeContext context = openScope()) {
+                return calculateValueFrom(context, copiedValue, consumer);
             }
         }
 
         @Override
-        void setConvention(S convention) {
-            this.convention = convention;
-        }
-
-        private String cannotFinalizeValueOf(DisplayName displayName, String reason) {
-            return cannot("finalize", displayName, reason);
-        }
-
-        private String cannotQueryValueOf(DisplayName displayName, String reason) {
-            return cannot("query", displayName, reason);
-        }
-
-        private String cannot(String what, DisplayName displayName, String reason) {
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node("Cannot " + what + " the value of ");
-            formatter.append(displayName.getDisplayName());
-            formatter.append(" because ");
-            formatter.append(reason);
-            formatter.append(".");
-            return formatter.toString();
-        }
-    }
-
-    private static class FinalizedValue<S> extends FinalizationState<S> {
-        @Override
-        public boolean shouldFinalize(DisplayName displayName, @Nullable ModelObject producer) {
-            return false;
-        }
-
-        @Override
-        public void disallowChanges() {
-            // Finalized, so already cannot change
-        }
-
-        @Override
-        public void finalizeOnNextGet() {
-            // Finalized already
-        }
-
-        @Override
-        public void disallowUnsafeRead() {
-            // Finalized already so read is safe
-        }
-
-        @Override
-        public boolean maybeFinalizeOnRead(DisplayName displayName, @Nullable ModelObject producer, ValueConsumer consumer) {
-            // Already finalized
-            return false;
-        }
-
-        @Override
-        public void beforeMutate(DisplayName displayName) {
-            throw new IllegalStateException(String.format("The value for %s is final and cannot be changed any further.", displayName.getDisplayName()));
-        }
-
-        @Override
-        public ValueConsumer forUpstream(ValueConsumer consumer) {
-            throw unexpected();
-        }
-
-        @Override
-        public S explicitValue(S value) {
-            throw unexpected();
-        }
-
-        @Override
-        public S explicitValue(S value, S defaultValue) {
-            throw unexpected();
-        }
-
-        @Override
-        public S applyConvention(S value, S convention) {
-            throw unexpected();
-        }
-
-        @Override
-        public S implicitValue() {
-            throw unexpected();
-        }
-
-        @Override
-        public FinalizationState<S> finalState() {
-            // TODO - it is currently possible for multiple threads to finalize a property instance concurrently (https://github.com/gradle/gradle/issues/12811)
-            // This should be strict
-            return this;
-        }
-
-        @Override
-        void setConvention(S convention) {
-            throw unexpected();
-        }
-
-        private UnsupportedOperationException unexpected() {
-            return new UnsupportedOperationException("This property is in an unexpected state.");
+        @Nullable
+        public Class<T> getType() {
+            return AbstractProperty.this.getType();
         }
     }
 }

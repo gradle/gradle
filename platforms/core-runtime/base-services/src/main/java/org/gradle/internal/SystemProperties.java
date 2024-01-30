@@ -15,11 +15,10 @@
  */
 package org.gradle.internal;
 
-import com.google.common.collect.Maps;
-
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -145,7 +144,7 @@ public class SystemProperties {
      * This method can be used to override system properties temporarily.  The original values of the given system properties are restored before returning.
      */
     public synchronized <T> T withSystemProperties(Map<String, String> properties, Factory<T> factory) {
-        Map<String, String> originalProperties = Maps.newHashMap();
+        Map<String, String> originalProperties = new HashMap<String, String>();
         for (Map.Entry<String, String> property : properties.entrySet()) {
             String propertyName = property.getKey();
             String value = property.getValue();

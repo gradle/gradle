@@ -16,6 +16,9 @@
 
 package org.gradle.plugins.ide.internal.tooling.model;
 
+/**
+ * Structurally implements {@link org.gradle.tooling.model.GradleTask} model.
+ */
 public class LaunchableGradleProjectTask extends LaunchableGradleTask {
     private DefaultGradleProject project;
 

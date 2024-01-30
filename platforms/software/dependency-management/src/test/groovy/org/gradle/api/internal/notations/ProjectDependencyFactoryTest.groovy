@@ -31,7 +31,10 @@ class ProjectDependencyFactoryTest extends Specification {
     def projectDummy = Mock(ProjectInternal)
     def projectFinder = Mock(ProjectFinder)
     def capabilityNotationParser = new CapabilityNotationParserFactory(false).create()
-    def depFactory = new DefaultProjectDependencyFactory(TestUtil.instantiatorFactory().decorateLenient(), true, capabilityNotationParser, AttributeTestUtil.attributesFactory(), TestFiles.taskDependencyFactory())
+    def depFactory = new DefaultProjectDependencyFactory(
+        TestUtil.instantiatorFactory().decorateLenient(), true, capabilityNotationParser, TestUtil.objectFactory(),
+        AttributeTestUtil.attributesFactory(), TestFiles.taskDependencyFactory()
+    )
     def factory = new ProjectDependencyFactory(depFactory)
 
     def "creates project dependency with map notation"() {

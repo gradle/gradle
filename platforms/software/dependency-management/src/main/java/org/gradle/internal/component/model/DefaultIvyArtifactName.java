@@ -65,7 +65,7 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
     }
 
     @Override
-    public String toString() {
+    public String getDisplayName() {
         StringBuilder result = new StringBuilder();
         result.append(name);
         if (GUtil.isTrue(classifier)) {

@@ -19,11 +19,11 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import groovy.util.Node;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -125,7 +125,7 @@ public class SourceFolder extends AbstractClasspathEntry {
 
     @Override
     public void appendNode(Node node) {
-        Map<String, Object> attributes = Maps.newLinkedHashMap();
+        Map<String, Object> attributes = new LinkedHashMap<>();
         attributes.put("including", JOINER.join(includes));
         attributes.put("excluding", JOINER.join(excludes));
         attributes.put("output", output);

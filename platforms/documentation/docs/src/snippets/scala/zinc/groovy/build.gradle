@@ -1,0 +1,25 @@
+plugins {
+    id 'scala'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.scala-lang:scala-library:2.13.12'
+}
+
+dependencies {
+    implementation 'commons-collections:commons-collections:3.2.2'
+    testImplementation 'junit:junit:4.13'
+}
+
+// tag::adjust-memory[]
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.forkOptions.with {
+        memoryMaximumSize = '1g'
+        jvmArgs = ['-XX:MaxMetaspaceSize=512m']
+    }
+}
+// end::adjust-memory[]

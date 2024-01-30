@@ -28,13 +28,13 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskProvider;
 
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Path;
 
 public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
 
@@ -62,6 +62,15 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
         renameModule(project);
         wireInArtificialSourceSet(project, extension);
         setStyling(project, extension);
+        overrideDokkaVersion(project, extension);
+        setMemoryForWorkers(project);
+    }
+
+    private static void setMemoryForWorkers(Project project) {
+        project.getTasks().withType(DokkatooGenerateTask.class).configureEach(task -> {
+            task.getWorkerMinHeapSize().set("512m");
+            task.getWorkerMaxHeapSize().set("2g");
+        });
     }
 
     private static void setStyling(Project project, GradleDocumentationExtension extension) {
@@ -72,12 +81,18 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
         });
     }
 
+    private static void overrideDokkaVersion(Project project, GradleDocumentationExtension extension) {
+        Property<String> dokkaVersionOverride = extension.getKotlinDslReference().getDokkaVersionOverride();
+        Property<String> defaultDokkaVersion = getDokkatooExtension(project).getVersions().getJetbrainsDokka();
+        defaultDokkaVersion.set(dokkaVersionOverride.convention(defaultDokkaVersion.get()));
+    }
+
     /**
      * The name of the module is part of the URI for deep links, changing it will break existing links.
      * The name of the module must match the first header of {@code kotlin/Module.md} file.
      */
     private static void renameModule(Project project) {
-        getDokkatooExtension(project).getModuleName().set("Kotlin DSL Reference for Gradle");
+        getDokkatooExtension(project).getModuleName().set("gradle");
     }
 
     private static void wireInArtificialSourceSet(Project project, GradleDocumentationExtension extension) {
@@ -109,13 +124,19 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
     }
 
     private static void configureSourceLinks(Project project, GradleDocumentationExtension extension, DokkaSourceSetSpec spec) {
+        String commitId = BuildEnvironmentKt.getBuildEnvironmentExtension(project).getGitCommitId().get();
+        if (commitId.isBlank() || commitId.toLowerCase().contains("unknown")) {
+            // we can't figure out the commit ID (probably this is a source distribution build), let's skip adding source links
+            return;
+        }
+
         extension.getSourceRoots().getFiles()
             .forEach(
                 file -> {
                     DokkaSourceLinkSpec sourceLinkSpec = project.getObjects().newInstance(DokkaSourceLinkSpec.class);
                     sourceLinkSpec.getLocalDirectory().set(file);
-                    String commitId = BuildEnvironmentKt.getBuildEnvironmentExtension(project).getGitCommitId().get();
-                    sourceLinkSpec.getRemoteUrl().set(toUri(project.getRootDir(), file, commitId));
+                    URI uri = toUri(project.getRootDir(), file, commitId);
+                    sourceLinkSpec.getRemoteUrl().set(uri);
                     sourceLinkSpec.getRemoteLineSuffix().set("#L");
                     spec.getSourceLinks().add(sourceLinkSpec);
                 }
@@ -124,7 +145,7 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
 
     private static URI toUri(File projectRootDir, File file, String commitId) {
         try {
-            Path relativeLocation = projectRootDir.toPath().relativize(file.toPath());
+            URI relativeLocation = projectRootDir.toURI().relativize(file.toURI());
             return new URI("https://github.com/gradle/gradle/blob/" + commitId + "/" + relativeLocation);
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);

@@ -29,7 +29,9 @@ class GitIgnoreGeneratorTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    InitSettings settings = Mock()
+    InitSettings settings = Mock(InitSettings) {
+        isWithComments() >> true
+    }
     File gitignoreFile = tmpDir.file(".gitignore")
 
     def setup() {

@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
@@ -31,38 +30,30 @@ import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
 import org.gradle.plugins.ide.idea.model.IdeaProject;
-import org.gradle.plugins.ide.idea.model.ModuleDependency;
-import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary;
-import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaCompilerOutput;
 import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaContentRoot;
 import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaDependency;
-import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaDependencyScope;
 import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaJavaLanguageSettings;
 import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaLanguageLevel;
 import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaModule;
-import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaModuleDependency;
 import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaProject;
-import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaSingleEntryLibraryDependency;
-import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaSourceDirectory;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
-import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleModuleVersion;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
-import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-public class IdeaModelBuilder implements ToolingModelBuilder {
-    private final GradleProjectBuilder gradleProjectBuilder;
+/**
+ * Builds the {@link org.gradle.tooling.model.idea.IdeaProject} model
+ * that contains project Java language settings and a flat list of Idea modules.
+ */
+public class IdeaModelBuilder implements IdeaModelBuilderInternal {
 
-    private boolean offlineDependencyResolution;
+    private final GradleProjectBuilderInternal gradleProjectBuilder;
 
-    public IdeaModelBuilder(GradleProjectBuilder gradleProjectBuilder) {
+    public IdeaModelBuilder(GradleProjectBuilderInternal gradleProjectBuilder) {
         this.gradleProjectBuilder = gradleProjectBuilder;
     }
 
@@ -73,13 +64,18 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
 
     @Override
     public DefaultIdeaProject buildAll(String modelName, Project project) {
-        Project root = project.getRootProject();
-        applyIdeaPlugin((ProjectInternal) root, new ArrayList<>());
-        DefaultGradleProject rootGradleProject = gradleProjectBuilder.buildAll(project);
-        return build(root, rootGradleProject);
+        return buildForRoot(project, false);
     }
 
-    private void applyIdeaPlugin(ProjectInternal root, List<GradleInternal> alreadyProcessed) {
+    @Override
+    public DefaultIdeaProject buildForRoot(Project project, boolean offlineDependencyResolution) {
+        Project root = project.getRootProject();
+        applyIdeaPluginToBuildTree((ProjectInternal) root, new ArrayList<>());
+        DefaultGradleProject rootGradleProject = gradleProjectBuilder.buildForRoot(project);
+        return build(root, rootGradleProject, offlineDependencyResolution);
+    }
+
+    private void applyIdeaPluginToBuildTree(ProjectInternal root, List<GradleInternal> alreadyProcessed) {
         Set<Project> allProjects = root.getAllprojects();
         for (Project p : allProjects) {
             p.getPluginManager().apply(IdeaPlugin.class);
@@ -91,16 +87,16 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                 GradleInternal build = target.getMutableModel();
                 if (!alreadyProcessed.contains(build)) {
                     alreadyProcessed.add(build);
-                    applyIdeaPlugin(build.getRootProject(), alreadyProcessed);
+                    applyIdeaPluginToBuildTree(build.getRootProject(), alreadyProcessed);
                 }
             }
         }
     }
 
-    private DefaultIdeaProject build(Project project, DefaultGradleProject rootGradleProject) {
+    private DefaultIdeaProject build(Project project, DefaultGradleProject rootGradleProject, boolean offlineDependencyResolution) {
         IdeaModel ideaModel = ideaPluginFor(project).getModel();
         IdeaProject projectModel = ideaModel.getProject();
-        JavaVersion projectSourceLanguageLevel = convertIdeaLanguageLevelToJavaVersion(projectModel.getLanguageLevel());
+        JavaVersion projectSourceLanguageLevel = IdeaModuleBuilderSupport.convertToJavaVersion(projectModel.getLanguageLevel());
         JavaVersion projectTargetBytecodeLevel = projectModel.getTargetBytecodeVersion();
 
         DefaultIdeaProject out = new DefaultIdeaProject()
@@ -112,9 +108,9 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                 .setTargetBytecodeVersion(projectTargetBytecodeLevel)
                 .setJdk(DefaultInstalledJdk.current()));
 
-        List<DefaultIdeaModule> ideaModules = Lists.newArrayList();
+        List<DefaultIdeaModule> ideaModules = new ArrayList<>();
         for (IdeaModule module : projectModel.getModules()) {
-            ideaModules.add(createModule(module, out, rootGradleProject));
+            ideaModules.add(createModule(module, out, rootGradleProject, offlineDependencyResolution));
         }
         out.setChildren(new LinkedList<>(ideaModules));
         return out;
@@ -124,46 +120,20 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         return project.getPlugins().getPlugin(IdeaPlugin.class);
     }
 
-    private void buildDependencies(DefaultIdeaModule tapiModule, IdeaModule ideaModule) {
+    private static void buildDependencies(DefaultIdeaModule tapiModule, IdeaModule ideaModule, boolean offlineDependencyResolution) {
         ideaModule.setOffline(offlineDependencyResolution);
         Set<Dependency> resolved = ideaModule.resolveDependencies();
-        List<DefaultIdeaDependency> dependencies = new LinkedList<DefaultIdeaDependency>();
-        for (Dependency dependency : resolved) {
-            if (dependency instanceof SingleEntryModuleLibrary) {
-                SingleEntryModuleLibrary d = (SingleEntryModuleLibrary) dependency;
-                DefaultIdeaSingleEntryLibraryDependency defaultDependency = new DefaultIdeaSingleEntryLibraryDependency()
-                    .setFile(d.getLibraryFile())
-                    .setSource(d.getSourceFile())
-                    .setJavadoc(d.getJavadocFile())
-                    .setScope(new DefaultIdeaDependencyScope(d.getScope()))
-                    .setExported(d.isExported());
-
-                if (d.getModuleVersion() != null) {
-                    defaultDependency.setGradleModuleVersion(new DefaultGradleModuleVersion(d.getModuleVersion()));
-                }
-                dependencies.add(defaultDependency);
-            } else if (dependency instanceof ModuleDependency) {
-                ModuleDependency moduleDependency = (ModuleDependency) dependency;
-
-                DefaultIdeaModuleDependency ideaModuleDependency = new DefaultIdeaModuleDependency(moduleDependency.getName())
-                    .setExported(moduleDependency.isExported())
-                    .setScope(new DefaultIdeaDependencyScope(moduleDependency.getScope()));
-
-                dependencies.add(ideaModuleDependency);
-            }
-        }
+        List<DefaultIdeaDependency> dependencies = IdeaModuleBuilderSupport.buildDependencies(resolved);
         tapiModule.setDependencies(dependencies);
     }
 
-    private DefaultIdeaModule createModule(IdeaModule ideaModule, DefaultIdeaProject ideaProject, DefaultGradleProject rootGradleProject) {
-        DefaultIdeaContentRoot contentRoot = new DefaultIdeaContentRoot()
-            .setRootDirectory(ideaModule.getContentRoot())
-            .setSourceDirectories(srcDirs(ideaModule.getSourceDirs(), ideaModule.getGeneratedSourceDirs()))
-            .setTestDirectories(srcDirs(ideaModule.getTestSources().getFiles(), ideaModule.getGeneratedSourceDirs()))
-            .setResourceDirectories(srcDirs(ideaModule.getResourceDirs(), ideaModule.getGeneratedSourceDirs()))
-            .setTestResourceDirectories(srcDirs(ideaModule.getTestResources().getFiles(), ideaModule.getGeneratedSourceDirs()))
-            .setExcludeDirectories(ideaModule.getExcludeDirs());
-
+    private static DefaultIdeaModule createModule(
+        IdeaModule ideaModule,
+        DefaultIdeaProject ideaProject,
+        DefaultGradleProject rootGradleProject,
+        boolean offlineDependencyResolution
+    ) {
+        DefaultIdeaContentRoot contentRoot = IdeaModuleBuilderSupport.buildContentRoot(ideaModule);
         Project project = ideaModule.getProject();
 
         DefaultIdeaModule defaultIdeaModule = new DefaultIdeaModule()
@@ -172,46 +142,21 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             .setGradleProject(rootGradleProject.findByPath(ideaModule.getProject().getPath()))
             .setContentRoots(Collections.singletonList(contentRoot))
             .setJdkName(ideaModule.getJdkName())
-            .setCompilerOutput(new DefaultIdeaCompilerOutput()
-                .setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false)
-                .setOutputDir(ideaModule.getOutputDir())
-                .setTestOutputDir(ideaModule.getTestOutputDir()));
+            .setCompilerOutput(IdeaModuleBuilderSupport.buildCompilerOutput(ideaModule));
+
         JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
         if (javaPluginExtension != null) {
             final IdeaLanguageLevel ideaModuleLanguageLevel = ideaModule.getLanguageLevel();
-            JavaVersion moduleSourceLanguageLevel = convertIdeaLanguageLevelToJavaVersion(ideaModuleLanguageLevel);
+            JavaVersion moduleSourceLanguageLevel = IdeaModuleBuilderSupport.convertToJavaVersion(ideaModuleLanguageLevel);
             JavaVersion moduleTargetBytecodeVersion = ideaModule.getTargetBytecodeVersion();
             defaultIdeaModule.setJavaLanguageSettings(new DefaultIdeaJavaLanguageSettings()
                 .setSourceLanguageLevel(moduleSourceLanguageLevel)
                 .setTargetBytecodeVersion(moduleTargetBytecodeVersion));
         }
-        buildDependencies(defaultIdeaModule, ideaModule);
+
+        buildDependencies(defaultIdeaModule, ideaModule, offlineDependencyResolution);
 
         return defaultIdeaModule;
     }
 
-    private Set<DefaultIdeaSourceDirectory> srcDirs(Set<File> sourceDirs, Set<File> generatedSourceDirs) {
-        Set<DefaultIdeaSourceDirectory> out = new LinkedHashSet<DefaultIdeaSourceDirectory>();
-        for (File s : sourceDirs) {
-            DefaultIdeaSourceDirectory sourceDirectory = new DefaultIdeaSourceDirectory().setDirectory(s);
-            if (generatedSourceDirs.contains(s)) {
-                sourceDirectory.setGenerated(true);
-            }
-            out.add(sourceDirectory);
-        }
-        return out;
-    }
-
-    public IdeaModelBuilder setOfflineDependencyResolution(boolean offlineDependencyResolution) {
-        this.offlineDependencyResolution = offlineDependencyResolution;
-        return this;
-    }
-
-    private JavaVersion convertIdeaLanguageLevelToJavaVersion(IdeaLanguageLevel ideaLanguageLevel) {
-        if (ideaLanguageLevel == null) {
-            return null;
-        }
-        String languageLevel = ideaLanguageLevel.getLevel();
-        return JavaVersion.valueOf(languageLevel.replaceFirst("JDK", "VERSION"));
-    }
 }

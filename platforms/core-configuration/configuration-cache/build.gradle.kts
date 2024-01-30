@@ -38,53 +38,62 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 }
 
 dependencies {
-    implementation(project(":base-services"))
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
+    api(project(":build-option"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":dependency-management"))
+    api(project(":enterprise-operations"))
+    api(project(":file-collections"))
+    api(project(":file-temp"))
+    api(project(":files"))
+    api(project(":functional"))
+    api(project(":hashing"))
+    api(project(":logging"))
+    api(project(":logging-api"))
+    api(project(":messaging"))
+    api(project(":model-core"))
+    // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
+    api(project(":native"))
+    api(project(":persistent-cache"))
+    api(project(":plugin-use"))
+    api(project(":problems-api"))
+    api(project(":resources"))
+    api(project(":snapshots"))
+
+    api(libs.groovy)
+    api(libs.guava)
+    api(libs.inject)
+    api(libs.futureKotlin("stdlib"))
+
     implementation(project(":base-services-groovy"))
-    implementation(project(":composite-builds"))
-    implementation(project(":core"))
-    implementation(project(":core-api"))
-    implementation(project(":dependency-management"))
-    implementation(project(":enterprise-operations"))
+    // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
+    implementation(project(":build-events"))
+    implementation(project(":build-operations"))
     implementation(project(":execution"))
-    implementation(project(":file-collections"))
-    implementation(project(":file-temp"))
     implementation(project(":file-watching"))
-    implementation(project(":functional"))
-    implementation(project(":hashing"))
-    implementation(project(":launcher"))
-    implementation(project(":logging"))
-    implementation(project(":messaging"))
-    implementation(project(":model-core"))
-    implementation(project(":native"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":plugin-use"))
+    implementation(project(":input-tracking"))
     implementation(project(":platform-jvm"))
     implementation(project(":process-services"))
     implementation(project(":publish"))
-    implementation(project(":resources"))
-    implementation(project(":resources-http"))
-    implementation(project(":snapshots"))
-
-    // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
-    implementation(project(":workers"))
-
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     implementation(project(":tooling-api"))
-    implementation(project(":build-events"))
-    implementation(project(":native"))
-    implementation(project(":build-option"))
 
     implementation(libs.asm)
     implementation(libs.capsule)
     implementation(libs.fastutil)
-    implementation(libs.groovy)
     implementation(libs.groovyJson)
-    implementation(libs.guava)
-    implementation(libs.inject)
+    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
-    implementation(libs.futureKotlin("stdlib"))
-    implementation(libs.futureKotlin("reflect"))
+    runtimeOnly(project(":composite-builds"))
+    runtimeOnly(project(":resources-http"))
+    // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
+    runtimeOnly(project(":workers"))
+
+    runtimeOnly(libs.futureKotlin("reflect"))
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(libs.mockitoKotlin2)
@@ -96,6 +105,7 @@ dependencies {
     integTestImplementation(project(":test-kit"))
     integTestImplementation(project(":launcher"))
     integTestImplementation(project(":cli"))
+    integTestImplementation(project(":workers"))
 
     integTestImplementation(libs.guava)
     integTestImplementation(libs.ant)

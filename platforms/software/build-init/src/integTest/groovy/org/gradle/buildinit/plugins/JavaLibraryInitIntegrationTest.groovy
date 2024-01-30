@@ -27,9 +27,9 @@ import static org.hamcrest.CoreMatchers.allOf
 
 class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
-    public static final String SAMPLE_LIBRARY_CLASS = "some/thing/Library.java"
-    public static final String SAMPLE_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.java"
-    public static final String SAMPLE_SPOCK_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.groovy"
+    public static final String SAMPLE_LIBRARY_CLASS = "org/example/Library.java"
+    public static final String SAMPLE_LIBRARY_TEST_CLASS = "org/example/LibraryTest.java"
+    public static final String SAMPLE_SPOCK_LIBRARY_TEST_CLASS = "org/example/LibraryTest.groovy"
 
     def "defaults to Kotlin build scripts"() {
         when:
@@ -57,7 +57,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         run("build")
 
         then:
-        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -80,7 +80,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         when:
         run('test')
         then:
-        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -97,7 +97,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         succeeds('test')
 
         then:
-        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -121,7 +121,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         run("build")
 
         then:
-        assertTestPassed("some.thing.LibraryTest", "someLibraryMethod returns true")
+        assertTestPassed("org.example.LibraryTest", "someLibraryMethod returns true")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -144,7 +144,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         run("build")
 
         then:
-        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -164,10 +164,11 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         buildFileSeparatesImplementationAndApi(dslFixture, 'junit.jupiter')
 
         when:
+        executer.withToolchainDownloadEnabled()
         run("build")
 
         then:
-        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -185,6 +186,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         commonJvmFilesGenerated(scriptDsl as BuildInitDsl)
 
         when:
+        executer.withToolchainDownloadEnabled()
         run("build")
 
         then:
@@ -212,6 +214,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         dslFixture.assertHasTestSuite('test')
 
         when:
+        executer.withToolchainDownloadEnabled()
         run("build")
 
         then:
@@ -238,6 +241,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         commonJvmFilesGenerated(scriptDsl)
 
         when:
+        executer.withToolchainDownloadEnabled()
         run("build")
 
         then:
@@ -247,13 +251,12 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    // Spock pulls an old version of Groovy that doesn't work with Java 18
-    @Requires(UnitTestPreconditions.Jdk17OrEarlier)
     def "creates sample source with package and spock and #scriptDsl build scripts with --incubating"() {
         def dslFixture = dslFixtureFor(scriptDsl)
 
         when:
-        run('init', '--type', 'java-library', '--test-framework', 'spock', '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating')
+        // Spock pulls an old version of Groovy that doesn't work with Java 18, so use Java 17 instead of the default (Java 21)
+        run('init', '--type', 'java-library', '--test-framework', 'spock', '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating', "--java-version", "17")
 
         then:
         subprojectDir.file("src/main/java").assertHasDescendants("my/lib/Library.java")
@@ -264,6 +267,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         dslFixture.assertHasTestSuite('test')
 
         when:
+        executer.withToolchainDownloadEnabled()
         run("build")
 
         then:
@@ -303,6 +307,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         buildFileSeparatesImplementationAndApi(dslFixture)
 
         when:
+        executer.withToolchainDownloadEnabled()
         run("build")
 
         then:

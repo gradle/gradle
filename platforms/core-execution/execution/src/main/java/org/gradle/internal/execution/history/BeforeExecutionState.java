@@ -26,7 +26,7 @@ import java.util.Optional;
 /**
  * Captures the state of a {@link org.gradle.internal.execution.UnitOfWork} before execution.
  */
-public interface BeforeExecutionState extends InputExecutionState {
+public interface BeforeExecutionState extends ExecutionInputState {
     /**
      * {@inheritDoc}
      */
@@ -39,7 +39,7 @@ public interface BeforeExecutionState extends InputExecutionState {
      * This includes snapshots for the whole output {@link org.gradle.api.file.FileCollection}.
      *
      * @see PreviousExecutionState#getOutputFilesProducedByWork()
-     * @see AfterExecutionResult#getAfterExecutionState()
+     * @see AfterExecutionResult#getAfterExecutionOutputState()
      */
     ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileLocationSnapshots();
 

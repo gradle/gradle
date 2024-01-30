@@ -17,22 +17,22 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.HashCode;
+
+import java.util.function.Supplier;
 
 public class QueryModelRequirements extends AbstractToolingModelRequirements {
-    private final String modelName;
 
-    public QueryModelRequirements(StartParameterInternal startParameter,
-                                  boolean runsTasks,
-                                  String modelName) {
-        super(startParameter, runsTasks);
-        this.modelName = modelName;
+    public QueryModelRequirements(
+        StartParameterInternal startParameter,
+        boolean runsTasks,
+        Supplier<HashCode> payloadHashProvider
+    ) {
+        super(startParameter, runsTasks, payloadHashProvider);
     }
 
     @Override
-    public void appendKeyTo(Hasher hasher) {
-        // Identify the type of action
-        hasher.putByte((byte) 2);
-        hasher.putString(modelName);
+    protected byte getActionTypeId() {
+        return 2;
     }
 }

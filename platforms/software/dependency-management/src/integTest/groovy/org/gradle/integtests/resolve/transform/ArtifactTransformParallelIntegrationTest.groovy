@@ -424,7 +424,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         handle.waitForFinish()
     }
 
-    def "only one process can run immutable transforms at the same time"() {
+    def "multiple processes can run immutable transforms at the same time"() {
         given:
         List<BuildTestFile> builds = (1..3).collect { idx ->
             def lib = mavenRepo.module("org.test.foo", "build${idx}").publish()
@@ -470,7 +470,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
 
         expect:
         server.expectConcurrent(buildNames.collect { "resolveStarted_" + it })
-        def transformations = server.expectConcurrentAndBlock(1, buildNames.collect { it + "-1.0.jar" } as String[])
+        def transformations = server.expectConcurrentAndBlock(3, buildNames.collect { it + "-1.0.jar" } as String[])
         def buildHandles = builds.collect {
             executer.inDirectory(it).withTasks("resolve").start()
         }
@@ -478,7 +478,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         for (build in builds) {
             transformations.waitForAllPendingCalls()
             Thread.sleep(1000)
-            transformations.release(1)
+            transformations.releaseAll()
         }
 
         buildHandles.each {

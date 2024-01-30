@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
@@ -34,6 +33,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.model.CalculatedValue;
@@ -81,7 +81,7 @@ public class ArtifactSetToFileCollectionFactory {
     public ResolvedArtifactSet asResolvedArtifactSet(
         ComponentArtifactIdentifier id,
         AttributeContainer variantAttributes,
-        List<? extends Capability> capabilities,
+        ImmutableCapabilities capabilities,
         DisplayName variantDisplayName,
         File file
     ) {

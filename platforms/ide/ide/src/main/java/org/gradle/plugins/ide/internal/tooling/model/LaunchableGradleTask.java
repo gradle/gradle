@@ -25,6 +25,9 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Structurally implements {@link org.gradle.tooling.model.Task} model.
+ */
 public class LaunchableGradleTask implements Serializable, InternalLaunchable, TaskExecutionRequest {
 
     private String path;

@@ -21,20 +21,6 @@ import org.gradle.api.Action;
 import java.util.Map;
 
 public interface CacheBuilder {
-    enum LockTarget {
-        /**
-         * Use the cache properties file as the lock target, for backwards compatibility with old Gradle versions.
-         */
-        CachePropertiesFile,
-        /**
-         * Use the cache directory as the lock target, for backwards compatibility with old Gradle versions.
-         */
-        CacheDirectory,
-        /**
-         * Use the default target.
-         */
-        DefaultTarget,
-    }
 
     /**
      * Specifies the additional key properties for the cache. The cache is treated as invalid if any of the properties do not match the properties used to create the cache. The default for this is an
@@ -46,13 +32,6 @@ public interface CacheBuilder {
     CacheBuilder withProperties(Map<String, ?> properties);
 
     /**
-     * Specifies that the cache should be shared by all versions of Gradle. The default is to use a Gradle version specific cache.
-     * @param lockTarget The lock target, used for backwards compatibility with older Gradle versions. Use {@link LockTarget#DefaultTarget} when no preference.
-     * @return this
-     */
-    CacheBuilder withCrossVersionCache(LockTarget lockTarget);
-
-    /**
      * Specifies the display name for this cache. This display name is used in logging and error messages.
      */
     CacheBuilder withDisplayName(String displayName);
@@ -60,9 +39,9 @@ public interface CacheBuilder {
     /**
      * Specifies the <em>initial</em> lock options to use. See {@link PersistentCache} for details.
      *
-     * Note that not every combination of cache type and lock options is supported.
+     * @param mode the lock mode to use
      */
-    CacheBuilder withLockOptions(LockOptions lockOptions);
+    CacheBuilder withInitialLockMode(FileLockManager.LockMode mode);
 
     /**
      * Specifies an action to execute to initialize the cache contents, if the cache does not exist or is invalid. An exclusive lock is held while the initializer is executing, to prevent
@@ -84,8 +63,9 @@ public interface CacheBuilder {
      *     NOTE: The <em>initial</em> lock option is {@link org.gradle.cache.FileLockManager.LockMode#Shared}.
      * </p>
      * <ul>
-     *     <li>Using {@link org.gradle.cache.FileLockManager.LockMode#Exclusive} will lock the cache on open() and keep it locked until {@link PersistentCache#close()} is called.</li>
-     *     <li>Using {@link org.gradle.cache.FileLockManager.LockMode#OnDemand} or {@link org.gradle.cache.FileLockManager.LockMode#Shared} will <em>not</em> lock the cache on open().</li>
+     *     <li>Using {@link org.gradle.cache.FileLockManager.LockMode#Exclusive} will lock the cache on open() in the exclusive mode and keep it locked until {@link PersistentCache#close()} is called.</li>
+     *     <li>Using {@link org.gradle.cache.FileLockManager.LockMode#Shared} will lock the cache on open() in the shared mode and keep it locked until {@link PersistentCache#close()} is called.</li>
+     *     <li>Using {@link org.gradle.cache.FileLockManager.LockMode#OnDemand} will <em>not</em> lock the cache on open().</li>
      * </ul>
      *
      * @return The cache.

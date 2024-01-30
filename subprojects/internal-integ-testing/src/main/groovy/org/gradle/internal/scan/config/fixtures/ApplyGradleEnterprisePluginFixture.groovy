@@ -21,7 +21,7 @@ import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterpri
 import static org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin.VERSION
 
 /**
- * Applies the Gradle Enterprise plugin via the `settings.gradle` script.
+ * Applies the Develocity plugin via the `settings.gradle` script.
  */
 class ApplyGradleEnterprisePluginFixture {
     private static final String APPLY_ENTERPRISE_PLUGIN = """plugins {

@@ -18,19 +18,30 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
-import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
 class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
-    String projectTypePrompt = "Select type of project to generate:"
-    String dslPrompt = "Select build script DSL:"
-    String incubatingPrompt = "Generate build using new APIs and behavior (some features may change in the next minor release)?"
-    String basicType = "1: basic"
-    String projectNamePrompt = "Project name (default: some-thing)"
-    String convertMavenBuildPrompt = "Found a Maven build. Generate a Gradle build from this?"
+    def buildTypePrompt = "Select type of build to generate:"
+    def dslPrompt = "Select build script DSL:"
+    def incubatingPrompt = "Generate build using new APIs and behavior (some features may change in the next minor release)?"
+    def basicType = "4: Basic (build structure only)"
+    def basicTypeOption = 4
+    def applicationOption = 1
+    def projectNamePrompt = "Project name (default: some-thing)"
+    def convertMavenBuildPrompt = "Found a Maven build. Generate a Gradle build from this?"
+    def javaOption = 1
+    def languageSelectionOptions = [
+        "Select implementation language:",
+        "1: Java",
+        "2: Kotlin",
+        "3: Groovy",
+        "4: Scala",
+        "5: C++",
+        "6: Swift"
+    ]
 
     @Override
     String subprojectName() { 'app' }
@@ -44,28 +55,28 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // Select 'basic'
         ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains(projectTypePrompt)
+            assert handle.standardOutput.contains(buildTypePrompt)
+            assert handle.standardOutput.contains("1: Application")
+            assert handle.standardOutput.contains("2: Library")
+            assert handle.standardOutput.contains("3: Gradle plugin")
             assert handle.standardOutput.contains(basicType)
-            assert handle.standardOutput.contains("2: application")
-            assert handle.standardOutput.contains("3: library")
-            assert handle.standardOutput.contains("4: Gradle plugin")
             assert !handle.standardOutput.contains("pom")
         }
-        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
-
-        // Select 'kotlin'
-        ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains(dslPrompt)
-            assert handle.standardOutput.contains("1: Kotlin")
-            assert handle.standardOutput.contains("2: Groovy")
-        }
-        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write((basicTypeOption + TextUtil.platformLineSeparator).bytes)
 
         // Select default project name
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(projectNamePrompt)
         }
         handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+
+        // Select 'kotlin DSL'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(dslPrompt)
+            assert handle.standardOutput.contains("1: Kotlin")
+            assert handle.standardOutput.contains("2: Groovy")
+        }
+        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'no' for incubating APIs
         ConcurrentTestUtil.poll(60) {
@@ -109,7 +120,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
     }
 
-    def "user can provide details for JVM based build"() {
+    def "user can provide details for Java build"() {
         when:
         executer.withForceInteractive(true)
         executer.withStdinPipe()
@@ -118,25 +129,39 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // Select 'application'
         ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains(projectTypePrompt)
+            assert handle.standardOutput.contains(buildTypePrompt)
         }
-        handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write((applicationOption + TextUtil.platformLineSeparator).bytes)
 
         // Select 'java'
         ConcurrentTestUtil.poll(60) {
-            ["Select implementation language:","1: C++","2: Groovy","3: Java","4: Kotlin","5: Scala","6: Swift"].each {
+            languageSelectionOptions.each {
                 assert handle.standardOutput.contains(it)
             }
         }
-        handle.stdinPipe.write(("3" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write((javaOption + TextUtil.platformLineSeparator).bytes)
+
+        // Enter a Java version
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains("Enter target Java version (min: 7, default: 21)")
+        }
+        handle.stdinPipe.write(("17" + TextUtil.platformLineSeparator).bytes)
+
+        // Select default project name
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(projectNamePrompt)
+        }
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
 
         // Select 'Single project'
         ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains("Generate multiple subprojects for application?")
+            assert handle.standardOutput.contains("Select application structure:")
+            assert handle.standardOutput.contains("1: Single application project")
+            assert handle.standardOutput.contains("2: Application and library project")
         }
-        handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
 
-        // Select 'kotlin' DSL
+        // Select 'kotlin DSL'
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(dslPrompt)
         }
@@ -148,24 +173,6 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
             assert handle.standardOutput.contains("1: JUnit 4")
         }
         handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
-
-        // Select default project name
-        ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains(projectNamePrompt)
-        }
-        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
-
-        // Enter a package name
-        ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains("Source package (default: some.thing)")
-        }
-        handle.stdinPipe.write(("org.gradle.test" + TextUtil.platformLineSeparator).bytes)
-
-        // Enter a package name
-        ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains("Enter target version of Java (min. 7) (default: ${Jvm.current().javaVersion.majorVersion})")
-        }
-        handle.stdinPipe.write(("15" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'no' for incubating APIs
         ConcurrentTestUtil.poll(60) {
@@ -184,6 +191,56 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(BuildInitDsl.KOTLIN).assertGradleFilesGenerated()
     }
 
+    def "user can interrupt the build without generating files"() {
+        when:
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks("init")
+        def handle = executer.start()
+
+        // Interrupt input
+        handle.stdinPipe.close()
+
+        def result = handle.waitForFailure()
+
+        then:
+        result.assertHasDescription("Execution failed for task ':init'.")
+        result.assertHasCause("Build cancelled.")
+        rootProjectDslFixtureFor(BuildInitDsl.GROOVY).assertGradleFilesNotGenerated()
+    }
+
+    def "user can interrupt the build after multiple prompts without generating files"() {
+        when:
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks("init")
+        def handle = executer.start()
+
+        // Select 'application'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(buildTypePrompt)
+        }
+        handle.stdinPipe.write((applicationOption + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'java'
+        ConcurrentTestUtil.poll(60) {
+            languageSelectionOptions.each {
+                assert handle.standardOutput.contains(it)
+            }
+        }
+        handle.stdinPipe.write((javaOption + TextUtil.platformLineSeparator).bytes)
+
+        // Interrupt input
+        handle.stdinPipe.close()
+
+        def result = handle.waitForFailure()
+
+        then:
+        result.assertHasDescription("Execution failed for task ':init'.")
+        result.assertHasCause("Build cancelled.")
+        rootProjectDslFixtureFor(BuildInitDsl.GROOVY).assertGradleFilesNotGenerated()
+    }
+
     def "prompts user when run from an interactive session and pom.xml present"() {
         when:
         pom()
@@ -199,7 +256,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         }
         handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
 
-        // Select 'groovy' DSL
+        // Select 'groovy DSL'
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(dslPrompt)
         }
@@ -218,7 +275,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         handle.stdinPipe.close()
         handle.waitForFinish()
 
-        !handle.standardOutput.contains(projectTypePrompt)
+        !handle.standardOutput.contains(buildTypePrompt)
         !handle.standardOutput.contains(dslPrompt)
         !handle.standardOutput.contains(projectNamePrompt)
 
@@ -243,23 +300,23 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // Select 'basic'
         ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains(projectTypePrompt)
+            assert handle.standardOutput.contains(buildTypePrompt)
             assert handle.standardOutput.contains(basicType)
             assert !handle.standardOutput.contains("pom")
         }
-        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
-
-        // Select 'kotlin'
-        ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains(dslPrompt)
-        }
-        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write((basicTypeOption + TextUtil.platformLineSeparator).bytes)
 
         // Select default project name
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(projectNamePrompt)
         }
         handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+
+        // Select 'kotlin DSL'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(dslPrompt)
+        }
+        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'no' for incubating APIs
         ConcurrentTestUtil.poll(60) {
@@ -290,6 +347,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
             "--test-framework", "junit-jupiter",
             "--package", "my.project",
             "--project-name", "my-project",
+            "--no-incubating",
             "--no-split-project",
             "--java-version", "14"
         )
@@ -299,6 +357,38 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         ScriptDslFixture.of(BuildInitDsl.GROOVY, targetDir, null).assertGradleFilesGenerated("app")
+    }
 
+    def "user can use defaults and provide no options to generate a basic project non-interactively"() {
+        when:
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks(
+            "init",
+            "--use-defaults",
+        )
+        def handle = executer.start()
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
+    }
+
+    def "user can use defaults to generate java application non-interactively"() {
+        when:
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks(
+            "init",
+            "--use-defaults",
+            "--type", "java-application",
+        )
+        def handle = executer.start()
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated("app")
     }
 }

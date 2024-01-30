@@ -16,8 +16,8 @@
 
 package org.gradle.workers.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
@@ -51,6 +51,7 @@ import org.gradle.workers.WorkerSpec;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -72,6 +73,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final IsolationScheme<WorkAction<?>, WorkParameters> isolationScheme = new IsolationScheme<>(Cast.uncheckedCast(WorkAction.class), WorkParameters.class, WorkParameters.None.class);
     private final CachedClasspathTransformer classpathTransformer;
     private final File baseDir;
+    private final ProjectCacheDir projectCacheDir;
 
     public DefaultWorkerExecutor(
         WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory,
@@ -79,7 +81,8 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory,
         ClassLoaderStructureProvider classLoaderStructureProvider, ActionExecutionSpecFactory actionExecutionSpecFactory, Instantiator instantiator,
         CachedClasspathTransformer classpathTransformer,
-        File baseDir
+        File baseDir,
+        ProjectCacheDir projectCacheDir
     ) {
         this.daemonWorkerFactory = daemonWorkerFactory;
         this.isolatedClassloaderWorkerFactory = isolatedClassloaderWorkerFactory;
@@ -95,6 +98,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         this.instantiator = instantiator;
         this.classpathTransformer = classpathTransformer;
         this.baseDir = baseDir;
+        this.projectCacheDir = projectCacheDir;
     }
 
     @Override
@@ -235,13 +239,13 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             builder.javaForkOptions(forkOptions)
                 .withClassLoaderStructure(classLoaderStructureProvider.getWorkerProcessClassLoaderStructure(isolatedFromChanges.getAsFiles(), getParamClasses(executionClass, parameters)));
 
-            return new ForkedWorkerRequirement(baseDir, builder.build());
+            return new ForkedWorkerRequirement(baseDir, projectCacheDir.getDir(), builder.build());
         } else if (configuration instanceof ClassLoaderWorkerSpec) {
             ClassLoaderWorkerSpec classLoaderConfiguration = (ClassLoaderWorkerSpec) configuration;
             ClassPath isolatedFromChanges = classpathTransformer.transform(DefaultClassPath.of(classLoaderConfiguration.getClasspath()), CachedClasspathTransformer.StandardTransform.None);
-            return new IsolatedClassLoaderWorkerRequirement(baseDir, classLoaderStructureProvider.getInProcessClassLoaderStructure(isolatedFromChanges.getAsFiles(), getParamClasses(executionClass, parameters)));
+            return new IsolatedClassLoaderWorkerRequirement(baseDir, projectCacheDir.getDir(), classLoaderStructureProvider.getInProcessClassLoaderStructure(isolatedFromChanges.getAsFiles(), getParamClasses(executionClass, parameters)));
         } else {
-            return new FixedClassLoaderWorkerRequirement(baseDir, Thread.currentThread().getContextClassLoader());
+            return new FixedClassLoaderWorkerRequirement(baseDir, projectCacheDir.getDir(), Thread.currentThread().getContextClassLoader());
         }
     }
 
@@ -290,7 +294,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         private final DefaultWorkerExecutor workerExecutor;
         private final WorkerSpec spec;
         private final WorkerFactory workerFactory;
-        private final List<AsyncWorkCompletion> workItems = Lists.newArrayList();
+        private final List<AsyncWorkCompletion> workItems = new ArrayList<>();
 
         public DefaultWorkQueue(DefaultWorkerExecutor workerExecutor, WorkerSpec spec, WorkerFactory workerFactory) {
             this.workerExecutor = workerExecutor;

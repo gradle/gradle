@@ -103,9 +103,10 @@ class BaseClasspathElementTransform implements ClasspathElementTransform {
      * @throws IOException if reading or writing entry fails
      */
     protected void processClassFile(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry classEntry) throws IOException {
-        ClassReader reader = new ClassReader(classEntry.getContent());
+        byte[] content = classEntry.getContent();
+        ClassReader reader = new ClassReader(content);
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        Pair<RelativePath, ClassVisitor> chain = transform.apply(classEntry, classWriter, new ClassData(reader, typeRegistry));
+        Pair<RelativePath, ClassVisitor> chain = transform.apply(classEntry, classWriter, new ClassData(reader, content, typeRegistry));
         reader.accept(chain.right, 0);
         byte[] bytes = classWriter.toByteArray();
         builder.put(chain.left.getPathString(), bytes, classEntry.getCompressionMethod());

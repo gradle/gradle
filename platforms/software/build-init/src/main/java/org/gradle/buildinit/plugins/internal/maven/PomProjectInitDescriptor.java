@@ -30,8 +30,6 @@ import org.gradle.buildinit.plugins.internal.BuildConverter;
 import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
-import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
-import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.util.internal.IncubationLogger;
 import org.gradle.workers.WorkerExecutor;
@@ -40,14 +38,15 @@ import org.gradleinternal.buildinit.plugins.internal.maven.MavenConversionExcept
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
 public class PomProjectInitDescriptor implements BuildConverter {
-    private final static String MAVEN_VERSION = "3.9.3";
+    private final static String MAVEN_VERSION = "3.9.5";
     private final static String MAVEN_WAGON_VERSION = "3.5.3";
-    private final static String MAVEN_RESOLVER_VERSION = "1.9.13";
+    private final static String MAVEN_RESOLVER_VERSION = "1.9.16";
 
     private final MavenSettingsProvider settingsProvider;
     private final DocumentationRegistry documentationRegistry;
@@ -67,16 +66,6 @@ public class PomProjectInitDescriptor implements BuildConverter {
     }
 
     @Override
-    public ComponentType getComponentType() {
-        return ComponentType.BASIC;
-    }
-
-    @Override
-    public Language getLanguage() {
-        return Language.NONE;
-    }
-
-    @Override
     public boolean supportsJavaTargets() {
         return false;
     }
@@ -89,6 +78,11 @@ public class PomProjectInitDescriptor implements BuildConverter {
     @Override
     public String getSourceBuildDescription() {
         return "Maven";
+    }
+
+    @Override
+    public List<String> getDefaultProjectNames() {
+        return Collections.emptyList();
     }
 
     @Override
@@ -152,12 +146,12 @@ public class PomProjectInitDescriptor implements BuildConverter {
     }
 
     @Override
-    public BuildInitTestFramework getDefaultTestFramework() {
+    public BuildInitTestFramework getDefaultTestFramework(ModularizationOption modularizationOption) {
         return BuildInitTestFramework.NONE;
     }
 
     @Override
-    public Set<BuildInitTestFramework> getTestFrameworks() {
+    public Set<BuildInitTestFramework> getTestFrameworks(ModularizationOption modularizationOption) {
         return Collections.singleton(BuildInitTestFramework.NONE);
     }
 

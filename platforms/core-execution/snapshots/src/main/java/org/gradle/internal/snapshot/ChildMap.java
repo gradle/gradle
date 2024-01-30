@@ -23,6 +23,8 @@ public interface ChildMap<T> {
 
     boolean isEmpty();
 
+    int size();
+
     Stream<Entry<T>> stream();
 
     <RESULT> RESULT withNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, NodeHandler<T, RESULT> handler);

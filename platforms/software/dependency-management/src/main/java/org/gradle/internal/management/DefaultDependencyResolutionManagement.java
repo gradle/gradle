@@ -16,7 +16,6 @@
 package org.gradle.internal.management;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
@@ -47,21 +46,20 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.ProviderFactory;
-import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.lazy.Lazy;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @NonNullApi
 public class DefaultDependencyResolutionManagement implements DependencyResolutionManagementInternal {
     private static final DisplayName UNKNOWN_CODE = Describables.of("unknown code");
     private static final Logger LOGGER = Logging.getLogger(DependencyResolutionManagement.class);
-    private final List<Action<? super ComponentMetadataHandler>> componentMetadataRulesActions = Lists.newArrayList();
+    private final List<Action<? super ComponentMetadataHandler>> componentMetadataRulesActions = new ArrayList<>();
 
     private final Lazy<DependencyResolutionServices> dependencyResolutionServices;
     private final UserCodeApplicationContext context;
@@ -81,9 +79,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         FileCollectionFactory fileCollectionFactory,
         DependencyMetaDataProvider dependencyMetaDataProvider,
         ObjectFactory objects,
-        ProviderFactory providers,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
-        Problems problemService
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator
     ) {
         this.context = context;
         this.repositoryMode = objects.property(RepositoriesMode.class).convention(RepositoriesMode.PREFER_PROJECT);
@@ -91,7 +87,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         this.dependencyResolutionServices = Lazy.locking().of(() -> dependencyManagementServices.create(fileResolver, fileCollectionFactory, dependencyMetaDataProvider, makeUnknownProjectFinder(), RootScriptDomainObjectContext.INSTANCE));
         this.librariesExtensionName = objects.property(String.class).convention("libs");
         this.projectsExtensionName = objects.property(String.class).convention("projects");
-        this.versionCatalogs = objects.newInstance(DefaultVersionCatalogBuilderContainer.class, collectionCallbackActionDecorator, objects, providers, dependencyResolutionServices, context, problemService);
+        this.versionCatalogs = objects.newInstance(DefaultVersionCatalogBuilderContainer.class, collectionCallbackActionDecorator, objects, context, dependencyResolutionServices);
     }
 
     @Override

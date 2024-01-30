@@ -23,7 +23,6 @@ import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.same
-import org.gradle.api.JavaVersion
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -39,6 +38,7 @@ import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
+import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.junit.Test
 import java.io.File
 import java.net.URLClassLoader
@@ -168,7 +168,7 @@ class InterpreterTest : TestWithTempFiles() {
                 )
             }
 
-            on { jvmTarget } doReturn JavaVersion.current()
+            on { compilerOptions } doReturn KotlinCompilerOptions()
         }
 
         try {

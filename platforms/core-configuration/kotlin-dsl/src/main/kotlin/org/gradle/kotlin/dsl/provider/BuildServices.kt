@@ -28,6 +28,7 @@ import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
+import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.FileCollectionSnapshotter
@@ -101,6 +102,7 @@ object BuildServices {
         fileCollectionFactory: FileCollectionFactory,
         inputFingerprinter: InputFingerprinter,
         gradlePropertiesController: GradlePropertiesController,
+        transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy
     ): KotlinScriptEvaluator =
 
         StandardKotlinScriptEvaluator(
@@ -123,6 +125,7 @@ object BuildServices {
             fileCollectionFactory,
             inputFingerprinter,
             gradlePropertiesController,
+            transformFactoryForLegacy
         )
 
     @Suppress("unused")

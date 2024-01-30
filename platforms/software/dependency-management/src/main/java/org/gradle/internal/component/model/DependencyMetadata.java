@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.SelectionFailureHandler;
+import org.gradle.internal.component.ResolutionFailureHandler;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -43,7 +43,7 @@ public interface DependencyMetadata {
     /**
      * Select the matching variants for this dependency from the given target component.
      *
-     * @implSpec An instance of {@link SelectionFailureHandler} is supplied to this method, and
+     * @implSpec An instance of {@link ResolutionFailureHandler} is supplied to this method, and
      * any failures during selection should be routed through that handler. This is done to keep all failure handling done
      * in a consistent manner.  See {@link GraphVariantSelector} for comparison.
      */

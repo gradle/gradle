@@ -20,6 +20,7 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Elements;
 import java.lang.annotation.Annotation;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -55,6 +56,10 @@ public class AnnotationUtils {
 
     public static Optional<? extends AnnotationValue> findAnnotationValue(AnnotationMirror annotation, String key) {
         return annotation.getElementValues().entrySet().stream().filter(it -> it.getKey().getSimpleName().toString().equals(key)).map(Map.Entry::getValue).findFirst();
+    }
+
+    public static Optional<? extends AnnotationValue> findAnnotationValueWithDefaults(Elements elements, AnnotationMirror annotation, String key) {
+        return elements.getElementValuesWithDefaults(annotation).entrySet().stream().filter(it -> it.getKey().getSimpleName().toString().equals(key)).map(Map.Entry::getValue).findFirst();
     }
 
     private static boolean isAnnotationOfType(AnnotationMirror annotation, Class<? extends Annotation> type) {

@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
 import java.util.Set;
 
@@ -42,12 +43,12 @@ public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     }
 
     @Override
-    public BuildInitTestFramework getDefaultTestFramework() {
+    public BuildInitTestFramework getDefaultTestFramework(ModularizationOption modularizationOption) {
         return BuildInitTestFramework.KOTLINTEST;
     }
 
     @Override
-    public Set<BuildInitTestFramework> getTestFrameworks() {
+    public Set<BuildInitTestFramework> getTestFrameworks(ModularizationOption modularizationOption) {
         return ImmutableSet.of(BuildInitTestFramework.KOTLINTEST);
     }
 

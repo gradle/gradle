@@ -23,6 +23,7 @@ dependencies {
     implementation(project(":plugins-groovy"))
     implementation(project(":plugins-java"))
     implementation(project(":plugins-java-base"))
+    implementation(project(":plugins-java-library"))
     implementation(project(":diagnostics"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))

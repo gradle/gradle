@@ -19,7 +19,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
@@ -50,6 +49,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.jvm.toolchain.internal.AutoDetectingInstallationSupplier;
 import org.gradle.launcher.cli.DefaultCommandLineActionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
@@ -106,6 +106,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private static final String ALLOW_INSTRUMENTATION_AGENT_SYSPROP = "org.gradle.integtest.agent.allowed";
 
     protected static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder.builder()
+        .scope(Scope.Global.class)
         .displayName("Global services")
         .parent(newCommandLineProcessLogging())
         .parent(NativeServicesTestFixture.getInstance())
@@ -115,7 +116,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     private static final JvmVersionDetector JVM_VERSION_DETECTOR = GLOBAL_SERVICES.get(JvmVersionDetector.class);
 
-    protected final static Set<String> PROPAGATED_SYSTEM_PROPERTIES = Sets.newHashSet();
+    protected final static Set<String> PROPAGATED_SYSTEM_PROPERTIES = new HashSet<>();
 
     // TODO - don't use statics to communicate between the test runner and executer
     public static void propagateSystemProperty(String name) {
@@ -1181,6 +1182,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
 
         properties.put(DefaultCommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
+
+        // Having this unset is now deprecated, will default to `false` in Gradle 9.0
+        // TODO remove - see https://github.com/gradle/gradle/issues/26810
+        properties.put("org.gradle.kotlin.dsl.skipMetadataVersionCheck", "false");
 
         return properties;
     }

@@ -3,10 +3,11 @@ package projects
 import common.cleanupRule
 import common.hiddenArtifactDestination
 import common.isSecurityFork
+import configurations.GitHubMergeQueueCheckPass
 import configurations.PerformanceTestsPass
 import configurations.StagePasses
-import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
-import jetbrains.buildServer.configs.kotlin.v2019_2.Project
+import jetbrains.buildServer.configs.kotlin.ParameterDisplay
+import jetbrains.buildServer.configs.kotlin.Project
 import model.CIBuildModel
 import model.FunctionalTestBucketProvider
 import model.Stage
@@ -26,7 +27,7 @@ class CheckProject(
         param("credentialsStorageType", "credentialsJSON")
         // Disallow Web UI changes to TeamCity settings
         param("teamcity.ui.settings.readOnly", "true")
-        // Avoid rebuilding same revision if it's already built on another branch (pre-tested commit)
+        // Avoid rebuilding same revision if it's already built on another branch
         param("teamcity.vcsTrigger.runBuildOnSameRevisionInEveryBranch", "false")
         param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%;%ge-td-dogfooding.grdev.net.access.key%")
 
@@ -68,12 +69,14 @@ class CheckProject(
         previousPerformanceTestPasses.addAll(stageProject.performanceTests)
     }
 
+    buildType(GitHubMergeQueueCheckPass(model))
+
     buildTypesOrder = buildTypes
     subProjectsOrder = subProjects
 
     cleanupRule(
-        historyDays = 14,
-        artifactsDays = 7,
+        historyDays = 28,
+        artifactsDays = 14,
         artifactsPatterns = """
                 +:**/*
                 +:$hiddenArtifactDestination/**/*"

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
@@ -48,6 +47,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 class DefaultMetadataProvider implements MetadataProvider {
@@ -178,7 +178,7 @@ class DefaultMetadataProvider implements MetadataProvider {
             for (Attribute<?> attribute : attributes.keySet()) {
                 if (!isValidType(attribute)) {
                     if (invalidAttributes == null) {
-                        invalidAttributes = Lists.newArrayList();
+                        invalidAttributes = new ArrayList<>();
                     }
                     invalidAttributes.add(attribute);
                 }

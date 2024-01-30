@@ -27,8 +27,10 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java-library'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = 'group'
             version = '1.0'
@@ -75,8 +77,10 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java-library'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = 'group'
             version = '1.0'
@@ -124,8 +128,10 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: "java-library"
-            apply plugin: "maven-publish"
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = 'group'
             version = '1.0'
@@ -169,8 +175,10 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: "java-library"
-            apply plugin: "maven-publish"
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = 'group'
             version = '1.0'
@@ -213,8 +221,10 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: "java-library"
-            apply plugin: "maven-publish"
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = 'group'
             version = '1.0'
@@ -270,12 +280,70 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/26996")
+    def "BOMs are not published multiple times"() {
+        given:
+        mavenRepo.module("org", "foo").publish()
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
+
+            group = 'group'
+            version = '1.0'
+
+            repositories { maven { url "${mavenRepo.uri}" } }
+            dependencies {
+                api platform("org:foo:1.0")
+            }
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "publish"
+
+        then:
+        repoModule.assertPublished()
+        def depMan = (repoModule.parsedPom.dependencyManagement.get("dependencies"))[0] as Node
+        depMan.children().size() == 1
+        with(depMan.children().first()) {
+            groupId.text() == "org"
+            artifactId.text() == "foo"
+            version.text() == "1.0"
+            type.text() == "pom"
+            scope.text() == "import"
+        }
+
+        ["apiElements", "runtimeElements"].each {
+            repoModule.parsedModuleMetadata.variant(it) {
+                dependency("org:foo:1.0") {
+                    exists()
+                    isLast()
+                }
+            }
+        }
+    }
+
     def "dependencies with multiple dependency artifacts are mapped to multiple dependency declarations in GMM"() {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: "java-library"
-            apply plugin: "maven-publish"
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = 'group'
             version = '1.0'
@@ -288,7 +356,6 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
                 implementation "org:foo:1.0"
                 implementation("org:foo:1.0:classy") {
                     artifact {
-                        name = "tarified"
                         type = "tarfile"
                         extension = "tar"
                         classifier = "ctar"
@@ -345,6 +412,61 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
                 artifactSelector.classifier == 'ctar'
                 isLast()
             }
+        }
+    }
+
+    def "publishing a dependency to with name different than the artifactId is deprecated"() {
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
+
+            group = 'group'
+            version = '1.0'
+
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
+            }
+            dependencies {
+                implementation("org:foo:1.0") {
+                    artifact {
+                        name = "notfoo"
+                    }
+                }
+            }
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("Publishing a dependency with an artifact name different from the dependency's artifactId. This behavior has been deprecated. This will fail with an error in Gradle 9.0. This functionality is only supported by Ivy repositories. Declare a dependency with artifactId 'notfoo' instead of 'foo'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#publishing_artifact_name_different_from_artifact_id_maven")
+        succeeds "publish"
+
+        then:
+        repoModule.assertPublished()
+        repoModule.assertApiDependencies()
+        repoModule.parsedPom.scope("runtime") {
+            def deps = dependencies.values()
+            assert deps.size() == 1
+            def dep = deps[0]
+            assert dep.groupId == "org"
+            assert dep.artifactId == "notfoo"
+            assert dep.version == "1.0"
+            assert dep.classifier == null
+            assert dep.type == null
         }
     }
 
