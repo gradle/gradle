@@ -68,7 +68,7 @@ class KotlinPrecompiledScriptPluginsSmokeTest extends AbstractSmokeTest {
                 main {}
             }
         """
-        def buildRunner = runner('publishAllPublicationsToPluginRepository', '--stacktrace')
+        def buildRunner = runner('publishAllPublicationsToPluginRepository')
             .withGradleVersion(pluginPublishGradleVersion)
             .withProjectDir(file('plugin-build'))
             .forwardOutput()

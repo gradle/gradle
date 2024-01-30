@@ -38,7 +38,6 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.util.internal.GFileUtils;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -125,8 +124,14 @@ public class BuildOperationTrace implements Stoppable {
         this.buildOperationListenerManager = buildOperationListenerManager;
 
         Set<String> filter = getFilter(startParameter);
-        this.outputTree = filter == null;
-        this.listener = new LoggingBuildOperationListener(this::write, filter);
+        if (filter != null) {
+            this.outputTree = false;
+            this.listener = new FilteringBuildOperationListener(new SerializingBuildOperationListener(this::write), filter);
+        } else {
+            this.outputTree = true;
+            this.listener = new SerializingBuildOperationListener(this::write);
+        }
+
         this.basePath = getProperty(startParameter, SYSPROP);
 
         if (this.basePath == null || basePath.equals(Boolean.FALSE.toString())) {
@@ -315,6 +320,8 @@ public class BuildOperationTrace implements Stoppable {
      * Some operations may not contain all of their children.
      * Some operations' parents may be missing from the tree.
      * Operations with missing parents are placed at the root of the returned tree.
+     *
+     * @param basePath The same path used for {@link #SYSPROP} when the trace was recorded.
      */
     public static BuildOperationTree readPartialTree(String basePath) {
         File logFile = logFile(basePath);
@@ -429,7 +436,6 @@ public class BuildOperationTrace implements Stoppable {
 
     }
 
-    @NotNull
     private static List<BuildOperationRecord.Progress> convertProgressEvents(List<SerializedOperationProgress> toConvert) {
         List<BuildOperationRecord.Progress> progresses = new ArrayList<>();
         for (SerializedOperationProgress progress : toConvert) {
@@ -512,41 +518,60 @@ public class BuildOperationTrace implements Stoppable {
         }
     }
 
-    private static class LoggingBuildOperationListener implements BuildOperationListener {
+    private static class SerializingBuildOperationListener implements BuildOperationListener {
 
-        private final Consumer<SerializedOperation> logger;
+        private final Consumer<SerializedOperation> consumer;
+
+        public SerializingBuildOperationListener(Consumer<SerializedOperation> consumer) {
+            this.consumer = consumer;
+        }
+
+        @Override
+        public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+            consumer.accept(new SerializedOperationStart(buildOperation, startEvent));
+        }
+
+        @Override
+        public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
+            consumer.accept(new SerializedOperationProgress(buildOperationId, progressEvent));
+        }
+
+        @Override
+        public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+            consumer.accept(new SerializedOperationFinish(buildOperation, finishEvent));
+        }
+    }
+
+    private static class FilteringBuildOperationListener implements BuildOperationListener {
+
+        private final BuildOperationListener delegate;
         private final Set<String> filter;
 
-        public LoggingBuildOperationListener(Consumer<SerializedOperation> logger, @Nullable Set<String> filter) {
-            this.logger = logger;
+        public FilteringBuildOperationListener(BuildOperationListener delegate, Set<String> filter) {
+            this.delegate = delegate;
             this.filter = filter;
         }
 
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            if (filter == null ||
-                (buildOperation.getDetails() != null && filter.contains(buildOperation.getDetails().getClass().getName()))
-            ) {
-                logger.accept(new SerializedOperationStart(buildOperation, startEvent));
+            if (buildOperation.getDetails() != null && filter.contains(buildOperation.getDetails().getClass().getName())) {
+                delegate.started(buildOperation, startEvent);
             }
         }
 
         @Override
-        public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
-            if (filter == null ||
-                (progressEvent.getDetails() != null && filter.contains(progressEvent.getDetails().getClass().getName()))
-            ) {
-                logger.accept(new SerializedOperationProgress(buildOperationId, progressEvent));
+        public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
+            if (progressEvent.getDetails() != null && filter.contains(progressEvent.getDetails().getClass().getName())) {
+                delegate.progress(operationIdentifier, progressEvent);
             }
         }
 
         @Override
         public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-            if (filter == null ||
-                (buildOperation.getDetails() != null && filter.contains(buildOperation.getDetails().getClass().getName())) ||
+            if ((buildOperation.getDetails() != null && filter.contains(buildOperation.getDetails().getClass().getName())) ||
                 (finishEvent.getResult() != null && filter.contains(finishEvent.getResult().getClass().getName()))
             ) {
-                logger.accept(new SerializedOperationFinish(buildOperation, finishEvent));
+                delegate.finished(buildOperation, finishEvent);
             }
         }
     }

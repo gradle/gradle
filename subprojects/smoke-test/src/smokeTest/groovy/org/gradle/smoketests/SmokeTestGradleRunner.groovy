@@ -69,7 +69,7 @@ class SmokeTestGradleRunner extends GradleRunner {
 
         def result = action.apply(delegate)
 
-        // TODO: Use build operations to verify deprecation warnings instead of parsing output.
+        // TODO: Use problems API to verify deprecation warnings instead of parsing output.
         verifyDeprecationWarnings(result)
 
         if (buildOperationTracePath == null) {
