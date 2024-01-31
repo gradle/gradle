@@ -24,6 +24,7 @@ import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
+import org.gradle.internal.hash.TestHashCodes
 
 class ResolveChangesStepTest extends StepSpec<ValidationFinishedContext> {
     def changeDetector = Mock(ExecutionStateChangeDetector)
@@ -34,7 +35,6 @@ class ResolveChangesStepTest extends StepSpec<ValidationFinishedContext> {
         outputFileLocationSnapshots >> ImmutableSortedMap.of()
     }
     def delegateResult = Mock(Result)
-
 
     def "doesn't provide input file changes when rebuild is forced"() {
         when:
@@ -136,5 +136,65 @@ class ResolveChangesStepTest extends StepSpec<ValidationFinishedContext> {
         _ * work.executionBehavior >> UnitOfWork.ExecutionBehavior.NON_INCREMENTAL
         1 * changeDetector.detectChanges(work, previousExecutionState, beforeExecutionState, _) >> changes
         0 * _
+    }
+
+    def "uses cache key from history when there are no changes"() {
+        def previousExecutionState = Mock(PreviousExecutionState)
+        def changes = Mock(ExecutionStateChanges)
+        def cacheKey = TestHashCodes.hashCodeFrom(1234)
+
+        when:
+        def result = step.execute(work, context)
+
+        then:
+        result == delegateResult
+
+        1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
+            assert delegateContext.changes.get() == changes
+            assert delegateContext.cacheKey.get() == cacheKey
+            return delegateResult
+        }
+        _ * changes.changeDescriptions >> ImmutableList.of()
+        _ * changes.beforeExecutionState >> beforeExecutionState
+        interaction {
+            detectedChanges(changes, previousExecutionState)
+        }
+        1 * previousExecutionState.cacheKey >> cacheKey
+
+        0 * _
+    }
+
+    def "calculates cache key when there are changes"() {
+        def changes = Mock(ExecutionStateChanges)
+        def cacheKeyFromHistory = TestHashCodes.hashCodeFrom(1234)
+        def previousExecutionState = Mock(PreviousExecutionState)
+
+        when:
+        def result = step.execute(work, context)
+
+        then:
+        result == delegateResult
+
+        1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
+            assert delegateContext.changes.get() == changes
+            assert delegateContext.cacheKey.get() != cacheKeyFromHistory
+            return delegateResult
+        }
+        _ * changes.changeDescriptions >> ImmutableList.of("change")
+        interaction {
+            detectedChanges(changes, previousExecutionState)
+        }
+
+        0 * _
+    }
+
+    void detectedChanges(ExecutionStateChanges changes, PreviousExecutionState previousExecutionState) {
+        _ * changes.beforeExecutionState >> beforeExecutionState
+        _ * context.nonIncrementalReason >> Optional.empty()
+        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
+        _ * context.previousExecutionState >> Optional.of(previousExecutionState)
+        _ * context.validationProblems >> ImmutableList.of()
+        _ * work.executionBehavior >> UnitOfWork.ExecutionBehavior.NON_INCREMENTAL
+        1 * changeDetector.detectChanges(work, previousExecutionState, beforeExecutionState, _) >> changes
     }
 }
