@@ -21,7 +21,6 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyConstraintFactoryInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
@@ -30,7 +29,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
-import org.gradle.api.internal.notations.DependencyConstraintNotationParser;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
@@ -90,20 +88,6 @@ class DependencyManagementProjectScopeServices {
                 objectFactory,
                 projectDependencyFactory,
                 attributesFactory);
-    }
-
-    DependencyConstraintFactoryInternal createDependencyConstraintFactory(
-        Instantiator instantiator,
-        ObjectFactory objectFactory,
-        DefaultProjectDependencyFactory factory,
-        ImmutableAttributesFactory attributesFactory,
-        SimpleMapInterner stringInterner
-    ) {
-        return new DefaultDependencyConstraintFactory(
-            objectFactory,
-            DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner, attributesFactory),
-            attributesFactory
-        );
     }
 
     private ByUrlCachedExternalResourceIndex prepareArtifactUrlCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, ExternalResourceFileStore externalResourceFileStore, ArtifactCacheMetadata artifactCacheMetadata) {
