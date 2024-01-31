@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
+import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginImplementation;
@@ -47,14 +47,14 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
 
     private final ClassPath injectedClasspath;
     private final FileCollectionFactory fileCollectionFactory;
-    private final DefaultScriptClassPathResolver scriptClassPathResolver;
+    private final ScriptClassPathResolver scriptClassPathResolver;
     private final ClassLoaderScope parentScope;
     private final PluginInspector pluginInspector;
     private volatile PluginRegistry pluginRegistry;
 
     public DefaultInjectedClasspathPluginResolver(
         ClassLoaderScope parentScope,
-        DefaultScriptClassPathResolver scriptClassPathResolver,
+        ScriptClassPathResolver scriptClassPathResolver,
         FileCollectionFactory fileCollectionFactory,
         PluginInspector pluginInspector,
         ClassPath injectedClasspath,
