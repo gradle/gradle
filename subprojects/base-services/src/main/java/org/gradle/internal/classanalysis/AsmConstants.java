@@ -24,9 +24,11 @@ public class AsmConstants {
     /**
      * The latest version of Java for which ASM understands the bytecodes.
      * <p>
-     * Updated for ASM 9.4.
+     * Updated for ASM 9.6.
      *
      * @see <a href="https://asm.ow2.io/versions.html">ASM release notes</a>
+     * Note that this does not mean that Java 21 is supported, just that ASM can parse the bytecode.
+     * @see <a href="https://github.com/gradle/gradle/issues/27856">the issue</a>.
      */
-    public static final int MAX_SUPPORTED_JAVA_VERSION = 20;
+    public static final int MAX_SUPPORTED_JAVA_VERSION = 22;
 }
