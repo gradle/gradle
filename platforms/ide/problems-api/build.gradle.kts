@@ -29,6 +29,13 @@ description = """A problems description API
 
 gradlebuildJava.usedInWorkers()
 
+errorprone {
+    disabledChecks.addAll(
+        "EmptyBlockTag", // 2 occurrences
+        "InvalidLink", // 1 occurrences
+    )
+}
+
 dependencies {
     api(project(":base-annotations"))
     api(project(":base-services"))

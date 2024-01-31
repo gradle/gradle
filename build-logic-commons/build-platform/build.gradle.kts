@@ -49,6 +49,9 @@ dependencies {
         api("com.vladsch.flexmark:flexmark-all:0.34.60") {
             because("Higher versions tested are either incompatible (0.62.2) or bring additional unwanted dependencies (0.36.8)")
         }
+        api("org.apache.pdfbox:pdfbox:2.0.24") {
+            because("Flexmark 0.34.60 brings in a vulnerable version of pdfbox")
+        }
         api("com.google.code.findbugs:jsr305:3.0.2")
         api("commons-io:commons-io:2.8.0")
         api("commons-lang:commons-lang:2.6")
@@ -79,7 +82,7 @@ dependencies {
         api("org.ow2.asm:asm:$asmVersion")
         api("org.ow2.asm:asm-commons:$asmVersion")
         api("org.ow2.asm:asm-tree:$asmVersion")
-        api("xerces:xercesImpl:2.12.1") {
+        api("xerces:xercesImpl:2.12.2") {
             because("Maven Central and JCenter disagree on version 2.9.1 metadata")
         }
         api("net.bytebuddy:byte-buddy") { version { strictly("1.10.21") } }

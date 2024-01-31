@@ -4,6 +4,15 @@ plugins {
 
 description = "Included build controller and composite build infrastructure"
 
+errorprone {
+    disabledChecks.addAll(
+        "FutureReturnValueIgnored", // 1 occurrences
+        "SameNameButDifferent", // 11 occurrences
+        "ThreadLocalUsage", // 1 occurrences
+        "UnusedMethod", // 4 occurrences
+    )
+}
+
 dependencies {
     api(project(":base-annotations"))
     api(project(":base-services"))

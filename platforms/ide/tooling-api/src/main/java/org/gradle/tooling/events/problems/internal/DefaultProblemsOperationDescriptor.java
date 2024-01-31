@@ -72,6 +72,7 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
         this.exception = exception;
     }
 
+    @Override
     public ProblemCategory getCategory() {
         return category;
     }
@@ -112,6 +113,7 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
     }
 
     @Nullable
+    @Override
     public FailureContainer getFailure() {
         return exception;
     }

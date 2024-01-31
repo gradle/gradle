@@ -43,6 +43,7 @@ public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler
         this.registry = registry;
     }
 
+    @Override
     public PluginRequests getAutoAppliedPlugins(PluginRequests initialRequests, Object pluginTarget) {
         if (pluginTarget instanceof Project) {
             Project project = (Project) pluginTarget;

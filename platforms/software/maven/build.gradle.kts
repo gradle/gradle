@@ -4,6 +4,16 @@ plugins {
 
 description = "Implementation of the Maven Publish Plugin that provides the ability to publish build artifacts to Maven repositories."
 
+errorprone {
+    disabledChecks.addAll(
+        "DefaultCharset", // 1 occurrences
+        "EqualsUnsafeCast", // 1 occurrences
+        "StringCaseLocaleUsage", // 1 occurrences
+        "UnusedMethod", // 4 occurrences
+        "UnusedVariable", // 3 occurrences
+    )
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))

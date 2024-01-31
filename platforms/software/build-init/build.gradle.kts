@@ -7,6 +7,21 @@ description = """This project contains the Build Init plugin, which is automatic
 
 This project should NOT be used as an implementation dependency anywhere (except when building a Gradle distribution)."""
 
+errorprone {
+    disabledChecks.addAll(
+        "BadImport", // 1 occurrences
+        "DefaultCharset", // 6 occurrences
+        "GetClassOnEnum", // 1 occurrences
+        "HidingField", // 2 occurrences
+        "ImmutableEnumChecker", // 2 occurrences
+        "InconsistentCapitalization", // 1 occurrences
+        "ReferenceEquality", // 1 occurrences
+        "StringCaseLocaleUsage", // 5 occurrences
+        "StringSplitter", // 4 occurrences
+        "UnusedMethod", // 1 occurrences
+    )
+}
+
 dependencies {
     api(libs.inject)
     api(libs.jsr305)

@@ -32,6 +32,9 @@ public interface ResolutionHost {
 
     DisplayName displayName(String type);
 
+    /**
+     * Rethrows the provided failures. Does nothing if the list of failures is empty.
+     */
     default void rethrowFailure(String type, Collection<Throwable> failures) {
         mapFailure(type, failures).ifPresent(e -> {
             throw e;

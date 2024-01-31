@@ -637,6 +637,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
          */
         protected abstract Object createServiceInstance();
 
+        @Override
         public final void requiredBy(ServiceProvider serviceProvider) {
             if (fromSameRegistry(serviceProvider)) {
                 dependents.add(serviceProvider);

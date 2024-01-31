@@ -14,6 +14,12 @@ tasks.named<JavaCompile>("jmhCompileGeneratedClasses") {
     options.release = 8
 }
 
+errorprone {
+    disabledChecks.addAll(
+        "StringCaseLocaleUsage", // 3 occurrences
+    )
+}
+
 dependencies {
     api(project(":files"))
 
