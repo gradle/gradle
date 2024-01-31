@@ -19,14 +19,7 @@ package org.gradle.internal.component.resolution.failure.type;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 public class RequestedConfigurationNotFoundFailure extends ConfigurationSelectionFailure {
-    private final ComponentIdentifier requestedComponent;
-
     public RequestedConfigurationNotFoundFailure(String requestedName, ComponentIdentifier requestedComponent) {
         super(requestedName, requestedComponent);
-        this.requestedComponent = requestedComponent;
-    }
-
-    public ComponentIdentifier getRequestedComponent() {
-        return requestedComponent;
     }
 }
