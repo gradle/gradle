@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyIntern
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -44,6 +45,7 @@ public class DefaultComponentResolversFactory implements ComponentResolversFacto
     private final ImmutableAttributesFactory attributesFactory;
     private final ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor;
     private final GlobalDependencyResolutionRules metadataHandler;
+    private final LocalComponentRegistry localComponentRegistry;
 
     @Inject
     public DefaultComponentResolversFactory(
@@ -52,7 +54,8 @@ public class DefaultComponentResolversFactory implements ComponentResolversFacto
         ProjectDependencyResolver projectDependencyResolver,
         ImmutableAttributesFactory attributesFactory,
         ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
-        GlobalDependencyResolutionRules metadataHandler
+        GlobalDependencyResolutionRules metadataHandler,
+        LocalComponentRegistry localComponentRegistry
     ) {
         this.resolverFactories = resolverFactories;
         this.moduleDependencyResolverFactory = moduleDependencyResolverFactory;
@@ -60,6 +63,7 @@ public class DefaultComponentResolversFactory implements ComponentResolversFacto
         this.attributesFactory = attributesFactory;
         this.componentMetadataSupplierRuleExecutor = componentMetadataSupplierRuleExecutor;
         this.metadataHandler = metadataHandler;
+        this.localComponentRegistry = localComponentRegistry;
     }
 
     @Override
@@ -72,7 +76,7 @@ public class DefaultComponentResolversFactory implements ComponentResolversFacto
 
         List<ComponentResolvers> resolvers = new ArrayList<>(3);
         for (ResolverProviderFactory factory : resolverFactories) {
-            factory.create(resolvers);
+            factory.create(resolvers, localComponentRegistry);
         }
         resolvers.add(projectDependencyResolver);
 
