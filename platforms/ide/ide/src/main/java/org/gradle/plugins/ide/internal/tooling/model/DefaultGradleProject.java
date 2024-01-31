@@ -114,6 +114,7 @@ public class DefaultGradleProject implements Serializable, GradleProjectIdentity
         return null;
     }
 
+    @Override
     public String toString() {
         return "GradleProject{"
             + "path='" + getPath() + '\''

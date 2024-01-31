@@ -115,6 +115,7 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
         }
     }
 
+    @Override
     public void applyTo(BuildableComponentResolveResult target) {
         super.applyTo(target);
         if (failure != null) {

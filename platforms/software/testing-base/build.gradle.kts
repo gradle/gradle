@@ -11,6 +11,16 @@ testing-related abstract base types and interfaces for things like Test tasks, l
 This project is a implementation dependency of many other testing-related subprojects in the Gradle build.
 """
 
+errorprone {
+    disabledChecks.addAll(
+        "EmptyBlockTag", // 3 occurrences
+        "InlineMeInliner", // 2 occurrences
+        "MissingCasesInEnumSwitch", // 1 occurrences
+        "OperatorPrecedence", // 1 occurrences
+        "UnusedMethod", // 4 occurrences
+    )
+}
+
 dependencies {
     api(project(":reporting"))
 

@@ -335,6 +335,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
      * @return The compilation options.
      */
     @Nested
+    @Override
     public CompileOptions getOptions() {
         return compileOptions;
     }

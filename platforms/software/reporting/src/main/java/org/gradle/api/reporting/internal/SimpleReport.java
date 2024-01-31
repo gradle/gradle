@@ -48,6 +48,7 @@ public abstract class SimpleReport implements ConfigurableReport {
         return displayName.getDisplayName();
     }
 
+    @Override
     public String toString() {
         return "Report " + getName();
     }

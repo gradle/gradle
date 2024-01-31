@@ -173,6 +173,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         return factory.create(provider);
     }
 
+    @Override
     public MutationValidator getValidator() {
         return holder;
     }

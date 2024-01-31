@@ -16,7 +16,6 @@
 
 package org.gradle.integtests
 
-import groovy.test.NotYetImplemented
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
@@ -93,12 +92,8 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
         classFile.assertHasChangedSince(classFileSnapshot)
     }
 
-    /**
-     * TODO: This is a behaviour that is not supported with execution engine, should we remove this test?
-     */
     @Issue("https://github.com/gradle/gradle/issues/13367")
     @Test
-    @NotYetImplemented
     @UnsupportedWithConfigurationCache(because = "Test always passes with cc because we don't rerun config phase on second run")
     void "recovers from discarded empty classes directory from classpath entry"() {
         given:

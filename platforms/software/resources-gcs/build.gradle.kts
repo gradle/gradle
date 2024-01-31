@@ -4,6 +4,13 @@ plugins {
 
 description = "Implementation for interacting with Google Cloud Storage (GCS) repositories"
 
+errorprone {
+    disabledChecks.addAll(
+        "StringCaseLocaleUsage", // 1 occurrences
+        "UnusedMethod", // 1 occurrences
+    )
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))

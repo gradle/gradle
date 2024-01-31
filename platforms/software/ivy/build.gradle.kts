@@ -4,6 +4,13 @@ plugins {
 
 description = "Publishing plugin for Ivy repositories"
 
+errorprone {
+    disabledChecks.addAll(
+        "UnusedMethod", // 2 occurrences
+        "UnusedVariable", // 1 occurrences
+    )
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))

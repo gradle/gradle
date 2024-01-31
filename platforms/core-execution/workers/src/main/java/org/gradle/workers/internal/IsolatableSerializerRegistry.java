@@ -504,6 +504,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         protected void serialize(Encoder encoder, NullValueSnapshot value) {
         }
 
+        @Override
         protected NullValueSnapshot deserialize(Decoder decoder) {
             return NullValueSnapshot.INSTANCE;
         }

@@ -4,7 +4,7 @@ plugins {
 
 description = "Asciidoctor extensions that only work with html backends"
 
-val asciiDoctorVersion = "2.4.3"
+val asciiDoctorVersion = "2.5.11"
 
 dependencies {
     api("org.asciidoctor:asciidoctorj-api:$asciiDoctorVersion")

@@ -55,6 +55,7 @@ public interface InstrumentationResourceGenerator {
                 this.failures = failures;
             }
 
+            @Override
             public List<FailureInfo> getFailureDetails() {
                 return failures;
             }

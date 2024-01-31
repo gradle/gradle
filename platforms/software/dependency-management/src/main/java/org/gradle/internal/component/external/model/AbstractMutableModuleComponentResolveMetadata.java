@@ -383,6 +383,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
             return availableExternally;
         }
 
+        @Override
         public void setAvailableExternally(boolean availableExternally) {
             this.availableExternally = availableExternally;
         }

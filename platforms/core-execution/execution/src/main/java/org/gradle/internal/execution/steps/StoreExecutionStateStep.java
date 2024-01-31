@@ -55,7 +55,7 @@ public class StoreExecutionStateStep<C extends IncrementalChangesContext, R exte
         return result;
     }
 
-    private static <C extends BeforeExecutionContext, R extends AfterExecutionResult> boolean shouldPreserveFailedState(C context, ExecutionOutputState afterExecutionOutputState) {
+    private static <C extends BeforeExecutionContext> boolean shouldPreserveFailedState(C context, ExecutionOutputState afterExecutionOutputState) {
         // We do not store the history if there was a failure and the outputs did not change, since then the next execution can be incremental.
         // For example the current execution fails because of a compilation failure and for the next execution the source file is fixed,
         // so only the one changed source file needs to be compiled.

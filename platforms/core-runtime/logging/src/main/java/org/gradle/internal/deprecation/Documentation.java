@@ -47,6 +47,7 @@ public abstract class Documentation implements DocLink {
     }
 
     @Nullable
+    @Override
     public String getConsultDocumentationMessage() {
         return String.format(RECOMMENDATION, "information", getUrl());
     }

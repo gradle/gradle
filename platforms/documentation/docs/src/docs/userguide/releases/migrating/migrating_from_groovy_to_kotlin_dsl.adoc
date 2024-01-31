@@ -50,7 +50,7 @@ Builds with slow configuration time might affect the IDE responsiveness, please 
 * Knowledge of Kotlin syntax and basic language features is very helpful. The link:{kotlin-reference}[Kotlin reference documentation] and link:https://kotlinlang.org/docs/tutorials/koans.html[Kotlin Koans] should be useful to you.
 * Use of the `plugins {}` block to declare Gradle plugins significantly improves the editing experience, and is highly recommended. Consider adopting it in your Groovy build scripts before converting them to Kotlin.
 * The Kotlin DSL will not support `model {}` elements. This is part of the link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[discontinued Gradle Software Model].
-* Enabling the incubating <<structuring_software_products_details.adoc#sec:configuration_on_demand, configuration on demand>> feature is not recommended as it can lead to very hard-to-diagnose problems.
+* Enabling the incubating configuration on demand feature is not recommended as it can lead to very hard-to-diagnose problems.
 
 Read more in the <<kotlin_dsl.adoc#kotlin_dsl,Gradle Kotlin DSL Primer>>.
 
@@ -478,7 +478,7 @@ There are two key best practices that make it easier to work within the static c
 
 The <<plugins.adoc#sec:plugins_block,`plugins {}` block>> is about keeping your build scripts declarative in order to get the best out of the Kotlin DSL.
 
-Utilizing the <<multi_project_builds.adoc#sec:multiproject_buildsrc,_buildSrc_ project>> is about organizing your build logic into shared local plugins and conventions that are easily testable and provide good IDE support.
+Utilizing the <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,_buildSrc_ project>> is about organizing your build logic into shared local plugins and conventions that are easily testable and provide good IDE support.
 
 === Kotlin DSL build structure samples
 

@@ -4,6 +4,12 @@ plugins {
 
 description = "Groovy specific adaptations to the model management."
 
+errorprone {
+    disabledChecks.addAll(
+        "UnnecessaryParentheses", // 1 occurrences
+    )
+}
+
 dependencies {
     api(project(":base-services"))
     api(project(":model-core"))
