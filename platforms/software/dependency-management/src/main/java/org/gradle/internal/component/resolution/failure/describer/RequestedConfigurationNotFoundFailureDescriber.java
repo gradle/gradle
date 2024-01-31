@@ -16,10 +16,8 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.component.ConfigurationNotFoundException;
-import org.gradle.internal.component.resolution.failure.type.ExternalRequestedConfigurationNotFoundFailure;
 import org.gradle.internal.component.resolution.failure.type.RequestedConfigurationNotFoundFailure;
 
 import javax.inject.Inject;
@@ -32,21 +30,12 @@ public class RequestedConfigurationNotFoundFailureDescriber extends AbstractReso
 
     @Override
     public ConfigurationNotFoundException describeFailure(RequestedConfigurationNotFoundFailure failure) {
-        ConfigurationNotFoundException result;
-        if (failure instanceof ExternalRequestedConfigurationNotFoundFailure) {
-            result = new ConfigurationNotFoundException(buildExternalConfigurationNotFoundFailureMsg((ExternalRequestedConfigurationNotFoundFailure) failure));
-        } else {
-            result = new ConfigurationNotFoundException(buildConfigurationNotFoundFailureMsg(failure));
-        }
+        ConfigurationNotFoundException result = new ConfigurationNotFoundException(buildConfigurationNotFoundFailureMsg(failure));
         suggestReviewAlgorithm(result);
         return result;
     }
 
     private String buildConfigurationNotFoundFailureMsg(RequestedConfigurationNotFoundFailure failure) {
         return String.format("A dependency was declared on configuration '%s' which is not declared in the descriptor for %s.", failure.getRequestedName(), failure.getRequestedComponent().getDisplayName());
-    }
-
-    private String buildExternalConfigurationNotFoundFailureMsg(ExternalRequestedConfigurationNotFoundFailure failure) {
-        return String.format("%s declares a dependency from configuration '%s' to configuration '%s' which is not declared in the descriptor for %s.", StringUtils.capitalize(failure.getFromComponent().getDisplayName()), failure.getFromConfigurationName(), failure.getRequestedComponent(), failure.getRequestedComponent().getDisplayName());
     }
 }
