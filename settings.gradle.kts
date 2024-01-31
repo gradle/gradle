@@ -193,6 +193,7 @@ platform("jvm") {
     subproject("language-java")
     subproject("language-jvm")
     subproject("toolchains-jvm")
+    subproject("toolchains-jvm-shared")
     subproject("java-compiler-plugin")
     subproject("java-platform")
     subproject("normalization-java")

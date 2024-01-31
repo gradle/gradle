@@ -931,6 +931,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "toolchains-jvm-shared",
+    "path": "platforms/jvm/toolchains-jvm-shared",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "tooling-api",
     "path": "platforms/ide/tooling-api",
     "unitTests": true,

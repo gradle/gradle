@@ -35,7 +35,7 @@ dependencies {
     api(project(":file-collections"))
     api(project(":logging"))
     api(project(":platform-jvm"))
-    api(project(":toolchains-jvm"))
+    api(project(":toolchains-jvm-shared"))
     api(project(":workers"))
 
     implementation(project(":logging-api"))

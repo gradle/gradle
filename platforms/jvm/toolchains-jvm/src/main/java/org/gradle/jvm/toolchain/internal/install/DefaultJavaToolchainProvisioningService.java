@@ -48,9 +48,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-public class DefaultJavaToolchainProvisioningService implements JavaToolchainProvisioningService {
+import static org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier.AUTO_DOWNLOAD;
 
-    public static final String AUTO_DOWNLOAD = "org.gradle.java.installations.auto-download";
+public class DefaultJavaToolchainProvisioningService implements JavaToolchainProvisioningService {
 
     @Contextual
     private static class MissingToolchainException extends GradleException {

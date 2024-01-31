@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import com.google.common.base.MoreObjects;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -123,16 +122,6 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
     private boolean isSecondaryPropertiesUnchanged() {
         return Objects.equals(getConventionVendor(), vendor.getOrNull()) &&
             Objects.equals(getConventionImplementation(), implementation.getOrNull());
-    }
-
-    @Override
-    public String getDisplayName() {
-        final MoreObjects.ToStringHelper builder = MoreObjects.toStringHelper("");
-        builder.omitNullValues();
-        builder.add("languageVersion", languageVersion.map(JavaLanguageVersion::toString).getOrElse("unspecified"));
-        builder.add("vendor", vendor.map(JvmVendorSpec::toString).getOrNull());
-        builder.add("implementation", implementation.map(JvmImplementation::toString).getOrNull());
-        return builder.toString();
     }
 
     @Override

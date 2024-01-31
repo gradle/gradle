@@ -43,6 +43,7 @@ dependencies {
     implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))
     implementation(project(":resources"))
+    api(project(":toolchains-jvm-shared"))
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
@@ -72,7 +73,6 @@ dependencies {
 
 packageCycles {
     // Needed for the factory methods in the interface
-    excludePatterns.add("org/gradle/jvm/toolchain/JavaLanguageVersion**")
     excludePatterns.add("org/gradle/jvm/toolchain/**")
 }
 

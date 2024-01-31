@@ -47,6 +47,7 @@ dependencies {
     implementation(project(":file-watching"))
     implementation(project(":problems-api"))
     implementation(project(":problems"))
+    implementation(project(":toolchains-jvm-shared"))
 
     implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'
     implementation(libs.slf4jApi)
