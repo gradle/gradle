@@ -178,7 +178,7 @@ public interface Dependencies {
      * @since 8.7
      */
     default DependencyConstraint constraint(ProjectDependency project) {
-        return getDependencyConstraintFactory().create(project.getDependencyProject());
+        return getDependencyConstraintFactory().create(project);
     }
 
     /**

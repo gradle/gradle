@@ -18,9 +18,9 @@ package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -79,11 +79,11 @@ public interface DependencyConstraintFactory {
     DependencyConstraint create(MinimalExternalModuleDependency dependency);
 
     /**
-     * Create a {@link DependencyConstraint} from a {@link Project}.
+     * Create a {@link DependencyConstraint} from a {@link ProjectDependency}.
      *
-     * @param project the project
+     * @param project the project dependency
      * @return the new dependency constraint
      * @since 8.7
      */
-    DependencyConstraint create(Project project);
+    DependencyConstraint create(ProjectDependency project);
 }

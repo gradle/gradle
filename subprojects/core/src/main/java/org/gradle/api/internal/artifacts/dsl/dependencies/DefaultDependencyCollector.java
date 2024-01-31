@@ -54,6 +54,7 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
     public abstract SetProperty<Dependency> getDependencies();
 
     @Nested
+    @Override
     public abstract SetProperty<DependencyConstraint> getDependencyConstraints();
 
     @SuppressWarnings("unchecked")

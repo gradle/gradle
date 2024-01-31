@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyConstraintFactoryInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -80,8 +80,8 @@ public class DefaultDependencyConstraintFactory implements DependencyConstraintF
     }
 
     @Override
-    public DependencyConstraint create(Project project) {
-        DependencyConstraint dependencyConstraint = dependencyConstraintNotationParser.getProjectNotationParser().parseNotation(project);
+    public DependencyConstraint create(ProjectDependency project) {
+        DependencyConstraint dependencyConstraint = dependencyConstraintNotationParser.getProjectDependencyNotationParser().parseNotation(project);
         injectServices(dependencyConstraint);
         return dependencyConstraint;
     }
