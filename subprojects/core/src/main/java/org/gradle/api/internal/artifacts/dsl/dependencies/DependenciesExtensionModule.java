@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import groovy.transform.stc.ClosureParams;
 import groovy.transform.stc.SecondParam;
 import groovy.transform.stc.SimpleType;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalModuleDependency;
@@ -234,7 +235,11 @@ public class DependenciesExtensionModule {
         self.add(dependency, ConfigureUtil.configureUsing(configuration));
     }
 
-    private static final String ERROR_MESSAGE_PROVIDER = "Providers of non-Dependency(Constraint) types (java.lang.String) are not supported. Create a Dependency(Constraint) using Dependency(Constraint)Factory first.";
+    private static InvalidUserDataException badProviderError(Object given) {
+        return new InvalidUserDataException(
+            "Providers of type " + given.getClass().getName() + " are not supported. Only Provider<Dependency> and Provider<DependencyConstraint> are supported. Try using the Provider#map method to convert to a supported type."
+        );
+    }
 
     /**
      * Add a dependency or dependency constraint.
@@ -247,24 +252,7 @@ public class DependenciesExtensionModule {
      * @param dependencyOrDependencyConstraint dependency or dependency constraint to add
      */
     public static void call(DependencyCollector self, Provider<?> dependencyOrDependencyConstraint) {
-        self.add(dependencyOrDependencyConstraint.map(it -> {
-            if (it instanceof Dependency) {
-                return (Dependency) it;
-            }
-            if (it instanceof DependencyConstraint) {
-                return null;
-            }
-            throw new IllegalArgumentException(ERROR_MESSAGE_PROVIDER);
-        }));
-        self.addConstraint(dependencyOrDependencyConstraint.map(it -> {
-            if (it instanceof DependencyConstraint) {
-                return (DependencyConstraint) it;
-            }
-            if (it instanceof Dependency) {
-                return null;
-            }
-            throw new IllegalArgumentException(ERROR_MESSAGE_PROVIDER);
-        }));
+        call(self, dependencyOrDependencyConstraint, null);
     }
 
     /**
@@ -281,7 +269,7 @@ public class DependenciesExtensionModule {
             if (it instanceof DependencyConstraint) {
                 return null;
             }
-            throw new IllegalArgumentException(ERROR_MESSAGE_PROVIDER);
+            throw badProviderError(it);
         }), ConfigureUtil.configureUsing(configuration));
         self.addConstraint(dependencyOrDependencyConstraint.map(it -> {
             if (it instanceof DependencyConstraint) {
@@ -290,7 +278,7 @@ public class DependenciesExtensionModule {
             if (it instanceof Dependency) {
                 return null;
             }
-            throw new IllegalArgumentException(ERROR_MESSAGE_PROVIDER);
+            throw badProviderError(it);
         }), ConfigureUtil.configureUsing(configuration));
     }
 
