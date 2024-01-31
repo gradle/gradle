@@ -29,7 +29,7 @@ import javax.inject.Inject;
 
 /**
  * A simple dependency-management scoped wrapper around {@link BuildTreeLocalComponentProvider} that
- * contextualizes tracks which domain object context makes a given project component request. The primary
+ * tracks which domain object context makes a given project component request. The primary
  * purpose of this class is to track dependencies between projects as they are resolved. By knowing which
  * project is making the request, we can determine which projects depend on which other projects.
  */

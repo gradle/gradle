@@ -141,7 +141,7 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
             registration.add(VcsResolverFactory.class);
         }
 
-        VcsVersionWorkingDirResolver createVcsDependencyResolver(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser, VcsVersionSelectionCache versionSelectionCache, PersistentVcsMetadataCache persistentCache, StartParameter startParameter) {
+        VcsVersionWorkingDirResolver createVcsVersionWorkingDirResolver(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser, VcsVersionSelectionCache versionSelectionCache, PersistentVcsMetadataCache persistentCache, StartParameter startParameter) {
             VcsVersionWorkingDirResolver workingDirResolver;
             if (startParameter.isOffline()) {
                 workingDirResolver = new OfflineVcsVersionWorkingDirResolver(persistentCache);
