@@ -122,6 +122,7 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultDeleter(clock::getCurrentTime, fileSystem::isSymlink, os.isWindows());
     }
 
+    @Override
     PropertyFactory createPropertyFactory(PropertyHost propertyHost) {
         return new DefaultPropertyFactory(propertyHost);
     }

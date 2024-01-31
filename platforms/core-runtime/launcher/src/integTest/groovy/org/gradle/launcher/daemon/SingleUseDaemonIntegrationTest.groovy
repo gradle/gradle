@@ -101,6 +101,27 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         daemons.daemon.stops()
     }
 
+    @Requires([IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable, IntegTestPreconditions.NotEmbeddedExecutor])
+    def "forks build with default daemon JVM args when daemon jvm criteria from build properties does not match current process"() {
+        def otherJdk = AvailableJavaHomes.differentVersion
+        def otherJdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJdk)
+
+        file('gradle/gradle-build.properties') << """
+            daemon.jvm.toolchain.version=$otherJdkMetadata.languageVersion.majorVersion
+            daemon.jvm.toolchain.vendor=$otherJdkMetadata.vendor.knownVendor
+        """
+
+        file('build.gradle') << "println 'javaVersion=' + org.gradle.internal.jvm.Jvm.current().javaVersion"
+
+        when:
+        succeeds()
+
+        then:
+        wasForked()
+        outputContains("javaVersion=$otherJdk.javaVersion")
+        daemons.daemon.stops()
+    }
+
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "does not fork build when java home from gradle properties matches current process"() {
         def javaHome = AvailableJavaHomes.differentJdk.javaHome
@@ -111,6 +132,24 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
 
         when:
         executer.withJavaHome(javaHome)
+        succeeds()
+
+        then:
+        wasNotForked()
+    }
+
+    @Requires([IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable, IntegTestPreconditions.NotEmbeddedExecutor])
+    def "does not fork build when daemon jvm criteria from build properties matches current process"() {
+        def otherJdk = AvailableJavaHomes.differentVersion
+        def otherJdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJdk)
+
+        file('gradle/gradle-build.properties') << """
+            daemon.jvm.toolchain.version=$otherJdkMetadata.languageVersion.majorVersion
+            daemon.jvm.toolchain.vendor=$otherJdkMetadata.vendor.knownVendor
+        """
+
+        when:
+        executer.withJavaHome(otherJdk.javaHome)
         succeeds()
 
         then:
