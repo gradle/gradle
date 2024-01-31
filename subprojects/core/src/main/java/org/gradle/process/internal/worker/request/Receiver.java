@@ -17,7 +17,7 @@
 package org.gradle.process.internal.worker.request;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemReport;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.dispatch.StreamCompletion;
 import org.gradle.internal.logging.events.LogEvent;
@@ -122,7 +122,7 @@ public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailu
     }
 
     @Override
-    public void reportProblem(Problem problem, OperationIdentifier id) {
+    public void reportProblem(ProblemReport problem, OperationIdentifier id) {
         problemProtocol.reportProblem(problem, id);
     }
 

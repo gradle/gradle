@@ -44,7 +44,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     static String getProblemReportTaskString(String taskActionMethodBody) {
         """
-            import org.gradle.api.problems.internal.Problem
             import org.gradle.api.problems.Severity
 
             abstract class ProblemReportingTask extends DefaultTask {

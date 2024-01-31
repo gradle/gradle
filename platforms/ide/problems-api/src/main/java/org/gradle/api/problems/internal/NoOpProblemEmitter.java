@@ -20,7 +20,7 @@ import org.gradle.internal.operations.OperationIdentifier;
 
 public class NoOpProblemEmitter implements ProblemEmitter {
     @Override
-    public void emit(Problem problem, OperationIdentifier id) {
+    public void emit(ProblemReport problem, OperationIdentifier id) {
         // Do nothing
     }
 }
