@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.fixtures.binaryinfo
 
+import com.google.common.annotations.VisibleForTesting
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.Architectures
 
@@ -62,14 +63,28 @@ class ReadelfBinaryInfo implements BinaryInfo {
     List<Symbol> listDebugSymbols() {
         def process = ['readelf', '--debug-dump=info', binaryFile.absolutePath].execute()
         def lines = process.inputStream.readLines()
+        return readSymbols(lines)
+    }
+
+    @VisibleForTesting
+    static List<Symbol> readSymbols(List<String> lines) {
         def symbols = []
 
+        boolean foundCompilationUnit = false
         lines.each { line ->
-            def findSymbol = (line =~ /.*DW_AT_name\s+:\s+(\(.*\):)?\s+(.*)/)
-            if (findSymbol.matches()) {
-                def name = new File(findSymbol[0][2] as String).name.trim()
-                symbols << new Symbol(name, 'D' as char, true)
+            if (line.contains("DW_TAG_compile_unit")) {
+                foundCompilationUnit = true
+            } else {
+                if (foundCompilationUnit) {
+                    def findSymbol = (line =~ /.*DW_AT_name\s+:\s+(\(.*\):)?\s+(.*)/)
+                    if (findSymbol.matches()) {
+                        def name = new File(findSymbol[0][2] as String).name.trim()
+                        symbols << new Symbol(name, 'D' as char, true)
+                        foundCompilationUnit = false
+                    }
+                }
             }
+
         }
         return symbols
     }
@@ -80,6 +95,7 @@ class ReadelfBinaryInfo implements BinaryInfo {
         return readSoName(lines)
     }
 
+    @VisibleForTesting
     static String readSoName(List<String> lines) {
         final Pattern pattern = ~/^.*\(SONAME\)\s+.*soname.*\: \[(.*)\]$/
         String matchingLine = lines.find {
