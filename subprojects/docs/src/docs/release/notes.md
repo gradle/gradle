@@ -1,15 +1,24 @@
-
 The Gradle team is excited to announce Gradle @version@.
 
-This is the third patch release for Gradle 7.6.
+This is the fourth patch release for Gradle 7.6.
 
-This release addresses two security vulnerabilities:
+This release addresses security vulnerabilities:
 
-* [Incorrect permission assignment for symlinked files used in copy or archiving operations](https://github.com/gradle/gradle/security/advisories/GHSA-43r3-pqhv-f7h9)
-* [Possible local text file exfiltration by XML External entity injection](https://github.com/gradle/gradle/security/advisories/GHSA-mrff-q8qj-xvg8)
+* [Apache Ant insecure temporary file vulnerability](https://github.com/gradle/gradle/security/advisories/GHSA-j45w-qrgf-25vm)
+* [Guava insecure temporary directory](https://github.com/gradle/gradle/issues/25945)
+* [Ivy Improper Restriction of XML External Entity Reference](https://nvd.nist.gov/vuln/detail/CVE-2022-46751) and related Gradle issue [#24795](https://github.com/gradle/gradle/issues/24795)
 
-It also fixes the following issues:
+It also fixes the following issues related to multi-release JARs:
 
+* [#27156](https://github.com/gradle/gradle/issues/27156) Gradle 7.6.3 fails with plugins that use multi-release JAR files
+* [#27856](https://github.com/gradle/gradle/issues/27856) Gradle 7.6.3 fails to incrementally compile when the classpath contains a multi-release jar with a Java 21 class
+
+and contains version updates for Jackson and Maven dependencies.
+
+Issues fixed in the third patch release:
+
+* Security vulnerability: [Incorrect permission assignment for symlinked files used in copy or archiving operations](https://github.com/gradle/gradle/security/advisories/GHSA-43r3-pqhv-f7h9)
+* Security vulnerability: [Possible local text file exfiltration by XML External entity injection](https://github.com/gradle/gradle/security/advisories/GHSA-mrff-q8qj-xvg8)
 * [#25781](https://github.com/gradle/gradle/issues/25781) Backport finalized task performance fix to 7.6.x
 * [#25802](https://github.com/gradle/gradle/issues/25802) Backport cgroups fix to 7.6.x
 
