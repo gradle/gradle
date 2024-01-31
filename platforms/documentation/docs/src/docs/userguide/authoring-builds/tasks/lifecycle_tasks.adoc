@@ -1,0 +1,180 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[lifecycle_tasks]]
+= Lifecycle Tasks
+
+Lifecycle tasks are tasks that do not do work themselves.
+They do not have task actions.
+
+Lifecycle tasks are _targets_ for the build.
+
+They can represent several concepts:
+
+* a work-flow step (e.g., run all checks with `check`)
+* a buildable thing (e.g., create a debug 32-bit executable for native components with `debug32MainExecutable`)
+* a convenience task to execute many of the same logical tasks (e.g., run all compilation tasks with `compileAll`)
+
+The `base` plugin defines several lifecycle tasks including `build`, `assemble`, and `check`.
+
+A good lifecycle task setup can make your build more accessible for new users and easier to integrate with CI.
+
+[[sec:listing_tasks]]
+== Create a lifecycle task
+
+Let's start with an example built by Gradle `init` for a Java application with multiple subprojects:
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+gradle-project
+├── app
+│   ├── build.gradle.kts
+│   └── src                 // some java code
+├── utilities
+│   ├── build.gradle.kts
+│   └── src                 // some java code
+├── list
+│   ├── build.gradle.kts
+│   └── src                 // some java code
+├── buildSrc
+│   ├── build.gradle.kts
+│   ├── settings.gradle.kts
+│   └── src                 // common build logic
+├── settings.gradle.kts
+├── gradle
+├── gradlew
+└── gradlew.bat
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+gradle-project
+├── app
+│   ├── build.gradle
+│   └── src             // some java code
+├── utilities
+│   ├── build.gradle
+│   └── src             // some java code
+├── list
+│   ├── build.gradle
+│   └── src             // some java code
+├── buildSrc
+│   ├── build.gradle
+│   ├── settings.gradle
+│   └── src             // common build logic
+├── settings.gradle
+├── gradle
+├── gradlew
+└── gradlew.bat
+----
+=====
+====
+
+Run `:tasks` to see available tasks:
+
+[source,text]
+----
+$ ./gradlew :tasks
+
+> Task :tasks
+
+------------------------------------------------------------
+Tasks runnable from root project 'gradle-project'
+------------------------------------------------------------
+
+Application tasks
+-----------------
+run - Runs this project as a JVM application
+
+Build tasks
+-----------
+assemble - Assembles the outputs of this project.
+build - Assembles and tests this project.
+buildDependents - Assembles and tests this project and all projects that depend on it.
+buildNeeded - Assembles and tests this project and all projects it depends on.
+classes - Assembles main classes.
+clean - Deletes the build directory.
+jar - Assembles a jar archive containing the classes of the 'main' feature.
+testClasses - Assembles test classes.
+
+Build Setup tasks
+-----------------
+init - Initializes a new Gradle build.
+wrapper - Generates Gradle wrapper files.
+
+Distribution tasks
+------------------
+assembleDist - Assembles the main distributions
+distTar - Bundles the project as a distribution.
+distZip - Bundles the project as a distribution.
+installDist - Installs the project as a distribution as-is.
+
+Documentation tasks
+-------------------
+javadoc - Generates Javadoc API documentation for the 'main' feature.
+
+Help tasks
+----------
+buildEnvironment - Displays all buildscript dependencies declared in root project 'gradle-project'.
+dependencies - Displays all dependencies declared in root project 'gradle-project'.
+dependencyInsight - Displays the insight into a specific dependency in root project 'gradle-project'.
+help - Displays a help message.
+javaToolchains - Displays the detected java toolchains.
+kotlinDslAccessorsReport - Prints the Kotlin code for accessing the currently available project extensions and conventions.
+outgoingVariants - Displays the outgoing variants of root project 'gradle-project'.
+projects - Displays the sub-projects of root project 'gradle-project'.
+properties - Displays the properties of root project 'gradle-project'.
+resolvableConfigurations - Displays the configurations that can be resolved in root project 'gradle-project'.
+tasks - Displays the tasks runnable from root project 'gradle-project' (some of the displayed tasks may belong to subprojects).
+
+Verification tasks
+------------------
+check - Runs all checks.
+test - Runs the test suite.
+
+BUILD SUCCESSFUL in 24s
+11 actionable tasks: 11 executed
+----
+
+If we look at the list of tasks available, even for a standard Java project, it's a lot.
+
+Most of these tasks are never required directly by developers using the build.
+
+Let's go to our convention plugins to configure things.
+I have added a 'base' plugin here that allows us to configure things common for all our Java projects, no matter if they are 'libraries' or 'applications'.
+
+Val myBuildGroup = “my project”
+tasks.named<TaskReportTask>(“tasks”) {
+displayGroup = myBuildGroup
+}
+
+We can now configure the  'tasks' task. That's the one that shows you  
+which tasks are available. What you can do here  is limit the tasks shown to a certain 'group'.  
+
+What we will do, is create our own group so  that all tasks are hidden by default. Now  
+we can select the tasks we want the users to see.  Keep in mind that this is only hiding things here  
+if you call this help task. All tasks stay  available and can also still be called.  
+
+We first fill this group by moving  existing lifecycle tasks into it.  
+The first one is the 'build' task which  most people expect to be available.  
+
+tasks.build {
+group = myBuildGroup
+}
+
