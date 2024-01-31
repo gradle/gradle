@@ -72,7 +72,7 @@ All code contributions should contain the following:
 * Create unit tests using [Spock](https://spockframework.org/spock/docs/2.0/index.html) for new classes or methods that you introduce.
 * Create integration tests that exercise a Gradle build for the bug/feature. 
 * Annotate tests that correspond to a bug on GitHub (`@Issue("https://github.com/gradle/gradle/issues/2622")`).
-* Add documentation to the User Manual and DSL Reference (under [platforms/documentation/docs/src/docs](platforms/documentation/docs/src/docs/)). You can generate docs by running `./gradlew :docs:docs`.
+* Add documentation to the User Manual and DSL Reference (under [platforms/documentation/docs/src/docs](platforms/documentation/docs/src/docs/)).
 * For new features, the feature should be mentioned in the [Release Notes](platforms/documentation/docs/src/docs/release/notes.md).
 
 Your code needs to run on [all versions of Java that Gradle supports](platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc) and across all supported operating systems (macOS, Windows, Linux). The [Gradle CI system](http://builds.gradle.org/) will verify this, but here are some pointers that will avoid surprises:
@@ -81,6 +81,20 @@ Your code needs to run on [all versions of Java that Gradle supports](platforms/
 * Normalize file paths in tests. The `org.gradle.util.internal.TextUtil` class has some useful functions for this purpose.
 
 You can consult the [Architecture Decision Records](architecture-standards) to learn about some of the architectural decisions the team took.
+
+### Contributing to documentation
+
+This repository includes Gradle documentation sources,
+including but not limited to: User Manual, DSL Reference and Javadoc.
+This information is used to generate documentation for each Gradle version
+on [docs.gradle.org](https://docs.gradle.org/).
+The documentation is mostly implemented in Asciidoc
+though we use GitHub-flavored Markdown for internal documentation too.
+
+You can generate docs by running `./gradlew :docs:docs`.
+This will build the whole documentation locally in [platforms/documentation](./platforms/documentation).
+For more commands and examples, including local development,
+see [this guide](./platforms/documentation/README.md).
 
 ### Creating commits and writing commit messages
 
