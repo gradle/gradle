@@ -93,7 +93,7 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
                     ClassPath instrumentedClassPath = scriptClassPathResolver.resolveClassPath(configuration);
                     pluginRegistry = new DefaultPluginRegistry(pluginInspector,
                         parentScope.createChild("injected-plugin", null)
-                            .local(checkNotNull(instrumentedClassPath))
+                            .local(instrumentedClassPath)
                             .lock()
                     );
                 }
