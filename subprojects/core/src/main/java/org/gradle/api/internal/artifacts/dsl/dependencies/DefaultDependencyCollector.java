@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency;
+import org.gradle.api.internal.provider.DefaultSetProperty;
 import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
@@ -36,7 +37,6 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 public abstract class DefaultDependencyCollector implements DependencyCollector {
@@ -88,7 +88,7 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
 
     private <D extends Dependency> void doAddLazy(Provider<D> dependency, @Nullable Action<? super D> config) {
         Provider<D> provider = dependency.map(dep -> applyConfiguration(dep, config));
-        getDependencies().addAll(provider.map(Collections::singleton).orElse(Collections.emptySet()));
+        DefaultSetProperty.addOptionalProvider(getDependencies(), provider);
     }
 
     private <D extends Dependency> List<Dependency> createDependencyList(Iterable<? extends D> bundle, @Nullable Action<? super D> config) {
@@ -178,7 +178,7 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
 
     private void doAddConstraintLazy(Provider<? extends DependencyConstraint> dependencyConstraint, @Nullable Action<? super DependencyConstraint> config) {
         Provider<DependencyConstraint> provider = dependencyConstraint.map(dep -> applyConstraintConfiguration(dep, config));
-        getDependencyConstraints().addAll(provider.map(Collections::singleton).orElse(Collections.emptySet()));
+        DefaultSetProperty.addOptionalProvider(getDependencyConstraints(), provider);
     }
 
     @Override
