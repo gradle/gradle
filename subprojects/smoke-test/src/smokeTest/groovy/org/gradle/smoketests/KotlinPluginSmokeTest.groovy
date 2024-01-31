@@ -47,8 +47,10 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 expectKotlinArchiveNameDeprecation(versionNumber)
                 expectAbstractCompileDestinationDirDeprecation(versionNumber)
                 expectOrgGradleUtilWrapUtilDeprecation(versionNumber)
-                expectProjectConventionDeprecation(versionNumber)
-                expectConventionTypeDeprecation(versionNumber)
+                runner.expectLegacyDeprecationWarningIf(
+                    versionNumber <= VersionNumber.parse("1.9.0"),
+                    CONVENTION_TYPE_DEPRECATION
+                )
                 expectJavaPluginConventionDeprecation(versionNumber)
                 if (GradleContextualExecuter.isConfigCache()) {
                     expectBasePluginConventionDeprecation(versionNumber)
@@ -66,8 +68,10 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
             .deprecations(KotlinDeprecations) {
                 if (GradleContextualExecuter.isNotConfigCache()) {
                     expectOrgGradleUtilWrapUtilDeprecation(versionNumber)
-                    expectProjectConventionDeprecation(versionNumber)
-                    expectConventionTypeDeprecation(versionNumber)
+                    runner.expectLegacyDeprecationWarningIf(
+                        versionNumber <= VersionNumber.parse("1.9.0"),
+                        CONVENTION_TYPE_DEPRECATION
+                    )
                     expectJavaPluginConventionDeprecation(versionNumber)
                 }
             }.build()
@@ -132,6 +136,10 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         def result = runner(ParallelTasksInProject.FALSE, versionNumber, 'test', 'integTest')
             .deprecations(KotlinDeprecations) {
                 runner.expectLegacyDeprecationWarning("Mutating dependency DefaultExternalModuleDependency{group='org.jetbrains.kotlin', name='kotlin-test-junit5', version='null', configuration='default'} after it has been finalized has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#dependency_mutate_dependency_collector_after_finalize")
+                runner.expectLegacyDeprecationWarningIf(
+                    versionNumber <= VersionNumber.parse("1.9.0"),
+                    CONVENTION_TYPE_DEPRECATION
+                )
             }.build()
 
         then:
@@ -163,7 +171,6 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 expectKotlinCompileDestinationDirPropertyDeprecation(versionNumber)
                 expectKotlinArchiveNameDeprecation(versionNumber)
                 expectOrgGradleUtilWrapUtilDeprecation(versionNumber)
-                expectProjectConventionDeprecation(versionNumber)
                 expectConventionTypeDeprecation(versionNumber)
                 expectJavaPluginConventionDeprecation(versionNumber)
                 expectBasePluginConventionDeprecation(versionNumber)
@@ -225,8 +232,10 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 expectKotlinArchiveNameDeprecation(versionNumber)
                 expectAbstractCompileDestinationDirDeprecation(versionNumber)
                 expectOrgGradleUtilWrapUtilDeprecation(versionNumber)
-                expectProjectConventionDeprecation(versionNumber)
-                expectConventionTypeDeprecation(versionNumber)
+                runner.expectLegacyDeprecationWarningIf(
+                    versionNumber <= VersionNumber.parse("1.9.0"),
+                    CONVENTION_TYPE_DEPRECATION
+                )
                 expectJavaPluginConventionDeprecation(versionNumber)
                 if (GradleContextualExecuter.isConfigCache()) {
                     expectBasePluginConventionDeprecation(versionNumber)
@@ -277,8 +286,10 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
             .deprecations(KotlinDeprecations) {
                 expectAbstractCompileDestinationDirDeprecation(versionNumber)
                 expectOrgGradleUtilWrapUtilDeprecation(versionNumber)
-                expectProjectConventionDeprecation(versionNumber)
-                expectConventionTypeDeprecation(versionNumber)
+                runner.expectLegacyDeprecationWarningIf(
+                    versionNumber <= VersionNumber.parse("1.9.0"),
+                    CONVENTION_TYPE_DEPRECATION
+                )
                 expectJavaPluginConventionDeprecation(versionNumber)
                 if (GradleContextualExecuter.isConfigCache()) {
                     expectForUseAtConfigurationTimeDeprecation(versionNumber)
@@ -293,8 +304,10 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
             .deprecations(KotlinDeprecations) {
                 if (GradleContextualExecuter.isNotConfigCache()) {
                     expectOrgGradleUtilWrapUtilDeprecation(versionNumber)
-                    expectProjectConventionDeprecation(versionNumber)
-                    expectConventionTypeDeprecation(versionNumber)
+                    runner.expectLegacyDeprecationWarningIf(
+                        versionNumber <= VersionNumber.parse("1.9.0"),
+                        CONVENTION_TYPE_DEPRECATION
+                    )
                     expectJavaPluginConventionDeprecation(versionNumber)
                 }
             }.build()

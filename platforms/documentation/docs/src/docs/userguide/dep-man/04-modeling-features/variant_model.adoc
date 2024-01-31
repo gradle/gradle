@@ -102,18 +102,18 @@ Let's consider an example where a consumer is trying to use a library for compil
 
 First, the consumer needs to explain how it's going to use the result of dependency resolution. This is done by setting _attributes_ on the resolvable configuration of the consumer.
 
-The consumer wants to resolve a variant that matches: `org.gradle.usage=JAVA_API`
+The consumer wants to resolve a variant that matches: `org.gradle.usage=java-api`
 
 Second, the producer needs to expose the different variants of the component.
 
 The producer component exposes 2 variants:
 
-- its API (named `apiElements`) with attribute `org.gradle.usage=JAVA_API`
-- its runtime (named `runtimeElements`) with attribute `org.gradle.usage=JAVA_RUNTIME`
+- its API (named `apiElements`) with attribute `org.gradle.usage=java-api`
+- its runtime (named `runtimeElements`) with attribute `org.gradle.usage=java-runtime`
 
 Finally, Gradle selects the appropriate variant by looking at the variant attributes:
 
-- the consumer wants a variant with attributes `org.gradle.usage=JAVA_API`
+- the consumer wants a variant with attributes `org.gradle.usage=java-api`
 - the producer has a matching variant (`apiElements`)
 - the producer has a non-matching variant (`runtimeElements`)
 
@@ -137,22 +137,22 @@ First, the consumer needs to explain which version of the Java it needs.
 
 The consumer wants to resolve a variant that:
 
-- can be used at runtime (has `org.gradle.usage=JAVA_RUNTIME`)
+- can be used at runtime (has `org.gradle.usage=java-runtime`)
 - can be run on _at least_ Java 8 (`org.gradle.jvm.version=8`)
 
 Second, the producer needs to expose the different variants of the component.
 
 Like in the simple example, there is both a API (compilation) and runtime variant. These exist for both the Java 8 and Java 11 version of the component.
 
-- its API for Java 8 consumers (named `apiJava8Elements`) with attribute `org.gradle.usage=JAVA_API` and `org.gradle.jvm.version=8`
-- its runtime for Java 8 consumers (named `runtime8Elements`) with attribute `org.gradle.usage=JAVA_RUNTIME` and `org.gradle.jvm.version=8`
-- its API for Java 11 consumers (named `apiJava11Elements`) with attribute `org.gradle.usage=JAVA_API` and `org.gradle.jvm.version=11`
-- its runtime for Java 11 consumers (named `runtime11Elements`) with attribute `org.gradle.usage=JAVA_RUNTIME` and `org.gradle.jvm.version=11`
+- its API for Java 8 consumers (named `apiJava8Elements`) with attribute `org.gradle.usage=java-api` and `org.gradle.jvm.version=8`
+- its runtime for Java 8 consumers (named `runtime8Elements`) with attribute `org.gradle.usage=java-runtime` and `org.gradle.jvm.version=8`
+- its API for Java 11 consumers (named `apiJava11Elements`) with attribute `org.gradle.usage=java-api` and `org.gradle.jvm.version=11`
+- its runtime for Java 11 consumers (named `runtime11Elements`) with attribute `org.gradle.usage=java-runtime` and `org.gradle.jvm.version=11`
 
 Finally, Gradle selects the best matching variant by looking at all of the attributes:
 
-- the consumer wants a variant with compatible attributes to `org.gradle.usage=JAVA_RUNTIME` and `org.gradle.jvm.version=8`
-- the variants `runtime8Elements` and `runtime11Elements` have `org.gradle.usage=JAVA_RUNTIME`
+- the consumer wants a variant with compatible attributes to `org.gradle.usage=java-runtime` and `org.gradle.jvm.version=8`
+- the variants `runtime8Elements` and `runtime11Elements` have `org.gradle.usage=java-runtime
 - the variants `apiJava8Elements` and `apiJava11Elements` are incompatible
 - the variant `runtime8Elements` is compatible because it can run on Java 8
 - the variant `runtime11Elements` is incompatible because it cannot run on Java 8

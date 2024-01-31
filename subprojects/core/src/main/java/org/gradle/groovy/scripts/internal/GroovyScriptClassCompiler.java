@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.internal.GroovyScriptClassCompiler.GroovyScriptCompilationAndInstrumentation.GroovyScriptCompilationOutput;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
@@ -31,15 +32,17 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.classpath.transforms.ClassTransform;
+import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
+import org.gradle.internal.file.TreeType;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.scripts.BuildScriptCompileUnitOfWork;
+import org.gradle.internal.scripts.BuildScriptCompilationAndInstrumentation;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
@@ -53,11 +56,9 @@ import org.objectweb.asm.Type;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
-import java.util.function.Consumer;
 
-import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * A {@link ScriptClassCompiler} which compiles scripts to a cache directory, and loads them from there.
@@ -74,6 +75,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
     private final FileCollectionFactory fileCollectionFactory;
     private final InputFingerprinter inputFingerprinter;
     private final ImmutableWorkspaceProvider workspaceProvider;
+    private final ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy;
 
     public GroovyScriptClassCompiler(
         ScriptCompilationHandler scriptCompilationHandler,
@@ -82,7 +84,8 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         ExecutionEngine earlyExecutionEngine,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
-        ImmutableWorkspaceProvider workspaceProvider
+        ImmutableWorkspaceProvider workspaceProvider,
+        ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy
     ) {
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
@@ -91,6 +94,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
         this.workspaceProvider = workspaceProvider;
+        this.transformFactoryForLegacy = transformFactoryForLegacy;
     }
 
     @Override
@@ -110,16 +114,16 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         HashCode sourceHashCode = source.getResource().getContentHash();
         RemappingScriptSource remapped = new RemappingScriptSource(source);
         ClassLoader classLoader = targetScope.getExportClassLoader();
-        File outputDir = doCompile(target, templateId, sourceHashCode, remapped, classLoader, operation, verifier, scriptBaseClass);
+        GroovyScriptCompilationOutput output = doCompile(target, templateId, sourceHashCode, remapped, classLoader, operation, verifier, scriptBaseClass);
 
-        File genericClassesDir = classesDir(outputDir, operation);
-        File metadataDir = metadataDir(outputDir);
-        // TODO: Move instrumentation to the execution engine and remove the remapping or move remapping to the non-cacheable unit of work
-        ClassPath remappedClasses = remapClasses(genericClassesDir, remapped);
+        File instrumentedJar = output.getInstrumentedJar();
+        File metadataDir = output.getMetadataDir();
+        // TODO: Remove the remapping or move remapping to an uncached unit of work?
+        ClassPath remappedClasses = remapClasses(instrumentedJar, remapped);
         return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, remappedClasses, metadataDir, operation, scriptBaseClass);
     }
 
-    private <T extends Script> File doCompile(
+    private <T extends Script> GroovyScriptCompilationOutput doCompile(
         Object target,
         String templateId,
         HashCode sourceHashCode,
@@ -129,20 +133,25 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         Action<? super ClassNode> verifier,
         Class<T> scriptBaseClass
     ) {
-        UnitOfWork unitOfWork = new GroovyScriptCompileUnitOfWork(
+        UnitOfWork unitOfWork = new GroovyScriptCompilationAndInstrumentation(
             templateId,
             sourceHashCode,
             classLoader,
+            source,
+            operation,
+            verifier,
+            scriptBaseClass,
             classLoaderHierarchyHasher,
             workspaceProvider,
             fileCollectionFactory,
             inputFingerprinter,
-            workspace -> scriptCompilationHandler.compileToDir(source, classLoader, classesDir(workspace, operation), metadataDir(workspace), operation, scriptBaseClass, verifier)
+            transformFactoryForLegacy,
+            scriptCompilationHandler
         );
         return getExecutionEngine(target)
             .createRequest(unitOfWork)
             .execute()
-            .getOutputAs(File.class)
+            .getOutputAs(GroovyScriptCompilationOutput.class)
             .get();
     }
 
@@ -165,7 +174,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
     private ClassPath remapClasses(File genericClassesDir, RemappingScriptSource source) {
         ScriptSource origin = source.getSource();
         String className = origin.getClassName();
-        return classpathTransformer.transform(DefaultClassPath.of(genericClassesDir), BuildLogic, new ClassTransform() {
+        return classpathTransformer.transform(DefaultClassPath.of(genericClassesDir), new ClassTransform() {
             @Override
             public void applyConfigurationTo(Hasher hasher) {
                 hasher.putString(GroovyScriptClassCompiler.class.getSimpleName());
@@ -174,12 +183,12 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             }
 
             @Override
-            public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) throws IOException {
+            public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) {
                 String renamed = entry.getPath().getLastName();
                 if (renamed.startsWith(RemappingScriptSource.MAPPED_SCRIPT)) {
                     renamed = className + renamed.substring(RemappingScriptSource.MAPPED_SCRIPT.length());
                 }
-                byte[] content = entry.getContent();
+                byte[] content = classData.getClassContent();
                 ClassReader cr = new ClassReader(content);
                 String originalClassName = cr.getClassName();
                 String contentHash = Hashing.hashBytes(content).toString();
@@ -193,38 +202,43 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
     public void close() {
     }
 
-    private File classesDir(File outputDir, CompileOperation<?> operation) {
-        return new File(outputDir, operation.getId());
-    }
-
-    private File metadataDir(File outputDir) {
-        return new File(outputDir, "metadata");
-    }
-
-    private static class GroovyScriptCompileUnitOfWork extends BuildScriptCompileUnitOfWork {
+    static class GroovyScriptCompilationAndInstrumentation extends BuildScriptCompilationAndInstrumentation {
 
         private final String templateId;
-        private final Consumer<File> compileAction;
         private final HashCode sourceHashCode;
         private final ClassLoader classLoader;
         private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
+        private final RemappingScriptSource source;
+        private final CompileOperation<?> operation;
+        private final Class<? extends Script> scriptBaseClass;
+        private final ScriptCompilationHandler scriptCompilationHandler;
+        private final Action<? super ClassNode> verifier;
 
-        public GroovyScriptCompileUnitOfWork(
+        public GroovyScriptCompilationAndInstrumentation(
             String templateId,
             HashCode sourceHashCode,
             ClassLoader classLoader,
+            RemappingScriptSource source,
+            CompileOperation<?> operation,
+            Action<? super ClassNode> verifier,
+            Class<? extends Script> scriptBaseClass,
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
             ImmutableWorkspaceProvider workspaceProvider,
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
-            Consumer<File> compileAction
+            ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy,
+            ScriptCompilationHandler scriptCompilationHandler
         ) {
-            super(workspaceProvider, fileCollectionFactory, inputFingerprinter);
+            super(workspaceProvider, fileCollectionFactory, inputFingerprinter, transformFactoryForLegacy);
             this.templateId = templateId;
             this.sourceHashCode = sourceHashCode;
             this.classLoader = classLoader;
             this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
-            this.compileAction = compileAction;
+            this.source = source;
+            this.operation = operation;
+            this.verifier = verifier;
+            this.scriptBaseClass = scriptBaseClass;
+            this.scriptCompilationHandler = scriptCompilationHandler;
         }
 
         @Override
@@ -235,13 +249,62 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         }
 
         @Override
+        public void visitOutputs(File workspace, OutputVisitor visitor) {
+            super.visitOutputs(workspace, visitor);
+            File metadataDir = metadataDir(workspace);
+            OutputFileValueSupplier metadataDirValue = OutputFileValueSupplier.fromStatic(metadataDir, fileCollectionFactory.fixed(metadataDir));
+            visitor.visitOutputProperty("metadataDir", TreeType.DIRECTORY, metadataDirValue);
+        }
+
+        @Override
+        public Object loadAlreadyProducedOutput(File workspace) {
+            File instrumentedJar = checkNotNull((File) super.loadAlreadyProducedOutput(workspace));
+            File metadataDir = metadataDir(workspace);
+            return new GroovyScriptCompilationOutput(instrumentedJar, metadataDir);
+        }
+
+        @Override
+        public File compile(File workspace) {
+            File classesDir = classesDir(workspace);
+            scriptCompilationHandler.compileToDir(source, classLoader, classesDir, metadataDir(workspace), operation, scriptBaseClass, verifier);
+            return classesDir;
+        }
+
+        @Override
+        public File instrumentedJar(File workspace) {
+            return new File(workspace, "instrumented/" + operation.getId() + ".jar");
+        }
+
+        private File classesDir(File workspace) {
+            return new File(workspace, "classes/" + operation.getId());
+        }
+
+        private static File metadataDir(File workspace) {
+            return new File(workspace, "metadata");
+        }
+
+        @Override
         public String getDisplayName() {
             return "Groovy DSL script compilation (" + templateId + ")";
         }
 
-        @Override
-        public void compileTo(File classesDir) {
-            compileAction.accept(classesDir);
+        static class GroovyScriptCompilationOutput {
+
+            private final File instrumentedJar;
+            private final File metadataDir;
+
+            public GroovyScriptCompilationOutput(File instrumentedJar, File metadataDir) {
+                this.instrumentedJar = instrumentedJar;
+                this.metadataDir = metadataDir;
+            }
+
+            public File getInstrumentedJar() {
+                return instrumentedJar;
+            }
+
+            public File getMetadataDir() {
+                return metadataDir;
+            }
         }
     }
 

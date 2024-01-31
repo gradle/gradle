@@ -56,6 +56,7 @@ public class PlaceholderAssertionError extends AssertionError implements Placeho
         return super.getMessage();
     }
 
+    @Override
     public String toString() {
         if (toStringRuntimeEx != null) {
             throw UncheckedException.throwAsUncheckedException(toStringRuntimeEx);

@@ -4,6 +4,13 @@ plugins {
 
 description = "Implementation of types that represent containers of files"
 
+errorprone {
+    disabledChecks.addAll(
+        "HidingField", // 2 occurrences
+        "InlineMeSuggester", // 1 occurrences
+    )
+}
+
 dependencies {
     api(project(":base-annotations"))
     api(project(":base-services"))

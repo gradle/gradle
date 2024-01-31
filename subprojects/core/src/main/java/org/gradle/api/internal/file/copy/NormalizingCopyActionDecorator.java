@@ -20,20 +20,17 @@ import com.google.common.collect.ListMultimap;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.ContentFilterable;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
+import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.file.Chmod;
-import org.gradle.util.internal.GFileUtils;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FilterReader;
 import java.io.InputStream;
@@ -71,7 +68,7 @@ public class NormalizingCopyActionDecorator implements CopyAction {
                         pendingDirs.put(path, details);
                     }
                 } else {
-                    maybeVisit(details.getRelativePath().getParent(), details.getSpecResolver(), action, visitedDirs, pendingDirs);
+                    maybeVisit(details.getRelativePath().getParent(), details.isIncludeEmptyDirs(), action, visitedDirs, pendingDirs);
                     action.processFile(details);
                 }
             });
@@ -79,8 +76,8 @@ public class NormalizingCopyActionDecorator implements CopyAction {
             for (RelativePath path : new LinkedHashSet<>(pendingDirs.keySet())) {
                 List<FileCopyDetailsInternal> detailsList = new ArrayList<>(pendingDirs.get(path));
                 for (FileCopyDetailsInternal details : detailsList) {
-                    if (details.getSpecResolver().getIncludeEmptyDirs()) {
-                        maybeVisit(path, details.getSpecResolver(), action, visitedDirs, pendingDirs);
+                    if (details.isIncludeEmptyDirs()) {
+                        maybeVisit(path, details.isIncludeEmptyDirs(), action, visitedDirs, pendingDirs);
                     }
                 }
             }
@@ -90,41 +87,37 @@ public class NormalizingCopyActionDecorator implements CopyAction {
         });
     }
 
-    private void maybeVisit(@Nullable RelativePath path, CopySpecResolver specResolver, CopyActionProcessingStreamAction delegateAction, Set<RelativePath> visitedDirs, ListMultimap<RelativePath, FileCopyDetailsInternal> pendingDirs) {
+    private void maybeVisit(RelativePath path, boolean includeEmptyDirs, CopyActionProcessingStreamAction delegateAction, Set<RelativePath> visitedDirs, ListMultimap<RelativePath, FileCopyDetailsInternal> pendingDirs) {
         if (path == null || path.getParent() == null || !visitedDirs.add(path)) {
             return;
         }
-
+        maybeVisit(path.getParent(), includeEmptyDirs, delegateAction, visitedDirs, pendingDirs);
         List<FileCopyDetailsInternal> detailsForPath = pendingDirs.removeAll(path);
+
         FileCopyDetailsInternal dir;
         if (detailsForPath.isEmpty()) {
             // TODO - this is pretty nasty, look at avoiding using a time bomb stub here
-            dir = new ParentDirectoryStub(specResolver, path, chmod);
+            dir = new StubbedFileCopyDetails(path, includeEmptyDirs, chmod);
         } else {
             dir = detailsForPath.get(0);
         }
-        maybeVisit(path.getParent(), dir.getSpecResolver(), delegateAction, visitedDirs, pendingDirs);
-
         delegateAction.processFile(dir);
     }
 
-    // should be private, but it is used by Spring.
-    // see https://github.com/gradle/gradle/issues/27635
-    public static class ParentDirectoryStub extends AbstractFileTreeElement implements FileCopyDetailsInternal {
+    private static class StubbedFileCopyDetails extends AbstractFileTreeElement implements FileCopyDetailsInternal {
         private final RelativePath path;
+        private final boolean includeEmptyDirs;
+        private long lastModified = System.currentTimeMillis();
 
-        private final long lastModified = System.currentTimeMillis();
-
-        private final CopySpecResolver specResolver;
-
-        private ParentDirectoryStub(CopySpecResolver specResolver, RelativePath path, Chmod chmod) {
+        private StubbedFileCopyDetails(RelativePath path, boolean includeEmptyDirs, Chmod chmod) {
             super(chmod);
             this.path = path;
-            this.specResolver = specResolver;
+            this.includeEmptyDirs = includeEmptyDirs;
         }
 
-        private static UnsupportedOperationException unsupported() {
-            return new UnsupportedOperationException("It's a synthetic FileCopyDetails just to create parent directories");
+        @Override
+        public boolean isIncludeEmptyDirs() {
+            return includeEmptyDirs;
         }
 
         @Override
@@ -134,12 +127,12 @@ public class NormalizingCopyActionDecorator implements CopyAction {
 
         @Override
         public File getFile() {
-            throw unsupported();
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public boolean isDirectory() {
-            return true;
+            return !path.isFile();
         }
 
         @Override
@@ -149,12 +142,12 @@ public class NormalizingCopyActionDecorator implements CopyAction {
 
         @Override
         public long getSize() {
-            throw unsupported();
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public InputStream open() {
-            throw unsupported();
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -163,124 +156,98 @@ public class NormalizingCopyActionDecorator implements CopyAction {
         }
 
         @Override
-        public boolean copyTo(File target) {
-            try {
-                GFileUtils.mkdirs(target);
-                getChmod().chmod(target, getPermissions().toUnixNumeric());
-                return true;
-            } catch (Exception e) {
-                throw new CopyFileElementException(String.format("Could not copy %s to '%s'.", getDisplayName(), target), e);
-            }
-        }
-
-        @Override
-        public FilePermissions getPermissions() {
-            Provider<FilePermissions> specMode = specResolver.getImmutableDirPermissions();
-            if (specMode.isPresent()) {
-                return specMode.get();
-            }
-
-            return super.getPermissions();
-        }
-
-        @Override
         public void exclude() {
-            throw unsupported();
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public void setName(String name) {
-            throw unsupported();
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public void setPath(String path) {
-            throw unsupported();
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public void setRelativePath(RelativePath path) {
-            throw unsupported();
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public void setMode(int mode) {
-            throw unsupported();
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public void permissions(Action<? super ConfigurableFilePermissions> configureAction) {
-            throw unsupported();
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public void setPermissions(FilePermissions permissions) {
-            throw unsupported();
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
-            throw unsupported();
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public DuplicatesStrategy getDuplicatesStrategy() {
-            throw unsupported();
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public boolean isDefaultDuplicatesStrategy() {
-            throw unsupported();
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public String getSourceName() {
-            throw unsupported();
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public String getSourcePath() {
-            throw unsupported();
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public RelativePath getRelativeSourcePath() {
-            throw unsupported();
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public ContentFilterable filter(Map<String, ?> properties, Class<? extends FilterReader> filterType) {
-            throw unsupported();
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public ContentFilterable filter(Class<? extends FilterReader> filterType) {
-            throw unsupported();
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public ContentFilterable filter(Closure closure) {
-            throw unsupported();
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public ContentFilterable filter(Transformer<String, String> transformer) {
-            throw unsupported();
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public ContentFilterable expand(Map<String, ?> properties) {
-            throw unsupported();
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public ContentFilterable expand(Map<String, ?> properties, Action<? super ExpandDetails> action) {
-            throw unsupported();
-        }
-
-        @Override
-        public CopySpecResolver getSpecResolver() {
-            return specResolver;
+            throw new UnsupportedOperationException();
         }
     }
 }

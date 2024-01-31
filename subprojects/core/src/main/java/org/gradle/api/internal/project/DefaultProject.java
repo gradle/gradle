@@ -588,10 +588,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Deprecated
     @Override
     public org.gradle.api.plugins.Convention getConvention() {
-        DeprecationLogger.deprecateMethod(Project.class, "getConvention()")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
-            .nagUser();
         return extensibleDynamicObject.getConvention();
     }
 

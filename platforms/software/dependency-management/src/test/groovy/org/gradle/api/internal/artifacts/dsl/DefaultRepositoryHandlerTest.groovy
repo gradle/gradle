@@ -433,6 +433,50 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         1 * repo3Content.excludeVersionByRegex("com.mycompany","core", "1.0")
         0 * _
     }
+
+    def "can include module by group and subgroups exclusively"() {
+        given:
+        def repo1 = Mock(TestMavenArtifactRepository) { getName() >> "Maven repo 1" }
+        def repo2 = Mock(TestMavenArtifactRepository) { getName() >> "Maven repo 2" }
+        def repo3 = Mock(TestMavenArtifactRepository) { getName() >> "Maven repo 3" }
+        def repo1Content = Mock(RepositoryContentDescriptor)
+        def repo2Content = Mock(RepositoryContentDescriptor)
+        def repo3Content = Mock(RepositoryContentDescriptor)
+
+        when:
+        handler.maven {}
+        handler.maven {}
+        handler.maven {}
+        handler.exclusiveContent {
+            it.forRepository { repo2 }
+            it.filter {
+                it.includeGroupAndSubgroups("com.mycompany")
+            }
+        }
+
+        then:
+        3 * repositoryFactory.createMavenRepository() >>> [repo1, repo2, repo3]
+        _ * repo1.getName() >> "Maven repo 1"
+        _ * repo2.getName() >> "Maven repo 2"
+        _ * repo3.getName() >> "Maven repo 3"
+        _ * repo1.setName(_)
+        _ * repo2.setName(_)
+        _ * repo3.setName(_)
+        1 * repo1.onAddToContainer(_)
+        1 * repo2.onAddToContainer(_)
+        1 * repo3.onAddToContainer(_)
+        1 * repo2.content(_) >> { args ->
+            args[0].execute(repo2Content)
+        }
+        1 * repo2Content.includeGroupAndSubgroups("com.mycompany")
+        1 * repo1.content(_) >> { args ->
+            args[0].execute(repo1Content)
+        }
+        1 * repo1Content.excludeGroupAndSubgroups("com.mycompany")
+        1 * repo3.content(_) >> { args ->
+            args[0].execute(repo3Content)
+        }
+        1 * repo3Content.excludeGroupAndSubgroups("com.mycompany")
+        0 * _
+    }
 }
-
-

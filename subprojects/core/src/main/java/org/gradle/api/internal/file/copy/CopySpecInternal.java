@@ -50,8 +50,10 @@ public interface CopySpecInternal extends SyncSpec {
 
     void appendCachingSafeCopyAction(Action<? super FileCopyDetails> action);
 
+    @Override
     PatternFilterable getPreserve();
 
+    @Override
     CopySpecInternal preserve(Action<? super PatternFilterable> action);
 
     @Nullable

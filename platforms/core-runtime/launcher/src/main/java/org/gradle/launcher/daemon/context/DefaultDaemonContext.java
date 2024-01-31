@@ -62,6 +62,7 @@ public class DefaultDaemonContext implements DaemonContext {
         this.priority = priority;
     }
 
+    @Override
     public String toString() {
         return String.format("DefaultDaemonContext[uid=%s,javaHome=%s,daemonRegistryDir=%s,pid=%s,idleTimeout=%s,priority=%s,applyInstrumentationAgent=%s,daemonOpts=%s]",
             uid, javaHome, daemonRegistryDir, pid, idleTimeout, priority, applyInstrumentationAgent, Joiner.on(',').join(daemonOpts));

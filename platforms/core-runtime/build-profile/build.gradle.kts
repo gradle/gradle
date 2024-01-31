@@ -4,6 +4,14 @@ plugins {
 
 description = "Provides high-level insights into a Gradle build (--profile)"
 
+errorprone {
+    disabledChecks.addAll(
+        "DateFormatConstant", // 2 occurrences
+        "ThreadLocalUsage", // 1 occurrences
+        "UnnecessaryParentheses", // 1 occurrences
+    )
+}
+
 dependencies {
     api(project(":base-annotations"))
     api(project(":base-services"))

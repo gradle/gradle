@@ -65,7 +65,7 @@ class HtmlReportWriter(val writer: Writer) {
         }
     }
 
-    fun writeDiagnostic(kind: DiagnosticKind, details: PropertyProblem) {
+    fun writeDiagnostic(kind: DiagnosticKind, details: DecoratedPropertyProblem) {
         jsonModelWriter.writeDiagnostic(kind, details)
     }
 
