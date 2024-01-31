@@ -25,6 +25,9 @@ import org.gradle.internal.hash.HashCode;
  */
 public interface PreviousExecutionState extends ExecutionInputState, ExecutionOutputState {
 
+    /**
+     * Returns the cache key from the previous execution.
+     */
     HashCode getCacheKey();
 
     /**
