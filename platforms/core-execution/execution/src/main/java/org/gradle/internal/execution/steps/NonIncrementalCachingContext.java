@@ -30,6 +30,7 @@ public class NonIncrementalCachingContext extends ValidationFinishedContext impl
     /**
      * The resolved state of caching for the work.
      */
+    @Override
     public CachingState getCachingState() {
         return cachingState;
     }

@@ -30,6 +30,7 @@ public class IncrementalCachingContext extends IncrementalChangesContext impleme
     /**
      * The resolved state of caching for the work.
      */
+    @Override
     public CachingState getCachingState() {
         return cachingState;
     }
