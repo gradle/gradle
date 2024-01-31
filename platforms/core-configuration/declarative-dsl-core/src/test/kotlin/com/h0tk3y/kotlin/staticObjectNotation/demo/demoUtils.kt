@@ -1,4 +1,4 @@
-package com.h0tk3y.kotlin.staticObjectNotation.demo
+package com.example.com.h0tk3y.kotlin.staticObjectNotation.demo
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataType

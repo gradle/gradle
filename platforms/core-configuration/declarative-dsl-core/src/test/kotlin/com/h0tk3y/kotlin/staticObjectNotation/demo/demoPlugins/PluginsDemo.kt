@@ -1,4 +1,4 @@
-package com.h0tk3y.kotlin.staticObjectNotation.demo.demoPlugins
+package com.example.com.h0tk3y.kotlin.staticObjectNotation.demo.demoPlugins
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
 import com.h0tk3y.kotlin.staticObjectNotation.demo.printResolutionResults

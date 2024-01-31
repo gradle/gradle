@@ -1,4 +1,4 @@
-package com.h0tk3y.kotlin.staticObjectNotation.analysis
+package com.example.com.h0tk3y.kotlin.staticObjectNotation.analysis
 
 import com.example.com.h0tk3y.kotlin.staticObjectNotation.analysis.MyClass
 import com.example.com.h0tk3y.kotlin.staticObjectNotation.analysis.TopLevel

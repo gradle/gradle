@@ -1,4 +1,4 @@
-package com.h0tk3y.kotlin.staticObjectNotation.parsing
+package com.example.com.h0tk3y.kotlin.staticObjectNotation.parsing
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisContext
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
