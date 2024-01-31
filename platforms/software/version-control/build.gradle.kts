@@ -28,7 +28,9 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.inject)
     implementation(libs.jgit)
-    implementation(libs.jgitSsh)
+    implementation(libs.jgitSsh) {
+        exclude("org.apache.sshd", "sshd-osgi") // Because it duplicates sshd-core and sshd-commons contents
+    }
 
     testImplementation(project(":native"))
     testImplementation(project(":snapshots"))
@@ -39,7 +41,9 @@ dependencies {
     testFixturesImplementation(project(":internal-integ-testing"))
 
     testFixturesImplementation(libs.jgit)
-    testFixturesImplementation(libs.jgitSsh)
+    testFixturesImplementation(libs.jgitSsh) {
+        exclude("org.apache.sshd", "sshd-osgi") // Because it duplicates sshd-core and sshd-commons contents
+    }
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.commonsHttpclient)
     testFixturesImplementation(libs.guava)
