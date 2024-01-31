@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,14 @@
 
 package org.gradle.internal.buildoption;
 
-import org.gradle.cli.CommandLineArgumentException;
+public enum PropertyOrigin {
+    BUILD_PROPERTIES,
+    GRADLE_PROPERTIES;
 
-import java.util.Map;
-
-public interface PropertiesConverter<T> {
-    T convert(Map<String, String> properties, T target) throws CommandLineArgumentException;
+    public Origin toOrigin(String property) {
+        if (this == PropertyOrigin.BUILD_PROPERTIES) {
+            return Origin.forBuildProperty(property);
+        }
+        return Origin.forGradleProperty(property);
+    }
 }

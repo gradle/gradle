@@ -341,10 +341,10 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
                 AllProperties properties = layoutToPropertiesConverter.convert(initialProperties, buildLayout);
 
                 // Calculate the logging configuration
-                loggingBuildOptions.convert(parsedCommandLine, properties, loggingConfiguration);
+                loggingBuildOptions.convert(parsedCommandLine, properties.getProperties(), loggingConfiguration);
 
                 // Get configuration for showing the welcome message
-                welcomeMessageConverter.convert(parsedCommandLine, properties, welcomeMessageConfiguration);
+                welcomeMessageConverter.convert(parsedCommandLine, properties.getProperties(), welcomeMessageConfiguration);
             } catch (CommandLineArgumentException e) {
                 // Ignore, deal with this problem later
             }
