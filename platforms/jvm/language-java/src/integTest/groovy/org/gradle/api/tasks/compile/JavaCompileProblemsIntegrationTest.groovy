@@ -34,7 +34,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
 
         propertiesFile << """
             # Feature flag as of 8.6 to enable the Problems API
-            systemProp.org.gradle.internal.emit-compiler-problems=true
+            systemProp.org.gradle.internal.compiler.emit-problems=true
         """
 
         buildFile << """

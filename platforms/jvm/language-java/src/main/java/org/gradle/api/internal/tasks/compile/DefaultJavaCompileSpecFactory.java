@@ -23,7 +23,10 @@ import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultJavaCompileSpecFactory extends AbstractJavaCompileSpecFactory<DefaultJavaCompileSpec> {
-    public DefaultJavaCompileSpecFactory(CompileOptions compileOptions, @Nullable JavaInstallationMetadata toolchain) {
+
+    public DefaultJavaCompileSpecFactory(
+        CompileOptions compileOptions,
+        @Nullable JavaInstallationMetadata toolchain) {
         super(compileOptions, toolchain);
     }
 

@@ -236,6 +236,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(javaModuleDetector.inferClasspath(isModule, getClasspath())));
         spec.setModulePath(ImmutableList.copyOf(javaModuleDetector.inferModulePath(isModule, getClasspath())));
+        spec.setProblemsApiReporting(isProblemApiReportingEnabled());
 
         if (isModule && !isSourcepathUserDefined) {
             compileOptions.setSourcepath(getProjectLayout().files(sourcesRoots));
@@ -394,5 +395,10 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     @Inject
     protected ProjectLayout getProjectLayout() {
         throw new UnsupportedOperationException();
+    }
+
+    private static Boolean isProblemApiReportingEnabled() {
+        String featureFlag = System.getProperty("org.gradle.internal.compiler.emit-problems");
+        return Boolean.parseBoolean(featureFlag);
     }
 }

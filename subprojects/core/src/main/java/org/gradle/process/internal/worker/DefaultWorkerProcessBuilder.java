@@ -234,6 +234,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         boolean java9Compatible = jvmVersionDetector.getJavaVersion(javaCommand.getExecutable()).isJava9Compatible();
         workerImplementationFactory.prepareJavaCommand(id, displayName, this, implementationClassPath, implementationModulePath, localAddress, javaCommand, shouldPublishJvmMemoryInfo, java9Compatible);
 
+        javaCommand.jvmArgs("-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5006");
         javaCommand.args("'" + displayName + "'");
         if (javaCommand.getMaxHeapSize() == null) {
             javaCommand.setMaxHeapSize("512m");

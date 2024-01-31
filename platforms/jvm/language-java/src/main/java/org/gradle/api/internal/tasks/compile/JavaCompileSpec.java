@@ -71,4 +71,6 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
         return !getAnnotationProcessorPath().isEmpty() && !getCompileOptions().getCompilerArgs().contains("-proc:none");
     }
 
+    boolean isProblemApiReportingEnabled();
+
 }
