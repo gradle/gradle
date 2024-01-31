@@ -7,6 +7,15 @@ description = "Base tools to work with files"
 
 gradlebuildJava.usedInWorkers()
 
+errorprone {
+    disabledChecks.addAll(
+        "InlineMeInliner", // 1 occurrences
+        "ReferenceEquality", // 1 occurrences
+        "StringSplitter", // 1 occurrences
+        "UnusedMethod", // 1 occurrences
+    )
+}
+
 dependencies {
     api(project(":functional"))
     api(project(":base-annotations"))

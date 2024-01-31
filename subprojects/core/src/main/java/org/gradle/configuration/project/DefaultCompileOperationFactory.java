@@ -42,6 +42,7 @@ public class DefaultCompileOperationFactory implements CompileOperationFactory {
         this.documentationRegistry = documentationRegistry;
     }
 
+    @Override
     public CompileOperation<?> getPluginsBlockCompileOperation(ScriptTarget initialPassScriptTarget) {
         InitialPassStatementTransformer initialPassStatementTransformer = new InitialPassStatementTransformer(initialPassScriptTarget, documentationRegistry);
         SubsetScriptTransformer initialTransformer = new SubsetScriptTransformer(initialPassStatementTransformer);
@@ -49,6 +50,7 @@ public class DefaultCompileOperationFactory implements CompileOperationFactory {
         return new NoDataCompileOperation(id, CLASSPATH_COMPILE_STAGE, initialTransformer);
     }
 
+    @Override
     public CompileOperation<BuildScriptData> getScriptCompileOperation(ScriptSource scriptSource, ScriptTarget scriptTarget) {
         BuildScriptTransformer buildScriptTransformer = new BuildScriptTransformer(scriptSource, scriptTarget);
         String templateId = scriptTarget.getId();

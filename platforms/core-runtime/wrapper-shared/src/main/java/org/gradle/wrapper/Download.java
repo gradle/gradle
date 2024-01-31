@@ -104,6 +104,7 @@ public class Download implements IDownload {
         }
     }
 
+    @Override
     public void download(URI address, File destination) throws Exception {
         destination.getParentFile().mkdirs();
         downloadInternal(address, destination);

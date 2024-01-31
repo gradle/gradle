@@ -4,6 +4,12 @@ plugins {
 
 description = "Tooling API model builders for native builds"
 
+errorprone {
+    disabledChecks.addAll(
+        "MixedMutabilityReturnType", // 1 occurrences
+    )
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":core-api"))

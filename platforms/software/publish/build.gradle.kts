@@ -4,6 +4,13 @@ plugins {
 
 description = "Base plugin for the maven and ivy publish plugins. Defines the publishing extension."
 
+errorprone {
+    disabledChecks.addAll(
+        "MixedMutabilityReturnType", // 5 occurrences
+        "StringCaseLocaleUsage", // 1 occurrences
+    )
+}
+
 dependencies {
     api(project(":dependency-management"))
 

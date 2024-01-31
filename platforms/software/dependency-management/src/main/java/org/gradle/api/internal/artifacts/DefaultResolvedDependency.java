@@ -170,6 +170,7 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
         return parents;
     }
 
+    @Override
     public String toString() {
         return name + ";" + getConfiguration();
     }

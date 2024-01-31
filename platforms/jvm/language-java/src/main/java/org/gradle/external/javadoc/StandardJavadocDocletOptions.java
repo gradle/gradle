@@ -255,6 +255,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * @since 7.5
      */
     @Incubating
+    @Override
     public Set<String> knownOptionNames() {
         return Sets.union(knownCoreOptionNames, knownStandardOptionNames);
     }

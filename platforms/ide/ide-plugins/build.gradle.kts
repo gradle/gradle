@@ -20,6 +20,16 @@ plugins {
 
 description = "Plugins that add support for generating IDE project files used for importing Gradle projects into IDEs"
 
+errorprone {
+    disabledChecks.addAll(
+        "MixedMutabilityReturnType", // 2 occurrences
+        "ShortCircuitBoolean", // 2 occurrences
+        "UnnecessaryParentheses", // 1 occurrences
+        "UnusedMethod", // 2 occurrences
+        "UnusedVariable", // 1 occurrences
+    )
+}
+
 dependencies {
     api(project(":base-annotations"))
     api(project(":base-ide-plugins"))

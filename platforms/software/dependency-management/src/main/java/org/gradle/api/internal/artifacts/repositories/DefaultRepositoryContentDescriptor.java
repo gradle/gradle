@@ -277,6 +277,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     }
 
     @Nullable
+    @Override
     public Set<String> getIncludedConfigurations() {
         return includedConfigurations;
     }
@@ -286,6 +287,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     }
 
     @Nullable
+    @Override
     public Set<String> getExcludedConfigurations() {
         return excludedConfigurations;
     }
@@ -313,6 +315,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     }
 
     @Nullable
+    @Override
     public Map<Attribute<Object>, Set<Object>> getRequiredAttributes() {
         return requiredAttributes;
     }
