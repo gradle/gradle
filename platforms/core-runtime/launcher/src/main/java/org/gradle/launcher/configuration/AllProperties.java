@@ -33,5 +33,10 @@ public interface AllProperties {
      */
     Map<String, String> getProperties();
 
+    /**
+     * Returns all properties defined under gradle/gradle-build.properties that should be considered to set up build configuration.
+     */
+    Map<String, String> getBuildProperties();
+
     AllProperties merge(Map<String, String> systemProperties);
 }

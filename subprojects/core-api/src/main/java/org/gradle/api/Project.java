@@ -237,6 +237,14 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     String GRADLE_PROPERTIES = "gradle.properties";
 
+    /**
+     * The properties file to store build configuration.
+     *
+     * @since 8.7
+     */
+    @Incubating
+    String BUILD_PROPERTIES = "gradle/gradle-build.properties";
+
     String SYSTEM_PROP_PREFIX = "systemProp";
 
     String DEFAULT_VERSION = "unspecified";

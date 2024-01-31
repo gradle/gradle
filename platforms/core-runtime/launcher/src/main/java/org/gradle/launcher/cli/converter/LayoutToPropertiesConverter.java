@@ -30,6 +30,7 @@ import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
+import org.gradle.launcher.daemon.configuration.DaemonJvmToolchainCriteriaOptions;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -56,6 +57,7 @@ public class LayoutToPropertiesConverter {
         allBuildOptions.addAll(new LoggingConfigurationBuildOptions().getAllOptions()); // TODO maybe a new converter also here
         allBuildOptions.addAll(new WelcomeMessageBuildOptions().getAllOptions()); // TODO maybe a new converter also here
         allBuildOptions.addAll(new DaemonBuildOptions().getAllOptions());
+        allBuildOptions.addAll(new DaemonJvmToolchainCriteriaOptions().getAllOptions());
         allBuildOptions.addAll(new ParallelismBuildOptions().getAllOptions());
     }
 
@@ -66,7 +68,10 @@ public class LayoutToPropertiesConverter {
         configureFromHomeDir(layout.getGradleUserHomeDir(), properties);
         configureFromSystemPropertiesOfThisJvm(Cast.uncheckedNonnullCast(properties));
         properties.putAll(initialProperties.getRequestedSystemProperties());
-        return new Result(properties, initialProperties);
+
+        Map<String, String> buildProperties = new HashMap<>();
+        configureFromBuildProperties(layout, buildProperties);
+        return new Result(properties, buildProperties, initialProperties);
     }
 
     private void configureFromSystemPropertiesOfThisJvm(Map<Object, Object> properties) {
@@ -88,6 +93,11 @@ public class LayoutToPropertiesConverter {
         maybeConfigureFrom(new File(layout.getRootDirectory(), Project.GRADLE_PROPERTIES), result);
     }
 
+    private void configureFromBuildProperties(BuildLayoutResult layoutResult, Map<String, String> result) {
+        BuildLayout layout = buildLayoutFactory.getLayoutFor(layoutResult.toLayoutConfiguration());
+        maybeConfigureFrom(new File(layout.getRootDirectory(), Project.BUILD_PROPERTIES), result);
+    }
+
     private void maybeConfigureFrom(File propertiesFile, Map<String, String> result) {
         if (!propertiesFile.isFile()) {
             return;
@@ -107,7 +117,7 @@ public class LayoutToPropertiesConverter {
             BuildOption<?> validOption = CollectionUtils.findFirst(allBuildOptions, new Spec<BuildOption<?>>() {
                 @Override
                 public boolean isSatisfiedBy(BuildOption<?> option) {
-                    return keyAsString.equals(option.getGradleProperty()) || keyAsString.equals(option.getDeprecatedGradleProperty());
+                    return keyAsString.equals(option.getProperty()) || keyAsString.equals(option.getDeprecatedProperty());
                 }
             });
 
@@ -119,10 +129,12 @@ public class LayoutToPropertiesConverter {
 
     private static class Result implements AllProperties {
         private final Map<String, String> properties;
+        private final Map<String, String> buildProperties;
         private final InitialProperties initialProperties;
 
-        public Result(Map<String, String> properties, InitialProperties initialProperties) {
+        public Result(Map<String, String> properties, Map<String, String> buildProperties, InitialProperties initialProperties) {
             this.properties = properties;
+            this.buildProperties = buildProperties;
             this.initialProperties = initialProperties;
         }
 
@@ -137,11 +149,16 @@ public class LayoutToPropertiesConverter {
         }
 
         @Override
+        public Map<String, String> getBuildProperties() {
+            return Collections.unmodifiableMap(buildProperties);
+        }
+
+        @Override
         public Result merge(Map<String, String> systemProperties) {
             Map<String, String> properties = new HashMap<>(this.properties);
             properties.putAll(systemProperties);
             properties.putAll(initialProperties.getRequestedSystemProperties());
-            return new Result(properties, initialProperties);
+            return new Result(properties, buildProperties, initialProperties);
         }
     }
 }
