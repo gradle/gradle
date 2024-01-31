@@ -64,6 +64,7 @@ platform("core-runtime") {
     subproject("base-annotations")
     subproject("base-services")
     subproject("bootstrap")
+    subproject("build-configuration")
     subproject("build-operations")
     subproject("build-option")
     subproject("build-profile")

@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":enterprise-workers"))
     implementation(project(":cli"))
     implementation(project(":messaging"))
+    implementation(project(":build-configuration"))
     implementation(project(":build-option"))
     implementation(project(":native"))
     implementation(project(":logging"))

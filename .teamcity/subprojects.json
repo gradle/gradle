@@ -4,83 +4,90 @@
     "path": "platforms/software/antlr",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "name": "api-metadata",
     "path": "platforms/core-configuration/api-metadata",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": true
   },
   {
     "name": "architecture-test",
     "path": "subprojects/architecture-test",
     "unitTests": true,
-    "functionalTests": false,
-    "crossVersionTests": false
+    "functionalTests": true,
+    "crossVersionTests": true
   },
   {
     "name": "base-annotations",
     "path": "platforms/core-runtime/base-annotations",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": true
   },
   {
     "name": "base-ide-plugins",
     "path": "platforms/ide/base-ide-plugins",
     "unitTests": true,
-    "functionalTests": false,
-    "crossVersionTests": false
+    "functionalTests": true,
+    "crossVersionTests": true
   },
   {
     "name": "base-services",
     "path": "platforms/core-runtime/base-services",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "name": "base-services-groovy",
     "path": "platforms/core-configuration/base-services-groovy",
     "unitTests": true,
-    "functionalTests": false,
-    "crossVersionTests": false
+    "functionalTests": true,
+    "crossVersionTests": true
   },
   {
     "name": "bootstrap",
     "path": "platforms/core-runtime/bootstrap",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": true
   },
   {
     "name": "build-cache",
     "path": "platforms/core-execution/build-cache",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "name": "build-cache-base",
     "path": "platforms/core-execution/build-cache-base",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": true
   },
   {
     "name": "build-cache-http",
     "path": "platforms/core-execution/build-cache-http",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "name": "build-cache-packaging",
     "path": "platforms/core-execution/build-cache-packaging",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
+    "crossVersionTests": true
+  },
+  {
+    "name": "build-configuration",
+    "path": "platforms/core-runtime/build-configuration",
+    "unitTests": true,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -88,49 +95,49 @@
     "path": "subprojects/build-events",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "name": "build-init",
     "path": "platforms/software/build-init",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "name": "build-operations",
     "path": "platforms/core-runtime/build-operations",
     "unitTests": true,
-    "functionalTests": false,
-    "crossVersionTests": false
+    "functionalTests": true,
+    "crossVersionTests": true
   },
   {
     "name": "build-option",
     "path": "platforms/core-runtime/build-option",
     "unitTests": true,
-    "functionalTests": false,
-    "crossVersionTests": false
+    "functionalTests": true,
+    "crossVersionTests": true
   },
   {
     "name": "build-profile",
     "path": "platforms/core-runtime/build-profile",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "name": "cli",
     "path": "platforms/core-runtime/cli",
     "unitTests": true,
-    "functionalTests": false,
-    "crossVersionTests": false
+    "functionalTests": true,
+    "crossVersionTests": true
   },
   {
     "name": "code-quality",
     "path": "platforms/jvm/code-quality",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "name": "composite-builds",

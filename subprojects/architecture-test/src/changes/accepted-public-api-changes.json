@@ -101,6 +101,22 @@
             ]
         },
         {
+            "type": "org.gradle.jvm.toolchain.JvmImplementation",
+            "member": "Method org.gradle.jvm.toolchain.JvmImplementation.valueOf(java.lang.String)",
+            "acceptation": "The JvmImplementation class has converted to enum",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.toolchain.JvmImplementation",
+            "member": "Method org.gradle.jvm.toolchain.JvmImplementation.values()",
+            "acceptation": "The JvmImplementation class has converted to enum",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4xzlmchnjfhf5wwk67zexqao1Kt",
             "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4xzlmchnjfhf5wwk67zexqao1Kt.registerIfAbsent(org.gradle.api.services.BuildServiceRegistry,java.lang.String,kotlin.reflect.KClass)",
             "acceptation": "Add new default method without action",
