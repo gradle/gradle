@@ -31,6 +31,9 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+/**
+ * A {@link ResolutionFailureDescriber} that describes an {@link AmbiguousArtifactTransformFailure}.
+ */
 public abstract class AmbiguousArtifactTransformFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousArtifactTransformException, AmbiguousArtifactTransformFailure> {
     private static final String AMBIGUOUS_TRANSFORMATION_PREFIX = "Transformation failures are explained in more detail at ";
     private static final String AMBIGUOUS_TRANSFORMATION_SECTION = "sub:transform-ambiguity";

@@ -19,6 +19,9 @@ package org.gradle.internal.component.resolution.failure.describer;
 import org.gradle.internal.component.ConfigurationNotFoundException;
 import org.gradle.internal.component.resolution.failure.type.RequestedConfigurationNotFoundFailure;
 
+/**
+ * A {@link ResolutionFailureDescriber} that describes a {@link RequestedConfigurationNotFoundFailure}.
+ */
 public abstract class RequestedConfigurationNotFoundFailureDescriber extends AbstractResolutionFailureDescriber<ConfigurationNotFoundException, RequestedConfigurationNotFoundFailure> {
     @Override
     public ConfigurationNotFoundException describeFailure(RequestedConfigurationNotFoundFailure failure) {

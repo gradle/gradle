@@ -20,6 +20,9 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.component.ExternalConfigurationNotFoundException;
 import org.gradle.internal.component.resolution.failure.type.ExternalRequestedConfigurationNotFoundFailure;
 
+/**
+ * A {@link ResolutionFailureDescriber} that describes an {@link ExternalRequestedConfigurationNotFoundFailure}.
+ */
 public abstract class ExternalRequestedConfigurationNotFoundFailureDescriber extends AbstractResolutionFailureDescriber<ExternalConfigurationNotFoundException, ExternalRequestedConfigurationNotFoundFailure> {
     @Override
     public ExternalConfigurationNotFoundException describeFailure(ExternalRequestedConfigurationNotFoundFailure failure) {

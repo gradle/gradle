@@ -23,6 +23,9 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 import org.gradle.internal.component.resolution.failure.type.AmbiguousResolutionFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+/**
+ * A {@link ResolutionFailureDescriber} that describes an {@link AmbiguousResolutionFailure}.
+ */
 public abstract class AmbiguousArtifactVariantsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousArtifactVariantsException, AmbiguousResolutionFailure> {
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";

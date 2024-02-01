@@ -26,6 +26,9 @@ import org.gradle.internal.logging.text.TreeFormatter;
 
 import static org.gradle.internal.exceptions.StyledException.style;
 
+/**
+ * A {@link ResolutionFailureDescriber} that describes an {@link IncompatibleResolutionFailure}.
+ */
 public abstract class IncompatibleArtifactVariantsFailureDescriber extends AbstractResolutionFailureDescriber<NoMatchingArtifactVariantsException, IncompatibleResolutionFailure> {
     private static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
     private static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";

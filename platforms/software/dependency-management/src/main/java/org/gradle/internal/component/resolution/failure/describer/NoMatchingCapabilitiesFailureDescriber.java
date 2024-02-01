@@ -21,6 +21,9 @@ import org.gradle.internal.component.resolution.failure.CapabilitiesDescriber;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.type.NoMatchingCapabilitiesFailure;
 
+/**
+ * A {@link ResolutionFailureDescriber} that describes a {@link NoMatchingCapabilitiesFailure}.
+ */
 public abstract class NoMatchingCapabilitiesFailureDescriber extends AbstractResolutionFailureDescriber<NoMatchingCapabilitiesException, NoMatchingCapabilitiesFailure> {
     @Override
     public NoMatchingCapabilitiesException describeFailure(NoMatchingCapabilitiesFailure failure) {

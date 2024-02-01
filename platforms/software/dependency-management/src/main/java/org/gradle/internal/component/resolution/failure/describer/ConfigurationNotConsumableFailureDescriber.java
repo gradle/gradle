@@ -19,6 +19,9 @@ package org.gradle.internal.component.resolution.failure.describer;
 import org.gradle.internal.component.ConfigurationNotConsumableException;
 import org.gradle.internal.component.resolution.failure.type.ConfigurationNotConsumableFailure;
 
+/**
+ * A {@link ResolutionFailureDescriber} that describes a {@link ConfigurationNotConsumableFailure}.
+ */
 public abstract class ConfigurationNotConsumableFailureDescriber extends AbstractResolutionFailureDescriber<ConfigurationNotConsumableException, ConfigurationNotConsumableFailure> {
     @Override
     public ConfigurationNotConsumableException describeFailure(ConfigurationNotConsumableFailure failure) {

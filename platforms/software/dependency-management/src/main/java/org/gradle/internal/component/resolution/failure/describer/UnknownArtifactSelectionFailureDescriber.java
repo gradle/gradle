@@ -17,8 +17,16 @@
 package org.gradle.internal.component.resolution.failure.describer;
 
 import org.gradle.internal.component.ArtifactVariantSelectionException;
+import org.gradle.internal.component.resolution.failure.type.RequestedConfigurationNotFoundFailure;
 import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
 
+/**
+ * A {@link ResolutionFailureDescriber} that describes an {@link UnknownArtifactSelectionFailure}.
+ *
+ * This type also will wrap an existing exception of unknown type into an {@link ArtifactVariantSelectionException}.  If a
+ * {@link ArtifactVariantSelectionException} is already the cause of the failure, it will be returned directly, with resolution
+ * information added as necessary.
+ */
 public abstract class UnknownArtifactSelectionFailureDescriber extends AbstractResolutionFailureDescriber<ArtifactVariantSelectionException, UnknownArtifactSelectionFailure> {
     @Override
     public ArtifactVariantSelectionException describeFailure(UnknownArtifactSelectionFailure failure) {

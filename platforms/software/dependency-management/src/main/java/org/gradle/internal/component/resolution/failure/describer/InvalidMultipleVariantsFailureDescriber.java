@@ -27,6 +27,9 @@ import org.gradle.internal.component.resolution.failure.type.InvalidMultipleVari
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * A {@link ResolutionFailureDescriber} that describes an {@link InvalidMultipleVariantsSelectionFailure}.
+ */
 public abstract class InvalidMultipleVariantsFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleArtifactVariantsException, InvalidMultipleVariantsSelectionFailure> {
     private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
     private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";

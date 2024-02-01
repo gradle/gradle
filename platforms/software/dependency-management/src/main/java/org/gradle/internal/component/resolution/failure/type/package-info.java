@@ -14,5 +14,10 @@
  * limitations under the License.
  */
 
+/**
+ * This package contains {@link org.gradle.internal.component.resolution.failure.type.ResolutionFailure ResolutionFailure}s types
+ * that exist to categorize types of failure conditions that can occur during dependency resolution and package contexual information
+ * specific to each type of failure.
+ */
 @org.gradle.api.NonNullApi
 package org.gradle.internal.component.resolution.failure.type;

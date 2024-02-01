@@ -15,8 +15,8 @@
  */
 
 /**
- * This package contains internal types used for describing resolution failures in
- * human-readable terms for use in displaying error messages on the console.
+ * This package contains {@link org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber ResolutionFailureDescriber}s
+ * used for describing resolution failures in human-readable terms for use in displaying error messages on the console.
  */
 @org.gradle.api.NonNullApi
 package org.gradle.internal.component.resolution.failure.describer;

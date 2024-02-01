@@ -27,6 +27,9 @@ import org.gradle.internal.logging.text.TreeFormatter;
 
 import static org.gradle.internal.exceptions.StyledException.style;
 
+/**
+ * A {@link ResolutionFailureDescriber} that describes an {@link IncompatibleRequestedConfigurationFailure}.
+ */
 public abstract class IncompatibleRequestedConfigurationFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleGraphVariantsException, IncompatibleRequestedConfigurationFailure> {
     private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
     private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";

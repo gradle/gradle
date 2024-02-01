@@ -20,7 +20,7 @@ import org.gradle.internal.component.AbstractVariantSelectionException;
 import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
 
 /**
- * Can describe a certain type of resolution failure, providing concise and specific human-readable
+ * Describe a certain type of resolution failure, by providing concise and specific human-readable
  * information to the message of the resulting exception, and also adding resolution suggestions if possible.
  *
  * @param <EXCEPTION> the exception type that will be used to contain a description of a failure

@@ -31,6 +31,9 @@ import java.util.TreeMap;
 
 import static org.gradle.internal.exceptions.StyledException.style;
 
+/**
+ * A {@link ResolutionFailureDescriber} that describes an {@link VariantAwareAmbiguousResolutionFailure}.
+ */
 public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousGraphVariantsException, VariantAwareAmbiguousResolutionFailure> {
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";

@@ -28,6 +28,9 @@ import org.gradle.internal.logging.text.TreeFormatter;
 
 import static org.gradle.internal.exceptions.StyledException.style;
 
+/**
+ * A {@link ResolutionFailureDescriber} that describes an {@link IncompatibleGraphVariantFailure}.
+ */
 public abstract class IncompatibleGraphVariantsFailureDescriber extends AbstractResolutionFailureDescriber<NoMatchingGraphVariantsException, IncompatibleGraphVariantFailure> {
     private static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
     private static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";

@@ -16,6 +16,12 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
+/**
+ * Represents a specific type of failure that can occur during dependency resolution and
+ * contains contextual information specific to that type of failure.
+ *
+ * @implSpec Extending types should be immutable data classes with no nullable fields.
+ */
 public abstract class ResolutionFailure {
     private final String requestedName;
 
