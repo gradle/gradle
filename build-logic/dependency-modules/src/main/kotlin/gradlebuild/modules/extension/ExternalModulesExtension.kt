@@ -54,6 +54,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val commonsMath = "org.apache.commons:commons-math3"
     val configurationCacheReport = "org.gradle.buildtool.internal:configuration-cache-report:$configurationCacheReportVersion"
     val eclipseSisuPlexus = "org.eclipse.sisu:org.eclipse.sisu.plexus"
+    val errorProneAnnotations = "com.google.errorprone:error_prone_annotations"
     val fastutil = "it.unimi.dsi:fastutil"
     val gcs = "com.google.apis:google-api-services-storage"
     val googleApiClient = "com.google.api-client:google-api-client"

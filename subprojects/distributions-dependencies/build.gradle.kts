@@ -72,6 +72,7 @@ dependencies {
         api(libs.commonsLang3)          { version { strictly("3.12.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.eclipseSisuPlexus)     { version { strictly("0.3.5"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.errorProneAnnotations) { version { strictly("2.24.1") }}
         api(libs.gradleProfiler)        { version { strictly("0.21.0-alpha-3") }}
         api(libs.gradleEnterpriseTestAnnotation) { version { strictly("1.0") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
