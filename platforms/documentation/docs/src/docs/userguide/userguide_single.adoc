@@ -56,7 +56,7 @@ include::migrating_from_ant.adoc[leveloffset=+2]
 [[part:getting_started]]
 == **GETTING STARTED**
 
-include::introduction.adoc[leveloffset=+2]
+include::getting_started_eng.adoc[leveloffset=+2]
 include::installation.adoc[leveloffset=+2]
 
 [[part:running_builds]]

@@ -21,7 +21,6 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.internal.session.BuildSessionLifecycleListener
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.events.LogLevelChangeEvent
 import org.gradle.internal.logging.events.OutputEventListener
@@ -68,7 +67,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
 
     def "reserves new client"() {
         def newClient = Stub(WorkerDaemonClient)
-        starter.startDaemon(options, _) >> newClient
+        starter.startDaemon(options) >> newClient
 
         when:
         def client = manager.reserveNewClient(options)
@@ -80,7 +79,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
     def "can stop all created clients"() {
         def client1 = Mock(WorkerDaemonClient)
         def client2 = Mock(WorkerDaemonClient)
-        starter.startDaemon(options, _) >>> [client1, client2]
+        starter.startDaemon(options) >>> [client1, client2]
 
         when:
         manager.reserveNewClient(options)
@@ -95,7 +94,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
     def "stops all other clients when a client fails to stop"() {
         def client1 = Mock(WorkerDaemonClient)
         def client2 = Mock(WorkerDaemonClient)
-        starter.startDaemon(options, _) >>> [client1, client2]
+        starter.startDaemon(options) >>> [client1, client2]
 
         when:
         manager.reserveNewClient(options)
@@ -103,7 +102,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         manager.stop()
 
         then:
-        thrown(ExecException)
+        noExceptionThrown()
         1 * client1.stop() >> { throw new ExecException("FAILED!") }
         1 * client2.stop()
     }
@@ -111,7 +110,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
     def "stopping a failed client removes the client"() {
         def client1 = Mock(WorkerDaemonClient)
         def client2 = Mock(WorkerDaemonClient)
-        starter.startDaemon(options, _) >>> [client1, client2]
+        starter.startDaemon(options) >>> [client1, client2]
 
         when:
         manager.reserveNewClient(options)
@@ -119,7 +118,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         manager.stop()
 
         then:
-        thrown(ExecException)
+        noExceptionThrown()
         1 * client1.stop() >> { throw new ExecException("FAILED!") }
         1 * client2.stop()
 
@@ -127,10 +126,10 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         manager.allClients.size() == 0
     }
 
-    def "exception contains all errors when multiple clients fail to stop"() {
+    def "does not stop an already failed client"() {
         def client1 = Mock(WorkerDaemonClient)
         def client2 = Mock(WorkerDaemonClient)
-        starter.startDaemon(options, _) >>> [client1, client2]
+        starter.startDaemon(options) >>> [client1, client2]
 
         when:
         manager.reserveNewClient(options)
@@ -138,13 +137,10 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         manager.stop()
 
         then:
-        def e = thrown(DefaultMultiCauseException)
-        1 * client1.stop() >> { throw new ExecException("FAILED1!") }
-        1 * client2.stop() >> { throw new ExecException("FAILED2!") }
-
-        and:
-        e.causes.size() == 2
-        e.causes.collect { it.message }.sort() == ["FAILED1!", "FAILED2!"]
+        noExceptionThrown()
+        1 * client1.isFailed() >> true
+        0 * client1.stop()
+        1 * client2.stop()
     }
 
     def "can stop session-scoped clients"() {
@@ -152,7 +148,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager, memoryManager, new MBeanOsMemoryInfo())
         def client1 = Mock(WorkerDaemonClient)
         def client2 = Mock(WorkerDaemonClient)
-        starter.startDaemon(options, _) >>> [client1, client2]
+        starter.startDaemon(options) >>> [client1, client2]
 
         when:
         manager.reserveNewClient(options)
@@ -171,7 +167,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager, memoryManager, new MBeanOsMemoryInfo())
         def client1 = Mock(WorkerDaemonClient)
         def client2 = Mock(WorkerDaemonClient)
-        starter.startDaemon(options, _) >>> [client1, client2]
+        starter.startDaemon(options) >>> [client1, client2]
 
         when:
         manager.reserveNewClient(options)
@@ -190,7 +186,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
             isCompatibleWith(_) >> true
             getLogLevel() >> LogLevel.DEBUG
         }
-        starter.startDaemon(options, _) >> client
+        starter.startDaemon(options) >> client
 
         when:
         manager.reserveNewClient(options)
@@ -211,7 +207,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
             isCompatibleWith(_) >> true
             getLogLevel() >> LogLevel.INFO
         }
-        starter.startDaemon(options, _) >> client
+        starter.startDaemon(options) >> client
         loggingManager.addOutputEventListener(_) >> { args -> listener = args[0] }
         loggingManager.getLevel() >> LogLevel.INFO
 
@@ -240,7 +236,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         def client1 = Mock(WorkerDaemonClient) { _ * getUses() >> 5 }
         def client2 = Mock(WorkerDaemonClient) { _ * getUses() >> 1 }
         def client3 = Mock(WorkerDaemonClient) { _ * getUses() >> 3 }
-        starter.startDaemon(options, _) >>> [client1, client2, client3]
+        starter.startDaemon(options) >>> [client1, client2, client3]
         def stopMostPreferredClient = new Transformer<List<WorkerDaemonClient>, List<WorkerDaemonClient>>() {
             @Override
             List<WorkerDaemonClient> transform(List<WorkerDaemonClient> workerDaemonClients) {
@@ -270,7 +266,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         def client1 = Mock(WorkerDaemonClient) { _ * getUses() >> 5 }
         def client2 = Mock(WorkerDaemonClient) { _ * getUses() >> 1 }
         def client3 = Mock(WorkerDaemonClient) { _ * getUses() >> 3 }
-        starter.startDaemon(options, _) >>> [client1, client2, client3]
+        starter.startDaemon(options) >>> [client1, client2, client3]
         def stopAll = new Transformer<List<WorkerDaemonClient>, List<WorkerDaemonClient>>() {
             @Override
             List<WorkerDaemonClient> transform(List<WorkerDaemonClient> workerDaemonClients) {

@@ -475,8 +475,11 @@ task resolveChildFirst {
             configurations.a.resolve()
             configurations.a.attributes { attribute(Attribute.of('foo', String), 'bar') }
         """
-        when: fails()
-        then: failure.assertHasCause("Cannot change attributes of dependency configuration ':a' after it has been resolved")
+        when:
+        fails()
+
+        then:
+        failure.assertHasCause("Cannot change attributes of configuration ':a' after it has been locked for mutation")
     }
 
     def "cannot change the configuration role (#code) after it has been resolved"() {

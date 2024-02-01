@@ -33,7 +33,7 @@ class JsonModelWriterTest {
                 beginModel()
                 writeDiagnostic(
                     DiagnosticKind.INPUT,
-                    PropertyProblem(
+                    DecoratedPropertyProblem(
                         PropertyTrace.Unknown,
                         StructuredMessage.build { reference("") }
                     )

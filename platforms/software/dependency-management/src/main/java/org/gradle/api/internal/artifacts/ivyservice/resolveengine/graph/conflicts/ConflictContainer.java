@@ -148,6 +148,7 @@ class ConflictContainer<K, T> {
             this.candidates = candidates;
         }
 
+        @Override
         public String toString() {
             return Joiner.on(",").join(participants) + ":" + Joiner.on(",").join(candidates);
         }

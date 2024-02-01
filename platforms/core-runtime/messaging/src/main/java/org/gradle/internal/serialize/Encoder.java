@@ -83,6 +83,27 @@ public interface Encoder {
     void writeSmallInt(int value) throws IOException;
 
     /**
+     * Writes a short value.
+     *
+     * @since 8.7
+     */
+    void writeShort(short value) throws IOException;
+
+    /**
+     * Writes a float value.
+     *
+     * @since 8.7
+     */
+    void writeFloat(float value) throws IOException;
+
+    /**
+     * Writes a double value.
+     *
+     * @since 8.7
+     */
+    void writeDouble(double value) throws IOException;
+
+    /**
      * Writes a nullable signed 32 bit int value whose value is likely to be small and positive but may not be.
      *
      * @see #writeSmallInt(int)

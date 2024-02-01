@@ -53,7 +53,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        62
+        63
     }
 
     /**
@@ -79,7 +79,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         expect:
         def size = getZip().size()
 
-        println("######## Distribution size ${size}")
         size <= getMaxDistributionSizeBytes()
     }
 

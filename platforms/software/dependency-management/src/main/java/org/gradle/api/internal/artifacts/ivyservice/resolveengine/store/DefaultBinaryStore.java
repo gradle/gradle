@@ -66,6 +66,7 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
         return toString() + " (exist: " + file.exists() + ")";
     }
 
+    @Override
     public String toString() {
         return "Binary store in " + file;
     }
@@ -151,6 +152,7 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
             }
         }
 
+        @Override
         public String toString() {
             return "Binary store in " + inputFile + " offset " + offset + " exists? " + inputFile.exists();
         }

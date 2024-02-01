@@ -70,7 +70,7 @@ public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcess
                     fileLock = null;
                     FileLock exclusiveLock = null;
                     try {
-                        exclusiveLock = lockManager.lock(lockTarget, lockOptions.withMode(Exclusive), cacheDisplayName);
+                        exclusiveLock = lockManager.lock(lockTarget, lockOptions.copyWithMode(Exclusive), cacheDisplayName);
                     } catch (Exception e) {
                         // acquiring the exclusive lock can fail in the rare case where another process is just doing or has just done the cache initialization
                         latestException = e;

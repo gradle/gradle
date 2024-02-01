@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Bundling;
@@ -33,6 +32,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.dsl.DependencyHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform;
 import org.gradle.api.internal.initialization.transform.ExternalDependencyInstrumentingArtifactTransform;
@@ -57,8 +57,8 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     );
 
     private static final Attribute<Boolean> HIERARCHY_COLLECTED_ATTRIBUTE = Attribute.of("org.gradle.internal.hierarchy-collected", Boolean.class);
-    private static final Attribute<String> INSTRUMENTED_ATTRIBUTE = Attribute.of("org.gradle.internal.instrumented", String.class);
-    private static final String NOT_INSTRUMENTED_ATTRIBUTE = "not-instrumented";
+    public static final Attribute<String> INSTRUMENTED_ATTRIBUTE = Attribute.of("org.gradle.internal.instrumented", String.class);
+    public static final String NOT_INSTRUMENTED_ATTRIBUTE_VALUE = "not-instrumented";
     private static final String INSTRUMENTED_EXTERNAL_DEPENDENCY_ATTRIBUTE = "instrumented-external-dependency";
     private static final String INSTRUMENTED_PROJECT_DEPENDENCY_ATTRIBUTE = "instrumented-project-dependency";
     private final NamedObjectInstantiator instantiator;
@@ -74,9 +74,8 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     @Override
     public void prepareDependencyHandler(DependencyHandler dependencyHandler) {
-        // We use `maybeCreate`, since buildSrc already has JAR_TYPE defined from the JavaBase plugin
-        dependencyHandler.getArtifactTypes().maybeCreate(ArtifactTypeDefinition.JAR_TYPE).getAttributes()
-            .attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED_ATTRIBUTE)
+        ((DependencyHandlerInternal) dependencyHandler).getDefaultArtifactAttributes()
+            .attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED_ATTRIBUTE_VALUE)
             .attribute(HIERARCHY_COLLECTED_ATTRIBUTE, false);
 
         // Register instrumentation transforms
@@ -88,7 +87,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         dependencyHandler.registerTransform(
             transform,
             spec -> {
-                spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED_ATTRIBUTE);
+                spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED_ATTRIBUTE_VALUE);
                 spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, instrumentedAttribute);
                 spec.parameters(parameters -> parameters.getAgentSupported().set(agentStatus.isAgentInstrumentationEnabled()));
             }

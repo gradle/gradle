@@ -22,7 +22,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.GlobalCacheLocations
-import org.gradle.cache.internal.CleanupActionDecorator
 import org.gradle.cache.internal.UsedGradleVersions
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.Pair
@@ -65,8 +64,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
     def cacheBuilder = Stub(CacheBuilder) {
         open() >> cache
         withDisplayName(_) >> { cacheBuilder }
-        withCrossVersionCache(_) >> { cacheBuilder }
-        withLockOptions(_) >> { cacheBuilder }
+        withInitialLockMode(_) >> { cacheBuilder }
         withCleanupStrategy(_) >> { cacheBuilder }
     }
     def cacheBuilderFactory = Stub(GlobalScopedCacheBuilderFactory) {
@@ -74,7 +72,6 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
     }
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
     def usedGradleVersions = Stub(UsedGradleVersions)
-    def cleanupActionDecorator = Stub(CleanupActionDecorator)
     def cacheConfigurations = Stub(CacheConfigurationsInternal)
     def cacheFactory = new DefaultClasspathTransformerCacheFactory(usedGradleVersions, cacheConfigurations)
     def classpathWalker = new ClasspathWalker(TestFiles.fileSystem())
@@ -412,10 +409,10 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def file = testDir.file("thing.jar")
         jar(file)
         def classpath = DefaultClassPath.of(file)
-        def cachedFile = testDir.file("cached/8bccc8c51683456910b894e02dc7e915/thing.jar")
+        def cachedFile = testDir.file("cached/bc4f3e05266cfadaa3cd1f4484942739/thing.jar")
 
         when:
-        def cachedClasspath = transformer.transform(classpath, BuildLogic, transform)
+        def cachedClasspath = transformer.transform(classpath, transform)
 
         then:
         cachedClasspath.asFiles == [cachedFile]
@@ -430,7 +427,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         0 * _
 
         when:
-        def cachedClasspath2 = transformer.transform(classpath, BuildLogic, transform)
+        def cachedClasspath2 = transformer.transform(classpath, transform)
 
         then:
         cachedClasspath2.asFiles == [cachedFile]

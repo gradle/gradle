@@ -20,10 +20,8 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
-import org.gradle.api.internal.artifacts.configurations.MarkConfigurationObservedListener;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
-import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ModuleSelectorStringNotationConverter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyMetadataFactory;
@@ -32,7 +30,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyMetadataFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExternalModuleDependencyMetadataConverter;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyMetadataConverter;
 import org.gradle.api.internal.artifacts.transform.CacheableTransformTypeAnnotationHandler;
 import org.gradle.api.internal.artifacts.transform.InputArtifactAnnotationHandler;
@@ -74,11 +71,11 @@ import org.gradle.work.NormalizeLineEndings;
 
 class DependencyManagementGlobalScopeServices {
     void configure(ServiceRegistration registration) {
-        registration.add(MarkConfigurationObservedListener.class);
-    }
-
-    ImmutableModuleIdentifierFactory createModuleIdentifierFactory() {
-        return new DefaultImmutableModuleIdentifierFactory();
+        registration.add(VersionParser.class);
+        registration.add(DefaultIvyContextManager.class);
+        registration.add(DefaultImmutableModuleIdentifierFactory.class);
+        registration.add(DefaultExcludeRuleConverter.class);
+        registration.add(DefaultLocalConfigurationMetadataBuilder.class);
     }
 
     NotationParser<Object, ComponentSelector> createComponentSelectorFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, CrossBuildInMemoryCacheFactory cacheFactory) {
@@ -88,30 +85,11 @@ class DependencyManagementGlobalScopeServices {
             .toComposite();
     }
 
-    VersionParser createVersionParser() {
-        return new VersionParser();
-    }
-
-    IvyContextManager createIvyContextManager() {
-        return new DefaultIvyContextManager();
-    }
-
-    ExcludeRuleConverter createExcludeRuleConverter(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        return new DefaultExcludeRuleConverter(moduleIdentifierFactory);
-    }
-
     DependencyMetadataFactory createDependencyMetadataFactory(ExcludeRuleConverter excludeRuleConverter) {
         return new DefaultDependencyMetadataFactory(
             new ProjectDependencyMetadataConverter(excludeRuleConverter),
             new ExternalModuleDependencyMetadataConverter(excludeRuleConverter)
         );
-    }
-
-    LocalConfigurationMetadataBuilder createLocalConfigurationMetadataBuilder(
-        DependencyMetadataFactory dependencyDescriptorFactory,
-        ExcludeRuleConverter excludeRuleConverter
-    ) {
-        return new DefaultLocalConfigurationMetadataBuilder(dependencyDescriptorFactory, excludeRuleConverter);
     }
 
     ResourceConnectorFactory createFileConnectorFactory() {

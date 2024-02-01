@@ -404,6 +404,22 @@ task wrongPropertyElementTypeApi(type: MyTask) {
         succeeds("verify")
     }
 
+    def "can leverage convention in list property"() {
+        buildFile """
+            verify {
+                prop.convention(project.provider { [ 'a', 'b' ] })
+                assert !prop.explicit
+                prop.withActualValue {
+                    it.addAll(project.provider { [ 'c', 'd' ] })
+                }
+                expected = [ 'a', 'b', 'c', 'd' ]
+                assert prop.explicit
+            }
+        """
+        expect:
+        succeeds("verify")
+    }
+
     def "adds to non-defined property does nothing"() {
         buildFile << """
             verify {

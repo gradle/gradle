@@ -7,6 +7,14 @@ plugins {
 
 description = "A library that aids in testing Gradle plugins and build logic in general"
 
+errorprone {
+    disabledChecks.addAll(
+        "CatchAndPrintStackTrace", // 1 occurrences
+        "ImmutableEnumChecker", // 1 occurrences
+        "StringSplitter", // 1 occurrences
+    )
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":core-api"))

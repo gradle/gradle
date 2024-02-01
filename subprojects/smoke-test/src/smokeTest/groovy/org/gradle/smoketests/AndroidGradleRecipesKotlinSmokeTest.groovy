@@ -202,11 +202,11 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
             expectOrgGradleUtilWrapUtilDeprecation(kotlinVersionNumber)
             maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
-            expectProjectConventionDeprecationWarning(agpVersion)
             maybeExpectConventionTypeDeprecation(kotlinVersionNumber)
             expectAndroidConventionTypeDeprecationWarning(agpVersion)
             expectBasePluginConventionDeprecation(agpVersion)
             expectBasePluginExtensionArchivesBaseNameDeprecation(kotlinVersionNumber, VersionNumber.parse(agpVersion))
+            expectClientModuleDeprecationWarning(agpVersion)
         }
     }
 }

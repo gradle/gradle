@@ -68,6 +68,30 @@ public interface Decoder {
     Integer readNullableSmallInt() throws EOFException, IOException;
 
     /**
+     * Reads a short value that was written with {@link Encoder#writeShort(short)}
+     *
+     * @throws EOFException when the end of the byte stream is reached before the short value can be fully read.
+     * @since 8.7
+     */
+    short readShort() throws EOFException, IOException;
+
+    /**
+     * Reads a float value that was written with {@link Encoder#writeFloat(float)}
+     *
+     * @throws EOFException when the end of the byte stream is reached before the float value can be fully read.
+     * @since 8.7
+     */
+    float readFloat() throws EOFException, IOException;
+
+    /**
+     * Reads a double value that was written with {@link Encoder#writeDouble(double)}
+     *
+     * @throws EOFException when the end of the byte stream is reached before the double value can be fully read.
+     * @since 8.7
+     */
+    double readDouble() throws EOFException, IOException;
+
+    /**
      * Reads a boolean value. Can read any value that was written using {@link Encoder#writeBoolean(boolean)}.
      *
      * @throws EOFException when the end of the byte stream is reached before the boolean value can be fully read.

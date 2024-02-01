@@ -337,12 +337,14 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
      --test-framework     Set the test framework to be used.
                           Available values are:
+                               cpptest
                                junit
                                junit-jupiter
                                kotlintest
                                scalatest
                                spock
                                testng
+                               xctest
 
      --type     Set the type of project to generate.
                 Available values are:

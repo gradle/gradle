@@ -90,7 +90,10 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         transform.transform(outputFile);
 
         // Copy original jars after in case they are not in global cache
-        if (injectedServices.getGlobalCacheLocations().isInsideGlobalCache(input.getAbsolutePath())) {
+        if (input.isDirectory()) {
+            // Directories are ok to use outside the cache, since they are not locked by the daemon
+            outputs.dir(getInput());
+        } else if (injectedServices.getGlobalCacheLocations().isInsideGlobalCache(input.getAbsolutePath())) {
             // Jars that are already in the global cache don't need to be copied, since
             // the global caches are additive only and jars shouldn't be deleted or changed during the build.
             outputs.file(getInput());

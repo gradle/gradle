@@ -91,7 +91,7 @@ plugins {
 
 Make sure the plugin is correctly applied by listing the available tasks in the `app` subproject:
 
-[source]
+[source,text]
 ----
 $ ./gradlew :app:tasks
 
@@ -132,7 +132,7 @@ public class App {
 
 Next, let's run the task with `./gradlew :app:license`:
 
-[source]
+[source,text]
 ----
 $ ./gradlew :app:license
 

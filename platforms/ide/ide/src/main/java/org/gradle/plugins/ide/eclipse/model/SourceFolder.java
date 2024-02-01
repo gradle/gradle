@@ -158,6 +158,7 @@ public class SourceFolder extends AbstractClasspathEntry {
         return Objects.hashCode(exported, accessRules, excludes, includes, getNativeLibraryLocation(), output, path);
     }
 
+    @Override
     public String toString() {
         return "SourceFolder{path='" + path + "', dir='" + dir + "', nativeLibraryLocation='" + getNativeLibraryLocation() + "', exported=" + exported
             + ", accessRules=" + accessRules + ", output='" + output + "', excludes=" + excludes + ", includes=" + includes + "}";

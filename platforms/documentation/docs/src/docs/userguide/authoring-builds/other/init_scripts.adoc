@@ -34,7 +34,7 @@ Here are several possible uses:
 * Register build listeners. External tools that wish to listen to Gradle events might find this useful.
 * Register build loggers. You could customize how Gradle logs the events that it generates.
 
-One main <<organizing_gradle_projects.adoc#sec:build_sources,limitation of init scripts>> is that they cannot access classes in the `buildSrc` project.
+One main <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,limitation of init scripts>> is that they cannot access classes in the `buildSrc` project.
 
 [[sec:using_an_init_script]]
 == Using an init script

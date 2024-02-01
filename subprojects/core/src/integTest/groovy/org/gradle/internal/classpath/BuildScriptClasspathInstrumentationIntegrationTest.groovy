@@ -19,6 +19,7 @@ package org.gradle.internal.classpath
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.file.TestFile
 
 import java.nio.file.Files
@@ -28,6 +29,8 @@ import java.util.stream.Collectors
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
+
+    private static final String KOTLIN_VERSION = new KotlinGradlePluginVersions().latestsStable.last()
 
     def "buildSrc and included builds should be cached in global cache"() {
         given:
@@ -55,8 +58,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     def "buildSrc and included build should be just instrumented and not upgraded"() {
         given:
-        // We test content in the global cache
-        requireOwnGradleUserHomeDir()
         withBuildSrc()
         withIncludedBuild()
         buildFile << """
@@ -97,23 +98,49 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         gradleUserHomeOutput("instrumented/commons-lang3-3.8.1.jar").exists()
     }
 
+    def "directories should be instrumented"() {
+        given:
+        withIncludedBuild("first")
+        withIncludedBuild("second")
+        buildFile << """
+            buildscript {
+                dependencies {
+                    classpath(files("./first/build/classes/java/main"))
+                    classpath(files("./second/build/classes/java/main"))
+                }
+            }
+        """
+
+        when:
+        executer.inDirectory(file("first")).withTasks("classes").run()
+        executer.inDirectory(file("second")).withTasks("classes").run()
+        run("tasks", "--info")
+
+        then:
+        allTransformsFor("main") == [
+            // Only the folder name is reported, so we cannot distinguish first and second
+            "ExternalDependencyInstrumentingArtifactTransform",
+            "ExternalDependencyInstrumentingArtifactTransform"
+        ]
+    }
+
     def withBuildSrc() {
         file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
         file("buildSrc/settings.gradle") << "\n"
     }
 
-    def withIncludedBuild() {
-        file("included/src/main/java/Thing.java") << "class Thing { }"
-        file("included/build.gradle") << """
+    def withIncludedBuild(String folderName = "included") {
+        file("$folderName/src/main/java/Thing.java") << "class Thing {}"
+        file("$folderName/build.gradle") << """
             plugins {
                 id("java-library")
             }
             group = "org.test"
             version = "1.0"
         """
-        file("included/settings.gradle") << "rootProject.name = 'included'"
+        file("$folderName/settings.gradle") << "rootProject.name = 'included'"
         settingsFile << """
-            includeBuild("./included")
+            includeBuild("./$folderName")
         """
     }
 

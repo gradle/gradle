@@ -183,7 +183,8 @@ include::{snippetsPath}/tutorial/excludeTasks/tests/excludeTask.out[]
 .Simple Task Graph
 image::commandLineTutorialTasks.png[]
 
-You can see that the `test` task is not executed, even though it depends on the `dist` task. The `test` task's dependencies, such as `compileTest`, are not executed either. Those dependencies of `test` that another task requires, such as `compile`, are still executed.
+You can see that the `test` task is not executed, even though it is a dependency of the `dist` task. The `test` task’s dependencies, such as `compileTest`, are not executed either. 
+The dependencies of `test` that other tasks depend on, such as `compile`, are still executed.
 
 [[sec:rerun_tasks]]
 === Forcing tasks to execute
@@ -523,13 +524,13 @@ Set to `warn` to report problems without failing the build.
 Set to `fail` to report problems and fail the build if there are any problems.
 
 `--configure-on-demand`, `--no-configure-on-demand`::
-Toggles <<multi_project_configuration_and_execution.adoc#sec:configuration_on_demand, Configure-on-demand>>. Only relevant projects are configured in this build run. _Default is off_.
+Toggles configure-on-demand. Only relevant projects are configured in this build run. _Default is off_.
 
 `--max-workers`::
 Sets the maximum number of workers that Gradle may use. _Default is number of processors_.
 
 `--parallel`, `--no-parallel`::
-Build projects in parallel. For limitations of this option, see <<multi_project_configuration_and_execution.adoc#sec:parallel_execution, Parallel Project Execution>>. _Default is off_.
+Build projects in parallel. For limitations of this option, see <<performance.adoc#parallel_execution, Parallel Project Execution>>. _Default is off_.
 
 `--priority`::
 Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Values are `normal` or `low`. _Default is normal_.
@@ -674,7 +675,7 @@ This flag also implies `--write-locks`.
 
 `-a`, `--no-rebuild`::
 Do not rebuild project dependencies.
-Useful for <<organizing_gradle_projects.adoc#sec:build_sources, debugging and fine-tuning `buildSrc`>>, but can lead to wrong results. Use with caution!
+Useful for <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc, debugging and fine-tuning `buildSrc`>>, but can lead to wrong results. Use with caution!
 
 [[sec:dependency_verification_options]]
 == Dependency verification options

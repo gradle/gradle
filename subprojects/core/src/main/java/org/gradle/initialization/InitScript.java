@@ -28,6 +28,7 @@ public abstract class InitScript extends DefaultScript {
         buildscript(configureClosure);
     }
 
+    @Override
     public String toString() {
         return "initialization script";
     }

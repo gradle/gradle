@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 
 import javax.annotation.Nullable;
 
@@ -28,20 +27,17 @@ import javax.annotation.Nullable;
  */
 public class DefaultResolverResults implements ResolverResults {
 
-    private final ResolvedLocalComponentsResult resolvedLocalComponentsResult;
     private final VisitedGraphResults graphResults;
     private final VisitedArtifactSet visitedArtifacts;
     private final ResolvedConfiguration resolvedConfiguration;
     private final boolean fullyResolved;
 
     public DefaultResolverResults(
-        ResolvedLocalComponentsResult resolvedLocalComponentsResult,
         VisitedGraphResults graphResults,
         VisitedArtifactSet visitedArtifacts,
         @Nullable ResolvedConfiguration resolvedConfiguration,
         boolean fullyResolved
     ) {
-        this.resolvedLocalComponentsResult = resolvedLocalComponentsResult;
         this.graphResults = graphResults;
         this.visitedArtifacts = visitedArtifacts;
         this.resolvedConfiguration = resolvedConfiguration;
@@ -62,11 +58,6 @@ public class DefaultResolverResults implements ResolverResults {
     }
 
     @Override
-    public ResolvedLocalComponentsResult getResolvedLocalComponents() {
-        return resolvedLocalComponentsResult;
-    }
-
-    @Override
     public VisitedArtifactSet getVisitedArtifacts() {
         return visitedArtifacts;
     }
@@ -81,11 +72,9 @@ public class DefaultResolverResults implements ResolverResults {
      */
     public static ResolverResults buildDependenciesResolved(
         VisitedGraphResults graphResults,
-        ResolvedLocalComponentsResult resolvedLocalComponentsResult,
         VisitedArtifactSet visitedArtifacts
     ) {
         return new DefaultResolverResults(
-            resolvedLocalComponentsResult,
             graphResults,
             visitedArtifacts,
             null,
@@ -98,12 +87,10 @@ public class DefaultResolverResults implements ResolverResults {
      */
     public static ResolverResults graphResolved(
         VisitedGraphResults graphResults,
-        ResolvedLocalComponentsResult resolvedLocalComponentsResult,
         ResolvedConfiguration resolvedConfiguration,
         VisitedArtifactSet visitedArtifacts
     ) {
         return new DefaultResolverResults(
-            resolvedLocalComponentsResult,
             graphResults,
             visitedArtifacts,
             resolvedConfiguration,

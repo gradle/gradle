@@ -35,6 +35,7 @@ public interface VariantGraphResolveMetadata extends HasAttributes {
      */
     String getName();
 
+    @Override
     ImmutableAttributes getAttributes();
 
     /**

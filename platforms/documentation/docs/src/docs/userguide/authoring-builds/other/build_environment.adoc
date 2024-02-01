@@ -221,7 +221,7 @@ Configures the <<configuration_cache.adoc#config_cache:usage:max_problems, maxim
 _Default is `512`._
 
 `org.gradle.configureondemand=(true,false)`::
-Enables incubating <<multi_project_configuration_and_execution.adoc#sec:configuration_on_demand, configuration on demand>>, where Gradle will attempt to configure only necessary projects.
+Enables incubating configuration-on-demand, where Gradle will attempt to configure only necessary projects.
 +
 _Default is `false`._
 
@@ -313,7 +313,7 @@ This does not affect the JVM settings for the Gradle client VM.
 +
 _Default is `-Xmx512m "-XX:MaxMetaspaceSize=384m"`._
 
-`org.gradle.logging.level=(quiet,warn,info,debug)`::
+`org.gradle.logging.level=(quiet,warn,lifecycle,info,debug)`::
 When set to quiet, warn, info, or debug, Gradle will use this <<logging.adoc#sec:choosing_a_log_level,log level>>.
 The values are not case-sensitive.
 +

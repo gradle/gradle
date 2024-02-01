@@ -21,6 +21,8 @@ import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.internal.operations.OperationIdentifier;
 
+import javax.annotation.Nullable;
+
 /**
  * Worker-side implementation of {@link ProblemEmitter}.
  * <p>
@@ -35,7 +37,7 @@ public class WorkerProblemEmitter implements ProblemEmitter {
     }
 
     @Override
-    public void emit(Problem problem, OperationIdentifier id) {
+    public void emit(Problem problem, @Nullable OperationIdentifier id) {
         protocol.reportProblem(problem, id);
     }
 }

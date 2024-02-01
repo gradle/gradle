@@ -902,6 +902,28 @@ public class TestFile extends File {
         return relativeBase.toPath().relativize(this.toPath()).toString();
     }
 
+    /**
+     * Return a string corresponding to how Gradle will display the file URI for this file.
+     *
+     * @return a string corresponding to how Gradle will display the file URI for this file.
+     */
+    public String getDisplayUri() {
+        return toURI().toASCIIString();
+    }
+
+    /**
+     * Return a string corresponding to how Gradle will display the file URI for this file, assuming it is a directory.
+     *
+     * @return a string corresponding to how Gradle will display the file URI for this file, assuming it is a directory.
+     */
+    public String getDisplayUriForDir() {
+        String uri = getDisplayUri();
+        if (!uri.endsWith("/")) {
+            uri += "/";
+        }
+        return uri;
+    }
+
     public static class Snapshot {
         private final long modTime;
         private final HashCode hash;

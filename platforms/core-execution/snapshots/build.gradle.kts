@@ -5,16 +5,23 @@ plugins {
 
 description = "Tools to take immutable, comparable snapshots of files and other things"
 
+errorprone {
+    disabledChecks.addAll(
+        "ImmutableEnumChecker", // 1 occurrences
+        "LockNotBeforeTry", // 1 occurrences
+        "ReferenceEquality", // 2 occurrences
+    )
+}
+
 dependencies {
-    api(project(":base-annotations"))
     api(project(":files"))
     api(project(":functional"))
     api(project(":hashing"))
 
-    api(libs.jsr305)
-    api(libs.guava)
+    implementation(project(":base-annotations"))
 
-
+    implementation(libs.guava)
+    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
     testImplementation(project(":process-services"))
