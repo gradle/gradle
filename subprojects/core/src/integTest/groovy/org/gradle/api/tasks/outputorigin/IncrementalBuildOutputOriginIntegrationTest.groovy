@@ -22,8 +22,6 @@ import org.gradle.integtests.fixtures.BuildCacheKeyFixture
 import org.gradle.integtests.fixtures.OriginFixture
 import org.gradle.integtests.fixtures.ScopeIdsFixture
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.junit.Rule
 
 class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpec {
@@ -63,8 +61,8 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         then:
         executedAndNotSkipped ":write"
         def firstBuildId = buildInvocationId
-        // No capturing without scan plugin application or build caching
-        buildCacheKey(":write") == null
+        def firstBuildCacheKey = buildCacheKey(":write")
+        firstBuildCacheKey != null
         originBuildInvocationId(":write") == null
 
         when:
@@ -76,7 +74,7 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         firstBuildId != secondBuildId
         with(origin(":write")) {
             buildInvocationId == firstBuildId
-            buildCacheKey == null
+            buildCacheKey == firstBuildCacheKey
         }
 
         when:
@@ -90,6 +88,9 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         def thirdBuildId = buildInvocationId
         firstBuildId != thirdBuildId
         secondBuildId != thirdBuildId
+        def thirdBuildCacheKey = buildCacheKey(":write")
+        thirdBuildCacheKey != firstBuildCacheKey
+        thirdBuildCacheKey != null
         originBuildInvocationId(":write") == null
 
         when:
@@ -97,7 +98,10 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
 
         then:
         executed ":write"
-        originBuildInvocationId(":write") == thirdBuildId
+        with(origin(":write")) {
+            buildInvocationId == thirdBuildId
+            buildCacheKey == thirdBuildCacheKey
+        }
     }
 
     def "tracks different tasks"() {
@@ -210,78 +214,5 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         then:
         skipped(":w")
         originBuildInvocationId(":w") == origin
-    }
-
-    def "exposes origin build cache key when reusing outputs with build cache key"() {
-        given:
-        buildScript """
-            def write = tasks.create("write", WriteProperties) {
-                destinationFile = file("out.properties")
-                properties = [v: 1]
-            }
-        """
-
-        when:
-        applyDevelocityPluginMock()
-        succeeds "write"
-
-        then:
-        executedAndNotSkipped ":write"
-        def firstBuildId = buildInvocationId
-        def firstBuildCacheKey = buildCacheKey(":write")
-        firstBuildCacheKey != null
-        originBuildInvocationId(":write") == null
-
-        when:
-        // No develocity plugin
-        settingsFile.text = ""
-        succeeds "write"
-
-        then:
-        executed ":write"
-        def secondBuildId = buildInvocationId
-        firstBuildId != secondBuildId
-        buildCacheKey(":write") == null
-        with(origin(":write")) {
-            buildInvocationId == firstBuildId
-            buildCacheKey == firstBuildCacheKey
-        }
-
-        when:
-        applyDevelocityPluginMock()
-        buildFile << """
-            write.property("changed", "now")
-        """
-        succeeds "write"
-
-        then:
-        executedAndNotSkipped ":write"
-        def thirdBuildId = buildInvocationId
-        firstBuildId != thirdBuildId
-        secondBuildId != thirdBuildId
-        def thirdBuildCacheKey = buildCacheKey(":write")
-        thirdBuildCacheKey != null
-        originBuildInvocationId(":write") == null
-
-        when:
-        succeeds "write"
-
-        then:
-        skipped ":write"
-        buildCacheKey(":write") == thirdBuildCacheKey
-        with(origin(":write")) {
-            buildInvocationId== thirdBuildId
-            buildCacheKey == thirdBuildCacheKey
-        }
-    }
-
-    private void applyDevelocityPluginMock() {
-        settingsFile << """
-            services.get($GradleEnterprisePluginManager.name).registerAdapter([
-                buildFinished: {},
-                shouldSaveToConfigurationCache: { true },
-                onLoadFromConfigurationCache: {}
-            ] as $GradleEnterprisePluginAdapter.name)
-        """
     }
 }
