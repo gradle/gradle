@@ -89,7 +89,7 @@ fun step1Plugins(target: ProjectInternal, targetScope: ClassLoaderScope, scriptS
                 DefaultPluginRequest(DefaultPluginId.unvalidated(it.id), it.apply, PluginRequestInternal.Origin.OTHER, scriptSource.displayName, null, it.version, null, null, null) }
             val scriptHandler = target.services.get(ScriptHandlerFactory::class.java).create(scriptSource, targetScope)
             target.services.get(PluginRequestApplicator::class.java)
-                .applyPlugins(PluginRequests.of(pluginRequests), PluginRequests.of(emptyList()), scriptHandler, target.pluginManager, targetScope)
+                .applyPlugins(PluginRequests.of(pluginRequests), scriptHandler, target.pluginManager, targetScope)
 
             targetScope.lock()
         }
