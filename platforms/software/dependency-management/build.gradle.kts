@@ -106,6 +106,7 @@ dependencies {
     testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":core-api")))
+    testImplementation(project(":core-jvm"))
     testImplementation(testFixtures(project(":execution")))
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":resources-http")))

@@ -186,6 +186,7 @@ val jvm = platform("jvm") {
     uses(software)
     subproject("code-quality")
     subproject("core-api-jvm")
+    subproject("core-jvm")
     subproject("distributions-jvm")
     subproject("ear")
     subproject("jacoco")

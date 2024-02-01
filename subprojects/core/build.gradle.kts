@@ -123,8 +123,8 @@ dependencies {
     api(libs.jsr305)
     api(libs.nativePlatform)
 
-    implementation(project(":core-api-jvm")) {
-        because("Currently core is the only implementation of all the core-apis.  Eventually, we'd like to have a separate implementation project for each one (i.e. core-jvm).")
+    implementation(project(":core-jvm")) {
+        because("This is temporary, as ideally the core-jvm project would (optionally) depend on the core project.  This would require a base-core project, or some other common dep of both core and core-jvm to hold common code that is not yet created.")
     }
     implementation(project(":input-tracking"))
     implementation(project(":model-groovy"))

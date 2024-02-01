@@ -182,6 +182,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "core-jvm",
+    "path": "platforms/jvm/core-jvm",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "core-platform",
     "path": "subprojects/core-platform",
     "unitTests": false,
