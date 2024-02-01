@@ -22,20 +22,12 @@ package org.gradle.internal.component.resolution.failure.type;
  *
  * @implSpec Extending types should be immutable data classes with no nullable fields.
  */
-public abstract class ResolutionFailure {
-    private final String requestedName;
-
-    public ResolutionFailure(String requestedName) {
-        this.requestedName = requestedName;
-    }
-
+public interface ResolutionFailure {
     /**
      * Returns a human-readable name of the requested component or configuration, for use
      * primarily in error messages.
      *
      * @return the name of the requested component or configuration
      */
-    public String getRequestedName() {
-        return requestedName;
-    }
+    String getRequestedName();
 }

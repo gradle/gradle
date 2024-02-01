@@ -22,12 +22,18 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
  * An abstract {@link ResolutionFailure} that represents the situation when a configuration is requested
  * by name on a project dependency and does not exist on the target project.
  */
-public abstract class AbstractConfigurationSelectionFailure extends ResolutionFailure {
+public abstract class AbstractConfigurationSelectionFailure implements ResolutionFailure {
+    private final String requestedName;
     private final ComponentIdentifier requestedComponent;
 
     public AbstractConfigurationSelectionFailure(String requestedName, ComponentIdentifier requestedComponent) {
-        super(requestedName);
+        this.requestedName = requestedName;
         this.requestedComponent = requestedComponent;
+    }
+
+    @Override
+    public String getRequestedName() {
+        return requestedName;
     }
 
     public ComponentIdentifier getRequestedComponent() {
