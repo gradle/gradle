@@ -168,7 +168,7 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
             config.execute(dependencyConstraint);
         }
 
-        // TODO DependencyConstraint mutation validator?
+        // TODO Use DependencyConstraint mutation validator https://github.com/gradle/gradle/issues/27904
 
         return dependencyConstraint;
     }
