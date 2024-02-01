@@ -138,6 +138,8 @@ import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.instantiation.InstanceGenerator;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.management.DefaultDependencyResolutionManagement;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
@@ -379,8 +381,9 @@ class DependencyManagementBuildScopeServices {
         };
     }
 
-    ResolutionFailureHandler createResolutionFailureProcessor(ObjectFactory objectFactory) {
-        ResolutionFailureDescriberRegistry failureDescriberRegistry = ResolutionFailureDescriberRegistry.standardRegistry(objectFactory);
+    ResolutionFailureHandler createResolutionFailureProcessor(InstantiatorFactory instantiatorFactory, ServiceRegistry serviceRegistry) {
+        InstanceGenerator instanceGenerator = instantiatorFactory.inject(serviceRegistry);
+        ResolutionFailureDescriberRegistry failureDescriberRegistry = ResolutionFailureDescriberRegistry.standardRegistry(instanceGenerator);
         return new ResolutionFailureHandler(failureDescriberRegistry);
     }
 

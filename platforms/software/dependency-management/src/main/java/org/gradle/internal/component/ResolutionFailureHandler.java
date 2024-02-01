@@ -70,8 +70,10 @@ import java.util.Set;
  * returning the result of running the describer.  It maintains a registry of <strong>default</strong>
  * describers for each failure type; but will first consult the {@link AttributesSchemaInternal} for
  * any custom describers registered on that schema for a given failure type.
+ *
+ * Class is non-{@code final} for testing purposes.
  */
-public final class ResolutionFailureHandler {
+public class ResolutionFailureHandler {
     public static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
 
     private final ResolutionFailureDescriberRegistry defaultFailureDescribers;

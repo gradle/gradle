@@ -36,6 +36,7 @@ import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
@@ -50,8 +51,6 @@ import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.component.model.ExcludeMetadata
 import org.gradle.internal.component.model.ModuleConfigurationMetadata
-import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry
-import org.gradle.util.TestUtil
 
 class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     final ModuleExclusions moduleExclusions = new ModuleExclusions()
@@ -200,7 +199,7 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     }
 
     def "fails when compile configuration is not defined in target component"() {
-        def resolutionFailureHandler = new ResolutionFailureHandler(ResolutionFailureDescriberRegistry.standardRegistry(TestUtil.objectFactory()))
+        def resolutionFailureHandler = new ResolutionFailureHandler(DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry())
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def fromCompile = Stub(ConfigurationMetadata)
@@ -217,7 +216,7 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     }
 
     def "fails when runtime configuration is not defined in target component"() {
-        def resolutionFailureHandler = new ResolutionFailureHandler(ResolutionFailureDescriberRegistry.standardRegistry(TestUtil.objectFactory()))
+        def resolutionFailureHandler = new ResolutionFailureHandler(DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry())
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def fromRuntime = Stub(ConfigurationMetadata)

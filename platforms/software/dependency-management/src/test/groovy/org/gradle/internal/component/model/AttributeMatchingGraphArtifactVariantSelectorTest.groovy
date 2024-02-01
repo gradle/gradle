@@ -24,6 +24,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.capabilities.Capability
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
@@ -33,7 +34,6 @@ import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
-import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.TextUtil
@@ -463,7 +463,7 @@ All of them match the consumer attributes:
     }
 
     private void performSelection() {
-        ResolutionFailureDescriberRegistry failureDescriberRegistry = ResolutionFailureDescriberRegistry.standardRegistry(TestUtil.objectFactory())
+        def failureDescriberRegistry = DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry()
         GraphVariantSelector variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry))
         selected = variantSelector.selectVariants(
             consumerAttributes,

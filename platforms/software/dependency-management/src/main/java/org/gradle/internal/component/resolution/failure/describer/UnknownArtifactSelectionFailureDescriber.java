@@ -17,7 +17,6 @@
 package org.gradle.internal.component.resolution.failure.describer;
 
 import org.gradle.internal.component.ArtifactVariantSelectionException;
-import org.gradle.internal.component.resolution.failure.type.RequestedConfigurationNotFoundFailure;
 import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
 
 /**

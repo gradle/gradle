@@ -132,6 +132,7 @@ import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.NonLockingMutableWorkspaceProvider;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.locking.DefaultDependencyLockingHandler;
@@ -218,8 +219,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(DefaultConfigurationFactory.class);
         }
 
-        AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, PlatformSupport platformSupport, ObjectFactory objectFactory) {
-            DefaultAttributesSchema attributesSchema = instantiatorFactory.decorateLenient().newInstance(DefaultAttributesSchema.class, instantiatorFactory, isolatableFactory, objectFactory);
+        AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, PlatformSupport platformSupport) {
+            DefaultAttributesSchema attributesSchema = instantiatorFactory.decorateLenient().newInstance(DefaultAttributesSchema.class, instantiatorFactory, isolatableFactory);
             platformSupport.configureSchema(attributesSchema);
             GradlePluginVariantsSupport.configureSchema(attributesSchema);
             return attributesSchema;
@@ -489,8 +490,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultGlobalDependencyResolutionRules(componentMetadataProcessorFactory, moduleMetadataProcessor, rules);
         }
 
-        ResolutionFailureHandler createResolutionFailureProcessor(ObjectFactory objectFactory) {
-            ResolutionFailureDescriberRegistry failureDescriberRegistry = ResolutionFailureDescriberRegistry.standardRegistry(objectFactory);
+        ResolutionFailureHandler createResolutionFailureProcessor(InstantiatorFactory instantiatorFactory, ServiceRegistry serviceRegistry) {
+            InstanceGenerator instanceGenerator = instantiatorFactory.inject(serviceRegistry);
+            ResolutionFailureDescriberRegistry failureDescriberRegistry = ResolutionFailureDescriberRegistry.standardRegistry(instanceGenerator);
             return new ResolutionFailureHandler(failureDescriberRegistry);
         }
 

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.resolution.failure;
 
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.component.resolution.failure.describer.AmbiguousArtifactTransformFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.AmbiguousArtifactVariantsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.AmbiguousGraphVariantsFailureDescriber;
@@ -43,6 +42,7 @@ import org.gradle.internal.component.resolution.failure.type.RequestedConfigurat
 import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
 import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
 import org.gradle.internal.component.resolution.failure.type.VariantAwareAmbiguousResolutionFailure;
+import org.gradle.internal.instantiation.InstanceGenerator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,32 +54,32 @@ import java.util.List;
  * by the {@link ResolutionFailure} type they can describe.
  */
 public final class ResolutionFailureDescriberRegistry {
-    private final ObjectFactory objectFactory;
+    private final InstanceGenerator instanceGenerator;
     private final LinkedHashMap<Class<? extends ResolutionFailure>, List<ResolutionFailureDescriber<?, ?>>> describers = new LinkedHashMap<>();
 
-    private ResolutionFailureDescriberRegistry(ObjectFactory objectFactory) {
-        this.objectFactory = objectFactory;
+    private ResolutionFailureDescriberRegistry(InstanceGenerator instanceGenerator) {
+        this.instanceGenerator = instanceGenerator;
     }
 
     /**
      * Creates a new, empty registry of {@link ResolutionFailureDescriber}s.
      *
-     * @param objectFactory The object factory to use to create describers
+     * @param instanceGenerator The instance generator to use to create describers
      * @return a new, empty registry instance
      */
-    public static ResolutionFailureDescriberRegistry emptyRegistry(ObjectFactory objectFactory) {
-        return new ResolutionFailureDescriberRegistry(objectFactory);
+    public static ResolutionFailureDescriberRegistry emptyRegistry(InstanceGenerator instanceGenerator) {
+        return new ResolutionFailureDescriberRegistry(instanceGenerator);
     }
 
     /**
      * Creates a new, registry of {@link ResolutionFailureDescriber}s containing the default internal list of describers
      * that can describe the complete set of {@link ResolutionFailure} types used by Gradle.
      *
-     * @param objectFactory The object factory to use to create describers
+     * @param instanceGenerator The instance generator to use to create describers
      * @return a new registry instance with the default describers registered
      */
-    public static ResolutionFailureDescriberRegistry standardRegistry(ObjectFactory objectFactory) {
-        ResolutionFailureDescriberRegistry registry = new ResolutionFailureDescriberRegistry(objectFactory);
+    public static ResolutionFailureDescriberRegistry standardRegistry(InstanceGenerator instanceGenerator) {
+        ResolutionFailureDescriberRegistry registry = new ResolutionFailureDescriberRegistry(instanceGenerator);
 
         registry.registerDescriber(VariantAwareAmbiguousResolutionFailure.class, AmbiguousGraphVariantsFailureDescriber.class);
         registry.registerDescriber(IncompatibleGraphVariantFailure.class, IncompatibleGraphVariantsFailureDescriber.class);
@@ -126,7 +126,7 @@ public final class ResolutionFailureDescriberRegistry {
      * @param <FAILURE> The type of failure to describe
      */
     public <FAILURE extends ResolutionFailure> void registerDescriber(Class<FAILURE> failureType, Class<? extends ResolutionFailureDescriber<?, FAILURE>> describerType) {
-        ResolutionFailureDescriber<?, ?> describer = objectFactory.newInstance(describerType);
+        ResolutionFailureDescriber<?, ?> describer = instanceGenerator.newInstance(describerType);
         describers.computeIfAbsent(failureType, k -> new ArrayList<>()).add(describer);
     }
 }

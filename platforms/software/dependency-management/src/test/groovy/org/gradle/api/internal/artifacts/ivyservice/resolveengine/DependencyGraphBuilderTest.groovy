@@ -71,7 +71,6 @@ import org.gradle.internal.component.model.GraphVariantSelector
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
-import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry
 import org.gradle.internal.model.CalculatedValue
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationQueue
@@ -127,7 +126,7 @@ class DependencyGraphBuilderTest extends Specification {
     def versionSelectorScheme = new DefaultVersionSelectorScheme(versionComparator, new VersionParser())
     def desugaring = new AttributeDesugaring(AttributeTestUtil.attributesFactory())
     def resolveStateFactory = new LocalComponentGraphResolveStateFactory(desugaring, new ComponentIdGenerator())
-    def failureDescriberRegistry = ResolutionFailureDescriberRegistry.standardRegistry(TestUtil.objectFactory());
+    def failureDescriberRegistry = DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry()
     def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry))
 
     DependencyGraphBuilder builder

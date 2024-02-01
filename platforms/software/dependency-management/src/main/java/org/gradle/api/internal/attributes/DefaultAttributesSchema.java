@@ -20,7 +20,6 @@ import com.google.common.base.Objects;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeSelectionSchema;
@@ -59,10 +58,10 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     private final Set<Attribute<?>> precedence = new LinkedHashSet<>();
     private final ResolutionFailureDescriberRegistry failureDescriberRegistry;
 
-    public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, ObjectFactory objectFactory) {
+    public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
-        this.failureDescriberRegistry = ResolutionFailureDescriberRegistry.emptyRegistry(objectFactory);
+        this.failureDescriberRegistry = ResolutionFailureDescriberRegistry.emptyRegistry(instantiatorFactory.inject());
     }
 
     @Override

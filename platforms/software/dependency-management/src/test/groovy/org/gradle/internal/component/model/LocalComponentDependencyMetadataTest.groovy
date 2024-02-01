@@ -25,6 +25,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
@@ -37,7 +38,6 @@ import org.gradle.internal.component.IncompatibleGraphVariantsException
 import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.ImmutableCapabilities
-import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
@@ -55,7 +55,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     def setup() {
         attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory(), TestUtil.objectFactory())
         factory = AttributeTestUtil.attributesFactory()
-        def failureDescriberRegistry = ResolutionFailureDescriberRegistry.standardRegistry(TestUtil.objectFactory())
+        def failureDescriberRegistry = DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry()
         variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry))
     }
 
