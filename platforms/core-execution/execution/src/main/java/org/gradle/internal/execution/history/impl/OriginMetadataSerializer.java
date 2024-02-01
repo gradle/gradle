@@ -33,7 +33,7 @@ public class OriginMetadataSerializer extends AbstractSerializer<OriginMetadata>
     @Override
     public OriginMetadata read(Decoder decoder) throws IOException {
         String buildInvocationId = decoder.readString();
-        HashCode buildCacheKey = decoder.readBoolean() ? hashCodeSerializer.read(decoder) : null;
+        HashCode buildCacheKey = hashCodeSerializer.read(decoder);
         Duration executionTime = Duration.ofMillis(decoder.readSmallLong());
         return new OriginMetadata(
             buildInvocationId,
@@ -45,11 +45,7 @@ public class OriginMetadataSerializer extends AbstractSerializer<OriginMetadata>
     @Override
     public void write(Encoder encoder, OriginMetadata originMetadata) throws IOException {
         encoder.writeString(originMetadata.getBuildInvocationId());
-        boolean hasBuildCacheKey = originMetadata.getBuildCacheKey() != null;
-        encoder.writeBoolean(hasBuildCacheKey);
-        if (hasBuildCacheKey) {
-            hashCodeSerializer.write(encoder, originMetadata.getBuildCacheKey());
-        }
+        hashCodeSerializer.write(encoder, originMetadata.getBuildCacheKey());
         encoder.writeSmallLong(originMetadata.getExecutionTime().toMillis());
     }
 

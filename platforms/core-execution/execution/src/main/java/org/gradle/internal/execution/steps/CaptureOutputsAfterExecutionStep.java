@@ -87,7 +87,7 @@ public class CaptureOutputsAfterExecutionStep<C extends WorkspaceContext & Cachi
                         (CachingState.Enabled enabled) -> Optional.of(enabled.getKey()),
                         CachingState.Disabled::getKey)
                     .map(cacheKey -> HashCode.fromBytes(cacheKey.toByteArray()))
-                    .orElse(null);
+                    .orElseThrow(() -> new IllegalStateException("No cache key even though we have a before execution state"));
                 OriginMetadata originMetadata = new OriginMetadata(
                     buildInvocationScopeId.asString(),
                     buildCacheKey,

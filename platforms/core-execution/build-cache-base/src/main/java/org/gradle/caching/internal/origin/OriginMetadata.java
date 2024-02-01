@@ -18,7 +18,6 @@ package org.gradle.caching.internal.origin;
 
 import org.gradle.internal.hash.HashCode;
 
-import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.Objects;
 
@@ -28,7 +27,7 @@ public class OriginMetadata {
     private final HashCode buildCacheKey;
     private final Duration executionTime;
 
-    public OriginMetadata(String buildInvocationId, @Nullable HashCode buildCacheKey, Duration executionTime) {
+    public OriginMetadata(String buildInvocationId, HashCode buildCacheKey, Duration executionTime) {
         this.buildInvocationId = buildInvocationId;
         this.buildCacheKey = buildCacheKey;
         this.executionTime = executionTime;
@@ -38,7 +37,6 @@ public class OriginMetadata {
         return buildInvocationId;
     }
 
-    @Nullable
     public HashCode getBuildCacheKey() {
         return buildCacheKey;
     }
