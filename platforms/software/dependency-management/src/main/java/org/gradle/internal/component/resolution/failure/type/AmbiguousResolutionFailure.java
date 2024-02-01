@@ -23,7 +23,11 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 
 import java.util.List;
 
-public class AmbiguousResolutionFailure extends UnmatchingAttributesSelectionFailure {
+/**
+ * A {@link ResolutionFailure} that represents the situation when multiple variants are
+ * available that would satisfy a dependency selection request.
+ */
+public class AmbiguousResolutionFailure extends AbstractIncompatibleAttributesSelectionFailure {
     private final ImmutableList<ResolutionCandidateAssessor.AssessedCandidate> candidates;
 
     public AmbiguousResolutionFailure(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {

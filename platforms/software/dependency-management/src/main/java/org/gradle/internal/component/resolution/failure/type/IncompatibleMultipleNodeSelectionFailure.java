@@ -22,10 +22,14 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 
 import java.util.List;
 
-public class InvalidMultipleVariantsSelectionFailure extends VariantSelectionFailure {
+/**
+ * A {@link ResolutionFailure} that represents the situation when multiple incompatible variants of a single component
+ * are selecting during a request.
+ */
+public final class IncompatibleMultipleNodeSelectionFailure extends AbstractVariantSelectionFailure {
     private final ImmutableList<AssessedCandidate> assessedCandidates;
 
-    public InvalidMultipleVariantsSelectionFailure(AttributesSchemaInternal schema, String requestedName, List<AssessedCandidate> assessedCandidates) {
+    public IncompatibleMultipleNodeSelectionFailure(AttributesSchemaInternal schema, String requestedName, List<AssessedCandidate> assessedCandidates) {
         super(schema, requestedName);
         this.assessedCandidates = ImmutableList.copyOf(assessedCandidates);
     }

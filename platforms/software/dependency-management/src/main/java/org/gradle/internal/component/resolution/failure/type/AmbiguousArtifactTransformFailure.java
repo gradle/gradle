@@ -23,7 +23,11 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 
 import java.util.List;
 
-public class AmbiguousArtifactTransformFailure extends UnmatchingAttributesSelectionFailure {
+/**
+ * A {@link ResolutionFailure} that represents the situation when multiple artifact transforms are
+ * available that would satisfy a dependency selection request.
+ */
+public final class AmbiguousArtifactTransformFailure extends AbstractIncompatibleAttributesSelectionFailure {
     private final ImmutableList<TransformedVariant> transformedVariants;
 
     public AmbiguousArtifactTransformFailure(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes, List<TransformedVariant> transformedVariants) {

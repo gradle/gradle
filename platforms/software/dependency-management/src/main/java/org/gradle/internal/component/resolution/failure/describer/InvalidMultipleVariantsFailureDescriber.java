@@ -22,20 +22,20 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.IncompatibleArtifactVariantsException;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
-import org.gradle.internal.component.resolution.failure.type.InvalidMultipleVariantsSelectionFailure;
+import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodeSelectionFailure;
 
 import java.util.Comparator;
 import java.util.List;
 
 /**
- * A {@link ResolutionFailureDescriber} that describes an {@link InvalidMultipleVariantsSelectionFailure}.
+ * A {@link ResolutionFailureDescriber} that describes an {@link IncompatibleMultipleNodeSelectionFailure}.
  */
-public abstract class InvalidMultipleVariantsFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleArtifactVariantsException, InvalidMultipleVariantsSelectionFailure> {
+public abstract class InvalidMultipleVariantsFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleArtifactVariantsException, IncompatibleMultipleNodeSelectionFailure> {
     private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
     private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
 
     @Override
-    public IncompatibleArtifactVariantsException describeFailure(InvalidMultipleVariantsSelectionFailure failure) {
+    public IncompatibleArtifactVariantsException describeFailure(IncompatibleMultipleNodeSelectionFailure failure) {
         String msg = buildIncompatibleArtifactVariantsFailureMsg(failure);
         IncompatibleArtifactVariantsException result = new IncompatibleArtifactVariantsException(msg);
         suggestSpecificDocumentation(result, INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION);
@@ -43,7 +43,7 @@ public abstract class InvalidMultipleVariantsFailureDescriber extends AbstractRe
         return result;
     }
 
-    private String buildIncompatibleArtifactVariantsFailureMsg(InvalidMultipleVariantsSelectionFailure failure) {
+    private String buildIncompatibleArtifactVariantsFailureMsg(IncompatibleMultipleNodeSelectionFailure failure) {
         StringBuilder sb = new StringBuilder("Multiple incompatible variants of ")
             .append(failure.getRequestedName())
             .append(" were selected:\n");

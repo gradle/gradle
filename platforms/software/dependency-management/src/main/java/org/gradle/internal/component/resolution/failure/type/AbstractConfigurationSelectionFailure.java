@@ -18,10 +18,14 @@ package org.gradle.internal.component.resolution.failure.type;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
-public class ConfigurationSelectionFailure extends ResolutionFailure {
+/**
+ * An abstract {@link ResolutionFailure} that represents the situation when a configuration is requested
+ * by name on a project dependency and does not exist on the target project.
+ */
+public abstract class AbstractConfigurationSelectionFailure extends ResolutionFailure {
     private final ComponentIdentifier requestedComponent;
 
-    public ConfigurationSelectionFailure(String requestedName, ComponentIdentifier requestedComponent) {
+    public AbstractConfigurationSelectionFailure(String requestedName, ComponentIdentifier requestedComponent) {
         super(requestedName);
         this.requestedComponent = requestedComponent;
     }

@@ -23,7 +23,11 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 
 import java.util.List;
 
-public class IncompatibleResolutionFailure extends UnmatchingAttributesSelectionFailure {
+/**
+ * A {@link ResolutionFailure} that represents the generic situation when no variants can
+ * be found in the list of candidates that are compatible with a request.
+ */
+public class IncompatibleResolutionFailure extends AbstractIncompatibleAttributesSelectionFailure {
     private final ImmutableList<ResolutionCandidateAssessor.AssessedCandidate> candidates;
 
     public IncompatibleResolutionFailure(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {

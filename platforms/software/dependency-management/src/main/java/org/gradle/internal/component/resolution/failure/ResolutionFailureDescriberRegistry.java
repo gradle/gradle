@@ -36,7 +36,7 @@ import org.gradle.internal.component.resolution.failure.type.ExternalRequestedCo
 import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleRequestedConfigurationFailure;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleResolutionFailure;
-import org.gradle.internal.component.resolution.failure.type.InvalidMultipleVariantsSelectionFailure;
+import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodeSelectionFailure;
 import org.gradle.internal.component.resolution.failure.type.NoMatchingCapabilitiesFailure;
 import org.gradle.internal.component.resolution.failure.type.RequestedConfigurationNotFoundFailure;
 import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
@@ -86,7 +86,7 @@ public final class ResolutionFailureDescriberRegistry {
 
         registry.registerDescriber(AmbiguousResolutionFailure.class, AmbiguousArtifactVariantsFailureDescriber.class);
         registry.registerDescriber(IncompatibleResolutionFailure.class, IncompatibleArtifactVariantsFailureDescriber.class);
-        registry.registerDescriber(InvalidMultipleVariantsSelectionFailure.class, InvalidMultipleVariantsFailureDescriber.class);
+        registry.registerDescriber(IncompatibleMultipleNodeSelectionFailure.class, InvalidMultipleVariantsFailureDescriber.class);
         registry.registerDescriber(AmbiguousArtifactTransformFailure.class, AmbiguousArtifactTransformFailureDescriber.class);
 
         registry.registerDescriber(IncompatibleRequestedConfigurationFailure.class, IncompatibleRequestedConfigurationFailureDescriber.class);

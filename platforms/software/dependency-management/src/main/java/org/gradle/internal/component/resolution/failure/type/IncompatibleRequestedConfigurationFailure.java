@@ -22,7 +22,11 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 
 import java.util.List;
 
-public class IncompatibleRequestedConfigurationFailure extends IncompatibleResolutionFailure {
+/**
+ * A {@link ResolutionFailure} that specializes {@link IncompatibleResolutionFailure} to represent the situation when a configuration is
+ * requested by name but its attributes are not compatible with the request.
+ */
+public final class IncompatibleRequestedConfigurationFailure extends IncompatibleResolutionFailure {
     public IncompatibleRequestedConfigurationFailure(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
         super(schema, requestedName, requestedAttributes, candidates);
     }

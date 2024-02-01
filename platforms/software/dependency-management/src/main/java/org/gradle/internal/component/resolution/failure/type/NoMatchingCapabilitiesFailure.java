@@ -23,8 +23,11 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 
 import java.util.Collection;
 import java.util.List;
-
-public class NoMatchingCapabilitiesFailure extends VariantSelectionFailure {
+/**
+ * A {@link ResolutionFailure} that represents the situation when no variants can
+ * be found in the list of candidates that have the requested capabilities.
+ */
+public final class NoMatchingCapabilitiesFailure extends AbstractVariantSelectionFailure {
     private final ComponentGraphResolveMetadata targetComponent;
     private final Collection<? extends Capability> requestedCapabilities;
     private final List<AssessedCandidate> candidates;

@@ -18,7 +18,13 @@ package org.gradle.internal.component.resolution.failure.type;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
-public class ConfigurationNotConsumableFailure extends ConfigurationSelectionFailure {
+/**
+ * A {@link ResolutionFailure} that represents the situation when the selected configuration
+ * is not consumable.
+ *
+ * This is exclusive to project dependencies when a configuration is requested by name.
+ */
+public final class ConfigurationNotConsumableFailure extends AbstractConfigurationSelectionFailure {
     public ConfigurationNotConsumableFailure(String requestedName, ComponentIdentifier requestedComponent) {
         super(requestedName, requestedComponent);
     }

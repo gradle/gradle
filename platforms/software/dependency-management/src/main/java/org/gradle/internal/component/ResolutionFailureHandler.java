@@ -44,7 +44,7 @@ import org.gradle.internal.component.resolution.failure.type.ExternalRequestedCo
 import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleRequestedConfigurationFailure;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleResolutionFailure;
-import org.gradle.internal.component.resolution.failure.type.InvalidMultipleVariantsSelectionFailure;
+import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodeSelectionFailure;
 import org.gradle.internal.component.resolution.failure.type.NoMatchingCapabilitiesFailure;
 import org.gradle.internal.component.resolution.failure.type.RequestedConfigurationNotFoundFailure;
 import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
@@ -71,7 +71,7 @@ import java.util.Set;
  * describers for each failure type; but will first consult the {@link AttributesSchemaInternal} for
  * any custom describers registered on that schema for a given failure type.
  *
- * Class is non-{@code final} for testing purposes.
+ * Class is non-{@code final} for testing via stubbing.
  */
 public class ResolutionFailureHandler {
     public static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
@@ -110,7 +110,7 @@ public class ResolutionFailureHandler {
     public AbstractVariantSelectionException incompatibleArtifactVariantsFailure(AttributesSchemaInternal schema, ComponentState selectedComponent, Set<NodeState> incompatibleNodes) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(ImmutableAttributes.EMPTY, schema.matcher());
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessNodeStates(incompatibleNodes);
-        InvalidMultipleVariantsSelectionFailure failure = new InvalidMultipleVariantsSelectionFailure(schema, selectedComponent.toString(), assessedCandidates);
+        IncompatibleMultipleNodeSelectionFailure failure = new IncompatibleMultipleNodeSelectionFailure(schema, selectedComponent.toString(), assessedCandidates);
         return describeFailure(schema, failure);
     }
     // endregion Artifact Variant Selection Failures

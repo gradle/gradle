@@ -23,7 +23,11 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 
 import java.util.List;
 
-public class VariantAwareAmbiguousResolutionFailure extends AmbiguousResolutionFailure {
+/**
+ * A specialization of {@link AmbiguousResolutionFailure} that represents the situation when multiple variants are
+ * available that would satisfy a dependency selection request during a variant-aware matching scenario.
+ */
+public final class VariantAwareAmbiguousResolutionFailure extends AmbiguousResolutionFailure {
     private final ComponentGraphResolveMetadata targetComponent;
 
     public VariantAwareAmbiguousResolutionFailure(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates, ComponentGraphResolveMetadata targetComponent) {

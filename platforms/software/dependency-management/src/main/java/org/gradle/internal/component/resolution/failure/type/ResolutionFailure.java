@@ -29,6 +29,12 @@ public abstract class ResolutionFailure {
         this.requestedName = requestedName;
     }
 
+    /**
+     * Returns a human-readable name of the requested component or configuration, for use
+     * primarily in error messages.
+     *
+     * @return the name of the requested component or configuration
+     */
     public String getRequestedName() {
         return requestedName;
     }

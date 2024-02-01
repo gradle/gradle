@@ -18,7 +18,11 @@ package org.gradle.internal.component.resolution.failure.type;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
-public class ExternalRequestedConfigurationNotFoundFailure extends RequestedConfigurationNotFoundFailure {
+/**
+ * A {@link ResolutionFailure} that represents a specialization of {@link RequestedConfigurationNotFoundFailure} when
+ * a configuration is requested by name on an external dependency and does not exist on the target component.
+ */
+public final class ExternalRequestedConfigurationNotFoundFailure extends RequestedConfigurationNotFoundFailure {
     private final ComponentIdentifier fromComponent;
     private final String fromConfigurationName;
 

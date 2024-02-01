@@ -20,10 +20,14 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-public class UnmatchingAttributesSelectionFailure extends VariantSelectionFailure {
+/**
+ * An abstract {@link ResolutionFailure} that represents the situation when a requested variant has attributes
+ * that are not compatible with any of the available variants.
+ */
+public abstract class AbstractIncompatibleAttributesSelectionFailure extends AbstractVariantSelectionFailure {
     private final ImmutableAttributes requestedAttributes;
 
-    public UnmatchingAttributesSelectionFailure(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes) {
+    public AbstractIncompatibleAttributesSelectionFailure(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes) {
         super(schema, requestedName);
         this.requestedAttributes = requestedAttributes.asImmutable();
     }

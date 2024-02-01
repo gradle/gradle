@@ -23,7 +23,11 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 
 import java.util.List;
 
-public class IncompatibleGraphVariantFailure extends IncompatibleResolutionFailure {
+/**
+ * A {@link ResolutionFailure} that specializes {@link IncompatibleResolutionFailure} to represent a
+ * failure to select a variant for a component when building a dependency resolution graph.
+ */
+public final class IncompatibleGraphVariantFailure extends IncompatibleResolutionFailure {
     private ComponentGraphResolveMetadata targetComponent;
 
     public IncompatibleGraphVariantFailure(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates, ComponentGraphResolveMetadata targetComponent) {
